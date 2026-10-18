@@ -22,7 +22,55 @@ def render(fig, dest):
         return maps(fig, dest)
     if kind == 'pies':
         return pies(fig, dest)
+    if kind == 'diagram':
+        return diagram(fig, dest)
     raise ValueError(f'unknown figure type {kind}')
+
+
+def diagram(fig, dest):
+    """A labelled schematic (for diagram-labelling questions): simple shapes, air or water flows drawn as arrowed paths,
+    and numbered labels joined to the part they name by a leader line."""
+    from matplotlib.patches import Rectangle, Polygon
+    plt = _plt()
+    (x0, x1), (y0, y1) = fig.get('xlim', (0, 100)), fig.get('ylim', (0, 80))
+    W = 7.4
+    f, ax = plt.subplots(figsize=(W, W * (y1 - y0) / (x1 - x0) + 0.6), dpi=200)
+    ax.set_xlim(x0, x1); ax.set_ylim(y0, y1); ax.set_aspect('equal'); ax.axis('off')
+    fills = {'building': ('#FFFFFF', INK), 'water': ('#DBEAFE', '#3B82F6'), 'ground': ('#EDE6DA', '#A8987D'),
+             'dark': (INK, INK), 'wall': ('#F1F5F9', INK), 'sky': ('#FFFFFF', '#FFFFFF')}
+    for s in fig.get('shapes', []):
+        fc, ec = fills[s.get('kind', 'building')]
+        if 'rect' in s:
+            x, y, w, h = s['rect']
+            ax.add_patch(Rectangle((x, y), w, h, fc=fc, ec=ec, lw=s.get('lw', 1.4), zorder=s.get('z', 1)))
+        elif 'poly' in s:
+            ax.add_patch(Polygon(s['poly'], closed=True, fc=fc, ec=ec, lw=s.get('lw', 1.4), zorder=s.get('z', 1)))
+        elif 'line' in s:
+            xs, ys = zip(*s['line'])
+            ax.plot(xs, ys, color=ec, lw=s.get('lw', 1.6), zorder=s.get('z', 2))
+        if s.get('text'):
+            x, y = s.get('text_at') or ((s['rect'][0] + s['rect'][2] / 2, s['rect'][1] + s['rect'][3] / 2) if 'rect' in s else s['poly'][0])
+            ax.text(x, y, s['text'], ha='center', va='center', fontsize=8.5, color=MUTED, style='italic', zorder=6)
+    flow_colour = {'cool': '#0E7490', 'warm': '#C2410C', 'water': '#3B82F6'}
+    for fl in fig.get('flows', []):
+        pts = fl['points']; c = flow_colour.get(fl.get('kind', 'cool'), INK)
+        xs, ys = zip(*pts)
+        ax.plot(xs[:-1] + (xs[-1],), ys, color=c, lw=2.2, ls=fl.get('ls', '-'), zorder=4, solid_capstyle='round')
+        ax.annotate('', xy=pts[-1], xytext=pts[-2], arrowprops=dict(arrowstyle='-|>', color=c, lw=2.2, mutation_scale=16), zorder=5)
+    for lb in fig.get('labels', []):
+        ha = lb.get('ha', 'left')
+        if lb.get('to'):
+            ax.annotate('', xy=lb['to'], xytext=lb['at'], arrowprops=dict(arrowstyle='-', color=MUTED, lw=0.9, shrinkA=2, shrinkB=0), zorder=6)
+            ax.plot(*lb['to'], marker='o', ms=3, color=MUTED, zorder=7)
+        ax.text(lb['at'][0], lb['at'][1], lb['text'], ha=ha, va='center', fontsize=9.5, color=INK, zorder=8,
+                fontweight='bold' if lb.get('question') else 'normal',
+                bbox=dict(boxstyle='round,pad=0.25', fc='white', ec=PRIMARY if lb.get('question') else 'none', lw=0.9))
+    ax.set_title(fig['title'], fontsize=13, fontweight='bold', color=INK, loc='left')
+    if fig.get('key'):
+        ax.text(x1, y0 + 1, fig['key'], ha='right', va='bottom', fontsize=8.2, color=MUTED)
+    f.text(0.01, 0.01, fig.get('note', ''), fontsize=8.5, color=MUTED)
+    f.tight_layout(rect=(0, 0.03, 1, 1)); f.savefig(dest); plt.close(f)
+    return dest
 
 
 def process(fig, dest):
@@ -113,7 +161,7 @@ def pies(fig, dest):
                                    textprops=dict(color='white', fontsize=9.5, fontweight='bold'))
         ax.set_title(ch['title'], fontsize=11.5, fontweight='bold', color=INK)
         ax.set_aspect('equal')
-    f.legend(wedges, cats, loc='upper center', ncol=min(len(cats), 4), frameon=False, bbox_to_anchor=(0.5, 0.96 if not table else 0.98), fontsize=9.5)
+    f.legend(wedges, cats, loc='upper center', ncol=min(len(cats), 5), frameon=False, bbox_to_anchor=(0.5, 0.96 if not table else 0.98), fontsize=9.5)
     if table:
         ax = f.add_subplot(gs[1, :]); ax.axis('off')
         t = ax.table(cellText=table['rows'], colLabels=table['columns'], loc='center', cellLoc='center')

@@ -1,0 +1,1540 @@
+{
+ "schema": "bh-ielts-mock-source/1",
+ "code": "IELTS-M3",
+ "number": 3,
+ "title": "Mock Test 3",
+ "version": "0.1.0",
+ "status": "Draft for owner review: not approved for classroom use",
+ "test_type": "Academic",
+ "bibles": {
+  "diagnostic": "1.10.0",
+  "lessons": "1.1.0",
+  "visual": "1.1.0"
+ },
+ "rights": "Original Brains Heist LLC practice test, AI-assisted. All people, places, organisations and data are fictional. Not official IELTS material and not endorsed by IELTS.",
+ "timing": {
+  "listening_minutes": 30,
+  "transfer_minutes": 10,
+  "reading_minutes": 60,
+  "writing_minutes": 60,
+  "speaking_minutes": "11-14 per candidate"
+ },
+ "scoring": {
+  "listening": "One mark per correct answer; raw score out of 40.",
+  "reading": "One mark per correct answer; raw score out of 40.",
+  "writing": "Teacher feedback on the four Writing criteria for each task; Task 2 counts for more than Task 1. No band is awarded from this mock.",
+  "speaking": "Teacher feedback on the four Speaking criteria from what is heard live or recorded. No band is awarded from this mock.",
+  "bands": "This mock reports raw scores and criterion feedback only. Brains Heist has no validated conversion from these forms to IELTS bands (Diagnostic Bible 2.2-2.3, 16.6); do not convert or average them."
+ },
+ "listening": {
+  "notice": "This recording is copyright Brains Heist LLC. All rights reserved.",
+  "opening": "You will hear a number of different recordings, and you will have to answer questions on what you hear. There will be time for you to read the instructions and questions, and you will have a chance to check your work. All the recordings will be played once only. The test is in four parts. Now turn to Part 1.",
+  "closing": "That is the end of the listening test. In the paper-based test, you now have ten minutes to transfer your answers to the answer sheet.",
+  "parts": [
+   {
+    "part": 1,
+    "title": "Booking a children's holiday club",
+    "intro": "Part 1. You will hear a father phoning a leisure centre about a holiday activity club for children.",
+    "voices": {
+     "instruction": "Tom",
+     "LINDA": "Kylie",
+     "MARK": "Benjamin"
+    },
+    "segments": [
+     {
+      "questions": "1 to 5",
+      "reading_seconds": 30,
+      "lines": [
+       "LINDA: Good morning, Westfield Leisure Centre. Linda speaking. How can I help?",
+       "MARK: Hi. I'm ringing about the holiday activity club in the summer. My son's seven and my daughter's ten, and I wanted to find out a bit more before I book.",
+       "LINDA: Of course. Well, the club runs for the whole of the school holidays, Monday to Friday. It's for children from five up to eleven. We used to take children up to twelve, but we found the older ones wanted different activities, so now there's a separate youth programme for them.",
+       "MARK: That's fine, both of mine are in the right range. Where does it actually take place? Is it in the main sports hall?",
+       "LINDA: Most of the indoor activities are in the sports hall, yes. But in the morning, please don't bring the children to the main entrance. Parents drop them off at the side entrance, next to the car park, where the staff sign them in.",
+       "MARK: The side entrance. OK. And what time does it start?",
+       "LINDA: Drop-off is from eight thirty. It used to be nine, but a lot of parents asked for an earlier start so they could get to work on time. The club finishes at four, and there's an after-club option until half past five if you need it.",
+       "MARK: That's really helpful. What's the cost?",
+       "LINDA: For leisure centre members it's twenty-four pounds a day, per child. For non-members it's twenty-eight.",
+       "MARK: We're members, so twenty-four. Are there any discounts?",
+       "LINDA: There are. If you book a whole week, Monday to Friday, you get ten per cent off. There's also a reduction for a second child, but I'm afraid that only applies to non-members.",
+       "MARK: Right. I think we'll book a whole week, then."
+      ]
+     },
+     {
+      "questions": "6 to 10",
+      "reading_seconds": 30,
+      "lines": [
+       "MARK: What do the children need to bring each day?",
+       "LINDA: They'll need a packed lunch. We provide drinks and a piece of fruit in the afternoon, but not a full meal. And they should wear trainers, because most of the activities are physical. We don't allow open shoes, even in hot weather.",
+       "MARK: OK. And what kind of activities are there?",
+       "LINDA: Each day is a bit different. Monday is usually team games, and on Wednesdays they do arts and crafts. Fridays are special, because we take the children on a trip. In previous years we went to the zoo, but it's quite far, and the coach journey was very long, so this summer we're going to a farm instead, only twenty minutes away.",
+       "MARK: My son will love that. Is there swimming?",
+       "LINDA: Yes, on Tuesdays and Thursdays. The children need to bring a towel and a swimming costume. Goggles are optional. We do a short test on the first day to check which group they should be in, so you don't need to show us a certificate.",
+       "MARK: Great. And who should I talk to if I have any questions once it's started?",
+       "LINDA: The club leader is Ms Delaney. That's D-E-L-A-N-E-Y. She's at the side entrance every morning, so you can speak to her then.",
+       "MARK: Thanks. Can I book online?",
+       "LINDA: Yes, you can, through the members' area of our website. You'll just need your membership number.",
+       "MARK: Perfect. Thanks very much for your help.",
+       "LINDA: You're welcome. Goodbye."
+      ]
+     }
+    ],
+    "groups": [
+     {
+      "range": [
+       1,
+       5
+      ],
+      "type": "completion",
+      "instructions": "Complete the notes below. Write ONE WORD AND/OR A NUMBER for each answer.",
+      "word_limit": 2,
+      "form_title": "Westfield Leisure Centre: Holiday Activity Club",
+      "items": [
+       {
+        "n": 1,
+        "prompt": "Ages: 5 to ______",
+        "answer": "11",
+        "accept": [
+         "eleven"
+        ],
+        "evidence": "It's for children from five up to eleven."
+       },
+       {
+        "n": 2,
+        "prompt": "Drop-off point: the ______ entrance",
+        "answer": "side",
+        "accept": [],
+        "evidence": "Parents drop them off at the side entrance"
+       },
+       {
+        "n": 3,
+        "prompt": "Drop-off from ______ am",
+        "answer": "8.30",
+        "accept": [
+         "8:30",
+         "eight thirty"
+        ],
+        "evidence": "Drop-off is from eight thirty."
+       },
+       {
+        "n": 4,
+        "prompt": "Cost for members: £______ per child per day",
+        "answer": "24",
+        "accept": [
+         "twenty-four"
+        ],
+        "evidence": "For leisure centre members it's twenty-four pounds a day"
+       },
+       {
+        "n": 5,
+        "prompt": "10% discount for booking a whole ______",
+        "answer": "week",
+        "accept": [],
+        "evidence": "If you book a whole week, Monday to Friday, you get ten per cent off."
+       }
+      ]
+     },
+     {
+      "range": [
+       6,
+       10
+      ],
+      "type": "completion",
+      "instructions": "Complete the notes below. Write ONE WORD AND/OR A NUMBER for each answer.",
+      "word_limit": 2,
+      "form_title": "Daily arrangements",
+      "items": [
+       {
+        "n": 6,
+        "prompt": "Children bring a packed ______",
+        "answer": "lunch",
+        "accept": [],
+        "evidence": "They'll need a packed lunch."
+       },
+       {
+        "n": 7,
+        "prompt": "Footwear: ______ (no open shoes)",
+        "answer": "trainers",
+        "accept": [],
+        "evidence": "they should wear trainers"
+       },
+       {
+        "n": 8,
+        "prompt": "Friday trip this summer: a ______",
+        "answer": "farm",
+        "accept": [],
+        "evidence": "this summer we're going to a farm instead"
+       },
+       {
+        "n": 9,
+        "prompt": "Swimming: bring a ______ and a swimming costume",
+        "answer": "towel",
+        "accept": [],
+        "evidence": "The children need to bring a towel and a swimming costume."
+       },
+       {
+        "n": 10,
+        "prompt": "Club leader: Ms ______",
+        "answer": "Delaney",
+        "accept": [],
+        "evidence": "That's D-E-L-A-N-E-Y."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "part": 2,
+    "title": "A coastal walking festival",
+    "intro": "Part 2. You will hear a radio presenter talking about a coastal walking festival.",
+    "voices": {
+     "instruction": "Tom",
+     "OWEN": "Vincent"
+    },
+    "segments": [
+     {
+      "questions": "11 to 15",
+      "reading_seconds": 30,
+      "lines": [
+       "OWEN: Good morning, and welcome to What's On, the weekly guide to events across the county. I'm Owen Price, and this week I'm going to tell you about the Seacombe Coastal Walking Festival, which starts on the twelfth of September.",
+       "OWEN: Many people think the festival was started to bring more visitors to the coast in the autumn, after the summer crowds have left. That has certainly been one of the results, but it wasn't the original idea. The first festival, eighteen years ago, was organised by a group of volunteers who wanted to raise money to repair the coastal path, which had been badly damaged by winter storms. A share of every ticket still goes towards looking after the path today.",
+       "OWEN: Last year there were thirty guided walks. This year there will be twenty-eight. The organisers had hoped to add some new routes, but a landslip near Gull Point means that two of the usual walks have had to be cancelled, so the programme is a little smaller than usual.",
+       "OWEN: Now, booking. In the past, most people booked through the festival website. Unfortunately, the website had a number of problems last year, so this time the organisers are asking people to book by phone, or in person at the tourist office on Harbour Street. You can't just turn up on the day, I'm afraid, because numbers on every walk are limited.",
+       "OWEN: A lot of listeners have asked about dogs. Dogs are welcome on many of the walks, but not all of them, because some routes pass through farmland with sheep. If you look at the programme, the walks where dogs are allowed are marked with a paw symbol.",
+       "OWEN: And the festival will end, as always, with a special event on the final Sunday. In previous years there was a barbecue on the beach, but because of the dry summer and the risk of fire, it has been replaced this year by an exhibition of photographs taken by walkers during the festival, which will be held in the town hall. Last year's evening concert won't be repeated, as the organisers felt it was too expensive."
+      ]
+     },
+     {
+      "questions": "16 to 20",
+      "reading_seconds": 30,
+      "lines": [
+       "OWEN: Let me now pick out five of the walks that I think are particularly worth considering.",
+       "OWEN: The Cliff Top Walk is one of the most spectacular, with wonderful views across the bay. However, the path is steep in places and there are long sections without a fence, so the organisers say it isn't suitable for children under twelve.",
+       "OWEN: If you'd prefer something gentler, the Harbour Heritage Walk follows the old sea wall around the town. It's completely flat, with a smooth surface all the way, so it's ideal for anyone using a wheelchair or pushing a buggy. It's led by a local historian, and it's full of stories about the town's fishing past.",
+       "OWEN: Bird lovers should book the Saltmarsh Bird Walk. You don't need any special equipment for this one: the guides bring telescopes and binoculars for everyone to use. With luck, you'll see thousands of geese arriving for the winter.",
+       "OWEN: For something unusual, try the Lighthouse Night Walk. It ends with a visit to the top of the old lighthouse, but because the staircase inside is so narrow, only twelve people can go on each walk, so you'll need to book early. And you'll need to bring your own torch.",
+       "OWEN: Finally, the Smugglers' Cove Walk takes you along the shore to a hidden beach that was once used by smugglers. You can't walk back the same way, because the tide comes in and covers the path, so the walk finishes with a short boat ride back to the harbour. Remember to bring a picnic, as there's nowhere to buy food on the way.",
+       "OWEN: The full programme is available from the tourist office, and tickets go on sale this Saturday."
+      ]
+     }
+    ],
+    "groups": [
+     {
+      "range": [
+       11,
+       15
+      ],
+      "type": "mcq",
+      "instructions": "Choose the correct letter, A, B or C.",
+      "items": [
+       {
+        "n": 11,
+        "prompt": "The festival was first organised in order to",
+        "options": [
+         "A  attract visitors in the autumn.",
+         "B  raise money to repair the path.",
+         "C  celebrate the opening of the path."
+        ],
+        "answer": "B",
+        "evidence": "who wanted to raise money to repair the coastal path"
+       },
+       {
+        "n": 12,
+        "prompt": "Compared with last year, the number of walks has",
+        "options": [
+         "A  increased.",
+         "B  stayed the same.",
+         "C  decreased."
+        ],
+        "answer": "C",
+        "evidence": "This year there will be twenty-eight."
+       },
+       {
+        "n": 13,
+        "prompt": "This year, walkers should book",
+        "options": [
+         "A  by phone or at the tourist office.",
+         "B  on the festival website.",
+         "C  at the start of each walk."
+        ],
+        "answer": "A",
+        "evidence": "book by phone, or in person at the tourist office on Harbour Street"
+       },
+       {
+        "n": 14,
+        "prompt": "Dogs are",
+        "options": [
+         "A  not allowed on any walks.",
+         "B  allowed on all walks.",
+         "C  allowed only on walks marked with a symbol."
+        ],
+        "answer": "C",
+        "evidence": "the walks where dogs are allowed are marked with a paw symbol"
+       },
+       {
+        "n": 15,
+        "prompt": "The final event this year will be",
+        "options": [
+         "A  a photography exhibition.",
+         "B  a beach barbecue.",
+         "C  an evening concert."
+        ],
+        "answer": "A",
+        "evidence": "it has been replaced this year by an exhibition of photographs"
+       }
+      ]
+     },
+     {
+      "range": [
+       16,
+       20
+      ],
+      "type": "matching",
+      "instructions": "What does the speaker say about each walk? Choose FIVE answers from the box and write the correct letter, A–G, next to Questions 16–20.",
+      "options_title": "Features",
+      "options": [
+       "A  suitable for wheelchair users",
+       "B  includes a short boat trip",
+       "C  includes a meal",
+       "D  not suitable for young children",
+       "E  equipment is provided",
+       "F  numbers are very limited",
+       "G  free of charge"
+      ],
+      "items": [
+       {
+        "n": 16,
+        "prompt": "Cliff Top Walk",
+        "answer": "D",
+        "evidence": "it isn't suitable for children under twelve"
+       },
+       {
+        "n": 17,
+        "prompt": "Harbour Heritage Walk",
+        "answer": "A",
+        "evidence": "it's ideal for anyone using a wheelchair"
+       },
+       {
+        "n": 18,
+        "prompt": "Saltmarsh Bird Walk",
+        "answer": "E",
+        "evidence": "the guides bring telescopes and binoculars for everyone to use"
+       },
+       {
+        "n": 19,
+        "prompt": "Lighthouse Night Walk",
+        "answer": "F",
+        "evidence": "only twelve people can go on each walk"
+       },
+       {
+        "n": 20,
+        "prompt": "Smugglers' Cove Walk",
+        "answer": "B",
+        "evidence": "the walk finishes with a short boat ride back to the harbour"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "part": 3,
+    "title": "Planning a noise survey",
+    "intro": "Part 3. You will hear two environmental science students, Ruth and Amir, discussing a project on noise in their town.",
+    "voices": {
+     "instruction": "Tom",
+     "RUTH": "Paula",
+     "AMIR": "Noah"
+    },
+    "segments": [
+     {
+      "questions": "21 to 24",
+      "reading_seconds": 30,
+      "lines": [
+       "RUTH: So, Amir, we need to decide what to do about the noise project. The first round of measurements didn't really go to plan, did it?",
+       "AMIR: Not really. The biggest problem was the timing. We chose the week of the school holidays without thinking, so there was much less traffic than normal. The readings near the schools were really low.",
+       "RUTH: Yes, that was a mistake. And the other thing was the weather. It rained on two of the four days, and the meter isn't supposed to be used in the rain, so we lost half our data.",
+       "AMIR: At least the equipment itself worked well. I was worried the battery wouldn't last all day, but it was fine.",
+       "RUTH: And people were really friendly. I thought residents might not want to talk to us, but almost everyone answered our questions.",
+       "AMIR: True. OK, so what should we change in the report? Dr Hughes said our introduction was too long.",
+       "RUTH: She mentioned it, but she said it wasn't worth rewriting at this stage. What she really wants is a better method section. We need to explain exactly where we stood and why we chose each place, so that someone else could repeat the study.",
+       "AMIR: Right. And she wants us to compare our results with the official noise maps from the council. I didn't even know they existed.",
+       "RUTH: Neither did I. I don't think we need more graphs, though. She said we had plenty; they just need clearer labels.",
+       "AMIR: What about the conclusion? I thought she might say we'd been too confident.",
+       "RUTH: No, she was happy with that, actually. She said it was appropriately careful, given how little data we had."
+      ]
+     },
+     {
+      "questions": "25 to 30",
+      "reading_seconds": 30,
+      "lines": [
+       "AMIR: So, for the second round, let's plan it properly. First, I think we should get a map of the area from the council. The one we used was really out of date.",
+       "RUTH: Good idea. Their planning office gives them to students for free. Then we choose the sites. Last time, some of our sites were right next to traffic lights, which made the readings jump around.",
+       "AMIR: So this time we keep every site at least fifty metres from any junction.",
+       "RUTH: Exactly. And before each session, we should calibrate the meter. Last time we did it at home, but Dr Hughes said it should be done in the laboratory, where they have the proper equipment.",
+       "AMIR: OK. Then at each site, how long do we record for? We did five minutes last time.",
+       "RUTH: The guidelines recommend ten minutes, so that the average is more reliable.",
+       "AMIR: Ten it is. And while one of us is recording, the other should count the cars going past.",
+       "RUTH: Actually, Dr Hughes said cars don't make much difference. It's the lorries that cause the peaks, so we only need to count those.",
+       "AMIR: That's easier. And finally, we put everything into a spreadsheet that we can both edit, rather than writing it in notebooks like last time.",
+       "RUTH: Yes, that was a nightmare. And then we can make the graphs straight from it.",
+       "AMIR: Great. Shall we start on Monday?",
+       "RUTH: Let's check the weather forecast first!"
+      ]
+     }
+    ],
+    "groups": [
+     {
+      "range": [
+       21,
+       22
+      ],
+      "type": "multi",
+      "instructions": "Choose TWO letters, A–E.",
+      "stem": "Which TWO problems did the students have during the first round of measurements?",
+      "options": [
+       "A  The meter's battery ran out.",
+       "B  There was less traffic than usual.",
+       "C  Rain prevented some measurements.",
+       "D  Residents refused to answer questions.",
+       "E  They measured at the wrong time of day."
+      ],
+      "answer": [
+       "B",
+       "C"
+      ],
+      "evidence": [
+       "so there was much less traffic than normal",
+       "It rained on two of the four days, and the meter isn't supposed to be used in the rain"
+      ]
+     },
+     {
+      "range": [
+       23,
+       24
+      ],
+      "type": "multi",
+      "instructions": "Choose TWO letters, A–E.",
+      "stem": "Which TWO changes will the students make to their report?",
+      "options": [
+       "A  shorten the introduction",
+       "B  explain the choice of locations in more detail",
+       "C  add more graphs",
+       "D  compare their results with official maps",
+       "E  make the conclusion more cautious"
+      ],
+      "answer": [
+       "B",
+       "D"
+      ],
+      "evidence": [
+       "We need to explain exactly where we stood and why we chose each place",
+       "she wants us to compare our results with the official noise maps from the council"
+      ]
+     },
+     {
+      "range": [
+       25,
+       30
+      ],
+      "type": "completion",
+      "flow": true,
+      "instructions": "Complete the flow chart below. Write ONE WORD AND/OR A NUMBER for each answer.",
+      "word_limit": 2,
+      "form_title": "Second round of noise measurements",
+      "items": [
+       {
+        "n": 25,
+        "prompt": "Get an up-to-date ______ of the area from the council.",
+        "answer": "map",
+        "accept": [],
+        "evidence": "we should get a map of the area from the council"
+       },
+       {
+        "n": 26,
+        "prompt": "Choose sites at least 50 metres from any ______.",
+        "answer": "junction",
+        "accept": [],
+        "evidence": "at least fifty metres from any junction"
+       },
+       {
+        "n": 27,
+        "prompt": "Before each session, calibrate the meter in the ______.",
+        "answer": "laboratory",
+        "accept": [
+         "lab"
+        ],
+        "evidence": "it should be done in the laboratory"
+       },
+       {
+        "n": 28,
+        "prompt": "Record for ______ minutes at each site.",
+        "answer": "10",
+        "accept": [
+         "ten"
+        ],
+        "evidence": "The guidelines recommend ten minutes"
+       },
+       {
+        "n": 29,
+        "prompt": "At the same time, count the ______ going past.",
+        "answer": "lorries",
+        "accept": [],
+        "evidence": "It's the lorries that cause the peaks"
+       },
+       {
+        "n": 30,
+        "prompt": "Enter all the data in a shared ______.",
+        "answer": "spreadsheet",
+        "accept": [],
+        "evidence": "we put everything into a spreadsheet that we can both edit"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "part": 4,
+    "title": "Restoring salt marshes",
+    "intro": "Part 4. You will hear part of a lecture about salt marshes and how they can be restored.",
+    "voices": {
+     "instruction": "Tom",
+     "LECTURER": "Miriam"
+    },
+    "segments": [
+     {
+      "questions": "31 to 40",
+      "reading_seconds": 45,
+      "lines": [
+       "LECTURER: Today I'm going to talk about salt marshes, which are among the most productive, and the most overlooked, habitats on our coasts.",
+       "LECTURER: A salt marsh is an area of flat, low-lying land along a sheltered coast or estuary, which is covered by the sea at high tide. Marshes form where the waves are gentle enough for fine mud to settle, and they're dominated by grasses and other plants that can tolerate salt.",
+       "LECTURER: For centuries, people regarded salt marshes as wasteland. In many countries, large areas were drained and turned into farmland, or used for ports and industry. In some estuaries, most of the original marsh has been lost.",
+       "LECTURER: Attitudes began to change when scientists started to measure what marshes actually do. One of their most important functions is coastal protection. The dense vegetation slows the waves down, so that by the time the water reaches the sea wall behind the marsh, it has much less energy. This means the walls can be lower, and cheaper to maintain.",
+       "LECTURER: Marshes are also important for wildlife. Their creeks act as nurseries for young fish, which shelter there until they're large enough to survive in open water. And in winter, marshes provide feeding grounds for huge numbers of migrating birds.",
+       "LECTURER: A third benefit, which has attracted a lot of attention recently, is carbon storage. Marsh plants take in carbon dioxide as they grow, and because the soil is waterlogged, dead plant material decays very slowly. As a result, carbon builds up in the mud over hundreds of years.",
+       "LECTURER: So how do you restore a salt marsh? The most common technique is called managed realignment. Instead of maintaining an old sea wall, engineers build a new wall further inland, and then deliberately make a gap in the old one, allowing the sea to flood the land between them.",
+       "LECTURER: I'd like to describe one example, at the Elmsworth estuary. Here, the land behind the old wall had been used for growing wheat for about two hundred years. Before the wall was opened, the team had to deal with an unexpected problem: the soil had become so compressed by farm machinery that water couldn't drain through it. They solved this by digging a network of channels, copying the shape of natural creeks.",
+       "LECTURER: After the wall was opened, the first marsh plants appeared surprisingly quickly, within a single year. However, the full range of species took much longer to arrive, and birds were slower to return than the team had predicted. Monitoring showed that the main reason was disturbance: a popular footpath ran along the new wall, and walkers with dogs frightened the birds away. The solution was simple. The path was moved a short distance away and screened with a hedge.",
+       "LECTURER: Not everyone supported the project. Some local farmers objected to losing productive land, and the scheme only went ahead after an agreement to pay them compensation. Ten years on, though, the marsh has become a popular attraction, and the local economy has benefited from the visitors.",
+       "LECTURER: To finish, I want to stress that restoration isn't a quick fix. A restored marsh can take decades to match a natural one, which is why protecting the marshes we still have must remain the first priority."
+      ]
+     }
+    ],
+    "groups": [
+     {
+      "range": [
+       31,
+       40
+      ],
+      "type": "completion",
+      "instructions": "Complete the sentences below. Write ONE WORD ONLY for each answer.",
+      "word_limit": 1,
+      "form_title": "Salt marshes",
+      "items": [
+       {
+        "n": 31,
+        "prompt": "Salt marshes form in places where the waves are ______.",
+        "answer": "gentle",
+        "accept": [],
+        "evidence": "Marshes form where the waves are gentle enough for fine mud to settle"
+       },
+       {
+        "n": 32,
+        "prompt": "In the past, many marshes were drained to create ______.",
+        "answer": "farmland",
+        "accept": [],
+        "evidence": "large areas were drained and turned into farmland"
+       },
+       {
+        "n": 33,
+        "prompt": "Marsh vegetation reduces the ______ of waves before they reach the sea wall.",
+        "answer": "energy",
+        "accept": [],
+        "evidence": "it has much less energy"
+       },
+       {
+        "n": 34,
+        "prompt": "Creeks in the marsh act as ______ for young fish.",
+        "answer": "nurseries",
+        "accept": [],
+        "evidence": "Their creeks act as nurseries for young fish"
+       },
+       {
+        "n": 35,
+        "prompt": "Carbon is stored because dead plant material ______ slowly in waterlogged soil.",
+        "answer": "decays",
+        "accept": [],
+        "evidence": "dead plant material decays very slowly"
+       },
+       {
+        "n": 36,
+        "prompt": "In managed realignment, a new wall is built further ______.",
+        "answer": "inland",
+        "accept": [],
+        "evidence": "engineers build a new wall further inland"
+       },
+       {
+        "n": 37,
+        "prompt": "At Elmsworth, the soil was too ______ for water to drain through it.",
+        "answer": "compressed",
+        "accept": [],
+        "evidence": "the soil had become so compressed by farm machinery"
+       },
+       {
+        "n": 38,
+        "prompt": "The team dug channels in the shape of natural ______.",
+        "answer": "creeks",
+        "accept": [],
+        "evidence": "copying the shape of natural creeks"
+       },
+       {
+        "n": 39,
+        "prompt": "Birds returned slowly because of ______ caused by walkers with dogs.",
+        "answer": "disturbance",
+        "accept": [],
+        "evidence": "the main reason was disturbance"
+       },
+       {
+        "n": 40,
+        "prompt": "Some farmers accepted the scheme after being offered ______.",
+        "answer": "compensation",
+        "accept": [],
+        "evidence": "after an agreement to pay them compensation"
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "reading": {
+  "passages": [
+   {
+    "n": 1,
+    "title": "The windcatchers of the desert",
+    "labelled": false,
+    "paragraphs": [
+     "For thousands of years, people living in the hot, dry regions of the Middle East have kept their homes cool without electricity. One of the most striking tools they developed is the windcatcher, a tall tower rising above the roof of a building. In the Iranian city of Yazd, which lies on the edge of the desert, many of these towers still dominate the skyline, and similar structures can be found around the Gulf, in North Africa and in parts of South Asia. Known in Persian as the badgir, the windcatcher is now attracting renewed interest from architects who are looking for ways to cool buildings without the high energy costs of air conditioning.",
+     "The principle behind the windcatcher is simple. Near the top of the tower are a number of tall, narrow openings. When the wind blows, air enters through the openings that face the wind and is directed down a shaft into the rooms below. Inside the tower, the shaft is divided by thin walls, known as partitions, into several channels, so that fresh air can move down one channel while used air moves up another. Even when there is no wind, the tower continues to work. During the day, the sun heats the tower, and the warm air inside it rises and escapes through the openings, drawing stale air out of the house below.",
+     "The most sophisticated windcatchers combined this airflow with water. In some houses, the incoming air was directed over a pool in the basement, or over an underground channel called a qanat, which carried water from distant mountains. As the water evaporated, it absorbed heat, lowering the temperature of the air before it rose into the living areas of the house. Some households used the cool basement to store food, and in a few places windcatchers were linked to large domed structures in which ice made on winter nights could be kept for use in summer.",
+     "Traditional towers were usually built from mud brick or fired brick, materials that were cheap, available locally and slow to heat up. A tower might be anything from a few metres to more than thirty metres tall, and its cross-section could be square, rectangular or eight-sided. Taller towers catch faster and cleaner air, because wind speed increases with height and there is less dust far above the street. The number of openings also varied. Towers in areas where the wind came mainly from one direction often opened on only one side, while those in places with changing winds might open on four or even eight sides.",
+     "Windcatchers were also a sign of status. Wealthy families built the tallest and most decorated towers, and in some cities there were rules about how high a tower could be, to prevent neighbours from blocking each other's breeze. During the twentieth century, however, many towers fell into disrepair. Electric fans and later air conditioning became widely available, and modern buildings, with their flat roofs and sealed windows, had no place for them. Some old towers were demolished; others were simply neglected, their openings blocked with bricks to keep out dust and birds.",
+     "Researchers have since tried to measure how effective traditional windcatchers really are, and the results are mixed. Studies suggest that a well-designed tower can lower indoor temperatures by several degrees, especially when it is combined with water and with thick walls that absorb heat during the day. However, performance depends heavily on local conditions. Where the wind is weak or keeps changing direction, a tower that opens on only one side may achieve little, and in humid climates, adding moisture to the air can make rooms feel less comfortable rather than more. Dust and insects entering through the openings are a further drawback.",
+     "Despite these limitations, modern architects have found new uses for the idea. Some recent buildings in Europe and the Middle East include rooftop wind towers, often made of metal, which turn automatically to face the wind. Others use sensors to open and close vents according to the temperature outside. In a number of schools in Britain, for example, roof-mounted ventilation towers have been installed to bring fresh air into classrooms without the need to open windows. These systems rarely replace air conditioning completely, but they can reduce the amount of time it is needed, cutting both energy bills and emissions.",
+     "Supporters argue that the windcatcher teaches a wider lesson. Before cheap energy was available, builders had to work with the climate rather than against it, choosing materials, orientation and shape to keep buildings comfortable. As energy costs rise and concern about climate change grows, many architects believe that this way of thinking deserves a central place in modern design."
+    ],
+    "groups": [
+     {
+      "range": [
+       1,
+       6
+      ],
+      "type": "completion",
+      "instructions": "Label the diagram below. Choose ONE WORD ONLY from the passage for each answer.",
+      "word_limit": 1,
+      "figure": {
+       "type": "diagram",
+       "title": "How a traditional windcatcher cools a house",
+       "xlim": [
+        0,
+        112
+       ],
+       "ylim": [
+        0,
+        96
+       ],
+       "note": "Fictional diagram for practice. Blue arrows: cooler air. Orange arrows: warmer air.",
+       "shapes": [
+        {
+         "rect": [
+          0,
+          0,
+          112,
+          22
+         ],
+         "kind": "ground",
+         "lw": 0.8
+        },
+        {
+         "rect": [
+          0,
+          8,
+          24,
+          3
+         ],
+         "kind": "water",
+         "lw": 0.8
+        },
+        {
+         "rect": [
+          22,
+          5,
+          46,
+          15
+         ],
+         "kind": "wall",
+         "text": "Basement",
+         "text_at": [
+          60,
+          8.2
+         ]
+        },
+        {
+         "rect": [
+          21.9,
+          7.6,
+          9,
+          2.8
+         ],
+         "kind": "water",
+         "lw": 0,
+         "z": 2
+        },
+        {
+         "rect": [
+          30,
+          6.5,
+          18,
+          4
+         ],
+         "kind": "water",
+         "z": 2
+        },
+        {
+         "rect": [
+          22,
+          22,
+          46,
+          26
+         ],
+         "kind": "building",
+         "text": "House",
+         "text_at": [
+          45,
+          25
+         ]
+        },
+        {
+         "rect": [
+          26,
+          48,
+          14,
+          30
+         ],
+         "kind": "building",
+         "text": "Tower",
+         "text_at": [
+          44.5,
+          52
+         ]
+        },
+        {
+         "rect": [
+          25,
+          78,
+          16,
+          2.2
+         ],
+         "kind": "dark"
+        },
+        {
+         "rect": [
+          25.2,
+          68,
+          1.6,
+          8
+         ],
+         "kind": "sky",
+         "lw": 0,
+         "z": 3
+        },
+        {
+         "rect": [
+          39.2,
+          68,
+          1.6,
+          8
+         ],
+         "kind": "sky",
+         "lw": 0,
+         "z": 3
+        },
+        {
+         "rect": [
+          26.6,
+          47.2,
+          5.8,
+          1.6
+         ],
+         "kind": "sky",
+         "lw": 0,
+         "z": 3
+        },
+        {
+         "rect": [
+          33.6,
+          47.2,
+          5.8,
+          1.6
+         ],
+         "kind": "sky",
+         "lw": 0,
+         "z": 3
+        },
+        {
+         "rect": [
+          26.6,
+          19.2,
+          5.8,
+          3.4
+         ],
+         "kind": "sky",
+         "lw": 0,
+         "z": 3
+        },
+        {
+         "rect": [
+          55.2,
+          19.2,
+          5.8,
+          3.4
+         ],
+         "kind": "sky",
+         "lw": 0,
+         "z": 3
+        },
+        {
+         "line": [
+          [
+           33,
+           48.8
+          ],
+          [
+           33,
+           77.8
+          ]
+         ],
+         "kind": "building",
+         "lw": 2.2
+        }
+       ],
+       "flows": [
+        {
+         "points": [
+          [
+           3,
+           72
+          ],
+          [
+           21,
+           72
+          ]
+         ],
+         "kind": "cool"
+        },
+        {
+         "points": [
+          [
+           21,
+           72
+          ],
+          [
+           29.5,
+           72
+          ],
+          [
+           29.5,
+           13.5
+          ],
+          [
+           47,
+           13.5
+          ]
+         ],
+         "kind": "cool"
+        },
+        {
+         "points": [
+          [
+           49,
+           13.5
+          ],
+          [
+           58,
+           13.5
+          ],
+          [
+           58,
+           36
+          ]
+         ],
+         "kind": "cool"
+        },
+        {
+         "points": [
+          [
+           52,
+           42
+          ],
+          [
+           36.5,
+           42
+          ],
+          [
+           36.5,
+           72
+          ],
+          [
+           48,
+           72
+          ]
+         ],
+         "kind": "warm"
+        },
+        {
+         "points": [
+          [
+           1,
+           9
+          ],
+          [
+           29,
+           9
+          ]
+         ],
+         "kind": "water",
+         "ls": "--"
+        }
+       ],
+       "labels": [
+        {
+         "text": "1   openings facing the ______",
+         "at": [
+          1,
+          91
+         ],
+         "to": [
+          25.8,
+          74.5
+         ],
+         "question": true
+        },
+        {
+         "text": "2   thin walls (______) divide the shaft",
+         "at": [
+          50,
+          62
+         ],
+         "to": [
+          33,
+          62
+         ],
+         "question": true
+        },
+        {
+         "text": "3   ______ air rises and escapes",
+         "at": [
+          52,
+          86
+         ],
+         "to": [
+          41,
+          72
+         ],
+         "question": true
+        },
+        {
+         "text": "4   air passes over a ______",
+         "at": [
+          72,
+          15.5
+         ],
+         "to": [
+          46,
+          9
+         ],
+         "question": true
+        },
+        {
+         "text": "5   underground channel (______)",
+         "at": [
+          2,
+          2.8
+         ],
+         "to": [
+          10,
+          9.5
+         ],
+         "question": true
+        },
+        {
+         "text": "6   cool air flows into the living ______",
+         "at": [
+          64,
+          36
+         ],
+         "to": [
+          58.5,
+          30
+         ],
+         "question": true
+        }
+       ],
+       "alt": "Cross-section of a house with a tall tower on its roof. Wind enters an opening near the top of the tower on one side, flows down a channel in the tower, through the house into a basement, passes over a pool of water fed by an underground channel, and rises into the living space of the house. Warm air rises up a second channel in the tower and leaves through an opening on the other side. Six numbered labels need completing."
+      },
+      "form_title": "How a traditional windcatcher cools a house",
+      "items": [
+       {
+        "n": 1,
+        "prompt": "openings facing the ______",
+        "answer": "wind",
+        "accept": [],
+        "evidence": "air enters through the openings that face the wind"
+       },
+       {
+        "n": 2,
+        "prompt": "thin walls (______) divide the shaft",
+        "answer": "partitions",
+        "accept": [],
+        "evidence": "the shaft is divided by thin walls, known as partitions"
+       },
+       {
+        "n": 3,
+        "prompt": "______ air rises and escapes",
+        "answer": "warm",
+        "accept": [],
+        "evidence": "the warm air inside it rises and escapes through the openings"
+       },
+       {
+        "n": 4,
+        "prompt": "air passes over a ______",
+        "answer": "pool",
+        "accept": [],
+        "evidence": "the incoming air was directed over a pool in the basement"
+       },
+       {
+        "n": 5,
+        "prompt": "underground channel (______)",
+        "answer": "qanat",
+        "accept": [],
+        "evidence": "an underground channel called a qanat"
+       },
+       {
+        "n": 6,
+        "prompt": "cool air flows into the living ______",
+        "answer": "areas",
+        "accept": [],
+        "evidence": "before it rose into the living areas of the house"
+       }
+      ]
+     },
+     {
+      "range": [
+       7,
+       13
+      ],
+      "type": "tfng",
+      "instructions": "Do the following statements agree with the information given in Reading Passage 1? Write TRUE, FALSE or NOT GIVEN.",
+      "items": [
+       {
+        "n": 7,
+        "prompt": "Windcatchers are found only in Iran.",
+        "answer": "FALSE",
+        "evidence": "similar structures can be found around the Gulf, in North Africa and in parts of South Asia"
+       },
+       {
+        "n": 8,
+        "prompt": "A windcatcher can still move air through a house when there is no wind.",
+        "answer": "TRUE",
+        "evidence": "Even when there is no wind, the tower continues to work."
+       },
+       {
+        "n": 9,
+        "prompt": "Qanats were built mainly to supply water to windcatchers.",
+        "answer": "NOT GIVEN",
+        "evidence": "an underground channel called a qanat, which carried water from distant mountains",
+        "note": "The passage says what qanats carried, not why they were built."
+       },
+       {
+        "n": 10,
+        "prompt": "In some cities, the height of windcatchers was limited.",
+        "answer": "TRUE",
+        "evidence": "in some cities there were rules about how high a tower could be"
+       },
+       {
+        "n": 11,
+        "prompt": "Most traditional windcatchers have now been demolished.",
+        "answer": "NOT GIVEN",
+        "evidence": "Some old towers were demolished; others were simply neglected",
+        "note": "The passage says some towers were demolished and others neglected; it gives no proportion."
+       },
+       {
+        "n": 12,
+        "prompt": "Adding water to the air improves comfort in every type of climate.",
+        "answer": "FALSE",
+        "evidence": "in humid climates, adding moisture to the air can make rooms feel less comfortable rather than more"
+       },
+       {
+        "n": 13,
+        "prompt": "Modern wind towers usually make air conditioning unnecessary.",
+        "answer": "FALSE",
+        "evidence": "These systems rarely replace air conditioning completely"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": 2,
+    "title": "Why waiting feels longer than it is",
+    "labelled": true,
+    "paragraphs": [
+     "Most of us spend a surprising amount of our lives waiting: in supermarkets and banks, at airports and doctors' surgeries, on the phone and, increasingly, in online queues for tickets or services. Yet when people are asked afterwards how long they waited, their answers are often wildly inaccurate. In many studies, people overestimate the length of a wait, sometimes by a large margin, and their satisfaction appears to depend more on how long the wait felt than on how long it actually was. For organisations that deal with the public, this has an important implication. Reducing the actual time customers spend in a queue can be expensive, requiring extra staff or equipment. Changing how the wait feels may be much cheaper.",
+     "One of the most consistent findings is that empty time feels longer than occupied time. A frequently told story concerns an airport where passengers complained constantly about how long they had to wait for their luggage. Rather than speeding up the baggage handlers, the airport moved the arrival gates further from the baggage reclaim, so that passengers spent most of the time walking instead of standing still. Complaints reportedly fell almost to zero. The same idea explains why mirrors are often placed next to lifts, and why waiting rooms offer magazines and screens. Music has been used in a similar way on telephone helplines, although here the evidence is mixed: callers who dislike the music chosen may become more irritated, not less. In a series of laboratory studies, the psychologist Helena Varga found that participants who were given something to look at during a wait judged it to be considerably shorter than those who waited in an empty room.",
+     "A second factor is uncertainty. A wait of unknown length is generally more stressful than one whose length is known, because people cannot plan or relax. This also explains why an unexplained delay is so frustrating. A train that stops between stations without any announcement causes far more annoyance than one that is held for the same length of time after the driver has explained the reason. Tomas Reyes, who studies customer behaviour in public services, has shown that simply telling people how long they are likely to wait reduces their frustration, even when the wait itself is no shorter. Some organisations go further. Theme parks, for example, often display estimated waiting times for rides that are slightly longer than the real ones, so that visitors who reach the front sooner than expected feel pleasantly surprised rather than disappointed.",
+     "Perhaps the most powerful influence of all is a sense of fairness. Anyone who has seen another person push in front of them in a queue knows how strong the reaction can be. Many banks and post offices now use a single line that feeds several counters, instead of a separate line for each counter. With parallel lines, customers constantly compare their progress with others and feel cheated if a neighbouring line moves faster. Anand also observed that people who joined a queue at the same moment as a stranger watched that person's progress closely, and were noticeably less satisfied if the stranger was served first, even by a few seconds. In experiments by Priya Anand, participants said they preferred a single queue even when it was longer, because it guaranteed that everyone would be served in order. For Anand, this shows that people judge a wait not only by its length but by whether it seems just.",
+     "People are also more patient once they feel that the process has started. Restaurants that hand out menus to people waiting for a table, and clinics that ask patients to fill in forms before they see the doctor, are using this effect. Online, the equivalent is the progress indicator. Jonas Feld, who studies the design of websites, found that users were far more willing to wait for a page to load when they could see a bar moving across the screen or a message telling them their position in the queue. However, he also found that a bar that stopped moving, or moved backwards, produced more irritation than having no indicator at all. Feld suggests that the most effective indicators move steadily, and slightly faster at the end than at the beginning, so that the final part of the wait seems short.",
+     "Not everyone is comfortable with the way these findings are being applied. Critics argue that organisations may use psychological techniques as a cheap substitute for actually reducing waits, particularly in public services, where long delays can have serious consequences. Varga herself has warned that making a wait feel shorter is not the same as solving the problem, and that patients in a hospital waiting room, for example, need faster treatment rather than better distractions. The psychology of waiting, she argues, should be used alongside real improvements, not instead of them. Some regulators now require public services to publish their real average waiting times, so that improvements can be measured rather than merely felt."
+    ],
+    "groups": [
+     {
+      "range": [
+       14,
+       19
+      ],
+      "type": "headings",
+      "instructions": "Reading Passage 2 has six paragraphs, A–F. Choose the correct heading for each paragraph from the list of headings below. Write the correct number, i–ix.",
+      "options_title": "List of Headings",
+      "options": [
+       "i  Showing customers that they are moving forward",
+       "ii  How technology has removed the need to queue",
+       "iii  A concern about how the research is used",
+       "iv  The gap between actual and perceived waiting time",
+       "v  The cost of queues to the economy",
+       "vi  Why accurate information reduces frustration",
+       "vii  The benefits of keeping waiting people occupied",
+       "viii  Fairness as a source of satisfaction",
+       "ix  Cultural differences in attitudes to waiting"
+      ],
+      "items": [
+       {
+        "n": 14,
+        "prompt": "Paragraph A",
+        "answer": "iv",
+        "evidence": "their satisfaction appears to depend more on how long the wait felt than on how long it actually was",
+        "paragraph": "A"
+       },
+       {
+        "n": 15,
+        "prompt": "Paragraph B",
+        "answer": "vii",
+        "evidence": "empty time feels longer than occupied time",
+        "paragraph": "B"
+       },
+       {
+        "n": 16,
+        "prompt": "Paragraph C",
+        "answer": "vi",
+        "evidence": "simply telling people how long they are likely to wait reduces their frustration",
+        "paragraph": "C"
+       },
+       {
+        "n": 17,
+        "prompt": "Paragraph D",
+        "answer": "viii",
+        "evidence": "people judge a wait not only by its length but by whether it seems just",
+        "paragraph": "D"
+       },
+       {
+        "n": 18,
+        "prompt": "Paragraph E",
+        "answer": "i",
+        "evidence": "when they could see a bar moving across the screen",
+        "paragraph": "E"
+       },
+       {
+        "n": 19,
+        "prompt": "Paragraph F",
+        "answer": "iii",
+        "evidence": "Not everyone is comfortable with the way these findings are being applied.",
+        "paragraph": "F"
+       }
+      ]
+     },
+     {
+      "range": [
+       20,
+       23
+      ],
+      "type": "matching",
+      "instructions": "Look at the following statements (Questions 20–23) and the list of researchers below. Match each statement with the correct researcher, A–D.",
+      "options_title": "List of Researchers",
+      "options": [
+       "A  Helena Varga",
+       "B  Tomas Reyes",
+       "C  Priya Anand",
+       "D  Jonas Feld"
+      ],
+      "items": [
+       {
+        "n": 20,
+        "prompt": "Knowing the likely length of a wait makes people less frustrated, even if the wait is not reduced.",
+        "answer": "B",
+        "evidence": "simply telling people how long they are likely to wait reduces their frustration"
+       },
+       {
+        "n": 21,
+        "prompt": "People will accept a longer wait if the system seems fair to everyone.",
+        "answer": "C",
+        "evidence": "participants said they preferred a single queue even when it was longer"
+       },
+       {
+        "n": 22,
+        "prompt": "Psychological techniques should not be used in place of genuine reductions in waiting time.",
+        "answer": "A",
+        "evidence": "should be used alongside real improvements, not instead of them"
+       },
+       {
+        "n": 23,
+        "prompt": "Seeing signs of progress makes people more willing to wait.",
+        "answer": "D",
+        "evidence": "users were far more willing to wait for a page to load when they could see a bar moving across the screen"
+       }
+      ]
+     },
+     {
+      "range": [
+       24,
+       26
+      ],
+      "type": "completion",
+      "instructions": "Complete the sentences below. Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+      "word_limit": 2,
+      "items": [
+       {
+        "n": 24,
+        "prompt": "At one airport, complaints fell when passengers had to walk further to the ______.",
+        "answer": "baggage reclaim",
+        "accept": [],
+        "evidence": "the airport moved the arrival gates further from the baggage reclaim"
+       },
+       {
+        "n": 25,
+        "prompt": "Theme parks often show waiting times that are slightly ______ than the real ones.",
+        "answer": "longer",
+        "accept": [],
+        "evidence": "slightly longer than the real ones"
+       },
+       {
+        "n": 26,
+        "prompt": "Online, people may be told their ______ in the queue.",
+        "answer": "position",
+        "accept": [],
+        "evidence": "a message telling them their position in the queue"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": 3,
+    "title": "Citizen science: the return of the amateur",
+    "labelled": false,
+    "paragraphs": [
+     "In the nineteenth century, much of what was known about the natural world was collected by amateurs. Clergymen recorded the dates on which birds returned in spring, farmers kept careful weather diaries, and collectors sent specimens to museums from every corner of the globe. As science became a profession in the twentieth century, with its own universities, laboratories and journals, the role of the amateur declined. Research came to be seen as a task for experts with specialist training and expensive equipment. In the last two decades, however, amateurs have returned to science in large numbers, under a new name: citizen science.",
+     "Today, millions of volunteers take part in projects of every kind. They count birds in their gardens, photograph insects, record the calls of frogs, and classify images of distant galaxies on their computers. Some projects simply ask volunteers to contribute processing power, allowing their home computers to run calculations while they are not in use. Others rely on the eyes and judgement of volunteers for tasks that computers still find difficult, such as identifying animals in photographs taken by hidden cameras. The internet and the smartphone have made it possible to coordinate thousands of contributors and to collect observations with precise times and locations attached. Projects differ widely in how much they ask of volunteers. Some require only a few minutes of attention at a time, while others involve weekly surveys of the same site over many years.",
+     "The scientific benefits are considerable. Some questions simply cannot be answered without large numbers of observers spread across a wide area. Long-term changes in the timing of spring, for example, have been documented largely through records kept by volunteers over many decades. In astronomy, volunteers have identified unusual objects that automated systems had missed. Volunteers can also respond quickly to unexpected events, such as the arrival of a new pest or the sudden death of large numbers of fish, reporting what they see within hours. In my view, however, the most important contribution is scale: no research team, however well funded, could pay for the number of hours that volunteers give freely.",
+     "Professional scientists have not always welcomed this development. The most common concern is the quality of the data. Volunteers vary greatly in their skill, and some mistakes are inevitable: a common bird may be confused with a rare one, or a measurement may be taken carelessly. These concerns are reasonable, but I believe they are often exaggerated. Many projects now include ways of checking data, such as asking several volunteers to classify the same image, or requiring a photograph to support an unusual sighting. Studies comparing volunteer data with those of professionals have found that, for many tasks, accuracy is similar, especially after a short period of training. Indeed, some volunteers become highly skilled, and a number of amateur naturalists are recognised as leading experts on particular groups of insects or plants.",
+     "A more serious problem, in my opinion, is bias in where and when data are collected. Volunteers tend to record wildlife close to where they live, in towns and along roads, and at weekends rather than on weekdays. They are also more likely to report species that are attractive or easy to recognise. Unless these patterns are taken into account, the results can give a misleading picture. Fortunately, statisticians have developed methods to correct for some of these effects, although they cannot remove them entirely. Another difficulty is that many projects depend on short-term funding, so data collection may stop just as a long-term pattern is beginning to emerge.",
+     "There is also a question of fairness. Volunteers give their time, but they rarely share in the credit when results are published, and their names may not appear on the research papers that rely on their work. Some projects have tried to address this by listing contributors or by inviting volunteers to help interpret the results. I would go further: projects should be designed so that volunteers can propose their own questions, rather than merely collecting data for questions chosen by professionals. A few projects have already done this successfully, with local communities investigating issues such as air pollution in their own neighbourhoods.",
+     "Citizen science will not replace professional research, nor should it. Some investigations require equipment and expertise that volunteers cannot provide. But it has already changed what science is able to study, and, perhaps just as importantly, it has given many people direct experience of how scientific knowledge is produced. At a time when trust in experts is often questioned, that experience may prove to be one of its most valuable outcomes."
+    ],
+    "groups": [
+     {
+      "range": [
+       27,
+       30
+      ],
+      "type": "mcq",
+      "instructions": "Choose the correct letter, A, B, C or D.",
+      "items": [
+       {
+        "n": 27,
+        "prompt": "According to the first paragraph, amateurs became less involved in science because",
+        "options": [
+         "A  they lost interest in the natural world.",
+         "B  science became a professional activity.",
+         "C  museums stopped accepting specimens.",
+         "D  scientific equipment became cheaper."
+        ],
+        "answer": "B",
+        "evidence": "As science became a profession in the twentieth century"
+       },
+       {
+        "n": 28,
+        "prompt": "According to the second paragraph, volunteers are particularly useful for",
+        "options": [
+         "A  writing computer programs.",
+         "B  designing new projects.",
+         "C  repairing equipment.",
+         "D  tasks that computers do not do well."
+        ],
+        "answer": "D",
+        "evidence": "tasks that computers still find difficult"
+       },
+       {
+        "n": 29,
+        "prompt": "What does the writer consider the greatest benefit of citizen science?",
+        "options": [
+         "A  the low cost of equipment",
+         "B  the training it gives volunteers",
+         "C  the amount of work volunteers can do",
+         "D  the discovery of rare species"
+        ],
+        "answer": "C",
+        "evidence": "the most important contribution is scale"
+       },
+       {
+        "n": 30,
+        "prompt": "What is the writer's view of concerns about data quality?",
+        "options": [
+         "A  They are fully justified.",
+         "B  They are often overstated.",
+         "C  They apply only to astronomy.",
+         "D  They have never been investigated."
+        ],
+        "answer": "B",
+        "evidence": "I believe they are often exaggerated"
+       }
+      ]
+     },
+     {
+      "range": [
+       31,
+       35
+      ],
+      "type": "ynng",
+      "instructions": "Do the following statements agree with the claims of the writer in Reading Passage 3? Write YES, NO or NOT GIVEN.",
+      "items": [
+       {
+        "n": 31,
+        "prompt": "For many tasks, volunteers can collect data as accurately as professionals.",
+        "answer": "YES",
+        "evidence": "for many tasks, accuracy is similar"
+       },
+       {
+        "n": 32,
+        "prompt": "Bias in where and when data are collected is a bigger problem than data quality.",
+        "answer": "YES",
+        "evidence": "A more serious problem, in my opinion, is bias in where and when data are collected."
+       },
+       {
+        "n": 33,
+        "prompt": "Statistical methods can completely remove the effects of bias.",
+        "answer": "NO",
+        "evidence": "although they cannot remove them entirely"
+       },
+       {
+        "n": 34,
+        "prompt": "Most projects now include volunteers' names on research papers.",
+        "answer": "NOT GIVEN",
+        "evidence": "Some projects have tried to address this by listing contributors",
+        "note": "The writer says some projects list contributors; there is no claim about most projects or about names on papers."
+       },
+       {
+        "n": 35,
+        "prompt": "Volunteers should have the opportunity to propose their own research questions.",
+        "answer": "YES",
+        "evidence": "projects should be designed so that volunteers can propose their own questions"
+       }
+      ]
+     },
+     {
+      "range": [
+       36,
+       40
+      ],
+      "type": "endings",
+      "instructions": "Complete each sentence with the correct ending, A–G, below.",
+      "options_title": "Endings",
+      "options": [
+       "A  is one way of checking the accuracy of data.",
+       "B  may be among the most valuable results of citizen science.",
+       "C  have been recorded largely by volunteers.",
+       "D  requires equipment that only professionals have.",
+       "E  can give a misleading impression.",
+       "F  show that volunteers can do more than collect data.",
+       "G  has been rejected by most professional scientists."
+      ],
+      "items": [
+       {
+        "n": 36,
+        "prompt": "Long-term changes in the timing of spring",
+        "answer": "C",
+        "evidence": "have been documented largely through records kept by volunteers"
+       },
+       {
+        "n": 37,
+        "prompt": "Asking several volunteers to classify the same image",
+        "answer": "A",
+        "evidence": "Many projects now include ways of checking data, such as asking several volunteers to classify the same image"
+       },
+       {
+        "n": 38,
+        "prompt": "Results that are influenced by which species volunteers find easy to recognise",
+        "answer": "E",
+        "evidence": "the results can give a misleading picture"
+       },
+       {
+        "n": 39,
+        "prompt": "Community projects investigating local air pollution",
+        "answer": "F",
+        "evidence": "A few projects have already done this successfully, with local communities investigating issues such as air pollution"
+       },
+       {
+        "n": 40,
+        "prompt": "Giving people direct experience of how scientific knowledge is produced",
+        "answer": "B",
+        "evidence": "that experience may prove to be one of its most valuable outcomes"
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "writing": {
+  "task1": {
+   "prompt": "The pie charts show how the average household in Norland spent its income in 1995 and 2020. The table shows average household income and size in the same two years. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+   "figure": {
+    "type": "pies",
+    "title": "Norland: household spending and income",
+    "note": "Fictional data for practice.",
+    "categories": [
+     "Housing",
+     "Food",
+     "Transport",
+     "Leisure",
+     "Other"
+    ],
+    "charts": [
+     {
+      "title": "Spending, 1995",
+      "values": [
+       24,
+       31,
+       14,
+       9,
+       22
+      ]
+     },
+     {
+      "title": "Spending, 2020",
+      "values": [
+       34,
+       19,
+       17,
+       15,
+       15
+      ]
+     }
+    ],
+    "table": {
+     "title": "Average household income and size",
+     "columns": [
+      "Year",
+      "Average annual income (N$)",
+      "Average household size (people)"
+     ],
+     "rows": [
+      [
+       "1995",
+       "18,500",
+       "3.4"
+      ],
+      [
+       "2020",
+       "41,200",
+       "2.6"
+      ]
+     ]
+    },
+    "alt": "Two pie charts and a table. In 1995, Norland households spent 24% of income on housing, 31% on food, 14% on transport, 9% on leisure and 22% on other items. In 2020, the figures were 34% housing, 19% food, 17% transport, 15% leisure and 15% other. The table shows average annual household income rising from 18,500 to 41,200 Norland dollars, and average household size falling from 3.4 to 2.6 people."
+   },
+   "model_label": "Illustrative model for teacher discussion after the mock. Not a certified band answer.",
+   "model": "The pie charts compare the share of income that an average Norland household spent on five categories in 1995 and 2020, while the table gives average household income and size in those years.\n\nOverall, housing replaced food as the largest area of spending, and the proportion spent on leisure grew noticeably. At the same time, households became considerably richer and smaller.\n\nIn 1995, food accounted for the biggest share of spending, at 31%, followed by housing at 24%. By 2020, this order had been reversed: housing had risen to 34% of the budget, whereas food had fallen to 19%. The share spent on leisure also increased, from 9% to 15%, and transport rose slightly, from 14% to 17%. In contrast, spending on other items dropped from 22% to 15%.\n\nThese changes took place as average annual household income more than doubled, from N$18,500 to N$41,200. Meanwhile, the average number of people in a household fell from 3.4 to 2.6, which may help to explain why a smaller proportion of income was needed for food.",
+   "checklist": [
+    "Task Achievement: Is there a clear overview covering both the charts and the table? Are the biggest changes reported with accurate figures?",
+    "Coherence and Cohesion: Are the pie charts and the table linked rather than described separately and mechanically?",
+    "Lexical Resource: Is the language of proportion and change precise (accounted for, the share of, more than doubled, reversed)?",
+    "Grammatical Range and Accuracy: Are past and past perfect forms and comparative structures controlled?"
+   ]
+  },
+  "task2": {
+   "prompt": "In many countries, more people now work from home for at least part of the week. Why is this happening? Is it a positive or negative development? Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words.",
+   "model_label": "Illustrative model for teacher discussion after the mock. Not a certified band answer.",
+   "model": "In recent years, working from home has changed from an unusual arrangement into a normal part of many people's working week. In my view, this trend is driven mainly by technology and by employees' changing expectations, and although it creates some difficulties, it is on balance a positive development.\n\nThe most important reason for the change is technological. Fast internet connections, video-calling software and shared online documents mean that many office tasks can now be done just as well from a kitchen table as from a company desk. A second reason is that many employers discovered during periods of disruption that their staff could remain productive at home, which removed much of their earlier resistance. Finally, employees themselves increasingly value flexibility. Long, expensive journeys to work are a major source of stress, and many people are no longer willing to accept them five days a week.\n\nThere are clear benefits to this development. Workers save time and money on commuting, and parents in particular can organise their day more easily around their children's needs. Companies can reduce the cost of office space, and fewer cars on the roads at peak times means less congestion and pollution. However, there are also disadvantages. Some people feel isolated without colleagues around them, and younger employees may miss the informal learning that happens in a shared office. It can also become harder to separate work from private life.\n\nIn conclusion, the growth of home working reflects new technology and new attitudes to work. While employers need to take care that staff do not become isolated, I believe that the freedom and efficiency it offers make it a largely positive change.",
+   "checklist": [
+    "Task Response: Are BOTH questions answered (why it is happening, and positive or negative) with a clear position throughout?",
+    "Coherence and Cohesion: Is there a logical paragraph plan, with one main idea per paragraph?",
+    "Lexical Resource: Is vocabulary on work and technology precise (commuting, flexibility, productive, isolated)?",
+    "Grammatical Range and Accuracy: Are complex sentences, passives and concessive structures (although, while) controlled?"
+   ]
+  }
+ },
+ "speaking": {
+  "part1": [
+   {
+    "topic": "Your home town",
+    "questions": [
+     "Where is your home town?",
+     "What do you like most about it?",
+     "Has it changed much since you were a child?",
+     "Would you like to live there in the future?"
+    ]
+   },
+   {
+    "topic": "Weather",
+    "questions": [
+     "What kind of weather do you like best?",
+     "Does the weather affect your mood?",
+     "What do you usually do on rainy days?"
+    ]
+   },
+   {
+    "topic": "Photographs",
+    "questions": [
+     "Do you often take photographs?",
+     "What kinds of things do you like to photograph?",
+     "Do you prefer to keep photos on your phone or print them?"
+    ]
+   }
+  ],
+  "part2": {
+   "card": "Describe a skill you learned as a teenager or an adult.",
+   "points": [
+    "what the skill is",
+    "when and where you learned it",
+    "how you learned it",
+    "and explain how useful this skill has been for you."
+   ],
+   "rounding_off": [
+    "Was it difficult to learn?",
+    "Would you like to teach this skill to someone else?"
+   ]
+  },
+  "part3": {
+   "theme": "Learning skills",
+   "questions": [
+    "What skills do you think young people should learn at school?",
+    "Is it easier to learn a new skill as a child or as an adult? Why?",
+    "Do you think online videos are a good way to learn practical skills?",
+    "Which skills do you think will become more important in the future?",
+    "Should employers pay for their staff to learn new skills?"
+   ]
+  }
+ },
+ "release_blockers": [
+  "Owner review of content, keys and recordings has not taken place (new AI-assisted draft).",
+  "Device, print and classroom audio acceptance not yet recorded (LB-08).",
+  "No validated raw-score-to-band conversion exists for these forms; results stay raw scores and criterion feedback."
+ ]
+}

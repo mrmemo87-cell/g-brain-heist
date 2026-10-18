@@ -87,6 +87,7 @@ class MockPack:
         s.add(ParagraphStyle('Q', fontName='BHRegular', fontSize=10.5, leading=15, textColor=colors.HexColor(INK), spaceAfter=5, leftIndent=26, firstLineIndent=-26))
         s.add(ParagraphStyle('O', fontName='BHRegular', fontSize=10.3, leading=14, textColor=colors.HexColor(INK), spaceAfter=2, leftIndent=44))
         s.add(ParagraphStyle('S', fontName='BHRegular', fontSize=8.6, leading=12, textColor=colors.HexColor(MUTED), spaceAfter=5))
+        s.add(ParagraphStyle('Arrow', fontName='BHBold', fontSize=13, leading=15, textColor=colors.HexColor(PRIMARY), leftIndent=174, spaceBefore=1, spaceAfter=1))
         s.add(ParagraphStyle('Cell', fontName='BHRegular', fontSize=9, leading=12, textColor=colors.HexColor(INK)))
         s.add(ParagraphStyle('Big', fontName='BHBold', fontSize=26, leading=32, textColor=colors.HexColor(INK), spaceAfter=10))
         self.st = s
@@ -179,6 +180,18 @@ class MockPack:
             out.append(self.p(g['summary'], 'Pass'))
             out += self.option_box('Words', g['options'])
             return out
+        if t == 'completion' and g.get('flow'):
+            # flow-chart completion: one boxed stage per item, joined by downward arrows; optional fixed stages
+            stages = g.get('stages') or [it['prompt'] for it in g['items']]
+            nums = {it['prompt']: it['n'] for it in g['items']}
+            chart = []
+            for i, s in enumerate(stages):
+                if i:
+                    chart.append(self.p('↓', 'Arrow'))
+                label = f"{nums[s]}   " if s in nums else ''
+                chart += self.table([[label + s.replace('______', '__________')]], [360], head=False)[:1]
+            out.append(KeepTogether(chart))
+            return out
         for it in g['items']:
             if t == 'mcq':
                 out.append(KeepTogether([self.p(f"{it['n']}   {it['prompt']}", 'Q')] + [self.p(o, 'O') for o in it['options']]))
@@ -192,12 +205,9 @@ class MockPack:
                 out.append(self.p(f"{it['n']}   {it['prompt']}" + ('   ______' if t != 'endings' else ' ______'), 'Q'))
         if t == 'endings':
             out += self.option_box(g.get('options_title', 'Endings'), g['options'])
-        if t in ('matching', 'headings', 'short') and len(g['items']) <= 8:
-            # a short list of numbered prompts stays with its heading and option box
-            if t == 'short':  # answer-only prompts are short: keep heading, instructions and prompts on one page
-                return [KeepTogether(out)]
-            head = out[:2]
-            return head + [KeepTogether(out[2:])]
+        if t in ('matching', 'headings', 'short', 'endings') and len(g['items']) <= 8:
+            # a short set stays on one page with its heading, instructions and option box
+            return [KeepTogether(out)]
         return out
 
     def answer_text(self, g, it):

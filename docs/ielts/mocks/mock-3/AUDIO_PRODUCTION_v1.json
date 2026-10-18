@@ -1,0 +1,386 @@
+{
+ "record": "IELTS-M3 listening audio production",
+ "version": "1",
+ "produced": "2026-10-18",
+ "provider": "Runway MCP (workspace 'Sobbi', personal)",
+ "script_source": "docs/ielts/mocks/mock-3/mock.json",
+ "model": "eleven_v4 (instructions: voice Tom, stability 0.7; passages: dialogue/monologue, stability 0.5, fixed seeds)",
+ "assembly": "48 kHz mono; edge silence trimmed; each segment loudness-matched to -18 LUFS; exact digital silences (30 s reading time per half-part, 45 s before Part 4, 30 s checking time after each part); true-peak limiter; MP3 160 kbps with copyright metadata",
+ "rights_basis": "Owner confirmed on 2026-10-17 that rights to recordings produced in this workflow belong to Brains Heist LLC.",
+ "reuse": "Sixteen generic instruction snippets (notice, opening, listen/rest prompts with identical wording, end-of-part prompts, closing) are reused from IELTS-M1 and IELTS-M2; their task ids are marked.",
+ "file": "IELTS-M3_Listening_v1.mp3",
+ "sha256": "2645b103660fef85119b98d59e9c194ff79c6e3d9138e24549356fa5287d4a62",
+ "bytes": 25903969,
+ "duration_seconds": 1295.16,
+ "integrated_lufs": -18.6,
+ "true_peak_dbfs": -1.7,
+ "part_starts": [
+  26.078,
+  330.838,
+  662.303,
+  959.512
+ ],
+ "designed_pauses": [
+  {
+   "label": "reading_silence",
+   "start": 36.676,
+   "seconds": 30.0
+  },
+  {
+   "label": "reading_silence",
+   "start": 174.202,
+   "seconds": 30.0
+  },
+  {
+   "label": "check_silence",
+   "start": 300.838,
+   "seconds": 30.0
+  },
+  {
+   "label": "reading_silence",
+   "start": 341.169,
+   "seconds": 30.0
+  },
+  {
+   "label": "reading_silence",
+   "start": 498.314,
+   "seconds": 30.0
+  },
+  {
+   "label": "check_silence",
+   "start": 632.303,
+   "seconds": 30.0
+  },
+  {
+   "label": "reading_silence",
+   "start": 676.146,
+   "seconds": 30.0
+  },
+  {
+   "label": "reading_silence",
+   "start": 809.917,
+   "seconds": 30.0
+  },
+  {
+   "label": "check_silence",
+   "start": 929.512,
+   "seconds": 30.0
+  },
+  {
+   "label": "reading_silence",
+   "start": 970.555,
+   "seconds": 45.0
+  },
+  {
+   "label": "check_silence",
+   "start": 1258.681,
+   "seconds": 30.0
+  }
+ ],
+ "detected_pauses_over_10s": [
+  30.14,
+  30.14,
+  30.14,
+  30.13,
+  30.12,
+  30.13,
+  30.12,
+  30.11,
+  30.03,
+  45.13,
+  30.13
+ ],
+ "segments": [
+  {
+   "segment": "notice",
+   "kind": "instruction",
+   "task": "27432479-fca3-4fbb-a210-2d53aff3f703 (reused from IELTS-M1)",
+   "start": 0.0,
+   "seconds": 4.871,
+   "gain_db": 2.5,
+   "words": 10,
+   "words_per_minute": null
+  },
+  {
+   "segment": "opening",
+   "kind": "instruction",
+   "task": "d0b8f071-c624-4d9f-b5a8-df800bcbc2fa (reused from IELTS-M1)",
+   "start": 5.571,
+   "seconds": 19.007,
+   "gain_db": 3.3,
+   "words": 60,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p1_intro",
+   "kind": "instruction",
+   "task": "b28fd460-71a8-438d-91b6-44b8ce83b1ac",
+   "start": 26.078,
+   "seconds": 10.598,
+   "gain_db": 2.4,
+   "words": 30,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p1_listen0",
+   "kind": "instruction",
+   "task": "6aee8d10-1fc1-40a1-928e-046d60bb52bd (reused from IELTS-M1)",
+   "start": 66.676,
+   "seconds": 3.738,
+   "gain_db": 2.7,
+   "words": 9,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p1_s0_d",
+   "kind": "dialogue",
+   "task": "605e4dc6-8bd8-4476-b6db-0dda50cc20b4",
+   "start": 71.414,
+   "seconds": 96.307,
+   "gain_db": 2.4,
+   "words": 284,
+   "words_per_minute": 177
+  },
+  {
+   "segment": "p1_rest1",
+   "kind": "instruction",
+   "task": "4843d0b4-0135-432c-9374-4783af3888af (reused from IELTS-M1)",
+   "start": 168.921,
+   "seconds": 5.281,
+   "gain_db": 3.4,
+   "words": 19,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p1_listen1",
+   "kind": "instruction",
+   "task": "be4d7e17-d4ef-43d3-b22f-54801ce0591d (reused from IELTS-M1)",
+   "start": 204.202,
+   "seconds": 3.319,
+   "gain_db": 3.2,
+   "words": 8,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p1_s1_d",
+   "kind": "dialogue",
+   "task": "ba07b0a1-9186-4f99-be79-dedd4450e9f0",
+   "start": 208.521,
+   "seconds": 85.903,
+   "gain_db": 2.8,
+   "words": 242,
+   "words_per_minute": 169
+  },
+  {
+   "segment": "p1_end",
+   "kind": "instruction",
+   "task": "08cc7052-1226-4ecc-8523-231918cfa650 (reused from IELTS-M1)",
+   "start": 295.624,
+   "seconds": 5.214,
+   "gain_db": 2.4,
+   "words": 17,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p2_intro",
+   "kind": "instruction",
+   "task": "87003448-dd53-40c6-9ef5-cd19627309d6",
+   "start": 330.838,
+   "seconds": 10.331,
+   "gain_db": 3.5,
+   "words": 29,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p2_listen0",
+   "kind": "instruction",
+   "task": "fb1a96c6-6cc2-4822-b8f4-4631607af68f (reused from IELTS-M2)",
+   "start": 371.169,
+   "seconds": 3.983,
+   "gain_db": 3.4,
+   "words": 9,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p2_s0_m0",
+   "kind": "monologue",
+   "task": "4491500b-833c-46cd-aa16-faa8562b768b",
+   "start": 376.152,
+   "seconds": 115.735,
+   "gain_db": 1.7,
+   "words": 353,
+   "words_per_minute": 183
+  },
+  {
+   "segment": "p2_rest1",
+   "kind": "instruction",
+   "task": "3ec7012c-0078-4b66-8db5-b88292c11439 (reused from IELTS-M2)",
+   "start": 493.087,
+   "seconds": 5.227,
+   "gain_db": 3.2,
+   "words": 19,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p2_listen1",
+   "kind": "instruction",
+   "task": "73780c69-0eb6-4a46-9ce0-fa362e9f335b (reused from IELTS-M2)",
+   "start": 528.314,
+   "seconds": 3.657,
+   "gain_db": 3.0,
+   "words": 8,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p2_s1_m0",
+   "kind": "monologue",
+   "task": "bfb7ba60-0992-4c78-9309-9756ca8d7858",
+   "start": 532.971,
+   "seconds": 92.944,
+   "gain_db": 1.8,
+   "words": 280,
+   "words_per_minute": 181
+  },
+  {
+   "segment": "p2_end",
+   "kind": "instruction",
+   "task": "e028236a-ed9c-4134-968f-1c26590ca7d7 (reused from IELTS-M1)",
+   "start": 627.115,
+   "seconds": 5.188,
+   "gain_db": 2.3,
+   "words": 17,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p3_intro",
+   "kind": "instruction",
+   "task": "91e795e4-3da5-42fe-a133-455ce571aba2",
+   "start": 662.303,
+   "seconds": 13.843,
+   "gain_db": 3.0,
+   "words": 35,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p3_listen0",
+   "kind": "instruction",
+   "task": "292f5866-9680-41e7-ba5e-57ee0418178d (reused from IELTS-M1)",
+   "start": 706.146,
+   "seconds": 4.274,
+   "gain_db": 3.0,
+   "words": 9,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p3_s0_d",
+   "kind": "dialogue",
+   "task": "4d1772ef-95a4-4167-a370-dceb4ea650ab",
+   "start": 711.421,
+   "seconds": 91.647,
+   "gain_db": 5.2,
+   "words": 275,
+   "words_per_minute": 180
+  },
+  {
+   "segment": "p3_rest1",
+   "kind": "instruction",
+   "task": "1c154633-6aeb-4c80-896f-9bbe4ed05453",
+   "start": 804.268,
+   "seconds": 5.649,
+   "gain_db": 3.0,
+   "words": 19,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p3_listen1",
+   "kind": "instruction",
+   "task": "ebc36235-89f3-4b3a-97fe-42ca8d7b93cb (reused from IELTS-M1)",
+   "start": 839.917,
+   "seconds": 3.645,
+   "gain_db": 2.2,
+   "words": 8,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p3_s1_d",
+   "kind": "dialogue",
+   "task": "3c9434dc-640b-42dd-b1e5-fc9d0e227154",
+   "start": 844.561,
+   "seconds": 78.551,
+   "gain_db": 5.3,
+   "words": 235,
+   "words_per_minute": 180
+  },
+  {
+   "segment": "p3_end",
+   "kind": "instruction",
+   "task": "aa8c3451-d66d-4a5b-b881-9df6458b9f6d (reused from IELTS-M1)",
+   "start": 924.312,
+   "seconds": 5.2,
+   "gain_db": 2.0,
+   "words": 17,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p4_intro",
+   "kind": "instruction",
+   "task": "d5e6f030-ec59-41c5-b704-47e0d83cbcac",
+   "start": 959.512,
+   "seconds": 11.042,
+   "gain_db": 3.1,
+   "words": 32,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p4_listen0",
+   "kind": "instruction",
+   "task": "ab2ea5d9-e202-47ea-bf82-db450e5b5deb (reused from IELTS-M1)",
+   "start": 1015.555,
+   "seconds": 3.953,
+   "gain_db": 2.9,
+   "words": 9,
+   "words_per_minute": null
+  },
+  {
+   "segment": "p4_s0_m0",
+   "kind": "monologue",
+   "task": "6523eed3-5adc-4903-82a5-0290175ee9c9",
+   "start": 1020.507,
+   "seconds": 132.655,
+   "gain_db": 12.1,
+   "words": 303,
+   "words_per_minute": 137
+  },
+  {
+   "segment": "p4_s0_m1",
+   "kind": "monologue",
+   "task": "b47ff845-59e8-476f-969a-78a75f2e0d73",
+   "start": 1153.613,
+   "seconds": 98.843,
+   "gain_db": 12.1,
+   "words": 234,
+   "words_per_minute": 142
+  },
+  {
+   "segment": "p4_end",
+   "kind": "instruction",
+   "task": "b129ff45-e3b9-4e36-8526-4d2b486e7af4 (reused from IELTS-M1)",
+   "start": 1253.655,
+   "seconds": 5.026,
+   "gain_db": 2.1,
+   "words": 17,
+   "words_per_minute": null
+  },
+  {
+   "segment": "closing",
+   "kind": "instruction",
+   "task": "ad3c25cc-7388-4939-9ebc-593f40340fc8 (reused from IELTS-M1)",
+   "start": 1288.681,
+   "seconds": 6.436,
+   "gain_db": 3.0,
+   "words": 21,
+   "words_per_minute": null
+  }
+ ],
+ "status": "Produced v1; owner listening review pending"
+}
