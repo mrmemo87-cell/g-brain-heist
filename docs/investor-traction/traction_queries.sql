@@ -127,10 +127,13 @@ SELECT c.*,
     THEN round(100.0*c.returned_w4/nullif(c.cohort_size,0),1) END AS w4_pct_mature_only
 FROM cohorts c ORDER BY c.cohort_week;
 
--- 4. Provenance / potential flags, counts only. Review exclusions with pilot operator.
-SELECT
-  (SELECT count(*) FROM public.users WHERE role IN ('student','teacher')
-   AND lower(coalesce(username,'')) ~ '^(test|demo|qa|sample|seed|fake|sandbox)([0-9]|[_ .-]|$)') AS flagged_student_teacher_accounts,
-  (SELECT count(*) FROM public.schools WHERE name ~* '(test|demo|sample|sandbox)') AS flagged_school_records,
-  (SELECT count(*) FROM public.school_billing_payment_attempts WHERE status='paid') AS paid_status_records_needing_receipt_validation,
-  (SELECT count(*) FROM public.student_learning_interventions) AS intervention_records_alltime;
+-- 4. Potential test-like user alias counts (manual review required).
+SELECT count(*) FILTER (
+  WHERE role IN ('student','teacher')
+    AND lower(coalesce(username,'')) ~ '^(test|demo|qa|sample|seed|fake|sandbox)([0-9]|[_ .-]|$)'
+) AS flagged_student_teacher_accounts FROM public.users;
+
+-- 5. Potential test-like school names; no school identifiers exposed.
+SELECT count(*) FILTER (
+  WHERE name ~* '(test|demo|sample|sandbox)'
+) AS flagged_school_records FROM public.schools;
