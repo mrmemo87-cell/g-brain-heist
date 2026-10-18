@@ -1,6 +1,6 @@
 # IELTS course roadmap
 
-Version 1.0.5 · 2026-10-17. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
+Version 1.0.6 · 2026-10-18. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
 
 Reference delivery: 12 teaching weeks, 24 lessons, two 60-minute lessons weekly. Owner-confirmed route: Academic only, beginning at B1 with gradually increasing demands. Adapt support and pace to actual evidence. The sequence does not promise a band or certify that all materials exist.
 
@@ -10,26 +10,26 @@ Reference delivery: 12 teaching weeks, 24 lessons, two 60-minute lessons weekly.
 | 1 | IELTS-02 | Reading evidence and developed answers | Private teacher-review pack prepared; not installed/released |
 | 2 | IELTS-03 | Listening details, spelling and word limits | All-school teacher pack 1.0.1 with school branding; student tasks unreleased |
 | 2 | IELTS-04 | Clear paragraphs and Speaking Part 1 | All-school teacher pack 1.0.1 with school branding; student tasks unreleased |
-| 3 | IELTS-05 | Listening distractors and paraphrases | Private teacher-review draft 0.1.0; recordings v1 owner approved; content review pending; not installed/released |
-| 3 | IELTS-06 | Reading specific information | Private teacher-review draft 0.1.0; not installed/released |
-| 4 | IELTS-07 | Task 2 ideas and supporting examples | Private teacher-review draft 0.1.0; not installed/released |
-| 4 | IELTS-08 | Speaking development and first progress review | Private teacher-review draft 0.1.0; not installed/released |
-| 5 | IELTS-09 | Reading headings and paragraph purpose | Private teacher-review draft 0.1.0; not installed/released |
-| 5 | IELTS-10 | Listening notes and summaries | Private teacher-review draft 0.1.0; recordings v1 produced, owner listening review pending; not installed/released |
-| 6 | IELTS-11 | Academic Task 1 overview and comparisons | Private teacher-review draft 0.1.0; not installed/released |
-| 6 | IELTS-12 | Speaking Part 2 organization | Private teacher-review draft 0.1.0; not installed/released |
-| 7 | IELTS-13 | Reading TRUE/FALSE/NOT GIVEN and YES/NO/NOT GIVEN | Private teacher-review draft 0.1.0; not installed/released |
-| 7 | IELTS-14 | Longer listening and reference tracking | Private teacher-review draft 0.1.0; recordings v1 produced, owner listening review pending; not installed/released |
-| 8 | IELTS-15 | Task 2 planning and full responses | Private teacher-review draft 0.1.0; not installed/released |
-| 8 | IELTS-16 | Speaking Part 3 and second progress review | Private teacher-review draft 0.1.0; not installed/released |
-| 9 | IELTS-17 | Timed Listening sections and error review | Private teacher-review draft 0.1.0; recordings v1 produced, owner listening review pending; not installed/released |
-| 9 | IELTS-18 | Timed Reading and question selection | Private teacher-review draft 0.1.0; not installed/released |
-| 10 | IELTS-19 | Task 1 and Task 2 revision workshop | Private teacher-review draft 0.1.0 (Task 1 tables and accuracy); not installed/released |
-| 10 | IELTS-20 | Speaking interview and targeted repair | Private teacher-review draft 0.1.0; not installed/released |
-| 11 | IELTS-21 | Fresh receptive-skill assessment and review | Private teacher-review draft 0.1.0; recording v1 produced, owner listening review pending; full mock blocks arranged separately; not installed/released |
-| 11 | IELTS-22 | Fresh productive-skill evidence and review | Private teacher-review draft 0.1.0; retain actual coverage; not installed/released |
-| 12 | IELTS-23 | Individual priorities from mock/check evidence | Private teacher-review draft 0.1.0; not installed/released |
-| 12 | IELTS-24 | Final course review and next learning plan | Private teacher-review draft 0.1.0; not installed/released |
+| 3 | IELTS-05 | Listening distractors and paraphrases | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 3 | IELTS-06 | Reading specific information | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 4 | IELTS-07 | Task 2 ideas and supporting examples | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 4 | IELTS-08 | Speaking development and first progress review | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 5 | IELTS-09 | Reading headings and paragraph purpose | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 5 | IELTS-10 | Listening notes and summaries | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 6 | IELTS-11 | Academic Task 1 overview and comparisons | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 6 | IELTS-12 | Speaking Part 2 organization | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 7 | IELTS-13 | Reading TRUE/FALSE/NOT GIVEN and YES/NO/NOT GIVEN | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 7 | IELTS-14 | Longer listening and reference tracking | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 8 | IELTS-15 | Task 2 planning and full responses | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 8 | IELTS-16 | Speaking Part 3 and second progress review | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 9 | IELTS-17 | Timed Listening sections and error review | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 9 | IELTS-18 | Timed Reading and question selection | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 10 | IELTS-19 | Task 1 and Task 2 revision workshop | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 10 | IELTS-20 | Speaking interview and targeted repair | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 11 | IELTS-21 | Fresh receptive-skill assessment and review | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 11 | IELTS-22 | Fresh productive-skill evidence and review | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 12 | IELTS-23 | Individual priorities from mock/check evidence | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 12 | IELTS-24 | Final course review and next learning plan | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
 
 ## Intake and first-month operations
 
@@ -47,6 +47,7 @@ Silk Road first review target: 6 November 2026, Asia/Bishkek. This is a school-s
 4. Lessons 5–8 private review drafts and withheld fresh checks are prepared with the reusable [lesson factory](lessons/LESSON_FACTORY.md); review record: [LESSONS_05_08_REVIEW_DRAFT_2026-10-17.md](lessons/LESSONS_05_08_REVIEW_DRAFT_2026-10-17.md). Human content review remains an open gate; the Lesson 5 recordings (v1) are owner approved.
 5. Lessons 9–16 private review drafts prepared, including recordings for Lessons 10 and 14; review record: [LESSONS_09_16_REVIEW_DRAFT_2026-10-17.md](lessons/LESSONS_09_16_REVIEW_DRAFT_2026-10-17.md).
 6. Lessons 17–24 private review drafts prepared, including recordings for Lessons 17 and 21; review record: [LESSONS_17_24_REVIEW_DRAFT_2026-10-17.md](lessons/LESSONS_17_24_REVIEW_DRAFT_2026-10-17.md). Full mock sections are scheduled outside 60-minute lessons.
-7. Continuation beyond Lesson 24 for learners aiming at high Academic bands is a plan only: [ADVANCED_CONTINUATION.md](lessons/ADVANCED_CONTINUATION.md). No advanced lessons exist yet.
+7. Lessons 05–24 v0.2.0 owner approved and released to every IELTS school with per-school branding: [release record](releases/LESSONS_05_24_ALL_SCHOOLS_2026_10_18.md). Lessons 01–04 conversion to the same presentation format is pending owner-supplied packs.
+8. Continuation beyond Lesson 24 for learners aiming at high Academic bands is a plan only: [ADVANCED_CONTINUATION.md](lessons/ADVANCED_CONTINUATION.md). No advanced lessons exist yet.
 
 All future runtime installation must use existing authorization, task code registration, originality and publication checks. This roadmap creates no automatic assignments or new scoring. Paper observation sheets are local teaching records until an independently governed capture implementation is added.
