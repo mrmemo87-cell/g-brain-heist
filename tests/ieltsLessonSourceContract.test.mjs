@@ -202,3 +202,54 @@ test('the final review never awards a band or readiness label', () => {
   lesson.blocks[0].examples[0].comment = 'This learner is a guaranteed band 7.';
   assert.ok(validateLessonSource(lesson).length > 0);
 });
+
+const lessonNum = (n) => load(paths.find((p) => p.includes(`lesson-0${n}/`)));
+
+test('Lessons 01-24 are all present as schema-2 sources', () => {
+  const codes = new Set(paths.map((p) => load(p).code));
+  for (let n = 1; n <= 24; n += 1) assert.ok(codes.has(`IELTS-${String(n).padStart(2, '0')}`), `IELTS-${n} missing`);
+});
+
+test('Lessons 01-04 carry a conversion record naming the approved source and every addition', () => {
+  for (const n of [1, 2, 3, 4]) {
+    const lesson = lessonNum(n);
+    assert.ok(lesson.conversion?.source_pack && lesson.conversion?.approved_content, `IELTS-0${n} conversion record incomplete`);
+    assert.ok(lesson.conversion.additions.length > 0, `IELTS-0${n} must list conversion additions`);
+    assert.ok(lesson.release_blockers.some((b) => /conversion additions/i.test(b)), `IELTS-0${n} must flag the additions for the owner's spot-check`);
+  }
+});
+
+test('a conversion record is refused outside Lessons 1-4', () => {
+  const lesson = lessonFive();
+  lesson.conversion = lessonNum(3).conversion;
+  assert.ok(has(validateLessonSource(lesson), 'conversion records are only for Lessons 1-4'));
+});
+
+test('only a converted lesson may omit the fresh check, and it must name its independent evidence', () => {
+  const five = lessonFive();
+  five.followup = { absent_reason: 'The screener is the independent evidence.' };
+  assert.ok(has(validateLessonSource(five), 'a separate withheld fresh check is required'));
+  const one = lessonNum(1);
+  one.followup.absent_reason = 'No check.';
+  assert.ok(has(validateLessonSource(one), 'must name the independent evidence'));
+});
+
+test('homework blocks are never revealed in class', () => {
+  const lesson = lessonNum(3);
+  lesson.stages.at(-1).show.push({ block: 'IELTS-03-H', part: 'answers' });
+  assert.ok(has(validateLessonSource(lesson), 'must not be revealed in class'));
+});
+
+test('a writing task may lack a model only inside the withheld fresh check', () => {
+  const lesson = lessonNum(4);
+  const w = lesson.blocks.find((b) => b.id === 'IELTS-04-W');
+  delete w.model;
+  w.no_model = 'not needed';
+  assert.ok(has(validateLessonSource(lesson), 'no_model is only for a fresh-check task'));
+});
+
+test('converted listening keys still quote the approved transcript verbatim', () => {
+  const lesson = lessonNum(1);
+  lesson.blocks[0].items[0].evidence = 'We have moved it to Saturday.';
+  assert.ok(has(validateLessonSource(lesson), 'not a verbatim quotation'));
+});

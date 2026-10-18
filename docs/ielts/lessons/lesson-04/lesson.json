@@ -1,0 +1,547 @@
+{
+ "schema": "bh-ielts-lesson-source/2",
+ "code": "IELTS-04",
+ "number": 4,
+ "week": 2,
+ "version": "1.1.0",
+ "presentation_version": "1.1.0",
+ "title": "Clear paragraphs and Speaking Part 1",
+ "status": "Owner approved content (revision 2026-10-17.1) in the approved classroom format; teacher release to all eligible schools",
+ "approval_record": {
+  "approved_by": "Owner, Brains Heist LLC",
+  "date": "2026-10-18",
+  "version": "1.1.0",
+  "scope": "Lesson content, keys, models and fresh check approved as content revision 2026-10-17.1, carried over unchanged into the classroom presentation format the owner approved on 2026-10-18, for teacher-only release to all eligible schools.",
+  "basis": "Content revision 2026-10-17.1 was approved by the owner on 2026-10-17 (recorded in the teacher pack catalogue). On 2026-10-18 15:37 Asia/Bishkek the owner asked in the review conversation for Lessons 1-4 in the same format and for publication to all schools. The conversion additions listed in conversion.additions were not separately reviewed. Not recorded as an in-platform decision."
+ },
+ "conversion": {
+  "source_pack": "IELTS-04 Teacher Pack v1.0.1, downloaded from the teacher library and attached by the owner on 2026-10-18",
+  "source_version": "1.0.1 (content revision 2026-10-17.1)",
+  "approved_content": "All prompts, models, sample revisions, keys, support activities, homework and the protected follow-up are copied from the approved source.",
+  "additions": [
+   "Stage student, say and check lines where the approved timed guide gives only the teacher action.",
+   "The four differentiation pathway summaries (levels), drawn from the approved foundation and extension options.",
+   "Short reasons for model items M1-M3 and evidence lines for the repair samples, where the approved key gives the answer only.",
+   "Writing conditions line (10 minutes, first draft kept) taken from the timed guide; learner, homework and fresh-check checklists phrased as questions from the approved point/reason/example/explanation features (the teacher descriptors stay in the key).",
+   "The opening key comment says \"not a complete paragraph for the highest levels\" instead of \"not a complete high-band paragraph\", to keep band language out of learner-facing slides."
+  ]
+ },
+ "duration": 60,
+ "test_type": "Academic",
+ "bibles": {
+  "diagnostic": "1.10.0",
+  "lessons": "1.1.0",
+  "visual": "1.1.0"
+ },
+ "rights": "Original Brains Heist LLC instructional content, AI-assisted. No third-party passages or assessment questions copied.",
+ "audio": {
+  "required": false,
+  "statement": "No new listening recording required. Teacher reads models aloud naturally; learners speak live.",
+  "recordings": []
+ },
+ "prerequisites": [
+  "Simple sentence construction and Lesson 2 development work."
+ ],
+ "objectives": [
+  {
+   "text": "Build a paragraph around one clear point, a reason and a specific example.",
+   "focus": [
+    "paragraph control",
+    "idea development"
+   ]
+  },
+  {
+   "text": "Explain how the example supports the point.",
+   "focus": [
+    "example relevance",
+    "cohesion"
+   ]
+  },
+  {
+   "text": "Give relevant, developed answers to familiar Speaking Part 1 topics.",
+   "focus": [
+    "topic development",
+    "relevance"
+   ]
+  },
+  {
+   "text": "Use one teacher-confirmed next step without memorizing a model answer.",
+   "focus": [
+    "self-correction"
+   ]
+  }
+ ],
+ "levels": {
+  "foundation": "Point → because → for example → explanation prompts for the paragraph (record the scaffold); D04-S1 or D04-S2 when the actual paragraph needs it.",
+  "core": "One paragraph of approximately 70–100 words with a clear point, reason, specific example and explanation; four Part 1 questions in pairs.",
+  "extension": "Add a relevant limitation and explain how it might be addressed, without changing the main point.",
+  "high_band": "In speaking, answer → reason → specific detail with a partner's natural follow-up, without a memorised script (D04-S3 if an answer stays undeveloped)."
+ },
+ "blocks": [
+  {
+   "id": "IELTS-04-OPEN",
+   "kind": "contrast",
+   "title": "D04-OPEN: Which paragraph develops its point?",
+   "mode": "Opening comparison; choose and justify before the reveal",
+   "instructions": "Which paragraph stays focused and develops its point? Explain.",
+   "examples": [
+    {
+     "label": "Paragraph A",
+     "text": "Schools should lend books. Books are good. I like films.",
+     "comment": "A makes an undeveloped claim and changes topic to films."
+    },
+    {
+     "label": "Paragraph B",
+     "text": "Schools should lend books because some students cannot buy many. For example, a student can borrow a science book for a class project.",
+     "comment": "Key: B. B adds a relevant reason and a concrete example. B is an opening model, not a complete paragraph for the highest levels."
+    }
+   ]
+  },
+  {
+   "id": "IELTS-04-M",
+   "kind": "items",
+   "title": "D04-M: Label the sentence functions",
+   "mode": "Guided analysis of the model paragraph; learners label before the reveal",
+   "instructions": "Read the model. Which sentence does each job?",
+   "stimulus": {
+    "type": "passage",
+    "title": "Model paragraph",
+    "paragraphs": [
+     "Sentence 1: Schools should allow students to borrow equipment for creative projects instead of expecting every family to buy it.",
+     "Sentence 2: This would make activities such as photography more affordable.",
+     "Sentence 3: For example, a student could borrow a camera for a weekend project and return it on Monday, rather than purchasing one for a single task.",
+     "Sentence 4: Access to shared equipment would therefore allow more learners to take part, including those with limited money."
+    ]
+   },
+   "items": [
+    {
+     "id": "IELTS-04-M-QM1",
+     "prompt": "Which sentence gives the main point?",
+     "answer": "Sentence 1",
+     "evidence": "Schools should allow students to borrow equipment for creative projects instead of expecting every family to buy it.",
+     "reason": "It states the main point that the paragraph develops.",
+     "focus": "paragraph control",
+     "type": "short"
+    },
+    {
+     "id": "IELTS-04-M-QM2",
+     "prompt": "Which gives the reason?",
+     "answer": "Sentence 2",
+     "evidence": "This would make activities such as photography more affordable.",
+     "reason": "It gives the reason: affordability.",
+     "focus": "idea development",
+     "type": "short"
+    },
+    {
+     "id": "IELTS-04-M-QM3",
+     "prompt": "Which supplies a specific example?",
+     "answer": "Sentence 3",
+     "evidence": "For example, a student could borrow a camera for a weekend project and return it on Monday, rather than purchasing one for a single task.",
+     "reason": "It gives one specific situation: borrowing a camera for a weekend project.",
+     "focus": "example relevance",
+     "type": "short"
+    },
+    {
+     "id": "IELTS-04-M-QM4",
+     "prompt": "Which explains the example's connection to the point?",
+     "answer": "Sentence 4",
+     "evidence": "Access to shared equipment would therefore allow more learners to take part, including those with limited money.",
+     "reason": "Sentence 4 connects affordability to participation.",
+     "focus": "cohesion",
+     "type": "short"
+    }
+   ],
+   "marking": "Other well-developed paragraphs need not follow an identical four-sentence formula. Proposed mappings: paragraph control, idea development, example relevance and cohesion. No criterion band can be inferred from these labels."
+  },
+  {
+   "id": "IELTS-04-R",
+   "kind": "items",
+   "title": "D04-R: Repair clinic",
+   "mode": "Guided revision; multiple answers are valid",
+   "instructions": "For each weak sentence, write a more useful version. Multiple answers are valid.",
+   "stimulus": {
+    "type": "none"
+   },
+   "items": [
+    {
+     "id": "IELTS-04-R-QR1",
+     "prompt": "\"Choosing a project topic is good.\" Make the reason precise.",
+     "answer": "Choosing a project topic lets students explore a subject that interests them.",
+     "evidence": "Sample revision: the reason now says how the choice helps.",
+     "reason": "Accept other relevant, grammatical responses. These are model revisions, not an objective answer key or evidence of a fixed ability.",
+     "focus": "idea development",
+     "type": "short"
+    },
+    {
+     "id": "IELTS-04-R-QR2",
+     "prompt": "\"For example, students.\" Make the example concrete.",
+     "answer": "For example, a student who enjoys drawing could investigate how illustrations help people understand science.",
+     "evidence": "Sample revision: one specific student and one specific project.",
+     "reason": "Accept other relevant, grammatical responses. These are model revisions, not an objective answer key or evidence of a fixed ability.",
+     "focus": "example relevance",
+     "type": "short"
+    },
+    {
+     "id": "IELTS-04-R-QR3",
+     "prompt": "\"This is better.\" Explain how the example supports the point.",
+     "answer": "Connecting the project to an existing interest could encourage the student to investigate the subject more carefully.",
+     "evidence": "Sample revision: it names the link between the example and the point.",
+     "reason": "Accept other relevant, grammatical responses. These are model revisions, not an objective answer key or evidence of a fixed ability.",
+     "focus": "cohesion",
+     "type": "short"
+    }
+   ]
+  },
+  {
+   "id": "IELTS-04-W",
+   "kind": "writing",
+   "task": "paragraph",
+   "title": "D04-W: Core writing",
+   "mode": "Independent classroom paragraph after modelling; not a complete Academic Writing Task 2 answer",
+   "prompt": "Some teachers allow students to choose the topic of a class project. Explain one benefit of this approach. Write one paragraph of approximately 70–100 words. Give a clear point, a reason, a specific example and an explanation connecting them.",
+   "conditions": "Write for 10 minutes after planning; retain the first draft. This is a classroom paragraph, not a complete Academic Writing Task 2 answer.",
+   "support": "Foundation option: use point → because → for example → explanation prompts; record the scaffold.",
+   "extension": "Add a relevant limitation and explain how it might be addressed, without changing the main point.",
+   "model_label": "Illustrative sample response — teacher-only illustration, not a required answer or band model.",
+   "model": "Allowing students to choose a project topic can make them more willing to investigate it carefully. They can connect the work to something they already want to understand. For example, a student interested in music could explore how sound travels through different materials and compare the results of simple classroom experiments. Having a personal reason to find the answer may encourage the student to keep working when the research becomes difficult. The teacher should still check that the topic is suitable for the lesson and that the necessary resources are available.",
+   "checklist": [
+    "Is there one clear, relevant point?",
+    "Is the reason linked to the point?",
+    "Is the example specific and relevant?",
+    "Does a sentence explain how the example supports the point?"
+   ],
+   "marking": "Descriptive observations, not invented scoring. Record a supporting excerpt for each observed feature: clear relevant point: observed / not yet clear / insufficient work; reason linked to the point: observed / not yet clear / insufficient work; specific relevant example: observed / not yet clear / insufficient work; explanation of its relevance: observed / not yet clear / insufficient work; sentence connection and one language priority: descriptive note. Do not turn these checks into a Task 2 band. Preserve contradictory evidence. Suggested student feedback: \"Your example is relevant. Explain more clearly how it supports your point. Next, revise your final sentence.\" Use this wording only when it matches the actual paragraph."
+  },
+  {
+   "id": "IELTS-04-P",
+   "kind": "speaking",
+   "title": "D04-P: Speaking Part 1 practice",
+   "mode": "Paired practice; not an official timed Speaking test",
+   "instructions": "Take turns asking the four questions. Answer naturally using your own experience or a truthful alternative you are comfortable sharing. Try answer → reason → specific detail where useful; do not memorize a script. A partner asks one natural follow-up. This is practice, not an official timed Speaking test. A short answer can still be relevant.",
+   "prompts": [
+    "P1. What kind of music do you enjoy?",
+    "P2. What do you enjoy doing after school?",
+    "P3. Do you prefer studying alone or with other people? Why?",
+    "P4. Is there anything you would like to change about your daily routine?"
+   ],
+   "models": [
+    {
+     "label": "Model P1",
+     "text": "I enjoy calm music because it helps me relax after a busy day. I often listen to instrumental songs while I draw, but I turn the music off when I need to read something difficult."
+    },
+    {
+     "label": "Model P3",
+     "text": "I usually prefer studying alone because I can work at my own speed. However, I meet a friend when we need to discuss a difficult topic."
+    }
+   ],
+   "notice": "Notice a direct answer, a reason and a relevant detail. Other structures are valid; there is no mandatory sentence count or target band.",
+   "support": "Peer checklist: answer relevant? reason understandable? one specific detail? Peer feedback is not a teacher rating and must not score pronunciation.",
+   "observation": "Teacher notes: record question, actual utterance/excerpt, date, assistance, relevance/development and one observed language point. Intelligibility may be noted only from actual live listening or audio; unobserved = not observed. A later recording requires normal school consent/privacy and review workflow."
+  },
+  {
+   "id": "IELTS-04-H",
+   "kind": "writing",
+   "task": "paragraph",
+   "homework": true,
+   "title": "D04-H1: Homework paragraph",
+   "mode": "Written homework; other relevant responses are valid",
+   "prompt": "Write approximately 70–100 words: \"Explain one benefit of learning a practical skill outside normal lessons.\" Choose one skill, give a reason, add a specific example and explain its value.",
+   "conditions": "At home, on your own. Keep your first version.",
+   "model_label": "Illustrative teacher sample. Other relevant responses are valid. Do not share this model before learners finish their initial homework.",
+   "model": "Learning to cook outside normal lessons can make young people more independent. They can prepare a simple meal instead of always waiting for someone else to do it. For example, a student who gets home before their parents could make a vegetable omelette using ingredients in the fridge. This gives the student a useful way to take care of an everyday need. It may also help them understand how much time and planning go into preparing food for a family.",
+   "checklist": [
+    "A clear point about one skill.",
+    "A reason linked to the point.",
+    "A specific example.",
+    "An explanation of its value."
+   ]
+  }
+ ],
+ "support": {
+  "title": "Targeted support activities",
+  "file": "Support_Activities",
+  "intro": "Optional separate resources. Select privately when actual work warrants it. Print the learner page for the chosen activity only; keep the key private.",
+  "blocks": [
+   {
+    "id": "IELTS-04-S1",
+    "kind": "items",
+    "title": "D04-S1: Build the link",
+    "mode": "Writing support; use after an actual paragraph shows an unexplained example",
+    "instructions": "Point: A school gardening club can teach responsibility. Reason: Students need to look after living plants regularly. Example: A group checks the soil each morning and waters plants when needed.",
+    "stimulus": {
+     "type": "none"
+    },
+    "items": [
+     {
+      "id": "IELTS-04-S1-QS1",
+      "prompt": "Write one sentence explaining how the example supports the point.",
+      "answer": "Following this routine helps students learn to carry out regular duties even when a teacher does not remind them.",
+      "evidence": "Sample key; accept other clear links between regular care and responsibility.",
+      "reason": "The sentence must connect the regular routine to responsibility.",
+      "focus": "explanation and supporting-example relevance",
+      "type": "short"
+     }
+    ]
+   },
+   {
+    "id": "IELTS-04-S2",
+    "kind": "items",
+    "title": "D04-S2: Keep one paragraph focused",
+    "mode": "Writing; written selection. A guided cohesion exercise, not a Reading diagnostic.",
+    "instructions": "Main point: Travelling to school by bicycle can be convenient for some students. Choose the TWO supporting sentences and explain your choice.",
+    "stimulus": {
+     "type": "none"
+    },
+    "items": [
+     {
+      "id": "IELTS-04-S2-QS2",
+      "prompt": "Which TWO sentences support the main point?",
+      "answer": "A and C",
+      "evidence": "A and C directly support convenience.",
+      "reason": "B is historical information; D is unrelated.",
+      "focus": "paragraph relevance and control",
+      "type": "choice",
+      "options": [
+       "A  A student who lives nearby can avoid waiting for a bus.",
+       "B  Bicycles were invented many years ago.",
+       "C  A bicycle can be parked close to the school entrance.",
+       "D  My favourite weekend meal is soup."
+      ]
+     }
+    ]
+   },
+   {
+    "id": "IELTS-04-S3",
+    "kind": "speaking",
+    "title": "D04-S3: Extend a relevant answer",
+    "mode": "Speaking support; record sentence starters or rehearsal as assistance",
+    "instructions": "Add a genuine reason and one specific detail to the starting answer; then answer the follow-up question.",
+    "prompts": [
+     "Question: \"What do you enjoy doing at weekends?\" Starting answer: \"I enjoy cooking.\"",
+     "Follow-up: \"Who do you usually cook with?\""
+    ],
+    "models": [
+     {
+      "label": "Sample",
+      "text": "I enjoy cooking because I can try new flavours. On Saturday I often help my sister make soup."
+     },
+     {
+      "label": "Follow-up sample",
+      "text": "I usually cook with my sister, but sometimes I work alone."
+     }
+    ],
+    "observation": "Accept any relevant personal answer. No objective key or pronunciation claim from these printed models; note only what is heard live. Proposed mapping: topic development and relevance."
+   }
+  ]
+ },
+ "stages": [
+  {
+   "start": 0,
+   "end": 5,
+   "title": "Opening: which paragraph works?",
+   "show": [
+    {
+     "block": "IELTS-04-OPEN",
+     "part": "questions"
+    },
+    {
+     "block": "IELTS-04-OPEN",
+     "part": "answers"
+    }
+   ],
+   "student": "Compare the two mini-paragraphs. Choose one and justify your choice.",
+   "teacher": "Compare the opening mini-paragraphs; choose and justify.",
+   "say": "Which paragraph stays focused and develops its point?",
+   "check": "Every learner has chosen A or B and given one reason."
+  },
+  {
+   "start": 5,
+   "end": 13,
+   "title": "Model: sentence functions",
+   "show": [
+    {
+     "block": "IELTS-04-M",
+     "part": "questions"
+    },
+    {
+     "block": "IELTS-04-M",
+     "part": "answers"
+    }
+   ],
+   "student": "Read the model and label what each sentence does.",
+   "teacher": "Read the model; label sentence functions.",
+   "say": "Which sentence gives the point? Which gives the reason, the example and the explanation?",
+   "check": "Learners have labelled all four sentences before the reveal."
+  },
+  {
+   "start": 13,
+   "end": 19,
+   "title": "Repair clinic",
+   "show": [
+    {
+     "block": "IELTS-04-R",
+     "part": "questions"
+    },
+    {
+     "block": "IELTS-04-R",
+     "part": "answers"
+    }
+   ],
+   "student": "Rewrite each weak sentence so it is more useful.",
+   "teacher": "Repair the three weak sentences; discuss possible revisions.",
+   "say": "There is more than one good answer. Make the reason precise and the example concrete.",
+   "check": "Each learner has written at least one revision."
+  },
+  {
+   "start": 19,
+   "end": 24,
+   "title": "Plan your paragraph",
+   "show": [
+    {
+     "block": "IELTS-04-W",
+     "part": "prompt"
+    }
+   ],
+   "student": "Plan one point, a reason and an example for the writing prompt.",
+   "teacher": "Plan one point, reason and example for the core writing prompt.",
+   "say": "Choose one benefit. Note your reason and one specific example before you write.",
+   "check": "Each learner has a plan with a point, a reason and an example."
+  },
+  {
+   "start": 24,
+   "end": 34,
+   "title": "Write",
+   "show": [],
+   "student": "Write your paragraph (approximately 70–100 words). Keep your first draft.",
+   "teacher": "Write a short paragraph; retain the first draft. Record any scaffold used.",
+   "say": "Write on your own. Keep your first draft; you will revise it later.",
+   "check": "Every learner has a first draft."
+  },
+  {
+   "start": 34,
+   "end": 40,
+   "title": "Partner check and one revision",
+   "show": [
+    {
+     "block": "IELTS-04-W",
+     "part": "checklist"
+    }
+   ],
+   "student": "Check a partner's paragraph for relevance and explanation. Then make one revision to your own.",
+   "teacher": "Partner checks relevance and explanation; learner makes one revision.",
+   "say": "Is the example relevant? Does the paragraph explain how it supports the point?",
+   "check": "Each learner has made one visible revision and kept the first draft."
+  },
+  {
+   "start": 40,
+   "end": 45,
+   "title": "Speaking models",
+   "show": [
+    {
+     "block": "IELTS-04-P",
+     "part": "prompt"
+    },
+    {
+     "block": "IELTS-04-P",
+     "part": "model"
+    }
+   ],
+   "student": "Answer the questions in your head first. Then notice the answer, reason and detail in the models.",
+   "teacher": "Speaking models; notice answer–reason–detail as an optional scaffold. Reveal models only after learners have first tried the question.",
+   "say": "Answer, give a reason, add one specific detail. Do not memorise these models.",
+   "check": "Learners can point to the reason and the detail in one model."
+  },
+  {
+   "start": 45,
+   "end": 54,
+   "title": "Paired practice",
+   "show": [
+    {
+     "block": "IELTS-04-P",
+     "part": "routine"
+    }
+   ],
+   "student": "Take turns asking the four questions. Your partner asks one natural follow-up. Swap roles.",
+   "teacher": "Paired practice on the four questions; swap roles; teacher samples individuals and records actual observation, not a class-wide rating. If a learner is not observed speaking, schedule a short later observation.",
+   "say": "Answer naturally. Your partner listens for a direct answer, a reason and one specific detail.",
+   "check": "Pairs have swapped roles; the teacher has recorded only learners actually heard."
+  },
+  {
+   "start": 54,
+   "end": 58,
+   "title": "Exit",
+   "show": [],
+   "student": "Hand in your paragraph and state one next speaking action.",
+   "teacher": "Exit: hand in paragraph and state one next speaking action.",
+   "say": "What is one thing you will do in your next speaking answer?",
+   "check": "Paragraphs are collected; each learner has stated one action."
+  },
+  {
+   "start": 58,
+   "end": 60,
+   "title": "Homework",
+   "show": [
+    {
+     "block": "IELTS-04-H",
+     "part": "prompt"
+    }
+   ],
+   "student": "Copy down the homework.",
+   "teacher": "Assign homework and select support privately if evidence warrants it (Support_Activities.pdf: D04-S1, S2 or S3).",
+   "say": "Write your paragraph at home. Prepare notes, not a script, for the speaking question.",
+   "check": "Everyone has the homework sheet."
+  }
+ ],
+ "exit_ticket": [
+  "Hand in your paragraph.",
+  "One next speaking action:"
+ ],
+ "homework": [
+  "H1. Write the paragraph below (approximately 70–100 words). Keep your first version.",
+  "H2. Prepare brief notes, not a memorized script: \"What do you enjoy learning in your free time, and why?\" Self-prepared speaking notes are rehearsed work."
+ ],
+ "followup": {
+  "id": "IELTS-04-F",
+  "status": "Withheld protected follow-up. Teacher-only; do not include in advance student materials. Multiple responses valid; the model must stay withheld before the check.",
+  "delivery": "Teacher chooses the date and suitable conditions after content review. Approximately 70–100 words, using no model or sentence starters. Speaking: teacher asks a natural follow-up linked to the learner's actual answer; observe only actual speech; record assistance.",
+  "review": "Look for a relevant point, linked reason, specific example and explanation. No fixed answer key for speaking. These narrow samples cannot supply a full Speaking estimate. New prompts alone do not establish equivalent difficulty or improvement. Review familiarity, cultural accessibility, exposure and delivery before use.",
+  "blocks": [
+   {
+    "id": "IELTS-04-F-W",
+    "kind": "writing",
+    "task": "paragraph",
+    "title": "D04-F: Writing",
+    "mode": "Protected follow-up; teacher-only until the planned check",
+    "prompt": "Explain one benefit of students organizing a small school event. Write approximately 70–100 words.",
+    "conditions": "No model or sentence starters. Teacher chooses the date and suitable conditions after content review; record assistance.",
+    "model_label": "Illustrative teacher-only response. Multiple responses are valid; this model must stay withheld before the check.",
+    "model": "Organizing a small school event can help students learn to plan together. They need to agree on jobs and make sure the main tasks are completed on time. For example, a group arranging a book exchange could divide the work between collecting books, making signs and preparing tables. If one job is delayed, they would need to discuss how to help each other. This gives them practical experience of coordinating their work rather than completing separate classroom tasks without a shared deadline.",
+    "checklist": [
+     "A relevant point.",
+     "A linked reason.",
+     "A specific example.",
+     "An explanation of the example."
+    ]
+   },
+   {
+    "id": "IELTS-04-F-S",
+    "kind": "speaking",
+    "title": "D04-F: Speaking",
+    "mode": "Protected follow-up; teacher-only until the planned check",
+    "instructions": "Answer each question. Your teacher will ask a natural follow-up.",
+    "prompts": [
+     "F-P1. What kind of place do you like visiting in your free time?",
+     "F-P2. Do you prefer planning your weekends or deciding what to do on the day?"
+    ],
+    "observation": "Teacher asks a natural follow-up linked to the learner's actual answer. No fixed answer key. Observe only actual speech heard live; record assistance. These narrow samples cannot supply a full Speaking estimate."
+   }
+  ]
+ },
+ "delayed_followup": "Use D04-F at a later planned check under recorded conditions. Compare only what the new work shows; new prompts alone do not establish equivalent difficulty or improvement.",
+ "mapping_notes": "Proposed mapping: Writing idea development/example relevance/paragraph control; Speaking topic development/relevance; IDs pending reviewed mapping. Classroom paragraphs are not a full Writing paper; paired practice samples neither a complete Speaking interview nor an automatic pronunciation score.",
+ "release_blockers": [
+  "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+  "Conversion additions listed in conversion.additions await the owner's spot-check; approved wording, keys and models are unchanged.",
+  "Student task publication and platform evidence capture remain separate, governed steps."
+ ]
+}

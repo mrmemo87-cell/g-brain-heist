@@ -48,6 +48,7 @@ h1{font-size:40px;line-height:1.15;margin:4px 0 16px;letter-spacing:-.01em;flex:
 .dark .card{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.16);box-shadow:none}
 .num{flex:none;min-width:40px;height:40px;border-radius:20px;background:var(--primary);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:20px;padding:0 10px}
 .card .txt{flex:1;line-height:1.38}
+.items2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}.items2 .card{margin-bottom:10px}
 .opts{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
 .opts li{display:flex;gap:10px;align-items:baseline}
 .let{flex:none;font-weight:700;color:var(--primary);min-width:26px}
@@ -242,6 +243,12 @@ def render(pack, body_size):
         for j, (txt, m) in enumerate(zip(s['body'], meta)):
             step = ' step' if build and m.get('t') not in ('instr', 'options') else ''
             els.append(_element(m, txt, step))
+        n_items = sum(1 for m in meta if m.get('t') == 'item')
+        if n_items >= 5 and not side:
+            # Five or six short gaps: two columns, so every question stays visible beside the recording player.
+            first = next(j for j, m in enumerate(meta) if m.get('t') == 'item')
+            items_html = ''.join(e for e, m in zip(els, meta) if m.get('t') == 'item')
+            els = els[:first] + [f'<div class="items2">{items_html}</div>'] + [e for e, m in list(zip(els, meta))[first:] if m.get('t') != 'item']
         inner = ''.join(els)
         if kind == 'cover':
             main = (f'<div class="col" style="font-size:{_px(26)}px">{inner}</div>'

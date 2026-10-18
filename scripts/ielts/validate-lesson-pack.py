@@ -34,7 +34,23 @@ def main(out):
 
     student = ' '.join(text_of(p) for p in (out / 'Students').glob('*.pdf'))
     teacher_keys = text_of(out / 'Teacher-private/Teacher_Keys_Scripts_Models.pdf')
-    fresh = text_of(out / 'Teacher-private/Fresh_Check_WITHHELD.pdf')
+    fresh_pdf = out / 'Teacher-private/Fresh_Check_WITHHELD.pdf'
+    fresh = text_of(fresh_pdf) if fresh_pdf.exists() else ''
+    if d['followup'].get('blocks') and not fresh_pdf.exists():
+        errors.append('withheld fresh check PDF missing')
+    support_text = ''
+    if d.get('support'):
+        sup_pdf = out / 'Teacher-private' / f"{d['support']['file']}.pdf"
+        if not sup_pdf.exists():
+            errors.append('support PDF missing')
+        else:
+            support_text = text_of(sup_pdf)
+            for b in d['support']['blocks']:
+                for it in b.get('items', []):
+                    if norm(it['reason'])[:60] not in support_text:
+                        errors.append(f"support key missing explanation for {it['id']}")
+                    if norm(it['reason'])[:60] in student:
+                        errors.append(f"student PDF contains support key for {it['id']}")
     non_fresh = student + ' ' + teacher_keys + ' ' + text_of(out / 'Teacher-private/Teacher_Guide.pdf') + ' ' + (out / 'Teacher-private/slides.json').read_text().lower()
 
     def present(fragment, haystack):
@@ -58,13 +74,16 @@ def main(out):
             errors.append(f"student PDF contains the figure description (it states the trends) for {b['id']}")
         if b.get('figure') and not (out / 'assets' / f"{b['id']}.png").exists():
             errors.append(f"figure image missing for {b['id']}")
-        if b['kind'] == 'writing' and present(b['model'], student):
+        for m_ in b.get('models', []):
+            if present(m_['text'], student):
+                errors.append(f"student PDF contains spoken model for {b['id']}")
+        if b['kind'] == 'writing' and not b.get('model_shown_in_class') and present(b['model'], student):
             errors.append(f"student PDF contains model for {b['id']}")
         if b['kind'] == 'contrast':
             for ex in b['examples']:
                 if present(ex['comment'], student):
                     errors.append(f"student PDF contains teaching comment in {b['id']}")
-    for b in d['followup']['blocks']:
+    for b in d['followup'].get('blocks', []):
         texts = [i['prompt'] for i in b.get('items', [])] + b.get('prompts', []) + ([b['prompt']] if b.get('prompt') else []) + (b.get('stimulus') or {}).get('paragraphs', [])
         for t in texts:
             if len(t.split()) >= 4 and present(t, non_fresh):
@@ -120,7 +139,7 @@ def main(out):
 
     # Every item's reveal comes after its question slide.
     for b in d['blocks']:
-        if b['kind'] != 'items':
+        if b['kind'] != 'items' or b.get('homework'):
             continue
         q = next((i for i, s in enumerate(slides) if s['title'].startswith(b['title']) and not s.get('reveal')), None)
         a = next((i for i, s in enumerate(slides) if s['title'].startswith((f"{b['title']}: answers", f"{b['title']} — answers"))), None)

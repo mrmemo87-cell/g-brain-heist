@@ -1,0 +1,946 @@
+{
+ "schema": "bh-ielts-lesson-source/2",
+ "code": "IELTS-03",
+ "number": 3,
+ "week": 2,
+ "version": "1.1.0",
+ "presentation_version": "1.1.0",
+ "title": "Listening details, spelling and word limits",
+ "status": "Owner approved content (revision 2026-10-17.1) in the approved classroom format; teacher release to all eligible schools",
+ "approval_record": {
+  "approved_by": "Owner, Brains Heist LLC",
+  "date": "2026-10-18",
+  "version": "1.1.0",
+  "scope": "Lesson content, keys, recordings and fresh check approved as content revision 2026-10-17.1, carried over unchanged into the classroom presentation format the owner approved on 2026-10-18, for teacher-only release to all eligible schools.",
+  "basis": "Content revision 2026-10-17.1 and its exact recordings were approved by the owner on 2026-10-17 (recorded in the teacher pack catalogue). On 2026-10-18 15:37 Asia/Bishkek the owner asked in the review conversation for Lessons 1-4 in the same format and for publication to all schools. The conversion additions listed in conversion.additions were not separately reviewed. Not recorded as an in-platform decision."
+ },
+ "conversion": {
+  "source_pack": "IELTS-03 Teacher Pack v1.0.1, downloaded from the teacher library and attached by the owner on 2026-10-18",
+  "source_version": "1.0.1 (content revision 2026-10-17.1; approved_source_sha256 3e2f36e5713d8cb7851e4eb4868413b05f013e79189f28aa65aabd0217dc5cd2; in-pack Approved-source.txt sha256 e419b27037be121d4ace4c6593a6a650e0c9c9a7ae3cf28ec0edcf17e923635e)",
+  "approved_content": "All instructions, questions, keys, reasons, scripts, support activities, homework and the protected follow-up are copied from the approved source. Transcripts are taken from the approved recordings' cue records. Recordings are the exact approved files (SHA-256 below).",
+  "additions": [
+   "Stage student, say and check lines where the approved timed guide gives only the teacher action.",
+   "The four differentiation pathway summaries (levels), drawn from the approved support and extension notes.",
+   "Exit ticket wording, split from the approved exit reflection.",
+   "Short reasons for the homework items H1-H4 and support item S2.3, where the approved key gives the answer only.",
+   "Learner instruction lines for the model, support S2 and homework.",
+   "Stage 20-28 teacher line: learners check the support quoted on the reveal slides instead of underlining a printed transcript, because the workbook does not print scripts."
+  ]
+ },
+ "duration": 60,
+ "test_type": "Academic",
+ "bibles": {
+  "diagnostic": "1.10.0",
+  "lessons": "1.1.0",
+  "visual": "1.1.0"
+ },
+ "rights": "Original Brains Heist LLC instructional content, AI-assisted. All dialogue is fictional. No third-party passages, recordings or assessment questions copied. Recordings are owned by Brains Heist LLC.",
+ "audio": {
+  "required": true,
+  "statement": "Three approved recordings: D03-A and D03-B for the lesson, and the withheld D03-F for the protected follow-up. Each opens with the spoken copyright notice, has a real 30-second reading pause and a 15-second response pause. If speech exceeds the allocated stage, adjust teaching time; never speed it up.",
+  "recordings": [
+   {
+    "id": "D03-A",
+    "block": "IELTS-03-A",
+    "status": "Owner approved with content revision 2026-10-17.1 (exact recording, SHA-256 recorded); rights Brains Heist LLC; device/classroom playback acceptance pending",
+    "voices": {
+     "instruction": "Tom",
+     "Student": "James",
+     "Coordinator": "Paula"
+    },
+    "conditions": "Classroom practice: play once, answers committed, then one optional full replay. Record actual replays; do not count the replay as fresh evidence.",
+    "segments": [
+     {
+      "type": "speech",
+      "voice": "instruction",
+      "text": "This recording is copyright Brains Heist LLC. All rights reserved."
+     },
+     {
+      "type": "speech",
+      "voice": "instruction",
+      "text": "Read questions A1 to A6. Notice the different word limits."
+     },
+     {
+      "type": "silence",
+      "seconds": 30
+     },
+     {
+      "type": "passage"
+     },
+     {
+      "type": "silence",
+      "seconds": 15
+     }
+    ],
+    "delivered_sha256": "db7c949ba352e5ad449270a4cf768a82fe9ccbd521dd9b049ab57f259c2f42ac",
+    "duration_seconds": 117.525,
+    "production_record": "docs/ielts/lessons/lesson-03/AUDIO_RECORDS_v1.json",
+    "source_file": "D03-A-review-v1.mp3"
+   },
+   {
+    "id": "D03-B",
+    "block": "IELTS-03-B",
+    "status": "Owner approved with content revision 2026-10-17.1 (exact recording, SHA-256 recorded); rights Brains Heist LLC; device/classroom playback acceptance pending",
+    "voices": {
+     "instruction": "Tom",
+     "Student": "James",
+     "Assistant": "Paula"
+    },
+    "conditions": "Classroom practice: play once; commit, then optional full replay. Record help.",
+    "segments": [
+     {
+      "type": "speech",
+      "voice": "instruction",
+      "text": "This recording is copyright Brains Heist LLC. All rights reserved."
+     },
+     {
+      "type": "speech",
+      "voice": "instruction",
+      "text": "Read questions B1 to B4 and check the word limits."
+     },
+     {
+      "type": "silence",
+      "seconds": 30
+     },
+     {
+      "type": "passage"
+     },
+     {
+      "type": "silence",
+      "seconds": 15
+     }
+    ],
+    "delivered_sha256": "ba5801c678c32530ab4a9b248fd51faecbf701d287f63949f5c11346ad4c021f",
+    "duration_seconds": 90.723,
+    "production_record": "docs/ielts/lessons/lesson-03/AUDIO_RECORDS_v1.json",
+    "source_file": "D03-B-review-v1.mp3"
+   },
+   {
+    "id": "D03-F",
+    "block": "IELTS-03-F",
+    "status": "Owner approved with content revision 2026-10-17.1 (exact recording, SHA-256 recorded); rights Brains Heist LLC; device/classroom playback acceptance pending",
+    "voices": {
+     "instruction": "Tom",
+     "Coordinator": "Miriam"
+    },
+    "conditions": "Protected follow-up only. Designate the delivery mode before administration; record prior exposure, actual voice/file version, help, pauses and replays.",
+    "segments": [
+     {
+      "type": "speech",
+      "voice": "instruction",
+      "text": "This recording is copyright Brains Heist LLC. All rights reserved."
+     },
+     {
+      "type": "speech",
+      "voice": "instruction",
+      "text": "Read questions F1 to F6 and check the word limits."
+     },
+     {
+      "type": "silence",
+      "seconds": 30
+     },
+     {
+      "type": "passage"
+     },
+     {
+      "type": "silence",
+      "seconds": 15
+     }
+    ],
+    "delivered_sha256": "c1dfbb460a0e9f99b9d6a5d68c2540dd27ddd5c8ccc2a63842b464e6265a1b81",
+    "duration_seconds": 102.661,
+    "production_record": "docs/ielts/lessons/lesson-03/AUDIO_RECORDS_v1.json",
+    "source_file": "D03-F-review-v1.mp3"
+   }
+  ],
+  "production_requirements": "Exact approved turns, 350 ms between turns, actual 30 s pre-read and 15 s finish silence; MP3 encoded once after assembly; loudness normalized without changing speech speed (see AUDIO_RECORDS_v1.json). Never overwrite an approved file. Plan B: if a recording is unavailable, the teacher reads verbatim in clear natural speech and records \"teacher-read live\"; this is not equivalent to a reviewed recording."
+ },
+ "prerequisites": [
+  "Simple times/dates and familiar everyday vocabulary."
+ ],
+ "objectives": [
+  {
+   "text": "Identify a final detail after a correction.",
+   "focus": [
+    "explicit detail",
+    "distractor resistance"
+   ]
+  },
+  {
+   "text": "Record letters in the order spoken.",
+   "focus": [
+    "spelling"
+   ]
+  },
+  {
+   "text": "Match an answer to its question and stated word limit.",
+   "focus": [
+    "task compliance"
+   ]
+  },
+  {
+   "text": "Explain an error using the source rather than guessing a band.",
+   "focus": [
+    "self-correction"
+   ]
+  }
+ ],
+ "levels": {
+  "foundation": "D03-S1 or D03-S2 when actual answers show letter-order or final-detail difficulty; a five-box letter grid may be used and is recorded as assistance.",
+  "core": "Rounds A and B: one play, answers committed, then one optional full replay, recorded.",
+  "extension": "During support time, explain one error using the source, or write a concise note about a misleading detail.",
+  "high_band": "D03-S3 word-limit clinic as a self-check: every answer must fit its instruction and must not repeat a printed unit."
+ },
+ "blocks": [
+  {
+   "id": "IELTS-03-OPEN",
+   "kind": "contrast",
+   "title": "D03-OPEN: Who followed the word limit?",
+   "mode": "Written compliance check; individual commitment, then explanation. This checks instruction knowledge, not listening performance.",
+   "instructions": "Instruction: Write ONE WORD ONLY from \"walking boots\". Who has followed the word limit?",
+   "examples": [
+    {
+     "label": "Learner A",
+     "text": "Learner A writes \"boots\".",
+     "comment": "Key: Learner A. \"Boots\" is one word."
+    },
+    {
+     "label": "Learner B",
+     "text": "Learner B writes \"walking boots\".",
+     "comment": "\"Walking boots\" is two words. This checks instruction knowledge, not listening performance."
+    }
+   ]
+  },
+  {
+   "id": "IELTS-03-MODEL",
+   "kind": "items",
+   "title": "D03-MODEL: Final detail and spelling",
+   "mode": "Teacher read, guided; teacher reads the two model lines once; learners answer before the reveal",
+   "instructions": "Listen to your teacher. Answer each question before the reveal.",
+   "stimulus": {
+    "type": "teacher_script",
+    "title": "Model lines (teacher reads once)",
+    "paragraphs": [
+     "We planned to meet at 8.20, but the building opens later. Please meet at 8.50 instead.",
+     "The tutor is Ms Benton. That's B-E-N-T-O-N."
+    ]
+   },
+   "items": [
+    {
+     "id": "IELTS-03-MODEL-QM1",
+     "prompt": "Meeting time? Write A TIME.",
+     "answer": "8.50",
+     "evidence": "Please meet at 8.50 instead.",
+     "reason": "The final instruction replaces 8.20.",
+     "focus": "final detail; numerical detail",
+     "type": "completion",
+     "word_limit": 1,
+     "accept": [
+      "8:50"
+     ]
+    },
+    {
+     "id": "IELTS-03-MODEL-QM2",
+     "prompt": "Tutor's surname? Write ONE WORD ONLY.",
+     "answer": "Benton",
+     "evidence": "That's B-E-N-T-O-N.",
+     "reason": "Ignore capitalization; preserve the exact spelling.",
+     "focus": "spelling",
+     "type": "completion",
+     "word_limit": 1
+    }
+   ]
+  },
+  {
+   "id": "IELTS-03-A",
+   "kind": "items",
+   "title": "D03-A: School science display",
+   "mode": "Round A: play once, answers committed, then one optional full replay. Record actual replays; do not count the replay as fresh evidence.",
+   "instructions": "Questions A1–A5: Write ONE WORD AND/OR A NUMBER for each answer. Question A6: Write NO MORE THAN TWO WORDS. Complete the notes.",
+   "stimulus": {
+    "type": "transcript",
+    "title": "Private script A — all dialogue is fictional",
+    "paragraphs": [
+     "Student: I'd like to help with the school science display. When is it?",
+     "Coordinator: The display is in November. We are collecting project ideas during October, but the display itself is the following month.",
+     "Student: Who is leading the project?",
+     "Coordinator: Ms Bramwell. That's B-R-A-M-W-E-L-L, with two Ls at the end.",
+     "Student: What time should our team meet?",
+     "Coordinator: Meet at nine forty in the morning to arrange your display. Visitors can enter from ten fifteen, so you'll have time to prepare.",
+     "Student: How many teams are taking part?",
+     "Coordinator: Twelve teams, with two students in each. That makes twenty-four students altogether, but just twelve separate displays.",
+     "Student: Do we need to buy paper and glue?",
+     "Coordinator: The school will provide paper. Please bring glue; we do not have enough for every team. You won't need any other materials.",
+     "Student: Where will we prepare everything? In the gym?",
+     "Coordinator: We had planned to use the gym, but a class needs it. Go to the art room for preparation. The display will be in the hall."
+    ]
+   },
+   "items": [
+    {
+     "id": "IELTS-03-A-QA1",
+     "prompt": "Display month: ______",
+     "answer": "November",
+     "evidence": "The display is in November.",
+     "reason": "October is for collecting ideas, not the display.",
+     "focus": "dates; explicit detail distinction",
+     "type": "completion",
+     "word_limit": 2
+    },
+    {
+     "id": "IELTS-03-A-QA2",
+     "prompt": "Leader's surname: ______",
+     "answer": "Bramwell",
+     "evidence": "That's B-R-A-M-W-E-L-L, with two Ls at the end.",
+     "reason": "Case-insensitive, exact letters.",
+     "focus": "spelling, repeated letters",
+     "type": "completion",
+     "word_limit": 2
+    },
+    {
+     "id": "IELTS-03-A-QA3",
+     "prompt": "Meeting time: ______ a.m.",
+     "answer": "9.40",
+     "evidence": "Meet at nine forty in the morning to arrange your display.",
+     "reason": "Nine forty is preparation; ten fifteen is visitor entry.",
+     "focus": "numerical detail; event/time distinction",
+     "type": "completion",
+     "word_limit": 2,
+     "accept": [
+      "9:40",
+      "09.40",
+      "09:40"
+     ]
+    },
+    {
+     "id": "IELTS-03-A-QA4",
+     "prompt": "Number of teams: ______",
+     "answer": "12",
+     "evidence": "Twelve teams, with two students in each.",
+     "reason": "Twelve teams, not twenty-four individual students.",
+     "focus": "numerical detail; requested quantity distinction",
+     "type": "completion",
+     "word_limit": 2,
+     "accept": [
+      "twelve"
+     ]
+    },
+    {
+     "id": "IELTS-03-A-QA5",
+     "prompt": "Material students must bring: ______",
+     "answer": "glue",
+     "evidence": "Please bring glue; we do not have enough for every team.",
+     "reason": "Paper is provided; students must bring glue.",
+     "focus": "explicit detail; supplied versus required material",
+     "type": "completion",
+     "word_limit": 2
+    },
+    {
+     "id": "IELTS-03-A-QA6",
+     "prompt": "Room for preparation: ______",
+     "answer": "art room",
+     "evidence": "Go to the art room for preparation.",
+     "reason": "Replaces the gym for preparation; the hall is for the display.",
+     "focus": "explicit detail; task compliance",
+     "type": "completion",
+     "word_limit": 2
+    }
+   ],
+   "marking": "One point per item for classroom feedback only. Do not penalize punctuation in numeric times. Read the preprinted units; do not require \"a.m.\" again. Other forms require teacher review rather than a newly invented automatic spelling/number normalization."
+  },
+  {
+   "id": "IELTS-03-B",
+   "kind": "items",
+   "title": "D03-B: Media room booking",
+   "mode": "Round B: play once; commit, then optional full replay. Record help.",
+   "instructions": "Questions B1–B3: Write ONE WORD AND/OR A NUMBER. Question B4: Write NO MORE THAN TWO WORDS.",
+   "stimulus": {
+    "type": "transcript",
+    "title": "Private script B",
+    "paragraphs": [
+     "Student: I'm calling about our media room booking.",
+     "Assistant: Yes. You'll use room three eighteen. Room three thirteen is being used for a staff meeting.",
+     "Student: Will Mr Palmer supervise us?",
+     "Assistant: He cannot come that day. Ms Vale will supervise. Her surname is V-A-L-E.",
+     "Student: I requested fifty minutes. Has that been confirmed?",
+     "Assistant: We've only been able to reserve thirty-five minutes. Another group needs the room after that.",
+     "Student: Do we need our headphones?",
+     "Assistant: No, the room has headphones you can borrow. Each student must bring a memory card to save the recording."
+    ]
+   },
+   "items": [
+    {
+     "id": "IELTS-03-B-QB1",
+     "prompt": "Room number: ______",
+     "answer": "318",
+     "evidence": "You'll use room three eighteen.",
+     "reason": "Room 313 is for staff. \"Three eighteen\" exceeds the one-word limit.",
+     "focus": "numerical detail; distractor resistance",
+     "type": "completion",
+     "word_limit": 2
+    },
+    {
+     "id": "IELTS-03-B-QB2",
+     "prompt": "Supervisor's surname: ______",
+     "answer": "Vale",
+     "evidence": "Her surname is V-A-L-E.",
+     "reason": "Final confirmed detail: Mr Palmer cannot come that day.",
+     "focus": "spelling; final confirmed detail",
+     "type": "completion",
+     "word_limit": 2
+    },
+    {
+     "id": "IELTS-03-B-QB3",
+     "prompt": "Booking length: ______ minutes",
+     "answer": "35",
+     "evidence": "We've only been able to reserve thirty-five minutes.",
+     "reason": "Fifty was requested, not confirmed.",
+     "focus": "numerical detail; qualification",
+     "type": "completion",
+     "word_limit": 2,
+     "accept": [
+      "thirty-five"
+     ]
+    },
+    {
+     "id": "IELTS-03-B-QB4",
+     "prompt": "Item students must bring: ______",
+     "answer": "memory card",
+     "evidence": "Each student must bring a memory card to save the recording.",
+     "reason": "Headphones can be borrowed.",
+     "focus": "explicit detail; two-word task compliance",
+     "type": "completion",
+     "word_limit": 2
+    }
+   ],
+   "marking": "Numeric forms are preferred. Written number forms above are accepted for this classroom draft; register exact normalization before any server marking. Do not merge Round A, Round B, replays and corrections into independent checks."
+  },
+  {
+   "id": "IELTS-03-H",
+   "kind": "items",
+   "homework": true,
+   "title": "D03-H: Homework — check the word limit",
+   "mode": "Written homework; not new listening evidence. The exercise checks written task compliance only.",
+   "instructions": "Read the source note. Answer each question using the stated word limit.",
+   "stimulus": {
+    "type": "passage",
+    "title": "Source note",
+    "paragraphs": [
+     "The open study session starts at 4.30 p.m. in the east hall. Bring a notebook. The session lasts 50 minutes."
+    ]
+   },
+   "items": [
+    {
+     "id": "IELTS-03-H-QH1",
+     "prompt": "ONE WORD ONLY. Bring a ______.",
+     "answer": "notebook",
+     "evidence": "Bring a notebook.",
+     "reason": "One word only, copied from the source.",
+     "focus": "instruction compliance",
+     "type": "completion",
+     "word_limit": 1
+    },
+    {
+     "id": "IELTS-03-H-QH2",
+     "prompt": "NO MORE THAN TWO WORDS. Location: ______.",
+     "answer": "east hall",
+     "evidence": "in the east hall",
+     "reason": "Two words, copied from the source.",
+     "focus": "instruction compliance",
+     "type": "completion",
+     "word_limit": 2
+    },
+    {
+     "id": "IELTS-03-H-QH3",
+     "prompt": "ONE WORD AND/OR A NUMBER. Start: ______ p.m.",
+     "answer": "4.30",
+     "evidence": "starts at 4.30 p.m.",
+     "reason": "\"p.m.\" is already printed, so it is not repeated.",
+     "focus": "instruction compliance",
+     "type": "completion",
+     "word_limit": 2,
+     "accept": [
+      "4:30",
+      "04.30",
+      "04:30"
+     ]
+    },
+    {
+     "id": "IELTS-03-H-QH4",
+     "prompt": "ONE WORD AND/OR A NUMBER. Duration: ______ minutes.",
+     "answer": "50",
+     "evidence": "The session lasts 50 minutes.",
+     "reason": "\"minutes\" is already printed, so it is not repeated.",
+     "focus": "instruction compliance",
+     "type": "completion",
+     "word_limit": 2,
+     "accept": [
+      "fifty"
+     ]
+    }
+   ]
+  }
+ ],
+ "support": {
+  "title": "Targeted support activities",
+  "file": "Support_Activities",
+  "intro": "Separate optional resources, not compulsory whole-class work. Choose one from actual learner answers during the targeted support stage. Print the learner page for the chosen activity only; keep the key private.",
+  "blocks": [
+   {
+    "id": "IELTS-03-S1",
+    "kind": "items",
+    "title": "D03-S1: Spell it in sequence",
+    "mode": "Teacher-led; teacher says each line twice at a calm natural pace; no transcript on the learner sheet",
+    "instructions": "Instruction: ONE WORD ONLY for each surname.",
+    "stimulus": {
+     "type": "teacher_script",
+     "title": "Lines the teacher reads (twice each)",
+     "paragraphs": [
+      "The surname is Doran: D-O-R-A-N.",
+      "The surname is Keene: K-E-E-N-E.",
+      "The surname is Voss: V-O-S-S.",
+      "The surname is Hales: H-A-L-E-S."
+     ]
+    },
+    "items": [
+     {
+      "id": "IELTS-03-S1-QS1.1",
+      "prompt": "Surname? ______",
+      "answer": "Doran",
+      "evidence": "D-O-R-A-N",
+      "reason": "Capitalization is not scored.",
+      "focus": "orthographic accuracy from spoken letters",
+      "type": "completion",
+      "word_limit": 1
+     },
+     {
+      "id": "IELTS-03-S1-QS1.2",
+      "prompt": "Surname? ______",
+      "answer": "Keene",
+      "evidence": "K-E-E-N-E",
+      "reason": "Capitalization is not scored.",
+      "focus": "orthographic accuracy from spoken letters",
+      "type": "completion",
+      "word_limit": 1
+     },
+     {
+      "id": "IELTS-03-S1-QS1.3",
+      "prompt": "Surname? ______",
+      "answer": "Voss",
+      "evidence": "V-O-S-S",
+      "reason": "Capitalization is not scored.",
+      "focus": "orthographic accuracy from spoken letters",
+      "type": "completion",
+      "word_limit": 1
+     },
+     {
+      "id": "IELTS-03-S1-QS1.4",
+      "prompt": "Surname? ______",
+      "answer": "Hales",
+      "evidence": "H-A-L-E-S",
+      "reason": "Capitalization is not scored.",
+      "focus": "orthographic accuracy from spoken letters",
+      "type": "completion",
+      "word_limit": 1
+     }
+    ],
+    "support": "Use a five-box letter grid if helpful; record this assistance. Choose when actual answers suggest letter-order/spelling support is relevant."
+   },
+   {
+    "id": "IELTS-03-S2",
+    "kind": "items",
+    "title": "D03-S2: Keep the final plan",
+    "mode": "Teacher-led; ONE WORD AND/OR A NUMBER. These short lines are scaffolded practice, not unseen independent evidence.",
+    "instructions": "Listen to your teacher. Write ONE WORD AND/OR A NUMBER for each answer.",
+    "stimulus": {
+     "type": "teacher_script",
+     "title": "Lines the teacher reads",
+     "paragraphs": [
+      "The discussion was on Monday. It has moved to Thursday.",
+      "There were sixteen places. We have added four, so there are twenty now.",
+      "Use locker fourteen, not locker forty.",
+      "We first advertised June. The workshop will now run in July."
+     ]
+    },
+    "items": [
+     {
+      "id": "IELTS-03-S2-QS2.1",
+      "prompt": "New day? ______",
+      "answer": "Thursday",
+      "evidence": "It has moved to Thursday.",
+      "reason": "Moved to Thursday.",
+      "focus": "final detail",
+      "type": "completion",
+      "word_limit": 2
+     },
+     {
+      "id": "IELTS-03-S2-QS2.2",
+      "prompt": "Current number of places? ______",
+      "answer": "20",
+      "evidence": "so there are twenty now",
+      "reason": "Explicit new total twenty.",
+      "focus": "numerical detail",
+      "type": "completion",
+      "word_limit": 2,
+      "accept": [
+       "twenty"
+      ]
+     },
+     {
+      "id": "IELTS-03-S2-QS2.3",
+      "prompt": "Locker number? ______",
+      "answer": "14",
+      "evidence": "Use locker fourteen, not locker forty.",
+      "reason": "\"Not forty\".",
+      "focus": "numerical detail",
+      "type": "completion",
+      "word_limit": 2,
+      "accept": [
+       "fourteen"
+      ]
+     },
+     {
+      "id": "IELTS-03-S2-QS2.4",
+      "prompt": "Workshop month? ______",
+      "answer": "July",
+      "evidence": "The workshop will now run in July.",
+      "reason": "\"Now run in July\".",
+      "focus": "final detail",
+      "type": "completion",
+      "word_limit": 2
+     }
+    ]
+   },
+   {
+    "id": "IELTS-03-S3",
+    "kind": "items",
+    "title": "D03-S3: Word-limit clinic",
+    "mode": "Written, not a listening score; instruction compliance, not auditory comprehension",
+    "instructions": "For each item, copy an answer that fits the instruction using the source.",
+    "stimulus": {
+     "type": "none"
+    },
+    "items": [
+     {
+      "id": "IELTS-03-S3-QS3.1",
+      "prompt": "Source: \"Everyone must bring a pencil.\" ONE WORD ONLY. Bring a ______.",
+      "answer": "pencil",
+      "evidence": "Everyone must bring a pencil.",
+      "reason": "Units already printed must not be repeated; preserve source meaning.",
+      "focus": "instruction compliance",
+      "type": "completion",
+      "word_limit": 1
+     },
+     {
+      "id": "IELTS-03-S3-QS3.2",
+      "prompt": "Source: \"Collect the forms from the front desk.\" NO MORE THAN TWO WORDS. Collect from the ______.",
+      "answer": "front desk",
+      "evidence": "Collect the forms from the front desk.",
+      "reason": "Units already printed must not be repeated; preserve source meaning.",
+      "focus": "instruction compliance",
+      "type": "completion",
+      "word_limit": 2
+     },
+     {
+      "id": "IELTS-03-S3-QS3.3",
+      "prompt": "Source: \"The workshop lasts 45 minutes.\" ONE WORD AND/OR A NUMBER. Duration: ______ minutes.",
+      "answer": "45",
+      "evidence": "The workshop lasts 45 minutes.",
+      "reason": "Units already printed must not be repeated; preserve source meaning.",
+      "focus": "instruction compliance",
+      "type": "completion",
+      "word_limit": 2,
+      "accept": [
+       "forty-five"
+      ]
+     },
+     {
+      "id": "IELTS-03-S3-QS3.4",
+      "prompt": "Source: \"The pass costs twelve euros.\" ONE WORD AND/OR A NUMBER. Cost: ______ euros.",
+      "answer": "12",
+      "evidence": "The pass costs twelve euros.",
+      "reason": "Units already printed must not be repeated; preserve source meaning.",
+      "focus": "instruction compliance",
+      "type": "completion",
+      "word_limit": 2,
+      "accept": [
+       "twelve"
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "stages": [
+  {
+   "start": 0,
+   "end": 5,
+   "title": "Opening challenge: the word limit",
+   "show": [
+    {
+     "block": "IELTS-03-OPEN",
+     "part": "questions"
+    },
+    {
+     "block": "IELTS-03-OPEN",
+     "part": "answers"
+    }
+   ],
+   "student": "Decide which learner followed the word limit. Commit before the explanation.",
+   "teacher": "Opening challenge. Individual commitment, then explanation.",
+   "say": "Write ONE WORD ONLY from \"walking boots\". Who has followed the word limit?",
+   "check": "Every learner has chosen Learner A or Learner B before the explanation."
+  },
+  {
+   "start": 5,
+   "end": 10,
+   "title": "Model: the final detail and the spelling",
+   "show": [
+    {
+     "block": "IELTS-03-MODEL",
+     "part": "questions"
+    },
+    {
+     "block": "IELTS-03-MODEL",
+     "part": "answers"
+    }
+   ],
+   "student": "Listen to the two model lines and answer before the reveal.",
+   "teacher": "Model. Teacher reads the two model lines once; pupils answer before reveal.",
+   "say": "Listen once. Write the meeting time and the tutor's surname.",
+   "check": "Learners have written both answers before the reveal."
+  },
+  {
+   "start": 10,
+   "end": 14,
+   "title": "Round A: read the questions",
+   "show": [
+    {
+     "block": "IELTS-03-A",
+     "part": "questions"
+    }
+   ],
+   "student": "Read questions A1 to A6 and the two word limits. Predict the answer type, not the answer.",
+   "teacher": "Read Round A questions; predict answer type, not the answer.",
+   "say": "What kind of answer does each gap need: a month, a name, a time, a number or a thing?",
+   "check": "Learners can say which questions allow two words."
+  },
+  {
+   "start": 14,
+   "end": 20,
+   "title": "Round A: listen and commit",
+   "show": [
+    {
+     "block": "IELTS-03-A",
+     "part": "questions"
+    }
+   ],
+   "student": "Listen once and write your answers. Commit them before any replay.",
+   "teacher": "Round A once, answers committed, then one optional full replay. Record actual replays; do not count the replay as fresh evidence.",
+   "say": "Write your answers while you listen. Keep your first answers.",
+   "check": "Answers are committed; any replay is recorded."
+  },
+  {
+   "start": 20,
+   "end": 28,
+   "title": "Round A: answers and evidence",
+   "show": [
+    {
+     "block": "IELTS-03-A",
+     "part": "answers"
+    }
+   ],
+   "student": "Check each answer against the evidence. Preserve your first answers and correct beside them.",
+   "teacher": "Reveal A1–A6; students check the precise support (quoted on the reveal slides) only after listening is complete. Preserve first answers.",
+   "say": "Which detail was the final one? Which detail did you reject?",
+   "check": "Learners can explain one rejected detail."
+  },
+  {
+   "start": 28,
+   "end": 31,
+   "title": "Round B: read the questions",
+   "show": [
+    {
+     "block": "IELTS-03-B",
+     "part": "questions"
+    }
+   ],
+   "student": "Read questions B1 to B4. Compare the two instruction lines.",
+   "teacher": "Read Round B questions and compare the two instruction lines.",
+   "say": "Which question allows two words? Which questions allow a number?",
+   "check": "Learners can name the question that allows two words."
+  },
+  {
+   "start": 31,
+   "end": 37,
+   "title": "Round B: listen and commit",
+   "show": [
+    {
+     "block": "IELTS-03-B",
+     "part": "questions"
+    }
+   ],
+   "student": "Listen once and write your answers. Commit them before any replay.",
+   "teacher": "Round B once; commit, then optional full replay. Record help.",
+   "say": "Write your answers while you listen. Keep your first answers.",
+   "check": "Answers are committed; any help or replay is recorded."
+  },
+  {
+   "start": 37,
+   "end": 45,
+   "title": "Round B: answers and evidence",
+   "show": [
+    {
+     "block": "IELTS-03-B",
+     "part": "answers"
+    }
+   ],
+   "student": "Check each answer: final detail, spelling and answer length.",
+   "teacher": "Reveal B1–B4. Discuss final detail, spelling and answer length.",
+   "say": "Does your answer keep to the word limit? Is it the final confirmed detail?",
+   "check": "Learners can explain why \"three eighteen\" does not fit the limit."
+  },
+  {
+   "start": 45,
+   "end": 52,
+   "title": "Targeted support",
+   "show": [],
+   "student": "Work on the support activity your teacher gives you, or explain one error in writing.",
+   "teacher": "Teacher selects one support activity (D03-S1, D03-S2 or D03-S3, printed from Support_Activities.pdf); others explain one error or write a concise note about a misleading detail.",
+   "say": "Choose one answer you changed. Explain the error using the recording evidence.",
+   "check": "Each learner has either a support sheet or a written explanation of one error."
+  },
+  {
+   "start": 52,
+   "end": 57,
+   "title": "Exit reflection",
+   "show": [],
+   "student": "Identify one corrected response and explain why.",
+   "teacher": "Exit reflection: identify one corrected response and explain why. This is a reflection, not another listening assessment.",
+   "say": "Which answer did you correct today, and why?",
+   "check": "Exit reflections are collected."
+  },
+  {
+   "start": 57,
+   "end": 60,
+   "title": "Homework and next step",
+   "show": [
+    {
+     "block": "IELTS-03-H",
+     "part": "questions"
+    }
+   ],
+   "student": "Copy down the homework. Agree one next step with your teacher.",
+   "teacher": "Assign written homework and agree one next step.",
+   "say": "At home, check every answer against its word limit before you finish.",
+   "check": "Everyone has the homework sheet and one next step."
+  }
+ ],
+ "exit_ticket": [
+  "One response I corrected today:",
+  "Why I changed it (final detail, spelling or word limit):"
+ ],
+ "homework": [
+  "Complete D03-H below. It checks written task compliance only; it is not new listening evidence.",
+  "Reflection: Which answer limit could you overlook, and how will you check it next time?"
+ ],
+ "followup": {
+  "id": "IELTS-03-F",
+  "status": "Withheld protected follow-up. Teacher-only until a later authorized check; not in slides, student workbook, homework or support. Content is fresh relative to this lesson, but independence, inventory originality and comparability have not been certified.",
+  "delivery": "Designate the delivery mode before administration; record prior exposure, actual voice/file version, help, pauses and replays. If teacher-read, retain that condition. Play the approved D03-F recording from Teacher-private/Audio.",
+  "review": "No band or automatic improvement claim. Proposed mapping: F1 numerical/time distinction; F2 spelling; F3 numerical detail; F4 explicit detail; F5 correction tracking and two-word compliance; F6 location detail. All proposed, pending reviewed IDs.",
+  "blocks": [
+   {
+    "id": "IELTS-03-F",
+    "kind": "items",
+    "title": "D03-F: Science demonstration briefing",
+    "mode": "Protected follow-up; teacher-only until a later authorized check",
+    "instructions": "Questions F1–F4: ONE WORD AND/OR A NUMBER. Questions F5–F6: NO MORE THAN TWO WORDS.",
+    "form_title": "Science demonstration briefing",
+    "stimulus": {
+     "type": "transcript",
+     "title": "Private follow-up script",
+     "paragraphs": [
+      "Coordinator: Here are the final details for the science demonstration. Equipment will arrive at two forty-five, but the demonstration itself begins at three fifteen in the afternoon. Your coordinator is Mr Nevin, spelled N-E-V-I-N. Collect your equipment from desk twenty-four. Desk twenty-six handles visitor registration, so please do not queue there. Bring a charger for your laptop; we cannot lend you one. We planned a demonstration about wind turbines, but the kit has not arrived. The demonstration will instead be about solar ovens. It will take place in the courtyard. The laboratory is being cleaned."
+     ]
+    },
+    "items": [
+     {
+      "id": "IELTS-03-F-QF1",
+      "prompt": "Starting time: ______ p.m.",
+      "answer": "3.15",
+      "evidence": "the demonstration itself begins at three fifteen in the afternoon",
+      "reason": "2.45 is delivery.",
+      "focus": "numerical/time distinction",
+      "type": "completion",
+      "word_limit": 2,
+      "accept": [
+       "3:15",
+       "03.15",
+       "03:15"
+      ]
+     },
+     {
+      "id": "IELTS-03-F-QF2",
+      "prompt": "Coordinator's surname: ______",
+      "answer": "Nevin",
+      "evidence": "spelled N-E-V-I-N",
+      "reason": "Exact spoken spelling.",
+      "focus": "spelling",
+      "type": "completion",
+      "word_limit": 2
+     },
+     {
+      "id": "IELTS-03-F-QF3",
+      "prompt": "Equipment collection desk number: ______",
+      "answer": "24",
+      "evidence": "Collect your equipment from desk twenty-four.",
+      "reason": "Desk 26 is registration.",
+      "focus": "numerical detail",
+      "type": "completion",
+      "word_limit": 2,
+      "accept": [
+       "twenty-four"
+      ]
+     },
+     {
+      "id": "IELTS-03-F-QF4",
+      "prompt": "Item to bring for a laptop: ______",
+      "answer": "charger",
+      "evidence": "Bring a charger for your laptop; we cannot lend you one.",
+      "reason": "Cannot be borrowed.",
+      "focus": "explicit detail",
+      "type": "completion",
+      "word_limit": 2
+     },
+     {
+      "id": "IELTS-03-F-QF5",
+      "prompt": "Demonstration topic: ______",
+      "answer": "solar ovens",
+      "evidence": "The demonstration will instead be about solar ovens.",
+      "reason": "Replaces unavailable wind turbine demonstration.",
+      "focus": "correction tracking and two-word compliance",
+      "type": "completion",
+      "word_limit": 2
+     },
+     {
+      "id": "IELTS-03-F-QF6",
+      "prompt": "Location: ______",
+      "answer": "courtyard",
+      "evidence": "It will take place in the courtyard.",
+      "reason": "Laboratory unavailable.",
+      "focus": "location detail",
+      "type": "completion",
+      "word_limit": 2
+     }
+    ]
+   }
+  ]
+ },
+ "delayed_followup": "Use D03-F at a later authorized check, with its delivery conditions recorded. No band or automatic improvement claim; a new task alone does not establish equivalent difficulty or improvement.",
+ "mapping_notes": "Mappings are proposed (for example: dates; spelling; numerical detail; explicit detail; task compliance), pending reviewed taxonomy IDs. Worksheet IDs D03-* are lesson-local.",
+ "release_blockers": [
+  "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+  "Conversion additions listed in conversion.additions await the owner's spot-check; approved wording, keys and recordings are unchanged.",
+  "Student task publication and platform evidence capture remain separate, governed steps."
+ ]
+}

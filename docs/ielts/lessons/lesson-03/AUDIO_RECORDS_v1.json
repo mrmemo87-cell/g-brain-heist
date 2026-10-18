@@ -1,0 +1,451 @@
+{
+ "note": "Production records of the three owner-approved IELTS-03 recordings, copied unchanged from the approved IELTS-03 Teacher Pack v1.0.1 (content revision 2026-10-17.1). The MP3 files stay in private storage; delivered SHA-256 values are recorded here and in lesson.json.",
+ "records": [
+  {
+   "id": "D03-A",
+   "version": 1,
+   "source_revision": "2026-10-17.1",
+   "approved_source_sha256": "3e2f36e5713d8cb7851e4eb4868413b05f013e79189f28aa65aabd0217dc5cd2",
+   "file": "D03-A-review-v1.mp3",
+   "sha256": "db7c949ba352e5ad449270a4cf768a82fe9ccbd521dd9b049ab57f259c2f42ac",
+   "duration_seconds": 117.524898,
+   "pcm_assembled_seconds": 117.48793650793651,
+   "sample_rate": 44100,
+   "channels": 1,
+   "bitrate": 128000,
+   "instruction_voice": "Tom",
+   "passage_voices": [
+    "James",
+    "Paula"
+   ],
+   "provider": "Runway speech service",
+   "model": "eleven_multilingual_v2",
+   "speed": 1,
+   "assembly": "Exact approved turns, 350 ms between turns, actual 30 s pre-read and 15 s finish PCM silence; MP3 encoded once after assembly. Two-pass loudness normalization from PCM master to review target, preserving silence and natural speech speed.",
+   "cues": [
+    {
+     "kind": "instructions",
+     "start": 0,
+     "end": 9.47374149659864,
+     "text": "This recording is copyright Brains Heist LLC. All rights reserved. Read questions A1 to A6. Notice the different word limits.",
+     "voice": "Tom",
+     "provider_task_id": "8a3b566c-13b5-488a-9eec-6309e18a6912",
+     "source_mp3_sha256": "4998cd5de3b2fbc65a8090e96a3c3ca34878318ef5ccb0f15eab5d16f464d926"
+    },
+    {
+     "kind": "reading_silence",
+     "start": 9.47374149659864,
+     "end": 39.47374149659864
+    },
+    {
+     "kind": "speech",
+     "segment": "A-01",
+     "speaker": "Student",
+     "voice": "James",
+     "start": 39.47374149659864,
+     "end": 42.67809523809524,
+     "text": "I'd like to help with the school science display. When is it?",
+     "source_mp3_sha256": "b1aadb562afe872b890aceb438bbe3d35bb7b999daefcf88ce1ed637bc23a6bb",
+     "provider_task_id": "0ab48397-81f2-4a81-b7e3-3955cb65bf09"
+    },
+    {
+     "kind": "speech",
+     "segment": "A-02",
+     "speaker": "Coordinator",
+     "voice": "Paula",
+     "start": 43.028072562358275,
+     "end": 51.573015873015876,
+     "text": "The display is in November. We are collecting project ideas during October, but the display itself is the following month.",
+     "source_mp3_sha256": "117b76a4849cf7713bd1b799cc94d2bbaca76991ecc4af848ad5d743377e23e9",
+     "provider_task_id": "5a7e79b3-7708-4f2e-9804-8658500c9204"
+    },
+    {
+     "kind": "speech",
+     "segment": "A-03",
+     "speaker": "Student",
+     "voice": "James",
+     "start": 51.92299319727891,
+     "end": 53.455510204081634,
+     "text": "Who is leading the project?",
+     "source_mp3_sha256": "d5a824942981be09f26cc3ba582980484edd33fc6434f3a1ab85472dafec4b78",
+     "provider_task_id": "b46e68ec-5a3e-48d1-8e21-802d13e2aa7a"
+    },
+    {
+     "kind": "speech",
+     "segment": "A-04",
+     "speaker": "Coordinator",
+     "voice": "Paula",
+     "start": 53.80548752834467,
+     "end": 59.471156462585036,
+     "text": "Ms Bramwell. That's B-R-A-M-W-E-L-L, with two Ls at the end.",
+     "source_mp3_sha256": "f3bbea2d86ac4b773e5acb928896d12cdb639e8b991b66850aa199cef1a153d0",
+     "provider_task_id": "6bffb46b-77f7-42d8-84f2-2b42cfaccacd"
+    },
+    {
+     "kind": "speech",
+     "segment": "A-05",
+     "speaker": "Student",
+     "voice": "James",
+     "start": 59.82113378684807,
+     "end": 61.30721088435374,
+     "text": "What time should our team meet?",
+     "source_mp3_sha256": "ab73a14ef20b17f4f13f1572de9e9347970fef63712906ee5d6d66bd23b02463",
+     "provider_task_id": "885f8eb0-9533-4f84-90cf-c38a97f4ff11"
+    },
+    {
+     "kind": "speech",
+     "segment": "A-06",
+     "speaker": "Coordinator",
+     "voice": "Paula",
+     "start": 61.65718820861678,
+     "end": 70.01637188208616,
+     "text": "Meet at nine forty in the morning to arrange your display. Visitors can enter from ten fifteen, so you'll have time to prepare.",
+     "source_mp3_sha256": "9c9ac371f570dc87101fd10d2656b54282bc1ab99c34403e501856a2d1091906",
+     "provider_task_id": "c04ad89e-2031-4c16-9922-05f57cc017b2"
+    },
+    {
+     "kind": "speech",
+     "segment": "A-07",
+     "speaker": "Student",
+     "voice": "James",
+     "start": 70.36634920634921,
+     "end": 72.03818594104308,
+     "text": "How many teams are taking part?",
+     "source_mp3_sha256": "f521d55bf5f345009b083b595d4a38830c32541b7c1fbd445f639d97891e0b31",
+     "provider_task_id": "c96db5dd-7365-4456-aa49-79c2a79528e5"
+    },
+    {
+     "kind": "speech",
+     "segment": "A-08",
+     "speaker": "Coordinator",
+     "voice": "Paula",
+     "start": 72.38816326530612,
+     "end": 81.07242630385487,
+     "text": "Twelve teams, with two students in each. That makes twenty-four students altogether, but just twelve separate displays.",
+     "source_mp3_sha256": "ab3e079093476a926fc81ab2dd1f66f4ead69e278ad910cb5a8f876a9c51a6d2",
+     "provider_task_id": "696965c4-a0c6-4102-aaf8-cd262971b410"
+    },
+    {
+     "kind": "speech",
+     "segment": "A-09",
+     "speaker": "Student",
+     "voice": "James",
+     "start": 81.42240362811792,
+     "end": 83.00136054421769,
+     "text": "Do we need to buy paper and glue?",
+     "source_mp3_sha256": "572d9a247d48bc0ccee2aceb30c4225839dbb9656269e51fe8318f652c1771cb",
+     "provider_task_id": "5cf6509c-3671-4125-b06f-9d15c0ec6376"
+    },
+    {
+     "kind": "speech",
+     "segment": "A-10",
+     "speaker": "Coordinator",
+     "voice": "Paula",
+     "start": 83.35133786848073,
+     "end": 91.61764172335602,
+     "text": "The school will provide paper. Please bring glue; we do not have enough for every team. You won't need any other materials.",
+     "source_mp3_sha256": "10a82e0759090617a656c05b2694f4dbfb1b4540568ff94a587330b39d4ccf81",
+     "provider_task_id": "98d6a5ce-3774-497a-a726-fab5e731a348"
+    },
+    {
+     "kind": "speech",
+     "segment": "A-11",
+     "speaker": "Student",
+     "voice": "James",
+     "start": 91.96761904761905,
+     "end": 94.19673469387754,
+     "text": "Where will we prepare everything? In the gym?",
+     "source_mp3_sha256": "c9cea7fc09cc638e733b202f7769bdc12ff1d42f1f7f61ce9953985dee500787",
+     "provider_task_id": "7f03f2d7-275e-40b8-93a4-92f31a91e70c"
+    },
+    {
+     "kind": "speech",
+     "segment": "A-12",
+     "speaker": "Coordinator",
+     "voice": "Paula",
+     "start": 94.5467120181406,
+     "end": 102.48793650793651,
+     "text": "We had planned to use the gym, but a class needs it. Go to the art room for preparation. The display will be in the hall.",
+     "source_mp3_sha256": "a6e77b933fbaa4f12c00cdc740262fdb047abe75f1656f2f44b159591eb8cb47",
+     "provider_task_id": "7e203ce8-8e70-464d-9e26-bde1dd685c31"
+    },
+    {
+     "kind": "response_silence",
+     "start": 102.48793650793651,
+     "end": 117.48793650793651
+    }
+   ],
+   "approval": {
+    "script": "Owner approved 2026-10-17.1",
+    "audio_listening": "pending",
+    "transcript_fidelity": "pending listening review",
+    "rights": "Provider redistribution/license confirmation pending",
+    "device_acceptance": "pending",
+    "publication": "held"
+   },
+   "end_silence_verified_seconds": 15.0,
+   "technical_level_check": [
+    "[Parsed_volumedetect_0 @ 0x55984aac5880] mean_volume: -25.9 dB",
+    "[Parsed_volumedetect_0 @ 0x55984aac5880] max_volume: -1.8 dB"
+   ],
+   "loudness": {
+    "policy": "Internal review target -19 LUFS / -1.5 dBTP, not an audibility sign-off",
+    "input_measurement": {
+     "input_i": "-22.97",
+     "input_tp": "-1.36",
+     "input_lra": "6.50",
+     "input_thresh": "-33.41",
+     "output_i": "-19.66",
+     "output_tp": "-1.50",
+     "output_lra": "5.00",
+     "output_thresh": "-30.12",
+     "normalization_type": "dynamic",
+     "target_offset": "0.66"
+    },
+    "filter": "loudnorm=I=-19:TP=-1.5:LRA=11:linear=true:measured_I=-22.97:measured_TP=-1.36:measured_LRA=6.50:measured_thresh=-33.41:offset=0.66"
+   }
+  },
+  {
+   "id": "D03-B",
+   "version": 1,
+   "source_revision": "2026-10-17.1",
+   "approved_source_sha256": "3e2f36e5713d8cb7851e4eb4868413b05f013e79189f28aa65aabd0217dc5cd2",
+   "file": "D03-B-review-v1.mp3",
+   "sha256": "ba5801c678c32530ab4a9b248fd51faecbf701d287f63949f5c11346ad4c021f",
+   "duration_seconds": 90.723265,
+   "pcm_assembled_seconds": 90.68539682539682,
+   "sample_rate": 44100,
+   "channels": 1,
+   "bitrate": 128000,
+   "instruction_voice": "Tom",
+   "passage_voices": [
+    "James",
+    "Paula"
+   ],
+   "provider": "Runway speech service",
+   "model": "eleven_multilingual_v2",
+   "speed": 1,
+   "assembly": "Exact approved turns, 350 ms between turns, actual 30 s pre-read and 15 s finish PCM silence; MP3 encoded once after assembly. Two-pass loudness normalization from PCM master to review target, preserving silence and natural speech speed.",
+   "cues": [
+    {
+     "kind": "instructions",
+     "start": 0,
+     "end": 10.448979591836734,
+     "text": "This recording is copyright Brains Heist LLC. All rights reserved. Read questions B1 to B4 and check the word limits.",
+     "voice": "Tom",
+     "provider_task_id": "1d49b0aa-8099-4cf2-b338-a64c2687d875",
+     "source_mp3_sha256": "2f003842774b9d6e8424a64453eb1a8d47e08ceb62ef9030d6f63dcb554fd95a"
+    },
+    {
+     "kind": "reading_silence",
+     "start": 10.448979591836734,
+     "end": 40.44897959183673
+    },
+    {
+     "kind": "speech",
+     "segment": "B-01",
+     "speaker": "Student",
+     "voice": "James",
+     "start": 40.44897959183673,
+     "end": 42.63165532879819,
+     "text": "I'm calling about our media room booking.",
+     "source_mp3_sha256": "fb9f4a7da0ccd91d9ebf01583a714667e532e4174fb1fdd58ec7229e98277c1a",
+     "provider_task_id": "8b6a4929-e3ba-4ef2-b654-51e02dbc65ab"
+    },
+    {
+     "kind": "speech",
+     "segment": "B-02",
+     "speaker": "Assistant",
+     "voice": "Paula",
+     "start": 42.981632653061226,
+     "end": 49.808299319727894,
+     "text": "Yes. You'll use room three eighteen. Room three thirteen is being used for a staff meeting.",
+     "source_mp3_sha256": "891f2e87d34ec4f96f754fd5d5fc01708ba637a149ee167fd957eb298bd4dab0",
+     "provider_task_id": "b617feab-df05-42b3-822b-c72234d91e9d"
+    },
+    {
+     "kind": "speech",
+     "segment": "B-03",
+     "speaker": "Student",
+     "voice": "James",
+     "start": 50.15827664399093,
+     "end": 51.78367346938776,
+     "text": "Will Mr Palmer supervise us?",
+     "source_mp3_sha256": "663ae5c3413fec04e8291cab49869945d11640226db9c1ad901658d3243320a7",
+     "provider_task_id": "25bbe077-185b-424d-b45b-a870664b3239"
+    },
+    {
+     "kind": "speech",
+     "segment": "B-04",
+     "speaker": "Assistant",
+     "voice": "Paula",
+     "start": 52.133650793650794,
+     "end": 57.42780045351474,
+     "text": "He cannot come that day. Ms Vale will supervise. Her surname is V-A-L-E.",
+     "source_mp3_sha256": "b67fe8507b1659cef17e6f80386715eb520d7ad2f599a5778ba471a8f9ab38e1",
+     "provider_task_id": "ff694913-bc35-4b19-a973-cb5a7e640788"
+    },
+    {
+     "kind": "speech",
+     "segment": "B-05",
+     "speaker": "Student",
+     "voice": "James",
+     "start": 57.77777777777778,
+     "end": 60.982131519274375,
+     "text": "I requested fifty minutes. Has that been confirmed?",
+     "source_mp3_sha256": "6cc211136533f95c2bcb5fcfcc08e8ebf9448b7493e72a3990227fac5b68ad62",
+     "provider_task_id": "dc2f0498-5e71-4ea2-adbb-e682a652cbf8"
+    },
+    {
+     "kind": "speech",
+     "segment": "B-06",
+     "speaker": "Assistant",
+     "voice": "Paula",
+     "start": 61.33210884353741,
+     "end": 67.3692970521542,
+     "text": "We've only been able to reserve thirty-five minutes. Another group needs the room after that.",
+     "source_mp3_sha256": "dbfee260495ddb8a7575402dbc2117a70a40269a14f210134a0d8d8a47247286",
+     "provider_task_id": "819b8dd2-4cf9-42a8-85c3-b7993523eb47"
+    },
+    {
+     "kind": "speech",
+     "segment": "B-07",
+     "speaker": "Student",
+     "voice": "James",
+     "start": 67.71927437641723,
+     "end": 68.97315192743764,
+     "text": "Do we need our headphones?",
+     "source_mp3_sha256": "a088f64232cd4a05d95ba3d6796c6d904da8299c0cf9290aa636bc6dbe6c1f55",
+     "provider_task_id": "54bed1d4-12ba-4941-8934-730111408eb3"
+    },
+    {
+     "kind": "speech",
+     "segment": "B-08",
+     "speaker": "Assistant",
+     "voice": "Paula",
+     "start": 69.32312925170068,
+     "end": 75.68539682539682,
+     "text": "No, the room has headphones you can borrow. Each student must bring a memory card to save the recording.",
+     "source_mp3_sha256": "5e0f7e4494214390292b676cc83bd06b546044f7935b428763f5af6771cf50af",
+     "provider_task_id": "1b2309f3-0045-4403-9b82-46745809d511"
+    },
+    {
+     "kind": "response_silence",
+     "start": 75.68539682539682,
+     "end": 90.68539682539682
+    }
+   ],
+   "approval": {
+    "script": "Owner approved 2026-10-17.1",
+    "audio_listening": "pending",
+    "transcript_fidelity": "pending listening review",
+    "rights": "Provider redistribution/license confirmation pending",
+    "device_acceptance": "pending",
+    "publication": "held"
+   },
+   "end_silence_verified_seconds": 15.0,
+   "technical_level_check": [
+    "[Parsed_volumedetect_0 @ 0x5571ab2ed880] mean_volume: -26.3 dB",
+    "[Parsed_volumedetect_0 @ 0x5571ab2ed880] max_volume: -2.6 dB"
+   ],
+   "loudness": {
+    "policy": "Internal review target -19 LUFS / -1.5 dBTP, not an audibility sign-off",
+    "input_measurement": {
+     "input_i": "-22.63",
+     "input_tp": "-2.09",
+     "input_lra": "6.00",
+     "input_thresh": "-33.03",
+     "output_i": "-20.12",
+     "output_tp": "-1.50",
+     "output_lra": "5.30",
+     "output_thresh": "-30.53",
+     "normalization_type": "dynamic",
+     "target_offset": "1.12"
+    },
+    "filter": "loudnorm=I=-19:TP=-1.5:LRA=11:linear=true:measured_I=-22.63:measured_TP=-2.09:measured_LRA=6.00:measured_thresh=-33.03:offset=1.12"
+   }
+  },
+  {
+   "id": "D03-F",
+   "version": 1,
+   "source_revision": "2026-10-17.1",
+   "approved_source_sha256": "3e2f36e5713d8cb7851e4eb4868413b05f013e79189f28aa65aabd0217dc5cd2",
+   "file": "D03-F-review-v1.mp3",
+   "sha256": "c1dfbb460a0e9f99b9d6a5d68c2540dd27ddd5c8ccc2a63842b464e6265a1b81",
+   "duration_seconds": 102.661224,
+   "pcm_assembled_seconds": 102.63192743764172,
+   "sample_rate": 44100,
+   "channels": 1,
+   "bitrate": 128000,
+   "instruction_voice": "Tom",
+   "passage_voices": [
+    "Miriam"
+   ],
+   "provider": "Runway speech service",
+   "model": "eleven_multilingual_v2",
+   "speed": 1,
+   "assembly": "Exact approved turns, 350 ms between turns, actual 30 s pre-read and 15 s finish PCM silence; MP3 encoded once after assembly. Two-pass loudness normalization from PCM master to review target, preserving silence and natural speech speed.",
+   "cues": [
+    {
+     "kind": "instructions",
+     "start": 0,
+     "end": 9.566621315192744,
+     "text": "This recording is copyright Brains Heist LLC. All rights reserved. Read questions F1 to F6 and check the word limits.",
+     "voice": "Tom",
+     "provider_task_id": "36e454ca-9b3d-446f-a91a-577331aa8a7b",
+     "source_mp3_sha256": "b975bb4fe37912dcd8b0862248de10c8e53b551fdee73766187c9eeb2e79eacc"
+    },
+    {
+     "kind": "reading_silence",
+     "start": 9.566621315192744,
+     "end": 39.56662131519275
+    },
+    {
+     "kind": "speech",
+     "segment": "F-01",
+     "speaker": "Coordinator",
+     "voice": "Miriam",
+     "start": 39.56662131519274,
+     "end": 87.63192743764172,
+     "text": "Here are the final details for the science demonstration. Equipment will arrive at two forty-five, but the demonstration itself begins at three fifteen in the afternoon. Your coordinator is Mr Nevin, spelled N-E-V-I-N. Collect your equipment from desk twenty-four. Desk twenty-six handles visitor registration, so please do not queue there. Bring a charger for your laptop; we cannot lend you one. We planned a demonstration about wind turbines, but the kit has not arrived. The demonstration will instead be about solar ovens. It will take place in the courtyard. The laboratory is being cleaned.",
+     "source_mp3_sha256": "15ae3c8bfd1c4bc9cccf42999df812c0b7dc82a63166aacb5e65e9e3e21102ba",
+     "provider_task_id": "a63bc3f2-82f6-4ad8-992c-c1e2e9b0645a"
+    },
+    {
+     "kind": "response_silence",
+     "start": 87.63192743764172,
+     "end": 102.63192743764172
+    }
+   ],
+   "approval": {
+    "script": "Owner approved 2026-10-17.1",
+    "audio_listening": "pending",
+    "transcript_fidelity": "pending listening review",
+    "rights": "Provider redistribution/license confirmation pending",
+    "device_acceptance": "pending",
+    "publication": "held"
+   },
+   "end_silence_verified_seconds": 15.0,
+   "technical_level_check": [
+    "[Parsed_volumedetect_0 @ 0x561dedca7880] mean_volume: -30.7 dB",
+    "[Parsed_volumedetect_0 @ 0x561dedca7880] max_volume: -6.1 dB"
+   ],
+   "loudness": {
+    "policy": "Internal review target -19 LUFS / -1.5 dBTP, not an audibility sign-off",
+    "input_measurement": {
+     "input_i": "-27.24",
+     "input_tp": "-5.63",
+     "input_lra": "7.60",
+     "input_thresh": "-37.73",
+     "output_i": "-20.88",
+     "output_tp": "-1.50",
+     "output_lra": "4.90",
+     "output_thresh": "-31.34",
+     "normalization_type": "dynamic",
+     "target_offset": "1.88"
+    },
+    "filter": "loudnorm=I=-19:TP=-1.5:LRA=11:linear=true:measured_I=-27.24:measured_TP=-5.63:measured_LRA=7.60:measured_thresh=-37.73:offset=1.88"
+   }
+  }
+ ]
+}

@@ -39,6 +39,11 @@ def is_homework_essay(b):
     return b['kind'] == 'writing' and not b.get('in_class') and (b.get('task') == 'task2' or bool(b.get('homework')))
 
 
+def is_homework(b):
+    # Homework tasks of any kind print on the homework sheet, not in the workbook; their keys stay teacher-only.
+    return is_homework_essay(b) or bool(b.get('homework'))
+
+
 def normalize_title(t):
     return re.sub(r'\W+', ' ', t).strip().lower()
 
@@ -286,9 +291,14 @@ class Pack:
                 body.append(self.p('Answer: ______'))
             elif it['type'] == 'completion':
                 hint = f"   (support hint: {it['hint']})" if show_hints and it.get('hint') else ''
-                body.append(self.p('Answer: ____________________' + hint))
+                if '___' not in it['prompt'] or hint:
+                    body.append(self.p(('Answer: ____________________' if '___' not in it['prompt'] else '') + hint))
+            elif it['type'] in ('tfng', 'ynng') and st.get('type') == 'passage':
+                body.append(self.p('Answer: ____________   Evidence / missing information: ________________________________'))
             elif it['type'] in ('mcq', 'choice', 'tfng', 'ynng'):
                 body.append(self.p('Answer: ______'))
+            elif it['type'] == 'short':
+                body += self.lines(1 if len(it['answer']) < 40 else 2)
             out.append(KeepTogether(body))
         for key, label in [('extension', 'Extension'), ('high_band', 'High-band challenge')]:
             if b.get(key):
@@ -297,6 +307,14 @@ class Pack:
 
     def student_block(self, b):
         flow = self._student_block(b)
+        st = b.get('stimulus') or {}
+        if b['kind'] == 'items' and st.get('type') != 'passage' and not b.get('figure') and len(b['items']) <= 8:
+            def flat(fl):
+                out = []
+                for f in fl:
+                    out += flat(f._content) if isinstance(f, KeepTogether) else [f]
+                return out
+            return [KeepTogether(flat(flow))]  # a short question set never splits across pages (nested groups would force breaks)
         # Keep the heading with its instructions; nested KeepTogether groups can force empty pages.
         return [KeepTogether(flow[:2])] + flow[2:] if len(flow) > 2 else flow
 
@@ -320,7 +338,7 @@ class Pack:
             out.append(KeepTogether([self.p('Criterion checklist for your review', 'H')] + [self.p('[ ]  ' + c, 'S') for c in b['checklist']]))
             return out
         if k == 'speaking':
-            out = [self.p(b['title'], 'H'), self.p(b['instructions'])] + [self.p('•  ' + q, 'P') for q in b['prompts']]
+            out = [self.p(b['title'], 'H'), self.p(b['instructions'])] + [self.p(('•  ' if not re.match(r'^[A-Z]-?[A-Z]?\d', q) else '') + q, 'P') for q in b['prompts']]
             if b.get('support'):
                 out.append(self.p('Support: ' + b['support'], 'S'))
             out += [self.p('Partner notes: I heard  [ ] a direct answer  [ ] a reason  [ ] an example  [ ] a contrast  [ ] a consequence'), self.p('One useful next step: ____________________________________________')]
@@ -349,24 +367,30 @@ class Pack:
             for it in b['items']:
                 acc = f"  (also accept: {', '.join(it['accept'])})" if it.get('accept') else ''
                 out.append(KeepTogether([self.p(f"{it['id']}:  {it['answer']}{acc}", 'B'), self.p('Evidence: ' + it['evidence'], 'S'), self.p('Why: ' + it['reason'] + f"   [draft focus: {it['focus']}]", 'S')]))
-            for key, label in [('support', 'Support'), ('extension', 'Extension'), ('high_band', 'High band')]:
+            for key, label in [('marking', 'Marking'), ('support', 'Support'), ('extension', 'Extension'), ('high_band', 'High band')]:
                 if b.get(key):
                     out.append(self.p(f'{label}: ' + b[key], 'S'))
         elif k == 'contrast':
             for ex in b['examples']:
                 out += [self.p(ex['label'] + ':  ' + ex['text'], 'P'), self.p('Teaching point: ' + ex['comment'], 'S')]
         elif k == 'writing':
-            out += [self.p('Prompt: ' + b['prompt']), self.p(b['model_label'], 'S')]
-            out += [self.p(x) for x in b['model'].split('\n\n')]
-            out.append(self.p(f"Model length: {len(b['model'].split())} words.", 'S'))
-            out += [self.p('Feedback checklist (official criterion names; no band assigned)', 'H')] + [self.p('•  ' + c, 'P') for c in b['checklist']]
-            for key, label in [('support', 'Support'), ('extension', 'Extension'), ('high_band', 'High band')]:
+            out += [self.p('Prompt: ' + b['prompt'])]
+            if b.get('model'):
+                out += [self.p(b['model_label'], 'S')] + [self.p(x) for x in b['model'].split('\n\n')]
+                out.append(self.p(f"Model length: {len(b['model'].split())} words.", 'S'))
+            else:
+                out.append(self.p('No model for this task: ' + str(b.get('no_model')), 'S'))
+            out += [self.p('Feedback checklist (no band assigned)', 'H')] + [self.p('•  ' + c, 'P') for c in b['checklist']]
+            for key, label in [('marking', 'Teacher review'), ('support', 'Support'), ('extension', 'Extension'), ('high_band', 'High band')]:
                 if b.get(key):
                     out.append(self.p(f'{label}: ' + b[key], 'S'))
         elif k == 'speaking':
             out += [self.p('•  ' + q, 'P') for q in b['prompts']]
-            if b.get('model'):
-                out += [self.p('Illustrative spoken model (teacher reads naturally; not a script to memorise)', 'H'), self.p(b['model'])]
+            for m_ in self.speaking_models(b):
+                out += [self.p(m_['label'] + ' (illustrative; teacher reads naturally; not a script to memorise)', 'H'), self.p(m_['text'])]
+            for key, label in [('support', 'Support'), ('extension', 'Extension'), ('notice', 'Notice')]:
+                if b.get(key):
+                    out.append(self.p(f'{label}: ' + b[key], 'S'))
             out.append(self.p('Observation rule: ' + b['observation'], 'S'))
         return out
 
@@ -445,9 +469,11 @@ class Pack:
             audio = self.recording_for(b) if st.get('type') == 'transcript' else None
             groups, cur, size = [], [], 0
             short_matching = len(pre) > 1 and all(it['type'] in ('matching', 'paragraph_match') and len(it['prompt']) < 40 for it in b['items'])
+            # Short note-completion gaps (a listening form) stay on one slide, so learners see every question while the recording plays.
+            compact = len(b['items']) <= 6 and all(it['type'] == 'completion' and len(it['prompt']) < 45 for it in b['items'])
             for it in ([] if short_matching else b['items']):
                 cost = len(it['prompt']) + (0 if shared else sum(len(o) for o in it.get('options', []) if it['type'] in ('mcq', 'choice'))) + 40
-                if cur and (size + cost > 360 or len(cur) == 4):
+                if cur and not compact and (size + cost > 360 or len(cur) == 4):
                     groups.append(cur); cur, size = [], 0
                 cur.append(it); size += cost
             if cur:
@@ -496,8 +522,9 @@ class Pack:
                 for it in g:
                     num = it['id'].rsplit('-Q', 1)[-1]
                     ev = f"“{it['evidence']}”" if quotable else it['evidence']
-                    body.append(f"{num}   {it['answer']}\n{ev}\n{it['reason']}")
-                    meta.append({'t': 'answer', 'num': num, 'prompt': it['prompt'], 'answer': it['answer'], 'evidence': ev, 'reason': it['reason']})
+                    shown = ' / '.join([it['answer']] + it.get('accept', []))  # accepted variants are part of the key learners check against
+                    body.append(f"{num}   {shown}\n{ev}\n{it['reason']}")
+                    meta.append({'t': 'answer', 'num': num, 'prompt': it['prompt'], 'answer': shown, 'evidence': ev, 'reason': it['reason']})
                 ids = ', '.join(it['id'] for it in g)
                 out.append({'title': answers_title(b['title']), 'body': body, 'meta': meta, 'reveal': True, 'build': True, 'workbook': wb,
                             'notes': f'Reveal only after learners explain their choices. Click to show each answer. {ids}. Corrections remain guided practice.'})
@@ -523,6 +550,13 @@ class Pack:
         elif k == 'writing' and part == 'prompt':
             out.append({'title': b['title'], 'body': [b['prompt'], b['conditions']], 'meta': [{'t': 'task'}, {'t': 'conditions'}],
                         'workbook': wb, 'timer': self.writing_minutes(b), 'notes': notes_base + ' The model is not shown until after learners write.'})
+        elif k == 'writing' and part == 'checklist':
+            out.append({'title': f"{b['title']}: check", 'body': b['checklist'], 'meta': [{'t': 'goal'} for _ in b['checklist']], 'build': True, 'workbook': wb,
+                        'notes': notes_base + ' Partners check against these points; the writer makes one revision and keeps the first draft.'})
+        elif k == 'speaking' and part == 'routine':
+            body = [b['instructions']] + ([b['support']] if b.get('support') else [])
+            out.append({'title': f"{b['title']}: in pairs", 'body': body, 'meta': [{'t': 'card'} for _ in body], 'build': True, 'workbook': wb,
+                        'notes': b['observation']})
         elif k == 'writing' and part == 'model':
             paras = b['model'].split('\n\n')
             chunks = self.fit_chunks(paras, 700)
@@ -535,9 +569,17 @@ class Pack:
             out.append({'title': b['title'], 'body': b['prompts'], 'meta': [{'t': 'card'} for _ in b['prompts']], 'build': True, 'workbook': wb,
                         'notes': b['instructions'] + ' ' + b['observation']})
         elif k == 'speaking' and part == 'model':
-            out.append({'title': 'A developed spoken answer', 'body': [b['model']], 'meta': [{'t': 'model'}], 'reveal': True, 'workbook': wb,
-                        'notes': 'Read naturally once. This is a live classroom model, not a script to memorise or a Listening task.'})
+            for m_ in self.speaking_models(b):
+                out.append({'title': m_['label'], 'body': [m_['text']] + ([b['notice']] if b.get('notice') else []),
+                            'meta': [{'t': 'model'}] + ([{'t': 'instr'}] if b.get('notice') else []), 'reveal': True, 'workbook': wb,
+                            'notes': 'Read naturally once. This is a live classroom model, not a script to memorise or a Listening task.'})
         return out
+
+    @staticmethod
+    def speaking_models(b):
+        if b.get('models'):
+            return b['models']
+        return [{'label': 'A developed spoken answer', 'text': b['model']}] if b.get('model') else []
 
     @staticmethod
     def writing_minutes(b):
@@ -573,8 +615,15 @@ class Pack:
                 if slides[i]['stage'] != last_stage:
                     slides[i] = {k: v for k, v in slides[i].items() if k != 'audio'}
                     slides[i]['build'] = True
-        slides.append({'title': 'Exit ticket', 'kind': 'exit', 'body': d['exit_ticket'], 'meta': [{'t': 'goal'} for _ in d['exit_ticket']], 'dark': True,
-                       'workbook': 'Exit ticket', 'notes': 'Collect original work. Feedback stays scoped to today.'})
+        exit_slide = {'title': 'Exit ticket', 'kind': 'exit', 'body': d['exit_ticket'], 'meta': [{'t': 'goal'} for _ in d['exit_ticket']], 'dark': True,
+                      'workbook': 'Exit ticket', 'notes': 'Collect original work. Feedback stays scoped to today.'}
+        exit_stage = next((i for i, s_ in enumerate(d['stages']) if re.match(r'exit\b', s_['title'], re.I)), None)
+        if exit_stage is not None and exit_stage < len(d['stages']) - 1:
+            # The exit ticket follows its own stage when homework is set after it, matching the workbook order.
+            at = max(i for i, sl in enumerate(slides) if sl.get('stage') == exit_stage) + 1
+            slides.insert(at, {**exit_slide, 'stage': exit_stage})
+        else:
+            slides.append(exit_slide)
         self.slides = self.legible(slides)
         return self.slides
 
@@ -583,9 +632,13 @@ class Pack:
         d = self.d
         # Student workbook: one page per block, then reflection.
         pages = []
+        if d.get('workbook_extra'):
+            pages.append([])
+            for x in [x for x in d['workbook_extra'] if x.get('position') == 'start']:
+                pages[-1] += [self.p(x['title'], 'H')] + ([self.p(x['text'])] if x.get('text') else []) + [self.p(f + ' ________________________________') for f in x.get('fields', [])]
         for b in d['blocks']:
-            if is_homework_essay(b):
-                continue  # full timed tasks go on the homework sheet
+            if is_homework(b):
+                continue  # homework tasks go on the homework sheet
             if b.get('in_workbook') is False:
                 continue  # projected teaching contrast only; keeps analysis out of the practice pages
             needs_page = b['kind'] == 'writing' or bool(b.get('figure')) or (b.get('stimulus') or {}).get('type') == 'passage' and not (b.get('stimulus') or {}).get('workbook_reference')
@@ -596,6 +649,8 @@ class Pack:
             pages[-1].extend(self.student_block(b))
             if needs_page and b['kind'] == 'writing':
                 pages.append([])
+        for x in [x for x in d.get('workbook_extra', []) if x.get('position') == 'end']:
+            pages[-1].extend([Spacer(1, 10), self.p(x['title'], 'H')] + ([self.p(x['text'])] if x.get('text') else []) + [self.p(f + ' ________________________________') for f in x.get('fields', [])])
         pages = [pg for pg in pages if pg]
         pages[0] = [self.p('Name: __________________________   Date: ________________')] + pages[0]
         if d.get('answer_grid'):
@@ -635,9 +690,21 @@ class Pack:
         essay = [b for b in d['blocks'] if is_homework_essay(b)]
         hw_pages = [hw + [self.p('A printed instruction does not create an online assignment. Keep your original work.', 'S')]]
         for b in essay:
+            if b.get('task') != 'task2':
+                hw_pages.append([self.p(b['title'], 'H'), self.p(b['prompt']), self.p('Conditions: ' + b['conditions'], 'S'), *self.lines(16),
+                                 *([self.p('Support: ' + b['support'], 'S')] if b.get('support') else []), self.p('Checklist', 'H'), *[self.p('[ ]  ' + c, 'S') for c in b['checklist']]])
+                continue
             hw_pages.append([self.p(b['title'], 'H'), self.p(b['prompt']), *self.figure_flow(b), self.p('Conditions: ' + b['conditions'], 'S'), self.p('Start time: ________   Finish time: ________   Interruptions / help: ______________'), *self.lines(30)])
             hw_pages.append([self.p('Essay (continued)', 'H'), *self.lines(18), self.p('Plan used: ' + b['support'], 'S'), self.p('Criterion checklist', 'H'), *[self.p('[ ]  ' + c, 'S') for c in b['checklist']]])
+        for b in d['blocks']:
+            if is_homework(b) and not is_homework_essay(b):
+                hw_pages[0] += [Spacer(1, 10)] + self.student_block(b)
         self.pdf('Students/Homework.pdf', f'Lesson {self.n} homework', hw_pages, 'student', 'Student homework')
+        for h in d.get('handouts', []):
+            page = [self.p('Name: __________________________   Date: ________________')]
+            for sec in h['sections']:
+                page += [self.p(sec['title'], 'H'), self.p(sec['text'])] + (self.lines(sec.get('lines', 0)) if sec.get('lines') else [])
+            self.pdf(f"Students/{h['file']}.pdf", h['title'], [page], 'student', 'Student handout')
 
         # Teacher guide
         lv = d['levels']
@@ -666,15 +733,27 @@ class Pack:
                       *([self.p('Approved recording unavailable or fails: stop the listening activity. Do not read the transcript aloud as a substitute for the practice recording, and do not record results. Teach the paraphrase and mini-model stages, then reschedule.')] if d['audio']['required'] else []),
                       self.p('After class', 'H'),
                       self.p('Keep original answers, support notes and actual observations with dates and task IDs. Give narrow feedback: one strength, one next step, how it will be checked.'),
-                      self.p('Fresh check: ' + d['followup']['delivery']),
+                      self.p('Fresh check: ' + (d['followup'].get('delivery') or d['followup'].get('absent_reason', ''))),
                       self.p('Delayed follow-up: ' + d['delayed_followup']),
                       self.p('Use the school reporting cutoff and actual joining dates. ' + (f'Programme review date: {self.review_date}.' if self.review_date else 'Record the programme review date before teaching.'), 'S')])
         self.pdf('Teacher-private/Teacher_Guide.pdf', f'Lesson {self.n} teacher guide', guide, 'teacher', 'Teacher-only guide')
 
-        keys = [self.key_block(b) for b in d['blocks']]
+        keys = [([self.p('Homework key — do not share before learners finish their homework', 'S')] if is_homework(b) else []) + self.key_block(b) for b in d['blocks']]
         self.pdf('Teacher-private/Teacher_Keys_Scripts_Models.pdf', 'Private keys, scripts and models', keys, 'teacher', 'Teacher-only keys')
 
+        if d.get('support'):
+            sup = d['support']
+            pages_ = [[self.p(sup['title'], 'H'), self.p(sup['intro']), *[self.p(f'•  {x}', 'P') for x in sup.get('steps', [])]]]
+            for b in sup['blocks']:
+                pages_.append([self.p('Name: __________________________   Date: ________________')] + self.student_block(b))
+            for b in sup['blocks']:
+                pages_.append([self.p('Teacher key — keep private', 'S')] + self.key_block(b))
+            self.pdf(f"Teacher-private/{sup['file']}.pdf", sup['title'], pages_, 'teacher', 'Teacher-chosen support')
+
         f = d['followup']
+        if not f.get('blocks'):
+            self.mapping_and_planning(d)
+            return
         fresh = [[self.p('Withheld fresh check', 'H'), self.p(f['status']), self.p('Delivery: ' + f['delivery']), self.p('Review rule: ' + f['review']),
                   self.p('Record conditions', 'H'), self.p('Teacher / date: ______________________   Learner: ______________________'), self.p('Prior exposure check: ______________________   Time / support / interruptions:'), *self.lines(3),
                   self.p('Print the student pages only for the planned check. Keep the final key pages private.', 'S')]]
@@ -683,7 +762,9 @@ class Pack:
         for b in f['blocks']:
             fresh.append(self.key_block(b))
         self.pdf('Teacher-private/Fresh_Check_WITHHELD.pdf', 'Private fresh check', fresh, 'teacher-withheld', 'Teacher-only, withheld')
+        self.mapping_and_planning(d)
 
+    def mapping_and_planning(self, d):
         mapping_rows = [['Item / task', 'Proposed focus (draft)', 'Evidence scope']]
         for b in d['blocks']:
             if b['kind'] == 'items':
@@ -792,7 +873,10 @@ class Pack:
                  f'<section><h2>Start here</h2><ol><li>Keep the extracted folder together. Read the <a href="Teacher-private/Teacher_Guide.pdf">teacher guide</a>.</li>'
                  f'<li>Print the <a href="Students/Student_Workbook.pdf">student workbook</a> and <a href="Students/Homework.pdf">homework</a> for each learner.</li>'
                  f'<li>Project the <a href="Teacher-private/Lesson_{n:02d}_Slides.html">classroom presentation</a>: it follows the workbook, plays the recordings from the slide, and reveals questions and answers on your clicks (F full screen, N teacher notes, P play/pause). PowerPoint versions: <a href="Teacher-private/Lesson_{n:02d}_Presentation.pptx">animated, with recordings</a> and <a href="Teacher-private/Lesson_{n:02d}_Presentation_motion_free.pptx">motion-free</a>. Answers appear only on separate reveal slides.</li>'
-                 f'<li>Keep <a href="Teacher-private/Teacher_Keys_Scripts_Models.pdf">keys, scripts and models</a> and the <a href="Teacher-private/Fresh_Check_WITHHELD.pdf">withheld fresh check</a> private.</li>'
+                 + (f'<li>Keep <a href="Teacher-private/Teacher_Keys_Scripts_Models.pdf">keys, scripts and models</a> and the <a href="Teacher-private/Fresh_Check_WITHHELD.pdf">withheld fresh check</a> private.</li>' if d['followup'].get('blocks') else f'<li>Keep <a href="Teacher-private/Teacher_Keys_Scripts_Models.pdf">keys and scripts</a> private.</li>')
+                 + ''.join(f'<li>{E(h["title"])}: <a href="Students/{E(h["file"])}.pdf">print when needed</a>. {E(h.get("use", ""))}</li>' for h in d.get('handouts', []))
+                 + (f'<li>{E(d["support"]["title"])}: <a href="Teacher-private/{E(d["support"]["file"])}.pdf">print only what you choose</a>. {E(d["support"]["intro"])}</li>' if d.get('support') else '')
+                 + 
                  f'<li>Use the <a href="Teacher-private/Planning_and_Review_Record.pdf">planning and review record</a> for observations and the human review.</li></ol>{audio_html}</section>'
                  f'<section><h2>Needs internet?</h2><p>No. Everything in this pack works offline. Any online practice must be assigned through the existing Brains Heist workflow.</p></section>'
                  f'<section><h2>Learners who join later</h2><p>Keep completed results. Arrange missing screeners separately with their full time, then join the current lesson.</p></section>'
