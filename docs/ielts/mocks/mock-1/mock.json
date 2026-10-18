@@ -1,0 +1,1170 @@
+{
+ "schema": "bh-ielts-mock-source/1",
+ "code": "IELTS-M1",
+ "number": 1,
+ "title": "Mock Test 1",
+ "version": "0.1.0",
+ "status": "Draft for owner review: not approved for classroom use",
+ "test_type": "Academic",
+ "bibles": {
+  "diagnostic": "1.10.0",
+  "lessons": "1.1.0",
+  "visual": "1.1.0"
+ },
+ "rights": "Original Brains Heist LLC practice test, AI-assisted. All people, places, organisations and data are fictional. Not official IELTS material and not endorsed by IELTS.",
+ "timing": {
+  "listening_minutes": 30,
+  "transfer_minutes": 10,
+  "reading_minutes": 60,
+  "writing_minutes": 60,
+  "speaking_minutes": "11-14 per candidate"
+ },
+ "scoring": {
+  "listening": "One mark per correct answer; raw score out of 40.",
+  "reading": "One mark per correct answer; raw score out of 40.",
+  "writing": "Teacher feedback on the four Writing criteria for each task; Task 2 counts for more than Task 1. No band is awarded from this mock.",
+  "speaking": "Teacher feedback on the four Speaking criteria from what is heard live or recorded. No band is awarded from this mock.",
+  "bands": "This mock reports raw scores and criterion feedback only. Brains Heist has no validated conversion from these forms to IELTS bands (Diagnostic Bible 2.2-2.3, 16.6); do not convert or average them."
+ },
+ "listening": {
+  "notice": "This recording is copyright Brains Heist LLC. All rights reserved.",
+  "opening": "You will hear a number of different recordings, and you will have to answer questions on what you hear. There will be time for you to read the instructions and questions, and you will have a chance to check your work. All the recordings will be played once only. The test is in four parts. Now turn to Part 1.",
+  "closing": "That is the end of the listening test. In the paper-based test, you now have ten minutes to transfer your answers to the answer sheet.",
+  "parts": [
+   {
+    "part": 1,
+    "title": "Joining a cycling club",
+    "intro": "Part 1. You will hear a telephone conversation between a man who works for a cycling club and a woman who wants to join.",
+    "voices": {
+     "instruction": "Tom",
+     "GRAHAM": "Benjamin",
+     "LENA": "Paula"
+    },
+    "segments": [
+     {
+      "questions": "1 to 5",
+      "reading_seconds": 30,
+      "lines": [
+       "GRAHAM: Good morning, Northgate Cycling Club, Graham speaking.",
+       "LENA: Oh, hello. I saw your poster in the sports centre, and I'd like to find out about joining the club.",
+       "GRAHAM: Of course. Can I take your name first, so I can send you some information?",
+       "LENA: Yes, it's Lena Durrant.",
+       "GRAHAM: Could you spell your surname for me?",
+       "LENA: Sure. It's D-U-double R-A-N-T.",
+       "GRAHAM: Thanks. And are you working, or studying at the moment? We have different types of membership.",
+       "LENA: I'm a student at the college. I'm doing a nursing course.",
+       "GRAHAM: Then you'd be able to have student membership. Full adult membership is sixty-five pounds a year, but for students it's forty-five.",
+       "LENA: That's reasonable. Does that include insurance?",
+       "GRAHAM: Yes, insurance is included for all members.",
+       "LENA: And is it possible to pay monthly? Money's a bit tight at the moment.",
+       "GRAHAM: I'm afraid not. It's one payment for the whole year, but you can pay online, or by card at one of our meetings.",
+       "LENA: OK, that's fine. And where do the rides start from? Someone told me you meet at the station.",
+       "GRAHAM: We used to, but the station car park is being rebuilt, so all the weekend rides now leave from the library car park, on Mill Road.",
+       "LENA: OK. I've only just started cycling again. Is there anything for beginners?",
+       "GRAHAM: Yes, there's a beginners' group. They used to meet on Tuesday evenings, but a lot of people found that difficult, so now they go out on Thursdays, at half past six.",
+       "LENA: Thursday would suit me better anyway. I have lectures until five on Tuesdays.",
+       "GRAHAM: Then that works well. The beginners' rides last about two hours, so you'd be back before nine."
+      ]
+     },
+     {
+      "questions": "6 to 10",
+      "reading_seconds": 30,
+      "lines": [
+       "LENA: Do I need any special equipment?",
+       "GRAHAM: Not really. A normal bike in good condition is fine, and you don't need special clothes, although a waterproof jacket is a good idea. The only thing we insist on is that everyone wears a helmet. If you haven't got lights, we can lend you some for the evening rides.",
+       "LENA: Is there a minimum age? My younger brother might want to come too. He's fifteen.",
+       "GRAHAM: Riders under sixteen are welcome, but they have to come with a parent or another adult member. So if you're with him, that's no problem.",
+       "LENA: That's good to know. How far do the beginners usually go?",
+       "GRAHAM: The experienced groups do around sixty kilometres, but the beginners' rides are much shorter. They're about twenty kilometres, on quiet roads.",
+       "LENA: That sounds manageable. Do you stop anywhere during the ride?",
+       "GRAHAM: Yes, there's always a break halfway. Some groups stop at a pub, but the beginners usually have tea at a farm just outside the town. It has a little café, and the cakes are very good.",
+       "LENA: Lovely. And what happens if the weather's bad?",
+       "GRAHAM: We go out in most weather, to be honest. But if it's really stormy, the ride leader sends everyone a text message by eight in the morning to say the ride is cancelled.",
+       "LENA: Right. Is there any training for new riders? I'm a bit nervous about riding in traffic.",
+       "GRAHAM: We run a road safety course once a month. It's normally twenty pounds, but members only pay twelve.",
+       "LENA: I'd definitely like to do that. How do I sign up?",
+       "GRAHAM: You can join online, or come along to our monthly meeting. That's on the first Monday of the month, in the room above the bike shop on Station Street.",
+       "LENA: The first Monday. I'll try to come to the next one. Thanks very much for your help.",
+       "GRAHAM: You're welcome. See you there."
+      ]
+     }
+    ],
+    "groups": [
+     {
+      "range": [
+       1,
+       10
+      ],
+      "type": "completion",
+      "instructions": "Complete the notes below. Write ONE WORD AND/OR A NUMBER for each answer.",
+      "word_limit": 2,
+      "form_title": "Northgate Cycling Club: membership enquiry",
+      "items": [
+       {
+        "n": 1,
+        "prompt": "Caller's name: Lena ______",
+        "answer": "Durrant",
+        "accept": [],
+        "evidence": "It's D-U-double R-A-N-T."
+       },
+       {
+        "n": 2,
+        "prompt": "Occupation: student of ______",
+        "answer": "nursing",
+        "accept": [],
+        "evidence": "I'm doing a nursing course."
+       },
+       {
+        "n": 3,
+        "prompt": "Student membership: £______ per year",
+        "answer": "45",
+        "accept": [
+         "forty-five"
+        ],
+        "evidence": "for students it's forty-five"
+       },
+       {
+        "n": 4,
+        "prompt": "Weekend rides leave from the ______ car park",
+        "answer": "library",
+        "accept": [],
+        "evidence": "all the weekend rides now leave from the library car park"
+       },
+       {
+        "n": 5,
+        "prompt": "Beginners' group meets on ______ evenings",
+        "answer": "Thursday",
+        "accept": [
+         "Thursdays"
+        ],
+        "evidence": "now they go out on Thursdays"
+       },
+       {
+        "n": 6,
+        "prompt": "Everyone must wear a ______",
+        "answer": "helmet",
+        "accept": [],
+        "evidence": "everyone wears a helmet"
+       },
+       {
+        "n": 7,
+        "prompt": "Length of beginners' ride: about ______ km",
+        "answer": "20",
+        "accept": [
+         "twenty"
+        ],
+        "evidence": "They're about twenty kilometres"
+       },
+       {
+        "n": 8,
+        "prompt": "Break: tea at a ______",
+        "answer": "farm",
+        "accept": [],
+        "evidence": "the beginners usually have tea at a farm"
+       },
+       {
+        "n": 9,
+        "prompt": "Road safety course: members pay £______",
+        "answer": "12",
+        "accept": [
+         "twelve"
+        ],
+        "evidence": "members only pay twelve"
+       },
+       {
+        "n": 10,
+        "prompt": "Monthly meeting: first ______ of the month",
+        "answer": "Monday",
+        "accept": [],
+        "evidence": "That's on the first Monday of the month"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "part": 2,
+    "title": "Volunteering at a science museum",
+    "intro": "Part 2. You will hear a woman talking to a group of new volunteers at a science museum.",
+    "voices": {
+     "instruction": "Tom",
+     "MARIA": "Miriam"
+    },
+    "segments": [
+     {
+      "questions": "11 to 14",
+      "reading_seconds": 30,
+      "lines": [
+       "MARIA: Good morning, everyone, and welcome to the Harbourside Science Museum. I'm Maria, and I coordinate our volunteer programme. Before we walk around the building, I'd like to tell you a little about the museum and what we'll be asking you to do.",
+       "MARIA: The museum opened in 1987, and last year we welcomed just over three hundred thousand visitors, which is a record for us. About a third of those were school pupils.",
+       "MARIA: Many visitors assume this building was once a railway station, probably because of the clock tower. In fact, it was built as a warehouse for the shipping companies. The fish market, which people also mention, was next door, where the car park is now.",
+       "MARIA: Now, what will you be doing? We do have volunteers in the shop, and a few who guide adult tour groups, but the main reason we need you is the school groups. We have up to six classes a day, and they all take part in hands-on activities, which our volunteers run.",
+       "MARIA: Each shift lasts four hours, either in the morning or the afternoon, and we ask you to do at least two shifts a month. You'll be given a green T-shirt and a name badge, which you collect from the staff room on your first day.",
+       "MARIA: Some of you have asked about training. We used to have an online course, but we found that people preferred to learn on the job, so we stopped it. The two-day training course you may have heard about is for paid staff only. What we ask is that you spend your first three shifts working alongside one of our experienced volunteers.",
+       "MARIA: And a word about benefits. I'm afraid we can't offer free parking, as the car park belongs to the council. But you'll get a twenty per cent discount in the café, which is very popular. Family tickets aren't included, although we do hold a free family evening for volunteers twice a year."
+      ]
+     },
+     {
+      "questions": "15 to 20",
+      "reading_seconds": 30,
+      "lines": [
+       "MARIA: Now let me give you a quick overview of the galleries. On the ground floor, the Ocean Gallery has just reopened after a year of renovation, so it's looking wonderful.",
+       "MARIA: Above it, the Flight Hall is where you'll find our most popular exhibit: the full-size glider hanging from the ceiling. Almost every visitor wants a photograph with it.",
+       "MARIA: In the Energy Room, one of our scientists gives a live demonstration twice a day, at eleven and three. It's usually something with electricity, and it can be quite loud.",
+       "MARIA: The Weather Lab is quite small, so visitors need to reserve a time slot when they buy their ticket.",
+       "MARIA: People sometimes think you need to book for the Space Dome, but you don't. Just remember that it's closed every Monday, when the projector is cleaned and checked.",
+       "MARIA: And finally, outside, there's the Discovery Garden. It's designed for our youngest visitors. Children under five love the sand and water area, and parents can sit in the shade.",
+       "MARIA: One more practical point before we set off. The museum is open from ten until six, but volunteers should arrive by half past nine so that everything is ready before the first school group comes in. Lunch breaks are taken in the staff room, not in the galleries.",
+       "MARIA: Right, let's start the tour."
+      ]
+     }
+    ],
+    "groups": [
+     {
+      "range": [
+       11,
+       14
+      ],
+      "type": "mcq",
+      "instructions": "Choose the correct letter, A, B or C.",
+      "items": [
+       {
+        "n": 11,
+        "prompt": "The museum building was originally",
+        "options": [
+         "A  a railway station.",
+         "B  a fish market.",
+         "C  a warehouse."
+        ],
+        "answer": "C",
+        "evidence": "it was built as a warehouse for the shipping companies"
+       },
+       {
+        "n": 12,
+        "prompt": "Volunteers are mainly needed to",
+        "options": [
+         "A  run activities for school groups.",
+         "B  help in the museum shop.",
+         "C  guide groups of adult visitors."
+        ],
+        "answer": "A",
+        "evidence": "the main reason we need you is the school groups"
+       },
+       {
+        "n": 13,
+        "prompt": "Before working alone, new volunteers must",
+        "options": [
+         "A  complete an online course.",
+         "B  attend two days of training.",
+         "C  work with an experienced volunteer."
+        ],
+        "answer": "C",
+        "evidence": "spend your first three shifts working alongside one of our experienced volunteers"
+       },
+       {
+        "n": 14,
+        "prompt": "Volunteers receive",
+        "options": [
+         "A  free parking.",
+         "B  a discount in the café.",
+         "C  free tickets for their family."
+        ],
+        "answer": "B",
+        "evidence": "you'll get a twenty per cent discount in the café"
+       }
+      ]
+     },
+     {
+      "range": [
+       15,
+       20
+      ],
+      "type": "matching",
+      "instructions": "What does the speaker say about each gallery? Choose SIX answers from the box and write the correct letter, A–H, next to Questions 15–20.",
+      "options_title": "Features",
+      "options": [
+       "A  has recently reopened",
+       "B  is designed for children under five",
+       "C  is closed one day a week",
+       "D  must be booked in advance",
+       "E  has the most popular exhibit",
+       "F  does not allow food or drink",
+       "G  includes a live demonstration",
+       "H  has a new audio guide"
+      ],
+      "items": [
+       {
+        "n": 15,
+        "prompt": "Ocean Gallery",
+        "answer": "A",
+        "evidence": "the Ocean Gallery has just reopened after a year of renovation"
+       },
+       {
+        "n": 16,
+        "prompt": "Flight Hall",
+        "answer": "E",
+        "evidence": "the Flight Hall is where you'll find our most popular exhibit"
+       },
+       {
+        "n": 17,
+        "prompt": "Energy Room",
+        "answer": "G",
+        "evidence": "one of our scientists gives a live demonstration twice a day"
+       },
+       {
+        "n": 18,
+        "prompt": "Weather Lab",
+        "answer": "D",
+        "evidence": "visitors need to reserve a time slot when they buy their ticket"
+       },
+       {
+        "n": 19,
+        "prompt": "Space Dome",
+        "answer": "C",
+        "evidence": "it's closed every Monday"
+       },
+       {
+        "n": 20,
+        "prompt": "Discovery Garden",
+        "answer": "B",
+        "evidence": "Children under five love the sand and water area"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "part": 3,
+    "title": "Planning a research report",
+    "intro": "Part 3. You will hear two students, Kai and Rosa, discussing their research project with their tutor, Dr Ellis.",
+    "voices": {
+     "instruction": "Tom",
+     "DR ELLIS": "Marlene",
+     "KAI": "Frank",
+     "ROSA": "Kylie"
+    },
+    "segments": [
+     {
+      "questions": "21 to 24",
+      "reading_seconds": 30,
+      "lines": [
+       "DR ELLIS: Come in, both of you. So, how's the project on plastic waste in the university canteen going?",
+       "ROSA: Quite well, I think. We've finished the student survey, but we had a few problems with it.",
+       "DR ELLIS: Before we get to that, remind me how you sent it out.",
+       "KAI: We put a link on the student union website and on the canteen notice board, and we left it open for two weeks.",
+       "DR ELLIS: And what kind of problems did you have?",
+       "KAI: Well, the main one was that we only got sixty-three responses, which is much fewer than we'd hoped for.",
+       "ROSA: And some of the questions were confusing. Several people said they didn't understand what we meant by single-use packaging, so their answers weren't very useful.",
+       "DR ELLIS: Was the survey too long? That's a common problem.",
+       "KAI: No, people seemed to finish it quite quickly. And we were worried that only students who care about the environment would answer, but actually we got a good mix.",
+       "DR ELLIS: Good. So what are you going to change for the second round?",
+       "ROSA: We're going to add a short definition at the start, so everyone understands the key terms. We thought about offering a prize to get more responses, but the department doesn't allow that.",
+       "KAI: So instead we'll ask lecturers to give students five minutes at the end of a class to fill it in. We'll also do some short interviews with the canteen staff, because they see what people actually throw away.",
+       "DR ELLIS: Both sensible. Are you keeping it online?",
+       "ROSA: Yes, a paper version would take too long to process.",
+       "DR ELLIS: And when are you planning to run it?",
+       "KAI: Straight after the mid-term break. That gives us three weeks to collect the responses before we start writing up the results.",
+       "DR ELLIS: That's a little tight, but it should be possible if you start analysing the data while the survey is still open."
+      ]
+     },
+     {
+      "questions": "25 to 30",
+      "reading_seconds": 30,
+      "lines": [
+       "DR ELLIS: Now, I've read the draft of your report. Overall, it's a promising start, and the topic is one the canteen managers are genuinely interested in, so it could have a real impact. Let me go through it section by section. Your introduction is fine, but it's far too long. You could say the same thing in half the space.",
+       "KAI: OK, we'll cut it down.",
+       "DR ELLIS: The literature review is interesting, but you haven't said where some of the figures come from. Every statistic needs a source.",
+       "ROSA: Right. We'll add the references.",
+       "DR ELLIS: Your methods section is very clearly organised. I could follow exactly what you did, step by step. Don't change it.",
+       "KAI: That's good to hear.",
+       "DR ELLIS: In the results section, you describe all the numbers in words. It would be much easier for the reader if you put them in a chart.",
+       "ROSA: Yes, we can do that.",
+       "DR ELLIS: The discussion is the weakest part at the moment. You say that students want less plastic, but you don't explain why, or what that means for the canteen. It needs more detail.",
+       "KAI: That's fair. We were running out of time when we wrote it.",
+       "DR ELLIS: And finally, the recommendations. They're good, but they belong at the end of the discussion rather than in a separate section. Move them there and the report will flow better.",
+       "ROSA: Thanks. That's really helpful. When would you like the next draft?",
+       "DR ELLIS: Let's say two weeks from today. And send me the new survey questions before you put them online, so I can check the wording.",
+       "KAI: We'll do that by Friday."
+      ]
+     }
+    ],
+    "groups": [
+     {
+      "range": [
+       21,
+       22
+      ],
+      "type": "multi",
+      "instructions": "Choose TWO letters, A–E.",
+      "stem": "Which TWO problems did the students have with their first survey?",
+      "options": [
+       "A  It was too long.",
+       "B  Too few people answered it.",
+       "C  Only students interested in the environment replied.",
+       "D  Some questions were not clear.",
+       "E  It was difficult to process."
+      ],
+      "answer": [
+       "B",
+       "D"
+      ],
+      "evidence": [
+       "we only got sixty-three responses, which is much fewer than we",
+       "Several people said they didn't understand what we meant by single-use packaging"
+      ]
+     },
+     {
+      "range": [
+       23,
+       24
+      ],
+      "type": "multi",
+      "instructions": "Choose TWO letters, A–E.",
+      "stem": "Which TWO changes will the students make to the second survey?",
+      "options": [
+       "A  offer a prize to people who answer",
+       "B  produce a paper version",
+       "C  explain key terms at the beginning",
+       "D  ask lecturers to give students time in class",
+       "E  send it to canteen staff"
+      ],
+      "answer": [
+       "C",
+       "D"
+      ],
+      "evidence": [
+       "We're going to add a short definition at the start",
+       "we'll ask lecturers to give students five minutes at the end of a class to fill it in"
+      ]
+     },
+     {
+      "range": [
+       25,
+       30
+      ],
+      "type": "matching",
+      "instructions": "What does the tutor say about each section of the report? Choose SIX answers from the box and write the correct letter, A–G, next to Questions 25–30.",
+      "options_title": "Comments",
+      "options": [
+       "A  needs more detail",
+       "B  is too long",
+       "C  is well organised",
+       "D  should be moved",
+       "E  needs references",
+       "F  is not necessary",
+       "G  should include a chart"
+      ],
+      "items": [
+       {
+        "n": 25,
+        "prompt": "Introduction",
+        "answer": "B",
+        "evidence": "it's far too long"
+       },
+       {
+        "n": 26,
+        "prompt": "Literature review",
+        "answer": "E",
+        "evidence": "Every statistic needs a source."
+       },
+       {
+        "n": 27,
+        "prompt": "Methods",
+        "answer": "C",
+        "evidence": "Your methods section is very clearly organised."
+       },
+       {
+        "n": 28,
+        "prompt": "Results",
+        "answer": "G",
+        "evidence": "if you put them in a chart"
+       },
+       {
+        "n": 29,
+        "prompt": "Discussion",
+        "answer": "A",
+        "evidence": "It needs more detail."
+       },
+       {
+        "n": 30,
+        "prompt": "Recommendations",
+        "answer": "D",
+        "evidence": "Move them there and the report will flow better."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "part": 4,
+    "title": "Green roofs and urban heat",
+    "intro": "Part 4. You will hear a lecture about green roofs in cities.",
+    "voices": {
+     "instruction": "Tom",
+     "LECTURER": "Vincent"
+    },
+    "segments": [
+     {
+      "questions": "31 to 40",
+      "reading_seconds": 45,
+      "lines": [
+       "LECTURER: Good afternoon. Today I want to look at one response to a growing problem in cities: the urban heat island effect. In many large cities, temperatures are several degrees higher than in the surrounding countryside, especially at night.",
+       "LECTURER: The main cause is the materials we build with. Concrete and brick absorb heat during the day and release it slowly after dark, and asphalt, which is used for roads, absorbs the most heat of all. Cities also have fewer plants, so there is less cooling from evaporation, as water escapes from leaves.",
+       "LECTURER: This matters for more than comfort. During heatwaves, hospital admissions rise, and the people most at risk are the elderly and those with heart and lung conditions. Higher night-time temperatures are particularly dangerous, because the body has no chance to recover.",
+       "LECTURER: Green roofs are not a new idea. In parts of Scandinavia, houses have been built with grass roofs for centuries, mainly to keep the heat in during the winter. What is new is their use in modern cities to keep buildings cool.",
+       "LECTURER: One solution, then, is the green roof: a roof covered with a layer of growing plants. There are two main types. Intensive green roofs are like rooftop gardens, with deep soil, trees and paths. They are heavy and expensive, and the building usually has to be strengthened. Extensive green roofs are much lighter. They have a thin layer of soil, often just ten centimetres, and they are planted with tough, low-growing species such as sedum, which can survive long periods without rain.",
+       "LECTURER: So what are the benefits? The most obvious is temperature. Research in several cities has found that the surface of a green roof on a summer afternoon can be thirty degrees cooler than a conventional black roof. This also reduces the energy needed for air conditioning in the rooms below. The effect is greatest on the top floor; on lower floors, the difference is much smaller.",
+       "LECTURER: A second benefit concerns water. During heavy storms, drains in cities can become overloaded and cause flooding. A green roof holds a large part of the rainfall and releases it gradually, which takes pressure off the drainage system.",
+       "LECTURER: Green roofs also provide a habitat for wildlife. Studies have recorded many species of insects on them, including bees, which are important for pollination. And there is a less obvious economic benefit: the plants protect the waterproof layer underneath from sunlight, so the roof may last up to twice as long before it needs replacing.",
+       "LECTURER: However, there are limitations. The cost of installation is still a barrier for many building owners, although some city governments now offer grants. Maintenance is often underestimated: even extensive roofs need to be checked regularly for weeds and blocked drains. And in hot, dry climates, the plants may need watering, which reduces the environmental benefit.",
+       "LECTURER: Some cities have gone further and made green roofs compulsory. In one European city, for example, all new buildings with flat roofs must now include planting. Researchers are now studying whether this kind of policy actually lowers temperatures across a whole district, not just on individual buildings. The early results are encouraging, but more data will be needed before we can be certain.",
+       "LECTURER: Next week, we'll look at another approach: cool pavements."
+      ]
+     }
+    ],
+    "groups": [
+     {
+      "range": [
+       31,
+       40
+      ],
+      "type": "completion",
+      "instructions": "Complete the notes below. Write ONE WORD ONLY for each answer.",
+      "word_limit": 1,
+      "form_title": "Green roofs and the urban heat island effect",
+      "items": [
+       {
+        "n": 31,
+        "prompt": "Cities are hotter than the countryside, especially at ______.",
+        "answer": "night",
+        "accept": [],
+        "evidence": "especially at night"
+       },
+       {
+        "n": 32,
+        "prompt": "______, which is used for roads, absorbs the most heat.",
+        "answer": "asphalt",
+        "accept": [],
+        "evidence": "asphalt, which is used for roads, absorbs the most heat of all"
+       },
+       {
+        "n": 33,
+        "prompt": "Fewer plants means less cooling from ______.",
+        "answer": "evaporation",
+        "accept": [],
+        "evidence": "there is less cooling from evaporation"
+       },
+       {
+        "n": 34,
+        "prompt": "Intensive roofs: deep soil; the building often needs to be ______.",
+        "answer": "strengthened",
+        "accept": [],
+        "evidence": "the building usually has to be strengthened"
+       },
+       {
+        "n": 35,
+        "prompt": "Extensive roofs: plants such as sedum survive long periods without ______.",
+        "answer": "rain",
+        "accept": [],
+        "evidence": "which can survive long periods without rain"
+       },
+       {
+        "n": 36,
+        "prompt": "Less ______ is needed for air conditioning in the rooms below.",
+        "answer": "energy",
+        "accept": [],
+        "evidence": "reduces the energy needed for air conditioning"
+       },
+       {
+        "n": 37,
+        "prompt": "Green roofs reduce the risk of ______ during heavy storms.",
+        "answer": "flooding",
+        "accept": [
+         "floods"
+        ],
+        "evidence": "drains in cities can become overloaded and cause flooding"
+       },
+       {
+        "n": 38,
+        "prompt": "Insects such as ______ have been recorded on green roofs.",
+        "answer": "bees",
+        "accept": [],
+        "evidence": "including bees"
+       },
+       {
+        "n": 39,
+        "prompt": "Some city governments offer ______ to help with installation costs.",
+        "answer": "grants",
+        "accept": [],
+        "evidence": "some city governments now offer grants"
+       },
+       {
+        "n": 40,
+        "prompt": "______ is often underestimated.",
+        "answer": "Maintenance",
+        "accept": [],
+        "evidence": "Maintenance is often underestimated"
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "reading": {
+  "passages": [
+   {
+    "n": 1,
+    "title": "Cork: an ancient material with a modern future",
+    "labelled": false,
+    "paragraphs": [
+     "For more than two thousand years, people have taken advantage of an unusual natural material: the bark of the cork oak tree. Found mainly in the western Mediterranean, the cork oak is the only tree whose bark can be removed without killing it. After harvesting, the tree simply grows a new layer, and the process can be repeated many times over its long life. Portugal is by far the largest producer, accounting for around half of the world's supply, followed by Spain, Morocco and Algeria.",
+     "The properties of cork have been understood since ancient times. Fishermen used it to keep their nets afloat, and wine merchants used it to seal containers. What makes it so useful is its structure. Under a microscope, cork is made up of millions of tiny cells, each filled with a gas similar to air. A single cubic centimetre contains around forty million of these cells. This structure makes cork extremely light, so it floats easily, and also elastic: when it is squeezed, it returns to its original shape. The cell walls contain a waxy substance called suberin, which makes cork almost completely waterproof.",
+     "Harvesting cork is still done by hand, and it requires considerable skill. The workers, known in Portugal as tiradores, use a small axe to cut the bark, taking great care not to damage the living layer beneath. The work takes place in early summer, when the bark separates most easily from the trunk, and each strip is numbered so that it can be traced back to the forest it came from. A tree cannot be harvested until it is about twenty-five years old, and the first harvest produces bark of poor quality, which is used for flooring and insulation rather than bottle stoppers. After that, the bark can be removed every nine years. Since a cork oak can live for two hundred years, a single tree may be harvested more than fifteen times.",
+     "For most of the twentieth century, the industry depended heavily on one product. Wine stoppers accounted for the majority of the industry's income, and when screw caps and plastic stoppers became popular in the 1990s, many people predicted that cork forests would disappear. Some producers in Australia and New Zealand switched almost entirely to screw caps. Environmental groups warned that if cork lost its value, landowners would replace the forests with more profitable crops.",
+     "These predictions have not come true. Part of the reason is that the cork industry improved its quality control, reducing a problem known as cork taint, which spoils the taste of wine. But more important has been the development of new uses. Cork is now found in products ranging from shoes and furniture to the heat shields of space vehicles, where its resistance to high temperatures is valuable. Because cork does not conduct heat well, it is also increasingly used as insulation in buildings, and some architects have designed entire houses with cork walls. Even the waste produced when stoppers are punched out of the bark is now ground into granules and pressed into boards, so that almost nothing is thrown away.",
+     "Cork forests themselves have also attracted attention for reasons beyond the material they produce. They support a remarkable range of wildlife, including several endangered species, such as the Iberian lynx. Because the trees are not cut down, cork forests store large amounts of carbon, and studies have suggested that a harvested tree absorbs more carbon than one that is left alone, as it must regrow its bark. This has led some campaigners to argue that buying cork products actively helps to protect the environment.",
+     "The economic importance of the forests is considerable. In the rural areas where they grow, cork harvesting provides seasonal work for thousands of people, and the skilled harvesters are among the best-paid agricultural workers in Europe. Many landowners also use the land beneath the trees for grazing animals or keeping bees, so that the forest supports several kinds of income at once.",
+     "Nevertheless, the industry faces challenges. In some regions, the number of young trees is falling, partly because grazing animals eat the seedlings. Longer, drier summers linked to climate change have also made the trees more vulnerable to disease. Researchers in Portugal are now testing whether irrigation can help young trees grow faster, so that the first harvest could take place earlier than at present."
+    ],
+    "groups": [
+     {
+      "range": [
+       1,
+       7
+      ],
+      "type": "tfng",
+      "instructions": "Do the following statements agree with the information given in Reading Passage 1? Write TRUE if the statement agrees with the information, FALSE if the statement contradicts the information, or NOT GIVEN if there is no information on this.",
+      "items": [
+       {
+        "n": 1,
+        "prompt": "Removing the bark of the cork oak does not kill the tree.",
+        "answer": "TRUE",
+        "evidence": "the only tree whose bark can be removed without killing it"
+       },
+       {
+        "n": 2,
+        "prompt": "Cork was first used by fishermen.",
+        "answer": "NOT GIVEN",
+        "evidence": "Fishermen used it to keep their nets afloat",
+        "note": "The passage says fishermen used cork, but not that they were the first to use it."
+       },
+       {
+        "n": 3,
+        "prompt": "Machines are now used for most of the cork harvest.",
+        "answer": "FALSE",
+        "evidence": "Harvesting cork is still done by hand"
+       },
+       {
+        "n": 4,
+        "prompt": "Bark from the first harvest is not used to make bottle stoppers.",
+        "answer": "TRUE",
+        "evidence": "used for flooring and insulation rather than bottle stoppers"
+       },
+       {
+        "n": 5,
+        "prompt": "Producers in Australia and New Zealand have now returned to using cork.",
+        "answer": "NOT GIVEN",
+        "evidence": "Some producers in Australia and New Zealand switched almost entirely to screw caps",
+        "note": "The passage says they switched to screw caps; it says nothing about a return to cork."
+       },
+       {
+        "n": 6,
+        "prompt": "Cork taint has become a more serious problem in recent years.",
+        "answer": "FALSE",
+        "evidence": "reducing a problem known as cork taint"
+       },
+       {
+        "n": 7,
+        "prompt": "A harvested cork oak may absorb more carbon than an unharvested one.",
+        "answer": "TRUE",
+        "evidence": "a harvested tree absorbs more carbon than one that is left alone"
+       }
+      ]
+     },
+     {
+      "range": [
+       8,
+       13
+      ],
+      "type": "completion",
+      "instructions": "Complete the notes below. Choose ONE WORD ONLY from the passage for each answer.",
+      "word_limit": 1,
+      "form_title": "Cork",
+      "items": [
+       {
+        "n": 8,
+        "prompt": "Each cell is filled with a ______ similar to air.",
+        "answer": "gas",
+        "accept": [],
+        "evidence": "each filled with a gas similar to air"
+       },
+       {
+        "n": 9,
+        "prompt": "Cork returns to its shape after being squeezed because it is ______.",
+        "answer": "elastic",
+        "accept": [],
+        "evidence": "also elastic: when it is squeezed, it returns to its original shape"
+       },
+       {
+        "n": 10,
+        "prompt": "A substance called ______ makes cork waterproof.",
+        "answer": "suberin",
+        "accept": [],
+        "evidence": "a waxy substance called suberin, which makes cork almost completely waterproof"
+       },
+       {
+        "n": 11,
+        "prompt": "Bark can be removed every ______ years after the first harvest.",
+        "answer": "nine",
+        "accept": [
+         "9"
+        ],
+        "evidence": "the bark can be removed every nine years"
+       },
+       {
+        "n": 12,
+        "prompt": "Cork is used in space vehicles because it resists high ______.",
+        "answer": "temperatures",
+        "accept": [],
+        "evidence": "its resistance to high temperatures is valuable"
+       },
+       {
+        "n": 13,
+        "prompt": "Young trees are being lost because grazing animals eat the ______.",
+        "answer": "seedlings",
+        "accept": [],
+        "evidence": "grazing animals eat the seedlings"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": 2,
+    "title": "Why teenagers sleep late",
+    "labelled": true,
+    "paragraphs": [
+     "Parents around the world are familiar with the scene: a teenager who cannot fall asleep before midnight, and who then has to be dragged out of bed for school the next morning. For a long time, this behaviour was blamed on laziness, late-night television or, more recently, mobile phones. However, a growing body of research suggests that the main cause is biological, and that it affects almost every adolescent, regardless of culture or lifestyle.",
+     "The key lies in the body's internal clock, which controls when we feel sleepy and when we feel alert. One of the signals this clock uses is melatonin, a hormone that is released in the evening and helps prepare the body for sleep. In the 1990s, the American researcher Mary Carskadon discovered that during adolescence, melatonin is released significantly later in the evening than it is in children or adults. As a result, a typical sixteen-year-old does not feel sleepy until around eleven o'clock at night, even if they are tired. Carskadon also found that this delay begins at the start of puberty and continues until the early twenties, when the timing gradually returns to the adult pattern. Indeed, some researchers have proposed that the end of this delay could be used as a biological marker of the end of adolescence.",
+     "A second mechanism adds to the problem. Throughout the day, a pressure to sleep builds up in the brain, rather like water filling a tank. Researchers have found that in teenagers this pressure builds up more slowly than in younger children. A ten-year-old who has been awake since seven in the morning will be exhausted by nine at night, but a teenager can stay awake for much longer without feeling the need to sleep. The two processes work together: the internal clock delays the signal to sleep, while the slower build-up of pressure removes the tiredness that might otherwise override it. Neither process is under the teenager's conscious control.",
+     "If teenagers simply went to bed later and got up later, this shift would cause few difficulties. The problem is that school timetables are designed around the sleep patterns of adults. In many countries, secondary schools start earlier than primary schools, often before eight o'clock, partly because of the cost of running school buses. Teenagers, who need around nine hours of sleep a night, therefore regularly sleep for only six or seven. The British sleep scientist Russell Foster has compared this to asking adults to start work at four in the morning. At weekends, many teenagers try to catch up by sleeping until midday, but this only shifts their internal clock even later, making Monday morning harder still.",
+     "The consequences go well beyond tiredness. Studies have linked chronic sleep loss in adolescents with poorer memory, reduced concentration and lower examination results. Lack of sleep also affects mood: tired teenagers are more likely to be irritable and are at greater risk of depression. There is evidence too that sleep-deprived young drivers are more likely to be involved in road accidents, a finding that has particular significance in countries where teenagers can drive to school. Some researchers also believe that poor sleep may affect appetite, making young people more likely to choose sugary foods, although the evidence for this is less clear.",
+     "These findings have persuaded some schools to experiment with later start times. In one well-known study in the United States, led by Kyla Wahlstrom, several high schools moved their start time from 7.15 to 8.40. Attendance improved, fewer students fell asleep in class, and the number of car accidents involving teenage drivers in the area fell. Similar results have been reported in Britain, where a school that started at ten o'clock saw a noticeable improvement in test results, although the researchers admitted that the study was too small to be conclusive.",
+     "Not everyone is convinced. Some teachers argue that later starts simply mean later finishes, which interfere with sports and part-time jobs. Others suggest that teenagers would just stay up even later. The Australian researcher Michael Gradisar has found some support for this concern, showing that the use of electronic devices late at night can delay sleep further. However, he stresses that technology makes an existing biological tendency worse rather than causing it. Most researchers now agree that while screens play a part, they cannot explain why adolescents everywhere, including those without access to technology, show the same pattern."
+    ],
+    "groups": [
+     {
+      "range": [
+       14,
+       19
+      ],
+      "type": "headings",
+      "instructions": "Reading Passage 2 has seven paragraphs, A–G. Choose the correct heading for paragraphs B–G from the list of headings below. Write the correct number, i–ix.",
+      "options_title": "List of Headings",
+      "options": [
+       "i  A mismatch between biology and the school day",
+       "ii  Doubts about changing the timetable",
+       "iii  A hormone that arrives late",
+       "iv  The cost of school transport",
+       "v  Effects on learning, mood and safety",
+       "vi  Why adults need less sleep",
+       "vii  Results of moving the start of school",
+       "viii  A slower build-up of tiredness",
+       "ix  The role of parents"
+      ],
+      "items": [
+       {
+        "n": 14,
+        "prompt": "Paragraph B",
+        "answer": "iii",
+        "evidence": "melatonin is released significantly later in the evening",
+        "paragraph": "B"
+       },
+       {
+        "n": 15,
+        "prompt": "Paragraph C",
+        "answer": "viii",
+        "evidence": "in teenagers this pressure builds up more slowly than in younger children",
+        "paragraph": "C"
+       },
+       {
+        "n": 16,
+        "prompt": "Paragraph D",
+        "answer": "i",
+        "evidence": "school timetables are designed around the sleep patterns of adults",
+        "paragraph": "D"
+       },
+       {
+        "n": 17,
+        "prompt": "Paragraph E",
+        "answer": "v",
+        "evidence": "poorer memory, reduced concentration and lower examination results",
+        "paragraph": "E"
+       },
+       {
+        "n": 18,
+        "prompt": "Paragraph F",
+        "answer": "vii",
+        "evidence": "Attendance improved, fewer students fell asleep in class",
+        "paragraph": "F"
+       },
+       {
+        "n": 19,
+        "prompt": "Paragraph G",
+        "answer": "ii",
+        "evidence": "Not everyone is convinced.",
+        "paragraph": "G"
+       }
+      ]
+     },
+     {
+      "range": [
+       20,
+       23
+      ],
+      "type": "matching",
+      "instructions": "Look at the following statements (Questions 20–23) and the list of researchers below. Match each statement with the correct researcher, A–D. You may use any letter more than once.",
+      "options_title": "List of Researchers",
+      "options": [
+       "A  Mary Carskadon",
+       "B  Russell Foster",
+       "C  Kyla Wahlstrom",
+       "D  Michael Gradisar"
+      ],
+      "items": [
+       {
+        "n": 20,
+        "prompt": "Using technology at night makes a natural tendency stronger.",
+        "answer": "D",
+        "evidence": "technology makes an existing biological tendency worse rather than causing it"
+       },
+       {
+        "n": 21,
+        "prompt": "Teenagers start producing a sleep hormone later in the evening.",
+        "answer": "A",
+        "evidence": "during adolescence, melatonin is released significantly later in the evening"
+       },
+       {
+        "n": 22,
+        "prompt": "A change in school hours was followed by fewer road accidents.",
+        "answer": "C",
+        "evidence": "the number of car accidents involving teenage drivers in the area fell"
+       },
+       {
+        "n": 23,
+        "prompt": "Early school starts are like asking adults to begin work before dawn.",
+        "answer": "B",
+        "evidence": "compared this to asking adults to start work at four in the morning"
+       }
+      ]
+     },
+     {
+      "range": [
+       24,
+       26
+      ],
+      "type": "summary_box",
+      "instructions": "Complete the summary using the list of words, A–F, below. Write the correct letter, A–F.",
+      "summary_title": "Teenagers and sleep",
+      "summary": "Teenagers need about nine hours of sleep, but because many secondary schools start early, they often sleep for only six or seven hours. Starting early is partly a result of the (24) ______ of school buses. A long-term lack of sleep is linked to poorer exam results and to a higher risk of (25) ______. Some critics say later start times would create problems for (26) ______ and part-time work.",
+      "options": [
+       "A  safety",
+       "B  cost",
+       "C  depression",
+       "D  sports",
+       "E  homework",
+       "F  timing"
+      ],
+      "items": [
+       {
+        "n": 24,
+        "prompt": "gap 24",
+        "answer": "B",
+        "evidence": "partly because of the cost of running school buses"
+       },
+       {
+        "n": 25,
+        "prompt": "gap 25",
+        "answer": "C",
+        "evidence": "are at greater risk of depression"
+       },
+       {
+        "n": 26,
+        "prompt": "gap 26",
+        "answer": "D",
+        "evidence": "which interfere with sports and part-time jobs"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "n": 3,
+    "title": "In defence of boredom",
+    "labelled": false,
+    "paragraphs": [
+     "Few experiences are as universally disliked as boredom. We go to great lengths to avoid it, filling every spare moment with music, messages and videos. In one widely reported experiment, a majority of participants who were left alone in a room for fifteen minutes chose to give themselves a mild electric shock rather than sit with their own thoughts. Yet in recent years a number of psychologists have begun to argue that boredom is not simply an unpleasant state to be escaped, but one that may serve a useful purpose. Their claims deserve to be taken seriously, even if, as I shall suggest, they are sometimes overstated.",
+     "To understand why, it helps to be clear about what boredom actually is. It is not the same as having nothing to do. A person waiting for a delayed train may be bored, but so may a student sitting in a lecture that is full of information. Researchers generally define boredom as the experience of wanting to be engaged in a satisfying activity but being unable to find one. In other words, it is a signal that our current situation is not meeting our needs. Like hunger or pain, its unpleasantness is precisely what makes it effective: it pushes us to change what we are doing. Psychologists also distinguish boredom from apathy. An apathetic person does not care whether they are engaged or not, whereas a bored person cares a great deal, which is why boredom feels restless rather than calm.",
+     "From this point of view, the problem with modern life is not that we are too often bored, but that we have become too good at removing the feeling before it can do its job. When we reach for a phone at the first moment of restlessness, we satisfy the immediate need for stimulation without asking whether our time could be better spent. The signal is switched off, but the underlying situation remains unchanged. I would argue that this is one reason why so many people report feeling busy and yet dissatisfied. Our devices are extremely effective at giving us something to do; they are much less effective at giving us something worth doing. It is worth adding that this is not entirely a new problem. Long before smartphones, people complained that newspapers, radio and television were filling every quiet moment, and philosophers as far back as the nineteenth century worried about the effects of constant distraction. What has changed is the speed and ease with which distraction is now available.",
+     "There is also some evidence that boredom can encourage creativity. In a study at a British university, participants who first completed a deliberately dull task, copying numbers from a telephone directory, later produced more original ideas in a creative thinking test than those who had not. The researchers suggested that boredom leads the mind to wander, and that this daydreaming allows unexpected connections to form. The effect was modest, and the study has not been repeated on a large scale, so it would be unwise to draw firm conclusions from it. Nevertheless, it fits with the experience of many writers and scientists who report that their best ideas came during periods of apparent idleness.",
+     "This does not mean that all boredom is beneficial. Chronic boredom, the kind experienced by people in repetitive jobs or with few opportunities, is associated with poor health, risk-taking and depression. It would be absurd to tell someone in such circumstances that their boredom is a gift. The useful kind of boredom is brief and occasional, and it occurs when a person has the freedom to respond to it.",
+     "What, then, should we do? Some educators have suggested that children's lives have become so scheduled that they rarely have the chance to experience boredom and learn to deal with it on their own. Rather than filling every afternoon with organised activities, they propose that parents should leave some time unstructured. I find this argument persuasive, although it is easy to take it too far: a child left alone with nothing to do for hours is not necessarily developing creativity. The aim is not to make children bored, but to stop rescuing them from boredom immediately.",
+     "For adults, the lesson is perhaps simpler. The next time you find yourself waiting with nothing to do, it may be worth resisting the urge to reach for your phone, at least for a few minutes. The feeling that follows will probably be uncomfortable. But it may also be the moment when you notice what you really want to be doing."
+    ],
+    "groups": [
+     {
+      "range": [
+       27,
+       31
+      ],
+      "type": "ynng",
+      "instructions": "Do the following statements agree with the claims of the writer in Reading Passage 3? Write YES if the statement agrees with the claims of the writer, NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this.",
+      "items": [
+       {
+        "n": 27,
+        "prompt": "Being bored is the same as having nothing to do.",
+        "answer": "NO",
+        "evidence": "It is not the same as having nothing to do."
+       },
+       {
+        "n": 28,
+        "prompt": "The unpleasant feeling of boredom is what makes it useful.",
+        "answer": "YES",
+        "evidence": "its unpleasantness is precisely what makes it effective"
+       },
+       {
+        "n": 29,
+        "prompt": "Using phones to avoid boredom may explain why many people feel dissatisfied.",
+        "answer": "YES",
+        "evidence": "I would argue that this is one reason why so many people report feeling busy and yet dissatisfied"
+       },
+       {
+        "n": 30,
+        "prompt": "Writers are more likely to experience boredom than scientists.",
+        "answer": "NOT GIVEN",
+        "evidence": "it fits with the experience of many writers and scientists"
+       },
+       {
+        "n": 31,
+        "prompt": "People in repetitive jobs should be told that boredom is good for them.",
+        "answer": "NO",
+        "evidence": "It would be absurd to tell someone in such circumstances that their boredom is a gift."
+       }
+      ]
+     },
+     {
+      "range": [
+       32,
+       36
+      ],
+      "type": "endings",
+      "instructions": "Complete each sentence with the correct ending, A–G, below.",
+      "options_title": "Endings",
+      "options": [
+       "A  copied information from a list.",
+       "B  is a sign that our needs are not being met.",
+       "C  were given an electric shock without warning.",
+       "D  is linked to health problems.",
+       "E  should have some free time without planned activities.",
+       "F  has been confirmed by several large studies.",
+       "G  preferred mild pain to sitting quietly."
+      ],
+      "items": [
+       {
+        "n": 32,
+        "prompt": "In one experiment, most people left alone in a room",
+        "answer": "G",
+        "evidence": "chose to give themselves a mild electric shock rather than sit with their own thoughts"
+       },
+       {
+        "n": 33,
+        "prompt": "According to researchers, boredom",
+        "answer": "B",
+        "evidence": "it is a signal that our current situation is not meeting our needs"
+       },
+       {
+        "n": 34,
+        "prompt": "Before the creative thinking test, some participants",
+        "answer": "A",
+        "evidence": "copying numbers from a telephone directory"
+       },
+       {
+        "n": 35,
+        "prompt": "Long-term boredom",
+        "answer": "D",
+        "evidence": "is associated with poor health, risk-taking and depression"
+       },
+       {
+        "n": 36,
+        "prompt": "Some educators believe children",
+        "answer": "E",
+        "evidence": "parents should leave some time unstructured"
+       }
+      ]
+     },
+     {
+      "range": [
+       37,
+       40
+      ],
+      "type": "mcq",
+      "instructions": "Choose the correct letter, A, B, C or D.",
+      "items": [
+       {
+        "n": 37,
+        "prompt": "What does the writer say about the British creativity study?",
+        "options": [
+         "A  It proved that boredom causes creativity.",
+         "B  Its results should be treated with caution.",
+         "C  Its method has been widely criticised.",
+         "D  It contradicted the experience of writers."
+        ],
+        "answer": "B",
+        "evidence": "it would be unwise to draw firm conclusions from it"
+       },
+       {
+        "n": 38,
+        "prompt": "According to the writer, the useful kind of boredom is",
+        "options": [
+         "A  frequent and intense.",
+         "B  experienced mainly by children.",
+         "C  short and occasional.",
+         "D  caused by repetitive work."
+        ],
+        "answer": "C",
+        "evidence": "The useful kind of boredom is brief and occasional"
+       },
+       {
+        "n": 39,
+        "prompt": "What is the writer's view of the educators' proposal?",
+        "options": [
+         "A  He agrees with it but warns against going too far.",
+         "B  He thinks it is unrealistic for most parents.",
+         "C  He rejects it as harmful to children.",
+         "D  He believes it needs more research."
+        ],
+        "answer": "A",
+        "evidence": "I find this argument persuasive, although it is easy to take it too far"
+       },
+       {
+        "n": 40,
+        "prompt": "What is the main purpose of the passage?",
+        "options": [
+         "A  to describe a series of experiments on boredom",
+         "B  to argue that boredom can have value",
+         "C  to explain how phones affect the brain",
+         "D  to compare boredom in children and adults"
+        ],
+        "answer": "B",
+        "evidence": "boredom is not simply an unpleasant state to be escaped, but one that may serve a useful purpose"
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "writing": {
+  "task1": {
+   "prompt": "The diagram below shows how rainwater is collected and treated for use in homes. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+   "figure": {
+    "type": "process",
+    "title": "Collecting and treating rainwater for household use",
+    "steps": [
+     "Rain falls on roof",
+     "Gutters carry water to downpipe",
+     "Leaf filter removes leaves and debris",
+     "First-flush tank discards dirty initial water",
+     "Storage tank (underground)",
+     "Pump",
+     "Sand filter",
+     "UV light kills bacteria",
+     "Kitchen and bathroom taps"
+    ],
+    "branch": {
+     "from": 4,
+     "label": "Overflow pipe to garden when tank is full"
+    },
+    "alt": "A nine-stage process: rain falls on a roof; gutters carry it to a downpipe; a leaf filter removes leaves and debris; a first-flush tank discards the dirty first water; the water is stored in an underground tank (with an overflow pipe to the garden when full); a pump sends it through a sand filter and then ultraviolet light, which kills bacteria; finally it reaches kitchen and bathroom taps.",
+    "note": "Illustrative diagram for practice; fictional system."
+   },
+   "model_label": "Illustrative model for teacher discussion after the mock. Not a certified band answer.",
+   "model": "The diagram illustrates the stages by which rainwater is collected from a roof and made safe for use in a home.\n\nOverall, the process involves nine stages, which fall into two main phases: collection and storage, followed by treatment before the water reaches the taps. Water is cleaned three times along the way, and excess water is diverted to the garden.\n\nIn the first phase, rain falling on the roof is carried by gutters to a downpipe. It then passes through a leaf filter, which removes leaves and other debris. Because the first water to arrive is the dirtiest, it is discarded in a first-flush tank, and the remaining water is stored in an underground tank. When this tank is full, an overflow pipe takes the extra water to the garden.\n\nIn the second phase, a pump draws water from the storage tank and sends it through a sand filter. After this, ultraviolet light is used to kill bacteria. The treated water is finally supplied to taps in the kitchen and bathroom.",
+   "checklist": [
+    "Task Achievement: Is there a clear overview of the main stages? Are all key stages covered accurately, in order?",
+    "Coherence and Cohesion: Are sequence markers used naturally (first, then, after this, finally)? Is the description logically paragraphed?",
+    "Lexical Resource: Are process words precise (carried, removed, discarded, diverted, treated)?",
+    "Grammatical Range and Accuracy: Is the passive used accurately? Are complex sentences controlled?"
+   ]
+  },
+  "task2": {
+   "prompt": "Some people believe that every child should learn to play a musical instrument at school. To what extent do you agree or disagree? Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words.",
+   "model_label": "Illustrative model for teacher discussion after the mock. Not a certified band answer.",
+   "model": "Music lessons are a familiar part of many school timetables, but whether every child should be required to learn an instrument is less clear. In my view, all children should be given the opportunity to learn one, although making it compulsory for everyone would not be the best use of limited school time.\n\nThere are strong arguments for giving every child access to instrumental lessons. Learning an instrument develops skills that are useful far beyond music, including concentration, patience and the ability to practise regularly. It can also be a powerful source of confidence, particularly for children who do not shine in academic subjects. Perhaps most importantly, instruments are expensive and private lessons are costly, so without school provision, only children from wealthier families would have the chance to discover a talent for music.\n\nHowever, requiring every child to learn an instrument raises practical and educational problems. Schools already struggle to fit core subjects such as mathematics and languages into the week, and a compulsory instrument would take time away from these or from other creative subjects such as art and drama. Moreover, a child who has no interest in music is unlikely to benefit from being forced to practise, and may simply come to resent it. Learning an instrument well requires motivation, which compulsion rarely creates.\n\nA better approach, therefore, would be for schools to offer every child a free introductory course, perhaps for a year in primary school, and then provide continued lessons for those who wish to carry on. This would remove the financial barrier while respecting children's different interests.\n\nIn conclusion, while I agree that every child should have the chance to learn an instrument at school, I do not believe it should be compulsory for all.",
+   "checklist": [
+    "Task Response: Is a clear position stated and maintained? Are both the benefits and the limits of the idea addressed?",
+    "Coherence and Cohesion: Does each body paragraph have one central idea? Is referencing clear?",
+    "Lexical Resource: Is vocabulary on education and music precise and varied?",
+    "Grammatical Range and Accuracy: Is there a mix of simple and complex sentences, mostly error-free?"
+   ]
+  }
+ },
+ "speaking": {
+  "part1": [
+   {
+    "topic": "Your home town",
+    "questions": [
+     "Where is your home town?",
+     "What do you like most about it?",
+     "Has it changed much since you were a child?",
+     "Would you like to live there in the future? Why/Why not?"
+    ]
+   },
+   {
+    "topic": "Reading",
+    "questions": [
+     "Do you enjoy reading? Why/Why not?",
+     "What kinds of things do you usually read?",
+     "Do you prefer reading on paper or on a screen?"
+    ]
+   },
+   {
+    "topic": "Weather",
+    "questions": [
+     "What kind of weather do you like best?",
+     "Does the weather affect how you feel?",
+     "What do people in your country usually do on hot days?"
+    ]
+   }
+  ],
+  "part2": {
+   "card": "Describe a skill you learned from an older person.",
+   "points": [
+    "what the skill is",
+    "who taught you",
+    "how you learned it",
+    "and explain why this skill is useful to you."
+   ],
+   "rounding_off": [
+    "Do you still use this skill often?",
+    "Would you like to teach it to someone else?"
+   ]
+  },
+  "part3": {
+   "theme": "Learning from older generations",
+   "questions": [
+    "What kinds of skills do older people usually teach younger people in your country?",
+    "Do you think young people today are less interested in learning from older people? Why?",
+    "Some people say technology has made traditional skills unnecessary. Do you agree?",
+    "How can schools help to keep traditional skills alive?",
+    "Do you think older people can also learn from younger people? In what ways?"
+   ]
+  }
+ },
+ "release_blockers": [
+  "Owner review of content, keys and recordings has not taken place (new AI-assisted draft).",
+  "Device, print and classroom audio acceptance not yet recorded (LB-08).",
+  "No validated raw-score-to-band conversion exists for these forms; results stay raw scores and criterion feedback."
+ ]
+}
