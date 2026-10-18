@@ -15,6 +15,7 @@ import {
 import { supabase } from '../../../services/supabaseClient';
 import { friendlyIeltsAdminError } from '../../lib/schoolAdminPresentation';
 import { useSchoolBranding } from '../../hooks/useSchoolBranding';
+import IeltsPracticeAiFeedback from '../../components/ielts/IeltsPracticeAiFeedback';
 import {
   createSchoolDocumentId,
   escapeSchoolDocumentHtml,
@@ -288,6 +289,9 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
                   <div style={{ color: '#64748b', marginBottom: '0.5rem' }}>Word count: {detail.word_count ?? 'unknown'}</div>
                   <div style={{ whiteSpace: 'pre-wrap', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: '0.5rem', padding: '1rem', minHeight: '18rem' }}>{detail.student_answer ?? 'No answer text available.'}</div>
                 </section>
+              ) : null}
+              {skill === 'writing' ? (
+                <IeltsPracticeAiFeedback attemptId={attemptId} mode="teacher" />
               ) : (
                 <section>
                   <h3 style={{ color: '#334155' }}>Speaking evidence</h3>
