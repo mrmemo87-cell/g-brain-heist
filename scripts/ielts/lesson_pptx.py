@@ -232,8 +232,13 @@ def build(pack, body_size, animated, dest):
             else:
                 ps = s['passage']
                 _run(btf.paragraphs[0], ps['title'], 18, INK, bold=True)
-                p = btf.add_paragraph()
-                _run(p, f"Reading passage: paragraphs {'A–' + chr(64 + len(ps['paragraphs'])) if ps['labelled'] else '1–' + str(len(ps['paragraphs']))}. "
+                if sum(len(x) for x in ps['paragraphs']) <= 650:
+                    # A short text (a model paragraph, a source note) fits on the slide, so show it in full.
+                    for x in ps['paragraphs']:
+                        p = btf.add_paragraph(); _run(p, x, 15, INK); p.space_before = Pt(6)
+                    ps = None
+                p = btf.add_paragraph() if ps else None
+                if ps: _run(p, f"Reading passage: paragraphs {'A–' + chr(64 + len(ps['paragraphs'])) if ps['labelled'] else '1–' + str(len(ps['paragraphs']))}. "
                         'Learners read it in the workbook; the HTML presentation shows the full passage on screen.', 15, MUTED)
             left, width = Inches(5.75), Inches(7.05)
         audio = s.get('audio')

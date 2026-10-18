@@ -1,0 +1,586 @@
+{
+ "schema": "bh-ielts-lesson-source/2",
+ "code": "IELTS-01",
+ "number": 1,
+ "week": 1,
+ "version": "1.2.0",
+ "presentation_version": "3.0.0",
+ "title": "Listening corrections and Reading starting point",
+ "status": "Owner approved content (Lesson 1, teacher guide 1.1.0; recordings approved 2026-10-09) in the approved classroom format; teacher release to all eligible schools",
+ "approval_record": {
+  "approved_by": "Owner, Brains Heist LLC",
+  "date": "2026-10-18",
+  "version": "1.2.0",
+  "scope": "The live Lesson 1 (teacher guide 1.1.0, presentation 2.0.0), its released guided materials L-003, L-004 and R-001 and the exact L-003/L-004 recordings, carried over unchanged into the classroom presentation format the owner approved on 2026-10-18, for teacher-only release to all eligible schools.",
+  "basis": "The owner listened to and approved the L-003 and L-004 recordings on 2026-10-09 (docs/ielts/practice/LISTENING_EXTENSION_02_DRAFT.json); Lesson 1 has been the live teacher lesson since teacher guide 1.1.0. On 2026-10-18 15:37 Asia/Bishkek the owner asked in the review conversation for Lessons 1-4 in the same format and for publication to all schools. The conversion additions listed in conversion.additions were not separately reviewed. Not recorded as an in-platform decision."
+ },
+ "conversion": {
+  "source_pack": "IELTS-01 complete teaching pack (teacher guide 1.1.0, presentation 2.0.0), downloaded from the teacher library and attached by the owner on 2026-10-18",
+  "source_version": "Lesson 1.1.0; L-003 and L-004 material 0.1.0 (content 8ad74eb6…, df8a0c8e…); R-001 0.1.0 (content 15d777e9…)",
+  "approved_content": "Questions, accepted answers, explanations, transcripts, recordings, the R-001 Plan B passage and key, teacher steps, Say lines, checks and the workbook sections are copied from the live Lesson 1 and the approved production record.",
+  "additions": [
+   "Objectives and the four differentiation pathway summaries (levels): Lesson 1 had none; they restate the approved route and teacher steps.",
+   "Evidence quotations for each L-003/L-004 answer, taken verbatim from the approved transcripts.",
+   "The recordings now play from the presentation instead of a separate audio player page.",
+   "The 34 question/answer slides become click-by-click question and reveal slides; the Round 1 strategy slide (\"The answer can change\") is now the opening line of the Round 2 step.",
+   "Lesson 1 has no withheld fresh check; its independent evidence is the governed Reading Screener (stated in followup.absent_reason)."
+  ]
+ },
+ "duration": 60,
+ "test_type": "Academic",
+ "bibles": {
+  "diagnostic": "1.10.0",
+  "lessons": "1.1.0",
+  "visual": "1.1.0"
+ },
+ "rights": "Original Brains Heist AI-assisted scripts. No third-party tasks copied. Recordings are owned by Brains Heist LLC.",
+ "audio": {
+  "required": true,
+  "statement": "Two approved guided-practice recordings: L-003 (pottery workshop) and L-004 (research plan), approved by the owner after listening on 2026-10-09. They play from the presentation. The Listening Screener is a separate assessment; never use its recordings for these rounds. Reading uses no lesson audio.",
+  "recordings": [
+   {
+    "id": "L-003",
+    "block": "IELTS-01-L3",
+    "status": "Owner approved after listening on 2026-10-09 (exact file, SHA-256 recorded); rights Brains Heist LLC; device/classroom playback acceptance pending",
+    "voices": {
+     "instruction": "Tom",
+     "Caller": "James",
+     "Receptionist": "Paula"
+    },
+    "conditions": "Gentle phone tonal colour on the receptionist. No added noise, dropouts or masked words. Internal guided-practice adaptation, not an official IELTS recording condition. Guided practice: you may pause or replay; record any help or replay.",
+    "segments": [
+     {
+      "type": "speech",
+      "voice": "instruction",
+      "text": "This recording is copyright Brains Heist LLC. All rights reserved."
+     },
+     {
+      "type": "speech",
+      "voice": "instruction",
+      "text": "You will hear a caller booking a pottery workshop. Complete questions one to six. Write no more than two words and or a number for each answer. Listen for the final confirmed details. You now have thirty seconds to read the questions."
+     },
+     {
+      "type": "silence",
+      "seconds": 30
+     },
+     {
+      "type": "passage"
+     },
+     {
+      "type": "speech",
+      "voice": "instruction",
+      "text": "You now have fifteen seconds to check your answers."
+     },
+     {
+      "type": "silence",
+      "seconds": 15
+     },
+     {
+      "type": "speech",
+      "voice": "instruction",
+      "text": "That is the end of this practice task."
+     }
+    ],
+    "delivered_sha256": "051a7be84978ff4b530dfb1dbf47f2b2945b73e64204366bd4d39d1d7e090d4e",
+    "duration_seconds": 172.598,
+    "production_record": "docs/ielts/practice/LISTENING_EXTENSION_02_DRAFT.json",
+    "source_file": "L3_practice_v1.mp3"
+   },
+   {
+    "id": "L-004",
+    "block": "IELTS-01-L4",
+    "status": "Owner approved after listening on 2026-10-09 (exact file, SHA-256 recorded); rights Brains Heist LLC; device/classroom playback acceptance pending",
+    "voices": {
+     "instruction": "Tom",
+     "Mia": "Katie",
+     "Leo": "James"
+    },
+    "conditions": "A quieter conversational passage in a library setting. Fully voiced speech, consistent intelligibility and matched playback level. No true whisper, background noise or answer masking. Guided practice: you may pause or replay; record any help or replay.",
+    "segments": [
+     {
+      "type": "speech",
+      "voice": "instruction",
+      "text": "This recording is copyright Brains Heist LLC. All rights reserved."
+     },
+     {
+      "type": "speech",
+      "voice": "instruction",
+      "text": "You will hear two students planning a research project. Complete questions one to six. Write no more than two words and or a number for each answer. Listen for what they finally agree. You now have thirty seconds to read the questions."
+     },
+     {
+      "type": "silence",
+      "seconds": 30
+     },
+     {
+      "type": "passage"
+     },
+     {
+      "type": "speech",
+      "voice": "instruction",
+      "text": "You now have fifteen seconds to check your answers."
+     },
+     {
+      "type": "silence",
+      "seconds": 15
+     },
+     {
+      "type": "speech",
+      "voice": "instruction",
+      "text": "That is the end of this practice task."
+     }
+    ],
+    "delivered_sha256": "df4c58e67b9778d30d7a77399a392e9a417670b36e8a557da73c560f6ec394d5",
+    "duration_seconds": 174.337,
+    "production_record": "docs/ielts/practice/LISTENING_EXTENSION_02_DRAFT.json",
+    "source_file": "L4_practice_v1.mp3"
+   }
+  ],
+  "production_requirements": "Produced 2026-10-09 (see docs/ielts/practice/LISTENING_EXTENSION_02_DRAFT.json): spoken copyright notice, task directions, real 30-second reading pause, conversation with 350 ms turn gaps, response line, real 15-second pause, end line; encoded pauses verified. Never overwrite an approved file. If a recording is unavailable, postpone that round; do not replace it with screener audio."
+ },
+ "prerequisites": [
+  "Each student has their own Brains Heist account, permission to open the Reading Screener, a device and a working connection.",
+  "The teacher has checked the Reading Screener's displayed instructions and duration before class, without exposing its questions or keys. Reserve 35–55 minutes for Reading only if its published duration fits."
+ ],
+ "objectives": [
+  {
+   "text": "Spot the speaker's final confirmed detail when an earlier detail is corrected or qualified.",
+   "focus": [
+    "distractor resistance",
+    "explicit detail"
+   ]
+  },
+  {
+   "text": "Keep to the word limit: no more than two words and/or a number.",
+   "focus": [
+    "task compliance"
+   ]
+  },
+  {
+   "text": "Complete the Reading Screener independently in your own account.",
+   "focus": [
+    "reading starting point"
+   ]
+  }
+ ],
+ "levels": {
+  "foundation": "Teacher pauses manually if more preparation is needed and may replay a relevant part after the round; record the support.",
+  "core": "Each round: all six questions read first, one play, own answers committed before comparing.",
+  "extension": "For each answer, give the supporting detail and the competing detail you rejected.",
+  "high_band": "Explain, for every answer, which earlier detail the speaker corrected or qualified, using the reveal evidence."
+ },
+ "workbook_extra": [
+  {
+   "position": "start",
+   "title": "My IELTS starting point",
+   "fields": [
+    "My reason for joining:",
+    "My goal or target, if known:",
+    "One difficulty:"
+   ]
+  },
+  {
+   "position": "end",
+   "title": "Next: online Reading Screener",
+   "text": "This section gives directions only. The reading passages and questions are in Brains Heist, not in this workbook. After both listening rounds, wait for your teacher, then open Reading Screener in your own account. Work independently and follow the instructions on screen. Reading uses no lesson audio. Check the saved submitted/result state after finishing."
+  }
+ ],
+ "blocks": [
+  {
+   "id": "IELTS-01-L3",
+   "kind": "items",
+   "title": "L-003: Book the final arrangement: pottery workshop",
+   "mode": "Guided practice; play once, answers committed before comparing; teacher-controlled pause or replay recorded as support",
+   "instructions": "Complete all six answers. Write no more than TWO WORDS AND/OR A NUMBER for each answer. Listen for the final confirmed details. You may pause or replay for practice.",
+   "stimulus": {
+    "type": "transcript",
+    "title": "Transcript",
+    "paragraphs": [
+     "Receptionist: Good morning, Bellmere Arts Centre. How can I help?",
+     "Caller: Hello. I'd like to book the beginner pottery workshop. The leaflet says Sunday. Is that still right?",
+     "Receptionist: That was the original plan, but the tutor is away on Sunday. We've moved it to Saturday. The website now has the correct day.",
+     "Caller: Saturday suits me. I finish work early that morning. Does it still start at ten?",
+     "Receptionist: A little earlier, actually. We need time to prepare the clay, so the workshop begins at nine forty. Please be ready then; ten o'clock is when the first demonstration ends.",
+     "Caller: I'll make a note. And is the fee eighteen pounds, as advertised? I'm a student.",
+     "Receptionist: Eighteen is the standard fee. With a current student card, you'll pay fourteen pounds. That includes the clay and firing your finished piece.",
+     "Caller: Lovely. I've been to the centre before. Shall I come through the main entrance?",
+     "Receptionist: There's a market outside it that morning. Use the west gate instead. A volunteer there will direct you to the studio.",
+     "Caller: Do I need to bring an apron, or any tools?",
+     "Receptionist: We supply those. Bring a sketchbook so you can draw ideas for your piece. You don't need to buy any special equipment.",
+     "Caller: My classmate might come too. The leaflet mentions twenty places. Are there still spaces?",
+     "Receptionist: There are spaces, yes, but we've reduced the group to sixteen so everyone gets enough help. That is the maximum now. I can reserve two places if your classmate confirms today.",
+     "Caller: I'll check with her and call back. Thanks for explaining everything.",
+     "Receptionist: You're welcome. We look forward to seeing you."
+    ]
+   },
+   "items": [
+    {
+     "id": "IELTS-01-L3-Q1",
+     "prompt": "Workshop day",
+     "answer": "Saturday",
+     "evidence": "We've moved it to Saturday.",
+     "reason": "Sunday was the original plan; the workshop has moved to Saturday.",
+     "focus": "dates and times; distractor resistance",
+     "type": "completion",
+     "word_limit": 3
+    },
+    {
+     "id": "IELTS-01-L3-Q2",
+     "prompt": "Starting time",
+     "answer": "9:40",
+     "evidence": "so the workshop begins at nine forty",
+     "reason": "The start is nine forty. Ten is when the demonstration ends.",
+     "focus": "dates and times; distractor resistance",
+     "type": "completion",
+     "word_limit": 3,
+     "accept": [
+      "09:40",
+      "9.40",
+      "nine forty"
+     ]
+    },
+    {
+     "id": "IELTS-01-L3-Q3",
+     "prompt": "Student fee (£)",
+     "answer": "14",
+     "evidence": "With a current student card, you'll pay fourteen pounds.",
+     "reason": "Eighteen is the standard fee; fourteen applies to a student with a current card.",
+     "focus": "numerical information; distractor resistance",
+     "type": "completion",
+     "word_limit": 3,
+     "accept": [
+      "fourteen"
+     ]
+    },
+    {
+     "id": "IELTS-01-L3-Q4",
+     "prompt": "Entrance to use",
+     "answer": "west gate",
+     "evidence": "Use the west gate instead.",
+     "reason": "The receptionist says to use the west gate instead of the main entrance.",
+     "focus": "explicit detail; distractor resistance",
+     "type": "completion",
+     "word_limit": 3
+    },
+    {
+     "id": "IELTS-01-L3-Q5",
+     "prompt": "Bring a",
+     "answer": "sketchbook",
+     "evidence": "Bring a sketchbook so you can draw ideas for your piece.",
+     "reason": "An apron and tools are supplied. The caller should bring a sketchbook.",
+     "focus": "explicit detail; distractor resistance",
+     "type": "completion",
+     "word_limit": 3
+    },
+    {
+     "id": "IELTS-01-L3-Q6",
+     "prompt": "Maximum group size",
+     "answer": "16",
+     "evidence": "we've reduced the group to sixteen so everyone gets enough help",
+     "reason": "Twenty was printed on the leaflet; the maximum has been reduced to sixteen.",
+     "focus": "numerical information; distractor resistance",
+     "type": "completion",
+     "word_limit": 3,
+     "accept": [
+      "sixteen"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "IELTS-01-L4",
+   "kind": "items",
+   "title": "L-004: Agree the research plan: community food waste",
+   "mode": "Guided practice; play once, answers committed before comparing; teacher-controlled pause or replay recorded as support",
+   "instructions": "Complete all six answers. Write no more than TWO WORDS AND/OR A NUMBER for each answer. Listen for the final confirmed details. You may pause or replay for practice.",
+   "stimulus": {
+    "type": "transcript",
+    "title": "Transcript",
+    "paragraphs": [
+     "Mia: Let's keep our voices down a little. This is the quiet study area. Did you look at the tutor's comments on our project proposal?",
+     "Leo: Yes. Our first idea, public transport, was too broad. I think food waste would be easier to investigate locally.",
+     "Mia: Agreed. Food waste it is. We can find out what happens to unsold food. Were you still thinking of using a questionnaire?",
+     "Leo: I was, but the tutor wants us to explore people's reasons, not just count responses. Let's use interviews instead. We can ask follow-up questions when an answer isn't clear.",
+     "Mia: That makes sense. At first I thought we could talk to customers, but they probably wouldn't know how much gets thrown away.",
+     "Leo: Exactly. Shop owners can explain that, so they should be our participants. We can ask how they plan their orders and deal with anything left over.",
+     "Mia: How many interviews do we need? I wrote fifteen in our first draft.",
+     "Leo: The tutor said we must complete at least twelve. Fifteen would be useful, but twelve is the minimum we need to plan for.",
+     "Mia: Fine. Let's divide the work evenly. Could we meet on Wednesday to check the interview questions before we contact anyone?",
+     "Leo: I have a laboratory session then. Thursday works for me, and it still gives us enough time.",
+     "Mia: Thursday is good. Shall we meet back here in the library?",
+     "Leo: We need to practise asking the questions aloud, so this quiet area won't work. I've booked Room Four in the study centre. Let's meet there.",
+     "Mia: Great. I'll bring the draft questions. Before we leave, let's check that none of them tells people what answer we expect.",
+     "Leo: Good idea. We want to hear their experience, even if it doesn't match what we predicted."
+    ]
+   },
+   "items": [
+    {
+     "id": "IELTS-01-L4-Q1",
+     "prompt": "Agreed project topic",
+     "answer": "food waste",
+     "evidence": "Agreed. Food waste it is.",
+     "reason": "Public transport was rejected as too broad; they agree on food waste.",
+     "focus": "explicit detail; distractor resistance",
+     "type": "completion",
+     "word_limit": 3
+    },
+    {
+     "id": "IELTS-01-L4-Q2",
+     "prompt": "Method of collecting information",
+     "answer": "interviews",
+     "evidence": "Let's use interviews instead.",
+     "reason": "They replace the questionnaire with interviews to explore reasons.",
+     "focus": "explicit detail; distractor resistance",
+     "type": "completion",
+     "word_limit": 3
+    },
+    {
+     "id": "IELTS-01-L4-Q3",
+     "prompt": "Participant group",
+     "answer": "shop owners",
+     "evidence": "Shop owners can explain that, so they should be our participants.",
+     "reason": "Customers were considered, but shop owners know about unsold food.",
+     "focus": "explicit detail; distractor resistance",
+     "type": "completion",
+     "word_limit": 3
+    },
+    {
+     "id": "IELTS-01-L4-Q4",
+     "prompt": "Minimum number of interviews",
+     "answer": "12",
+     "evidence": "The tutor said we must complete at least twelve.",
+     "reason": "Fifteen would be useful; the tutor requires at least twelve.",
+     "focus": "numerical information; distractor resistance",
+     "type": "completion",
+     "word_limit": 3,
+     "accept": [
+      "twelve"
+     ]
+    },
+    {
+     "id": "IELTS-01-L4-Q5",
+     "prompt": "Agreed meeting day",
+     "answer": "Thursday",
+     "evidence": "Thursday works for me, and it still gives us enough time.",
+     "reason": "Wednesday conflicts with Leo's laboratory session; Thursday is agreed.",
+     "focus": "dates and times; distractor resistance",
+     "type": "completion",
+     "word_limit": 3
+    },
+    {
+     "id": "IELTS-01-L4-Q6",
+     "prompt": "Meeting place in the study centre",
+     "answer": "Room 4",
+     "evidence": "I've booked Room Four in the study centre.",
+     "reason": "The library is unsuitable for speaking practice; Leo has booked Room Four.",
+     "focus": "numerical information; distractor resistance",
+     "type": "completion",
+     "word_limit": 3,
+     "accept": [
+      "Room Four",
+      "4",
+      "four"
+     ]
+    }
+   ]
+  }
+ ],
+ "support": {
+  "title": "Plan B: paper Reading practice (R-001)",
+  "file": "Plan_B_Reading",
+  "intro": "Use this when the online Reading Screener cannot start because access, internet, devices or the full time block are unavailable. Continue the lesson with clearly labelled paper practice. The online screener remains a separate session. R-001 is a separate approved practice task, not a printed copy of Reading Screener A. Print the student sheet before class; keep the key private; blank the projector.",
+  "steps": [
+   "Before an attempt starts: check each learner's own account and connection; use the normal availability/retry option once. If it still cannot open, move to Plan B. Never share accounts.",
+   "Internet fails after an attempt starts: keep the existing screener page/attempt. Follow the platform's save/recovery messages and record the interruption. Do not reset, clear browser data, promise the timer has paused, or start a replacement attempt. Resolve the interrupted attempt through the normal recovery workflow before beginning guided Reading or discussing its key.",
+   "Only some learners are affected: give those learners the paper task quietly. Other students continue their independent screener. Do not discuss answer keys while anyone is still being assessed.",
+   "B1 · 35–38 min · Switch to paper: tell students that today's Reading Screener is postponed. Hand out the R-001 sheet, ask for names/date, and read its printed instructions.",
+   "B2 · 38–48 min · Read and answer: students answer all six TRUE/FALSE/NOT GIVEN statements on paper, adding a short quote or the missing information for each answer.",
+   "B3 · 48–55 min · Check the evidence: after students commit answers, compare with the key. Ask where the passage supports or contradicts each statement, or what it never tells us. Record any help.",
+   "B4 · 55–60 min · Exit and catch-up: use the exit ticket. Give students the next full Reading Screener session arrangement.",
+   "What gets recorded: names, date, responses and any support as paper guided practice. No automatic scan/import or online screener completion. Do not enter a band, claim independent improvement, or treat the paper answers as a submitted online attempt."
+  ],
+  "blocks": [
+   {
+    "id": "IELTS-01-R001",
+    "kind": "items",
+    "title": "R-001: A statement is not always a match",
+    "mode": "Plan B guided practice, version 0.1.0. This is not Reading Screener A and does not submit an online result.",
+    "instructions": "Read the passage. Choose TRUE, FALSE or NOT GIVEN for each statement. Explain each answer using a short quote or the information that is missing. Explanations are reviewed by your teacher, separately from the six answer marks.",
+    "stimulus": {
+     "type": "passage",
+     "title": "Passage",
+     "paragraphs": [
+      "A university library piloted a quiet study room for six weeks. Students booked a place online, and each booking lasted up to ninety minutes. During the pilot, the room opened at 8 a.m. on weekdays; weekend opening hours stayed unchanged. Staff moved the printers into the corridor after students complained about noise. In the final week, most survey respondents said the room helped them concentrate. However, only thirty-two students returned the survey, so the library decided to collect more feedback before extending the scheme."
+     ]
+    },
+    "items": [
+     {
+      "id": "IELTS-01-R001-Q1",
+      "prompt": "Students could reserve a place using the internet.",
+      "answer": "TRUE",
+      "evidence": "booked a place online",
+      "reason": "TRUE — \"booked a place online\".",
+      "focus": "True/False/Not Given reasoning",
+      "type": "tfng"
+     },
+     {
+      "id": "IELTS-01-R001-Q2",
+      "prompt": "A booking had to last exactly ninety minutes.",
+      "answer": "FALSE",
+      "evidence": "each booking lasted up to ninety minutes",
+      "reason": "FALSE — \"up to\" permits shorter bookings.",
+      "focus": "True/False/Not Given reasoning",
+      "type": "tfng"
+     },
+     {
+      "id": "IELTS-01-R001-Q3",
+      "prompt": "The pilot introduced longer weekend opening hours.",
+      "answer": "FALSE",
+      "evidence": "weekend opening hours stayed unchanged",
+      "reason": "FALSE — weekend hours \"stayed unchanged\".",
+      "focus": "True/False/Not Given reasoning",
+      "type": "tfng"
+     },
+     {
+      "id": "IELTS-01-R001-Q4",
+      "prompt": "Printers were moved because they disturbed students.",
+      "answer": "TRUE",
+      "evidence": "Staff moved the printers into the corridor after students complained about noise.",
+      "reason": "TRUE — moved after noise complaints.",
+      "focus": "True/False/Not Given reasoning",
+      "type": "tfng"
+     },
+     {
+      "id": "IELTS-01-R001-Q5",
+      "prompt": "Every student who used the room completed the survey.",
+      "answer": "NOT GIVEN",
+      "evidence": "only thirty-two students returned the survey",
+      "reason": "NOT GIVEN — thirty-two responses; total users and their identities are unspecified.",
+      "focus": "True/False/Not Given reasoning",
+      "type": "tfng"
+     },
+     {
+      "id": "IELTS-01-R001-Q6",
+      "prompt": "Students preferred the quiet room to studying at home.",
+      "answer": "NOT GIVEN",
+      "evidence": "No home-study comparison.",
+      "reason": "NOT GIVEN — no home-study comparison.",
+      "focus": "True/False/Not Given reasoning",
+      "type": "tfng"
+     }
+    ],
+    "marking": "Discuss 2/3 as qualifiers and 5/6 as missing information. Do not teach \"not exactly the same words means false\". Content hash: 15d777e9f5d04646988a7c5ef884bd7dfe17cd27624cc44d18b1734e67cfb9ec."
+   }
+  ]
+ },
+ "stages": [
+  {
+   "start": 0,
+   "end": 5,
+   "title": "Can you beat the IELTS trap?",
+   "show": [],
+   "student": "Good English. Wrong answer. How? Write your reason for joining and one difficulty in your workbook.",
+   "teacher": "Ask the opening question and invite two predictions. Ask students to write their reason for joining and one difficulty. Explain today's sequence: guided listening first, then an independent online Reading Screener. Do not suggest an IELTS band from today's guided practice.",
+   "say": "Today we will practise spotting a speaker's final answer. Later, you will complete Reading independently in your own Brains Heist account.",
+   "check": "Everyone has a workbook and understands that the listening rounds are practice."
+  },
+  {
+   "start": 5,
+   "end": 12,
+   "title": "Round 1: L-003 listening",
+   "show": [
+    {
+     "block": "IELTS-01-L3",
+     "part": "questions"
+    }
+   ],
+   "student": "Your first answer can change. What does the speaker finally confirm? Read all six L-003 questions, then write your own answers while listening.",
+   "teacher": "Point to L-003 in the workbook and make sure all six questions are visible. Click Play on L-003 only, from the slide. Use the recording's reading and finishing pauses; pause manually if more preparation is needed. Wait until the recording ends and students finish all six answers. Ask them to commit their own answers before comparing. Record any help or replay.",
+   "say": "Find L-003 in your workbook. Read all six questions. Write your own answers while listening. We will discuss them after the recording finishes.",
+   "check": "L-003 has finished, playback is paused, and students have committed their answers."
+  },
+  {
+   "start": 12,
+   "end": 20,
+   "title": "Round 1: answers and evidence",
+   "show": [
+    {
+     "block": "IELTS-01-L3",
+     "part": "answers"
+    }
+   ],
+   "student": "For each answer, say which detail supports it and which competing detail you rejected. Correct your workbook beside your first answer.",
+   "teacher": "For each question, ask for an answer and supporting detail before revealing it. Use the approved L-003 script to explain the evidence. Replay a relevant part of L-003 if useful, recording the support given. Focus discussion on difficult items. Finish with the strategy: the answer can change.",
+   "say": "Which detail supports your answer? Did the speaker correct or qualify an earlier detail?",
+   "check": "The recording is paused. Students can explain one correction or distractor. Workbook corrections remain practice, not a saved diagnostic score."
+  },
+  {
+   "start": 20,
+   "end": 28,
+   "title": "Round 2: L-004 listening and review",
+   "show": [
+    {
+     "block": "IELTS-01-L4",
+     "part": "questions"
+    },
+    {
+     "block": "IELTS-01-L4",
+     "part": "answers"
+    }
+   ],
+   "student": "The answer can change: keep the first detail provisional and check corrections and conditions against the question. Read all six L-004 questions, listen, commit your answers, then explain the evidence.",
+   "teacher": "Show the L-004 questions and have everyone locate all six. Click Play on L-004 only. Keep the questions on screen until the full recording and finishing interval end. Students commit their own answers before discussion. Review the answers using the private L-004 script; prioritize difficult items. Record any support/replay.",
+   "say": "Now use L-004. Apply the same strategy, then explain the evidence for your answer.",
+   "check": "L-004 is paused. Both guided rounds are complete. Do not interpret a higher practice score as measured improvement or an IELTS band."
+  },
+  {
+   "start": 28,
+   "end": 35,
+   "title": "Your goal, then the switch to online Reading",
+   "show": [],
+   "student": "Why IELTS? What would you like to do with your English? Then sign in to your own Brains Heist account and open the Reading Screener.",
+   "teacher": "Briefly discuss goals and explain the four-skill programme, without promising a score or improvement. Stop both listening recordings and put away the guided-listening workbook section. Explain that the Reading passages and questions are inside Brains Heist; the workbook's Reading section is directions only. Have students sign in to their own accounts and open the Reading Screener (https://www.brainsheist.com/ielts/reading-screener). Check the displayed title, instructions and duration before starting. Leave a ready screener on its entry page until the next step. For a completed screener, choose View saved result; do not require a retake.",
+   "say": "The listening practice is finished. Reading is now online and independent. Open the Reading Screener in your own account; there is no reading passage in this workbook.",
+   "check": "Students are signed in and ready for the actual Reading Screener. If the full duration cannot fit, switch to Plan B (Plan_B_Reading.pdf) before anyone starts and arrange a full screener session later."
+  },
+  {
+   "start": 35,
+   "end": 55,
+   "title": "Reading: your starting point",
+   "show": [],
+   "student": "Brains Heist: Reading Screener. Your own account. Independent work. Follow the screener's published instructions.",
+   "teacher": "Blank projector: no audio player or answer keys on display. Ready students click Start Reading screener; students with an unfinished active attempt click Resume screener; other saved/expired states follow the platform's recovery guidance. Help with access or technical problems only; do not explain passage vocabulary, suggest answers, or run partner discussion. Check that students reach the normal submitted/result state. Students who finish early quietly record one difficulty without sharing screener items. Never cut a required screener duration.",
+   "say": "Work independently. Follow the instructions on your screen. Tell me if you have a technical problem. After submitting, check that Brains Heist confirms your work.",
+   "check": "Each learner has a confirmed submitted/result state or a recorded unfinished/technical follow-up. Do not force submission or restart to meet the timetable."
+  },
+  {
+   "start": 55,
+   "end": 60,
+   "title": "Exit ticket and the next lesson",
+   "show": [],
+   "student": "Write one trap you can now spot and one question you still have.",
+   "teacher": "Collect one listening trap learned and one remaining question. If any learner is still completing an authorized Reading session, collect exit reflections quietly and do not discuss screener items. Explain the between-lessons action. After class, inspect confirmed Reading evidence in Student progress and follow up unfinished access/save issues.",
+   "say": "Write one trap you can now spot and one question you still have. Your next activity will appear in your IELTS Journey when I assign it.",
+   "check": "Exit tickets are collected and any unfinished Reading work has a clear follow-up. Paper listening answers are not automatically saved assessment evidence."
+  }
+ ],
+ "exit_ticket": [
+  "One trap I can now spot:",
+  "One question I still have:"
+ ],
+ "homework": [
+  "Review your saved screener result.",
+  "Follow the teacher-assigned next activity in your IELTS Journey.",
+  "Write down one answer you want to discuss."
+ ],
+ "followup": {
+  "id": "IELTS-01-C1",
+  "absent_reason": "Lesson 1 has no withheld fresh check: its independent evidence is the governed online Reading Screener completed in this lesson. L-003 and L-004 are guided practice with pausing and replay, not independent checks."
+ },
+ "delayed_followup": "After class, inspect confirmed Reading evidence in Student progress and follow up unfinished access/save issues. Plan the next screener or reviewed practice through the normal eligibility and assignment checks. This lesson establishes no IELTS band or measured improvement.",
+ "mapping_notes": "L-003/L-004 items carry their released taxonomy names (primary; supporting) from the approved production record. Guided listening responses are rehearsal, not independent diagnostic evidence; different tasks and replay do not prove band improvement.",
+ "release_blockers": [
+  "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+  "Conversion additions listed in conversion.additions await the owner's spot-check; approved wording, keys and recordings are unchanged.",
+  "The in-app Lesson 1 overview and its existing downloads are unchanged; this pack is the new classroom format in the teacher pack library."
+ ]
+}

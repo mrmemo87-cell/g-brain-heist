@@ -173,9 +173,11 @@ function checkBlock(block, code, errors, where, seenIds) {
       if (pos.every((p, k) => p >= 0 && (k === 0 || p === pos[k - 1] + 1))) errors.push(`${label}: matching answers run in option order; reorder the options`);
     }
   } else if (block.kind === 'writing') {
-    for (const field of ['prompt', 'conditions', 'model', 'model_label', 'checklist']) {
+    // A withheld fresh-check task may deliberately have no model (block.no_model states why); every other writing task has one.
+    for (const field of block.no_model ? ['prompt', 'conditions', 'checklist'] : ['prompt', 'conditions', 'model', 'model_label', 'checklist']) {
       if (!block[field] || (Array.isArray(block[field]) && block[field].length === 0)) errors.push(`${label}: missing ${field}`);
     }
+    if (block.no_model && (block.model || where !== 'fresh check')) errors.push(`${label}: no_model is only for a fresh-check task without a model`);
     if (block.model_label && !/illustrative/i.test(block.model_label)) errors.push(`${label}: model_label must say the model is illustrative, not a certified band answer`);
     if (block.min_words && wordCount(block.model) < block.min_words) errors.push(`${label}: model has ${wordCount(block.model)} words, below the ${block.min_words}-word task minimum`);
     if (block.task === 'task2' && block.min_words !== 250) errors.push(`${label}: Academic Task 2 minimum is 250 words`);
@@ -184,6 +186,9 @@ function checkBlock(block, code, errors, where, seenIds) {
   } else if (block.kind === 'speaking') {
     for (const field of ['prompts', 'instructions', 'observation']) {
       if (!block[field] || (Array.isArray(block[field]) && block[field].length === 0)) errors.push(`${label}: missing ${field}`);
+    }
+    for (const model of block.models ?? []) {
+      if (!model.label || !model.text) errors.push(`${label}: each spoken model needs a label and text`);
     }
     if (block.observation && !/(audio|heard|live)/i.test(block.observation)) errors.push(`${label}: observation must restrict pronunciation judgments to audio or live hearing`);
   } else if (block.kind === 'contrast') {
@@ -246,11 +251,27 @@ export function validateLessonSource(lesson, { bibles = currentBibleVersions() }
   if (!lesson.delayed_followup) errors.push('delayed follow-up plan is required');
   if (!Array.isArray(lesson.release_blockers)) errors.push('release_blockers must be listed explicitly (may be empty only after approval)');
 
+  // Lessons 1-4 were approved as finished packs before this factory existed. A conversion record names the
+  // approved source so wording, keys and recordings can be carried over unchanged and audited.
+  const conversion = lesson.conversion;
+  if (conversion) {
+    if (!/^IELTS-0[1-4]$/.test(code ?? '')) errors.push('conversion records are only for Lessons 1-4, approved before the lesson factory');
+    for (const field of ['source_pack', 'source_version', 'approved_content', 'additions']) {
+      if (!conversion[field] || (Array.isArray(conversion[field]) && conversion[field].length === 0)) errors.push(`conversion.${field} is required`);
+    }
+  }
+
   const seen = new Set();
   const blocks = new Map();
   for (const block of lesson.blocks ?? []) {
     checkBlock(block, code, errors, 'lesson', seen);
     blocks.set(block.id, block);
+  }
+  // Optional support resources (Plan B, targeted support) are teacher-chosen, printed separately and not timed.
+  if (lesson.support) {
+    if (!lesson.support.title || !lesson.support.file || !/^[A-Za-z0-9_]+$/.test(lesson.support.file)) errors.push('support needs a title and a simple file name');
+    if (!lesson.support.blocks?.length) errors.push('support needs at least one block');
+    for (const block of lesson.support.blocks ?? []) checkBlock(block, code, errors, 'support', seen);
   }
 
   // Timed plan: contiguous, complete, and every block taught with questions before answers.
@@ -273,7 +294,10 @@ export function validateLessonSource(lesson, { bibles = currentBibleVersions() }
   for (const block of blocks.values()) {
     const parts = shown.get(block.id) ?? [];
     if (!parts.length) errors.push(`block ${block.id} is never shown in the timed plan`);
-    if (block.kind === 'items') {
+    if (block.kind === 'items' && block.homework) {
+      // Homework is set in class and checked later, so its answers are not revealed in the lesson.
+      if (parts.includes('answers')) errors.push(`homework block ${block.id} must not be revealed in class`);
+    } else if (block.kind === 'items') {
       const q = parts.indexOf('questions');
       const a = parts.indexOf('answers');
       if (q === -1 || a === -1) errors.push(`block ${block.id} needs both a questions and an answers stage`);
@@ -322,7 +346,11 @@ export function validateLessonSource(lesson, { bibles = currentBibleVersions() }
 
   // Withheld fresh check: distinct identities and genuinely different content.
   const followup = lesson.followup;
-  if (!followup?.blocks?.length) errors.push('a separate withheld fresh check is required');
+  const noFreshCheck = conversion && followup?.absent_reason && !followup?.blocks?.length;
+  if (noFreshCheck) {
+    // Only an approved pre-factory lesson may lack one, and it must say what independent evidence it uses instead.
+    if (!/screener|independent/i.test(followup.absent_reason)) errors.push('followup.absent_reason must name the independent evidence used instead');
+  } else if (!followup?.blocks?.length) errors.push('a separate withheld fresh check is required');
   else {
     if (!/withh/i.test(followup.status ?? '')) errors.push('fresh check status must state that it is withheld');
     if (!followup.delivery || !followup.review) errors.push('fresh check needs delivery conditions and a review rule');

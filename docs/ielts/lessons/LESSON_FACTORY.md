@@ -1,6 +1,6 @@
 # IELTS lesson factory (source schema 2)
 
-Version 0.3.0 · 2026-10-18. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
+Version 0.4.0 · 2026-10-18. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
 
 A reusable route from one reviewed `lesson.json` to a complete private teacher-review pack, replacing the one-off Lesson 2 builder for Lessons 05 onward. Lessons 01–04 keep their existing, separately approved builders and assets; nothing here changes them.
 
@@ -70,6 +70,22 @@ The HTML presentation is designed to be the only thing on the classroom screen:
 - PowerPoint: an animated deck (click-triggered fades and transitions; the recording embedded once as audio with "play across slides" for its question slides) and a motion-free deck. PowerPoint playback itself has not been tested in Microsoft PowerPoint.
 
 The pack validator checks: manifest and source hashes; no transcript lines, listening evidence, key explanations, models or teaching comments in student PDFs; fresh-check text only in the withheld file; PPTX/HTML/`slides.json` slide parity; speaker notes on every slide; no automatic advance, animation timing or autoplay; question slides before reveals; start guide links every file.
+
+## Lessons 1-4: converted approved packs (2026-10-18)
+
+Lessons 1-4 were approved as finished packs before this factory existed. Their schema-2 sources carry a `conversion` record (allowed only for IELTS-01..04) naming the approved pack, its version and what was copied, and listing every editorial addition made during conversion; each addition is also flagged in `release_blockers` for the owner's spot-check. Wording, keys, scripts and recordings are carried over unchanged (transcripts come from the approved recordings' production records).
+
+Features added for them, available to every lesson:
+
+- `support`: optional teacher-chosen resources (targeted support activities, Plan B) printed from one teacher PDF with learner pages and keys; not part of the timed plan.
+- `handouts`: extra student PDFs such as a late-joiner catch-up sheet.
+- `workbook_extra`: workbook sections without questions (a starting-point form, directions to an online screener).
+- `homework: true` on an items or writing block: printed on the homework sheet, keyed in the teacher key, shown in class but never revealed.
+- Speaking `models` (several labelled spoken models), plus `routine` (pair instructions and peer checklist) and writing `checklist` slides.
+- A converted lesson may omit the fresh check only when `followup.absent_reason` names the independent evidence used instead (Lesson 1: the governed Reading Screener). A fresh-check writing task may omit its model with `no_model`.
+- Presentation: five or six short gaps share one slide in two columns; reveal slides show every accepted answer variant; the exit ticket follows its own stage when homework comes after it.
+
+Rebuilding a released lesson with this builder produces these layout improvements too, so a rebuilt template is a new file and needs its own release.
 
 ## Known gaps (record, do not hide)
 
