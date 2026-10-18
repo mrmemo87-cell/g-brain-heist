@@ -1,15 +1,15 @@
 # IELTS course roadmap
 
-Version 1.0.6 · 2026-10-18. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
+Version 1.0.7 · 2026-10-18. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
 
 Reference delivery: 12 teaching weeks, 24 lessons, two 60-minute lessons weekly. Owner-confirmed route: Academic only, beginning at B1 with gradually increasing demands. Adapt support and pace to actual evidence. The sequence does not promise a band or certify that all materials exist.
 
 | Week | Code | Lesson | Production state |
 |---|---|---|---|
-| 1 | IELTS-01 | Listening corrections and Reading starting point | Implemented; retain recorded device/playback acceptance gaps |
-| 1 | IELTS-02 | Reading evidence and developed answers | Private teacher-review pack prepared; not installed/released |
-| 2 | IELTS-03 | Listening details, spelling and word limits | All-school teacher pack 1.0.1 with school branding; student tasks unreleased |
-| 2 | IELTS-04 | Clear paragraphs and Speaking Part 1 | All-school teacher pack 1.0.1 with school branding; student tasks unreleased |
+| 1 | IELTS-01 | Listening corrections and Reading starting point | Approved content in the classroom format (v1.2.0, 2026-10-18); teacher release to all IELTS schools with school branding; in-app Lesson 1 unchanged |
+| 1 | IELTS-02 | Reading evidence and developed answers | Approved content in the classroom format (v1.1.0, 2026-10-18); teacher release to all IELTS schools with school branding |
+| 2 | IELTS-03 | Listening details, spelling and word limits | Approved content in the classroom format (v1.1.0, 2026-10-18); teacher release to all IELTS schools with school branding; student tasks unreleased |
+| 2 | IELTS-04 | Clear paragraphs and Speaking Part 1 | Approved content in the classroom format (v1.1.0, 2026-10-18); teacher release to all IELTS schools with school branding; student tasks unreleased |
 | 3 | IELTS-05 | Listening distractors and paraphrases | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
 | 3 | IELTS-06 | Reading specific information | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
 | 4 | IELTS-07 | Task 2 ideas and supporting examples | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
