@@ -1,16 +1,19 @@
 import IeltsBatchCourseMaterials from './IeltsBatchCourseMaterials';
+import IeltsBatchLearningLoop,{type PreparedAssignment} from './IeltsBatchLearningLoop';
 import React, {useEffect,useRef,useState} from 'react';
 import {batchPracticePreview,assignBatchPractice,type BatchPracticePreview} from '../../../services/ieltsBatchService';
 import {programmeEvidenceRoute} from '../../../services/ieltsProgrammeService';
 import {IeltsButton,IeltsNotice} from '../../components/ielts/IeltsUi';
 export default function IeltsBatchPractice({batchId,onClose}:{batchId:string;onClose:()=>void}){
- const [mode,setMode]=useState<'targeted'|'course'>('targeted');
+ const [mode,setMode]=useState<'loop'|'targeted'|'course'>('loop');
+ const pending=useRef<string[]|null>(null);
  const [data,setData]=useState<BatchPracticePreview|null>(null),[task,setTask]=useState(''),[selected,setSelected]=useState<string[]>([]);
  const [reason,setReason]=useState(''),[due,setDue]=useState(''),[reviewed,setReviewed]=useState(false),[repeat,setRepeat]=useState(false);
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[refresh,setRefresh]=useState(0);
  const lock=useRef(false),request=useRef(crypto.randomUUID());
  useEffect(()=>{let alive=true;setLoading(true);setData(null);setSelected([]);setReviewed(false);setRepeat(false);setError('');
-  batchPracticePreview(batchId,task||null).then(d=>{if(alive)setData(d);}).catch(()=>{if(alive)setError('Practice could not load. Refresh to check the latest batch and available materials.');}).finally(()=>{if(alive)setLoading(false);});return()=>{alive=false;};
+  batchPracticePreview(batchId,task||null).then(d=>{if(!alive)return;setData(d);const wanted=pending.current;pending.current=null;
+   if(wanted){const m=d.tasks.find(t=>t.code===task);setSelected(d.students.filter(s=>wanted.includes(s.id)&&s.eligible&&s.source_ready&&!s.active&&!(m?.purpose==='independent_check'&&s.prior_count>0)).map(s=>s.id));}}).catch(()=>{if(alive)setError('Practice could not load. Refresh to check the latest batch and available materials.');}).finally(()=>{if(alive)setLoading(false);});return()=>{alive=false;};
  },[batchId,task,refresh]);
  const material=data?.tasks.find(t=>t.code===task);
  const ready=(s:BatchPracticePreview['students'][number])=>s.eligible&&s.source_ready&&!s.active&&!(material?.purpose==='independent_check'&&s.prior_count>0);
@@ -24,8 +27,8 @@ export default function IeltsBatchPractice({batchId,onClose}:{batchId:string;onC
   finally{lock.current=false;setSaving(false);}
  };
  return <section className="ix-panel" aria-label="Assign batch practice"><header className="ix-header"><div><p className="ix-eyebrow">Released practice · Four skills</p><h2>Assign tasks to {data?.batch.name??'your batch'}</h2></div><IeltsButton disabled={saving} onClick={onClose}>Back to batches</IeltsButton></header>
-<div className="ix-actions"><IeltsButton disabled={saving} aria-pressed={mode==='targeted'} onClick={()=>setMode('targeted')}>Targeted practice</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='course'} onClick={()=>setMode('course')}>Course materials</IeltsButton></div>
- {mode==='course'?<IeltsBatchCourseMaterials batchId={batchId} onBusyChange={setSaving}/>:<>
+<div className="ix-actions"><IeltsButton disabled={saving} aria-pressed={mode==='loop'} onClick={()=>setMode('loop')}>This week</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='targeted'} onClick={()=>setMode('targeted')}>Targeted practice</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='course'} onClick={()=>setMode('course')}>Course materials</IeltsButton></div>
+ {mode==='loop'?<IeltsBatchLearningLoop batchId={batchId} onPrepare={(p:PreparedAssignment)=>{pending.current=p.students;setReason(p.reason);setMessage('');request.current=crypto.randomUUID();setTask(p.task);setRefresh(n=>n+1);setMode('targeted');}}/>:mode==='course'?<IeltsBatchCourseMaterials batchId={batchId} onBusyChange={setSaving}/>:<>
  <IeltsNotice>Practice only. Screeners stay in initial assessments and are excluded from this material list.</IeltsNotice>
  {message&&<p role="status">{message}</p>}{error&&<IeltsNotice error>{error}</IeltsNotice>}{loading&&<p role="status">Checking materials and student readiness…</p>}
  <IeltsButton disabled={saving||loading} onClick={()=>setRefresh(n=>n+1)}>Refresh preview</IeltsButton>
