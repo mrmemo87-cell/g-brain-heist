@@ -15,6 +15,7 @@ import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/au
 import { ExamGuard } from '../../utils/examGuard';
 import { logIeltsViolation } from '../../../services/ieltsViolationService';
 import { buildWritingAttemptPayload } from '../../lib/ieltsPracticeScoring';
+import IeltsPracticeAiFeedback from '../../components/ielts/IeltsPracticeAiFeedback';
 
 interface WritingTask {
   originality_label?: string | null;
@@ -487,6 +488,8 @@ const WritingPractice: React.FC = () => {
               </>
             )}
           </div>
+
+          {lastAttemptId && <IeltsPracticeAiFeedback attemptId={lastAttemptId} mode="student" />}
 
           <AssignmentCompletionStatus
             context={assignmentContext}

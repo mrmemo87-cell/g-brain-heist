@@ -35,3 +35,6 @@ verify_jwt = true
 
 [functions.ielts_learning_teacher_ai]
 verify_jwt = true
+
+[functions.ielts_practice_writing_feedback]
+verify_jwt = true
