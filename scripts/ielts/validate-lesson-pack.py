@@ -94,6 +94,8 @@ def main(out):
                 if '<p:video>' in x or '<a:videoFile' in x:
                     errors.append(f'{pptx.name} {n}: recording embedded as video instead of audio')
             on_slides = len({s_['audio']['id'] for s_ in slides if (s_.get('audio') or {}).get('src')})
+            if motion_free:
+                on_slides = 0  # the motion-free deck links to the Audio folder rather than embedding a second copy
             if len(media) != on_slides:
                 errors.append(f'{pptx.name}: {len(media)} embedded recordings, {on_slides} expected')
             notes = [n for n in z.namelist() if re.fullmatch(r'ppt/notesSlides/notesSlide\d+\.xml', n)]

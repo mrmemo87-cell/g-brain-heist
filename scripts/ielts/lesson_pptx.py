@@ -40,7 +40,7 @@ def poster(path, rec_id, ok):
     bold = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 58)
     reg = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 34)
     d.text((260, 62), f'Recording {rec_id}', font=bold, fill=(255, 255, 255))
-    d.text((260, 150), 'Click to play or pause' if ok else 'Recording not included in this pack', font=reg, fill=(201, 214, 234))
+    d.text((260, 150), 'Click to play or pause' if ok else 'Play the recording file (see below)', font=reg, fill=(201, 214, 234))
     im.save(path)
 
 
@@ -244,8 +244,8 @@ def build(pack, body_size, animated, dest):
             top = top + Inches(0.45)
             audio = None
         if audio:
-            ok = bool(audio.get('src'))
-            pimg = pack.out / 'assets' / f"player-{audio['id']}.png"
+            ok = bool(audio.get('src')) and animated  # the motion-free deck links to the audio file instead of embedding a second copy
+            pimg = pack.out / 'assets' / f"player-{audio['id']}{'' if animated else '-file'}.png"
             poster(pimg, audio['id'], ok)
             if ok:
                 mp3 = pack.out / 'Teacher-private' / audio['src']
@@ -258,6 +258,10 @@ def build(pack, body_size, animated, dest):
             else:
                 sl.shapes.add_picture(str(pimg), left, top, width=width)
                 sid = None
+                if audio.get('src'):
+                    _, ntf = _textbox(sl, left, top + int(width * 260 / 1600), width, Inches(0.35))
+                    _run(ntf.paragraphs[0], f"Play Teacher-private/{audio['src']} or use the animated deck / HTML presentation, which play it on this slide.", 12, MUTED, italic=True)
+                    top = top + Inches(0.35)
             top = top + int(width * 260 / 1600) + Inches(0.15)
         else:
             sid = None
