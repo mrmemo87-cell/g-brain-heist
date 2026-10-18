@@ -10,7 +10,7 @@ export default function IeltsApprovedTeacherPacks({schoolId}:{schoolId:string}) 
  useEffect(()=>{
   const run=++epoch.current; setPacks([]);setError('');setLoading(true);setBusy('');lock.current=false;
   approvedTeacherPacks(schoolId).then(p=>{if(epoch.current===run)setPacks(p);})
-   .catch(()=>{if(epoch.current===run)setError('Lessons 3–4 could not load. Check your programme access and retry.');})
+   .catch(()=>{if(epoch.current===run)setError('Teaching packs could not load. Check your programme access and retry.');})
    .finally(()=>{if(epoch.current===run)setLoading(false);});
   return ()=>{epoch.current++;};
  },[schoolId,retry]);
@@ -23,8 +23,9 @@ export default function IeltsApprovedTeacherPacks({schoolId}:{schoolId:string}) 
    else {
     const files=unzipSync(new Uint8Array(await blob.arrayBuffer()));
     const root=pack.lesson_code+'/';
-    const path=kind==='slides'?'teacher/Presentation.html':kind==='workbook'?'student/Workbook.pdf':`teacher/${pack.lesson_code}-Editable.pptx`;
-    const bytes=files[root+path];if(!bytes)throw new Error('Missing approved resource');
+    const ext=kind==='slides'?'.html':kind==='workbook'?'.pdf':'.pptx';
+    const path=Object.keys(files).find(f=>f.startsWith(root)&&!f.startsWith(root+'assets/')&&f.endsWith(ext));
+    const bytes=path?files[path]:undefined;if(!bytes)throw new Error('Missing approved resource');
     let output:Blob;
     if(kind==='slides') {
      const logo=files[root+'assets/school-logo.png'];if(!logo)throw new Error('Missing school logo');
@@ -37,14 +38,15 @@ export default function IeltsApprovedTeacherPacks({schoolId}:{schoolId:string}) 
   } catch(e) {if(epoch.current===run)setError(e instanceof Error&&e.message==='School logo could not load.'?'Your school logo could not load. Ask your school administrator to check it, then retry.':'The download could not finish or verify. Please retry.');}
   finally {if(epoch.current===run){lock.current=false;setBusy('');}}
  }
- return <section aria-label="Approved Lessons 3 and 4" className="lesson-library-content">
+ return <section aria-label="Approved teaching packs" className="lesson-library-content">
   {loading&&<p role="status">Opening approved teaching packs…</p>}
-  {error&&<div role="alert" className="lesson-alert"><p>{error}</p><button type="button" className="sp-secondary" disabled={!!busy} onClick={()=>setRetry(n=>n+1)}>Retry Lessons 3–4</button></div>}
+  {error&&<div role="alert" className="lesson-alert"><p>{error}</p><button type="button" className="sp-secondary" disabled={!!busy} onClick={()=>setRetry(n=>n+1)}>Retry teaching packs</button></div>}
   {!loading&&!error&&packs.length===0&&<p className="lesson-muted">No additional approved teaching packs are released for this school.</p>}
-  {packs.map(pack=><IeltsTeacherDisclosure key={pack.object_path} title={`${pack.lesson_code} · ${pack.title}`} hint="Approved Academic IELTS pack · B1 foundation · 60 minutes" marker="Available to teach" defaultExpanded={false}>
+  {packs.map(pack=><IeltsTeacherDisclosure key={pack.object_path} title={`${pack.lesson_code} · ${pack.title}`} hint={`Approved Academic IELTS lesson · 60 minutes · version ${pack.version}`} marker="Available to teach" defaultExpanded={false}>
    <p className="lesson-muted">{pack.school.name}{!pack.school.logo_url&&' · School name branding; add a school logo in settings to include it.'}</p>
    <p>Light presentation, school-branded smart print materials, homework, targeted support, teacher guide and private keys. Version {pack.version}.</p>
    {pack.lesson_code==='IELTS-03'&&<p>Includes the three approved recordings and offline audio players.</p>}
+   {pack.lesson_code!=='IELTS-03'&&pack.lesson_code!=='IELTS-04'&&<p>The classroom presentation follows the workbook, reveals questions and answers on your clicks and plays any recordings from the slide. Recordings play from the complete pack; the single presentation file is for previewing.</p>}
    <div className="lesson-primary-actions">
     <button type="button" className="sp-primary" disabled={!!busy} onClick={()=>void download(pack,'zip')}>{busy===pack.lesson_code?'Preparing download…':'Download complete teacher pack'}</button>
     <button type="button" className="sp-secondary" disabled={!!busy} onClick={()=>void download(pack,'slides')}>Download light presentation</button>

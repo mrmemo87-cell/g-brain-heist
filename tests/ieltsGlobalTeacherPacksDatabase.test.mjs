@@ -11,7 +11,7 @@ create function public.can_manage_ielts_practice_school(s uuid) returns boolean 
 insert into public.users values('${t1}',false),('${t2}',false),('${student}',false);
 insert into public.schools values('${a}','School A','https://example.test/a.png'),('${b}','School B',null);
 insert into private.managers values('${t1}','${a}'),('${t2}','${b}');`);
-for(const f of ['20261017143000_ielts_approved_teacher_packs.sql','20261017143001_ielts_global_branded_teacher_packs.sql'])await db.exec(readFileSync('supabase/migrations/'+f,'utf8'));
+for(const f of ['20261017143000_ielts_approved_teacher_packs.sql','20261017143001_ielts_global_branded_teacher_packs.sql','20261018090000_ielts_course_teacher_pack_templates.sql'])await db.exec(readFileSync('supabase/migrations/'+f,'utf8'));
 await db.exec(`insert into private.ielts_teacher_pack_templates values('IELTS-03','Approved lesson','1.0.1','1.0.0','templates/lesson.zip','${'a'.repeat(64)}',100,'Owner approved global availability',now());
 insert into storage.objects values('ielts-teacher-course-packs','templates/lesson.zip'),('ielts-teacher-course-packs','unregistered.zip');
 create policy unrelated_broad_read on storage.objects for select to authenticated using(bucket_id='ielts-teacher-course-packs');`);
@@ -34,5 +34,11 @@ test('students, banned users, revoked entitlement and unreleased assets remain d
  await actor(t2);await db.exec('update private.ielts_teacher_pack_templates set released_at=null');assert.deepEqual((await catalogue(b)).packs,[]);assert.deepEqual(await objects(),[]);
  assert.equal((await db.query("select has_function_privilege('anon','public.rpc_ielts_teacher_pack_catalogue(uuid)','EXECUTE') ok")).rows[0].ok,false);
  assert.equal((await db.query("select has_table_privilege('authenticated','private.ielts_teacher_pack_templates','SELECT') ok")).rows[0].ok,false);
+});
+test('the course catalogue accepts Lessons 1-24 only',async()=>{
+ await db.exec(`insert into private.ielts_teacher_pack_templates values('IELTS-17','Timed Listening','0.2.0','1.0.0','templates/l17.zip','${'b'.repeat(64)}',100,'Owner approved',now())`);
+ await assert.rejects(db.exec(`insert into private.ielts_teacher_pack_templates values('IELTS-25','x','0.2.0','1.0.0','templates/l25.zip','${'c'.repeat(64)}',1,'x',now())`),/check/);
+ await db.exec(`update private.ielts_teacher_pack_templates set released_at=now()`);
+ await actor(t2);assert.ok((await catalogue(b)).packs.some(p=>p.lesson_code==='IELTS-17'));
 });
 test.after(()=>db.close());
