@@ -1,0 +1,140 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-24",
+  "number": 24,
+  "week": 12,
+  "version": "0.2.0",
+  "presentation_version": "0.2.0",
+  "title": "Final course review and next learning plan",
+  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
+  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Review items, speaking card and review forms are original. Human editorial, criterion-alignment and originality review pending.",
+  "audio": { "required": false, "statement": "No pre-recorded audio required. Live speech only.", "recordings": [] },
+  "prerequisites": [
+    "Lessons 1-23, the first and second progress reviews (Lessons 8 and 16), and each learner's personal plan from Lesson 23.",
+    "Each learner's saved evidence: platform results with their recorded conditions, returned essays, fresh checks and dated observation notes.",
+    "A quiet corner for five-minute individual review conversations while the class works."
+  ],
+  "objectives": [
+    { "text": "Recall and apply the key strategy for each skill and question type practised in the course.", "focus": ["distractor resistance", "True/False/Not Given reasoning", "register/task fulfilment", "sustained turn"] },
+    { "text": "Describe your own progress honestly, using only evidence of similar demand and conditions, including what has not yet changed.", "focus": ["learner planning"] },
+    { "text": "Write a next learning plan with two priorities, actions, and dated checks for the weeks after the course.", "focus": ["learner planning"] }
+  ],
+  "levels": {
+    "foundation": "Complete the review with the teacher's guiding questions; the self-review may be completed in conversation and written down by the learner afterwards.",
+    "core": "Complete the self-review and next learning plan independently, with evidence for every statement.",
+    "extension": "For each skill, name one piece of counterevidence: a task where the improvement did not appear.",
+    "high_band": "Set a plan that includes a full timed practice test under recorded conditions, and explain how you will use the result without treating it as an official score."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-24-K1",
+      "kind": "contrast",
+      "title": "Which end-of-course statement is honest?",
+      "mode": "Opening challenge; learners decide before the reveal",
+      "instructions": "Three learners describe their progress at the end of the course. Which statement is honest and useful?",
+      "examples": [
+        { "label": "Learner 1", "text": "I am now ready for a 7.", "comment": "Not supported. Classroom work and practice checks do not produce an IELTS band; only the official test does." },
+        { "label": "Learner 2", "text": "My Reading has improved a lot.", "comment": "Possibly true, but it gives no evidence and no conditions, so no one can check it or plan from it." },
+        { "label": "Learner 3", "text": "On new passages under timed conditions in Lessons 21 and 23, I made fewer Not Given errors than in Lesson 13. My essays still go under 250 words when the question has two parts.", "comment": "Honest and useful: specific evidence of similar demand, and it names what has not yet changed." }
+      ]
+    },
+    {
+      "id": "IELTS-24-I1",
+      "kind": "items",
+      "title": "What would you do?",
+      "mode": "Mixed course review; answer alone, then check",
+      "instructions": "Choose the best strategy for each situation.",
+      "stimulus": { "type": "none" },
+      "items": [
+        { "id": "IELTS-24-I1-Q1", "prompt": "Listening form completion. You hear: 'The fee is fourteen... sorry, forty pounds.' What do you write?", "options": ["A  14", "B  40", "C  14 or 40"], "answer": "B", "evidence": "The speaker corrects the first number; the corrected information is the answer.", "reason": "A is the distractor; C is never accepted because only one answer can be marked.", "focus": "distractor resistance", "type": "mcq", "level": "core" },
+        { "id": "IELTS-24-I1-Q2", "prompt": "Reading. The statement says 'all visitors'; the passage says 'most visitors'. What is the answer?", "options": ["A  TRUE", "B  FALSE", "C  NOT GIVEN"], "answer": "B", "evidence": "'Most' contradicts 'all', so the statement disagrees with the passage.", "reason": "Not C: the passage does give information on this point, and it disagrees.", "focus": "True/False/Not Given reasoning", "type": "mcq", "level": "core" },
+        { "id": "IELTS-24-I1-Q3", "prompt": "Reading, matching headings. One heading repeats a word that appears in the paragraph. What should you do?", "options": ["A  Choose it: a repeated word proves the match.", "B  Reject it: repeated words are always distractors.", "C  Ignore the word and check whether the heading states the main idea of the whole paragraph."], "answer": "C", "evidence": "Headings match the main idea of the paragraph, not individual words.", "reason": "A and B both rely on word matching, which can point either way.", "focus": "heading/paragraph purpose", "type": "mcq", "level": "core" },
+        { "id": "IELTS-24-I1-Q4", "prompt": "Writing Task 1. What belongs in the overview?", "options": ["A  The main trends or differences, without detailed numbers", "B  Every number from the chart, in order", "C  Your opinion about why the changes happened"], "answer": "A", "evidence": "An overview summarises the main features; details go in the body paragraphs.", "reason": "B is detail, not an overview; C adds opinion, which Task 1 does not ask for.", "focus": "register/task fulfilment", "type": "mcq", "level": "core" },
+        { "id": "IELTS-24-I1-Q5", "prompt": "Writing Task 2 has two questions. Which plan best protects your answer?", "options": ["A  Write mostly about the easier question and mention the other in the conclusion", "B  Answer both questions in the introduction, then give examples", "C  One body paragraph for each question, planned before you start writing"], "answer": "C", "evidence": "Each question needs a full, developed answer; planning both first stops you running out of time on one.", "reason": "A leaves part of the task under-answered; B gives no space to develop either answer.", "focus": "register/task fulfilment", "type": "mcq", "level": "core" },
+        { "id": "IELTS-24-I1-Q6", "prompt": "Speaking Part 2. You have spoken for one minute and have nothing more to say. What is the best move?", "options": ["A  Return to the last point on the card and explain your feelings with a specific example.", "B  Stop and wait for the examiner.", "C  Repeat your first point in different words."], "answer": "A", "evidence": "The 'explain' point invites development: feelings, reasons and an example extend the turn naturally.", "reason": "B ends the turn early; C adds length without new content.", "focus": "sustained turn", "type": "mcq", "level": "core" }
+      ]
+    },
+    {
+      "id": "IELTS-24-S1",
+      "kind": "speaking",
+      "title": "Long turn: something you learned",
+      "mode": "Pairs, timed; teacher observes a rotating sample",
+      "prompts": [
+        "Describe a strategy or habit from this course that you will keep using. You should say: what it is; when you first learned it; how you have used it since; and explain why it will be useful to you in the future. You have one minute to prepare.",
+        "Rounding-off question: Is there anything you would study differently if you started the course again?"
+      ],
+      "instructions": "Pairs. The listener times one minute of preparation and up to two minutes of speech, then asks the rounding-off question. Swap roles. Listeners note one specific idea from their partner's talk to use in their own plan.",
+      "support": "Foundation: the Part 2 four-box frame, recorded as support.",
+      "extension": "Compare how you used the strategy at the start of the course and now.",
+      "observation": "Teacher listens live to a rotating sample. Record, for learners heard, duration, development and accuracy with exact examples. Learners not heard are recorded as not yet observed. No band or pronunciation rating from notes."
+    }
+  ],
+  "stages": [
+    { "start": 0, "end": 4, "title": "Opening challenge: which statement is honest?", "show": [{ "block": "IELTS-24-K1", "part": "questions" }, { "block": "IELTS-24-K1", "part": "answers" }], "student": "Decide which statement is honest and useful, then compare with the reveal.", "teacher": "Reveal. Repeat clearly: this course does not award a band. The official test is the only source of an IELTS score.", "say": "Honest progress statements name evidence and what has not yet changed.", "check": "Learners can explain why Learner 1's statement is not supported." },
+    { "start": 4, "end": 12, "title": "What would you do?", "show": [{ "block": "IELTS-24-I1", "part": "questions" }, { "block": "IELTS-24-I1", "part": "answers" }], "student": "Choose the best strategy for six situations, then check.", "teacher": "Reveal one at a time. Ask which lesson each strategy came from.", "say": "Strategies are only useful if you use them under time pressure.", "check": "Learners can name the strategy for at least four situations." },
+    { "start": 12, "end": 24, "title": "Long turn: something you learned", "show": [{ "block": "IELTS-24-S1", "part": "prompt" }], "student": "In pairs, give a two-minute talk, then swap.", "teacher": "Observe a rotating sample. Note learners still not observed this term.", "say": "One minute to prepare. Use a specific example.", "check": "Every learner has spoken." },
+    { "start": 24, "end": 42, "title": "Final self-review", "show": [], "student": "Complete the final self-review in the workbook using your own evidence. When called, bring it to a five-minute review conversation with the teacher.", "teacher": "Hold five-minute conversations. Add what the saved evidence shows. Where the learner's view and the evidence differ, write both. Record 'not yet observed' or 'pending review' instead of guessing.", "say": "Write what you actually did, under what conditions.", "check": "Every learner has a completed self-review; conversations not reached are scheduled." },
+    { "start": 42, "end": 54, "title": "Next learning plan", "show": [], "student": "Write your plan for the weeks after the course: two priorities, the evidence for each, the action and how often, and a dated check.", "teacher": "Approve each plan or ask one question to make it more specific. Encourage a full timed practice test under recorded conditions as one check, labelled as practice.", "say": "Two priorities, each with evidence, an action and a check.", "check": "Every learner has a plan with dated checks." },
+    { "start": 54, "end": 60, "title": "Exit ticket and close", "show": [], "student": "Complete the exit ticket.", "teacher": "Thank the group. Record the date of the follow-up check and how learners can contact you about their plan.", "say": "Keep your evidence. It is the most reliable guide to what to practise next.", "check": "Everyone has a plan and knows the follow-up date." }
+  ],
+  "personal_plan": "My next learning plan",
+  "progress_review": {
+    "title": "Final course review (Lessons 1-24)",
+    "rows": ["Listening", "Reading", "Writing", "Speaking"],
+    "columns": [
+      "Saved evidence (task, date, conditions)",
+      "Supported observation",
+      "Missing or pending evidence",
+      "Agreed next action and check date"
+    ],
+    "rules": [
+      "Use only saved platform evidence, teacher-confirmed reviews, dated classroom observations and fresh checks with their recorded conditions.",
+      "Keep guided, corrected or repeated work labelled as practice. A fresh check is not automatically comparable with earlier work.",
+      "Write 'not yet observed' or 'pending review' instead of a guess. Never write a band or percentage, and never describe the learner as test-ready.",
+      "Compare with the first and second progress reviews only where the evidence is of similar demand and conditions; otherwise record 'change not yet established'.",
+      "Agree at most two priorities for the weeks after the course, each linked to evidence, with one next activity and one check date."
+    ]
+  },
+  "exit_ticket": [
+    "The most useful thing I learned in this course:",
+    "One honest statement about my progress, with evidence:",
+    "My first action after the course, and when I will do it:"
+  ],
+  "homework": [
+    "Start your next learning plan this week. Record each practice session with the date and conditions.",
+    "Keep your workbooks, returned essays and check results together. Bring them to the follow-up check.",
+    "Complete only the Brains Heist practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-24-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "About four weeks after the course, individually, about 6 minutes per learner, in a separately scheduled slot. No preparation beyond the questions. Use an approved Brains Heist speaking recording route if released for this purpose; otherwise record live observations only. Log conditions and what the learner has practised since the course.",
+    "blocks": [
+      {
+        "id": "IELTS-24-C1",
+        "kind": "speaking",
+        "title": "Follow-up check: learning languages",
+        "mode": "Withheld fresh check; individual, live",
+        "prompts": [
+          "Part 1. How did you first start learning English? Which do you find easier, speaking or writing in English?",
+          "Part 3. Why do some adults find it harder than children to pick up a new language?",
+          "Part 3. Will translation apps make language learning less necessary? Why or why not?",
+          "Part 3. What responsibility, if any, do governments have to provide free language classes?"
+        ],
+        "instructions": "Ask all questions in order, with at least one follow-up for each Part 3 question ('Why?', 'Can you give an example?', 'Would everyone agree?'). Do not model answers or prompt moves.",
+        "observation": "Record the moves actually heard (view, reason, example, comparison, consequence, qualification), relevance, long hesitation and accuracy with exact examples, and intelligibility only as heard live or on approved audio. Compare only with course observations of similar demand. No band or pronunciation rating from notes."
+      }
+    ],
+    "review": "Compare only observed demands and conditions with course observations. Record what the follow-up shows, whether the learner followed their plan, counterevidence and the next check. New questions do not by themselves establish comparable difficulty or improvement. No band, percentage or mastery label."
+  },
+  "delayed_followup": "At the four-week follow-up, the learner reports the practice actually done on their plan, with dates and conditions. The teacher records whether each planned check took place and agrees the next two priorities from the evidence.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.4 teachable micro-skills. Draft teaching focuses only. The final review records evidence and its conditions; it does not award a band, readiness label or certificate of level. Continuation beyond Lesson 24 is planned separately from this pack.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
+  ]
+}

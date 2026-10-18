@@ -1,0 +1,137 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-12",
+  "number": 12,
+  "week": 6,
+  "version": "0.2.0",
+  "presentation_version": "0.2.0",
+  "title": "Speaking Part 2: planning and sustaining a long turn",
+  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
+  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Cue cards, sample talks and materials are original. Human editorial, model, criterion-alignment and originality review pending.",
+  "audio": { "required": false, "statement": "No pre-recorded audio required. Live speech only. Optional learner self-recording on a personal phone is practice, not uploaded evidence.", "recordings": [] },
+  "prerequisites": [
+    "Lessons 4 and 8: developing answers with reasons, examples, contrasts and consequences.",
+    "A timer visible to pairs (phone or classroom clock).",
+    "Teacher has read the public Speaking band descriptors. This lesson uses criterion names for feedback only; it does not assign bands."
+  ],
+  "objectives": [
+    { "text": "Use the one-minute preparation to make short keyword notes organised by the cue-card prompts.", "focus": ["discourse organization"] },
+    { "text": "Speak for up to two minutes, covering every prompt and developing the final 'explain' point most fully.", "focus": ["sustained turn", "topic development"] },
+    { "text": "Keep going naturally when ideas run out, by adding a detail, a feeling or a reflection rather than repeating.", "focus": ["hesitation/repetition pattern", "paraphrase"] }
+  ],
+  "levels": {
+    "foundation": "Use the four-box note frame (where/when, what, people/details, why) and aim for one minute of speech; record the frame as support.",
+    "core": "Speak for 1 minute 30 seconds to 2 minutes from your own keyword notes, covering every prompt.",
+    "extension": "Include one past-to-present contrast and one sentence about the future in the talk.",
+    "high_band": "Speak for the full two minutes with no long pauses, use at least two narrative tenses accurately, and answer the rounding-off question with a qualified view."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-12-K1",
+      "kind": "contrast",
+      "title": "Three ways to begin",
+      "mode": "Opening challenge; teacher reads each opening aloud",
+      "instructions": "Cue card: Describe a place you visited that you would like to go back to. Which opening is most effective, and why?",
+      "examples": [
+        { "label": "Opening 1", "text": "Where it is. It is in the mountains. When I went there. I went there last year. What I did there. I walked.", "comment": "Reads the prompts like a list. Very short answers, no linking, and no development. The talk will run out of content quickly." },
+        { "label": "Opening 2", "text": "Travelling is one of the most enriching experiences in life, as it broadens our horizons and allows us to discover new cultures in this globalised world.", "comment": "Memorised general opening. It does not answer the card and sounds rehearsed; it wastes time without saying anything about a real place." },
+        { "label": "Opening 3", "text": "I'd like to talk about a small lake in the mountains about three hours from my city. I went there with my cousins two summers ago, and honestly, I'd go back tomorrow if I could.", "comment": "Effective. It names the place immediately, answers two prompts naturally, and signals the reason to come, which gives the talk direction." }
+      ]
+    },
+    {
+      "id": "IELTS-12-I1",
+      "kind": "items",
+      "title": "Smart preparation, smart recovery",
+      "mode": "Guided practice before speaking",
+      "instructions": "Choose the best option, A, B or C.",
+      "stimulus": { "type": "none" },
+      "items": [
+        { "id": "IELTS-12-I1-Q1", "prompt": "You have one minute to prepare. Which notes are most useful?", "options": ["A  Full sentences for the first two prompts, then nothing for the rest", "B  Three or four keywords next to each prompt, plus one idea for 'explain why'", "C  No notes, so that the talk sounds natural"], "answer": "B", "evidence": "Keywords for every prompt leave time to plan the most important part.", "reason": "A runs out of time and leads to reading aloud; C wastes the preparation minute and often causes long pauses.", "focus": "discourse organization", "type": "mcq", "level": "core" },
+        { "id": "IELTS-12-I1-Q2", "prompt": "After one minute you have covered every prompt. What should you do?", "options": ["A  Stop and wait for the examiner.", "B  Repeat your main points in different words.", "C  Add a specific memory, a feeling or a comparison that develops your reason."], "answer": "C", "evidence": "Developing the 'explain why' prompt adds new content.", "reason": "The examiner will stop you at two minutes; stopping early gives less evidence. Repetition adds length but not development.", "focus": "sustained turn", "type": "mcq", "level": "core" },
+        { "id": "IELTS-12-I1-Q3", "prompt": "You forget a word in the middle of a sentence. What is the best strategy?", "options": ["A  Stop and say 'Sorry, I don't know the word.'", "B  Describe it with other words and continue.", "C  Switch to your first language for that word."], "answer": "B", "evidence": "Paraphrasing keeps the turn going and shows lexical flexibility.", "reason": "A and C break fluency; paraphrase is a recognised strategy that keeps communication going.", "focus": "paraphrase", "type": "mcq", "level": "core" }
+      ],
+      "support": "Foundation: the teacher models each option aloud before learners choose."
+    },
+    {
+      "id": "IELTS-12-S1",
+      "kind": "speaking",
+      "title": "Long turn 1: a place to go back to",
+      "mode": "Guided paired practice; teacher observes a rotating sample live",
+      "prompts": [
+        "Describe a place you visited that you would like to go back to. You should say: where it is; when you went there; what you did there; and explain why you would like to go back there.",
+        "Rounding-off question: Do you think you will go back there one day?"
+      ],
+      "instructions": "Partner A has one minute to make notes, then speaks for up to two minutes. Partner B times the talk, ticks each prompt covered, notes one detail they remember, then asks the rounding-off question. Swap roles with card 2. Classroom timing modelled on the published Part 2 format.",
+      "model": "I'd like to talk about a small lake in the mountains about three hours from my city. I went there with my cousins two summers ago, at the end of August, when the weather was still warm but the crowds had gone. We stayed in a simple guesthouse near the water, and most days we walked one of the trails around the lake in the morning and then swam in the afternoon, although the water was much colder than I expected. One evening the owner of the guesthouse showed us how to cook fish over an open fire, which was something I'd never done before. The reason I'd like to go back is partly the landscape, which is completely different from the city where I live, but mainly the feeling of having time. At home I'm always checking my phone or thinking about the next task, and there, because there was hardly any signal, I actually noticed things: the colour of the water changing during the day, or the silence at night. I suppose I'd also like to see whether it has changed, because I've heard that more people have started going there. If I do go back, I'd like to go in autumn, when the trees are changing colour.",
+      "support": "Four-box note frame: Where/when | What I did | People and details | Why I want to go back.",
+      "extension": "Include one contrast between that place and where you live now.",
+      "high_band": "Use past simple, past continuous and a conditional sentence accurately, and finish with a reflection, not a repeat.",
+      "observation": "Teacher listens live to a rotating sample. Record only learners actually heard: duration reached, prompts covered, long pauses or repetition, and any intelligibility issue heard live. No pronunciation judgment from notes alone. Peer ticks are practice support."
+    },
+    {
+      "id": "IELTS-12-S2",
+      "kind": "speaking",
+      "title": "Long turn 2: helping someone",
+      "mode": "Guided paired practice; roles swapped",
+      "prompts": [
+        "Describe a time when you helped someone. You should say: who you helped; what the situation was; what you did; and explain how you felt about helping this person.",
+        "Rounding-off question: Do you often help people in this way?"
+      ],
+      "instructions": "Swap roles from card 1. One minute of notes, up to two minutes of speech, then the rounding-off question.",
+      "support": "Four-box note frame: Who and when | The situation | What I did | How I felt and why.",
+      "extension": "Describe what might have happened if you had not helped.",
+      "high_band": "Explain a mixed feeling (for example, proud but also nervous) and why.",
+      "observation": "As for card 1: record only what was heard live. Learners not heard are recorded as not yet observed."
+    }
+  ],
+  "stages": [
+    { "start": 0, "end": 6, "title": "Opening challenge: three ways to begin", "show": [{ "block": "IELTS-12-K1", "part": "questions" }, { "block": "IELTS-12-K1", "part": "answers" }], "student": "Listen to three openings and choose the most effective before the reveal.", "teacher": "Read each opening naturally. Learners vote. Reveal comments. Explain the Part 2 format: one minute to prepare, up to two minutes to speak, then one or two rounding-off questions.", "say": "Start with the place itself. The examiner wants to hear about your experience, not a general speech about travel.", "check": "Learners can say why Opening 2 is weak." },
+    { "start": 6, "end": 13, "title": "Smart preparation, smart recovery", "show": [{ "block": "IELTS-12-I1", "part": "questions" }, { "block": "IELTS-12-I1", "part": "answers" }], "student": "Choose the best option for three situations, then check.", "teacher": "Reveal after learners commit. Model a one-minute note on the board for card 1 using keywords only. Point out that the final prompt ('explain why') deserves the most notes.", "say": "Notes are keywords, not sentences. Save most of your ideas for 'explain why'.", "check": "Learners can describe good notes." },
+    { "start": 13, "end": 17, "title": "A model long turn", "show": [{ "block": "IELTS-12-S1", "part": "prompt" }, { "block": "IELTS-12-S1", "part": "model" }], "student": "Listen to the teacher's model. Tick each prompt as you hear it and note one detail that made the reason convincing.", "teacher": "Read the model naturally at speaking pace (about 1 minute 45 seconds). Then point out: the place is named at once; time markers organise the story; the reason is developed with a contrast and a specific memory.", "say": "Notice how most of the talk explains why, not just what happened.", "check": "Learners can name two details in the 'why' section." },
+    { "start": 17, "end": 30, "title": "Long turn 1 in pairs", "show": [{ "block": "IELTS-12-S1", "part": "prompt" }], "student": "Partner A: one minute of notes, then speak for up to two minutes. Partner B: time, tick prompts, ask the rounding-off question. Then quick feedback.", "teacher": "Run the timing for the whole class: 'Prepare now... Start speaking... Stop.' Listen to a rotating sample and record only what you hear.", "say": "If you finish early, add a memory, a feeling or a comparison.", "check": "Every Partner A has completed a timed turn." },
+    { "start": 30, "end": 43, "title": "Long turn 2: swap roles", "show": [{ "block": "IELTS-12-S2", "part": "prompt" }], "student": "Partner B prepares and speaks on card 2. Partner A times and asks the rounding-off question.", "teacher": "Same timing. Observe a different sample of learners. Foundation learners use the four-box frame, recorded as support.", "say": "Use what you learned from the first turn: keywords, then develop the reason.", "check": "Every learner has completed one timed turn." },
+    { "start": 43, "end": 50, "title": "Second attempt: improve one thing", "show": [], "student": "With your partner's feedback, give your same talk again, changing one thing: longer reason, fewer pauses or a new detail.", "teacher": "Explain that a repeated talk is practice, not new evidence. Listen for the chosen change in a few pairs.", "say": "Choose one improvement and focus on it.", "check": "Learners can name the one thing they changed." },
+    { "start": 50, "end": 55, "title": "Reflection", "show": [], "student": "In the log at the end of the workbook, note how long you spoke, which prompt you developed most and one thing to practise.", "teacher": "Note the reflections learners actually record. No band conversion.", "say": "Your log tells you what to practise at home.", "check": "Each learner has one practice target." },
+    { "start": 55, "end": 60, "title": "Exit ticket and homework", "show": [], "student": "Complete the exit ticket and take the homework sheet.", "teacher": "Collect exit tickets. Record the fresh-check schedule (individual long turns).", "say": "Next lesson: difficult TRUE/FALSE/NOT GIVEN and YES/NO/NOT GIVEN questions.", "check": "Everyone knows the homework and check date." }
+  ],
+  "exit_ticket": [
+    "How long I spoke, and which prompt I developed most:",
+    "What I will do if I run out of ideas:",
+    "One thing to practise before the next long turn:"
+  ],
+  "homework": [
+    "Practise both cue cards from today at home with a timer: one minute of keyword notes, then up to two minutes of speech. Change at least one detail each time so the talk is not memorised. Recording on your own phone is optional and not uploaded.",
+    "Write keyword notes (not sentences) for two new topics: a book or film you would recommend, and a person who taught you something useful.",
+    "Complete only the Brains Heist speaking practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-12-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "About one teaching week after Lesson 12, individually, about 4 minutes per learner. One minute of preparation with paper and pencil, up to two minutes of speech, one rounding-off question. No note frame or prompts beyond the card. Use an approved Brains Heist speaking recording route if released for this purpose; otherwise record live observations only. Log conditions and prior exposure.",
+    "blocks": [
+      {
+        "id": "IELTS-12-C1",
+        "kind": "speaking",
+        "title": "Fresh long turn",
+        "mode": "Withheld fresh check; individual, timed",
+        "prompts": [
+          "Describe an interesting conversation you had with someone older than you. You should say: who the person was; where you had the conversation; what you talked about; and explain why you found it interesting.",
+          "Rounding-off question: Do you prefer talking to people of your own age or older people?"
+        ],
+        "instructions": "Give the card, time one minute of preparation, then say 'Please begin.' Stop the learner at two minutes. Ask the rounding-off question. Do not prompt or model.",
+        "observation": "Record duration reached, prompts covered, development of the 'explain why' point, long pauses or repetition, and intelligibility only as heard live or on approved audio. Compare only with Lesson 12 observations of similar demand. No band or pronunciation rating from notes."
+      }
+    ],
+    "review": "Compare only the observed demands and conditions with Lesson 12 work. Record what the new talk shows, counterevidence and the next check. A new card does not by itself establish comparable difficulty or improvement. No band, percentage or mastery label."
+  },
+  "delayed_followup": "In Lesson 20 (complete speaking interview), check whether the learner sustains a Part 2 turn on an unfamiliar card without the note frame. Record it as a later observation.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.4 teachable micro-skills. Draft teaching focuses only. Peer timing and short guided turns are not whole-interview evidence.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
+  ]
+}

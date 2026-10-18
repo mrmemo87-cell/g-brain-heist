@@ -1,0 +1,191 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-17",
+  "number": 17,
+  "week": 9,
+  "version": "0.2.0",
+  "presentation_version": "0.2.0",
+  "title": "Timed Listening: a full Part 2 section, map labelling and error analysis",
+  "answer_grid": 10,
+  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
+  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Scripts, plan, questions and keys are original. Human editorial, key, mapping, difficulty and originality review pending.",
+  "audio": {
+    "required": true,
+    "statement": "Recordings produced (v1, 2026-10-17): IELTS-17-L1, IELTS-17-C1. Played in two parts with a mid-recording reading pause where marked. Owner listening review pending; do not use with students until it is recorded.",
+    "recordings": [
+      { "id": "IELTS-17-L1", "block": "IELTS-17-L1", "status": "Owner approved v1 with the lesson pack on 2026-10-18; device/classroom playback acceptance pending", "conditions": "Timed practice under test-like conditions: played once, no pausing, reading time inside the recording.",
+        "voices": { "instruction": "Tom (British, examiner style; steady model)", "GUIDE": "James (Australian, casual, friendly)" },
+        "segments": [
+          { "type": "speech", "voice": "instruction", "text": "This recording is copyright Brains Heist LLC. All rights reserved." },
+          { "type": "speech", "voice": "instruction", "text": "Part 2. You will hear a manager giving information to new members of a sports centre. First, you have thirty seconds to look at questions one to five." },
+          { "type": "silence", "seconds": 30 },
+          { "type": "speech", "voice": "instruction", "text": "Now listen carefully and answer questions one to five." },
+          { "type": "passage", "from_line": 0 },
+          { "type": "speech", "voice": "instruction", "text": "Before you hear the rest of the talk, you have thirty seconds to look at questions six to ten." },
+          { "type": "silence", "seconds": 30 },
+          { "type": "speech", "voice": "instruction", "text": "Now listen and answer questions six to ten." },
+          { "type": "passage", "from_line": 4 },
+          { "type": "speech", "voice": "instruction", "text": "That is the end of the recording. You now have fifteen seconds to check your answers." },
+          { "type": "silence", "seconds": 15 }
+        ] },
+      { "id": "IELTS-17-C1", "block": "IELTS-17-C1", "status": "Owner approved v1 with the lesson pack on 2026-10-18 (withheld fresh check); device/classroom playback acceptance pending", "conditions": "Played once, no pausing, no transcript, no coaching. Record conditions.",
+        "voices": { "instruction": "Tom (British, examiner style; steady model)", "LIBRARIAN": "Marlene (British, middle-aged, measured)" },
+        "segments": [
+          { "type": "speech", "voice": "instruction", "text": "This recording is copyright Brains Heist LLC. All rights reserved." },
+          { "type": "speech", "voice": "instruction", "text": "Part 2. You will hear a librarian giving an introduction to new students. First, you have thirty seconds to look at questions one to six." },
+          { "type": "silence", "seconds": 30 },
+          { "type": "speech", "voice": "instruction", "text": "Now listen carefully and answer questions one to six." },
+          { "type": "passage" },
+          { "type": "speech", "voice": "instruction", "text": "That is the end of the recording. You now have fifteen seconds to check your answers." },
+          { "type": "silence", "seconds": 15 }
+        ] }
+    ]
+  },
+  "prerequisites": [
+    "Lessons 3, 5, 10 and 14: word limits, distractors, signposts and choose-TWO questions.",
+    "Teacher has checked actual Listening Screener and review states privately.",
+    "Approved recording IELTS-17-L1 with verified hash. Without it this lesson is not releasable; see Plan B."
+  ],
+  "objectives": [
+    { "text": "Complete a full ten-question Part 2 section under test-like conditions, including a map, and transfer answers accurately.", "focus": ["sequencing", "word-limit/task compliance"] },
+    { "text": "Follow directions and location language (opposite, immediately to the left, in the far corner) to label a plan.", "focus": ["explicit detail", "matching/reference tracking"] },
+    { "text": "Classify your own errors by type and choose one corrective strategy for the next timed section.", "focus": ["distractor resistance"] }
+  ],
+  "levels": {
+    "foundation": "Before the recording, mark the entrance and draw an arrow for 'left' and 'right' on the plan; after the first play, one teacher-controlled replay of the map section, recorded as support.",
+    "core": "Complete all ten questions after one play and transfer answers in two minutes with no spelling or format errors.",
+    "extension": "For each multiple-choice and choose-TWO question, write the words that ruled out each wrong option.",
+    "high_band": "Complete the section with no notes on the question paper other than answers, then predict, before the review, which two answers you are least sure of and why."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-17-M1",
+      "kind": "items",
+      "title": "Where exactly?",
+      "mode": "Opening challenge; answer alone, then check",
+      "instructions": "You enter a building facing north. A corridor runs left to right in front of you. Choose the correct answer.",
+      "stimulus": { "type": "none" },
+      "items": [
+        { "id": "IELTS-17-M1-Q1", "prompt": "You walk west along the corridor. A room 'on your right' is on which side of the corridor?", "options": ["A  north", "B  south", "C  west"], "answer": "A", "evidence": "Facing west, your right hand points north.", "reason": "Turn the plan in your mind, or physically, so that you face the way the speaker is walking.", "focus": "explicit detail", "type": "mcq", "level": "core" },
+        { "id": "IELTS-17-M1-Q2", "prompt": "'Immediately to the left of reception' means", "options": ["A  anywhere on the left side of the building", "B  the room next to reception, on the left as you face it", "C  the room opposite reception"], "answer": "B", "evidence": "'Immediately' means directly next to.", "reason": "A is too wide; C describes 'opposite'.", "focus": "explicit detail", "type": "mcq", "level": "core" },
+        { "id": "IELTS-17-M1-Q3", "prompt": "'In the front right corner' as you enter means", "options": ["A  near the entrance, on your right", "B  at the back, on your right", "C  in the middle of the right-hand side"], "answer": "A", "evidence": "The front is the side with the entrance.", "reason": "Speakers usually describe the front from where you are standing when you enter.", "focus": "explicit detail", "type": "mcq", "level": "core" }
+      ]
+    },
+    {
+      "id": "IELTS-17-L1",
+      "kind": "items",
+      "title": "Welcome to Riverside Sports Centre",
+      "mode": "Timed practice under test-like conditions; one play, no pausing",
+      "instructions": "Questions 1-5: label the plan. Write the correct letter, A-G, next to Questions 1-5. Questions 6-8: choose the correct letter, A, B or C. Questions 9-10: choose TWO letters, A-E.",
+      "stimulus": { "type": "transcript", "title": "Recording IELTS-17-L1 transcript (teacher-private)", "paragraphs": [
+        "GUIDE: Good evening, everyone, and welcome to Riverside Sports Centre. Now that the building work is finally finished, I'd like to tell you where everything is, and then explain a few changes. You're standing in the main entrance, and reception is straight in front of you.",
+        "GUIDE: The room immediately to the left of reception used to be the café, but it's now our first-aid room, so if anyone gets hurt, that's where to go. The room in the front left corner, which you'd reach if you turned left as soon as you came in, is a staff office, so it isn't open to the public. On the other side, the room between reception and the right-hand wall is the equipment hire desk, where you can borrow rackets and balls. Beyond it, in the front right corner of the building, is our new climbing wall. You can't miss it: it's two storeys high.",
+        "GUIDE: Behind reception, there's a corridor running across the building. If you walk along it to the left, you'll see the doors to the changing rooms on your right, just before you reach the pool. Walk the other way, to the right, and the dance studio is on your left, just before the entrance to the sports hall.",
+        "GUIDE: And the café has moved too. It's now at the back of the building, between the swimming pool and the sports hall, so you can watch both while you have a coffee.",
+        "GUIDE: Now, a few changes you'll want to know about. The pool used to open at seven, but from next month it'll open at half past six on weekdays. At weekends it opens at seven, as before.",
+        "GUIDE: On membership, we haven't changed the student price, but we've introduced a family membership, which covers two adults and up to three children. And, yes, you can still pay monthly if you prefer.",
+        "GUIDE: The old coin lockers in the changing rooms have gone. You now lock and unlock them with your membership card, so please keep it with you.",
+        "GUIDE: Finally, activities. Swimming lessons for adults have been popular for years, and they'll continue as usual, and indoor football carries on every Tuesday. New this term are climbing courses for beginners, now that the wall is open, and, because so many of you asked, yoga on Sunday mornings. We'd hoped to start table tennis too, but that's been delayed until the spring."
+      ] },
+      "figure": {
+        "type": "plan",
+        "title": "Riverside Sports Centre: ground floor",
+        "width": 100,
+        "height": 70,
+        "paths": [
+          { "points": [[4, 24], [96, 24]], "width": 9, "label": "corridor", "label_at": [30, 24] },
+          { "points": [[50, 2], [50, 9]], "width": 9 },
+          { "points": [[50, 24], [50, 44]], "width": 9 }
+        ],
+        "areas": [
+          { "label": "Entrance", "x": 43, "y": 0.8, "w": 14, "h": 6 },
+          { "label": "Reception", "x": 40, "y": 8, "w": 20, "h": 13 },
+          { "label": "Swimming pool", "x": 3, "y": 40, "w": 33, "h": 27 },
+          { "label": "Sports hall", "x": 64, "y": 40, "w": 33, "h": 27 },
+          { "letter": "F", "hidden_name": "staff office", "x": 3, "y": 8, "w": 16, "h": 13 },
+          { "letter": "C", "hidden_name": "first-aid room", "x": 21, "y": 8, "w": 17, "h": 13 },
+          { "letter": "A", "hidden_name": "equipment hire desk", "x": 62, "y": 8, "w": 17, "h": 13 },
+          { "letter": "G", "hidden_name": "climbing wall", "x": 81, "y": 8, "w": 16, "h": 13 },
+          { "letter": "B", "hidden_name": "changing rooms", "x": 3, "y": 27.5, "w": 33, "h": 10 },
+          { "letter": "E", "hidden_name": "dance studio", "x": 64, "y": 27.5, "w": 33, "h": 10 },
+          { "letter": "D", "hidden_name": "café", "x": 40, "y": 45, "w": 20, "h": 22 }
+        ],
+        "alt": "Ground-floor plan. Entrance at the front centre with reception directly behind it. Front row from left: A, B, reception, C, D. A corridor runs left to right behind reception. Between the corridor and the swimming pool on the left is E; between the corridor and the sports hall on the right is F. At the back centre, between the pool and the sports hall, is G.",
+        "note": "Fictional building plan created for practice."
+      },
+      "items": [
+        { "id": "IELTS-17-L1-Q1", "prompt": "first-aid room", "options": ["A", "B", "C", "D", "E", "F", "G"], "answer": "C", "evidence": "The room immediately to the left of reception used to be the café, but it's now our first-aid room", "reason": "'Used to be the café' is a trap: the café has moved to D.", "focus": "distractor resistance", "type": "matching", "level": "core" },
+        { "id": "IELTS-17-L1-Q2", "prompt": "climbing wall", "options": ["A", "B", "C", "D", "E", "F", "G"], "answer": "G", "evidence": "in the front right corner of the building, is our new climbing wall", "reason": "A, between reception and the wall, is the equipment hire desk.", "focus": "explicit detail", "type": "matching", "level": "core" },
+        { "id": "IELTS-17-L1-Q3", "prompt": "changing rooms", "options": ["A", "B", "C", "D", "E", "F", "G"], "answer": "B", "evidence": "you'll see the doors to the changing rooms on your right, just before you reach the pool", "reason": "Walking left (west) along the corridor, 'on your right' is the north side, next to the pool.", "focus": "explicit detail", "type": "matching", "level": "core" },
+        { "id": "IELTS-17-L1-Q4", "prompt": "dance studio", "options": ["A", "B", "C", "D", "E", "F", "G"], "answer": "E", "evidence": "the dance studio is on your left, just before the entrance to the sports hall", "reason": "Walking right (east), 'on your left' is the north side, next to the sports hall.", "focus": "explicit detail", "type": "matching", "level": "core" },
+        { "id": "IELTS-17-L1-Q5", "prompt": "café", "options": ["A", "B", "C", "D", "E", "F", "G"], "answer": "D", "evidence": "between the swimming pool and the sports hall", "reason": "C is the café's old position.", "focus": "distractor resistance", "type": "matching", "level": "core" },
+        { "id": "IELTS-17-L1-Q6", "prompt": "On weekdays, the pool will open at", "options": ["A  6.00.", "B  6.30.", "C  7.00."], "answer": "B", "evidence": "it'll open at half past six on weekdays", "reason": "Seven is the old time and the weekend time.", "focus": "distractor resistance", "type": "mcq", "level": "core" },
+        { "id": "IELTS-17-L1-Q7", "prompt": "What has changed about membership?", "options": ["A  It is cheaper for students.", "B  A family membership is available.", "C  Monthly payments are no longer possible."], "answer": "B", "evidence": "we've introduced a family membership", "reason": "The student price is unchanged and monthly payment is still possible.", "focus": "distractor resistance", "type": "mcq", "level": "core" },
+        { "id": "IELTS-17-L1-Q8", "prompt": "The lockers in the changing rooms are now", "options": ["A  operated with a coin.", "B  operated with a membership card.", "C  booked in advance."], "answer": "B", "evidence": "You now lock and unlock them with your membership card", "reason": "The coin lockers have gone.", "focus": "paraphrase recognition", "type": "mcq", "level": "core" },
+        { "id": "IELTS-17-L1-Q9", "prompt": "Questions 9-10. Which TWO activities are new this term?", "options": ["A  yoga", "B  indoor football", "C  climbing courses", "D  swimming lessons for adults", "E  table tennis"], "answer": "A and C", "accept": ["C and A"], "evidence": "New this term are climbing courses for beginners", "reason": "Yoga on Sunday mornings is also new. Football and adult swimming continue; table tennis is delayed.", "focus": "distractor resistance", "type": "choice", "level": "core" }
+      ],
+      "support": "Foundation: mark the entrance and draw 'left' and 'right' arrows before listening. One teacher-controlled replay of the map section after the first attempt, recorded as support.",
+      "extension": "For Questions 6-10, write the words that ruled out each wrong option.",
+      "high_band": "Before the review, name the two answers you are least sure of and explain why."
+    }
+  ],
+  "stages": [
+    { "start": 0, "end": 5, "title": "Opening challenge: where exactly?", "show": [{ "block": "IELTS-17-M1", "part": "questions" }, { "block": "IELTS-17-M1", "part": "answers" }], "student": "Answer three direction questions, then check.", "teacher": "Reveal after learners commit. Demonstrate Q1 physically: stand, face west, point right.", "say": "On a map, always ask: which way is the speaker walking?", "check": "Learners can explain Q1." },
+    { "start": 5, "end": 9, "title": "Before a map: orient yourself", "show": [], "student": "Look at the plan in your workbook. Find the entrance, the compass and the corridor. Write the names of the places you can already see.", "teacher": "Model the routine: entrance, direction of travel, fixed labels, then the letters. Foundation learners draw left/right arrows, recorded as support.", "say": "Know the map before the speaker starts walking.", "check": "Every learner has marked the entrance." },
+    { "start": 9, "end": 21, "title": "Timed section: one play", "show": [{ "block": "IELTS-17-L1", "part": "questions" }], "student": "Listen once and answer Questions 1-10. The recording gives you reading time before each half.", "teacher": "Play IELTS-17-L1 once without pausing. Note interruptions or late arrivals. If audio fails, stop and use Plan B; never read the transcript as a substitute.", "say": "This is test-like practice: one play, no pausing.", "check": "All answers written." },
+    { "start": 21, "end": 23, "title": "Transfer your answers", "show": [], "student": "Copy your answers to the answer grid at the end of the workbook in two minutes. Check spelling, letters and the TWO-letter question.", "teacher": "Time two minutes. Explain that on paper there is extra transfer time at the end of the whole test, and on computer about two minutes to check; either way, transfer errors cost marks.", "say": "One letter per box. For 'choose TWO', both letters.", "check": "Grids complete." },
+    { "start": 23, "end": 34, "title": "Review and error types", "show": [{ "block": "IELTS-17-L1", "part": "answers" }], "student": "Check answers. Label every wrong answer: D for direction, T for trap (old information or rejected option), C for choose-TWO, S for spelling or transfer.", "teacher": "Reveal in groups. Spend time on Q1 and Q5 (the café trap), Q3 and Q4 (direction), Q9-10 (continuing vs new activities).", "say": "Most errors have a pattern. Find yours.", "check": "Every wrong answer has a label." },
+    { "start": 34, "end": 46, "title": "Targeted repair", "show": [], "student": "Work on your most frequent error type: D: redo the plan with the teacher's replay of the map section; T and C: list the old or rejected information in the talk and the words that cancelled it; S: copy your misspelled answers three times and check word limits.", "teacher": "Group learners by error type. Run a teacher-controlled replay for the D group. This is guided practice and is recorded as such.", "say": "Fix the pattern, not just the answer.", "check": "Each group has completed its repair task." },
+    { "start": 46, "end": 54, "title": "My listening plan", "show": [], "student": "In the log at the end of the workbook, write your section score, your main error type and one strategy for the next timed section.", "teacher": "Collect scores as classroom observations with conditions (one play, timed). Do not convert them to bands.", "say": "A score from one section tells us what to practise, not your IELTS band.", "check": "Each learner has a strategy for next time." },
+    { "start": 54, "end": 60, "title": "Exit ticket and homework", "show": [], "student": "Complete the exit ticket and take the homework sheet.", "teacher": "Collect exit tickets and answer grids. Assign online practice only through the existing workflow. Record the fresh-check date.", "say": "Next lesson: a full Academic Reading passage in twenty minutes.", "check": "Everyone knows the homework and check date." }
+  ],
+  "exit_ticket": [
+    "My section score and main error type:",
+    "One direction phrase I will listen for on a map:",
+    "My strategy for the next timed listening section:"
+  ],
+  "homework": [
+    "Draw a simple plan of a building you know (school, library, shopping centre). Write a 100-word description of how to find three places from the entrance, using: immediately to the left of, opposite, in the far corner, just before, beyond.",
+    "Listen to the Part 2 section again only if your teacher assigns it as guided practice, and write the words that ruled out each wrong option for Questions 6-10.",
+    "Complete only the Brains Heist listening practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-17-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "About one teaching week after Lesson 17, once the recording is approved. Play once without pausing, no transcript, no coaching. Log support, interruptions and prior exposure. Classroom observation only.",
+    "blocks": [
+      {
+        "id": "IELTS-17-C1",
+        "kind": "items",
+        "title": "Library introduction",
+        "mode": "Withheld fresh check; one play",
+        "instructions": "Choose the correct letter, A, B or C.",
+        "stimulus": { "type": "transcript", "title": "Recording IELTS-17-C1 transcript (teacher-private)", "paragraphs": [
+          "LIBRARIAN: Good morning, and welcome to the university library. I'll keep this short, because I know you have a busy first week. Let me start with opening hours. During term, the main building is open from eight in the morning until midnight. The twenty-four-hour study room on the ground floor stays open all night, but you'll need your student card to get in after midnight.",
+          "LIBRARIAN: You can borrow up to fifteen books at a time. Most loans last three weeks, but books on the short-loan shelves can only be taken for two days, because so many students need them. Fines for late returns were removed last year. Instead, if a book is more than a week late, you won't be able to borrow anything else until it's returned.",
+          "LIBRARIAN: Group study rooms are on the second floor. They're very popular, so you'll need to book them online, and you can reserve a room for a maximum of two hours a day.",
+          "LIBRARIAN: Finally, help. Our subject librarians run short workshops on finding academic sources. These used to be held in the evenings, but most students said they preferred lunchtime, so they now run at one o'clock on Wednesdays."
+        ] },
+        "items": [
+          { "id": "IELTS-17-C1-Q1", "prompt": "What do students need to enter the 24-hour study room after midnight?", "options": ["A  a booking", "B  a student card", "C  a librarian's permission"], "answer": "B", "evidence": "you'll need your student card to get in after midnight", "reason": "Booking applies to group rooms, not the study room.", "focus": "explicit detail", "type": "mcq" },
+          { "id": "IELTS-17-C1-Q2", "prompt": "How long can books from the short-loan shelves be borrowed for?", "options": ["A  two days", "B  one week", "C  three weeks"], "answer": "A", "evidence": "can only be taken for two days", "reason": "Three weeks applies to most loans.", "focus": "distractor resistance", "type": "mcq" },
+          { "id": "IELTS-17-C1-Q3", "prompt": "What happens if a book is returned more than a week late?", "options": ["A  The student pays a fine.", "B  The student cannot borrow other books until it is returned.", "C  The student loses library access for a week."], "answer": "B", "evidence": "you won't be able to borrow anything else until it's returned", "reason": "Fines were removed last year.", "focus": "distractor resistance", "type": "mcq" },
+          { "id": "IELTS-17-C1-Q4", "prompt": "Where are the group study rooms?", "options": ["A  on the ground floor", "B  on the first floor", "C  on the second floor"], "answer": "C", "evidence": "Group study rooms are on the second floor", "reason": "The ground floor has the 24-hour study room.", "focus": "explicit detail", "type": "mcq" },
+          { "id": "IELTS-17-C1-Q5", "prompt": "For how long can a group room be reserved each day?", "options": ["A  up to one hour", "B  up to two hours", "C  up to three hours"], "answer": "B", "evidence": "a maximum of two hours a day", "reason": "Direct detail.", "focus": "numerical information", "type": "mcq" },
+          { "id": "IELTS-17-C1-Q6", "prompt": "When are the workshops on finding sources held now?", "options": ["A  in the evenings", "B  on Wednesday at lunchtime", "C  on Wednesday evenings"], "answer": "B", "evidence": "they now run at one o'clock on Wednesdays", "reason": "Evenings were the old time.", "focus": "distractor resistance", "type": "mcq" }
+        ]
+      }
+    ],
+    "review": "Compare only observed demand and conditions with Lesson 17 work. Record what the new work shows, counterevidence and the next check. A fresh recording does not by itself establish comparable difficulty or improvement. No percentage, band or mastery cutoff."
+  },
+  "delayed_followup": "In Lesson 21 (fresh receptive-skill assessment), check direction and distractor errors in a new section without support. Record it as a later observation.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.1 construct names. Draft teaching focuses only. Items from one recording are not independent longitudinal observations; a section score is a classroom observation, not a band.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
+  ]
+}

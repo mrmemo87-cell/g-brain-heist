@@ -1,0 +1,191 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-19",
+  "number": 19,
+  "week": 10,
+  "version": "0.2.0",
+  "presentation_version": "0.2.0",
+  "title": "Writing revision clinic: Task 1 tables and accuracy",
+  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
+  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Tables use fictional data created for practice. Sentences and models are original. Human editorial, model, criterion-alignment, difficulty and originality review pending.",
+  "audio": { "required": false, "statement": "No recording required. Writing lesson.", "recordings": [] },
+  "prerequisites": [
+    "Lessons 11 and 15, with teacher feedback returned on the Lesson 11 Task 1 and Lesson 15 Task 2 homework.",
+    "Teacher has recorded each learner's most frequent error family from that feedback.",
+    "Teacher has read the public Task 1 and Task 2 band descriptors. Criterion names structure feedback only; no band is assigned."
+  ],
+  "objectives": [
+    { "text": "Describe a table accurately: select the significant figures, group rows that behave alike and state how rankings change.", "focus": ["evidence/example relevance", "register/task fulfilment"] },
+    { "text": "Recognise and correct five common error families: articles, agreement, tense, word form and prepositions.", "focus": ["grammatical error families"] },
+    { "text": "Revise your own writing in a targeted way, changing what the feedback identified rather than replacing words with synonyms.", "focus": ["lexical precision", "grammatical error families"] }
+  ],
+  "levels": {
+    "foundation": "Use the table-reading frame (highest / lowest / biggest change / exception) and the error-family checklist; record their use as support.",
+    "core": "Write an overview and one body paragraph for the table in 15 minutes and make three targeted revisions to an earlier homework.",
+    "extension": "Describe a change in ranking in one complex sentence and make every revision explain which criterion it improves.",
+    "high_band": "Use no more than five numbers in the body paragraph, and correct every instance of your most frequent error family in both earlier homework pieces."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-19-K1",
+      "kind": "contrast",
+      "title": "Revision or rewording?",
+      "mode": "Opening challenge; learners decide before the reveal",
+      "instructions": "Original sentence: 'Water use go down in all towns and Southmere was big.' Two learners revised it. Which revision responds to feedback, and which only changes words?",
+      "examples": [
+        { "label": "Revision 1", "text": "Water consumption decrease in every towns and Southmere was enormous.", "comment": "Rewording only. New vocabulary, but the errors remain (decrease, every towns) and the claim is still inaccurate: use did not fall in every town." },
+        { "label": "Revision 2", "text": "Water use fell in three of the four towns, and the largest fall was in Southmere.", "comment": "Real revision. The tense and agreement are corrected, the claim is now accurate (Eastbrook did not fall), and 'big' is replaced by a precise comparison." }
+      ]
+    },
+    {
+      "id": "IELTS-19-I1",
+      "kind": "items",
+      "title": "Name the error family",
+      "mode": "Guided practice; answer alone, then check",
+      "instructions": "Each sentence contains one error. Choose the error family: A articles; B subject-verb agreement; C tense; D word form; E preposition. Then correct it.",
+      "stimulus": { "type": "none" },
+      "items": [
+        { "id": "IELTS-19-I1-Q1", "prompt": "'The number of visitors have increased since 2010.'", "options": ["A  articles", "B  subject-verb agreement", "C  tense", "D  word form", "E  preposition"], "answer": "B", "evidence": "'The number ... has increased': the subject is 'the number'.", "reason": "The verb agrees with 'number', not 'visitors'.", "focus": "grammatical error families", "type": "mcq", "level": "core" },
+        { "id": "IELTS-19-I1-Q2", "prompt": "'Southmere recorded most dramatic change of the four towns.'", "options": ["A  articles", "B  subject-verb agreement", "C  tense", "D  word form", "E  preposition"], "answer": "A", "evidence": "'the most dramatic change'", "reason": "Superlatives need 'the'.", "focus": "grammatical error families", "type": "mcq", "level": "core" },
+        { "id": "IELTS-19-I1-Q3", "prompt": "'In 2010, consumption in Eastbrook is 140 litres per person.'", "options": ["A  articles", "B  subject-verb agreement", "C  tense", "D  word form", "E  preposition"], "answer": "C", "evidence": "'was 140 litres'", "reason": "A completed past year needs the past simple.", "focus": "grammatical error families", "type": "mcq", "level": "core" },
+        { "id": "IELTS-19-I1-Q4", "prompt": "'There was a significant decrease of the amount of water used.'", "options": ["A  articles", "B  subject-verb agreement", "C  tense", "D  word form", "E  preposition"], "answer": "E", "evidence": "'a significant decrease in the amount'", "reason": "The collocation is 'a decrease in' something; 'a decrease of' is followed by the size of the change.", "focus": "collocation", "type": "mcq", "level": "core" },
+        { "id": "IELTS-19-I1-Q5", "prompt": "'Governments should make a decide about investing in public transport.'", "options": ["A  articles", "B  subject-verb agreement", "C  tense", "D  word form", "E  preposition"], "answer": "D", "evidence": "'make a decision'", "reason": "A noun is needed after 'make a'.", "focus": "grammatical error families", "type": "mcq", "level": "core" }
+      ],
+      "extension": "Write one more sentence containing your own most frequent error family, then correct it."
+    },
+    {
+      "id": "IELTS-19-W1",
+      "kind": "writing",
+      "task": "paragraph",
+      "title": "Describe the table",
+      "mode": "Independent classroom application; not a full Task 1 or Writing Screener",
+      "prompt": "The table shows average daily water use per person in four towns in 2010 and 2020. Write an overview and ONE body paragraph (about 90-110 words in total) describing the most significant features.",
+      "figure": {
+        "type": "table",
+        "title": "Average daily water use per person (litres), four towns",
+        "x_label": "Town",
+        "x": ["Northfield", "Eastbrook", "Southmere", "Westport"],
+        "series": [
+          { "name": "2010", "values": [152, 140, 165, 133] },
+          { "name": "2020", "values": [128, 141, 119, 102] }
+        ],
+        "alt": "Table of litres per person per day. Northfield 152 in 2010 and 128 in 2020; Eastbrook 140 and 141; Southmere 165 and 119; Westport 133 and 102. Use fell in three towns, most in Southmere, and was almost unchanged in Eastbrook, which became the highest user by 2020.",
+        "note": "Fictional data created for practice."
+      },
+      "conditions": "15 minutes, independent. No model visible. Record any frame or checklist use.",
+      "support": "Table-reading frame: highest in each year / lowest / biggest change / the exception.",
+      "extension": "Describe Eastbrook's change in ranking in one complex sentence.",
+      "high_band": "Use no more than five numbers in the body paragraph.",
+      "model_label": "Illustrative classroom model for discussion only. Not a certified band answer.",
+      "model": "Overall, average daily water use fell in three of the four towns, with Southmere recording the largest decrease, while consumption in Eastbrook remained almost unchanged. As a result, Eastbrook used the most water per person by 2020.\n\nIn 2010, Southmere had the highest figure, at 165 litres per person per day, but this had dropped to 119 litres a decade later. Northfield and Westport also saw substantial falls, from 152 to 128 litres and from 133 to 102 litres respectively, and Westport remained the lowest user in both years.",
+      "checklist": [
+        "Task Achievement: Does the overview state the main pattern and the exception, without detailed numbers?",
+        "Task Achievement: Are the selected figures significant and accurate? Is the change in ranking described?",
+        "Coherence and Cohesion: Are rows that behave alike grouped (respectively, also, by contrast)?",
+        "Grammatical Range and Accuracy: Check your own most frequent error family in every sentence."
+      ]
+    },
+    {
+      "id": "IELTS-19-W2",
+      "kind": "writing",
+      "task": "task1",
+      "min_words": 150,
+      "homework": true,
+      "title": "Complete Task 1 under time: the table",
+      "mode": "Timed homework under declared conditions; teacher feedback uses the four criteria. Not a Writing Screener.",
+      "prompt": "The table below shows the average amount of water used per person each day in four towns in 2010 and 2020. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+      "figure": {
+        "type": "table",
+        "title": "Average daily water use per person (litres), four towns",
+        "x_label": "Town",
+        "x": ["Northfield", "Eastbrook", "Southmere", "Westport"],
+        "series": [
+          { "name": "2010", "values": [152, 140, 165, 133] },
+          { "name": "2020", "values": [128, 141, 119, 102] }
+        ],
+        "alt": "Table of litres per person per day. Northfield 152 in 2010 and 128 in 2020; Eastbrook 140 and 141; Southmere 165 and 119; Westport 133 and 102. Use fell in three towns, most in Southmere, and was almost unchanged in Eastbrook, which became the highest user by 2020.",
+        "note": "Fictional data created for practice."
+      },
+      "conditions": "20 minutes, in one sitting, without a dictionary, translator, AI tool or model. Write the start and finish time. Then spend 3 minutes checking only your most frequent error family.",
+      "support": "Plan: Introduction / Overview (pattern + exception) / Body 1 (the largest falls) / Body 2 (the lowest user and the exception).",
+      "extension": "Include one calculated difference and check it.",
+      "high_band": "After 20 minutes, correct your most frequent error family in a different colour, keeping the original visible.",
+      "model_label": "Illustrative model for teacher discussion after learners submit their own responses. Not a certified band answer and not rated under official IELTS conditions.",
+      "model_derived_numbers": ["46", "31", "13"],
+      "model": "The table compares the average amount of water used per person each day in four towns in 2010 and 2020.\n\nOverall, daily water use per person fell in three of the four towns, with the sharpest decline in Southmere, whereas consumption in Eastbrook stayed virtually the same. Consequently, Eastbrook, which had ranked third in 2010, became the town with the highest figure by 2020.\n\nIn 2010, Southmere residents used the most water, at 165 litres per day, followed by Northfield at 152 litres. Over the following decade, however, use in Southmere fell by 46 litres to 119, the largest reduction shown. Northfield's figure also decreased, to 128 litres.\n\nWestport had the lowest consumption in both years, dropping from 133 to 102 litres, a fall of 31 litres. Eastbrook, by contrast, used 140 litres per person in 2010 and 141 litres in 2020, an increase of just one litre, which left it 13 litres above Northfield at the end of the period.",
+      "checklist": [
+        "Task Achievement: Is there an introduction, a clear overview with the exception, and accurate key features?",
+        "Coherence and Cohesion: Are paragraphs organised by pattern rather than town by town without comparison?",
+        "Lexical Resource: Is change vocabulary precise (fell by, fell to, the largest reduction, virtually unchanged)?",
+        "Grammatical Range and Accuracy: Has your most frequent error family been checked in every sentence?",
+        "Length and time: At least 150 words within 20 minutes?"
+      ]
+    }
+  ],
+  "stages": [
+    { "start": 0, "end": 5, "title": "Opening challenge: revision or rewording?", "show": [{ "block": "IELTS-19-K1", "part": "questions" }, { "block": "IELTS-19-K1", "part": "answers" }], "student": "Decide which revision really responds to feedback.", "teacher": "Reveal comments. Make the point: changing words is not revising; fixing accuracy and clarity is.", "say": "A revision should fix what the feedback found.", "check": "Learners can name the two errors left in Revision 1." },
+    { "start": 5, "end": 13, "title": "Name the error family", "show": [{ "block": "IELTS-19-I1", "part": "questions" }, { "block": "IELTS-19-I1", "part": "answers" }], "student": "Identify and correct the error in five sentences, then check.", "teacher": "Reveal after learners commit. Ask learners to circle the family that matches their own feedback.", "say": "Most writers repeat one or two error families. Find yours and check for it.", "check": "Every learner has named their own most frequent family." },
+    { "start": 13, "end": 17, "title": "Reading a table", "show": [{ "block": "IELTS-19-W1", "part": "prompt" }], "student": "Use the frame to find the highest in each year, the lowest, the biggest change and the exception.", "teacher": "Model one line: Southmere, highest in 2010, biggest fall. Point out that tables hide trends; you must calculate and compare. Foundation learners use the frame, recorded as support.", "say": "In a table, the pattern is not drawn for you. You find it by comparing.", "check": "Learners have found the exception (Eastbrook)." },
+    { "start": 17, "end": 32, "title": "Write independently", "show": [], "student": "Write the overview and one body paragraph in the workbook in 15 minutes.", "teacher": "Do not correct during writing. Record support and interruptions.", "say": "Start with the overview. Check every number against the table.", "check": "Original work collected or kept unchanged." },
+    { "start": 32, "end": 38, "title": "Compare with the model", "show": [{ "block": "IELTS-19-W1", "part": "model" }], "student": "Read the model and use the checklist to mark one strength and one change in your paragraph.", "teacher": "Point out 'respectively' grouping two rows and the ranking change. It is a classroom model, not a template.", "say": "Notice how few numbers are needed.", "check": "Each learner has marked one strength and one change." },
+    { "start": 38, "end": 53, "title": "Targeted revision of earlier homework", "show": [], "student": "Open your Lesson 11 Task 1 and Lesson 15 Task 2 homework with feedback. Make three revisions in a different colour: one for the main criterion comment, two for your error family. Label each revision with the criterion it improves.", "teacher": "Circulate and check revisions target the feedback. Revisions are practice; they are not new independent evidence.", "say": "Label each change: TA/TR, CC, LR or GRA.", "check": "Every learner has three labelled revisions." },
+    { "start": 53, "end": 60, "title": "Exit ticket and homework", "show": [{ "block": "IELTS-19-W2", "part": "prompt" }], "student": "Complete the exit ticket and copy the homework conditions.", "teacher": "Collect class writing and revisions. Record the fresh-check date.", "say": "Twenty minutes for the full table task, then three minutes checking your error family.", "check": "Everyone knows the homework." }
+  ],
+  "exit_ticket": [
+    "My most frequent error family and one example corrected:",
+    "How I find the pattern in a table:",
+    "The difference between revising and rewording:"
+  ],
+  "homework": [
+    "Write the complete Task 1 response on the Homework sheet under the stated conditions: 20 minutes, at least 150 words, then 3 minutes checking your error family.",
+    "Keep your three labelled revisions for your teacher.",
+    "Complete only the Brains Heist writing practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-19-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "About one teaching week after Lesson 19, after feedback on the homework. 20 minutes: overview and one body paragraph for a new table. No model, frame or checklist unless recorded as support. Classroom observation only.",
+    "blocks": [
+      {
+        "id": "IELTS-19-C1",
+        "kind": "writing",
+        "task": "partial",
+        "title": "Internet access by region",
+        "mode": "Withheld fresh check; independent, timed",
+        "prompt": "The table shows the percentage of households with internet access in four regions of a country in 2005 and 2015. Write an overview and one body paragraph describing the most significant features.",
+        "figure": {
+          "type": "table",
+          "title": "Households with internet access (%), four regions",
+          "x_label": "Region",
+          "x": ["North", "South", "East", "West"],
+          "series": [
+            { "name": "2005", "values": [41, 52, 38, 47] },
+            { "name": "2015", "values": [78, 83, 74, 80] }
+          ],
+          "alt": "Table of household internet access. North 41 to 78 per cent; South 52 to 83; East 38 to 74; West 47 to 80. All regions rose sharply and the gap between highest and lowest narrowed; the South was highest in both years and the East lowest.",
+          "note": "Fictional data created for practice."
+        },
+        "conditions": "20 minutes, independent. No model, frame or checklist. Record any support.",
+        "model_label": "Illustrative teacher-only reference for review discussion. Not a certified band answer.",
+        "model": "Overall, internet access rose sharply in all four regions between 2005 and 2015, and the gap between them narrowed. The South had the highest level in both years, while the East had the lowest.\n\nIn 2005, access ranged from 38% of households in the East to 52% in the South. By 2015, every region had reached at least 74%, with the South at 83% and the West close behind at 80%.",
+        "checklist": [
+          "Task Achievement: Is the overview accurate for all regions (rise, narrowing gap, highest and lowest)?",
+          "Task Achievement: Are figures significant and accurate?",
+          "Grammatical Range and Accuracy: Has the learner's most frequent error family reappeared? Record examples.",
+          "Compare only with similar observed demands from Lessons 11 and 19. A new table is not automatically comparable."
+        ]
+      }
+    ],
+    "review": "Compare only observed demands and conditions. Record what the new work shows (overview accuracy, selection, error family), counterevidence and the next check. No band, percentage or improvement claim from this check alone."
+  },
+  "delayed_followup": "In Lesson 22 (fresh productive evidence), check whether the learner's most frequent error family appears less often in a new timed response. Record it as a later observation, not proof of improvement.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.3 teachable micro-skills. Draft teaching focuses only. Revisions of returned work are practice, not independent evidence.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
+  ]
+}

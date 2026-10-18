@@ -1,0 +1,147 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-13",
+  "number": 13,
+  "week": 7,
+  "version": "0.2.0",
+  "presentation_version": "0.2.0",
+  "title": "Advanced TRUE/FALSE/NOT GIVEN and YES/NO/NOT GIVEN",
+  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
+  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Passages are original opinion-style texts. References to research are deliberately general and make no specific factual claims. Human editorial, key, mapping, difficulty and originality review pending.",
+  "audio": { "required": false, "statement": "No recording required. Reading lesson.", "recordings": [] },
+  "prerequisites": [
+    "Lesson 2 (TRUE/FALSE/NOT GIVEN with evidence) and Lesson 9 (writer's purpose).",
+    "Teacher has checked actual Reading Screener and review states privately. Screener items are never used in lessons.",
+    "Printed workbook for every learner."
+  ],
+  "objectives": [
+    { "text": "Distinguish questions about facts (TRUE/FALSE/NOT GIVEN) from questions about the writer's views (YES/NO/NOT GIVEN).", "focus": ["True/False/Not Given reasoning", "writer stance/purpose"] },
+    { "text": "Separate statements of fact from the writer's opinions, concessions and recommendations in an argument.", "focus": ["writer stance/purpose", "inference"] },
+    { "text": "Reject answers that go beyond the text: stronger, wider or more certain claims than the writer makes.", "focus": ["True/False/Not Given reasoning", "detail discrimination"] }
+  ],
+  "levels": {
+    "foundation": "Highlight opinion signals (I believe, in my view, would be absurd, I accept) before answering; teacher may name the paragraph for two items, recorded as support.",
+    "core": "Answer Questions 1-7 in 12 minutes, quoting evidence for YES and NO and stating what is missing for NOT GIVEN.",
+    "extension": "For each NO answer, write the exact word in the statement that makes it stronger or different from the writer's view.",
+    "high_band": "Classify every statement as testing a view, a concession, a recommendation or a reported claim, and explain why Question 2 is NO rather than NOT GIVEN."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-13-K1",
+      "kind": "contrast",
+      "title": "Facts or views?",
+      "mode": "Opening challenge; learners decide before the reveal",
+      "instructions": "Text: 'The city opened two new cycle lanes last year. In my view, they are the best investment the council has made in a decade.' Which question type tests each statement?",
+      "examples": [
+        { "label": "Statement 1: The city opened two cycle lanes last year.", "text": "Statement 1: The city opened two cycle lanes last year.", "comment": "A fact. Answered with TRUE/FALSE/NOT GIVEN. Here: TRUE." },
+        { "label": "Statement 2: The writer thinks the cycle lanes were a good use of money.", "text": "Statement 2: The writer thinks the cycle lanes were a good use of money.", "comment": "A view. Answered with YES/NO/NOT GIVEN. Here: YES ('the best investment ... in a decade')." },
+        { "label": "Statement 3: Most residents use the new cycle lanes.", "text": "Statement 3: Most residents use the new cycle lanes.", "comment": "A fact that the text does not give: NOT GIVEN. The writer's enthusiasm is not evidence of use." }
+      ]
+    },
+    {
+      "id": "IELTS-13-R1",
+      "kind": "items",
+      "title": "The case for the pen",
+      "mode": "Independent classroom practice after modelling; not a Reading Screener",
+      "instructions": "Questions 1-7: do the following statements agree with the views of the writer? Write YES if the statement agrees with the views of the writer, NO if the statement contradicts the views of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this.",
+      "stimulus": { "type": "passage", "title": "The case for the pen", "labelled": true, "paragraphs": [
+        "In many schools, the time once given to handwriting has shrunk, and keyboards now dominate both classwork and homework. I believe this shift has gone too far, although not for reasons of nostalgia. My concern is not that neat handwriting is a lost art, but that something useful for learning may be disappearing along with it.",
+        "Several studies have suggested that students who take notes by hand tend to summarise in their own words, while those who type are more likely to copy what they hear word for word. Because summarising forces a learner to decide what matters, this difference could affect how well material is understood. I find this line of research persuasive, although I would not call the evidence conclusive, since many of the studies involve small groups of university students.",
+        "None of this means that typing is the enemy. Keyboards are essential for almost every kind of modern work, and it would be absurd to insist that students submit every assignment by hand. For some learners, especially those who find the physical act of writing difficult or painful, a keyboard is not a convenience but a liberation.",
+        "What I propose is a division of labour. Handwriting suits the early, messy stages of thinking: taking notes, sketching a plan, linking ideas with arrows. Keyboards suit the later stages, when a draft needs to be reorganised, corrected and shared. Teaching both, and teaching students when to use each, seems more sensible than choosing one.",
+        "The obvious objection is time. Teachers already struggle to cover their subjects, and adding handwriting lessons would mean removing something else. I accept that the timetable is crowded. However, handwriting does not need its own lessons; students can practise it while planning a history essay or taking notes in science.",
+        "Finally, some argue that schools should simply follow the format of public examinations: if exams are typed, teach typing; if they are handwritten, teach handwriting. This strikes me as the wrong way round. Examinations should reflect how students learn best, not decide it."
+      ] },
+      "items": [
+        { "id": "IELTS-13-R1-Q1", "prompt": "The writer's main concern about the decline of handwriting is a sentimental one.", "answer": "NO", "evidence": "although not for reasons of nostalgia", "reason": "The writer explicitly rejects nostalgia; the concern is about learning.", "focus": "writer stance/purpose", "type": "ynng", "level": "core" },
+        { "id": "IELTS-13-R1-Q2", "prompt": "The writer regards the research on note-taking as conclusive.", "answer": "NO", "evidence": "I would not call the evidence conclusive", "reason": "The writer finds it persuasive but directly denies that it is conclusive, so this is NO, not NOT GIVEN.", "focus": "True/False/Not Given reasoning", "type": "ynng", "level": "core" },
+        { "id": "IELTS-13-R1-Q3", "prompt": "For some students, keyboards offer clear advantages over writing by hand.", "answer": "YES", "evidence": "a keyboard is not a convenience but a liberation", "reason": "'Clear advantages' paraphrases 'a liberation' for learners who find writing difficult.", "focus": "paraphrase recognition", "type": "ynng", "level": "core" },
+        { "id": "IELTS-13-R1-Q4", "prompt": "Handwriting is better suited than typing to the planning stage of work.", "answer": "YES", "evidence": "Handwriting suits the early, messy stages of thinking", "reason": "Planning is one of the early stages the writer lists ('sketching a plan').", "focus": "writer stance/purpose", "type": "ynng", "level": "core" },
+        { "id": "IELTS-13-R1-Q5", "prompt": "Teachers have more than enough time to add handwriting practice to their lessons.", "answer": "NO", "evidence": "I accept that the timetable is crowded", "reason": "The writer concedes that time is limited; the solution is to combine practice with other subjects, not that time is plentiful.", "focus": "inference", "type": "ynng", "level": "core" },
+        { "id": "IELTS-13-R1-Q6", "prompt": "Most parents would support more handwriting practice in schools.", "answer": "NOT GIVEN", "evidence": "Parents are not mentioned.", "reason": "The writer gives no view about parents' opinions.", "focus": "True/False/Not Given reasoning", "type": "ynng", "level": "core" },
+        { "id": "IELTS-13-R1-Q7", "prompt": "The format of examinations should determine how students are taught to write.", "answer": "NO", "evidence": "Examinations should reflect how students learn best, not decide it", "reason": "The writer calls this approach 'the wrong way round'.", "focus": "writer stance/purpose", "type": "ynng", "level": "extension" }
+      ],
+      "support": "Foundation: highlight opinion signals first. The teacher may name the paragraph for two items; record which.",
+      "extension": "For each NO answer, underline the word in the statement that makes it different from the writer's view (sentimental, conclusive, more than enough, determine).",
+      "high_band": "Explain in one sentence why Question 2 is NO rather than NOT GIVEN."
+    },
+    {
+      "id": "IELTS-13-R2",
+      "kind": "items",
+      "title": "Fact, concession or recommendation?",
+      "mode": "Guided practice; same passage",
+      "instructions": "Questions 8-11: what kind of statement is each sentence from the passage? Write F for a fact or reported finding, C for a concession (the writer accepts a point against their view), or R for the writer's recommendation.",
+      "stimulus": { "type": "passage", "title": "The case for the pen (same passage)", "labelled": true, "workbook_reference": "Use the passage printed with Questions 1-7.", "paragraphs": [
+        "In many schools, the time once given to handwriting has shrunk, and keyboards now dominate both classwork and homework. I believe this shift has gone too far, although not for reasons of nostalgia. My concern is not that neat handwriting is a lost art, but that something useful for learning may be disappearing along with it.",
+        "Several studies have suggested that students who take notes by hand tend to summarise in their own words, while those who type are more likely to copy what they hear word for word. Because summarising forces a learner to decide what matters, this difference could affect how well material is understood. I find this line of research persuasive, although I would not call the evidence conclusive, since many of the studies involve small groups of university students.",
+        "None of this means that typing is the enemy. Keyboards are essential for almost every kind of modern work, and it would be absurd to insist that students submit every assignment by hand. For some learners, especially those who find the physical act of writing difficult or painful, a keyboard is not a convenience but a liberation.",
+        "What I propose is a division of labour. Handwriting suits the early, messy stages of thinking: taking notes, sketching a plan, linking ideas with arrows. Keyboards suit the later stages, when a draft needs to be reorganised, corrected and shared. Teaching both, and teaching students when to use each, seems more sensible than choosing one.",
+        "The obvious objection is time. Teachers already struggle to cover their subjects, and adding handwriting lessons would mean removing something else. I accept that the timetable is crowded. However, handwriting does not need its own lessons; students can practise it while planning a history essay or taking notes in science.",
+        "Finally, some argue that schools should simply follow the format of public examinations: if exams are typed, teach typing; if they are handwritten, teach handwriting. This strikes me as the wrong way round. Examinations should reflect how students learn best, not decide it."
+      ] },
+      "items": [
+        { "id": "IELTS-13-R2-Q8", "prompt": "'Several studies have suggested that students who take notes by hand tend to summarise in their own words.'", "options": ["F", "C", "R"], "answer": "F", "evidence": "Several studies have suggested that students who take notes by hand tend to summarise in their own words", "reason": "It reports what research suggests; it is not the writer's own opinion.", "focus": "writer stance/purpose", "type": "matching", "level": "core" },
+        { "id": "IELTS-13-R2-Q9", "prompt": "'Keyboards are essential for almost every kind of modern work.'", "options": ["F", "C", "R"], "answer": "C", "evidence": "Keyboards are essential for almost every kind of modern work", "reason": "The writer accepts a point that could be used against the argument for handwriting.", "focus": "writer stance/purpose", "type": "matching", "level": "core" },
+        { "id": "IELTS-13-R2-Q10", "prompt": "'Teaching both, and teaching students when to use each, seems more sensible than choosing one.'", "options": ["F", "C", "R"], "answer": "R", "evidence": "Teaching both, and teaching students when to use each, seems more sensible than choosing one", "reason": "This is the writer's proposal: what schools should do.", "focus": "writer stance/purpose", "type": "matching", "level": "core" },
+        { "id": "IELTS-13-R2-Q11", "prompt": "'I accept that the timetable is crowded.'", "options": ["F", "C", "R"], "answer": "C", "evidence": "I accept that the timetable is crowded", "reason": "'I accept' signals a concession to the objection about time.", "focus": "writer stance/purpose", "type": "matching", "level": "extension" }
+      ],
+      "high_band": "Find one more concession in the passage and explain how the writer responds to it."
+    }
+  ],
+  "stages": [
+    { "start": 0, "end": 6, "title": "Opening challenge: facts or views?", "show": [{ "block": "IELTS-13-K1", "part": "questions" }, { "block": "IELTS-13-K1", "part": "answers" }], "student": "Decide whether each statement is about a fact or a view, and answer it.", "teacher": "Reveal statement by statement. Establish: TRUE/FALSE/NOT GIVEN for information; YES/NO/NOT GIVEN for the writer's views or claims.", "say": "The writer's enthusiasm is not evidence of facts.", "check": "Learners can explain Statement 3." },
+    { "start": 6, "end": 12, "title": "Strategy: find the writer's voice", "show": [], "student": "Skim the passage and highlight opinion signals: I believe, in my view, I find, I accept, I propose, strikes me.", "teacher": "Model paragraph A: separate the fact (time has shrunk) from the view (gone too far) and the clarification (not nostalgia). Foundation group highlights together, recorded as support.", "say": "Opinion signals tell you where the writer's views are. Questions 1-7 test only those views.", "check": "Learners have highlighted at least six signals." },
+    { "start": 12, "end": 24, "title": "Independent practice: Questions 1-7", "show": [{ "block": "IELTS-13-R1", "part": "questions" }], "student": "Answer Questions 1-7 alone in 12 minutes. Quote evidence for YES and NO; for NOT GIVEN, write what is missing.", "teacher": "Keep answers private. Record support. Early finishers start Questions 8-11.", "say": "Watch for words that make a statement stronger than the writer's view: completely, conclusive, more than enough.", "check": "Original answers committed." },
+    { "start": 24, "end": 34, "title": "Review: NO or NOT GIVEN?", "show": [{ "block": "IELTS-13-R1", "part": "answers" }], "student": "Check answers. For each wrong answer, write whether you confused NO and NOT GIVEN, or misread a strong word.", "teacher": "Reveal in groups. Spend time on Q2 (persuasive but not conclusive: NO) and Q5 (a concession: NO). Contrast with Q6 (parents never mentioned: NOT GIVEN).", "say": "NO means the writer says the opposite. NOT GIVEN means the writer says nothing about it.", "check": "Learners can explain the difference using Q2 and Q6." },
+    { "start": 34, "end": 41, "title": "Fact, concession or recommendation?", "show": [{ "block": "IELTS-13-R2", "part": "questions" }], "student": "Classify Questions 8-11.", "teacher": "Circulate. High-band learners find one more concession and the writer's response.", "say": "Good writers admit points against them, then answer them.", "check": "All answers committed." },
+    { "start": 41, "end": 48, "title": "Review: how the argument works", "show": [{ "block": "IELTS-13-R2", "part": "answers" }], "student": "Check answers and map the argument: view, evidence, concession, response, proposal.", "teacher": "Reveal Q8-Q11. Link to Writing Task 2 (Lesson 7): the same structure of concession and response makes an essay convincing.", "say": "The concession-and-response pattern you see here is the one you use in Task 2.", "check": "Learners can name one concession and its response." },
+    { "start": 48, "end": 54, "title": "My reading log", "show": [], "student": "In the log at the end of the workbook, record each wrong answer, the trap (NO vs NOT GIVEN, strong word, fact vs view) and one strategy.", "teacher": "Note the trap types learners actually record. No band conversion.", "say": "Your log tells you which trap to watch for next time.", "check": "Each learner has one strategy target." },
+    { "start": 54, "end": 60, "title": "Exit ticket and homework", "show": [], "student": "Complete the exit ticket and take the homework sheet.", "teacher": "Collect exit tickets. Assign online practice only through the existing workflow. Record the fresh-check date.", "say": "Next lesson: a longer listening with several speakers and delayed answers.", "check": "Everyone knows the homework and check date." }
+  ],
+  "exit_ticket": [
+    "When to use YES/NO/NOT GIVEN instead of TRUE/FALSE/NOT GIVEN:",
+    "The difference between NO and NOT GIVEN, in my own words:",
+    "One strong word that can turn a statement into NO:"
+  ],
+  "homework": [
+    "Find an opinion article in English (a column or editorial). Highlight the writer's opinion signals and write three YES/NO/NOT GIVEN statements about it, with answers.",
+    "Rewrite Questions 1 and 5 so that the answer becomes YES. Change as few words as possible.",
+    "Complete only the Brains Heist reading practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-13-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "About one teaching week after Lesson 13. Eight minutes, no dictionary, no support. Log timing, support and prior exposure. Classroom observation only.",
+    "blocks": [
+      {
+        "id": "IELTS-13-C1",
+        "kind": "items",
+        "title": "Homework for young children",
+        "mode": "Withheld fresh check; independent, timed",
+        "instructions": "Do the following statements agree with the views of the writer? Write YES, NO or NOT GIVEN.",
+        "stimulus": { "type": "passage", "title": "Homework for young children", "labelled": true, "paragraphs": [
+          "Many primary schools set homework every night, often because parents expect it. In my view, regular written homework for children under ten does more to create stress at home than to improve learning.",
+          "That is not to say that all home learning is useless. Reading with a parent, for example, clearly has value, and I would encourage every school to promote it. My objection is to worksheets that repeat what has already been taught, often at the end of a long day.",
+          "Supporters argue that homework builds discipline. Perhaps it does for some children, but discipline can be developed in many other ways, such as caring for a pet or practising a musical instrument. Schools should therefore replace most written homework with shared reading and family activities."
+        ] },
+        "items": [
+          { "id": "IELTS-13-C1-Q1", "prompt": "Daily written homework is the best way for young children to improve their learning.", "answer": "NO", "evidence": "does more to create stress at home than to improve learning", "reason": "The writer thinks it mainly causes stress.", "focus": "writer stance/purpose", "type": "ynng" },
+          { "id": "IELTS-13-C1-Q2", "prompt": "Reading with a parent is a worthwhile activity.", "answer": "YES", "evidence": "Reading with a parent, for example, clearly has value", "reason": "'Worthwhile' paraphrases 'has value'.", "focus": "paraphrase recognition", "type": "ynng" },
+          { "id": "IELTS-13-C1-Q3", "prompt": "Teachers generally dislike setting homework.", "answer": "NOT GIVEN", "evidence": "Teachers' feelings are not mentioned.", "reason": "The writer mentions parents' expectations, not teachers' views.", "focus": "True/False/Not Given reasoning", "type": "ynng" },
+          { "id": "IELTS-13-C1-Q4", "prompt": "Homework is the only way to help children develop discipline.", "answer": "NO", "evidence": "discipline can be developed in many other ways", "reason": "'The only way' contradicts 'many other ways'.", "focus": "detail discrimination", "type": "ynng" }
+        ]
+      }
+    ],
+    "review": "Compare only the observed demands and conditions with Lesson 13 work. Record what the new work shows, counterevidence and the next check. A fresh passage does not by itself establish comparable difficulty or improvement. No percentage, band or mastery cutoff."
+  },
+  "delayed_followup": "In Lesson 18 (timed Academic Reading), check NO versus NOT GIVEN decisions in an unfamiliar passage under time pressure. Record it as a later observation.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage are not independent longitudinal observations.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-20",
+  "number": 20,
+  "week": 10,
+  "version": "0.2.0",
+  "presentation_version": "0.2.0",
+  "title": "Speaking: a complete three-part interview and targeted repair",
+  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
+  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Interview scripts, sample feedback and repair items are original. Human editorial, criterion-alignment and originality review pending.",
+  "audio": { "required": false, "statement": "No pre-recorded audio required. Live speech only. Optional learner self-recording on a personal phone is practice, not uploaded evidence.", "recordings": [] },
+  "prerequisites": [
+    "Lessons 4, 8, 12 and 16: Parts 1, 2 and 3.",
+    "Printed interview scripts for each pair and a visible timer.",
+    "Teacher has read the public Speaking band descriptors. Criterion names structure feedback only; no band is assigned."
+  ],
+  "objectives": [
+    { "text": "Complete a full three-part interview of about 11-14 minutes, moving smoothly between parts.", "focus": ["sustained turn", "discourse organization"] },
+    { "text": "Give and receive specific feedback using the four criterion names, with exact examples of what was said.", "focus": ["learner planning"] },
+    { "text": "Repair common errors immediately: reformulate a sentence with better grammar or a more precise word.", "focus": ["grammatical control", "lexical precision/range"] }
+  ],
+  "levels": {
+    "foundation": "Part 2 notes may use the four-box frame; the examiner may repeat a Part 3 question once; record both as support.",
+    "core": "Complete the full interview within 11-14 minutes and answer all parts without support.",
+    "extension": "In Part 3, qualify every view and add a comparison or consequence.",
+    "high_band": "After the interview, identify two of your own errors from memory or your phone recording, and reformulate them accurately before receiving feedback."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-20-K1",
+      "kind": "contrast",
+      "title": "Which feedback helps?",
+      "mode": "Opening challenge; learners choose before the reveal",
+      "instructions": "Three observers gave feedback after an interview. Which comment would help the candidate most?",
+      "examples": [
+        { "label": "Comment 1", "text": "Good job! Your English is very good.", "comment": "Kind but useless: it names no criterion and gives no example or next step." },
+        { "label": "Comment 2", "text": "Your grammar is bad and you speak too slowly.", "comment": "Too general and discouraging: no example, no explanation, no next step." },
+        { "label": "Comment 3", "text": "Lexical Resource: you used 'very good' four times in Part 3. Try 'effective', 'valuable' or 'worthwhile'. Fluency: in Part 2 you stopped after 70 seconds; next time add a personal example to your reason.", "comment": "Useful. It names the criterion, quotes what was said, and gives a concrete next step." }
+      ]
+    },
+    {
+      "id": "IELTS-20-I1",
+      "kind": "items",
+      "title": "Repair it now",
+      "mode": "Guided practice; answer alone, then check",
+      "instructions": "Choose the best reformulation of each sentence.",
+      "stimulus": { "type": "none" },
+      "items": [
+        { "id": "IELTS-20-I1-Q1", "prompt": "'I am living in this city since five years.'", "options": ["A  I live in this city since five years.", "B  I've been living in this city for five years.", "C  I was living in this city for five years."], "answer": "B", "evidence": "Present perfect continuous with 'for' for a situation that continues now.", "reason": "A keeps the wrong tense and preposition; C suggests the situation has ended.", "focus": "grammatical control", "type": "mcq", "level": "core" },
+        { "id": "IELTS-20-I1-Q2", "prompt": "'Technology is very good for education.'", "options": ["A  Technology is very, very good for education.", "B  Technology can make education more accessible, for example through online courses.", "C  Technology is good and important for education."], "answer": "B", "evidence": "A precise claim with an example replaces a vague adjective.", "reason": "A and C repeat general adjectives without saying how.", "focus": "lexical precision/range", "type": "mcq", "level": "core" },
+        { "id": "IELTS-20-I1-Q3", "prompt": "'If I will have more time, I will learn to cook.'", "options": ["A  If I have more time, I'll learn to cook.", "B  If I would have more time, I learn to cook.", "C  If I had more time, I will learn to cook."], "answer": "A", "evidence": "First conditional: if + present simple, will + verb.", "reason": "B and C mix conditional forms incorrectly.", "focus": "grammatical control", "type": "mcq", "level": "core" },
+        { "id": "IELTS-20-I1-Q4", "prompt": "'People which live in cities have more stress.'", "options": ["A  People who live in cities often experience more stress.", "B  People that lives in cities have more stress.", "C  People which living in cities have more stress."], "answer": "A", "evidence": "'who' for people, and a hedge ('often') for a general claim.", "reason": "B has an agreement error; C is ungrammatical.", "focus": "grammatical control", "type": "mcq", "level": "extension" }
+      ]
+    },
+    {
+      "id": "IELTS-20-S1",
+      "kind": "speaking",
+      "title": "Full interview: script A",
+      "mode": "Paired full-interview practice; teacher observes a rotating sample live",
+      "prompts": [
+        "Part 1 (4-5 minutes). Let's talk about where you study or work. What do you like most about it? Is there anything you would change? Now let's talk about music. What kind of music do you listen to? Did you learn to play an instrument as a child? Let's talk about weekends. How do you usually spend your weekends? Are your weekends different now from when you were younger?",
+        "Part 2 (3-4 minutes). Describe a goal you worked hard to achieve. You should say: what the goal was; when you set it; what you did to achieve it; and explain how you felt when you achieved it. You have one minute to prepare. Rounding-off question: Do you set goals often?",
+        "Part 3 (4-5 minutes). Why do some people find it easier than others to achieve their goals? Should schools teach students how to set goals? Why or why not? Do you think people today have more pressure to succeed than in the past? How might the idea of success change in the future?"
+      ],
+      "instructions": "Pairs: examiner and candidate. The examiner reads the script exactly, times each part, and moves on politely when time is up. The candidate may record the interview on their own phone for self-review (optional, not uploaded). Swap roles with script B. Classroom timing modelled on the published format.",
+      "support": "Part 2 four-box frame; examiner may repeat a Part 3 question once.",
+      "extension": "Qualify every Part 3 view and add a comparison or consequence.",
+      "high_band": "Self-identify two errors and reformulate them before receiving feedback.",
+      "observation": "Teacher listens live to a rotating sample. Record only learners actually heard: timing of each part, development, coherence, range, accuracy and any intelligibility issue heard live. Pronunciation comments only from live hearing or approved audio. Learners not heard are recorded as not yet observed and scheduled for an individual interview."
+    },
+    {
+      "id": "IELTS-20-S2",
+      "kind": "speaking",
+      "title": "Full interview: script B",
+      "mode": "Paired full-interview practice; roles swapped",
+      "prompts": [
+        "Part 1 (4-5 minutes). Let's talk about your home town. What is it known for? Has it changed much in recent years? Now let's talk about reading. Do you prefer reading on paper or on a screen? What did you enjoy reading as a child? Let's talk about shopping. Do you enjoy shopping? Do you prefer shopping online or in shops?",
+        "Part 2 (3-4 minutes). Describe a useful piece of advice someone gave you. You should say: who gave you the advice; what the advice was; when you used it; and explain why it was useful. You have one minute to prepare. Rounding-off question: Do you often ask other people for advice?",
+        "Part 3 (4-5 minutes). Who do young people usually ask for advice in your country? Is advice from older people always better than advice from friends? Why do some people prefer to get advice online? Do you think professional advice, such as from career advisers, will become more or less important?"
+      ],
+      "instructions": "Swap roles from script A. Same timing and rules.",
+      "support": "Part 2 four-box frame; examiner may repeat a Part 3 question once.",
+      "extension": "Qualify every Part 3 view and add a comparison or consequence.",
+      "observation": "As for script A: record only what was heard live. Learners not heard are recorded as not yet observed."
+    }
+  ],
+  "stages": [
+    { "start": 0, "end": 4, "title": "Opening challenge: which feedback helps?", "show": [{ "block": "IELTS-20-K1", "part": "questions" }, { "block": "IELTS-20-K1", "part": "answers" }], "student": "Choose the most helpful comment, then compare with the reveal.", "teacher": "Reveal comments. Set the rule for today: every comment names a criterion, quotes what was said and gives a next step.", "say": "Feedback should tell the candidate exactly what to do next.", "check": "Learners can say why Comment 3 is useful." },
+    { "start": 4, "end": 8, "title": "Repair it now", "show": [{ "block": "IELTS-20-I1", "part": "questions" }, { "block": "IELTS-20-I1", "part": "answers" }], "student": "Choose the best reformulation for four sentences, then check.", "teacher": "Reveal quickly. Model self-repair aloud: 'I am living... sorry, I've been living here for five years.'", "say": "Correcting yourself naturally is fine. It shows control.", "check": "Learners can reformulate Q1 aloud." },
+    { "start": 8, "end": 23, "title": "Interview 1: script A", "show": [{ "block": "IELTS-20-S1", "part": "prompt" }], "student": "Candidate answers; examiner reads script A exactly and keeps time.", "teacher": "Call the part changes for the whole class if helpful. Observe a rotating sample and record only what you hear.", "say": "Part 1 short and developed; Part 2 up to two minutes; Part 3 qualified and explained.", "check": "Every pair has completed script A." },
+    { "start": 23, "end": 27, "title": "Feedback round 1", "show": [], "student": "Examiner gives two comments using the feedback form at the end of the workbook: criterion, quote, next step. Candidate notes them.", "teacher": "Check that comments quote what was said.", "say": "Criterion, quote, next step.", "check": "Every candidate has two written comments." },
+    { "start": 27, "end": 42, "title": "Interview 2: script B", "show": [{ "block": "IELTS-20-S2", "part": "prompt" }], "student": "Swap roles. Complete script B.", "teacher": "Observe a different sample. Foundation support as recorded.", "say": "Use your partner's feedback from round 1 if you are the candidate again later.", "check": "Every pair has completed script B." },
+    { "start": 42, "end": 46, "title": "Feedback round 2", "show": [], "student": "Examiner gives two comments using the feedback form.", "teacher": "Collect a sample of feedback forms to check quality.", "say": "Criterion, quote, next step.", "check": "Every candidate has two written comments." },
+    { "start": 46, "end": 55, "title": "Targeted repair clinic", "show": [], "student": "From your feedback and the teacher's whole-class notes, choose two errors. Write the original and the repaired version, then say each repaired sentence aloud three times in different contexts.", "teacher": "Share anonymised common errors you heard (no names). Pronunciation points only for issues heard live, modelled and practised aloud.", "say": "Repair the pattern, then use it in new sentences.", "check": "Each learner has two repaired patterns." },
+    { "start": 55, "end": 60, "title": "Exit ticket and homework", "show": [], "student": "Complete the exit ticket and take the homework sheet.", "teacher": "Record the schedule for individual interviews with learners not observed and for the fresh check.", "say": "Next lesson: fresh Listening and Reading checks under timed conditions.", "check": "Everyone knows their next check date." }
+  ],
+  "feedback_form": true,
+  "exit_ticket": [
+    "The part of the interview I found hardest, and why:",
+    "One comment from my partner (criterion, quote, next step):",
+    "One repaired sentence I will use next time:"
+  ],
+  "homework": [
+    "Using your optional phone recording or your memory, write three sentences you said today and improve each one (grammar, a more precise word, or a better example).",
+    "Practise one Part 2 card from today twice more at home with a timer, adding a new detail each time.",
+    "Complete only the Brains Heist speaking practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-20-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "Within two teaching weeks of Lesson 20, individually, in a separately scheduled 15-minute slot (not inside a 60-minute lesson). Use the script exactly; no support. Use an approved Brains Heist speaking recording route if released for this purpose; otherwise record live observations only. Log conditions and prior exposure.",
+    "blocks": [
+      {
+        "id": "IELTS-20-C1",
+        "kind": "speaking",
+        "title": "Fresh full interview: script C",
+        "mode": "Withheld fresh check; individual, separately scheduled",
+        "prompts": [
+          "Part 1. Let's talk about your daily routine. What is the busiest time of your day? Would you like to change your routine? Now let's talk about photographs. Do you take many photos? Do you prefer photos on your phone or printed photos? Let's talk about neighbours. How well do you know your neighbours? Is it important to have good neighbours?",
+          "Part 2. Describe a time when you had to change your plans. You should say: what your original plan was; why you had to change it; what you did instead; and explain how you felt about the change. One minute to prepare. Rounding-off question: Do you usually make detailed plans?",
+          "Part 3. Why do some people find it difficult to adapt to change? Are young people better at dealing with change than older people? How has technology changed the way people make plans? Do you think it will be more important in the future to be flexible at work? Why?"
+        ],
+        "instructions": "Read the script exactly. Time each part (Part 1: 4-5 minutes; Part 2: one minute preparation and up to two minutes; Part 3: 4-5 minutes). Do not prompt or model.",
+        "observation": "Record for each part: timing, development, coherence, range and accuracy with exact examples, and intelligibility only as heard live or on approved audio. Compare only with Lesson 20 observations of similar demand. No band or pronunciation rating from notes."
+      }
+    ],
+    "review": "Compare only observed demands and conditions with Lesson 20 work. Record what the new interview shows, counterevidence and the next check. A new script does not by itself establish comparable difficulty or improvement. No band, percentage or mastery label."
+  },
+  "delayed_followup": "In Lesson 22, use a new Part 2 card to check whether the learner's two repaired patterns appear accurately without prompting. Record it as a later observation.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.4 teachable micro-skills. Draft teaching focuses only. Peer interviews are practice; only teacher-observed or approved-audio evidence informs reviews.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
+  ]
+}

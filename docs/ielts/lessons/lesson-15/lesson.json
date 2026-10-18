@@ -1,0 +1,154 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-15",
+  "number": 15,
+  "week": 8,
+  "version": "0.2.0",
+  "presentation_version": "0.2.0",
+  "title": "Writing Task 2: planning and writing a complete response under time",
+  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
+  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Prompts, excerpts and models are original. Human editorial, model, criterion-alignment, difficulty and originality review pending.",
+  "audio": { "required": false, "statement": "No recording required. Writing lesson.", "recordings": [] },
+  "prerequisites": [
+    "Lesson 7 (position statements and argument chains) and its homework essay, returned with teacher feedback before this lesson.",
+    "Teacher has read the public IELTS Writing Task 2 band descriptors. Feedback uses criterion names only; no band is assigned.",
+    "Each learner has their Lesson 7 essay with the teacher's comments for the feedback clinic."
+  ],
+  "objectives": [
+    { "text": "Plan a complete 'to what extent' response in five minutes: position, two developed paragraphs, concession and response.", "focus": ["thesis/position clarity", "paragraph control"] },
+    { "text": "Diagnose common Task 2 problems: unclear position, underdeveloped ideas, weak logical links and irrelevance.", "focus": ["idea development", "cohesion", "register/task fulfilment"] },
+    { "text": "Write an introduction and a developed body paragraph under time, then make targeted edits to an earlier essay.", "focus": ["idea development", "lexical precision", "grammatical error families"] }
+  ],
+  "levels": {
+    "foundation": "Use the five-line plan template (position, reason 1 + example, reason 2 + example, concession, response); record its use as support.",
+    "core": "Plan in five minutes and write an introduction and one body paragraph (about 170-200 words) in 20 minutes.",
+    "extension": "Include a concession and response inside the body paragraph, and vary sentence openings.",
+    "high_band": "Write with no more than one repeated content word in the body paragraph, and make the final sentence of the paragraph link explicitly to the position in the introduction."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-15-K1",
+      "kind": "contrast",
+      "title": "Three plans for one question",
+      "mode": "Opening challenge; learners rank before the reveal",
+      "instructions": "Question: Many museums and galleries charge entrance fees. Some people think that they should be free for everyone. To what extent do you agree or disagree? Which plan is strongest?",
+      "examples": [
+        { "label": "Plan 1", "text": "Introduction: museums are interesting. Body 1: history is important for young people. Body 2: museums have beautiful art. Conclusion: museums are good.", "comment": "Off-task. It never addresses fees or free entry, so it cannot answer 'to what extent'." },
+        { "label": "Plan 2", "text": "Introduction: I completely agree. Body 1: free entry helps poor people. Body 2: free entry helps tourists. Body 3: free entry helps students.", "comment": "Relevant and clear, but three thin reasons with no examples risk underdevelopment, and the plan ignores the strongest argument against the writer." },
+        { "label": "Plan 3", "text": "Introduction: largely agree, for permanent collections. Body 1: the case for fees (income, independence from government). Body 2: why free access matters more (purpose of public museums, low-income visitors, school trips). Body 3: other funding (special exhibitions, donations, shops). Conclusion: free access, with other income.", "comment": "Strongest. A clear, qualified position; the opposing view is treated fairly; the writer's view is developed; a practical response answers the main objection." }
+      ]
+    },
+    {
+      "id": "IELTS-15-I1",
+      "kind": "items",
+      "title": "What is the main problem?",
+      "mode": "Guided practice; answer alone, then discuss",
+      "instructions": "Each excerpt comes from an essay on the museum question. Choose the main problem: A position unclear; B idea not developed; C ideas not logically connected; D irrelevant to the question.",
+      "stimulus": { "type": "none" },
+      "items": [
+        { "id": "IELTS-15-I1-Q1", "prompt": "'Fees give museums money. Free entry helps students. Shops sell souvenirs. Therefore, museums should be free.'", "options": ["A  position unclear", "B  idea not developed", "C  ideas not logically connected", "D  irrelevant to the question"], "answer": "C", "evidence": "Three unrelated statements lead to a conclusion that does not follow.", "reason": "'Therefore' suggests a logical result, but the sentences are not linked in an argument.", "focus": "cohesion", "type": "mcq", "level": "core" },
+        { "id": "IELTS-15-I1-Q2", "prompt": "'Museums are important places. There are many museums in the world. Some charge money and some do not. This is an interesting topic.'", "options": ["A  position unclear", "B  idea not developed", "C  ideas not logically connected", "D  irrelevant to the question"], "answer": "A", "evidence": "No sentence states whether museums should be free.", "reason": "An introduction must show the writer's position; this one only describes the topic.", "focus": "thesis/position clarity", "type": "mcq", "level": "core" },
+        { "id": "IELTS-15-I1-Q3", "prompt": "'Museums should be free because many young people today spend too much time on social media, which harms their mental health.'", "options": ["A  position unclear", "B  idea not developed", "C  ideas not logically connected", "D  irrelevant to the question"], "answer": "D", "evidence": "The reason concerns social media and mental health, not museum fees.", "reason": "The essay drifts to a different topic; the link to free entry is never made.", "focus": "register/task fulfilment", "type": "mcq", "level": "extension" },
+        { "id": "IELTS-15-I1-Q4", "prompt": "'Free museums help poor people. This is a very important advantage.'", "options": ["A  position unclear", "B  idea not developed", "C  ideas not logically connected", "D  irrelevant to the question"], "answer": "B", "evidence": "The claim is repeated, not explained or illustrated.", "reason": "How do free museums help? Which people? A specific situation is needed.", "focus": "idea development", "type": "mcq", "level": "core" }
+      ],
+      "extension": "Rewrite the excerpt from Question 2 so that the idea is developed with an explanation and a specific example."
+    },
+    {
+      "id": "IELTS-15-W1",
+      "kind": "writing",
+      "task": "paragraph",
+      "title": "Plan, introduce, develop",
+      "mode": "Independent timed classroom application; not a full IELTS Writing task or Writing Screener",
+      "prompt": "Many museums and galleries charge entrance fees. Some people think that they should be free for everyone. To what extent do you agree or disagree? Plan your whole essay in five minutes, then write the introduction and ONE body paragraph (about 170-200 words).",
+      "conditions": "5 minutes to plan, 20 minutes to write. No dictionary or model. Record any use of the plan template.",
+      "support": "Five-line plan template: Position / Reason 1 + example / Reason 2 + example / Concession / Response.",
+      "extension": "Include a concession and response inside the body paragraph.",
+      "high_band": "Make the last sentence of the body paragraph link explicitly back to the position in your introduction.",
+      "model_label": "Illustrative classroom model for discussion only. Not a certified band answer.",
+      "model": "Many museums and galleries ask visitors to pay for entry, and some people argue that these institutions should be free for everyone. While I recognise that charging fees can help museums survive, I largely agree that free entry is the better policy, at least for permanent collections.\n\nThe main purpose of a public museum is to make culture and knowledge available to everyone, and fees work directly against that purpose. Even a modest charge can discourage families on low incomes, students and people who simply want to visit for half an hour on their way home. When entry is free, a museum can become part of everyday life rather than an occasional, planned expense. Many schools also rely on free access to organise visits that would otherwise be too costly for some pupils. For these reasons, free entry does more to fulfil a museum's public role than any income a ticket could bring.",
+      "checklist": [
+        "Task Response: Does the introduction answer 'to what extent' with a clear, qualified position?",
+        "Task Response: Is the body paragraph's idea fully developed with explanation and a specific example?",
+        "Coherence and Cohesion: Does each sentence follow logically from the previous one? Does the paragraph link back to the position?",
+        "Lexical Resource and Grammatical Range and Accuracy: Are words precise and natural? Which error family appears (articles, agreement, prepositions)?"
+      ]
+    },
+    {
+      "id": "IELTS-15-W2",
+      "kind": "writing",
+      "task": "task2",
+      "min_words": 250,
+      "title": "Complete essay under time",
+      "mode": "Timed homework under declared conditions; teacher feedback uses the four criteria. Not a Writing Screener.",
+      "prompt": "Many museums and galleries charge entrance fees. Some people think that they should be free for everyone. To what extent do you agree or disagree? Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words.",
+      "conditions": "40 minutes, in one sitting, without a dictionary, translator, AI tool or model. Plan for the first 5 minutes and keep 3 minutes at the end to check. Write the start and finish time. You may reuse your class paragraphs only if you mark them.",
+      "support": "Plan: Introduction (paraphrase + qualified position) / Body 1 (the opposing view, fairly) / Body 2 (your view, developed) / Body 3 or response (how the main objection can be handled) / Conclusion.",
+      "extension": "Use a concession in your conclusion that shows the limits of your position.",
+      "high_band": "In the final 3 minutes, check for one repeated error family from your Lesson 7 feedback and correct it in a different colour.",
+      "model_label": "Illustrative model essay for teacher discussion after learners submit their own essays. Not a certified band answer and not rated under official IELTS conditions.",
+      "model": "Many museums and galleries ask visitors to pay for entry, and some people argue that these institutions should be free for everyone. While I recognise that charging fees can help museums survive, I largely agree that free entry is the better policy, at least for permanent collections.\n\nThe strongest argument for charging is financial. Maintaining buildings, protecting fragile objects and employing specialist staff are expensive, and entrance fees provide income that does not depend on government decisions. If public funding is cut, a museum with no ticket income may be forced to reduce opening hours or close galleries altogether. Fees may also encourage some visitors to value their visit and spend longer exploring the exhibits.\n\nHowever, the main purpose of a public museum is to make culture and knowledge available to everyone, and fees work directly against that purpose. Even a modest charge can discourage families on low incomes, students and people who simply want to visit for half an hour on their way home. When entry is free, a museum can become part of everyday life rather than an occasional, planned expense. Many schools also rely on free access to organise visits that would otherwise be too costly for some pupils.\n\nThe financial problem is real, but it can be addressed in other ways. Museums can charge for special exhibitions, invite voluntary donations and earn income from shops and cafés while keeping their main collections open to all.\n\nIn conclusion, although entrance fees provide useful income, I believe the benefits of free access to permanent collections outweigh this advantage, provided that museums develop other sources of funding.",
+      "checklist": [
+        "Task Response: Is the position clear and consistent from introduction to conclusion? Is the opposing view treated fairly and answered?",
+        "Coherence and Cohesion: Does each paragraph have one central idea? Is the progression logical, with appropriate paragraphing?",
+        "Lexical Resource: Is vocabulary precise and natural (income, funding, access, discourage)? Are collocations correct?",
+        "Grammatical Range and Accuracy: Is there a range of complex structures used accurately? Has the Lesson 7 error family improved in this essay?",
+        "Length and time: At least 250 words within 40 minutes, including planning and checking."
+      ]
+    }
+  ],
+  "stages": [
+    { "start": 0, "end": 6, "title": "Opening challenge: three plans", "show": [{ "block": "IELTS-15-K1", "part": "questions" }, { "block": "IELTS-15-K1", "part": "answers" }], "student": "Rank the three plans, then compare with the reveal.", "teacher": "Give 2 minutes to rank, then reveal. Emphasise that a 'to what extent' answer may take one side, but the strongest essays show they have considered the other.", "say": "A good plan answers the question and expects the reader's main objection.", "check": "Learners can say why Plan 1 fails and Plan 2 is weaker than Plan 3." },
+    { "start": 6, "end": 14, "title": "What is the main problem?", "show": [{ "block": "IELTS-15-I1", "part": "questions" }, { "block": "IELTS-15-I1", "part": "answers" }], "student": "Diagnose four excerpts, then check.", "teacher": "Reveal after learners commit. Link each problem to a criterion: A and D to Task Response, B to Task Response and development, C to Coherence and Cohesion.", "say": "These four problems are the most common reasons good ideas lose marks.", "check": "Learners can name the problem in Q1 and how to fix it." },
+    { "start": 14, "end": 19, "title": "Five-minute plan", "show": [{ "block": "IELTS-15-W1", "part": "prompt" }], "student": "Plan the whole essay in five minutes: position, two developed points with examples, a concession and a response.", "teacher": "Time five minutes aloud. Foundation group uses the five-line template, recorded as support.", "say": "Five minutes of planning saves ten minutes of confusion.", "check": "Every learner has a complete plan." },
+    { "start": 19, "end": 39, "title": "Write the introduction and one body paragraph", "show": [], "student": "Write the introduction and one developed body paragraph in 20 minutes.", "teacher": "Do not correct during writing. Record support and interruptions.", "say": "Use your plan. Develop one idea fully rather than listing several.", "check": "Original work collected or kept unchanged." },
+    { "start": 39, "end": 46, "title": "Compare with the model and the criteria", "show": [{ "block": "IELTS-15-W1", "part": "model" }], "student": "Read the model, then use the checklist under your writing to mark one strength and one change.", "teacher": "Show the model only after writing. Point out the qualified position and how the final sentence links back to it. It is a classroom model, not a template.", "say": "Notice how the last sentence of the paragraph returns to the position.", "check": "Each learner has marked one strength and one change." },
+    { "start": 46, "end": 55, "title": "Feedback clinic: two targeted edits", "show": [], "student": "Open your Lesson 7 essay and the teacher's comments. Make two edits in a different colour: one for the main criterion comment and one for your most frequent error family. Keep the original visible.", "teacher": "Circulate and check that edits address the actual feedback. Edits to a returned essay are revision practice, not new evidence of independent improvement.", "say": "Fix the problem your teacher identified, not the easiest one.", "check": "Each learner has made two edits linked to the feedback." },
+    { "start": 55, "end": 60, "title": "Exit ticket and homework", "show": [{ "block": "IELTS-15-W2", "part": "prompt" }], "student": "Complete the exit ticket. Copy the homework conditions for the full essay.", "teacher": "Collect class writing and exit tickets. Explain the 40-minute conditions. Record the fresh-check date (separately arranged full essay).", "say": "Forty minutes: five to plan, thirty-two to write, three to check.", "check": "Everyone knows the homework conditions and deadline." }
+  ],
+  "exit_ticket": [
+    "The four most common Task 2 problems:",
+    "How I will use the first five minutes of the test:",
+    "The error family I will check for in the final three minutes:"
+  ],
+  "homework": [
+    "Write the complete essay on the Homework sheet under the stated conditions: 40 minutes, at least 250 words, no dictionary, translator or AI tool.",
+    "Keep your Lesson 7 essay with the two edits for your teacher to see.",
+    "Complete only the Brains Heist writing practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-15-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "About one teaching week after Lesson 15, in a separately arranged 40-minute block (not inside a 60-minute lesson). No model, template or dictionary. Log time, support, interruptions and prior exposure. Classroom observation only.",
+    "blocks": [
+      {
+        "id": "IELTS-15-C1",
+        "kind": "writing",
+        "task": "task2",
+        "min_words": 250,
+        "title": "Community service at school",
+        "mode": "Withheld fresh check; complete essay, independent, timed",
+        "prompt": "Some people believe that unpaid community service should be a compulsory part of high school programmes. To what extent do you agree or disagree? Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words.",
+        "conditions": "40 minutes, independent. No model, plan template or dictionary. Record any support.",
+        "model_label": "Illustrative teacher-only reference for review discussion. Not a certified band answer.",
+        "model": "In some countries, secondary school students are required to spend time doing unpaid work in their local community, such as helping at libraries or care homes. I agree that community service should be part of the school programme, although I believe the requirement should be flexible.\n\nOpponents of compulsory service make a fair point. Teenagers already face heavy academic workloads, and adding a requirement may increase stress, particularly for students who work part-time to support their families. Moreover, service that is forced rather than chosen may be done reluctantly, which reduces its value both for the student and for the people being helped.\n\nNevertheless, the benefits are considerable. Community service gives young people experiences that classrooms cannot provide: organising events, working with people of different ages and taking responsibility for real tasks. A student who reads to elderly residents every week, for example, learns patience and communication skills that will matter in any future career. Many students would never try such activities unless school encouraged them, and some discover interests that shape their later choices.\n\nThe concerns about workload and motivation can be reduced through flexibility. Schools could allow students to choose the type of service, spread the hours across several years and count existing responsibilities, such as caring for younger siblings. Schools could also invite local organisations to suggest projects, so that the work meets genuine needs rather than simply filling hours.\n\nIn conclusion, I believe community service should be a compulsory part of high school, provided that students have genuine choice about how and when they complete it.",
+        "checklist": [
+          "Task Response: Is the position clear, qualified where appropriate, and maintained throughout?",
+          "Coherence and Cohesion: Is the essay organised with clear paragraphing and logical progression?",
+          "Lexical Resource and Grammatical Range and Accuracy: Note precise language and the main error family with examples from the learner's text.",
+          "Compare only with similar observed demands from Lessons 7 and 15. A new prompt is not automatically comparable."
+        ]
+      }
+    ],
+    "review": "Compare only observed demands and conditions. Record what the new essay shows (position, development, organisation, accuracy), counterevidence and the next check. No band, percentage or improvement claim from this check alone."
+  },
+  "delayed_followup": "In Lesson 19 (writing revision clinic) and Lesson 22 (fresh productive evidence), compare position clarity and development on new prompts under the same 40-minute conditions. Record later observations only.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.3 teachable micro-skills. Draft teaching focuses only. Revisions of returned essays are practice, not independent evidence.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
+  ]
+}

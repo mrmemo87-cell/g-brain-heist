@@ -1,0 +1,137 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-16",
+  "number": 16,
+  "week": 8,
+  "version": "0.2.0",
+  "presentation_version": "0.2.0",
+  "title": "Speaking Part 3: abstract discussion and second progress review",
+  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
+  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Questions, sample answers and review materials are original. Human editorial, model, criterion-alignment and originality review pending.",
+  "audio": { "required": false, "statement": "No pre-recorded audio required. Live speech only. Optional learner self-recording on a personal phone is practice, not uploaded evidence.", "recordings": [] },
+  "prerequisites": [
+    "Lessons 8 and 12: developed answers and sustained turns.",
+    "Before class, the teacher completes the second progress review sheet privately for each learner from saved evidence (screeners, review states, Lessons 1-15 observations, fresh checks). Missing evidence is recorded as missing, not estimated.",
+    "Teacher has read the public Speaking band descriptors. Criterion names structure feedback only; no band is assigned."
+  ],
+  "objectives": [
+    { "text": "Answer abstract Part 3 questions with a clear view, a reason, an example and a consequence or comparison.", "focus": ["topic development", "discourse organization"] },
+    { "text": "Qualify opinions, evaluate other people's arguments and speculate about the future with appropriate language.", "focus": ["lexical precision/range", "grammatical range"] },
+    { "text": "Review evidence from Lessons 1-16 with the teacher and agree priorities for Weeks 9-12.", "focus": ["learner planning"] }
+  ],
+  "levels": {
+    "foundation": "Use the Part 3 move card (view / because / for example / so) and the language bank; aim for 20-30 seconds per answer; record support.",
+    "core": "Answer each Part 3 question in about 30-45 seconds without the card, including one example.",
+    "extension": "In at least two answers, compare past and present or two groups of people, and give a consequence.",
+    "high_band": "Qualify every view (to some extent, it depends on, not entirely), evaluate an opposing argument fairly, and speculate using a range of forms (I suspect, it's likely that, if ... were to ...)."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-16-K1",
+      "kind": "contrast",
+      "title": "Three answers to one Part 3 question",
+      "mode": "Opening challenge; teacher reads each answer aloud",
+      "instructions": "Question: Do you think computers will replace teachers in the future? Which answer is most effective, and why?",
+      "examples": [
+        { "label": "Answer 1", "text": "No. Teachers are very important.", "comment": "Too short and unsupported. It gives a view but no reason, example or development." },
+        { "label": "Answer 2", "text": "Technology is developing very fast in our modern world, and it is changing many aspects of our lives in many different ways, so this is a very interesting and important question for society.", "comment": "Vague. It sounds fluent but never answers the question; there is no view and no specific idea." },
+        { "label": "Answer 3", "text": "Not entirely, I don't think. Computers are already good at giving practice and instant feedback, so I can imagine them taking over routine tasks like marking simple exercises. But much of what teachers do is about motivating people and noticing when someone is struggling, and that's much harder to automate. So I suspect the role will change rather than disappear.", "comment": "Effective. A qualified view, a concession with an example, a reason for the main view, and a prediction that answers 'in the future'." }
+      ]
+    },
+    {
+      "id": "IELTS-16-I1",
+      "kind": "items",
+      "title": "The right language for the job",
+      "mode": "Guided practice before discussion",
+      "instructions": "Choose the most suitable phrase, A, B or C, for each purpose.",
+      "stimulus": { "type": "none" },
+      "items": [
+        { "id": "IELTS-16-I1-Q1", "prompt": "You want to give a view but show that it depends on the situation.", "options": ["A  It is definitely true that ...", "B  To some extent, although it depends on ...", "C  Everybody knows that ..."], "answer": "B", "evidence": "'To some extent' and 'it depends on' qualify the view.", "reason": "A and C present the view as certain and universal, which is rarely convincing in Part 3.", "focus": "lexical precision/range", "type": "mcq", "level": "core" },
+        { "id": "IELTS-16-I1-Q2", "prompt": "You want to accept part of someone else's argument before disagreeing.", "options": ["A  That's a fair point, but ...", "B  That's wrong because ...", "C  I don't know."], "answer": "A", "evidence": "'That's a fair point, but' concedes and then responds.", "reason": "B rejects the argument without evaluating it; C avoids the question.", "focus": "discourse organization", "type": "mcq", "level": "core" },
+        { "id": "IELTS-16-I1-Q3", "prompt": "You want to predict a likely change in the future.", "options": ["A  In the past, people used to ...", "B  I suspect that, over the next few decades, ...", "C  Nowadays, many people ..."], "answer": "B", "evidence": "'I suspect that, over the next few decades' signals a cautious prediction.", "reason": "A describes the past and C describes the present.", "focus": "grammatical range", "type": "mcq", "level": "core" }
+      ]
+    },
+    {
+      "id": "IELTS-16-S1",
+      "kind": "speaking",
+      "title": "Part 3 discussion: work and careers",
+      "mode": "Small-group practice; teacher acts as examiner for one group at a time and observes live",
+      "prompts": [
+        "What kinds of jobs do young people in your country most want to do? Why?",
+        "How has the way people work changed compared with your parents' generation?",
+        "Is it more important for a job to be well paid or interesting? Why?",
+        "Should people be able to retire whenever they choose? Why or why not?",
+        "How might technology change the jobs that people do over the next twenty years?"
+      ],
+      "instructions": "In groups of three: examiner, candidate and observer. The examiner asks three questions and at least one follow-up ('Why do you think that?', 'Can you give an example?', 'Would everyone agree?'). The candidate answers each in about 30-45 seconds. The observer notes the moves heard: view, reason, example, comparison, consequence, qualification. Rotate roles.",
+      "model": "Is it more important for a job to be well paid or interesting? I'd say it depends on someone's situation. For a young person supporting a family, a good salary is obviously the priority, and it would be unfair to tell them to follow their passion. But once people earn enough to live comfortably, I think interest matters more, because you spend most of your waking hours at work, and a boring job can affect your health and relationships. My aunt, for example, left a well-paid office job to train as a nurse, and although she earns less, she's far happier. So ideally a job should be both, but if I had to choose, I'd choose interesting.",
+      "support": "Part 3 move card and language bank: To some extent ... / It depends on ... / That's a fair point, but ... / For example ... / Compared with ... / I suspect that ...",
+      "extension": "Use a comparison (past and present, or two groups of people) in at least two answers.",
+      "high_band": "Evaluate an opposing argument fairly before giving your own view, and use a conditional to speculate.",
+      "observation": "Teacher acts as examiner with one group at a time and records only what was heard live: development moves, qualification, coherence, range and any intelligibility issue. No pronunciation judgment from notes alone. Learners not heard are recorded as not yet observed and scheduled for a separate speaking check."
+    }
+  ],
+  "stages": [
+    { "start": 0, "end": 6, "title": "Opening challenge: three answers", "show": [{ "block": "IELTS-16-K1", "part": "questions" }, { "block": "IELTS-16-K1", "part": "answers" }], "student": "Listen to three answers, choose the most effective, then compare with the reveal.", "teacher": "Read each answer naturally. Reveal comments. Point out that Answer 2 sounds fluent but says nothing: fluency without content does not answer the question.", "say": "In Part 3, the examiner wants your ideas: a view, a reason, an example, a result.", "check": "Learners can say why Answer 2 is weak." },
+    { "start": 6, "end": 12, "title": "The right language for the job", "show": [{ "block": "IELTS-16-I1", "part": "questions" }, { "block": "IELTS-16-I1", "part": "answers" }], "student": "Choose the best phrase for each purpose, then check.", "teacher": "Reveal after learners commit. Drill each phrase briefly in a natural sentence.", "say": "These phrases help you sound thoughtful rather than absolute.", "check": "Learners can produce one qualified view aloud." },
+    { "start": 12, "end": 16, "title": "A model answer", "show": [{ "block": "IELTS-16-S1", "part": "prompt" }, { "block": "IELTS-16-S1", "part": "model" }], "student": "Listen to the model. Note the view, the concession, the reason, the example and the conclusion.", "teacher": "Read the model naturally. Ask learners to identify each move.", "say": "Notice how the answer gives both sides and still reaches a clear choice.", "check": "Learners can name four moves in the model." },
+    { "start": 16, "end": 30, "title": "Part 3 discussion in groups", "show": [{ "block": "IELTS-16-S1", "part": "prompt" }], "student": "Rotate roles: examiner, candidate, observer. Each candidate answers three questions and a follow-up.", "teacher": "Join groups in turn as examiner. Record live observations only for learners actually heard. Foundation learners use the move card, recorded as support.", "say": "If you are not sure, say what it depends on, then explain.", "check": "Every learner has been candidate once; teacher has a list of learners heard and not yet heard." },
+    { "start": 30, "end": 50, "title": "Second progress review: my evidence so far", "show": [], "student": "Complete the self-review at the end of the workbook for Lessons 1-16. Then meet the teacher briefly if called.", "teacher": "While learners complete the self-review, hold 2-minute conferences using the private progress review sheet prepared before class. Share only supported observations, fresh-check results with their conditions, and missing evidence. Agree up to two priorities for Weeks 9-12, the next activity and a check date. Learners not seen today get a scheduled conference. No band, percentage or readiness label.", "say": "This review shows what your evidence says so far and what we still need to check. It is not an IELTS score.", "check": "Each learner seen has agreed priorities and a check date; others have a scheduled conference." },
+    { "start": 50, "end": 55, "title": "Reflection", "show": [], "student": "In the log at the end of the workbook, note one Part 3 move you used well and one to practise.", "teacher": "Note the reflections learners record.", "say": "Weeks 9-12 focus on timed practice and your own priorities.", "check": "Each learner has one Part 3 target." },
+    { "start": 55, "end": 60, "title": "Exit ticket and homework", "show": [], "student": "Complete the exit ticket and take the homework sheet.", "teacher": "Collect exit tickets and self-reviews. Record the conference schedule and fresh speaking-check dates.", "say": "Next stage: timed Listening and Reading, then full writing and speaking practice.", "check": "Everyone knows their next check date or conference time." }
+  ],
+  "exit_ticket": [
+    "A phrase I used to qualify a view:",
+    "One thing my teacher or partner noticed in my Part 3 answers:",
+    "My priorities for Weeks 9-12 (agreed or proposed):"
+  ],
+  "homework": [
+    "Choose two Part 3 questions from today. Record yourself answering each on your own phone (optional, not uploaded) or practise aloud, then answer again adding a qualification and a comparison.",
+    "Write five Part 3 questions about a topic you find difficult (for example, the environment or the economy) and plan a view, reason and example for two of them in note form.",
+    "Complete only the Brains Heist speaking practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-16-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "About one teaching week after Lesson 16, individually, about 5 minutes per learner. Teacher asks the questions without preparation time or a move card. Use an approved Brains Heist speaking recording route if released for this purpose; otherwise record live observations only. Log conditions and prior exposure.",
+    "blocks": [
+      {
+        "id": "IELTS-16-C1",
+        "kind": "speaking",
+        "title": "Fresh Part 3 check: tourism",
+        "mode": "Withheld fresh check; individual, live",
+        "prompts": [
+          "Why do people enjoy visiting other countries?",
+          "What problems can tourism cause for local communities?",
+          "How could tourism become more environmentally friendly?",
+          "Do you think people will travel more or less in the future? Why?"
+        ],
+        "instructions": "Ask all four questions and at least one follow-up ('Why?', 'Can you give an example?', 'Would everyone agree?'). Do not model answers or prompt moves.",
+        "observation": "Record, for each answer, the moves actually heard (view, reason, example, comparison, consequence, qualification), relevance, long hesitation, and intelligibility only as heard live or on approved audio. Compare only with Lesson 16 observations of similar demand. No band or pronunciation rating from notes."
+      }
+    ],
+    "review": "Compare only observed demands and conditions with Lesson 16 work. Record what the new speech shows, counterevidence and the next check. New questions do not by themselves establish comparable difficulty or improvement. No band, percentage or mastery label."
+  },
+  "delayed_followup": "In Lesson 20 (complete speaking interview), check whether learners qualify views and speculate in Part 3 on an unfamiliar topic without the move card. Record later observations only.",
+  "progress_review": {
+    "title": "Second progress review (Lessons 1-16)",
+    "rows": ["Listening", "Reading", "Writing", "Speaking"],
+    "columns": ["Saved evidence (task, date, conditions)", "Supported observation", "Missing or pending evidence", "Agreed next action and check date"],
+    "rules": [
+      "Use only saved platform evidence, teacher-confirmed reviews, dated classroom observations and fresh checks with their recorded conditions.",
+      "Keep guided, corrected or repeated work labelled as practice. A fresh check is not automatically comparable with earlier work.",
+      "Write 'not yet observed' or 'pending review' instead of a guess. Never write a band or percentage.",
+      "Compare with the first progress review only where the evidence is of similar demand and conditions; otherwise record 'change not yet established'.",
+      "Agree at most two priorities for Weeks 9-12, each linked to evidence, with one next activity and one check date."
+    ]
+  },
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.4 teachable micro-skills. Draft teaching focuses only. Group practice turns are not whole-interview evidence.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
+  ]
+}
