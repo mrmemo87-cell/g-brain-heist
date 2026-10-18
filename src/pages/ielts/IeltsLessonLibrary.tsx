@@ -196,12 +196,19 @@ export default function IeltsLessonLibrary({
     <section className="ielts-lessons sp-card" aria-labelledby="ielts-lessons-title">
       <header className="lesson-library-header">
         <button type="button" className="sp-secondary" onClick={onClose}>← Today</button>
-        <div>
+        <div className="lesson-library-title">
           <p className="sp-eyebrow">IELTS teaching programme</p>
           <h2 id="ielts-lessons-title">Lesson library</h2>
-          <p className="lesson-muted">Teaching packs and classroom resources, in one place.</p>
+          <p className="lesson-muted">The 24-lesson course by week, optional extension lessons and full mock tests.</p>
+        </div>
+        <div className="lesson-library-shortcuts">
+          <button type="button" className="sp-secondary" onClick={onProgress}>Student progress</button>
+          <button type="button" className="sp-secondary" onClick={onAssign}>Assign practice</button>
         </div>
       </header>
+      <IeltsReviewDraftPacks key={`review-${schoolId}`} schoolId={schoolId} />
+      <IeltsApprovedTeacherPacks key={schoolId} schoolId={schoolId} />
+      <IeltsTeacherDisclosure title="Lessons 1 and 2: classic online tools" hint="In-app audio player, screener links and the original Lesson 1 and 2 resources" icon="◷" defaultExpanded={false} className="lesson-classic">
       {error && (
         <div role="alert" className="lesson-alert">
           <p>{error}</p>
@@ -387,8 +394,7 @@ export default function IeltsLessonLibrary({
           ) : <p className="lesson-library-upcoming"><strong>Next lesson:</strong> IELTS-02 is not released for this school.</p>}
         </div>
       )}
-      <IeltsApprovedTeacherPacks key={schoolId} schoolId={schoolId} />
-      <IeltsReviewDraftPacks key={`review-${schoolId}`} schoolId={schoolId} />
+      </IeltsTeacherDisclosure>
     </section>
   );
 }
