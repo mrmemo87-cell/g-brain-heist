@@ -39,6 +39,25 @@ export function currentBibleVersions(root = ROOT) {
   };
 }
 
+const semver = (v) => (/^\d+\.\d+\.\d+$/.test(v ?? '') ? v.split('.').map(Number) : null);
+const compareSemver = (a, b) => a.reduce((d, n, i) => d || n - b[i], 0);
+
+/**
+ * Drafts must be built under the current Bibles. An approved source keeps the Bible versions it was approved under
+ * (a later Bible revision does not retroactively re-certify or invalidate it), so those may be any valid earlier version.
+ */
+export function bibleVersionErrors(source, bibles = currentBibleVersions()) {
+  const errors = [];
+  for (const key of ['diagnostic', 'lessons', 'visual']) {
+    const recorded = source.bibles?.[key];
+    if (recorded === bibles[key]) continue;
+    const [r, c] = [semver(recorded), semver(bibles[key])];
+    if (source.approval_record && r && c && compareSemver(r, c) < 0) continue;
+    errors.push(`bibles.${key} ${recorded} does not match current Bible ${bibles[key]}${source.approval_record ? ' (approved sources may keep an earlier version, never a later or invalid one)' : ''}`);
+  }
+  return errors;
+}
+
 function stimulusText(block) {
   return normalize((block.stimulus?.paragraphs ?? []).join(' '));
 }
@@ -264,9 +283,7 @@ export function validateLessonSource(lesson, { bibles = currentBibleVersions() }
     if (!r.approved_by || !r.date || !r.basis) errors.push('approval record needs approved_by, date and basis');
     if (r.version !== lesson.version) errors.push('approval record must name the exact approved version');
   }
-  for (const key of ['diagnostic', 'lessons', 'visual']) {
-    if (lesson.bibles?.[key] !== bibles[key]) errors.push(`bibles.${key} ${lesson.bibles?.[key]} does not match current Bible ${bibles[key]}`);
-  }
+  errors.push(...bibleVersionErrors(lesson, bibles));
   for (const key of ['foundation', 'core', 'extension', 'high_band']) {
     if (!lesson.levels?.[key]) errors.push(`levels.${key} differentiation is required`);
   }

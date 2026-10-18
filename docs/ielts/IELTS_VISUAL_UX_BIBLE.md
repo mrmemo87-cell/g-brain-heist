@@ -1,8 +1,8 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.1.0
-**Effective date:** 2026-10-10  
+**Version:** 1.2.0
+**Effective date:** 2026-10-19  
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
 
@@ -222,3 +222,55 @@ Navigation tests cover unavailable, unfinished, completed and locked skill cards
 Finite entrance motion may remain; remove continuous CTA movement and decorative loops. Presentational animation cannot decide application state or delay save/feedback. Keep GSAP targets component-scoped and respect reduced motion.
 
 The full rendered-screen matrix in sections 7A and 10 remains a release gate. Passing DOM tests, typecheck or a build never replaces browser/device acceptance. Record covered and uncovered families in `IELTS_FRONTEND_QUALITY_2026-10-10.md` before promoting a broad redesign. Do not silently waive this gate or declare every screen professional without evidence.
+
+## 13. Closed-loop presentation contract — v1.2.0
+
+This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnostic Bible decides what these elements mean; this section decides how they look.
+
+### 13.1 Indicative band range (Diagnostic Bible section 9.5)
+- Show the range as the headline, for example **6.0–7.0**, set in the same weight as the raw score. Never show the central value alone or larger than the range.
+- Always visible beside it:
+  - "Indicative band range";
+  - "Not an official IELTS result";
+  - a confidence chip in text (for example "Confidence: low"), not colour alone;
+  - the form code, the date and the raw score (for example "M1 · 29/40").
+- A range bar on the 0–9 scale may show the span. It never animates up to a score.
+- Ineligible evidence, such as practice, screeners or partial forms, shows the raw score and constructs, with "Indicative range needs a full mock".
+
+### 13.2 Learning states (Diagnostic Bible section 8A.4A)
+- Teacher views show the state name followed by "(provisional policy v1)" in secondary text, plus a "Why?" disclosure listing the sources, counts and dates.
+- Student views use the plain section 15B.2 wording and no policy names.
+- States use icon, text and colour together. "Persistent difficulty" is never red-alarm styling; use the neutral attention style plus a next-step action.
+
+### 13.3 AI practice feedback (Diagnostic Bible section 10.5)
+- Place the label "AI practice feedback — your teacher may adjust it" at the top of the feedback panel, not in a footnote.
+- When a teacher has confirmed the feedback, the label changes to "Checked by [teacher name], [date]".
+- Quoted examples from the student's work are highlighted inline, each with one revision action.
+- Practice indications appear as ranges per criterion, never as an overall band.
+
+### 13.4 Weekly loop batch view (Diagnostic Bible section 15B.5)
+- One screen per batch, with four groups in this order:
+  - needs next step;
+  - improving;
+  - stuck after practice;
+  - practice bank gaps.
+- One primary action: "Assign this week's practice".
+- Shared targets show the matching extension lesson as a secondary suggestion.
+- The batch view must load as one scoped, paginated read; no per-student requests.
+
+### 13.5 Report a problem and paper capture
+- Every practice task has a quiet "Report a problem" text control, reachable by keyboard, that opens a short form.
+- The mock capture screen is keyboard-first: one row per student, one column per item, Tab moves to the next item, and the save state is visible per row.
+
+### 13.6 Revision record — 1.2.0 (2026-10-19)
+**Authority.** Owner instruction on 2026-10-19 aligning the Bibles with best practice for results, and Diagnostic Bible 2.0.0.
+
+**Change.** New presentation contracts for:
+- indicative ranges;
+- provisional learning states;
+- AI feedback labels;
+- the weekly batch view;
+- problem reporting;
+- mock capture.
+
+Sections 1–12 are unchanged, and the release evidence in sections 7A and 10 applies to all new screens.

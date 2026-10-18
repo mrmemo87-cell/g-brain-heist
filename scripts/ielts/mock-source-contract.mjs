@@ -4,7 +4,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { normalize, wordCount, currentBibleVersions, COPYRIGHT_NOTICE } from './lesson-source-contract.mjs';
+import { normalize, wordCount, currentBibleVersions, bibleVersionErrors, COPYRIGHT_NOTICE } from './lesson-source-contract.mjs';
 
 export const MOCK_SCHEMA = 'bh-ielts-mock-source/1';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -109,7 +109,7 @@ export function validateMockSource(mock, { bibles = currentBibleVersions() } = {
   if (mock.test_type !== 'Academic') errors.push('programme route is IELTS Academic only');
   if (!/draft/i.test(mock.status ?? '') && !mock.approval_record) errors.push('status must remain a draft until a human approval record is attached');
   if (mock.approval_record && (mock.approval_record.version !== mock.version || !mock.approval_record.approved_by || !mock.approval_record.basis)) errors.push('approval record must name approver, basis and the exact version');
-  for (const key of ['diagnostic', 'lessons', 'visual']) if (mock.bibles?.[key] !== bibles[key]) errors.push(`bibles.${key} does not match the current Bible`);
+  errors.push(...bibleVersionErrors(mock, bibles));
   const t = mock.timing ?? {};
   if (t.listening_minutes !== 30 || t.reading_minutes !== 60 || t.writing_minutes !== 60) errors.push('timing must follow the full test: Listening 30, Reading 60, Writing 60 minutes');
   if (!/no validated/i.test(mock.scoring?.bands ?? '')) errors.push('scoring.bands must state that no validated band conversion exists');

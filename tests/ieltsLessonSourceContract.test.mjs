@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { lessonSourcePaths, validateLessonSource, currentBibleVersions } from '../scripts/ielts/lesson-source-contract.mjs';
+import { lessonSourcePaths, validateLessonSource, currentBibleVersions, bibleVersionErrors } from '../scripts/ielts/lesson-source-contract.mjs';
 
 const paths = lessonSourcePaths();
 const load = (path) => JSON.parse(readFileSync(path, 'utf8'));
@@ -21,7 +21,7 @@ for (const path of paths) {
   });
 }
 
-test('sources are drafts or carry an explicit owner approval record, bound to the current Bible versions', () => {
+test('sources are drafts bound to the current Bibles, or approved under a recorded earlier-or-current Bible version', () => {
   const bibles = currentBibleVersions();
   for (const path of paths) {
     const lesson = load(path);
@@ -29,7 +29,8 @@ test('sources are drafts or carry an explicit owner approval record, bound to th
       assert.ok(lesson.approval_record?.approved_by && lesson.approval_record?.date && lesson.approval_record?.basis, `${lesson.code} approval record incomplete`);
       assert.equal(lesson.approval_record.version, lesson.version, `${lesson.code} approval must name the approved version`);
     }
-    assert.deepEqual(lesson.bibles, bibles);
+    if (/draft/i.test(lesson.status)) assert.deepEqual(lesson.bibles, bibles);
+    assert.deepEqual(bibleVersionErrors(lesson, bibles), [], `${lesson.code} Bible versions`);
     assert.ok(lesson.release_blockers.length > 0, `${lesson.code} must list open release blockers`);
     assert.equal(lesson.test_type, 'Academic');
   }
@@ -94,11 +95,16 @@ test('hardcoded schools, band claims and stale Bible versions are rejected', () 
   const lesson = lessonSeven();
   lesson.blocks[0].instructions += ' Silk Road students only.';
   lesson.blocks.find((b) => b.id === 'IELTS-07-W2').model_label = 'Band 9 essay';
-  lesson.bibles.diagnostic = '1.9.0';
+  lesson.bibles.diagnostic = '99.0.0';
   const errors = validateLessonSource(lesson);
   assert.ok(has(errors, 'hardcoded school'));
   assert.ok(has(errors, 'must say the model is illustrative'));
   assert.ok(has(errors, 'does not match current Bible'));
+  const draft = lessonSeven();
+  draft.status = 'Private teacher-review draft';
+  delete draft.approval_record;
+  draft.bibles.diagnostic = '1.9.0';
+  assert.ok(has(validateLessonSource(draft), 'does not match current Bible'));
 });
 
 test('Task 2 models must meet the 250-word minimum', () => {

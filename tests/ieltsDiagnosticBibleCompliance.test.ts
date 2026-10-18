@@ -9,7 +9,20 @@ test('IELTS Diagnostic Bible is wired into the repository agent contract', () =>
   const agents = read('AGENTS.md');
   const bible = read('docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md');
 
-  assert.match(bible, /\*\*Version:\*\* 1\.10\.0/i);
+  assert.match(bible, /\*\*Version:\*\* 2\.0\.0/i);
+  // v2.0 closed loop: honest ranges, provisional policy and evidence capture, without weakening official-result limits.
+  assert.match(bible, /## 0\. What Brains Heist is for, and what makes it different/);
+  assert.match(bible, /### 9\.5 Indicative band range policy bh-indicative-v1/);
+  assert.match(bible, /Never show the central value alone/);
+  assert.match(bible, /never applies to General Training/);
+  assert.match(bible, /### 8A\.4A Default policy bh-learning-policy-v1 \(provisional\)/);
+  assert.match(bible, /Teacher confirmation remains required for persistent and resolved/);
+  assert.match(bible, /AI feedback is not evidence/);
+  assert.match(bible, /## 12A\. Mocks and fresh checks feed the learning record/);
+  assert.match(bible, /## 18A\. Real outcome tracking/);
+  assert.match(bible, /The reviewer is always a named human; AI never records approval/);
+  assert.match(bible, /### 9\.1 No naïve percentage ladder/);
+  assert.match(bible, /Pronunciation must not be scored from transcript text alone/);
   assert.match(bible, /## 15F\. Screeners remain separate from later practice/);
   assert.match(bible, /Screeners are initial assessments\. They must never appear/i);
   assert.match(bible, /## 15E\. Material originality and intentional variants/);

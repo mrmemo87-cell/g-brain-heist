@@ -1,6 +1,6 @@
 # IELTS course roadmap
 
-Version 1.0.7 · 2026-10-18. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
+Version 1.1.0 · 2026-10-19. Diagnostic Bible 2.0.0; Lessons Bible 1.2.0; Visual & UX Bible 1.2.0.
 
 Reference delivery: 12 teaching weeks, 24 lessons, two 60-minute lessons weekly. Owner-confirmed route: Academic only, beginning at B1 with gradually increasing demands. Adapt support and pace to actual evidence. The sequence does not promise a band or certify that all materials exist.
 
@@ -31,6 +31,26 @@ Reference delivery: 12 teaching weeks, 24 lessons, two 60-minute lessons weekly.
 | 12 | IELTS-23 | Individual priorities from mock/check evidence | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
 | 12 | IELTS-24 | Final course review and next learning plan | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
 
+## The weekly learning loop (from v1.1.0)
+
+The 24 lessons are the shared classroom core. Each week the teacher also runs the loop in Diagnostic Bible section 15B.5:
+1. After the week's two lessons, open the batch view, check each student's targets and assign the week's targeted practice. Each student gets material for their own targets.
+2. Students practise during the week. Objective items are marked instantly; Writing and Speaking get AI first-pass feedback.
+3. Confirm the productive-skill observations in the review queue, which should take about 20–30 minutes per batch.
+4. Fresh checks and mocks update the record. The batch view shows who is improving, who is stuck after practice and where the bank has gaps.
+
+| Week | Shared lessons | Loop and assessment slots |
+|---|---|---|
+| 0 | Screeners (intake) | First targets confirmed per student |
+| 1–5 | IELTS-01–10 | Weekly targeted practice. Suggest X1–X3 for shared Reading targets and X4 for Listening flow-chart/choose-TWO targets |
+| 6 | IELTS-11–12 | **M1 full mock** (outside the lessons), then review and new targets. Suggest X5–X7 for Task 1 targets |
+| 7–8 | IELTS-13–16 | Weekly targeted practice. Suggest X8 for Task 2 problem-solution or two-part targets |
+| 9 | IELTS-17–18 | **M2 full mock**, then review; improvement is checked against the M1 targets |
+| 10–11 | IELTS-19–22 | Weekly targeted practice; IELTS-21–22 fresh checks feed the record |
+| 12 | IELTS-23–24 | **M3 full mock**, final learning report, next plan; students record official results after their test (section 18A) |
+
+The extension lessons are optional and are suggested by shared evidence. A batch may compress a lesson whose target is already secure (Lessons Bible LB-10). Mocks are delivered on computer by default, or on paper with item capture (Diagnostic Bible section 12A). Indicative band ranges come only from the full mocks (section 9.5).
+
 ## Intake and first-month operations
 
 Before Lesson 2, check the four screeners and productive-skill review states in authorized Student progress/Review desk. Do not inspect questions on a projector. For each learner record joining date, actual source/review dates, up to two supported priorities, one next action and a check date. Arrange unfinished screeners outside the lesson with their full published duration. Do not replace them with the classroom tasks in this pack.
@@ -50,4 +70,4 @@ Silk Road first review target: 6 November 2026, Asia/Bishkek. This is a school-s
 7. Lessons 05–24 v0.2.0 owner approved and released to every IELTS school with per-school branding: [release record](releases/LESSONS_05_24_ALL_SCHOOLS_2026_10_18.md). Lessons 01–04 conversion to the same presentation format is pending owner-supplied packs.
 8. Continuation beyond Lesson 24 for learners aiming at high Academic bands is a plan only: [ADVANCED_CONTINUATION.md](lessons/ADVANCED_CONTINUATION.md). No advanced lessons exist yet.
 
-All future runtime installation must use existing authorization, task code registration, originality and publication checks. This roadmap creates no automatic assignments or new scoring. Paper observation sheets are local teaching records until an independently governed capture implementation is added.
+All future runtime installation must use existing authorization, task code registration, originality and publication checks. This roadmap schedules the loop; it does not itself create assignments or scores. Until the section 12A capture screen and computer-delivered mocks are built, paper observation sheets and paper mock results remain local teaching records.

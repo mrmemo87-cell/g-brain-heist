@@ -1,8 +1,8 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 1.10.0\
-**Effective date:** 2026-10-15\
+**Version:** 2.0.0\
+**Effective date:** 2026-10-19\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
 
@@ -11,6 +11,29 @@
 > **Visual & UX companion:** All IELTS interfaces must follow [IELTS_VISUAL_UX_BIBLE.md](./IELTS_VISUAL_UX_BIBLE.md) for appearance, layout, navigation, responsiveness, accessibility, and interaction presentation, with [IELTS_DESIGN_SYSTEM_THEMELY.md](./IELTS_DESIGN_SYSTEM_THEMELY.md) as its technical token reference. **If a visual/UX requirement conflicts with academic validity, evidence, scoring, access, privacy, security, or review authority, this Diagnostic Bible always takes precedence.** Do not weaken a safeguard to satisfy a design preference.
 
 This file exists to stop Brains Heist from drifting into invalid assessment claims while the product evolves. If current code, old documentation, old prompts, or a previous implementation conflicts with this Bible, **this Bible wins** unless the Bible itself is explicitly revised through a reviewed change.
+
+> **Version 2.0 direction (owner decision, 2026-10-19):** Brains Heist optimises for the best student results, not for the most cautious possible product. Honesty about evidence and uncertainty remains absolute; withholding useful, clearly labelled information does not. Where earlier rules blocked a useful feature until a perfect policy existed, version 2.0 replaces them with **provisional, labelled, versioned policies that improve with data** (sections 0, 8A.4, 9.5, 10.5, 12A, 15E.2A and 18A).
+
+---
+
+## 0. What Brains Heist is for, and what makes it different
+
+**North star:** every minute of a student's practice is aimed at a diagnosed, evidenced weakness; the teacher can see that weakness closing; and the programme's results are checked against real IELTS outcomes.
+
+Most IELTS products do one of three things: a content library or video course that is the same for everyone; an AI scorer that returns one confident band with little explanation; or generic official practice material. Brains Heist must do the whole loop, inside real schools, with the teacher in charge:
+
+**diagnose (screeners, mocks) → confirm targets per student → personalised targeted practice per batch → fast feedback → fresh independent check → updated learning record → report and next step**
+
+The six commitments that define the product, and that every IELTS change must strengthen rather than weaken:
+
+1. **Construct-level diagnosis.** Weaknesses are named, teachable subskills (section 7), never vague topics or a single band.
+2. **Personalised practice at batch scale.** A teacher assigns once; each student receives material matched to their own qualified target (section 15F). Practice material must be mapped to the same taxonomy as the evidence that diagnosed the need (section 7.5).
+3. **Closed loop.** Practice is followed by a fresh independent check, and the result updates the learning record automatically under a versioned policy (sections 8A, 12A). Lessons, extension lessons and mocks all feed this loop; nothing important stays paper-only without a capture route.
+4. **Fast, high-volume feedback on Writing and Speaking.** AI gives first-pass criterion feedback on practice within minutes; teachers confirm what becomes evidence (section 10.5).
+5. **Honest numbers students actually want.** Indicative band ranges with stated uncertainty on full-length evidence, never a falsely precise band (section 9.5), calibrated over time against real official results (section 18A).
+6. **Built for our learners.** Taxonomy and practice cover the predictable error patterns of the programme's learners' first languages (section 7.6).
+
+Every feature proposal should answer: *which step of the loop does this make faster, more accurate or more trustworthy?* A feature that answers none of them is lower priority.
 
 ---
 
@@ -77,6 +100,10 @@ Teacher review of Writing and Speaking is useful evidence for that judgment. It 
 
 This narrowly scoped route is an explicit exception to the calibrated short-form output restriction in sections 1.1 and 9.3. It does not exempt automated estimates or trusted full-baseline claims from section 18.
 
+### 1.5 Indicative band range
+
+**Owner-authorized policy (2026-10-19):** A platform-calculated **Indicative band range** may be shown for full-length Listening or Academic Reading evidence (40 questions, complete parts) and for Writing/Speaking criterion ratings under the rules in section 9.5. It is a planning aid derived from IELTS's published average marks and teacher-confirmed criterion judgments, not a calibrated prediction and not an official result. It is always a range, always carries its confidence and the label **Not an official IELTS result**, and becomes a calibrated estimate only after section 18A's outcome data supports it.
+
 ---
 
 ## 2. Non-negotiable assessment truths
@@ -92,6 +119,10 @@ IELTS reports four section scores:
 - Speaking
 
 An overall IELTS-style estimate must not be produced when one or more required skills are missing, unless the UI explicitly labels the value as a partial or provisional readiness summary rather than an overall IELTS estimate.
+
+### 2.1A Delivery mode
+
+IELTS announced on 5 March 2026 that all IELTS tests will be delivered on computer from mid-2026, with timelines varying by market and an optional "Writing on Paper" in selected markets (section 23). Brains Heist therefore treats **computer delivery as the default** for mocks, independent checks and timed practice, so students rehearse the real interface. Paper remains a supported classroom fallback; paper results enter the learning record only through the governed capture route in section 12A.
 
 ### 2.2 Listening
 
@@ -447,6 +478,20 @@ Published diagnostic items require reviewed mappings.
 
 A meaningful item edit must invalidate or stale the old mapping until re-reviewed.
 
+**Practice materials use the same taxonomy (v2.0).** Every targeted-practice item, extension-lesson task, mock item and fresh check must carry a reviewed mapping to the same versioned taxonomy IDs used by diagnostic evidence. This is what lets the system match a student's qualified target to the practice that trains it.
+- Item-level mapping is required for objective items; task-level criterion and micro-skill mapping is required for Writing and Speaking tasks.
+- Unmapped material may still be chosen manually by a teacher, but it is never offered by automatic target-to-practice matching and cannot produce evidence for a specific construct.
+- AI may propose mappings in bulk. A named human reviewer approves them, either item by item or as a recorded batch review under section 15E.2A; AI never records the approval.
+- Each construct used for targeting should have at least three reviewed, mutually independent practice materials and at least one unexposed fresh check per skill level before it is promoted in the teacher's matching view. Thin coverage is shown to teachers as **practice bank gap**, never filled with an unrelated task.
+
+### 7.6 Learner-language error tags
+
+**Owner-authorized (2026-10-19).** The taxonomy may include reviewed teaching tags for predictable first-language influence among the programme's learners (initially Russian, Kyrgyz, Uzbek and Kazakh speakers), for example article use, tense and aspect choice, prepositions, word order, and specific sound contrasts in Speaking.
+- They are teaching tags under the existing Writing/Speaking micro-skills, not a separate ability scale, and follow the same evidence and mapping rules.
+- A first language is used only when the student or school has recorded it. It is never inferred from a name, nationality or school, and a tag is never applied to a learner because of their first language alone; it needs that learner's own evidence.
+- Pronunciation tags require audio (section 10.3).
+- Tag lists are versioned and reviewed by an experienced teacher of these learners before use.
+
 ---
 
 ## 8. Strengths, weaknesses, and persistence
@@ -509,9 +554,11 @@ Reused items, memorized prompts, exposed answers, guided corrections and scaffol
 
 Interruptions or accommodations are not automatic failure or automatic exclusion. Apply a documented integrity/comparability policy and retain the reason. Never exclude inconvenient incorrect evidence after seeing the result.
 
-### 8A.4 Governed thresholds: no invented defaults
+### 8A.4 Governed thresholds: a provisional default policy, refined by data
 
-Before enabling a derived pattern or change label, register an academic-owner-approved, versioned policy for that construct, learner/task scope and evidence type. It must specify:
+**Changed in v2.0 (owner decision, 2026-10-19).** Waiting for a perfect, validated threshold for every construct meant teachers saw no pattern or change labels at all. Version 2.0 enables the whole state model now under one owner-approved default policy, **bh-learning-policy-v1 (provisional)**, defined in section 8A.4A. It applies to every construct unless a construct-specific policy replaces it. Teachers always see that the policy is provisional.
+
+Every policy, the default included, is versioned and registered, and must specify:
 - minimum qualifying opportunities and independent source instances;
 - task/context coverage, observation window, time separation, freshness and expiry/review rules;
 - outcome/rubric thresholds for difficulty and strength, with a minimum confidence requirement;
@@ -522,9 +569,49 @@ Before enabling a derived pattern or change label, register an academic-owner-ap
 - required teacher confirmation, reviewer disagreement and correction/supersession rules;
 - validation basis, limitations, approver and effective version/date.
 
-Repeated means evidence from more than one independent source instance; several questions in one sitting are not longitudinal repetition. This logical minimum is not a sufficient statistical threshold. Two essays, three misses, an arbitrary percentage increase or elapsed days must not silently become universal cutoffs.
+Repeated means evidence from more than one independent source instance; several questions in one sitting are not longitudinal repetition.
 
-If the relevant policy or its qualifying evidence is unavailable, keep the observation provisional or show **not enough evidence**. No agent, AI prompt or UI helper may invent a numeric threshold to make a status appear. Confidence remains separate from attainment, and current uncalibrated screeners retain their existing low-confidence limits.
+If the qualifying evidence is unavailable, keep the observation provisional or show **not enough evidence**. No agent, AI prompt or UI helper may invent a threshold outside a registered policy to make a status appear. Confidence remains separate from attainment, and current uncalibrated screeners retain their existing low-confidence limits.
+
+### 8A.4A Default policy bh-learning-policy-v1 (provisional)
+
+Approved by the owner on 2026-10-19 as a provisional teaching policy. These are reasoned starting values, not validated statistical cutoffs. Review is due after the first full cohort, and no later than 2027-03-01, using the outcome data in section 18A.
+
+**Definitions**
+- An *opportunity* is one scored item mapped to the construct, or one teacher-confirmed criterion/micro-skill observation on a Writing or Speaking task.
+- A *source* is one independent task instance (section 8A.2): one form, one essay or one Speaking session. A whole sitting counts as one source.
+- *Accuracy* is correct opportunities ÷ opportunities in qualifying, non-assisted evidence.
+
+**Objective skills (Listening, Reading)**
+
+| State | Default rule |
+|---|---|
+| Possible difficulty / strength | ≥ 2 opportunities in one source with accuracy ≤ 50% (difficulty) or 100% (strength) |
+| Repeated difficulty | ≥ 2 independent sources, ≥ 4 opportunities in total, pooled accuracy ≤ 50%, and no later independent source above 75% |
+| Repeated strength | ≥ 2 independent sources, ≥ 4 opportunities in total, pooled accuracy ≥ 80% |
+| Improvement observed | After a recorded reference at repeated or possible difficulty: a fresh independent comparable source with ≥ 3 opportunities and accuracy ≥ 70%, and at least 25 percentage points above the reference |
+| Improvement sustained | A further fresh independent source ≥ 14 days after the first improved source, again ≥ 70% |
+| Persistent difficulty | Repeated difficulty, at least one completed targeted-practice assignment for the construct, then a fresh post-practice source still ≤ 50%, with the evidence spanning ≥ 21 days and teacher confirmation |
+| Resolved for the assessed scope | Improvement sustained, plus teacher confirmation |
+| Evidence needs updating | The newest qualifying source is more than 90 days old |
+
+**Productive skills (Writing, Speaking)**
+
+| State | Default rule |
+|---|---|
+| Possible difficulty | One teacher-confirmed observation of the micro-skill as a problem |
+| Repeated difficulty | Teacher-confirmed in ≥ 2 independent tasks of the same task type (for example, two Task 2 essays) |
+| Improvement observed | A fresh, comparable task of the same type in which the teacher confirms the problem is no longer present, or the related criterion rating rises by ≥ 1.0 band |
+| Improvement sustained | Confirmed again in a further fresh task ≥ 14 days later |
+| Persistent difficulty / resolved / needs updating | As for objective skills, with teacher-confirmed observations in place of accuracy |
+
+**Always applied**
+- Assisted, guided, repeated or exposed work never counts toward improvement, strength or resolution (section 8A.3).
+- Mixed evidence overrides a simple rule: if the newest two independent sources point in opposite directions, show **Mixed evidence / teacher review needed**.
+- Teacher confirmation remains required for persistent and resolved. A teacher may also reject or downgrade any automatic label with a reason.
+- Label text in teacher views ends with **(provisional policy v1)**. Student views use the plain wording in section 15B.2, without the policy name.
+
+Agents may implement exactly these values. Changing them requires a new registered policy version with the owner's approval; it does not require a Bible revision unless the definitions above change.
 
 ### 8A.5 Pattern and change states
 
@@ -571,7 +658,7 @@ Enforce the existing student/teacher/school access boundaries on every read, dec
 
 ### 8A.8 Implementation and acceptance sequence
 
-1. **Inventory and governance:** audit current journey/Academic Profile sources and policies; approve taxonomy crosswalks, evidence qualification and numeric policy parameters. Keep advanced labels unavailable where approval is missing.
+1. **Inventory and governance:** audit current journey/Academic Profile sources and policies; approve taxonomy crosswalks and evidence qualification. Numeric parameters come from the registered default policy in section 8A.4A until a construct-specific policy replaces it.
 2. **Observation ledger:** connect original Listening/Reading outcomes and confirmed Writing/Speaking observations to stable identities with deduplication, provenance and availability states.
 3. **Teacher evidence view:** show observations, confidence, source links and contradictions before enabling recurring/persistent conclusions.
 4. **Intervention loop:** add teacher-confirmed targets and governed practice links; record participation separately from independent reassessment.
@@ -617,6 +704,53 @@ A short screener may output a platform-calculated band range only if:
 - the UI shows confidence/range rather than false precision.
 
 Until then, short forms report performance and constructs, not a definitive band. A separately stored and attributed provisional teacher judgment is permitted only under section 9.4; it is not a calibrated output of the short form.
+
+### 9.5 Indicative band range policy bh-indicative-v1
+
+**Owner-authorized (2026-10-19).** This policy implements section 1.5.
+
+**Basis.** IELTS publishes the average number of marks out of 40 needed for bands 5 to 8. It states that the precise number "will vary slightly from test version to test version" (section 23, rechecked 2026-10-19):
+
+| Band | Listening (/40) | Academic Reading (/40) |
+|---|---:|---:|
+| 5 | 16 | 15 |
+| 6 | 23 | 23 |
+| 7 | 30 | 30 |
+| 8 | 35 | 35 |
+
+**Eligibility (Listening and Reading)**
+- A complete, original 40-question Academic form, such as mocks M1–M3 or a future computer-delivered form.
+- Delivered under timed, unassisted, declared conditions, with every item scored on the server or captured item by item under section 12A.
+- The form must be unexposed to that student.
+- Practice sets, partial sections, guided lessons and screeners are not eligible. They continue to report raw scores and constructs.
+
+**Calculation**
+1. Find the highest published anchor at or below the raw score; that band is the *central value*.
+2. If the raw score is at least halfway to the next anchor, add 0.5. For example:
+   - Listening 27–29 → 6.5;
+   - Listening 33–34 → 7.5.
+3. Display **central value ± 0.5** as the range, for example 29/40 Listening → central 6.5 → **6.0–7.0**.
+4. Below 16 (Listening) or 15 (Reading), display **Below 5.0**. From 38 upwards, display **8.0 or above**.
+5. This mapping lives in a versioned scoring-policy record. It is never a generic percentage ladder (section 9.1), and it never applies to General Training.
+
+**Writing and Speaking**
+- An indicative range may be shown only from criterion ratings that a teacher has confirmed.
+- Writing needs both Task 1 and Task 2, with Task 2 weighted double: (T1 + 2 × T2) ÷ 3, rounded to the nearest half band.
+- Speaking needs Parts 1–3 and audio for Pronunciation.
+- The range is ± 0.5 around the rounded criterion average.
+- AI-only ratings may appear as a practice indication (section 10.5). They never produce an indicative band range.
+
+**Overall**
+- Only when all four skills have an eligible indicative range: the average of the four central values, using the official rounding rule in section 2.6, displayed ± 0.5.
+- Label it **Indicative overall range**, never "overall band".
+
+**Required presentation**
+- Use the title **Indicative band range** and show **Not an official IELTS result**.
+- Show **Confidence: low** until section 18A data supports a higher confidence for that form and skill.
+- Show the form, the date and the raw score beside the range.
+- Never show the central value alone, or larger than the range.
+
+**Calibration.** When section 18A has collected at least 30 verified official results paired with a recent eligible form, re-estimate this mapping and the range width per skill. Publish the calibrated policy as bh-indicative-v2 with its measured error (within ±0.5 and ±1.0 band) and sample description. The range may narrow, and confidence may rise to medium, only when the measured error supports it.
 
 ---
 
@@ -698,6 +832,30 @@ A single Task 2 may be presented as:
 
 but not silently as a complete IELTS Writing band.
 
+### 10.5 AI first-pass feedback on practice
+
+**Owner-authorized (2026-10-19).** Writing and Speaking only improve through many attempts with fast feedback. Waiting for a teacher before any feedback limits a student to about one essay a week.
+
+**What AI may do on practice tasks** (not screeners, mocks or independent checks)
+- Return first-pass feedback to the student directly, within minutes.
+- Comment on each of the four criteria, with two or three specific, quoted examples from the student's own text or transcript and one concrete revision action.
+- Give an **AI practice indication**: a criterion range on the band scale, for example *Coherence and Cohesion: about 5.5–6.5*. Never a single number, and never an overall Writing or Speaking band.
+
+**How it must be labelled**
+- Every item carries the visible label **AI practice feedback: your teacher may adjust it**, with the model, prompt version and time recorded (section 10.2).
+
+**Pronunciation**
+- Pronunciation feedback needs audio analysis. A transcript-only system must say that pronunciation was not assessed.
+
+**What remains teacher-only**
+- AI feedback is not evidence. It never enters the learning record, reports or indicative band ranges until a teacher confirms or edits the observation; one click to confirm is enough.
+- Teachers see AI and teacher ratings side by side. Disagreements are stored and reviewed monthly to improve the prompt (section 10.2).
+
+**Revision is encouraged**
+- A student may revise and resubmit the same task as many times as useful. Revisions stay labelled as guided practice (section 8A.3): they show effort and learning, but do not count as independent improvement.
+
+**Volume target.** Design for three or four Writing tasks and three Speaking practice sessions per student per week without increasing teacher marking time. The teacher's job is to confirm, correct and prioritise, not to write first-pass comments.
+
 ---
 
 ## 11. Confidence is separate from attainment
@@ -755,6 +913,28 @@ Do not claim improvement from:
 - a practice task presented as an independent reassessment.
 
 Form A / Form B equivalence must be reviewed and eventually calibrated.
+
+## 12A. Mocks and fresh checks feed the learning record
+
+**Owner-authorized (2026-10-19).** Full mocks (M1–M3 and successors), extension-lesson fresh checks and course fresh checks are reassessment evidence. They must not remain classroom-only records.
+
+**Computer delivery (default)**
+- Mocks and checks run in the platform under Exam Mode.
+- Keys stay on the server, and objective items are marked automatically.
+- Writing is captured as text.
+- Speaking is recorded, or entered by the teacher as live criterion ratings.
+
+**Paper capture (fallback)**
+- Where devices are unavailable, the teacher enters each student's answers or marks item by item, using the platform's capture screen within 14 days of the sitting.
+- Writing scripts may be photographed or transcribed, and are rated by the teacher.
+- Captured evidence records the capture method, who entered it and when, and keeps the label **teacher-entered paper evidence**.
+- It qualifies for section 8A in the same way as computer evidence, but is shown with one lower confidence step until a second, independent capture check is recorded.
+
+**Rules for both**
+- Item-level outcomes map to the taxonomy (section 7.5) and write qualified observations to the ledger.
+- A mock that is complete and unexposed is eligible for an indicative band range (section 9.5).
+- Exposure is recorded per student. A mock already used in class as guided practice, or whose key has been shown, is practice and not a fresh check for that student.
+- Mocks remain separate from screeners (section 15F) and are never repurposed as screeners.
 
 ---
 
@@ -860,6 +1040,9 @@ Student and teacher results must clearly distinguish:
 - teacher-reviewed result;
 - AI-provisional result;
 - provisional teacher readiness estimate under section 9.4, distinct from calibrated results;
+- indicative band range under section 9.5, with its form, raw score and policy version;
+- AI practice indication under section 10.5, which never appears in reports;
+- student-reported or verified official IELTS results under section 18A;
 - confidence level;
 - evidence count/coverage;
 - latest activity date;
@@ -1124,7 +1307,19 @@ The teacher must be able to answer **why this conclusion, what evidence, what pr
 
 Apply section 15A's accessible, coherent Brains Heist design and section 13's scoped-read/background-work requirements. A timeline, attractive progress bar, task completion or stored teacher feedback does not by itself implement longitudinal inference.
 
-Current short screeners and reviewed single submissions remain starting-point evidence. Until the policies, comparable reassessment, implementation and validation in section 8A pass, persistence/sustained-improvement/resolution features must remain unavailable rather than simulated.
+Current short screeners and reviewed single submissions remain starting-point evidence. From v2.0, pattern and change states are enabled under the provisional default policy in section 8A.4A as soon as their qualifying evidence exists, labelled as provisional for teachers. They are computed from real qualified evidence, never simulated. A state whose evidence is missing shows what check is needed next.
+
+### 15B.5 The weekly learning loop
+
+The default teaching rhythm that the teacher workspace must make easy:
+
+1. **After each teaching week**, the teacher opens the batch view, which shows each student's current qualified targets and a suggested practice set.
+2. **One click assigns** batch targeted practice; each student receives material for their own target (section 15F).
+3. **Students practise.** Objective items are marked instantly. Writing and Speaking get AI first-pass feedback (section 10.5).
+4. **The teacher confirms** productive-skill observations in a short weekly review queue.
+5. **The record updates.** Fresh checks and mocks update the record automatically (section 12A). The batch view highlights constructs shared by several students and suggests the matching extension lesson (Lessons Bible LB-10).
+
+Each week the teacher view must answer, for the batch: *who needs what next, who is improving, who is stuck after practice, and where the practice bank has gaps.*
 
 ---
 
@@ -1142,7 +1337,7 @@ Support explicit monthly/course reporting dates as well as existing academic yea
 
 ### 15C.3 Report content and traceability
 
-Include student/school and period, starting-point scope, four skill summaries, supported task observations, missing/pending evidence, goals, practice participation, evidence-qualified change where available, teacher-confirmed pathway/rationale, next-month actions, confidence/limitations, author and approval date. Every conclusion must reference supporting and conflicting evidence and its applicable policy/version. Keep observation, participation and independent improvement separate. Retain incomplete and contradictory evidence; no cherry-picking. No averaging unlike raw scores/rubrics, artificial radar-chart ability levels, universal numeric persistence thresholds, or overall band from completed checks. Charts need comparable evidence and plain labels; otherwise use dated observations. Unavailable progress inference must be visible as 'Improvement not yet established', with the next suitable check.
+Include student/school and period, starting-point scope, four skill summaries, supported task observations, missing/pending evidence, goals, practice participation, evidence-qualified change where available, teacher-confirmed pathway/rationale, next-month actions, confidence/limitations, author and approval date. Every conclusion must reference supporting and conflicting evidence and its applicable policy/version. Keep observation, participation and independent improvement separate. Retain incomplete and contradictory evidence; no cherry-picking. No averaging unlike raw scores/rubrics, artificial radar-chart ability levels, numeric thresholds outside a registered section 8A policy, or an overall band from completed checks (an indicative overall range is permitted only under section 9.5). Charts need comparable evidence and plain labels; otherwise use dated observations. Unavailable progress inference must be visible as 'Improvement not yet established', with the next suitable check.
 
 ### 15C.4 AI and sharing
 
@@ -1154,7 +1349,7 @@ Use the established Brains Heist report branding and accessible visual system. S
 
 Build projections through bounded scoped reads or idempotent background work, outside answer-save transactions. Paginate histories, surface truncation and fail closed before finalising incomplete evidence captures. Hash/version cache keys and invalidate affected projections on correction. No per-student AI calls on dashboard navigation. Apply section 13; this contract certifies no capacity.
 
-Acceptance must cover missing skills, pending/late reviews, repeats, rescoring, assistance, interrupted delivery, conflicting observations, mixed pathways, stale/changed plans, earlier cutoffs, concurrent edits, idempotent generation/finalisation, source hashes, corrections, cross-school/self-only access, failed AI, accessible mobile/desktop and print parity. Advanced progress states remain disabled until section 8A policies and comparable follow-up evidence pass. Recording a plan or producing a report does not certify longitudinal inference.
+Acceptance must cover missing skills, pending/late reviews, repeats, rescoring, assistance, interrupted delivery, conflicting observations, mixed pathways, stale/changed plans, earlier cutoffs, concurrent edits, idempotent generation/finalisation, source hashes, corrections, cross-school/self-only access, failed AI, accessible mobile/desktop and print parity. Advanced progress states appear in reports only when the section 8A.4A policy (or its successor) and comparable follow-up evidence support them, with the policy version captured in the report snapshot. Recording a plan or producing a report does not certify longitudinal inference.
 
 ---
 
@@ -1180,7 +1375,7 @@ Save new or changed catalogue material as an unavailable draft. Save the passage
 
 Maintain private, append-only normalized content fingerprints, separate exact source hashes and reviewer snapshots, with the comparison policy version. Cosmetic source edits can keep a duplicate fingerprint while still invalidating an exact-version approval. Normalize Unicode compatibility forms, case, spacing and punctuation for exact-copy checks. Include passage/prompt, question content/options/keys, relevant scaffolds and recording/script identity; compare question bundles independently of their display order. Block a complete exact copy under another identity, even as a draft. An incomplete draft is not an approved task and must not prevent a genuinely changed question bundle from being completed. Existing inventory is recorded as **Existing material**, not retrospectively certified as original or approved; preserve its existing availability and all separate release gates.
 
-Flag shared passages/prompts, question bundles, recording references or script hashes and near wording. The initial **ielts-originality-v1** near-wording rule uses token-set Dice similarity of at least **0.72** as an internal editorial flag only. It is not a scientific novelty threshold, difficulty calibration, IELTS score, validated plagiarism detector or proof that an unflagged paraphrase is new. All new content requires a human content comparison, even when automatic checks flag nothing. AI may draft material and comparison notes but may never record human approval on a person's behalf.
+Flag shared passages/prompts, question bundles, recording references or script hashes and near wording. The initial **ielts-originality-v1** near-wording rule uses token-set Dice similarity of at least **0.72** as an internal editorial flag only. It is not a scientific novelty threshold, difficulty calibration, IELTS score, validated plagiarism detector or proof that an unflagged paraphrase is new. All new content requires a human content comparison, even when automatic checks flag nothing; from v2.0 that comparison may be a recorded batch review under section 15E.2A. AI may draft material and comparison notes but may never record human approval on a person's behalf.
 
 ### 15E.2 Human review and version binding
 
@@ -1189,6 +1384,32 @@ An authorised content administrator compares the actual task, related saved mate
 A review approves only the captured content and comparison inventory. Changed content, questions or private transcript invalidates that approval. New related inventory also requires a refreshed comparison at the next publication or allocation; unrelated new material does not invalidate the review. A reviewed descendant linked to this exact parent version is intentional reuse and does not revoke the original’s approval; its student exposure still belongs to the same family. Completed unreviewed or differently linked matching drafts remain review challenges. Retained exploratory versions of a declared descendant stay in its same reuse family; they do not turn the earlier original into a derivative. Never re-label an earlier original as a variant of a later recorded version to manufacture a fresh claim. Server-side checks protect publication and new school/targeted allocations, including raw table/RPC bypass attempts. Existing student answer saves, submitted evidence and historical reports continue without rescoring or rewriting.
 
 For Listening, keep transcripts and answer-bearing comparison snapshots private. New Listening material must include a reviewable private transcript, and the human reviewer must listen to the actual recording and compare its script and answers. A remote audio URL, even stripped of signed query parameters, is only a reuse hint: a new URL does not prove a new recording, and the same URL does not certify byte identity. Trusted installed audio/script checksums are additional signals; they do not replace human listening or the existing rights, editorial, mapping, device and release approvals.
+
+### 15E.2A Batch review for AI-produced practice (v2.0)
+
+**Owner-authorized (2026-10-19).** The closed loop needs hundreds of mapped practice tasks, and reviewing each one individually blocks that. AI-produced practice material may therefore be released through a recorded batch review.
+
+1. **Automated gates on every item.** Each item passes, with zero errors:
+   - the schema/source contract;
+   - answer-key consistency, including the evidence sentence for each answer;
+   - exact-copy blocking and the near-wording flag against the whole inventory;
+   - mapping completeness (section 7.5);
+   - word limits;
+   - for Listening: an automatic speech-to-text comparison of the recording with its private transcript, and measured pauses (section 6.1).
+2. **A human sample review, recorded with hashes.** A named content reviewer reviews:
+   - every flagged item;
+   - every Listening recording, by listening to at least the answer-bearing segments;
+   - a random sample of at least 20% of the remaining items, and never fewer than 3 per batch.
+
+   The reviewer records the batch hash, the sampled item IDs, the decisions and the reasons.
+3. **The batch decision.**
+   - If the sample has no substantive error, the batch is approved as a whole.
+   - If any sampled item has a key, mapping or content error, the reviewer fixes it and reviews a further 20% sample. A second failure sends the whole batch to item-by-item review.
+4. **Student and teacher reports.** Every practice task has a **Report a problem** control.
+   - Two independent reports, or one teacher report, automatically hold the item from new assignments until it is reviewed.
+   - Reports, holds and fixes are logged.
+
+Batch approval covers practice materials only. Screeners, mocks, fresh checks designated as independent evidence and diagnostic forms keep item-by-item human review. The reviewer is always a named human; AI never records approval.
 
 ### 15E.3 Declared variants and exposure
 
@@ -1296,7 +1517,7 @@ Copy such as:
 
 must not be used for the current short diagnostic.
 
-Use a narrower promise until the comprehensive validated baseline exists.
+Use a narrower promise until the comprehensive validated baseline exists. Permitted from v2.0: "See your indicative band range after a full mock", "Find the exact skills holding your score back", "Practice matched to your own weaknesses", and outcome claims that meet section 18A.
 
 ### 16.8 Content provenance
 
@@ -1355,7 +1576,7 @@ The full baseline may be delivered across more than one school session. It does 
 
 “Looks reasonable” is not calibration.
 
-Before numerical readiness bands are treated as trusted school evidence, Brains Heist must conduct a documented validation study. Section 9.4 permits a separate low-confidence teacher planning judgment without claiming such validation; it does not relax this requirement for calibrated platform estimates or trusted baseline evidence.
+Before numerical readiness bands are treated as trusted school evidence, Brains Heist must conduct a documented validation study. Section 9.4 permits a separate low-confidence teacher planning judgment without claiming such validation; it does not relax this requirement for calibrated platform estimates or trusted baseline evidence. Section 9.5's indicative ranges are likewise low-confidence planning aids; section 18A is the route by which they become validated.
 
 At minimum:
 - compare Brains Heist estimates with a credible benchmark;
@@ -1371,6 +1592,31 @@ At minimum:
 A small early pilot is useful for finding bugs and obvious scoring problems but is **not by itself proof of psychometric validity**.
 
 Calibration data, model version, and scoring-policy version must be traceable.
+
+## 18A. Real outcome tracking
+
+**Owner-authorized (2026-10-19).** The strongest proof of a preparation programme is what its students score in the real test. Brains Heist collects official results so that it can calibrate its estimates (section 9.5) and make honest claims about outcomes.
+
+**Collection**
+- After a student's planned test date, the student or teacher can record the official IELTS result: four skill bands, overall band, test date, Academic or General Training, computer or paper, and test centre country.
+- An optional upload of the Test Report Form marks the result **verified** after a staff check. Otherwise it is **student-reported**.
+- Collection requires the student's consent, and a guardian's consent for minors where the school's policy requires it.
+- Results are school-scoped, private by default, and never shown to other students.
+
+**Use**
+- *Calibration.* Pair each verified result with the student's most recent eligible indicative ranges and learning-record state. Use them to re-estimate section 9.5 and to review the section 8A.4A defaults.
+- *Programme outcomes.* For each school and cohort, report:
+  - the number of starters, how many reported results and how many were verified;
+  - the change from the first eligible indicative range to the official result, with the median and spread;
+  - the share of students reaching their stated target.
+
+**Honest claims.** Any public or marketing outcome claim must:
+- use verified results only;
+- state the sample size, the period, the response rate and how students were included;
+- include every verified result in the defined group, with no cherry-picking;
+- avoid causal promises such as "guaranteed band" or "raises your score by 1.5 bands".
+
+Claims are reviewed by the owner before publication.
 
 ---
 
@@ -1441,6 +1687,8 @@ No Grade 9–10 school baseline should be called “ready” until every require
 - [ ] If provisional teacher ranges are enabled, section 9.4 eligibility, provenance, withholding, sharing and distinct low-confidence labeling pass; no automatic screener conversion or validated-accuracy claim is introduced.
 - [ ] Longitudinal labels satisfy section 8A's approved policy, independence, comparability, confidence and teacher-review gates; unavailable policies fail closed.
 - [ ] The section 15B journey separates practice participation from independent improvement and supports missing, mixed, stale and pending evidence states.
+- [ ] Indicative band ranges follow section 9.5 exactly: eligible full forms only, range display, low confidence, policy version and no single-number headline.
+- [ ] AI practice feedback carries its label, never enters evidence or reports without teacher confirmation, and states when pronunciation was not assessed.
 
 ### Validation
 - [ ] Benchmark/calibration protocol approved.
@@ -1532,6 +1780,18 @@ Agents must not skip foundational phases just to make the UI appear complete.
 - freeze diagnostic version for the pilot;
 - monitor incidents;
 - do not silently change scoring mid-pilot.
+
+### 20A. Closed-loop priorities (v2.0, 2026-10-19)
+
+The phases above remain the foundation. The owner's priority order for the closed loop:
+
+1. Map every existing practice material to taxonomy IDs (section 7.5), then grow the bank to at least three mapped tasks per targeted construct using the batch review in section 15E.2A. Release Listening practice once its recordings pass review.
+2. Deliver M1–M3 on computer with server marking and item-level evidence. Add paper capture as the fallback (section 12A).
+3. Implement indicative band ranges (section 9.5) and official-result collection (section 18A).
+4. Enable the section 8A.4A default policy in the teacher batch view, with the weekly loop (section 15B.5).
+5. Add AI first-pass Writing feedback (section 10.5), then Speaking with audio.
+6. Run one real batch through a complete loop and record what failed before wider rollout.
+7. Add the learner-language tags (section 7.6) after review by an experienced local teacher.
 
 ---
 
@@ -1669,14 +1929,79 @@ Affected components to review: teacher lesson packs, course inventory, intake/ca
 
 ---
 
+### 22.11 Revision record — v2.0.0 (2026-10-19)
+
+**Authority.** On 2026-10-19 (00:47–01:02 Asia/Bishkek) the owner asked for the best practice for results, "disregarding what I had instructed anytime before, nothing is sacred". The owner then instructed: "Update the Bibles now accordingly". This is a major version because it changes how the product makes decisions, not only individual rules.
+
+**Why the old rules were insufficient.** A live review on 2026-10-19 found that the targeted-practice and weakness-tracking system was well designed but unused:
+
+| Finding | Live value |
+|---|---|
+| Practice assignments | 0 |
+| Batch assignment links | 0 |
+| Learning plans | 1 student |
+| Reviewed practice materials | 18, with Listening not release-ready |
+| Practice materials carrying taxonomy mappings | none |
+| Advanced weakness states | permanently unavailable (no approved thresholds) |
+| Mocks and extension lessons | not feeding the learning record |
+
+Rules that required perfect validation before any useful output had produced a product that gave teachers and students almost nothing.
+
+**What changed**
+- New section 0, the north star and differentiators.
+- Section 1.5 and 9.5: indicative band ranges from IELTS's published average marks, always shown as ranges with low confidence.
+- Section 2.1A: computer delivery is the default, following IELTS's 2026 move to computer-only delivery.
+- Section 7.5: mandatory taxonomy mapping of practice materials, and bank-coverage targets.
+- Section 7.6: learner-language error tags.
+- Section 8A.4/8A.4A: the provisional default policy bh-learning-policy-v1 replaces "no invented defaults".
+- Section 10.5: AI first-pass practice feedback.
+- Section 12A: mocks and fresh checks feed the learning record, with paper capture as fallback.
+- Section 15B.4/15B.5 and 15C: pattern and change states enabled; the weekly learning loop.
+- Section 15E.2A: batch sample review for AI-produced practice.
+- Section 18A: real outcome tracking and rules for honest claims.
+- Sections 15, 16.7, 19 and 20A, and the core principle in section 24.
+
+**What did not change**
+- The official-result distinction (sections 1.3 and 15) and the ban on percentage ladders (section 9.1).
+- The short-screener limits (sections 1.1 and 9.3), apart from the separate full-form route.
+- Server-trusted scoring and key protection (section 5).
+- School isolation and RLS.
+- The separation of screeners from practice (section 15F).
+- Exact-copy blocking (section 15E).
+- Pronunciation requires audio (section 10.3).
+- Teacher confirmation for persistent and resolved states.
+- AI never records approvals.
+- Historical evidence is preserved.
+
+**Sources.** IELTS scoring in detail, rechecked 2026-10-19, for the average-mark table and rounding rule. IELTS "Updates to IELTS test delivery" (5 March 2026) for computer-only delivery. The bh-learning-policy-v1 values are owner-approved provisional teaching values, not external standards or validated cutoffs.
+
+**Implementation to review** (this documentation change activates no runtime behaviour by itself)
+- `scripts/ielts/mock-source-contract.mjs`: it rejects band language in mock sources. That remains correct for paper packs; the indicative range is computed by the platform, not printed in packs.
+- Mock packs M1–M3: their "no band conversion" notes stay accurate for the paper packs until platform delivery exists.
+- `tests/ieltsDiagnosticBibleCompliance.test.ts` "practice never manufactures readiness bands": still correct for practice. Indicative ranges apply only to eligible full forms.
+- To build:
+  - practice-material mapping and the matching RPCs;
+  - the mock delivery/capture and scoring-policy tables;
+  - the learning-policy projection worker and teacher batch view;
+  - the AI feedback service;
+  - the official-result capture;
+  - the report snapshot fields.
+
+Earlier releases built under v1.10.0 keep their recorded Bible version; they are not retroactively re-certified.
+
+---
+
 ## 23. Canonical public sources
 
 Before changing scoring/format/criteria, re-check the latest official material.
 
 Current reference set reviewed for Bible v1.1.0:
 
-- IELTS — **IELTS scoring in detail: band scores explained**  
+- IELTS — **IELTS scoring in detail: band scores explained** (rechecked 2026-10-19 for the section 9.5 average-mark table: Listening 16/23/30/35 and Academic Reading 15/23/30/35 for bands 5/6/7/8; "will vary slightly from test version to test version"; overall rounding to the nearest half band)
   https://www.ielts.org/take-a-test/your-results/ielts-scoring-in-detail
+
+- IELTS — **Updates to IELTS test delivery** (5 March 2026; rechecked 2026-10-19 for section 2.1A: all IELTS tests on computer from mid-2026, timelines by market, Writing on Paper in selected markets)
+  https://ielts.org/news-and-insights/updates-to-ielts-test-delivery
 
 - IELTS — **IELTS Academic: Listening test format**  
   https://ielts.org/take-a-test/test-types/ielts-academic-test/ielts-academic-format-listening
@@ -1711,4 +2036,12 @@ When there is pressure to choose between:
 
 choose the defensible, traceable, honest assessment.
 
-**Brains Heist should earn trust by showing teachers what the evidence supports — and refusing to pretend it knows more than the evidence can prove.**
+And when there is pressure to choose between:
+
+- shipping nothing until it is perfect, or shipping a clearly labelled provisional version that improves with data;
+- staying silent about a band, or giving an honest range with its uncertainty;
+- one feedback cycle a week, or fast AI feedback that a teacher confirms;
+
+choose the option that helps the student improve sooner, provided it stays honest, labelled and reversible.
+
+**Brains Heist should earn trust by showing teachers what the evidence supports, refusing to pretend it knows more than the evidence can prove, and never using uncertainty as an excuse to give students less help than the evidence allows.**
