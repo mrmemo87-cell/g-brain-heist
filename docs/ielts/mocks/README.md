@@ -4,13 +4,13 @@ Three original, paper-based Academic IELTS mock tests, built as private teacher 
 Listening (40 questions, one continuous recording of about 21 minutes), Reading (3 passages, 40 questions), Writing
 (Task 1 and Task 2) and Speaking (Parts 1-3).
 
-- **Status:** draft for owner review (v0.1.0). Not approved for classroom use. Packs go to the Silk Road review library
-  first; all-school release needs the owner's approval of each exact version.
+- **Status:** owner approved and released to all schools as v1.0.0 on 2026-10-18 (see
+  `docs/ielts/releases/MOCKS_AND_EXTENSIONS_ALL_SCHOOLS_2026_10_18.md`).
 - **Scoring:** raw scores out of 40 for Listening and Reading, plus criterion feedback for Writing and Speaking. There is
   **no band conversion**. Brains Heist has no validated conversion for these forms (Diagnostic Bible 2.2-2.3, 16.6).
 - **Recordings:** produced with Runway (eleven_v4) and assembled with exact silences: 30 s reading time per half-part,
   45 s before Part 4, and 30 s checking time after each part. Production records are in each `AUDIO_PRODUCTION_v1.json`.
-  The owner has not yet reviewed the recordings by listening to them.
+  The recordings were approved with the packs; device and classroom playback acceptance is pending (LB-08).
 
 ## Coverage of task types
 

@@ -3,8 +3,8 @@
  "code": "IELTS-M3",
  "number": 3,
  "title": "Mock Test 3",
- "version": "0.1.0",
- "status": "Draft for owner review: not approved for classroom use",
+ "version": "1.0.0",
+ "status": "Owner approved v1.0.0 on 2026-10-18; teacher release to all eligible schools",
  "test_type": "Academic",
  "bibles": {
   "diagnostic": "1.10.0",
@@ -1533,8 +1533,14 @@
   }
  },
  "release_blockers": [
-  "Owner review of content, keys and recordings has not taken place (new AI-assisted draft).",
-  "Device, print and classroom audio acceptance not yet recorded (LB-08).",
-  "No validated raw-score-to-band conversion exists for these forms; results stay raw scores and criterion feedback."
- ]
+  "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+  "Student task publication and platform evidence capture remain separate, governed steps."
+ ],
+ "approval_record": {
+  "approved_by": "Owner, Brains Heist LLC",
+  "date": "2026-10-18",
+  "version": "1.0.0",
+  "scope": "Mock test content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
+  "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 e54dc6c53b4a645c50940fe7a33150f2967d1bc874486b4c05dc679f392ea71c): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
+ }
 }

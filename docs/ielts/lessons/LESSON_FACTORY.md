@@ -90,7 +90,7 @@ Rebuilding a released lesson with this builder produces these layout improvement
 ## Optional extension lessons IELTS-X1..X8 (2026-10-18)
 
 Eight optional 60-minute lessons cover task types the 24-lesson course does not teach directly. They sit outside the
-course sequence (`extension: true` and a `placement` note naming when they fit) and are owner-review drafts.
+course sequence (`extension: true` and a `placement` note naming when they fit). Owner approved and released to all schools as v1.0.0 on 2026-10-18.
 
 | Code | Lesson | Placement |
 |---|---|---|

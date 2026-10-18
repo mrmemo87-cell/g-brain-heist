@@ -14,10 +14,10 @@ test('three full mock tests are present', () => {
 });
 
 for (const path of mocks) {
-  test(`${path.split('/mocks/')[1]} satisfies the mock source contract and stays a draft`, () => {
+  test(`${path.split('/mocks/')[1]} satisfies the mock source contract and is a draft or carries an approval record`, () => {
     const mock = load(path);
     assert.deepEqual(validateMockSource(mock), []);
-    assert.match(mock.status, /draft/i);
+    if (!/draft/i.test(mock.status)) assert.equal(mock.approval_record?.version, mock.version);
     assert.match(mock.scoring.bands, /no validated/i);
   });
 }
@@ -37,16 +37,17 @@ test('band conversion language is rejected', () => {
 test('an unapproved mock cannot claim approval in its status', () => {
   const mock = first();
   mock.status = 'Approved for classroom use';
+  delete mock.approval_record;
   assert.ok(validateMockSource(mock).length > 0);
 });
 
-test('extension lessons IELTS-X1..X8 are drafts outside the 24-lesson sequence', () => {
+test('extension lessons IELTS-X1..X8 sit outside the 24-lesson sequence and are drafts or approved', () => {
   const ext = lessonSourcePaths().map(load).filter((l) => /^IELTS-X/.test(l.code));
   assert.deepEqual(ext.map((l) => l.code), ['IELTS-X1', 'IELTS-X2', 'IELTS-X3', 'IELTS-X4', 'IELTS-X5', 'IELTS-X6', 'IELTS-X7', 'IELTS-X8']);
   for (const l of ext) {
     assert.equal(l.extension, true);
     assert.ok(l.placement);
-    assert.match(l.status, /draft/i);
+    if (!/draft/i.test(l.status)) assert.equal(l.approval_record?.version, l.version);
   }
 });
 
