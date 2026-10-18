@@ -62,7 +62,7 @@ export default function IeltsApprovedTeacherPacks({schoolId}:{schoolId:string}) 
     <details className="pack-more">
      <summary>Single files</summary>
      <div className="pack-more-menu">
-      <button type="button" className="sp-secondary" disabled={!!busy} onClick={()=>void download(pack,'slides')}>{mock?'Mock test control page':'Classroom presentation (HTML)'}</button>
+      <button type="button" className="sp-secondary" disabled={!!busy} onClick={()=>void download(pack,'slides')}>{mock?'Control page preview (audio is in the full pack)':'Classroom presentation (HTML)'}</button>
       {!mock&&<button type="button" className="sp-secondary" disabled={!!busy} onClick={()=>void download(pack,'pptx')}>Editable PowerPoint</button>}
       <button type="button" className="sp-secondary" disabled={!!busy} onClick={()=>void download(pack,'workbook')}>{mock?'Answer sheet (PDF)':'Student workbook (PDF)'}</button>
      </div>

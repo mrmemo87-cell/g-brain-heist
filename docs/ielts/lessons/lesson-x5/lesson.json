@@ -5,10 +5,10 @@
  "extension": true,
  "placement": "optional, after Week 6 (Lesson 11)",
  "week": 6,
- "version": "0.1.0",
- "presentation_version": "0.1.0",
+ "version": "1.0.0",
+ "presentation_version": "1.0.0",
  "title": "Academic Writing Task 1: describing a process",
- "status": "Draft for owner review: not approved for classroom use (optional extension lesson)",
+ "status": "Owner approved v1.0.0 on 2026-10-18; teacher release to all eligible schools (optional extension lesson)",
  "duration": 60,
  "test_type": "Academic",
  "bibles": {
@@ -460,8 +460,14 @@
  "delayed_followup": "In Lesson 19 (Writing revision clinic), check overview quality and passive accuracy in any Task 1 response. Record it as a later observation.",
  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
  "release_blockers": [
-  "Owner review of this new AI-assisted extension lesson (content, keys, models and figures) has not taken place.",
   "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
   "Student task publication and platform evidence capture remain separate, governed steps."
- ]
+ ],
+ "approval_record": {
+  "approved_by": "Owner, Brains Heist LLC",
+  "date": "2026-10-18",
+  "version": "1.0.0",
+  "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
+  "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 3d6f8c1e3465b9f0bde721e016b99ea2ad89cdcb4249c1c1b5af95bc22e897af): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
+ }
 }
