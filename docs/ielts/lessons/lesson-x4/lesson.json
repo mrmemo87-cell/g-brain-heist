@@ -64,7 +64,7 @@
      }
     ],
     "production_record": "docs/ielts/lessons/lesson-x4/AUDIO_PRODUCTION_v1.json",
-    "delivered_sha256": "4afed56bd0f1857a5e1746e34f9e6be1470900b2da2d96e787fc9c1a11ccd84f",
+    "delivered_sha256": "349f208f48d20c00a36c8dd77ed6c7766cf0a882f682d05defb421bd39054592",
     "duration_seconds": 216.528
    },
    {
@@ -110,7 +110,7 @@
      }
     ],
     "production_record": "docs/ielts/lessons/lesson-x4/AUDIO_PRODUCTION_v1.json",
-    "delivered_sha256": "2f8cd7623fa7bacf030c88fc3be51eee95a1188b608c4cf5d8394c33c480cefd",
+    "delivered_sha256": "a9636195493468dc4cce7a7e8359309e7d243b87a51e29d1278620ae7504370f",
     "duration_seconds": 133.896
    }
   ]
