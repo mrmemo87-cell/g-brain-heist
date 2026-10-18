@@ -3,8 +3,8 @@
   "code": "IELTS-09",
   "number": 9,
   "week": 5,
-  "version": "0.1.0",
-  "presentation_version": "0.1.0",
+  "version": "0.2.0",
+  "presentation_version": "0.2.0",
   "title": "Reading headings, paragraph purpose and the writer's argument",
   "status": "Private teacher-review draft",
   "duration": 60,
@@ -83,8 +83,8 @@
         "That argument has begun to influence lawmakers. In several regions, new rules require manufacturers to make spare parts and repair information available for longer, and to avoid designs that prevent repair without good reason. Supporters of repair cafés see no conflict here. Their value, they suggest, may lie less in the number of objects they save than in what they show is possible: that a broken product is often a problem to be solved rather than a reason to shop."
       ] },
       "items": [
-        { "id": "IELTS-09-R2-Q7", "prompt": "In paragraph B, the writer suggests that people who throw away repairable items are", "paragraph": "B", "options": ["A  careless about the environment.", "B  responding sensibly to the options they have.", "C  unaware that repairs are possible."], "answer": "B", "evidence": "a reasonable response to the choices available", "reason": "The writer explicitly rejects 'careless behaviour'. Option C is not stated.", "focus": "writer stance/purpose", "type": "mcq", "level": "core" },
-        { "id": "IELTS-09-R2-Q8", "prompt": "What is the main purpose of paragraph E?", "paragraph": "E", "options": ["A  to argue that repair cafés should stop", "B  to present limitations of repair cafés", "C  to explain safety rules for electrical repairs"], "answer": "B", "evidence": "Critics point out that the scale of these events is tiny", "reason": "The paragraph reports critics' limitations; it does not recommend stopping, and safety is only one example.", "focus": "writer stance/purpose", "type": "mcq", "level": "core" },
+        { "id": "IELTS-09-R2-Q7", "prompt": "In paragraph B, the writer suggests that people who throw away repairable items are", "paragraph": "B", "options": ["A  careless about the environment.", "B  unaware that repairs are possible.", "C  responding sensibly to the options they have."], "answer": "C", "evidence": "a reasonable response to the choices available", "reason": "The writer explicitly rejects 'careless behaviour'. Option B is not stated.", "focus": "writer stance/purpose", "type": "mcq", "level": "core" },
+        { "id": "IELTS-09-R2-Q8", "prompt": "What is the main purpose of paragraph E?", "paragraph": "E", "options": ["A  to present limitations of repair cafés", "B  to argue that repair cafés should stop", "C  to explain safety rules for electrical repairs"], "answer": "A", "evidence": "Critics point out that the scale of these events is tiny", "reason": "The paragraph reports critics' limitations; it does not recommend stopping, and safety is only one example.", "focus": "writer stance/purpose", "type": "mcq", "level": "core" },
         { "id": "IELTS-09-R2-Q9", "prompt": "Which statement best reflects the writer's overall view?", "paragraph": "F", "options": ["A  Repair cafés will solve the problem of waste if more people attend.", "B  Repair cafés matter mainly because they change what people believe is possible.", "C  New laws have made repair cafés unnecessary."], "answer": "B", "evidence": "may lie less in the number of objects they save than in what they show is possible", "reason": "The writer accepts the critics' point about scale (against A) and sees no conflict with new laws (against C).", "focus": "writer stance/purpose", "type": "mcq", "level": "extension" }
       ],
       "support": "Foundation: for Q8 and Q9, the teacher names the paragraph to reread; record the support.",

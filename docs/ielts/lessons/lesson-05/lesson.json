@@ -3,8 +3,8 @@
   "code": "IELTS-05",
   "number": 5,
   "week": 3,
-  "version": "0.1.0",
-  "presentation_version": "0.1.0",
+  "version": "0.2.0",
+  "presentation_version": "0.2.0",
   "title": "Listening distractors and paraphrases",
   "status": "Private teacher-review draft",
   "duration": 60,
@@ -263,14 +263,14 @@
         "type": "options_list",
         "title": "Question wording",
         "paragraphs": [
-          "A  register",
-          "B  limit the number",
-          "C  9.15",
-          "D  interview in person",
-          "E  reasons for not doing something",
-          "F  not compulsory",
-          "G  cancel",
-          "H  9.45"
+          "A  cancel",
+          "B  9.15",
+          "C  not compulsory",
+          "D  register",
+          "E  interview in person",
+          "F  9.45",
+          "G  reasons for not doing something",
+          "H  limit the number"
         ]
       },
       "items": [
@@ -287,7 +287,7 @@
             "G",
             "H"
           ],
-          "answer": "A",
+          "answer": "D",
           "evidence": "put my name down = register",
           "reason": "Both mean adding yourself to a list of participants.",
           "focus": "paraphrase recognition",
@@ -307,7 +307,7 @@
             "G",
             "H"
           ],
-          "answer": "B",
+          "answer": "H",
           "evidence": "cap ... at twenty = limit the number",
           "reason": "To cap something is to set a maximum.",
           "focus": "paraphrase recognition",
@@ -327,7 +327,7 @@
             "G",
             "H"
           ],
-          "answer": "C",
+          "answer": "B",
           "evidence": "a quarter past nine = 9.15",
           "reason": "Quarter past means fifteen minutes after the hour. 9.45 is a quarter to ten.",
           "focus": "numerical information",
@@ -347,7 +347,7 @@
             "G",
             "H"
           ],
-          "answer": "D",
+          "answer": "E",
           "evidence": "face to face = in person",
           "reason": "Face to face means meeting directly, not online.",
           "focus": "paraphrase recognition",
@@ -367,7 +367,7 @@
             "G",
             "H"
           ],
-          "answer": "E",
+          "answer": "G",
           "evidence": "what stops = reasons for not doing",
           "reason": "Something that stops you is a reason you do not act.",
           "focus": "paraphrase recognition",
@@ -387,7 +387,7 @@
             "G",
             "H"
           ],
-          "answer": "F",
+          "answer": "C",
           "evidence": "don't have to = not compulsory",
           "reason": "Don't have to removes an obligation. It does not mean the event is cancelled.",
           "focus": "paraphrase recognition",

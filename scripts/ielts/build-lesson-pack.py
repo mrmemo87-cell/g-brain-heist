@@ -376,25 +376,65 @@ class Pack:
             out[0] = {**out[0], 'image': f"assets/{b['id']}.png", 'alt': b['figure']['alt']}
         return out
 
+    def copy_audio(self):
+        audio_dir = Path(self.args.audio_dir) if getattr(self.args, 'audio_dir', None) else None
+        for r in self.d['audio'].get('recordings', []):
+            src = audio_dir / f"{r['id']}_v1.mp3" if audio_dir else None
+            if src and src.is_file():
+                # Recordings travel inside the private pack; status text says whether they are approved.
+                rel = f"Teacher-private/Audio/{r['id']}_v1.mp3"
+                (self.out / 'Teacher-private/Audio').mkdir(exist_ok=True)
+                shutil.copyfile(src, self.out / rel)
+                self.files.append({'file': rel, 'audience': 'teacher', 'recording': r['id'], 'status': r['status'], 'sha256_source': sha256(src)})
+
+    def recording_for(self, b):
+        """Classroom recording for a listening block (withheld fresh-check audio never goes on slides)."""
+        rec = next((r for r in self.d['audio'].get('recordings', []) if r['block'] == b['id']), None)
+        if not rec or b['id'] not in self.blocks:
+            return None
+        rel = f"Audio/{rec['id']}_v1.mp3"
+        have = (self.out / 'Teacher-private' / rel).exists()
+        return {'id': rec['id'], 'src': rel if have else None, 'status': rec['status']}
+
     def _block_slides(self, b, part):
         k, out = b['kind'], []
         notes_base = f"{b['id']} · {b['mode']}."
+        wb = b['title']
         if k == 'items' and part == 'questions':
             st = b.get('stimulus') or {}
-            pre = []
+            pre, pre_meta = [], []
+            pre.append(b['instructions']); pre_meta.append({'t': 'instr'})
             if st.get('type') == 'options_list':
-                pre = [st['title'] + ':  ' + '   '.join(st['paragraphs'])]
-            elif any(it['type'] in ('matching', 'paragraph_match') for it in b['items']):
-                # Option lists (headings, groups, speakers) must stay visible next to every item when projected.
-                text = b['instructions']
-                if 'List of' in text:
-                    head, _, rest = text.partition('List of')
-                    text = head.strip() + '\nList of' + rest.replace('; ', '\n')
-                pre = [text]
+                pre.append(st['title'] + ':\n' + '\n'.join(st['paragraphs']))
+                pre_meta.append({'t': 'options', 'title': st['title'], 'options': st['paragraphs']})
+            elif any(it['type'] in ('matching', 'paragraph_match') for it in b['items']) and 'List of' in b['instructions']:
+                # Option lists (headings, groups, speakers) stay visible next to every item when projected.
+                head, _, rest = b['instructions'].partition('List of')
+                title, _, opts = ('List of' + rest).partition(':')
+                pre = [head.strip(), title.strip() + ':\n' + '\n'.join(o.strip() for o in opts.split(';') if o.strip())]
+                pre_meta = [{'t': 'instr'}, {'t': 'options', 'title': title.strip(), 'options': [o.strip() for o in opts.split(';') if o.strip()]}]
+            if not any(m['t'] == 'options' for m in pre_meta) and any(it['type'] == 'matching' for it in b['items']):
+                # Inline option lists such as "(A shorten it; B add examples; ...)" become a visible side panel.
+                mm = re.search(r'\(([A-H] [^;()]+(?:; [A-H] [^;()]+){2,})\)', b['instructions'])
+                if mm:
+                    opts = [o.strip() for o in mm.group(1).split(';')]
+                    pre_meta = pre_meta + [{'t': 'options', 'title': 'Options', 'options': [o[0] + '  ' + o[2:] for o in opts]}]
+                    pre = pre + ['Options:\n' + '\n'.join(opts)]
+            mcqs = [it for it in b['items'] if it['type'] in ('mcq', 'choice')]
+            shared = None
+            if len(mcqs) >= 3 and len(mcqs) == len(b['items']) and mcqs[0].get('options') and all(it.get('options') == mcqs[0].get('options') for it in mcqs):
+                # Same options for every question: show them once beside the questions instead of repeating them.
+                shared = mcqs[0]['options']
+                pre_meta = pre_meta + [{'t': 'options', 'title': 'Options', 'options': shared}]
+                pre = pre + ['Options:\n' + '\n'.join(shared)]
+            passage = None
+            if st.get('type') == 'passage' and not st.get('workbook_reference'):
+                passage = {'title': st['title'], 'labelled': bool(st.get('labelled')), 'paragraphs': st['paragraphs']}
+            audio = self.recording_for(b) if st.get('type') == 'transcript' else None
             groups, cur, size = [], [], 0
-            short_matching = pre and all(it['type'] in ('matching', 'paragraph_match') and len(it['prompt']) < 40 for it in b['items'])
+            short_matching = len(pre) > 1 and all(it['type'] in ('matching', 'paragraph_match') and len(it['prompt']) < 40 for it in b['items'])
             for it in ([] if short_matching else b['items']):
-                cost = len(it['prompt']) + sum(len(o) for o in it.get('options', []) if it['type'] == 'mcq') + 40
+                cost = len(it['prompt']) + (0 if shared else sum(len(o) for o in it.get('options', []) if it['type'] in ('mcq', 'choice'))) + 40
                 if cur and (size + cost > 360 or len(cur) == 4):
                     groups.append(cur); cur, size = [], 0
                 cur.append(it); size += cost
@@ -402,69 +442,129 @@ class Pack:
                 groups.append(cur)
             if short_matching:
                 groups = [b['items']]
+            panel = next((m for m in pre_meta if m['t'] == 'options'), None)
             for gi, g in enumerate(groups):
-                body = list(pre if gi == 0 else [])
+                # The option list stays beside every group of items (HTML and PowerPoint), so it is not repeated in the body.
+                body = [b['instructions']] if gi == 0 else []
+                meta = [{'t': 'instr'}] if gi == 0 else []
+                if pre[0] != b['instructions']:
+                    body, meta = ([pre[0]], [{'t': 'instr'}]) if gi == 0 else ([], [])
                 for it in g:
                     num = it['id'].rsplit('-Q', 1)[-1]
                     line = f"{num}.  {it['prompt']}"
-                    if it['type'] in ('mcq', 'choice') and it.get('options'):
-                        line += '\n' + '\n'.join('      ' + o for o in it['options'])
+                    opts = it['options'] if it['type'] in ('mcq', 'choice') and it.get('options') and not shared else []
+                    if opts:
+                        line += '\n' + '\n'.join('      ' + o for o in opts)
                     body.append(line)
+                    meta.append({'t': 'item', 'num': num, 'prompt': it['prompt'], 'options': opts,
+                                 'gap': it['type'] == 'completion', 'kind': it['type']})
                 notes = notes_base + ' Learners commit answers before the reveal.'
                 if st.get('type') == 'teacher_script':
                     notes += ' Read aloud once: ' + ' / '.join(st['paragraphs'])
                 if st.get('type') == 'transcript':
-                    notes += ' Play the approved recording only; never read the transcript as a substitute.'
-                out.append({'title': b['title'] + (f' ({gi + 1}/{len(groups)})' if len(groups) > 1 else ''), 'body': body, 'notes': notes})
+                    notes += ' Play the approved recording from this slide only after learners have read the questions; never read the transcript as a substitute.'
+                slide = {'title': b['title'] + (f' ({gi + 1}/{len(groups)})' if len(groups) > 1 else ''), 'body': body, 'meta': meta,
+                         'notes': notes, 'workbook': wb, 'build': audio is None}
+                if passage:
+                    slide['passage'] = passage
+                if panel:
+                    slide['panel'] = {'title': panel['title'], 'options': panel['options']}
+                if audio:
+                    slide['audio'] = {**audio, 'part': gi + 1, 'parts': len(groups)}
+                out.append(slide)
         elif k == 'items' and part == 'answers':
-            for i in range(0, len(b['items']), 2):
-                g = b['items'][i:i + 2]
-                body = []
+            quotable = (b.get('stimulus') or {}).get('type') in ('passage', 'transcript', 'teacher_script')
+            groups, i = [], 0
+            weigh = lambda it: len(it['prompt']) + len(it['evidence']) + len(it['reason']) + sum(len(o) for o in it.get('options', []) if it['type'] in ('mcq', 'choice')) // 3
+            while i < len(b['items']):
+                take = 2 if i + 1 < len(b['items']) and weigh(b['items'][i]) + weigh(b['items'][i + 1]) <= 430 else 1
+                groups.append(b['items'][i:i + take]); i += take
+            for g in groups:
+                body, meta = [], []
                 for it in g:
                     num = it['id'].rsplit('-Q', 1)[-1]
-                    quotable = (b.get('stimulus') or {}).get('type') in ('passage', 'transcript', 'teacher_script')
                     ev = f"“{it['evidence']}”" if quotable else it['evidence']
                     body.append(f"{num}   {it['answer']}\n{ev}\n{it['reason']}")
+                    meta.append({'t': 'answer', 'num': num, 'prompt': it['prompt'], 'answer': it['answer'], 'evidence': ev, 'reason': it['reason']})
                 ids = ', '.join(it['id'] for it in g)
-                out.append({'title': answers_title(b['title']), 'body': body, 'reveal': True, 'notes': f'Reveal only after learners explain their choices. {ids}. Corrections remain guided practice.'})
+                out.append({'title': answers_title(b['title']), 'body': body, 'meta': meta, 'reveal': True, 'build': True, 'workbook': wb,
+                            'notes': f'Reveal only after learners explain their choices. Click to show each answer. {ids}. Corrections remain guided practice.'})
         elif k == 'contrast' and part == 'questions':
             labels = letters(len(b['examples']))
             for i in range(0, len(b['examples']), 2):
                 body = [b['instructions']] if i == 0 else []
-                body += [f"{labels[j]}.  {ex['text']}" for j, ex in enumerate(b['examples']) if i <= j < i + 2]
-                out.append({'title': b['title'], 'body': body, 'notes': notes_base + ' Learners decide before the reveal.'})
+                meta = [{'t': 'instr'}] if i == 0 else []
+                for j, ex in enumerate(b['examples']):
+                    if i <= j < i + 2:
+                        body.append(f"{labels[j]}.  {ex['text']}"); meta.append({'t': 'example', 'num': labels[j], 'text': ex['text']})
+                out.append({'title': b['title'], 'body': body, 'meta': meta, 'build': True, 'workbook': wb, 'notes': notes_base + ' Learners decide before the reveal.'})
         elif k == 'contrast' and part == 'answers':
             labels = letters(len(b['examples']))
             for i in range(0, len(b['examples']), 2):
-                body = [f"{labels[j]}.  {ex['label']}\n{ex['comment']}" for j, ex in enumerate(b['examples']) if i <= j < i + 2]
-                out.append({'title': f"{b['title']} — discussion", 'body': body, 'reveal': True, 'notes': 'Ask learners to explain their choice before revealing each comment.'})
+                body, meta = [], []
+                for j, ex in enumerate(b['examples']):
+                    if i <= j < i + 2:
+                        body.append(f"{labels[j]}.  {ex['label']}\n{ex['comment']}")
+                        meta.append({'t': 'discussion', 'num': labels[j], 'label': ex['label'], 'text': ex['comment']})
+                out.append({'title': f"{b['title']} — discussion", 'body': body, 'meta': meta, 'reveal': True, 'build': True, 'workbook': wb,
+                            'notes': 'Ask learners to explain their choice before revealing each comment.'})
         elif k == 'writing' and part == 'prompt':
-            out.append({'title': b['title'], 'body': [b['prompt'], b['conditions']], 'dark': True, 'notes': notes_base + ' The model is not shown until after learners write.'})
+            out.append({'title': b['title'], 'body': [b['prompt'], b['conditions']], 'meta': [{'t': 'task'}, {'t': 'conditions'}],
+                        'workbook': wb, 'timer': self.writing_minutes(b), 'notes': notes_base + ' The model is not shown until after learners write.'})
         elif k == 'writing' and part == 'model':
             paras = b['model'].split('\n\n')
             chunks = self.fit_chunks(paras, 700)
             for ci, ch in enumerate(chunks):
-                out.append({'title': 'Illustrative model' + (f' ({ci + 1}/{len(chunks)})' if len(chunks) > 1 else ''), 'body': ch + ([b['model_label']] if ci == len(chunks) - 1 else []), 'reveal': True, 'notes': b['model_label'] + ' Point out the argument chain. Do not ask learners to memorise it.'})
+                body = ch + ([b['model_label']] if ci == len(chunks) - 1 else [])
+                meta = [{'t': 'model'} for _ in ch] + ([{'t': 'small'}] if ci == len(chunks) - 1 else [])
+                out.append({'title': 'Illustrative model' + (f' ({ci + 1}/{len(chunks)})' if len(chunks) > 1 else ''), 'body': body, 'meta': meta, 'reveal': True,
+                            'workbook': wb, 'notes': b['model_label'] + ' Point out the argument chain. Do not ask learners to memorise it.'})
         elif k == 'speaking' and part == 'prompt':
-            out.append({'title': b['title'], 'body': b['prompts'], 'notes': b['instructions'] + ' ' + b['observation']})
+            out.append({'title': b['title'], 'body': b['prompts'], 'meta': [{'t': 'card'} for _ in b['prompts']], 'build': True, 'workbook': wb,
+                        'notes': b['instructions'] + ' ' + b['observation']})
         elif k == 'speaking' and part == 'model':
-            out.append({'title': 'A developed spoken answer', 'body': [b['model']], 'reveal': True, 'notes': 'Read naturally once. This is a live classroom model, not a script to memorise or a Listening task.'})
+            out.append({'title': 'A developed spoken answer', 'body': [b['model']], 'meta': [{'t': 'model'}], 'reveal': True, 'workbook': wb,
+                        'notes': 'Read naturally once. This is a live classroom model, not a script to memorise or a Listening task.'})
         return out
+
+    @staticmethod
+    def writing_minutes(b):
+        m = re.search(r'(\d+)\s*minutes', b.get('conditions', ''))
+        return int(m.group(1)) if m else None
 
     def build_slides(self):
         d = self.d
-        slides = [{'title': d['title'], 'body': [f"Lesson {self.n} · Week {d['week']}", '\n'.join(o['text'] for o in d['objectives'][:2])], 'dark': True, 'notes': f"{d['status']}. Confirm the reviewed version before teaching. " + d['audio']['statement']},
-                  {'title': 'Today you will', 'body': [o['text'] for o in d['objectives']], 'notes': 'Objectives are teaching goals, not measured results.'}]
+        slides = [{'title': d['title'], 'kind': 'cover', 'body': [f"Lesson {self.n} · Week {d['week']}", '\n'.join(o['text'] for o in d['objectives'][:2])],
+                   'meta': [{'t': 'kicker'}, {'t': 'lead'}], 'dark': True, 'notes': f"{d['status']}. Confirm the reviewed version before teaching. " + d['audio']['statement']},
+                  {'title': 'Today you will', 'body': [o['text'] for o in d['objectives']], 'meta': [{'t': 'goal'} for _ in d['objectives']], 'build': True,
+                   'notes': 'Objectives are teaching goals, not measured results.'}]
         self.stage_slides = []
         for si, s in enumerate(d['stages']):
-            slides.append({'stage': si, 'title': s['title'], 'body': [s['student'], f"{s['start']}–{s['end']} minutes"], 'dark': si in (0,) or not s['show'], 'notes': f"{s['start']}-{s['end']} min. Teacher: {s['teacher']} Say: {s['say']} Check: {s['check']}"})
+            wbs = []
+            for ref in s['show']:
+                t = self.blocks[ref['block']]['title']
+                if t not in wbs:
+                    wbs.append(t)
+            minutes = s['end'] - s['start']
+            slides.append({'stage': si, 'kind': 'stage', 'title': s['title'], 'body': [s['student'], f"{s['start']}–{s['end']} minutes"],
+                           'meta': [{'t': 'lead'}, {'t': 'time'}], 'dark': si in (0,) or not s['show'], 'workbook_list': wbs, 'timer': minutes,
+                           'step': f"Step {si + 1} of {len(d['stages'])}",
+                           'notes': f"{s['start']}-{s['end']} min. Teacher: {s['teacher']} Say: {s['say']} Check: {s['check']}"})
             for ref in s['show']:
                 for bs in self.block_slides(self.blocks[ref['block']], ref['part']):
                     slides.append({**bs, 'stage': si})
-        slides.append({'title': 'Exit ticket', 'body': d['exit_ticket'], 'dark': True, 'notes': 'Collect original work. Feedback stays scoped to today.'})
-        self.slides = slides
+        # A recording plays only where learners listen: the last question showing of its block before the reveal.
+        for rid in {sl['audio']['id'] for sl in slides if sl.get('audio')}:
+            idx = [i for i, sl in enumerate(slides) if (sl.get('audio') or {}).get('id') == rid]
+            last_stage = slides[idx[-1]]['stage']
+            for i in idx:
+                if slides[i]['stage'] != last_stage:
+                    slides[i] = {k: v for k, v in slides[i].items() if k != 'audio'}
+                    slides[i]['build'] = True
+        slides.append({'title': 'Exit ticket', 'kind': 'exit', 'body': d['exit_ticket'], 'meta': [{'t': 'goal'} for _ in d['exit_ticket']], 'dark': True,
+                       'workbook': 'Exit ticket', 'notes': 'Collect original work. Feedback stays scoped to today.'})
         self.slides = self.legible(slides)
-        return slides
+        return self.slides
 
     # ---------- outputs ----------
     def build_pdfs(self):
@@ -538,7 +638,7 @@ class Pack:
                   self.p('Before class', 'H'),
                   self.p('1. Open 01-START-HERE.html and keep the extracted folder together.'),
                   self.p(f"2. Print Student_Workbook.pdf ({self.page_label('Students/Student_Workbook.pdf')}) and Homework.pdf ({self.page_label('Students/Homework.pdf')}) for each learner. Keep all Teacher-private files private."),
-                  self.p(f"3. Open Lesson_{self.n:02d}_Presentation.pptx (motion-free) or Lesson_{self.n:02d}_Slides.html. Answers appear only on separate reveal slides."),
+                  self.p(f"3. Project Lesson_{self.n:02d}_Slides.html (the classroom presentation: recordings, timers and click-by-click reveals are built in; press F for full screen, N for notes). PowerPoint versions: Lesson_{self.n:02d}_Presentation.pptx (animated, recordings embedded) and Lesson_{self.n:02d}_Presentation_motion_free.pptx. Answers appear only on separate reveal slides."),
                   self.p('4. Arrange unfinished screeners outside this lesson. Never shorten a screener or replace it with lesson tasks.')]]
         if d['audio']['required']:
             guide[0] += [self.p('Recordings', 'H')] + [self.p(f"•  {r['id']}: {r['status']}. {r['conditions']}", 'P') for r in d['audio']['recordings']]
@@ -600,49 +700,14 @@ class Pack:
         self.pdf('Teacher-private/Planning_and_Review_Record.pdf', 'Planning and review record', planning, 'teacher', 'Teacher-only records')
 
     def build_pptx(self):
-        from pptx import Presentation
-        from pptx.dml.color import RGBColor
-        from pptx.util import Inches, Pt
-        prs = Presentation()
-        prs.slide_width, prs.slide_height = Inches(13.333), Inches(7.5)
-        blank = prs.slide_layouts[6]
-        total = len(self.slides)
-        rgb = lambda h: RGBColor.from_string(h.lstrip('#'))
-        for i, s in enumerate(self.slides):
-            sl = prs.slides.add_slide(blank)
-            dark = s.get('dark')
-            bg = sl.background.fill; bg.solid(); bg.fore_color.rgb = rgb(INK if dark else '#FFFFFF')
-            fg = '#FFFFFF' if dark else INK
-            bar = sl.shapes.add_shape(1, 0, 0, prs.slide_width, Inches(0.09)); bar.fill.solid(); bar.fill.fore_color.rgb = rgb(PRIMARY); bar.line.fill.background()
-            ident = sl.shapes.add_textbox(Inches(0.6), Inches(0.22), Inches(10.5), Inches(0.4)).text_frame
-            ident.text = f"{self.school} · Brains Heist IELTS · {self.code} · presentation {self.d['presentation_version']} · {i + 1}/{total}"
-            ident.paragraphs[0].runs[0].font.size = Pt(12); ident.paragraphs[0].runs[0].font.color.rgb = rgb('#C9D6EA' if dark else MUTED)
-            if self.logo:
-                sl.shapes.add_picture(str(self.logo), Inches(12.2), Inches(0.18), height=Inches(0.55))
-            if s.get('reveal'):
-                tag = sl.shapes.add_textbox(Inches(10.9), Inches(6.85), Inches(2.0), Inches(0.4)).text_frame
-                tag.text = 'Answer reveal'; tag.paragraphs[0].runs[0].font.size = Pt(12); tag.paragraphs[0].runs[0].font.color.rgb = rgb(PRIMARY if not dark else '#C9D6EA')
-            title = sl.shapes.add_textbox(Inches(0.6), Inches(0.75), Inches(12.1), Inches(1.1)).text_frame
-            title.word_wrap = True; title.text = s['title']
-            r = title.paragraphs[0].runs[0]; r.font.size = Pt(36 if len(s['title']) < 48 else 30); r.font.bold = True; r.font.color.rgb = rgb(fg); r.font.name = 'Arial'
-            text = '\n\n'.join(s['body'])
-            if s.get('image'):
-                sl.shapes.add_picture(str(self.out / s['image']), Inches(0.5), Inches(2.0), width=Inches(7.4))
-                size = self.body_size(text, 4.9)
-                body = sl.shapes.add_textbox(Inches(8.1), Inches(2.0), Inches(4.9), Inches(4.9)).text_frame
-            else:
-                size = self.body_size(text)
-                body = sl.shapes.add_textbox(Inches(0.6), Inches(2.0), Inches(12.1), Inches(4.9)).text_frame
-            body.word_wrap = True
-            for li, line in enumerate(text.split('\n')):
-                para = body.paragraphs[0] if li == 0 else body.add_paragraph()
-                para.text = line
-                for run in para.runs:
-                    run.font.size = Pt(size); run.font.color.rgb = rgb(fg); run.font.name = 'Arial'
-            sl.notes_slide.notes_text_frame.text = s['notes']
-        dest = self.out / f"Teacher-private/Lesson_{self.n:02d}_Presentation.pptx"
-        prs.save(dest)
-        self.files.append({'file': str(dest.relative_to(self.out)), 'audience': 'teacher', 'slides': total, 'motion': 'none (motion-free; click to advance)'})
+        import sys
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from lesson_pptx import build
+        for animated, name, motion in ((True, f"Lesson_{self.n:02d}_Presentation.pptx", 'click-triggered 250 ms fade builds and fade transitions; nothing automatic'),
+                                       (False, f"Lesson_{self.n:02d}_Presentation_motion_free.pptx", 'none (motion-free; click to advance)')):
+            dest = self.out / 'Teacher-private' / name
+            total = build(self, self.body_size, animated, dest)
+            self.files.append({'file': str(dest.relative_to(self.out)), 'audience': 'teacher', 'slides': total, 'motion': motion})
 
     MIN_SIZE = 20
 
@@ -653,20 +718,28 @@ class Pack:
             pending = [sl]
             while pending:
                 cur = pending.pop(0)
-                if self.body_size('\n\n'.join(cur['body']), 4.9 if cur.get('image') else 12.1) >= self.MIN_SIZE - (2 if cur.get('image') else 0):
+                if self.body_size('\n\n'.join(cur['body']), 4.9 if (cur.get('image') or cur.get('panel') or cur.get('passage')) else 12.1) >= self.MIN_SIZE - (2 if (cur.get('image') or cur.get('panel') or cur.get('passage')) else 0):
                     out.append(cur); continue
                 body = cur['body']
+                meta = cur.get('meta') or [{'t': 'text'} for _ in body]
+                if len(body) == 2 and meta[0].get('t') == 'instr':
+                    out.append(cur); continue  # instructions stay with their first question
                 if len(body) > 1:
                     half = max(1, len(body) // 2)
+                    while half < len(body) - 1 and all(x.get('t') in ('instr', 'options') for x in meta[:half]):
+                        half += 1
                     parts = [body[:half], body[half:]]
+                    metas = [meta[:half], meta[half:]]
                 else:
                     sentences = re.split(r'(?<=[.!?])\s+', body[0])
                     half = max(1, len(sentences) // 2)
                     parts = [[' '.join(sentences[:half])], [' '.join(sentences[half:])]]
+                    metas = [[{**meta[0]}], [{**meta[0]}]]
                     if not parts[1][0]:
                         raise ValueError(f"Cannot split slide legibly: {cur['title']}")
                 base = re.sub(r' \(continued\)$', '', cur['title'])
-                pending[:0] = [{**cur, 'body': parts[0]}, {**cur, 'title': base + ' (continued)', 'body': parts[1]}]
+                second = dict(cur)
+                pending[:0] = [{**cur, 'body': parts[0], 'meta': metas[0]}, {**second, 'title': base + ' (continued)', 'body': parts[1], 'meta': metas[1]}]
         stages = {}
         for i, sl in enumerate(out, start=1):
             if 'stage' in sl:
@@ -691,16 +764,10 @@ class Pack:
                'section{background:#fff;padding:24px;margin:20px 0}small{color:#4C6076}li{margin:10px 0}html{overflow-wrap:anywhere}'
                '@media print{body{background:#fff}main{padding:0}button,nav{display:none}section{break-inside:avoid}}')
         d, n = self.d, self.n
-        audio_dir = Path(self.args.audio_dir) if getattr(self.args, 'audio_dir', None) else None
         items = []
         for r in d['audio']['recordings']:
-            src = audio_dir / f"{r['id']}_v1.mp3" if audio_dir else None
-            if src and src.is_file():
-                # Recordings travel inside the private pack for teacher listening review; status text says whether they are approved.
-                rel = f"Teacher-private/Audio/{r['id']}_v1.mp3"
-                (self.out / 'Teacher-private/Audio').mkdir(exist_ok=True)
-                shutil.copyfile(src, self.out / rel)
-                self.files.append({'file': rel, 'audience': 'teacher', 'recording': r['id'], 'status': r['status']})
+            rel = f"Teacher-private/Audio/{r['id']}_v1.mp3"
+            if (self.out / rel).exists():
                 items.append(f"<li><a href=\"{E(rel)}\">{E(r['id'])}</a>: {E(r['status'])}</li>")
             else:
                 items.append(f"<li>{E(r['id'])}: {E(r['status'])}</li>")
@@ -711,7 +778,7 @@ class Pack:
                  f'<p><strong>{E(d["status"])}.</strong> Complete the human review record before classroom release. This content is not published in Brains Heist.</p>'
                  f'<section><h2>Start here</h2><ol><li>Keep the extracted folder together. Read the <a href="Teacher-private/Teacher_Guide.pdf">teacher guide</a>.</li>'
                  f'<li>Print the <a href="Students/Student_Workbook.pdf">student workbook</a> and <a href="Students/Homework.pdf">homework</a> for each learner.</li>'
-                 f'<li>Open the <a href="Teacher-private/Lesson_{n:02d}_Presentation.pptx">motion-free PowerPoint</a> or the <a href="Teacher-private/Lesson_{n:02d}_Slides.html">offline HTML slides</a>. Answers appear only on separate reveal slides.</li>'
+                 f'<li>Project the <a href="Teacher-private/Lesson_{n:02d}_Slides.html">classroom presentation</a>: it follows the workbook, plays the recordings from the slide, and reveals questions and answers on your clicks (F full screen, N teacher notes, P play/pause). PowerPoint versions: <a href="Teacher-private/Lesson_{n:02d}_Presentation.pptx">animated, with recordings</a> and <a href="Teacher-private/Lesson_{n:02d}_Presentation_motion_free.pptx">motion-free</a>. Answers appear only on separate reveal slides.</li>'
                  f'<li>Keep <a href="Teacher-private/Teacher_Keys_Scripts_Models.pdf">keys, scripts and models</a> and the <a href="Teacher-private/Fresh_Check_WITHHELD.pdf">withheld fresh check</a> private.</li>'
                  f'<li>Use the <a href="Teacher-private/Planning_and_Review_Record.pdf">planning and review record</a> for observations and the human review.</li></ol>{audio_html}</section>'
                  f'<section><h2>Needs internet?</h2><p>No. Everything in this pack works offline. Any online practice must be assigned through the existing Brains Heist workflow.</p></section>'
@@ -721,28 +788,10 @@ class Pack:
                  + f'</p></section><small>{E(self.code)} v{E(d["version"])}. Diagnostic Bible {E(d["bibles"]["diagnostic"])}; Lessons Bible {E(d["bibles"]["lessons"])}; Visual &amp; UX Bible {E(d["bibles"]["visual"])}. Paper work does not save into IELTS Journey.</small></main></html>')
         (self.out / '01-START-HERE.html').write_text(start)
 
-        parts = []
-        for i, s in enumerate(self.slides):
-            body = '<br><br>'.join(E(x).replace('\n', '<br>') for x in s['body'])
-            parts.append(f'<section class="slide{" dark" if s.get("dark") else ""}" data-slide="{i}"{" hidden" if i else ""} aria-roledescription="slide" aria-label="Slide {i + 1} of {len(self.slides)}">'
-                         f'<p class="identity">{E(self.school)} · Brains Heist IELTS · {E(self.code)} · presentation {E(d["presentation_version"])} · {i + 1}/{len(self.slides)}{" · Answer reveal" if s.get("reveal") else ""}</p>'
-                         f'<h1>{E(s["title"])}</h1>' + (f'<img class="fig" src="../{E(s["image"])}" alt="{E(s.get("alt", ""))}">' if s.get('image') else '') + f'<p class="body">{body}</p><details><summary>Teacher notes</summary><p>{E(s["notes"])}</p></details></section>')
-        options = ''.join(f'<option value="{i}">{i + 1}. {E(s["title"])}</option>' for i, s in enumerate(self.slides))
-        slidecss = ('.slide{min-height:72vh;margin:0;padding:32px 16px}.slide[hidden]{display:none}.dark{background:#15243A;color:#fff}.identity{font-size:14px}'
-                    '.body{font-size:clamp(18px,2.6vw,28px);line-height:1.45}details{font-size:16px}nav{display:flex;flex-wrap:wrap;gap:12px;padding:12px 16px;background:#fff;position:sticky;bottom:0}'
-                    'select{max-width:100%;min-width:0;flex:1}nav label{display:flex;align-items:center;gap:8px}main{max-width:1280px;padding:0}'
-                    '.fig{display:block;max-width:100%;height:auto;background:#fff;border-radius:8px;margin:8px 0}.slide.fade{animation:entry .25s ease-out}@keyframes entry{from{opacity:0}to{opacity:1}}@media(prefers-reduced-motion:reduce){.slide.fade{animation:none}}'
-                    '@media print{.slide{display:block!important;break-after:page;min-height:0}details{display:none}}')
-        js = ("const slides=[...document.querySelectorAll('.slide')],sel=document.getElementById('select'),status=document.getElementById('status'),motion=document.getElementById('motion');let index=0;"
-              "function show(n){index=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,i)=>{s.hidden=i!==index;s.classList.toggle('fade',i===index&&motion.checked&&!matchMedia('(prefers-reduced-motion: reduce)').matches)});"
-              "sel.value=index;status.textContent='Slide '+(index+1)+' of '+slides.length;document.getElementById('previous').disabled=index===0;document.getElementById('next').disabled=index===slides.length-1}"
-              "document.getElementById('previous').onclick=()=>show(index-1);document.getElementById('next').onclick=()=>show(index+1);sel.onchange=()=>show(Number(sel.value));"
-              "document.addEventListener('keydown',e=>{if(e.target.closest('button,input,select,textarea,summary,a,[contenteditable]'))return;let n;"
-              "if(e.key==='ArrowRight'||e.key===' '){n=index+1}else if(e.key==='ArrowLeft'){n=index-1}else if(e.key==='Home'){n=0}else if(e.key==='End'){n=slides.length-1}else{return}e.preventDefault();show(n)});show(0);")
-        (self.out / f'Teacher-private/Lesson_{n:02d}_Slides.html').write_text(
-            f'<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Teacher-only Lesson {n} slides</title><style>{css}{slidecss}</style><main>'
-            + ''.join(parts) + f'</main><nav aria-label="Slide controls"><button id="previous">Previous</button><button id="next">Next</button><label for="select">Slide</label><select id="select">{options}</select>'
-            f'<label><input id="motion" type="checkbox">Fade</label><span id="status" aria-live="polite"></span></nav><script>{js}</script></html>')
+        import sys
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from lesson_presenter import render
+        (self.out / f'Teacher-private/Lesson_{n:02d}_Slides.html').write_text(render(self, self.body_size))
         (self.out / 'Teacher-private/slides.json').write_text(json.dumps(self.slides, ensure_ascii=False, indent=2))
         self.files += [{'file': '01-START-HERE.html', 'audience': 'teacher'}, {'file': f'Teacher-private/Lesson_{n:02d}_Slides.html', 'audience': 'teacher', 'slides': len(self.slides)}]
 
@@ -777,6 +826,7 @@ def main():
     if check.returncode:
         raise SystemExit('Source contract failed; fix the lesson source first.\n' + check.stdout)
     pack = Pack(args)
+    pack.copy_audio()
     pack.build_slides()
     pack.build_pdfs()
     pack.build_pptx()

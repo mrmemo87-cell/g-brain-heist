@@ -166,6 +166,12 @@ function checkBlock(block, code, errors, where, seenIds) {
       seenIds.add(item.id);
       checkItem(item, block, errors, where);
     }
+    // Matching keys must not simply follow the option order (1-A, 2-B, 3-C ...): learners could answer without the skill.
+    const matching = (block.items ?? []).filter((i) => ['matching', 'paragraph_match'].includes(i.type) && Array.isArray(i.options));
+    if (matching.length >= 4) {
+      const pos = matching.map((i) => i.options.indexOf(i.answer));
+      if (pos.every((p, k) => p >= 0 && (k === 0 || p === pos[k - 1] + 1))) errors.push(`${label}: matching answers run in option order; reorder the options`);
+    }
   } else if (block.kind === 'writing') {
     for (const field of ['prompt', 'conditions', 'model', 'model_label', 'checklist']) {
       if (!block[field] || (Array.isArray(block[field]) && block[field].length === 0)) errors.push(`${label}: missing ${field}`);
