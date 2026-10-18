@@ -23,6 +23,7 @@ from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, 
 INK, PRIMARY, MUTED, LINE, WASH = '#15243A', '#1746B0', '#4C6076', '#DCE5EF', '#EEF3FA'
 ROOT = Path(__file__).resolve().parents[2]
 E = html.escape
+TOKEN = '{{BH_SCHOOL_NAME}}'
 
 
 def sha256(path):
@@ -51,8 +52,10 @@ class Pack:
         self.source = Path(args.source).resolve()
         self.d = json.loads(self.source.read_text())
         self.source_sha = sha256(self.source)
-        self.school = args.school
+        self.template = bool(getattr(args, 'template', False))
+        self.school = TOKEN if self.template else args.school
         self.logo = Path(args.logo).resolve() if args.logo else None
+        self.pdf_pages = {}
         self.review_date = args.review_date
         self.args = args
         self.out = Path(args.output).resolve()
@@ -60,7 +63,13 @@ class Pack:
             raise SystemExit(f'Output directory {self.out} is not empty; use a new directory for each build.')
         for sub in ['Students', 'Teacher-private', 'assets']:
             (self.out / sub).mkdir(parents=True, exist_ok=True)
-        if self.logo:
+        if self.template:
+            # A unique transparent placeholder: the download step replaces it with the authorized school's logo.
+            from PIL import Image as PILImage
+            ph = self.out / 'assets' / 'school-logo.png'
+            im = PILImage.new('RGBA', (600, 675), (255, 255, 255, 0)); im.putpixel((0, 0), (23, 70, 176, 1)); im.save(ph)
+            self.logo = ph
+        elif self.logo:
             shutil.copyfile(self.logo, self.out / 'assets' / ('school-logo' + self.logo.suffix.lower()))
         self.code = self.d['code']
         self.n = self.d['number']
@@ -117,14 +126,15 @@ class Pack:
             w, h = doc.pagesize
             c.saveState()
             c.setFillColor(colors.HexColor(PRIMARY)); c.rect(0, h - 8, w, 8, fill=1, stroke=0)
-            c.setFont('BHBold', 9); c.setFillColor(colors.HexColor(INK)); c.drawString(42, h - 32, self.school)
+            if not self.template:
+                c.setFont('BHBold', 9); c.setFillColor(colors.HexColor(INK)); c.drawString(42, h - 32, self.school)
             c.setFont('BHRegular', 8); c.setFillColor(colors.HexColor(MUTED))
             c.drawString(42, h - 46, f"Brains Heist IELTS | Lesson {self.n} | {label}")
-            if self.logo:
+            if self.logo and not self.template:
                 c.drawImage(ImageReader(str(self.logo)), w - 80, h - 66, 38, 40, preserveAspectRatio=True, mask='auto')
             c.setStrokeColor(colors.HexColor(LINE)); c.line(42, 37, w - 42, 37)
             c.setFont('BHRegular', 8)
-            c.drawString(42, 24, f"{self.code} v{self.d['version']} | {self.d['status']} | No official IELTS result")
+            c.drawString(42, 24, f"{self.code} v{self.d['version']} | {'Approved for teaching' if self.d.get('approval_record') else self.d['status']} | No official IELTS result")
             c.drawRightString(w - 42, 24, str(doc.page))
             c.restoreState()
 
@@ -133,7 +143,9 @@ class Pack:
                                 title=f"{self.code} {title}", author='Brains Heist IELTS')
         doc.build(story, onFirstPage=header, onLaterPages=header)
         from pypdf import PdfReader
-        self.files.append({'file': rel, 'audience': audience, 'pages': len(PdfReader(str(dest)).pages)})
+        pages_n = len(PdfReader(str(dest)).pages)
+        self.pdf_pages[rel] = pages_n
+        self.files.append({'file': rel, 'audience': audience, 'pages': pages_n})
 
     def page_label(self, rel):
         n = next(f['pages'] for f in self.files if f['file'] == rel)
@@ -773,9 +785,10 @@ class Pack:
                 items.append(f"<li>{E(r['id'])}: {E(r['status'])}</li>")
         audio = ''.join(items)
         audio_html = f"<p><strong>Recordings required.</strong> {E(d['audio']['statement'])}</p><ul>{audio}</ul>" if d['audio']['required'] else f"<p><strong>{E(d['audio']['statement'])}</strong></p>"
+        status_html = (f'<p><strong>{E(d["status"])}.</strong> Ready to teach. Student tasks are not published in Brains Heist by this pack; paper work does not save to IELTS Journey.</p>' if d.get('approval_record') else f'<p><strong>{E(d["status"])}.</strong> Complete the human review record before classroom release. This content is not published in Brains Heist.</p>')
         start = (f'<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lesson {n} start guide</title><style>{css}</style><main>'
                  f'<p>{E(self.school)}<br>Brains Heist IELTS</p><h1>Lesson {n}<br>{E(d["title"])}</h1>'
-                 f'<p><strong>{E(d["status"])}.</strong> Complete the human review record before classroom release. This content is not published in Brains Heist.</p>'
+                 f'{status_html}'
                  f'<section><h2>Start here</h2><ol><li>Keep the extracted folder together. Read the <a href="Teacher-private/Teacher_Guide.pdf">teacher guide</a>.</li>'
                  f'<li>Print the <a href="Students/Student_Workbook.pdf">student workbook</a> and <a href="Students/Homework.pdf">homework</a> for each learner.</li>'
                  f'<li>Project the <a href="Teacher-private/Lesson_{n:02d}_Slides.html">classroom presentation</a>: it follows the workbook, plays the recordings from the slide, and reveals questions and answers on your clicks (F full screen, N teacher notes, P play/pause). PowerPoint versions: <a href="Teacher-private/Lesson_{n:02d}_Presentation.pptx">animated, with recordings</a> and <a href="Teacher-private/Lesson_{n:02d}_Presentation_motion_free.pptx">motion-free</a>. Answers appear only on separate reveal slides.</li>'
@@ -805,11 +818,45 @@ class Pack:
                     'release_blockers': self.d['release_blockers'],
                     'release_gates': 'Human editorial/key/mapping/difficulty/originality review, audio production where required, device/print/PowerPoint acceptance. No platform release or automated evidence capture.'}
         (self.out / 'manifest.json').write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
+        if self.template:
+            return self.finish_template(manifest)
         zpath = self.out.parent / f"{self.code}_v{self.d['version']}_private_review_pack.zip"
         with zipfile.ZipFile(zpath, 'w', zipfile.ZIP_DEFLATED) as z:
             for path in sorted(self.out.rglob('*')):
                 if path.is_file():
                     z.write(path, Path(self.code) / path.relative_to(self.out))
+        return zpath
+
+    def finish_template(self, manifest):
+        """School-neutral template for the per-school branding route (services/ieltsPackBranding.ts, branding 1.0.0)."""
+        code, n = self.code, self.n
+        w, h = 595.276, 841.89
+        slot = {'names': [{'text': TOKEN, 'x': 42, 'y': 32, 'width': w - 42 - 90, 'size': 9, 'color': 0x15243A, 'bold': True}],
+                'logos': [[w - 80, 26, w - 42, 66]]}
+        pdfs = {f'{code}/{rel}': [slot] * pages for rel, pages in self.pdf_pages.items()}
+        placeholder = (self.out / 'assets' / 'school-logo.png').read_bytes()
+        pptx_media = {}
+        for deck in sorted((self.out / 'Teacher-private').glob('*.pptx')):
+            with zipfile.ZipFile(deck) as z:
+                hits = [m for m in z.namelist() if m.startswith('ppt/media/') and z.read(m) == placeholder]
+            if len(hits) != 1:
+                raise SystemExit(f'{deck.name}: expected exactly one logo placeholder media part, found {len(hits)}')
+            pptx_media[f'{code}/Teacher-private/{deck.name}'] = hits[0]
+        branding = {'version': '1.0.0', 'lesson_code': code, 'pdfs': pdfs, 'pptx_media': pptx_media,
+                    'source_archive_sha256': self.source_sha, 'approved_source_sha256': self.source_sha,
+                    'content_revision': self.d['version'],
+                    'resources': {'slides': f'{code}/Teacher-private/Lesson_{n:02d}_Slides.html',
+                                  'workbook': f'{code}/Students/Student_Workbook.pdf',
+                                  'pptx': f'{code}/Teacher-private/Lesson_{n:02d}_Presentation.pptx'}}
+        zpath = self.out.parent / f"{code}_v{self.d['version']}_school_template.zip"
+        with zipfile.ZipFile(zpath, 'w', zipfile.ZIP_DEFLATED) as z:
+            for path in sorted(self.out.rglob('*')):
+                if path.is_file() and path.name != 'manifest.json':
+                    z.write(path, Path(code) / path.relative_to(self.out))
+            z.writestr('TEMPLATE-MANIFEST.json', json.dumps(manifest, indent=2, ensure_ascii=False))
+            z.writestr('BRANDING.json', json.dumps(branding, indent=1))
+            z.write('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 'assets/branding-regular.ttf')
+            z.write('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 'assets/branding-bold.ttf')
         return zpath
 
 
@@ -820,6 +867,7 @@ def main():
     ap.add_argument('--school', default='School IELTS Programme')
     ap.add_argument('--logo')
     ap.add_argument('--review-date')
+    ap.add_argument('--template', action='store_true', help='School-neutral template for per-school branding at download time')
     ap.add_argument('--audio-dir', help='Folder with produced <recording id>_v1.mp3 files to include for teacher review')
     args = ap.parse_args()
     check = subprocess.run(['node', str(ROOT / 'scripts/ielts/lesson-source-contract.mjs'), args.source], capture_output=True, text=True)

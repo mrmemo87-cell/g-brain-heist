@@ -7,7 +7,8 @@
   "presentation_version": "0.2.0",
   "title": "Fresh receptive-skill check: one Listening section and one Reading passage",
   "answer_grid": 23,
-  "status": "Private teacher-review draft",
+  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
+  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
   "duration": 60,
   "test_type": "Academic",
   "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
@@ -16,7 +17,7 @@
     "required": true,
     "statement": "Recordings produced (v1, 2026-10-17): IELTS-21-L1. Played in two parts with a mid-recording reading pause where marked. Owner listening review pending; do not use with students until it is recorded.",
     "recordings": [
-      { "id": "IELTS-21-L1", "block": "IELTS-21-L1", "status": "Produced v1 2026-10-17; owner listening review pending", "conditions": "Fresh classroom check under test-like conditions: played once, no pausing, reading time inside the recording.",
+      { "id": "IELTS-21-L1", "block": "IELTS-21-L1", "status": "Owner approved v1 with the lesson pack on 2026-10-18; device/classroom playback acceptance pending", "conditions": "Fresh classroom check under test-like conditions: played once, no pausing, reading time inside the recording.",
         "voices": { "instruction": "Tom (British, examiner style; steady model)", "CLERK": "Niki (North American, middle-aged, friendly)", "DANIELA": "Marlene (British, middle-aged)" },
         "segments": [
           { "type": "speech", "voice": "instruction", "text": "This recording is copyright Brains Heist LLC. All rights reserved." },
@@ -173,8 +174,7 @@
   "delayed_followup": "In the advanced continuation, schedule separately arranged full-length Listening and Reading practice under the published timings and record them as practice-test evidence with their conditions.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible sections 7.1 and 7.2 construct names. Draft teaching focuses only. One section and one passage are classroom evidence, not full-test or band evidence.",
   "release_blockers": [
-    "Recordings IELTS-21-L1 produced (v1); owner listening review and device/classroom playback acceptance pending.",
-    "Human editorial, factual, key, mapping, difficulty, originality and rights review pending; exposure check required before use.",
-    "Device, print and PowerPoint playback acceptance pending."
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
   ]
 }

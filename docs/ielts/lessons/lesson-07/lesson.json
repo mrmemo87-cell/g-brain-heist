@@ -6,7 +6,8 @@
   "version": "0.2.0",
   "presentation_version": "0.2.0",
   "title": "Writing Task 2: positions and developed arguments",
-  "status": "Private teacher-review draft",
+  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
+  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
   "duration": 60,
   "test_type": "Academic",
   "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
@@ -161,8 +162,7 @@
   "delayed_followup": "In Lesson 15 (full Task 2 essays), look again at position clarity and paragraph development in a new prompt, without the argument-chain frame. Record it as a later observation, not proof of retention.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.3 teachable micro-skills. They are draft teaching focuses, not approved taxonomy mappings. The four criterion names are used for feedback structure only; no band is derived.",
   "release_blockers": [
-    "Human editorial, model essay, criterion-alignment, difficulty and originality review pending.",
-    "Teacher calibration on the public Task 2 descriptors not yet recorded for this lesson.",
-    "Device, print and PowerPoint playback acceptance pending."
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
   ]
 }

@@ -6,7 +6,8 @@
   "version": "0.2.0",
   "presentation_version": "0.2.0",
   "title": "Listening distractors and paraphrases",
-  "status": "Private teacher-review draft",
+  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
+  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
   "duration": 60,
   "test_type": "Academic",
   "bibles": {
@@ -904,8 +905,7 @@
   "delayed_followup": "Two to three teaching weeks later, include one distractor item in a different context (for example, Lesson 10 or 14 materials) and check whether the learner still waits for the final decision without prompting. Record it as a later observation, not proof of retention.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.1 construct names. They are draft teaching focuses, not approved taxonomy mappings, and items from one recording are not independent longitudinal observations.",
   "release_blockers": [
-    "Human editorial, key, mapping, difficulty, originality and rights review pending.",
-    "Device, print and PowerPoint playback acceptance pending.",
-    "Recordings v1 approved and rights confirmed; phone, laptop and classroom-speaker playback acceptance pending."
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
   ]
 }

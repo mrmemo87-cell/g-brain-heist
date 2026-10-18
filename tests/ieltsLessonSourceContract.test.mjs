@@ -21,11 +21,14 @@ for (const path of paths) {
   });
 }
 
-test('sources remain unreleased drafts bound to the current Bible versions', () => {
+test('sources are drafts or carry an explicit owner approval record, bound to the current Bible versions', () => {
   const bibles = currentBibleVersions();
   for (const path of paths) {
     const lesson = load(path);
-    assert.match(lesson.status, /draft/i);
+    if (!/draft/i.test(lesson.status)) {
+      assert.ok(lesson.approval_record?.approved_by && lesson.approval_record?.date && lesson.approval_record?.basis, `${lesson.code} approval record incomplete`);
+      assert.equal(lesson.approval_record.version, lesson.version, `${lesson.code} approval must name the approved version`);
+    }
     assert.deepEqual(lesson.bibles, bibles);
     assert.ok(lesson.release_blockers.length > 0, `${lesson.code} must list open release blockers`);
     assert.equal(lesson.test_type, 'Academic');
@@ -108,6 +111,7 @@ test('Task 2 models must meet the 250-word minimum', () => {
 test('a released status without a human approval record is rejected', () => {
   const lesson = lessonSeven();
   lesson.status = 'Released';
+  delete lesson.approval_record;
   assert.ok(has(validateLessonSource(lesson), 'human approval record'));
 });
 

@@ -78,7 +78,7 @@ h1{font-size:40px;line-height:1.15;margin:4px 0 16px;letter-spacing:-.01em;flex:
 .bar{height:10px;border-radius:5px;background:rgba(255,255,255,.25);margin-top:10px;position:relative;cursor:pointer}
 .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:#8FB4FF;width:0}
 .player .tm{font-variant-numeric:tabular-nums;font-size:18px;min-width:120px;text-align:right}
-.player.none{background:var(--wash);color:var(--muted)}
+.player.none{background:var(--wash);color:var(--muted)}.player.compact{padding:8px 16px;margin-bottom:10px}.player.compact button.play{width:46px;height:46px;font-size:20px}.player.compact .st{display:none}
 .timer{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.1);border-radius:14px;padding:10px 14px;margin-top:18px}
 .slide:not(.dark) .timer{background:var(--wash)}
 .timer .clock{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;min-width:110px}
@@ -133,6 +133,7 @@ document.addEventListener('keydown',e=>{if(e.target.closest('button,input,select
  if(k==='ArrowRight'||k===' '||k==='PageDown'){next()}else if(k==='ArrowLeft'||k==='PageUp'){prev()}else if(k==='Home'){show(0,true)}else if(k==='End'){show(slides.length-1,true)}
  else if(k==='n'||k==='N'){notes.hidden=!notes.hidden}else if(k==='f'||k==='F'){document.getElementById('full').click()}
  else if(k==='p'||k==='P'){const b=slides[index].querySelector('.player[data-has] button.play');if(b)b.click()}else{return}e.preventDefault()});
+document.querySelectorAll('img.slogo').forEach(i=>{const hide=()=>{if(i.naturalWidth<4){i.style.display='none';const w=i.closest('.slogo-wrap');if(w)w.style.display='none'}};if(i.complete)hide();else i.addEventListener('load',hide)});
 show(0,false);
 """
 
@@ -222,7 +223,7 @@ def _timer(minutes):
 
 def render(pack, body_size):
     d, slides, n = pack.d, pack.slides, pack.n
-    logo = _logo_uri(pack.logo)
+    logo = '../assets/school-logo.png' if getattr(pack, 'template', False) else _logo_uri(pack.logo)
     total = len(slides)
     parts = []
     for i, s in enumerate(slides):
@@ -232,8 +233,8 @@ def render(pack, body_size):
         build = s.get('build')
         side = s.get('passage') or s.get('image') or s.get('panel')
         width = 4.9 if side else 12.1
-        size = round(_px(max(body_size('\n\n'.join(s['body']), width), 18)) * (0.8 if s.get('audio') else 0.86 if s.get('build') or s.get('reveal') else 1))
-        top = (f'<div class="top">' + (f'<img src="{logo}" alt="">' if logo else '') + f'<span class="school">{E(pack.school)}</span>'
+        size = round(_px(max(body_size('\n\n'.join(s['body']), width), 18)) * (0.7 if s.get('audio') and side else 0.8 if s.get('audio') else 0.86 if s.get('build') or s.get('reveal') else 1))
+        top = (f'<div class="top">' + (f'<img class="slogo" src="{logo}" alt="">' if logo else '') + f'<span class="school">{E(pack.school)}</span>'
                + (f'<span class="chip">Workbook · {E(s["workbook"])}</span>' if s.get('workbook') else '<span class="chip">Brains Heist IELTS</span>')
                + (' <span class="reveal-tag">Answer reveal</span>' if s.get('reveal') else '')
                + f'<span class="code">{E(pack.code)} · {i + 1}/{total}</span></div>')
@@ -244,7 +245,7 @@ def render(pack, body_size):
         inner = ''.join(els)
         if kind == 'cover':
             main = (f'<div class="col" style="font-size:{_px(26)}px">{inner}</div>'
-                    + (f'<div style="flex:0 0 260px;display:flex;align-items:center;justify-content:center"><span style="background:#fff;border-radius:22px;padding:18px;display:inline-flex"><img src="{logo}" alt="{E(pack.school)} logo" style="max-width:200px;max-height:240px"></span></div>' if logo else ''))
+                    + (f'<div style="flex:0 0 260px;display:flex;align-items:center;justify-content:center"><span class="slogo-wrap" style="background:#fff;border-radius:22px;padding:18px;display:inline-flex"><img class="slogo" src="{logo}" alt="{E(pack.school)} logo" style="max-width:200px;max-height:240px"></span></div>' if logo else ''))
         elif kind == 'stage':
             wbl = ''.join(f'<span>{E(w)}</span>' for w in s.get('workbook_list', []))
             main = (f'<div class="col" style="font-size:{_px(26)}px"><div class="stagehead"><span class="stepbadge">{E(s.get("step", ""))}</span></div>'
@@ -271,7 +272,7 @@ def render(pack, body_size):
         else:
             main = f'<div class="col" style="font-size:{size}px">{(_player(s["audio"]) if s.get("audio") else "")}{inner}{_timer(s.get("timer"))}</div>'
         if s.get('audio') and (s.get('passage') or s.get('image') or s.get('panel')):
-            main = f'<div style="display:flex;flex-direction:column;flex:1;min-width:0">{_player(s["audio"])}<div class="content">{main}</div></div>'
+            main = f'<div style="display:flex;flex-direction:column;flex:1;min-width:0">{_player(s["audio"]).replace('class="player"', 'class="player compact"', 1)}<div class="content">{main}</div></div>'
         progress = f'<div class="foot"><i style="width:{100 * (i + 1) / total:.2f}%"></i></div>'
         parts.append(f'<section class="slide{" dark" if dark else ""}" data-slide="{i}"{" hidden" if i else ""} aria-roledescription="slide" '
                      f'aria-label="Slide {i + 1} of {total}" data-notes="{E(s["notes"])}">{top}<h1>{E(s["title"])}</h1>'

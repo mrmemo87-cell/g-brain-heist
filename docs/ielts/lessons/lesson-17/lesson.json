@@ -7,7 +7,8 @@
   "presentation_version": "0.2.0",
   "title": "Timed Listening: a full Part 2 section, map labelling and error analysis",
   "answer_grid": 10,
-  "status": "Private teacher-review draft",
+  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
+  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
   "duration": 60,
   "test_type": "Academic",
   "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
@@ -16,7 +17,7 @@
     "required": true,
     "statement": "Recordings produced (v1, 2026-10-17): IELTS-17-L1, IELTS-17-C1. Played in two parts with a mid-recording reading pause where marked. Owner listening review pending; do not use with students until it is recorded.",
     "recordings": [
-      { "id": "IELTS-17-L1", "block": "IELTS-17-L1", "status": "Produced v1 2026-10-17; owner listening review pending", "conditions": "Timed practice under test-like conditions: played once, no pausing, reading time inside the recording.",
+      { "id": "IELTS-17-L1", "block": "IELTS-17-L1", "status": "Owner approved v1 with the lesson pack on 2026-10-18; device/classroom playback acceptance pending", "conditions": "Timed practice under test-like conditions: played once, no pausing, reading time inside the recording.",
         "voices": { "instruction": "Tom (British, examiner style; steady model)", "GUIDE": "James (Australian, casual, friendly)" },
         "segments": [
           { "type": "speech", "voice": "instruction", "text": "This recording is copyright Brains Heist LLC. All rights reserved." },
@@ -31,7 +32,7 @@
           { "type": "speech", "voice": "instruction", "text": "That is the end of the recording. You now have fifteen seconds to check your answers." },
           { "type": "silence", "seconds": 15 }
         ] },
-      { "id": "IELTS-17-C1", "block": "IELTS-17-C1", "status": "Withheld fresh check. Produced v1 2026-10-17; owner listening review pending", "conditions": "Played once, no pausing, no transcript, no coaching. Record conditions.",
+      { "id": "IELTS-17-C1", "block": "IELTS-17-C1", "status": "Owner approved v1 with the lesson pack on 2026-10-18 (withheld fresh check); device/classroom playback acceptance pending", "conditions": "Played once, no pausing, no transcript, no coaching. Record conditions.",
         "voices": { "instruction": "Tom (British, examiner style; steady model)", "LIBRARIAN": "Marlene (British, middle-aged, measured)" },
         "segments": [
           { "type": "speech", "voice": "instruction", "text": "This recording is copyright Brains Heist LLC. All rights reserved." },
@@ -184,8 +185,7 @@
   "delayed_followup": "In Lesson 21 (fresh receptive-skill assessment), check direction and distractor errors in a new section without support. Record it as a later observation.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.1 construct names. Draft teaching focuses only. Items from one recording are not independent longitudinal observations; a section score is a classroom observation, not a band.",
   "release_blockers": [
-    "Recordings IELTS-17-L1, IELTS-17-C1 produced (v1); owner listening review and device/classroom playback acceptance pending.",
-    "Human editorial, key, mapping, difficulty, originality and rights review pending.",
-    "Device, print and PowerPoint playback acceptance pending; projector legibility of the plan to be checked."
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
   ]
 }

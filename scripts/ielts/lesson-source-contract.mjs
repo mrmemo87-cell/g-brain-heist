@@ -228,6 +228,11 @@ export function validateLessonSource(lesson, { bibles = currentBibleVersions() }
   if (lesson.duration !== 60) errors.push('core lessons are 60 minutes; schedule longer assessments separately');
   if (lesson.test_type !== 'Academic') errors.push('programme route is IELTS Academic only');
   if (!/draft/i.test(lesson.status ?? '') && !lesson.approval_record) errors.push('status must remain a draft until a human approval record is attached');
+  if (lesson.approval_record) {
+    const r = lesson.approval_record;
+    if (!r.approved_by || !r.date || !r.basis) errors.push('approval record needs approved_by, date and basis');
+    if (r.version !== lesson.version) errors.push('approval record must name the exact approved version');
+  }
   for (const key of ['diagnostic', 'lessons', 'visual']) {
     if (lesson.bibles?.[key] !== bibles[key]) errors.push(`bibles.${key} ${lesson.bibles?.[key]} does not match current Bible ${bibles[key]}`);
   }
