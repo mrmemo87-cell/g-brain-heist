@@ -1,6 +1,6 @@
 # IELTS lesson factory (source schema 2)
 
-Version 0.4.0 · 2026-10-18. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
+Version 0.5.0 · 2026-10-18. Diagnostic Bible 1.10.0; Lessons Bible 1.1.0; Visual & UX Bible 1.1.0.
 
 A reusable route from one reviewed `lesson.json` to a complete private teacher-review pack, replacing the one-off Lesson 2 builder for Lessons 05 onward. Lessons 01–04 keep their existing, separately approved builders and assets; nothing here changes them.
 
@@ -86,6 +86,26 @@ Features added for them, available to every lesson:
 - Presentation: five or six short gaps share one slide in two columns; reveal slides show every accepted answer variant; the exit ticket follows its own stage when homework comes after it.
 
 Rebuilding a released lesson with this builder produces these layout improvements too, so a rebuilt template is a new file and needs its own release.
+
+## Optional extension lessons IELTS-X1..X8 (2026-10-18)
+
+Eight optional 60-minute lessons cover task types the 24-lesson course does not teach directly. They sit outside the
+course sequence (`extension: true` and a `placement` note naming when they fit) and are owner-review drafts.
+
+| Code | Lesson | Placement |
+|---|---|---|
+| IELTS-X1 | Reading: summary completion and sentence endings | after Week 5 |
+| IELTS-X2 | Reading: matching features and short-answer questions | after Week 7 |
+| IELTS-X3 | Reading: diagram labelling and flow-chart completion | after Week 3 |
+| IELTS-X4 | Listening: flow charts and 'choose TWO' questions (two recordings) | after Week 7 |
+| IELTS-X5 | Writing Task 1: describing a process | after Week 6 |
+| IELTS-X6 | Writing Task 1: comparing maps | after Week 10 |
+| IELTS-X7 | Writing Task 1: pie charts and mixed visuals | after Week 10 |
+| IELTS-X8 | Writing Task 2: problem-solution and two-part questions | after Week 8 |
+
+Contract additions: `IELTS-X<n>` codes; drawn figures `process`, `maps`, `pies` and `diagram` (rendered by
+`scripts/ielts/mock_figures.py`, shared with the mock tests), with pie totals checked and model numbers limited to the
+figure; items blocks may set `flow: true` to print a flow chart. Files print as `Lesson X1`.
 
 ## Known gaps (record, do not hide)
 

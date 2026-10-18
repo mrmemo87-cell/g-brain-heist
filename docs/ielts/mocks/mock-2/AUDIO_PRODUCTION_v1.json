@@ -5,18 +5,18 @@
  "provider": "Runway MCP (workspace 'Sobbi', personal)",
  "script_source": "docs/ielts/mocks/mock-2/mock.json",
  "model": "eleven_v4 (instructions: voice Tom, stability 0.7; passages: dialogue/monologue, stability 0.5, fixed seeds)",
- "assembly": "48 kHz mono; edge silence trimmed; each segment loudness-matched to -18 LUFS; exact digital silences (30 s reading time per half-part, 45 s before Part 4, 30 s checking time after each part); true-peak limiter; MP3 160 kbps with copyright metadata",
+ "assembly": "48 kHz mono; edge silence trimmed; each segment loudness-matched to -18 LUFS; exact digital silences (30 s reading time per half-part, 45 s before Part 4, 30 s checking time after each part); true-peak limiter; MP3 96 kbps mono (sized so the complete pack stays under the 20 MB pack limit) with copyright metadata",
  "rights_basis": "Owner confirmed on 2026-10-17 that rights to recordings produced in this workflow belong to Brains Heist LLC.",
  "reuse": "Eight generic instruction snippets (notice, opening, end-of-part prompts, Part 4 listen prompt, closing) are reused from IELTS-M1; their task ids are marked.",
  "pronunciation_notes": [
   "Part 4: the transcript reads \"2000s\"; the recording says \"the two thousands\"."
  ],
  "file": "IELTS-M2_Listening_v1.mp3",
- "sha256": "e4a64bd8cc9aa5c02dc78d1204e93e67d4fc0f6f952f349b86466fac114d2d29",
- "bytes": 24763489,
+ "sha256": "99548af57158bb34aca2811ed41e3b6df67d7ccc4b021af68249d0e740aab71c",
+ "bytes": 14858209,
  "duration_seconds": 1238.136,
  "integrated_lufs": -18.6,
- "true_peak_dbfs": -1.3,
+ "true_peak_dbfs": -0.8,
  "part_starts": [
   26.078,
   314.885,

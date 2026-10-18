@@ -9,7 +9,8 @@ import { normalize, wordCount, currentBibleVersions, COPYRIGHT_NOTICE } from './
 export const MOCK_SCHEMA = 'bh-ielts-mock-source/1';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const HARDCODED_SCHOOLS = [/\bsobhy\b/i, /\bSRIS\b/, /silk\s*road/i];
-const OVERCLAIMS = [/(?<!not a |no )certified band/i, /guaranteed? (a )?band/i, /official (ielts )?examiner/i, /\b\d{1,2}\s*(?:\/|out of)\s*40\s*(?:=|→|is|equals)\s*band/i, /band score (?:table|conversion)/i];
+const OVERCLAIMS = [/(?<!not a |no )certified band/i, /guaranteed? (a )?band/i, /official (ielts )?examiner/i, /\b\d{1,2}\s*(?:\/|out of)\s*40\s*(?:=|→|is|equals)\s*band/i, /band score (?:table|conversion)/i,
+  /\b\d{1,2}\s*(?:correct(?: answers)?|marks?|points?)\s*(?:=|→|is|equals|gives?|means?)\s*(?:a\s+)?band/i];
 const LETTERED = ['mcq', 'matching', 'endings', 'summary_box'];
 const letterOf = (option) => String(option).trim().split(/\s+/)[0];
 const speechOf = (line) => line.replace(/^[A-Z][A-Z .']*:\s*/, '');

@@ -14,7 +14,7 @@ export async function approvedTeacherPacks(schoolId: string): Promise<ApprovedTe
   school.name.length>200 || (school.logo_url!==null && (typeof school.logo_url!=='string'||!school.logo_url.startsWith('https://'))) ||
   data?.release!=='teacher_only' || !Array.isArray(data.packs))throw new Error('Teaching packs unavailable');
  for(const p of data.packs) {
-  if(!/^IELTS-(0[1-9]|1[0-9]|2[0-4])$/.test(p.lesson_code) || typeof p.title!=='string' || !p.title.trim() ||
+  if(!/^IELTS-(0[1-9]|1[0-9]|2[0-4]|X[1-8]|M[1-3])$/.test(p.lesson_code) || typeof p.title!=='string' || !p.title.trim() ||
    typeof p.version!=='string' || !/^[a-f0-9]{64}$/.test(p.sha256) || p.branding_version!=='1.0.0' ||
    !Number.isInteger(p.size_bytes) || p.size_bytes<1 || p.size_bytes>20000000 ||
    p.object_path!==`templates/${p.lesson_code}/${p.branding_version}/${p.sha256}.zip`)
