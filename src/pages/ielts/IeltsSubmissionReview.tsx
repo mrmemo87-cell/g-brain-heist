@@ -16,6 +16,14 @@ import { supabase } from '../../../services/supabaseClient';
 import { friendlyIeltsAdminError } from '../../lib/schoolAdminPresentation';
 import { useSchoolBranding } from '../../hooks/useSchoolBranding';
 import IeltsPracticeAiFeedback from '../../components/ielts/IeltsPracticeAiFeedback';
+import { practiceFeedback, criterionLabel } from '../../../services/ieltsPracticeFeedback';
+
+// Review rubric key -> AI practice feedback criterion keys (Diagnostic Bible 2.0.0 section 10.5). The AI never sets a band;
+// its range is shown as a hint beside the teacher's own selection.
+const aiCriterionFor: Record<string, string[]> = {
+  task_achievement: ['task_achievement', 'task_response'], coherence_cohesion: ['coherence_cohesion'],
+  lexical_resource: ['lexical_resource'], grammar: ['grammar_range_accuracy'],
+};
 import {
   createSchoolDocumentId,
   escapeSchoolDocumentHtml,
@@ -71,6 +79,21 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
   const params = useParams<{ skill: string; attemptId: string }>();
   const skill = skillOverride ?? ((params.skill === 'speaking' ? 'speaking' : 'writing') as IeltsReviewSkill);
   const attemptId = attemptIdOverride ?? decodeURIComponent(params.attemptId ?? '');
+  const aiFeedbackQuery = useQuery({
+    queryKey: ['ielts-practice-feedback-review', attemptId],
+    queryFn: () => practiceFeedback(attemptId),
+    enabled: skill === 'writing' && Boolean(attemptId),
+    refetchInterval: (q) => (q.state.data?.status === 'working' ? 4000 : false),
+  });
+  const aiFields = aiFeedbackQuery.data?.status === 'ready' ? aiFeedbackQuery.data.fields : null;
+  const aiFor = (key: string) => (aiCriterionFor[key] ?? []).map((k) => aiFields?.criteria?.[k]).find(Boolean) ?? null;
+  const applyAiFeedback = () => {
+    if (!aiFields) return;
+    const entries = Object.entries(aiFields.criteria);
+    setStrengths(entries.map(([k, c]) => `• ${criterionLabel[k] ?? k}: ${c.comment}`).join('\n'));
+    setImprovements(entries.map(([k, c]) => `• ${criterionLabel[k] ?? k}: ${c.action}`).join('\n'));
+    setNextSteps(aiFields.next_step);
+  };
   const rubricKeys = useMemo(() => skill === 'writing' ? writingRubricKeys : speakingRubricKeys, [skill]);
 
   const { data: detail, isLoading, error, refetch } = useQuery({
@@ -316,6 +339,7 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
                       <option value="">Select band</option>
                       {bandOptions.map((band) => <option key={band} value={band}>{band}</option>)}
                     </select>
+                    {aiFor(key)?.indication ? <span style={{ display: 'block', color: '#1d4ed8', fontSize: '0.8rem', marginTop: '0.2rem' }}>AI suggests {aiFor(key)!.indication!.low}–{aiFor(key)!.indication!.high} · you decide</span> : null}
                   </label>
                 ))}
                 <label style={{ color: '#334155', fontSize: '0.9rem', fontWeight: 700 }}>Task-level reviewed band
@@ -332,9 +356,15 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
                 <div style={{ color: '#1e40af', fontSize: '0.85rem', marginTop: '0.3rem' }}>Automated feedback can make mistakes. Verify the evidence before finalizing.</div>
                 {skill === 'speaking' ? <div style={{ color: '#1e40af', fontSize: '0.85rem', marginTop: '0.2rem' }}>Transcript may contain errors. Listen to the audio before finalizing Speaking criteria, especially pronunciation.</div> : null}
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.6rem', flexWrap: 'wrap' }}>
+                  {skill === 'writing' ? (
+                    <button disabled={locked || !aiFields} onClick={applyAiFeedback} title={aiFields ? undefined : 'Run AI feedback in the panel under the student answer first.'} style={{ border: '1px solid #93c5fd', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.45rem', padding: '0.45rem 0.7rem', cursor: 'pointer' }}>
+                      Use AI feedback in form
+                    </button>
+                  ) : (
                   <button disabled={locked || aiCheckMutation.isPending} onClick={() => aiCheckMutation.mutate()} style={{ border: '1px solid #93c5fd', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.45rem', padding: '0.45rem 0.7rem', cursor: 'pointer' }}>
                     {aiCheckMutation.isPending ? 'Running AI check…' : 'AI check'}
                   </button>
+                  )}
                   {aiDraft ? <button disabled={locked} onClick={() => {
                     const suggested = typeof aiDraft.suggested_feedback === 'string' ? aiDraft.suggested_feedback : '';
                     const strengthsList = Array.isArray(aiDraft.strengths) ? aiDraft.strengths.join('\n• ') : '';
