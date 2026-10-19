@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient';
 
 /** Answer keys and evidence for the signed-in student's own completed attempt (keys never load before submitting). */
-export interface PracticeAttemptReviewItem { question_id: number; correct_answer: unknown; explanation: string | null; is_correct: boolean }
+export interface PracticeAttemptReviewItem { question_id: number; correct_answer: unknown; explanation: string | null; is_correct: boolean; construct?: { code: string; name: string } | null }
 export interface PracticeAttemptReview { raw_score: number; total: number; percent: number; items: PracticeAttemptReviewItem[] }
 
 export async function fetchPracticeAttemptReview(skill: 'reading' | 'listening', attemptId: string): Promise<PracticeAttemptReview> {
