@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import IeltsAdminDashboard from '../../IeltsAdminDashboard';
 import IeltsContentManager from '../../../src/pages/ielts/IeltsContentManager';
 
+// Review queues sit at the top of the tab so waiting approvals are the first thing an administrator sees.
+const PracticeBankReview = React.lazy(() => import('../../../src/pages/ielts/IeltsPracticeBankReview'));
+const ConstructMappingReview = React.lazy(() => import('../../../src/pages/ielts/IeltsConstructMappingReview'));
+
 const IeltsTab: React.FC = () => {
   const navigate = useNavigate();
 
@@ -33,6 +37,9 @@ const IeltsTab: React.FC = () => {
             🧭 Open IELTS Control Center
           </button>
         </div>
+      </div>
+      <div id="ielts-review-queues" className="ix-workspace mb-6 space-y-4 rounded-xl border ix-border ix-surface p-4 empty:hidden">
+        <React.Suspense fallback={null}><PracticeBankReview /><ConstructMappingReview /></React.Suspense>
       </div>
       <IeltsAdminDashboard />
       <div className="mt-6">
