@@ -128,16 +128,16 @@ export default function IeltsLearningTeacher({
   }
   return (
     <div className="il-shell">
-      <p className="il-eyebrow">FOUR SKILLS · TARGETED PRACTICE</p>
+      {!reviewOnly && <p className="il-eyebrow">FOUR SKILLS · TARGETED PRACTICE</p>}
       <h2>
         {reviewOnly
-          ? "Targeted practice reviews"
+          ? "Targeted practice"
           : "Choose a purposeful next step"}
       </h2>
       <p>
-        Review the task, connect the matching screener
-        evidence and explain why it is useful. These tasks do not automatically
-        create a band estimate or improvement label.
+        {reviewOnly
+          ? "Short tasks you gave individual students. Open saved work to read it and share feedback. These tasks do not create a band estimate or improvement label."
+          : "Review the task, connect the matching screener evidence and explain why it is useful. These tasks do not automatically create a band estimate or improvement label."}
       </p>
       {message && <p role="status">{message}</p>}
       {(!data || message.startsWith("Student evidence could not load")) && (
@@ -380,23 +380,26 @@ export default function IeltsLearningTeacher({
             ) : (
               data.allocations
                 .filter((a) => !reviewOnly || a.status === "submitted")
+                .sort((x, y) => Number(!!x.reviewed) - Number(!!y.reviewed))
                 .map((a) => (
-                  <article key={a.id}>
-                    <p className="il-eyebrow">{a.skill}</p>
+                  <article key={a.id} className={a.reviewed ? "il-alloc il-alloc--done" : "il-alloc"}>
+                    <p className="il-history-kind">{a.skill ? a.skill[0].toUpperCase() + a.skill.slice(1) : "Listening"}</p>
                     <h4>
                       {a.student_name} · {ieltsMaterialTitle(a.display_code, a.title)}{a.originality_label?.startsWith("Variant of ") ? ` · ${a.originality_label}` : ""}
                     </h4>
-                    <p>{a.reason}</p>
-                    <p>
+                    {a.reason && <p><span className="il-muted">Why: </span>{a.reason}</p>}
+                    <p className="il-history-badge">
                       {a.reviewed
                         ? "Teacher feedback shared"
                         : a.status === "submitted"
                           ? "Ready for teacher review"
                           : a.status.replace("_", " ")}
                     </p>
-                    <Link to={"/ielts/practice/targeted/" + a.id}>
-                      {a.status === "submitted"
+                    <Link className={a.status === "submitted" && !a.reviewed ? "il-button" : "il-row-link"} to={"/ielts/practice/targeted/" + a.id}>
+                      {a.status === "submitted" && !a.reviewed
                         ? "Review saved work"
+                        : a.reviewed
+                        ? "Open shared feedback"
                         : "View assignment"}
                     </Link>
                   </article>

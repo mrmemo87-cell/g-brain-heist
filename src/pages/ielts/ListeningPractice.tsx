@@ -1,5 +1,6 @@
 import IeltsMaterialProvenance from "../../components/ielts/IeltsMaterialProvenance";
 import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
+import '../../styles/ielts-design-system.css';
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -769,7 +770,7 @@ const ListeningPractice: React.FC = () => {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+      background: 'var(--bh-ielts-background)', fontFamily: 'var(--bh-ielts-font-body)', color: 'var(--bh-ielts-foreground)',
       padding: 'clamp(0.75rem, 2vw, 1rem)'
     }}>
       <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
@@ -793,8 +794,7 @@ const ListeningPractice: React.FC = () => {
                 <span>Level: {listeningSet.level}</span>
                 <span>•</span>
                 <span>{listeningSet.duration_minutes} min</span>
-                <span>•</span>
-                <span>Band: {listeningSet.est_band_min}-{listeningSet.est_band_max}</span>
+                {listeningSet.est_band_min != null && listeningSet.est_band_max != null && <><span>•</span><span>Suggested level: band {listeningSet.est_band_min}–{listeningSet.est_band_max}</span></>}
               </div>
             </div>
             <button
@@ -824,26 +824,26 @@ const ListeningPractice: React.FC = () => {
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
             }}>
               <h2 style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                🎧 Audio Player
+                Recording
               </h2>
               
               {/* Enhanced Timer Display */}
               <div style={{
-                background: isAudioPlaying ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : '#f8fafc',
-                border: `1px solid ${isAudioPlaying ? '#f59e0b' : '#e2e8f0'}`,
+                background: isAudioPlaying ? 'var(--bh-ielts-secondary)' : 'var(--bh-ielts-surface-muted)',
+                border: `1px solid ${isAudioPlaying ? 'var(--bh-ielts-primary)' : 'var(--bh-ielts-border)'}`,
                 borderRadius: '0.75rem',
                 padding: 'clamp(0.75rem, 2vw, 1rem)',
                 marginBottom: '1rem',
                 textAlign: 'center'
               }}>
-                <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: isAudioPlaying ? '#92400e' : '#64748b', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  {isAudioPlaying ? '🔊 Now Playing' : 'Audio Time'}
+                <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: isAudioPlaying ? 'var(--bh-ielts-primary)' : 'var(--bh-ielts-foreground-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+                  {isAudioPlaying ? 'Now playing' : 'Recording time'}
                 </div>
                 <div style={{ 
                   fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', 
                   fontWeight: 'bold', 
-                  color: isAudioPlaying ? '#b45309' : '#1e293b',
-                  fontFamily: 'monospace'
+                  color: 'var(--bh-ielts-foreground)',
+                  fontFamily: 'var(--bh-ielts-font-mono)', fontVariantNumeric: 'tabular-nums'
                 }}>
                   {formatTime(Math.floor(audioCurrentTime))} / {formatTime(Math.floor(audioDuration))}
                 </div>
@@ -859,7 +859,7 @@ const ListeningPractice: React.FC = () => {
                   <div style={{
                     height: '100%',
                     width: audioDuration > 0 ? `${(audioCurrentTime / audioDuration) * 100}%` : '0%',
-                    background: isAudioPlaying ? 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)' : '#6366f1',
+                    background: 'var(--bh-ielts-primary)',
                     borderRadius: '9999px',
                     transition: 'width 0.1s linear'
                   }} />
@@ -885,24 +885,22 @@ const ListeningPractice: React.FC = () => {
                       borderRadius: '9999px',
                       border: 'none',
                       background: audioEnded
-                        ? '#6b7280'
+                        ? 'var(--bh-ielts-foreground-muted)'
                         : audioStarted
-                          ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
-                          : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                          ? 'var(--bh-ielts-primary-hover)'
+                          : 'var(--bh-ielts-primary)',
                       color: 'white',
                       fontSize: '1.75rem',
                       cursor: audioStarted || audioEnded ? 'not-allowed' : 'pointer',
-                      boxShadow: audioStarted
-                        ? '0 4px 15px rgba(239, 68, 68, 0.4)'
-                        : '0 4px 15px rgba(34, 197, 94, 0.4)',
+                      boxShadow: '0 4px 14px rgba(23, 70, 176, 0.25)',
                       transition: 'transform 0.2s'
                     }}
                     aria-label="Play listening audio"
                   >
-                    {audioEnded ? '✓' : audioStarted ? '🔊' : '▶'}
+                    {audioEnded ? '✓' : audioStarted ? '♪' : '▶'}
                   </button>
                   <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#64748b' }}>
-                    {audioEnded ? 'Audio completed — answer the questions' : audioStarted ? 'Playing... listen carefully' : 'Tap play to start (one time only)'}
+                    {audioEnded ? 'Recording finished. Check your answers, then submit.' : audioStarted ? 'Playing. Answer as you listen.' : 'Press play when you are ready. You hear it once.'}
                   </div>
                   <audio ref={audioRef} preload="metadata">
                     <source src={listeningSet.audio_url} type="audio/mpeg" />
@@ -918,7 +916,6 @@ const ListeningPractice: React.FC = () => {
                   marginBottom: '1rem',
                   textAlign: 'center'
                 }}>
-                  <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔇</div>
                   <h3 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#b91c1c', marginBottom: '0.5rem' }}>
                     Audio Not Available
                   </h3>
@@ -930,18 +927,18 @@ const ListeningPractice: React.FC = () => {
               )}
 
               <div style={{
-                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                border: '1px solid #f59e0b',
+                background: 'var(--bh-ielts-surface-muted)',
+                border: '1px solid var(--bh-ielts-border)',
+                borderLeft: '3px solid var(--bh-ielts-accent)',
                 borderRadius: '0.5rem',
                 padding: '1rem',
                 marginBottom: '1rem'
               }}>
-                <h3 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#92400e', marginBottom: '0.5rem' }}>⚠️ IELTS Listening Rules</h3>
-                <ul style={{ fontSize: '0.75rem', color: '#78350f', listStyle: 'none', padding: 0, margin: 0 }}>
-                  <li style={{ marginBottom: '0.25rem' }}>• You will hear the audio ONCE only</li>
-                  <li style={{ marginBottom: '0.25rem' }}>• Answer as you listen</li>
-                  <li style={{ marginBottom: '0.25rem' }}>• Check your answers at the end</li>
-                  <li>• Pay attention to spelling</li>
+                <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--bh-ielts-foreground)', marginBottom: '0.5rem' }}>As in the IELTS test</h3>
+                <ul style={{ fontSize: '0.875rem', color: 'var(--bh-ielts-foreground-muted)', paddingLeft: '1.1rem', margin: 0, lineHeight: 1.6 }}>
+                  <li>You hear the recording once.</li>
+                  <li>Answer as you listen.</li>
+                  <li>Check your answers and spelling at the end.</li>
                 </ul>
               </div>
 
@@ -960,7 +957,7 @@ const ListeningPractice: React.FC = () => {
                           fontSize: '0.875rem',
                           border: 'none',
                           cursor: 'pointer',
-                          background: currentSection === idx ? '#6366f1' : '#f1f5f9',
+                          background: currentSection === idx ? 'var(--bh-ielts-primary)' : 'var(--bh-ielts-secondary)',
                           color: currentSection === idx ? 'white' : '#475569'
                         }}
                       >
@@ -973,8 +970,8 @@ const ListeningPractice: React.FC = () => {
 
               {/* Progress */}
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>Questions Answered</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#6366f1' }}>
+                <div style={{ fontSize: '0.875rem', color: 'var(--bh-ielts-foreground-muted)', marginBottom: '0.25rem' }}>Answered</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--bh-ielts-foreground)' }}>
                   {Object.keys(answers).length} / {questions.length}
                 </div>
               </div>
@@ -1005,10 +1002,10 @@ const ListeningPractice: React.FC = () => {
                     marginTop: '0.75rem',
                     padding: '0.75rem',
                     borderRadius: '0.5rem',
-                    background: '#eef2ff',
+                    background: 'var(--bh-ielts-secondary)',
                     border: '1px solid #c7d2fe'
                   }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4338ca', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.35rem' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--bh-ielts-primary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.35rem' }}>
                       Example
                     </div>
                     <div style={{ fontSize: '0.875rem', color: '#1e293b' }}>
@@ -1044,7 +1041,7 @@ const ListeningPractice: React.FC = () => {
                           flexShrink: 0,
                           width: '2rem',
                           height: '2rem',
-                          background: '#6366f1',
+                          background: 'var(--bh-ielts-primary)',
                           borderRadius: '50%',
                           display: 'flex',
                           alignItems: 'center',
@@ -1072,7 +1069,7 @@ const ListeningPractice: React.FC = () => {
                                     borderRadius: '0.5rem',
                                     border: `1px solid ${answers[q.id] === option ? '#6366f1' : '#d1d5db'}`,
                                     background: answers[q.id] === option ? '#eff6ff' : 'white',
-                                    color: answers[q.id] === option ? '#4f46e5' : '#475569',
+                                    color: answers[q.id] === option ? 'var(--bh-ielts-primary)' : 'var(--bh-ielts-foreground)',
                                     cursor: 'pointer'
                                   }}
                                 >
@@ -1149,7 +1146,7 @@ const ListeningPractice: React.FC = () => {
                     style={{
                       flex: 1,
                       padding: '0.75rem 1.5rem',
-                      background: submitMutation.isPending ? '#9ca3af' : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                      background: submitMutation.isPending ? 'var(--bh-ielts-foreground-muted)' : 'var(--bh-ielts-primary)',
                       color: 'white',
                       border: 'none',
                       borderRadius: '0.5rem',
@@ -1157,7 +1154,7 @@ const ListeningPractice: React.FC = () => {
                       fontWeight: 'bold'
                     }}
                   >
-                    {submitMutation.isPending ? 'Submitting...' : 'Submit Answers'}
+                    {submitMutation.isPending ? 'Submitting…' : 'Submit answers'}
                   </button>
                 )}
               </div>

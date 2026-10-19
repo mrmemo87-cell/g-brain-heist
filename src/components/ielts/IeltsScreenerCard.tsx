@@ -156,7 +156,7 @@ export const IeltsScreenerCard: React.FC<CardProps> = ({
       )}
       <button
         type="button"
-        className="ij-primary"
+        className={completed && !(productive && evidence?.review) ? "ij-primary ij-primary--quiet" : "ij-primary"}
         onClick={() => onNavigate(route)}
       >
         {action}

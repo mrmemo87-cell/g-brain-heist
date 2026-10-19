@@ -19,7 +19,7 @@ export default function IeltsPracticeAiFeedback({ attemptId, mode }: { attemptId
   const ready = view?.status === 'ready' && view.fields;
   if (!ready && mode === 'teacher') return null;
 
-  return <section aria-labelledby="practice-ai-feedback" style={{ border: '1px solid #c7d2fe', background: '#f8faff', borderRadius: '0.75rem', padding: '1rem', margin: '1rem 0', textAlign: 'left' }}>
+  return <section aria-labelledby="practice-ai-feedback" style={{ border: '1px solid #c9d7f2', background: '#f6f9ff', color: '#15243A', borderRadius: '0.75rem', padding: '1rem', margin: '1rem 0', textAlign: 'left', lineHeight: 1.6 }}>
     <h2 id="practice-ai-feedback" style={{ marginTop: 0, fontSize: '1.15rem', color: '#1e293b' }}>
       {view?.confirmed ? `Checked by ${view.confirmed_by ?? 'your teacher'}${view.confirmed_at ? `, ${new Date(view.confirmed_at).toLocaleDateString()}` : ''}` : 'AI practice feedback — your teacher may adjust it'}
     </h2>
@@ -31,11 +31,11 @@ export default function IeltsPracticeAiFeedback({ attemptId, mode }: { attemptId
     {ready && view?.fields && <>
       {Object.entries(view.fields.criteria).map(([key, c]) => <article key={key} style={{ borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem', marginTop: '0.75rem' }}>
         <h3 style={{ margin: 0, fontSize: '1rem', color: '#0f172a' }}>{criterionLabel[key] ?? key}{c.indication && <span style={{ fontWeight: 400, color: '#475569' }}> · AI practice indication: about {c.indication.low.toFixed(1)}–{c.indication.high.toFixed(1)}</span>}</h3>
-        <p style={{ margin: '0.4rem 0' }}>{c.comment}</p>
+        <p style={{ margin: '0.4rem 0', color: '#15243A' }}>{c.comment}</p>
         {c.evidence.map((e, i) => <p key={i} style={{ margin: '0.25rem 0', color: '#334155' }}><mark style={{ background: '#fef3c7', padding: '0 0.2rem' }}>“{e.quote}”</mark></p>)}
-        <p style={{ margin: '0.4rem 0' }}><strong>Try this:</strong> {c.action}</p>
+        <p style={{ margin: '0.4rem 0', color: '#15243A' }}><strong>Try this:</strong> {c.action}</p>
       </article>)}
-      <p style={{ borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem' }}><strong>Next draft:</strong> {view.fields.next_step}</p>
+      <p style={{ borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem', color: '#15243A' }}><strong>Next draft:</strong> {view.fields.next_step}</p>
       {view.teacher_note && <p><strong>Teacher note:</strong> {view.teacher_note}</p>}
       <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Practice indications are ranges for each criterion, not an overall band and not an official IELTS result. Revising and resubmitting is encouraged; revisions count as practice.</p>
       {mode === 'teacher' && !view.confirmed && <div>

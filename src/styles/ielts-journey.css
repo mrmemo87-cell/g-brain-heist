@@ -423,3 +423,9 @@
   border-radius: 10px;
   font-size: 0.85rem;
 }
+
+/* Evidence Blue primary (Visual & UX Bible 1.2.0); finished checks use the quiet variant. */
+.ij-primary { border-color: var(--bh-ielts-primary); background: var(--bh-ielts-primary); }
+.ij-primary:hover { background: var(--bh-ielts-primary-hover); }
+.ij-primary.ij-primary--quiet { background: var(--bh-ielts-surface); color: var(--bh-ielts-primary); border-color: var(--bh-ielts-border); }
+.ij-primary.ij-primary--quiet:hover { background: var(--bh-ielts-secondary); }

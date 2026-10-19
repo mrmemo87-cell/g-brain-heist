@@ -98,6 +98,7 @@ async function check(admin, pending = 0, manage = true) {
         reports: [],
       };
     else if (fn === "rpc_ielts_batches") data = [];
+    else if (fn === "rpc_ielts_review_queue") data = [];
     else throw Error("Unexpected request " + fn);
     return new Response(JSON.stringify(data), {
       status: 200,
@@ -112,23 +113,16 @@ async function check(admin, pending = 0, manage = true) {
     }
     throw Error("UI did not settle: " + w.document.body.textContent);
   };
-  await wait(() => w.document.body.textContent.includes("What would you like to do?"));
+  await wait(() => w.document.body.textContent.includes("Everyday teaching"));
   // Today must offer an obvious next step, followed by the core teacher flow
   // and then the less-frequent tools. Do not render invented band metrics.
   const today = w.document.querySelector(".ip-today");
   assert.ok(today, "Teacher Today workspace is visible");
-  const todayDisclosures = [...today.querySelectorAll(".ip-disclosure")];
-  assert.ok(todayDisclosures.length >= (manage ? 4 : 3), "Today sections have accessible collapsible navigation");
-  assert.equal(todayDisclosures[0].open, true, "Primary action stays open");
-  const specialist = todayDisclosures.find((el) => el.querySelector("summary")?.textContent?.includes("More teaching tools"));
-  if (manage) {
-    assert.ok(specialist, "Specialist tools have an expandable section");
-    assert.equal(specialist.open, false, "Less-frequent tools begin collapsed");
-    specialist.querySelector("summary").click();
-    await wait(() => specialist.open);
-    specialist.querySelector("summary").click();
-    await wait(() => !specialist.open);
-  }
+  // No nested collapsible wrappers: the next decision, then everyday work, then less-frequent tools.
+  assert.equal(today.querySelectorAll(".ip-disclosure").length, 0, "Today shows its sections directly");
+  const specialist = today.querySelector(".ip-today-more");
+  if (manage) assert.ok(specialist, "Less-frequent tools stay visible in their own quiet section");
+  else assert.equal(specialist, null);
   const primary = today.querySelector(".ip-today-priority .sp-primary");
   assert.ok(primary);
   assert.match(primary.textContent, pending > 0 ? /Open review desk/ : manage ? /Open lesson library/ : /View student progress/);
@@ -154,12 +148,15 @@ async function check(admin, pending = 0, manage = true) {
     );
   const nav = w.document.querySelector('[aria-label="IELTS teacher workspace"]');
   assert.ok(nav, "Professional teacher navigation exists");
-  const groupNames = [...nav.querySelectorAll(".ip-nav-group > summary")].map(el=>el.textContent.trim());
-  assert.deepEqual(groupNames, manage
-    ? ["◫Overview⌄","▤Teaching & Assignments⌄","✓Assessment & Reviews⌄","♧Programme Management⌄"]
-    : ["◫Overview⌄","▤Teaching & Assignments⌄","✓Assessment & Reviews⌄","♧Programme Management⌄"].filter(n=>!n.includes("Teaching & Assignments")));
+  const tabNames = [...nav.querySelectorAll(".ip-tab > span:first-child")].map(el=>el.textContent.trim());
+  assert.deepEqual(tabNames, manage
+    ? ["Today","Review desk","Student progress","Practice & assignments","Course batches","Lessons","Exams","Programme team"]
+    : ["Today","Review desk","Student progress","Programme team"], "Every destination is a visible tab, not a dropdown");
+  assert.equal(nav.querySelectorAll("details").length, 0);
+  assert.equal(nav.querySelector('[aria-current="page"]').textContent, "Today");
+  if (pending > 0) assert.match(nav.textContent, new RegExp("Review desk" + pending));
   if (manage) {
-    button("Create assignment").click();
+    [...today.querySelectorAll(".ip-today-action")].find(b => b.querySelector("strong")?.textContent === "Create assignment").click();
     await wait(() => !!w.document.querySelector(".ip-assignment-entry"));
     assert.equal(w.document.querySelectorAll('input[name="ielts-assignment-scope"]').length,3);
     assert.match(w.document.querySelector(".ip-assignment-entry").textContent,/Entire class/);
@@ -194,8 +191,8 @@ async function check(admin, pending = 0, manage = true) {
   w.document.querySelector(".isi-close").click();
   await wait(() => !w.document.querySelector(".isi-drawer"));
   button("Programme team").click();
-  await wait(() => !!w.document.querySelector(".ip-disclosure"));
-  assert.ok([...w.document.querySelectorAll(".ip-disclosure")].some((section) => section.querySelector("summary")?.textContent?.includes("Programme lead & school access")));
+  await wait(() => !!w.document.querySelector(".ip-section-head"));
+  assert.equal(w.document.querySelector(".ip-section-head h2").textContent, "Programme team");
   await wait(() => w.document.body.textContent.includes("A clear owner"));
   if (admin) {
     const select = w.document.querySelector("fieldset select");

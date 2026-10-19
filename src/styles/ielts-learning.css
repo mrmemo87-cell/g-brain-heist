@@ -190,3 +190,20 @@
 .il-usage p { margin:.4rem 0; }
 @media(max-width:760px) { .il-history-filters { grid-template-columns:1fr 1fr; } .il-history-row { grid-template-columns:1fr; gap:.5rem; } }
 @media(max-width:430px) { .il-history-filters { grid-template-columns:1fr; } }
+
+/* Practice desk inside the teacher workspace: left-aligned, full width, quiet row actions (2026-10-19). */
+.sp-page .il-desk .il-card { max-width: none !important; margin-top: 0; }
+.il-desk-head { margin-bottom: 4px; }
+.il-desk-head h2 { margin: 0; font-size: clamp(1.3rem, 2.4vw, 1.6rem); }
+.il-desk-head p { margin: 4px 0 0; color: var(--bh-ielts-foreground-muted); }
+.il-history-kind { margin: 0; color: var(--bh-ielts-foreground-muted); font-size: .8rem; font-weight: 600; letter-spacing: .02em; }
+.il-shell .il-row-link, .il-shell a.il-row-link { display: inline-flex; align-items: center; min-height: 40px; padding: 6px 14px; border: 1px solid var(--bh-ielts-border); border-radius: var(--bh-ielts-radius-sm); background: var(--bh-ielts-surface); color: var(--bh-ielts-primary) !important; font-weight: 600; text-decoration: none; }
+.il-shell .il-row-link:hover { border-color: var(--bh-ielts-primary); }
+.il-shell button.il-inline-link { display: inline; min-height: 0; padding: 0; border: 0; background: none; color: var(--bh-ielts-primary); font-weight: 600; text-decoration: underline; }
+.bh-ielts-experience .il-desk-nav button[aria-pressed="true"] { box-shadow: none; }
+.il-alloc { padding: 14px 0; border-top: 1px solid var(--bh-ielts-border); }
+.il-alloc:first-of-type { border-top: 0; }
+.il-alloc h4 { margin: 2px 0 6px; font-size: 1rem; }
+.il-alloc p { margin: 4px 0; }
+.il-alloc .il-history-badge { margin: 6px 0 10px; }
+.il-alloc--done .il-history-badge { background: #ecfdf5; border-color: #a7f3d0; color: var(--bh-ielts-success); }

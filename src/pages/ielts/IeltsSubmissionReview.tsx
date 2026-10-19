@@ -16,6 +16,8 @@ import { supabase } from '../../../services/supabaseClient';
 import { friendlyIeltsAdminError } from '../../lib/schoolAdminPresentation';
 import { useSchoolBranding } from '../../hooks/useSchoolBranding';
 import IeltsPracticeAiFeedback from '../../components/ielts/IeltsPracticeAiFeedback';
+import { IeltsButton } from '../../components/ielts/IeltsUi';
+import '../../styles/ielts-submission-review.css';
 import { practiceFeedback, criterionLabel } from '../../../services/ieltsPracticeFeedback';
 
 // Review rubric key -> AI practice feedback criterion keys (Diagnostic Bible 2.0.0 section 10.5). The AI never sets a band;
@@ -282,130 +284,128 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
     });
   };
 
-  return (
-    <main data-testid={embedded ? 'embedded-ielts-submission-review' : 'ielts-submission-review'} className="bh-ielts-page bh-ielts-review-form" style={{ minHeight: embedded ? undefined : '100vh', background: '#f8fafc', padding: '2rem' }}>
-      <section style={{ maxWidth: '76rem', margin: '0 auto' }}>
-        <button onClick={() => onBack ? onBack() : navigate('/ielts/reviews')} style={{ border: 'none', background: 'transparent', color: '#2563eb', cursor: 'pointer', marginBottom: '1rem' }}>← Back to IELTS Review Queue</button>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap' }}>
-          <div>
-            <h1 style={{ margin: 0, color: '#0f172a' }}>{title}</h1>
-            <p style={{ color: '#64748b', margin: '0.35rem 0 0' }}>Structured IELTS rubric scoring and teacher feedback.</p>
-          </div>
-          {detail ? <div style={{ color: '#475569' }}>Status: <strong>{detail.review_status}</strong>{detail.reviewed_at ? ` • Reviewed ${new Date(detail.reviewed_at).toLocaleString()}` : ''}</div> : null}
-        </div>
+  const statusLabel = !detail ? '' : locked ? 'Finalized' : detail.review_status === 'in_review' ? 'Draft saved' : 'Not reviewed yet';
+  const when = (iso?: string | null) => (iso ? new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'unknown');
+  const back = () => (onBack ? onBack() : navigate('/ielts/programme?programmeSection=reviews'));
 
-        {error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: '1rem', borderRadius: '0.75rem' }}>{friendlyIeltsAdminError(error, 'Unable to load the submission. Please try again.')}</div> : null}
-        {isLoading ? <div style={{ color: '#475569' }}>Loading submission…</div> : null}
+  return (
+    <main data-testid={embedded ? 'embedded-ielts-submission-review' : 'ielts-submission-review'} className={`bh-ielts-page bh-ielts-review-form ir-page${embedded ? ' ir-embedded' : ''}`}>
+      <section className="ir-shell">
+        <button type="button" className="ir-back" onClick={back}>← Back to review desk</button>
+        <header className="ir-head">
+          <div>
+            <p className="ir-eyebrow">{skill === 'writing' ? 'Writing review' : 'Speaking review'}</p>
+            <h1>{detail?.student_name || detail?.task_title || (skill === 'writing' ? 'Writing practice' : 'Speaking practice')}</h1>
+            {detail ? <p className="ir-muted">{detail.student_name ? (detail.task_title ?? 'IELTS practice') : 'Student'}{detail.class_name ? ` · ${detail.class_name}` : ''} · submitted {when(detail.submitted_at)}</p> : null}
+          </div>
+          {detail ? <span className={`ir-status ir-status--${locked ? 'final' : detail.review_status}`}>{statusLabel}</span> : null}
+        </header>
+
+        {error ? <div className="ir-notice ir-notice--error" role="alert">{friendlyIeltsAdminError(error, 'Unable to load the submission. Please try again.')}</div> : null}
+        {isLoading ? <p className="ir-muted" role="status">Loading submission…</p> : null}
+        {locked && detail ? <div className="ir-notice" role="status">Finalized{detail.reviewed_at ? ` on ${when(detail.reviewed_at)}` : ''} and shared with the student. This review is read-only.</div> : null}
 
         {detail ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.15fr) minmax(320px, 0.85fr)', gap: '1rem', alignItems: 'start' }}>
-            <article style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1rem' }}>
-              <h2 style={{ color: '#0f172a', marginTop: 0 }}>Submission</h2>
-              <div style={{ color: '#64748b', marginBottom: '1rem' }}>Submitted {detail.submitted_at ? new Date(detail.submitted_at).toLocaleString() : 'unknown'}</div>
-              <section style={{ marginBottom: '1rem' }}>
-                <h3 style={{ color: '#334155' }}>Prompt</h3>
-                <div style={{ whiteSpace: 'pre-wrap', color: '#0f172a', background: '#f8fafc', borderRadius: '0.5rem', padding: '1rem' }}>{detail.prompt ?? 'No prompt available.'}</div>
-              </section>
+          <div className="ir-grid">
+            <article className="ir-card">
+              <h2>Task</h2>
+              <div className="ir-prompt">{detail.prompt ?? 'No prompt available.'}</div>
               {skill === 'writing' ? (
-                <section>
-                  <h3 style={{ color: '#334155' }}>Student answer</h3>
-                  <div style={{ color: '#64748b', marginBottom: '0.5rem' }}>Word count: {detail.word_count ?? 'unknown'}</div>
-                  <div style={{ whiteSpace: 'pre-wrap', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: '0.5rem', padding: '1rem', minHeight: '18rem' }}>{detail.student_answer ?? 'No answer text available.'}</div>
-                </section>
-              ) : null}
-              {skill === 'writing' ? (
-                <IeltsPracticeAiFeedback attemptId={attemptId} mode="teacher" />
+                <>
+                  <h2>Student answer <span className="ir-muted ir-small">· Word count: {detail.word_count ?? 'unknown'}</span></h2>
+                  <div className="ir-answer">{detail.student_answer ?? 'No answer text available.'}</div>
+                  <IeltsPracticeAiFeedback attemptId={attemptId} mode="teacher" />
+                </>
               ) : (
-                <section>
-                  <h3 style={{ color: '#334155' }}>Speaking evidence</h3>
-                  <div style={{ color: '#64748b', marginBottom: '0.5rem' }}>Duration: {detail.duration_seconds ? `${detail.duration_seconds}s` : 'unknown'}</div>
+                <>
+                  <h2>Speaking evidence <span className="ir-muted ir-small">· {detail.duration_seconds ? `${detail.duration_seconds}s` : 'duration unknown'}</span></h2>
                   {resolvedAudioUrl ? (
-                    <audio controls src={resolvedAudioUrl} style={{ width: '100%', marginBottom: '1rem' }} onError={() => setAudioLoadError('Audio unavailable. The recording could not be loaded.')} />
+                    <audio controls src={resolvedAudioUrl} className="ir-audio" onError={() => setAudioLoadError('Audio unavailable. The recording could not be loaded.')} />
                   ) : (
-                    <div style={{ color: '#64748b', marginBottom: '1rem' }}>Audio unavailable.</div>
+                    <p className="ir-muted">Audio unavailable.</p>
                   )}
-                  {audioLoadError ? <div style={{ color: '#b45309', marginBottom: '1rem' }}>{audioLoadError}</div> : null}
-                  <div style={{ whiteSpace: 'pre-wrap', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: '0.5rem', padding: '1rem', minHeight: '10rem' }}>{detail.transcript ?? 'No transcript available.'}</div>
-                </section>
+                  {audioLoadError ? <p className="ir-warning">{audioLoadError}</p> : null}
+                  <div className="ir-answer">{detail.transcript ?? 'No transcript available.'}</div>
+                </>
               )}
             </article>
 
-            <aside style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1rem' }}>
-              <h2 style={{ color: '#0f172a', marginTop: 0 }}>IELTS rubric</h2>
-              <div style={{ display: 'grid', gap: '0.75rem' }}>
+            <aside className="ir-card ir-form">
+              <h2>Your bands</h2>
+              <div className="ir-bands">
                 {rubricKeys.map((key) => (
-                  <label key={key} style={{ color: '#334155', fontSize: '0.9rem' }}>{rubricLabels[key] ?? key}
-                    <select disabled={locked} value={rubric[key] ?? ''} onChange={(e) => setRubric((current) => ({ ...current, [key]: e.target.value ? Number(e.target.value) : null }))} style={{ width: '100%', marginTop: '0.25rem', padding: '0.55rem', border: '1px solid #cbd5e1', borderRadius: '0.5rem' }}>
+                  <label key={key} className="ir-field">{rubricLabels[key] ?? key}
+                    <select disabled={locked} value={rubric[key] ?? ''} onChange={(e) => setRubric((current) => ({ ...current, [key]: e.target.value ? Number(e.target.value) : null }))}>
                       <option value="">Select band</option>
                       {bandOptions.map((band) => <option key={band} value={band}>{band}</option>)}
                     </select>
-                    {aiFor(key)?.indication ? <span style={{ display: 'block', color: '#1d4ed8', fontSize: '0.8rem', marginTop: '0.2rem' }}>AI suggests {aiFor(key)!.indication!.low}–{aiFor(key)!.indication!.high} · you decide</span> : null}
+                    {aiFor(key)?.indication ? <span className="ir-hint">AI suggests {aiFor(key)!.indication!.low}–{aiFor(key)!.indication!.high} · you decide</span> : null}
                   </label>
                 ))}
-                <label style={{ color: '#334155', fontSize: '0.9rem', fontWeight: 700 }}>Task-level reviewed band
-                  <select disabled={locked} value={overallBand ?? ''} onChange={(e) => setOverallBand(e.target.value ? Number(e.target.value) : null)} style={{ width: '100%', marginTop: '0.25rem', padding: '0.55rem', border: '1px solid #cbd5e1', borderRadius: '0.5rem' }}>
-                    <option value="">Select task band</option>
-                    {bandOptions.map((band) => <option key={band} value={band}>{band}</option>)}
-                  </select>
-                </label>
               </div>
+              <label className="ir-field ir-field--strong">Task-level reviewed band (required to finalize)
+                <select disabled={locked} value={overallBand ?? ''} onChange={(e) => setOverallBand(e.target.value ? Number(e.target.value) : null)}>
+                  <option value="">Select task band</option>
+                  {bandOptions.map((band) => <option key={band} value={band}>{band}</option>)}
+                </select>
+              </label>
 
-              <h2 style={{ color: '#0f172a' }}>Feedback</h2>
-              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '0.75rem' }}>
-                <div style={{ fontWeight: 700, color: '#1e3a8a' }}>Assistant suggestion — verify before finalizing.</div>
-                <div style={{ color: '#1e40af', fontSize: '0.85rem', marginTop: '0.3rem' }}>Automated feedback can make mistakes. Verify the evidence before finalizing.</div>
-                {skill === 'speaking' ? <div style={{ color: '#1e40af', fontSize: '0.85rem', marginTop: '0.2rem' }}>Transcript may contain errors. Listen to the audio before finalizing Speaking criteria, especially pronunciation.</div> : null}
-                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.6rem', flexWrap: 'wrap' }}>
-                  {skill === 'writing' ? (
-                    <button disabled={locked || !aiFields} onClick={applyAiFeedback} title={aiFields ? undefined : 'Run AI feedback in the panel under the student answer first.'} style={{ border: '1px solid #93c5fd', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.45rem', padding: '0.45rem 0.7rem', cursor: 'pointer' }}>
-                      Use AI feedback in form
-                    </button>
-                  ) : (
-                  <button disabled={locked || aiCheckMutation.isPending} onClick={() => aiCheckMutation.mutate()} style={{ border: '1px solid #93c5fd', background: '#dbeafe', color: '#1d4ed8', borderRadius: '0.45rem', padding: '0.45rem 0.7rem', cursor: 'pointer' }}>
-                    {aiCheckMutation.isPending ? 'Running AI check…' : 'AI check'}
-                  </button>
-                  )}
-                  {aiDraft ? <button disabled={locked} onClick={() => {
-                    const suggested = typeof aiDraft.suggested_feedback === 'string' ? aiDraft.suggested_feedback : '';
-                    const strengthsList = Array.isArray(aiDraft.strengths) ? aiDraft.strengths.join('\n• ') : '';
-                    const fixesList = Array.isArray(aiDraft.priority_fixes) ? aiDraft.priority_fixes.join('\n• ') : '';
-                    if (suggested) setTeacherFeedback(suggested);
-                    if (strengthsList) setStrengths(`• ${strengthsList}`);
-                    if (fixesList) setImprovements(`• ${fixesList}`);
-                  }} style={{ border: '1px solid #cbd5e1', background: 'white', borderRadius: '0.45rem', padding: '0.45rem 0.7rem', cursor: 'pointer' }}>Apply to form</button> : null}
+              <h2>Feedback for the student</h2>
+              {!locked ? (
+                <div className="ir-ai">
+                  <p><strong>Assistant suggestion — verify before finalizing.</strong> Automated feedback can make mistakes. Verify the evidence before finalizing.</p>
+                  {skill === 'speaking' ? <p className="ir-small">Transcript may contain errors. Listen to the audio before finalizing Speaking criteria, especially pronunciation.</p> : null}
+                  <div className="ir-actions">
+                    {skill === 'writing' ? (
+                      <IeltsButton type="button" disabled={!aiFields} onClick={applyAiFeedback}>Copy AI feedback into the form</IeltsButton>
+                    ) : (
+                      <IeltsButton type="button" disabled={aiCheckMutation.isPending} onClick={() => aiCheckMutation.mutate()}>{aiCheckMutation.isPending ? 'Running AI check…' : 'Run AI check'}</IeltsButton>
+                    )}
+                    {aiDraft ? <IeltsButton type="button" onClick={() => {
+                      const suggested = typeof aiDraft.suggested_feedback === 'string' ? aiDraft.suggested_feedback : '';
+                      const strengthsList = Array.isArray(aiDraft.strengths) ? aiDraft.strengths.join('\n• ') : '';
+                      const fixesList = Array.isArray(aiDraft.priority_fixes) ? aiDraft.priority_fixes.join('\n• ') : '';
+                      if (suggested) setTeacherFeedback(suggested);
+                      if (strengthsList) setStrengths(`• ${strengthsList}`);
+                      if (fixesList) setImprovements(`• ${fixesList}`);
+                    }}>Copy AI draft into the form</IeltsButton> : null}
+                  </div>
+                  {skill === 'writing' && !aiFields ? <p className="ir-small">Run the AI check in the panel under the student answer first.</p> : null}
+                  {aiError ? <p className="ir-error">{aiError}</p> : null}
                 </div>
-                {aiError ? <div style={{ color: '#991b1b', marginTop: '0.6rem', fontSize: '0.85rem' }}>{aiError}</div> : null}
-              </div>
-
-              {aiDraft ? <div style={{ border: '1px solid #dbeafe', background: '#f8fbff', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '0.75rem' }}>
-                <h3 style={{ margin: '0 0 0.4rem', color: '#1e3a8a' }}>AI Draft</h3>
-                <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: '0.8rem', color: '#1e293b' }}>{JSON.stringify(aiDraft, null, 2)}</pre>
-              </div> : null}
+              ) : null}
+              {aiDraft ? <details className="ir-draft"><summary>Show the AI draft</summary><pre>{JSON.stringify(aiDraft, null, 2)}</pre></details> : null}
               {[
-                ['Strengths', strengths, setStrengths],
-                ['Improvements', improvements, setImprovements],
-                ['Next steps', nextSteps, setNextSteps],
-                ['Teacher feedback', teacherFeedback, setTeacherFeedback],
-                ['Private notes', privateNotes, setPrivateNotes],
-              ].map(([label, value, setter]) => (
-                <label key={String(label)} style={{ display: 'block', color: '#334155', fontSize: '0.9rem', marginBottom: '0.75rem' }}>{String(label)}
-                  <textarea disabled={locked} value={String(value)} onChange={(e) => (setter as React.Dispatch<React.SetStateAction<string>>)(e.target.value)} rows={String(label) === 'Private notes' ? 3 : 4} style={{ width: '100%', marginTop: '0.25rem', padding: '0.55rem', border: '1px solid #cbd5e1', borderRadius: '0.5rem', resize: 'vertical' }} />
+                ['Strengths', strengths, setStrengths, 'What the student did well'],
+                ['Improvements', improvements, setImprovements, 'The most important things to fix'],
+                ['Next steps', nextSteps, setNextSteps, 'One clear thing to practise next'],
+                ['Teacher feedback', teacherFeedback, setTeacherFeedback, 'Anything else you want the student to read'],
+                ['Private notes', privateNotes, setPrivateNotes, 'Only staff can see these'],
+              ].map(([label, value, setter, hint]) => (
+                <label key={String(label)} className="ir-field">{String(label)} <span className="ir-muted ir-small">{String(hint)}</span>
+                  <textarea disabled={locked} value={String(value)} onChange={(e) => (setter as React.Dispatch<React.SetStateAction<string>>)(e.target.value)} rows={String(label) === 'Private notes' ? 3 : 5} />
                 </label>
               ))}
 
-              {submitMutation.error ? <div style={{ background: '#fee2e2', color: '#991b1b', padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '0.75rem' }}>{friendlyIeltsAdminError(submitMutation.error, 'Unable to save the review. Please try again.')}</div> : null}
-              {submitMutation.isSuccess ? <div style={{ background: '#dcfce7', color: '#166534', padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '0.75rem' }}>Review saved.</div> : null}
+              {submitMutation.error ? <div className="ir-notice ir-notice--error" role="alert">{friendlyIeltsAdminError(submitMutation.error, 'Unable to save the review. Please try again.')}</div> : null}
+              {submitMutation.isSuccess ? <div className="ir-notice" role="status">Review saved.</div> : null}
 
-              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <button disabled={locked || submitMutation.isPending} onClick={() => submitMutation.mutate(false)} style={{ flex: 1, minWidth: '8rem', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: 'white', cursor: locked ? 'not-allowed' : 'pointer' }}>Save draft</button>
-                <button disabled={locked || submitMutation.isPending || overallBand === null} onClick={() => submitMutation.mutate(true)} style={{ flex: 1, minWidth: '8rem', padding: '0.75rem', borderRadius: '0.5rem', border: 'none', background: locked ? '#94a3b8' : '#2563eb', color: 'white', cursor: locked ? 'not-allowed' : 'pointer' }}>Finalize review</button>
-              </div>
-              <div style={{ borderTop: '1px solid #e2e8f0', marginTop: '1rem', paddingTop: '1rem' }}>
-                <div style={{ color: '#334155', fontWeight: 700, marginBottom: '0.55rem' }}>Print-ready documents</div>
-                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-                  <button type="button" onClick={() => printReview('reviewer')} style={{ flex: 1, minWidth: '10rem', padding: '0.7rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}>Reviewer record</button>
-                  <button type="button" disabled={!locked} title={locked ? 'Print the finalized student feedback copy' : 'Finalize the review before releasing a student copy'} onClick={() => printReview('student')} style={{ flex: 1, minWidth: '10rem', padding: '0.7rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: locked ? '#eff6ff' : '#f1f5f9', color: locked ? '#1d4ed8' : '#94a3b8', cursor: locked ? 'pointer' : 'not-allowed' }}>Student feedback copy</button>
+              {!locked ? (
+                <>
+                  <div className="ir-actions ir-actions--submit">
+                    <IeltsButton type="button" disabled={submitMutation.isPending} onClick={() => submitMutation.mutate(false)}>Save draft</IeltsButton>
+                    <IeltsButton type="button" variant="primary" disabled={submitMutation.isPending || overallBand === null} onClick={() => submitMutation.mutate(true)}>Finalize review</IeltsButton>
+                  </div>
+                  {overallBand === null ? <p className="ir-small ir-muted">Choose the task-level band to finalize. Finalizing shares the feedback with the student.</p> : null}
+                </>
+              ) : null}
+              <div className="ir-print">
+                <h3>Print</h3>
+                <div className="ir-actions">
+                  <IeltsButton type="button" onClick={() => printReview('reviewer')}>Reviewer record</IeltsButton>
+                  <IeltsButton type="button" disabled={!locked} title={locked ? 'Print the finalized student feedback copy' : 'Finalize the review before printing a student copy'} onClick={() => printReview('student')}>Student feedback copy</IeltsButton>
                 </div>
+                {!locked ? <p className="ir-small ir-muted">The student copy is available after you finalize.</p> : null}
               </div>
             </aside>
           </div>

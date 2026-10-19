@@ -66,3 +66,14 @@
 .ix-dialog > * + * { margin-top:16px; }
 @media(max-width:600px) { .ix-workspace > * + * { margin-top:16px; } .ix-steps li { padding:8px 4px; } .ix-header { align-items:flex-start; } }
 @media(prefers-reduced-motion:reduce) { .ix-button { transition:none; } }
+
+/* Quiet actions and segmented filters (UX clarity pass, 2026-10-19). */
+.ix-button--quiet { background:transparent; border-color:transparent; color:var(--bh-ielts-foreground-muted); }
+.ix-button--quiet:hover:not(:disabled) { color:var(--bh-ielts-foreground); border-color:var(--bh-ielts-border); }
+.ix-segmented { display:inline-flex; gap:2px; padding:3px; border:1px solid var(--bh-ielts-border); border-radius:var(--bh-ielts-radius-sm); background:var(--bh-ielts-surface); }
+.ix-segmented button { min-height:38px; padding:6px 14px; border:0; border-radius:8px; background:transparent; color:var(--bh-ielts-foreground-muted); font:600 .875rem/1.4 var(--bh-ielts-font-body); cursor:pointer; }
+.ix-segmented button[aria-pressed=true] { background:var(--bh-ielts-secondary); color:var(--bh-ielts-primary); }
+.ix-segmented button:focus-visible { outline:3px solid var(--bh-ielts-focus); outline-offset:2px; }
+.ix-batch-toolbar > nav { flex:0 0 auto; }
+.ix-batch-row h3 { font-size:1.05rem; }
+@media (max-width:640px) { .ix-batch-row .ix-actions .ix-button { flex:1 1 auto; } }

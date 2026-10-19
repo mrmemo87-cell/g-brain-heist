@@ -377,7 +377,7 @@ export default function IeltsLearningPractice() {
     <main className="il-shell">
       <header>
         <p className="il-eyebrow">BRAINS HEIST · PURPOSEFUL PRACTICE</p>
-        <h1>{ieltsMaterialTitle(detail?.display_code, detail?.title ?? "Targeted Practice")}<IeltsMaterialProvenance label={detail?.originality_label}/></h1>
+        <h1>{ieltsMaterialTitle(detail?.display_code, detail?.title ?? "Targeted practice")}<IeltsMaterialProvenance label={detail?.originality_label}/></h1>
         <Link to={detail?.manager ? teacherRoute : "/ielts/journey"}>{detail?.manager ? "← Review desk" : "← IELTS Journey"}</Link>
         {detail?.manager && <p className="il-eyebrow">TEACHER REVIEW{teacherContext ? " · " + teacherContext.student_name : ""}</p>}
       </header>

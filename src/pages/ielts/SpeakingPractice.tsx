@@ -1,6 +1,7 @@
 import {reviewedPracticeDelivery} from '../../../services/ieltsReviewedPracticeService';
 import IeltsMaterialProvenance from "../../components/ielts/IeltsMaterialProvenance";
 import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
+import '../../styles/ielts-design-system.css';
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';

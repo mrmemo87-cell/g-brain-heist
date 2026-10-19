@@ -93,6 +93,13 @@ const getSubmissionDetailRoute = (itemStatus: string, progressItem?: (IeltsPract
   return null;
 };
 
+// Older batch assignments stored the teacher's evidence note as the description; students see only the practice focus.
+const studentDescription = (description: string | null): string | null => {
+  if (!description) return null;
+  const legacy = /^Shared target: (.+?)\. Evidence from each student's screener and checks \(provisional policy v1\)\.$/.exec(description.trim());
+  return legacy ? `Practice focus: ${legacy[1]}.` : description;
+};
+
 const getAssignmentBadge = (assignment: IeltsPracticeStudentAssignment) => {
   if (assignment.student_status === 'completed') {
     return { label: 'Completed', backgroundColor: '#dcfce7', color: '#166534' };
@@ -135,6 +142,16 @@ const IeltsAssignedPractice: React.FC = () => {
   useEffect(() => {
     void loadAssignments();
   }, []);
+
+  // Deep link from the student home ("?assignment=<id>") opens that set's tasks once.
+  const deepLinked = React.useRef(false);
+  useEffect(() => {
+    if (deepLinked.current || loadState !== 'ready') return;
+    const wanted = new URLSearchParams(window.location.search).get('assignment');
+    const target = wanted ? assignments.find(a => a.id === wanted) : undefined;
+    deepLinked.current = true;
+    if (target) void toggleAssignment(target);
+  }, [loadState, assignments]);
 
   const toggleAssignment = async (assignment: IeltsPracticeStudentAssignment) => {
     if (busyAssignmentId) return;
@@ -196,10 +213,10 @@ const IeltsAssignedPractice: React.FC = () => {
         <IeltsSchoolLearnerLinks onNavigate={navigate} active="assigned" />
         {/* Header */}
         <header style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.25rem', marginBottom: '1rem', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <p style={{ margin: '0 0 0.35rem', color: 'var(--bh-ielts-primary)', textTransform: 'uppercase', letterSpacing: '0.16em', fontSize: '0.65rem', fontWeight: 700 }}>SCHOOL IELTS PRACTICE</p>
-          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>School Assignments</h1>
+          <p style={{ margin: '0 0 0.35rem', color: 'var(--bh-ielts-primary)', textTransform: 'uppercase', letterSpacing: '0.16em', fontSize: '0.65rem', fontWeight: 700 }}>FROM YOUR TEACHERS</p>
+          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>Assignments</h1>
           <p style={{ margin: '0.5rem 0 0', color: 'var(--bh-ielts-foreground-muted)', lineHeight: 1.6, fontSize: '0.82rem' }}>
-            Multi-item practice sets assigned by your school. Short focused tasks are in Targeted Practice. Assignments complete automatically after all required items are finished.
+            Practice sets from your teachers. Open a set to see its tasks, results and feedback. Assignments complete automatically after all required items are finished. Short single tasks are in Targeted practice.
           </p>
         </header>
 
@@ -279,7 +296,7 @@ const IeltsAssignedPractice: React.FC = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1 }}>
                   <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>{assignment.title}</h2>
-                  {assignment.description && <p style={{ margin: '0.35rem 0 0', color: 'var(--bh-ielts-foreground-muted)', lineHeight: 1.5, fontSize: '0.82rem' }}>{assignment.description}</p>}
+                  {studentDescription(assignment.description) && <p style={{ margin: '0.35rem 0 0', color: 'var(--bh-ielts-foreground-muted)', lineHeight: 1.5, fontSize: '0.875rem' }}>{studentDescription(assignment.description)}</p>}
                 </div>
                 <span style={{ background: lightBadge.bg, color: lightBadge.color, border: `1px solid ${lightBadge.border}`, borderRadius: '9999px', padding: '0.3rem 0.7rem', fontSize: '0.68rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
                   {badge.label}
@@ -289,8 +306,7 @@ const IeltsAssignedPractice: React.FC = () => {
               {/* Meta */}
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.65rem', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.8rem' }}>
                 <span>Due: <strong style={{ color: isOverdue ? '#dc2626' : '#475569' }}>{formatDueDate(assignment.due_at)}</strong></span>
-                <span>Items: <strong style={{ color: '#475569' }}>{assignment.item_count ?? assignment.items?.length ?? 0}</strong></span>
-                <span>Status: <strong style={{ color: '#475569' }}>{(assignment.status === 'closed' && assignment.student_status !== 'completed' ? 'closed' : assignment.student_status).replace(/_/g, ' ')}</strong></span>
+                <span>{assignment.item_count ?? assignment.items?.length ?? 0} {(assignment.item_count ?? assignment.items?.length ?? 0) === 1 ? 'task' : 'tasks'}</span>
               </div>
 
               {/* Progress bar */}
@@ -306,9 +322,11 @@ const IeltsAssignedPractice: React.FC = () => {
                 disabled={busyAssignmentId !== null}
                 aria-expanded={isExpanded}
                 onClick={() => void toggleAssignment(assignment)}
-                style={{ marginTop: '0.75rem', background: '#ffffff', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}
+                style={{ marginTop: '0.75rem', minHeight: '44px', background: assignment.student_status === 'completed' ? '#ffffff' : 'var(--bh-ielts-primary)', color: assignment.student_status === 'completed' ? 'var(--bh-ielts-primary)' : '#ffffff', border: `1px solid ${assignment.student_status === 'completed' ? 'var(--bh-ielts-border)' : 'var(--bh-ielts-primary)'}`, borderRadius: '0.625rem', padding: '0.55rem 1rem', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer' }}
               >
-                {isExpanded ? 'Hide submission details' : 'View submission details'}
+                {assignment.student_status === 'completed'
+                  ? (isExpanded ? 'Hide results' : 'See results and feedback')
+                  : (isExpanded ? 'Hide tasks' : assignment.student_status === 'in_progress' ? 'Continue: show tasks' : 'Start: show tasks')}
               </button>
 
               {/* Skill sections */}
@@ -365,6 +383,21 @@ const IeltsAssignedPractice: React.FC = () => {
                                         style={{ background: '#dcfce7', color: '#166534', border: '1px solid #86efac', borderRadius: '0.5rem', padding: '0.45rem 0.75rem', fontWeight: 700, textDecoration: 'none', fontSize: '0.75rem' }}
                                       >
                                         {skill === 'reading' || skill === 'listening' ? 'View result →' : 'View feedback →'}
+                                      </a>
+                                    );
+                                  }
+                                  // The progress RPC carries no review metadata, so the feedback link above cannot appear for
+                                  // writing/speaking. The item page itself restores the submitted work with its AI feedback and,
+                                  // once finalized, the teacher review link.
+                                  if ((skill === 'writing' || skill === 'speaking') && hasValidAttemptId(itemProgress?.practice_attempt_id)) {
+                                    return (
+                                      <a
+                                        data-testid={`ielts-assigned-view-work-${item.id}`}
+                                        href={assignedRoute}
+                                        onClick={(event) => { event.preventDefault(); navigate(assignedRoute); }}
+                                        style={{ background: '#ffffff', color: 'var(--bh-ielts-primary)', border: '1px solid var(--bh-ielts-border)', borderRadius: '0.5rem', padding: '0.45rem 0.85rem', fontWeight: 600, textDecoration: 'none', fontSize: '0.8rem' }}
+                                      >
+                                        Open your {skill === 'writing' ? 'essay' : 'recording'} and feedback →
                                       </a>
                                     );
                                   }

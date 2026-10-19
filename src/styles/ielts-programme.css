@@ -285,7 +285,7 @@
   width: 100%;
   gap: 14px;
   min-width: 0;
-  min-height: 130px;
+  min-height: 0;
   padding: 18px;
   border: 1px solid var(--bh-ielts-border);
   border-radius: var(--bh-ielts-radius-md);
@@ -343,17 +343,16 @@
   font-weight: 700;
 }
 .ip-page .ip-today-more {
-  border: 1px solid var(--bh-ielts-border);
-  background: var(--bh-ielts-surface);
+  min-width: 0;
 }
 .ip-page .ip-today-links {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 10px;
 }
 .ip-page .ip-today-links button {
   min-width: 0;
-  min-height: 80px;
+  min-height: 0;
   display: grid;
   align-content: center;
   gap: 5px;
@@ -417,7 +416,6 @@
     grid-template-columns: minmax(0, 1fr);
   }
   .ip-page .ip-today-action {
-    min-height: 108px;
     padding: 14px;
   }
   .ip-page .ip-today-action-mark {
