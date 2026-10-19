@@ -262,9 +262,11 @@ export const checkIeltsPracticeAccess = async (
   skill: IeltsPracticeSkill,
   taskId: number
 ): Promise<IeltsPracticeAccessResult> => {
-  const { data, error } = await supabase.rpc('rpc_ielts_check_practice_access', {
+  // rpc_ielts_check_practice_access has (text, integer) and (text, text) overloads, which the Data API cannot
+  // choose between (PGRST203). rpc_ielts_practice_access is the single unambiguous entry point.
+  const { data, error } = await supabase.rpc('rpc_ielts_practice_access', {
     p_skill: skill,
-    p_task_id: taskId,
+    p_task_id: String(taskId),
   });
 
   if (error) {
