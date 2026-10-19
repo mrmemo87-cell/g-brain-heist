@@ -153,6 +153,43 @@ const WritingPractice: React.FC = () => {
 
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
   const [assignmentProgress, setAssignmentProgress] = useState<IeltsPracticeAssignmentProgress | null>(null);
+  const [submittedText, setSubmittedText] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState(Boolean(assignmentItemId));
+
+  // Reopening an assigned task that was already submitted shows the saved response and its feedback
+  // instead of a blank editor (pilot finding 2026-10-19). A new attempt is never created by reopening.
+  useEffect(() => {
+    let alive = true;
+    if (!assignmentItemId) { setRestoring(false); return () => { alive = false; }; }
+    (async () => {
+      try {
+        const { data: item } = await supabase
+          .from('ielts_practice_assignment_item_students')
+          .select('status, practice_attempt_type, practice_attempt_id')
+          .eq('assignment_item_id', assignmentItemId)
+          .maybeSingle();
+        if (!alive || !item?.practice_attempt_id || item.practice_attempt_type !== 'writing' || !['submitted', 'completed'].includes(String(item.status))) return;
+        const { data: attempt } = await supabase
+          .from('ielts_writing_attempts')
+          .select('id, answer_text, word_count, review_status')
+          .eq('id', item.practice_attempt_id)
+          .maybeSingle();
+        if (!alive || !attempt) return;
+        ExamGuard.stop();
+        setLastAttemptId(attempt.id);
+        setSubmittedText(attempt.answer_text ?? '');
+        setWordCount(attempt.word_count ?? 0);
+        setIsAssignmentCompletedBySubmission(item.status === 'completed');
+        setHasFinalizedReview(attempt.review_status === 'finalized');
+        setHasSubmitted(true);
+      } catch {
+        // Fall back to the editor; nothing is lost because the saved attempt is untouched.
+      } finally {
+        if (alive) setRestoring(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, [assignmentItemId]);
   const [assignmentCompletionError, setAssignmentCompletionError] = useState<string | null>(null);
 
   // Submit mutation
@@ -352,7 +389,7 @@ const WritingPractice: React.FC = () => {
     };
   }, [task?.id]);
 
-  if (isLoading) {
+  if (isLoading || restoring) {
     return (
       <div style={{ 
         minHeight: '100vh', 
@@ -489,6 +526,12 @@ const WritingPractice: React.FC = () => {
             )}
           </div>
 
+          {(submittedText ?? answer) ? (
+            <details style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#1e293b' }}>Your response ({wordCount} words)</summary>
+              <div style={{ whiteSpace: 'pre-wrap', color: '#0f172a', marginTop: '0.75rem', lineHeight: 1.6 }}>{submittedText ?? answer}</div>
+            </details>
+          ) : null}
           {lastAttemptId && <IeltsPracticeAiFeedback attemptId={lastAttemptId} mode="student" />}
 
           <AssignmentCompletionStatus
