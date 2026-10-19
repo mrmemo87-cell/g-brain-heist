@@ -1,0 +1,55 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {PGlite} from '@electric-sql/pglite';
+import {validateBank,KNOWN_CONSTRUCTS,bankPaths} from '../scripts/ielts/practice-bank-contract.mjs';
+// Diagnostic Bible 2.0.0 sections 7.5 and 15E.2A, against the real installer and review migrations with stubbed originality services.
+const admin='00000000-0000-0000-0000-000000000005',teacher='00000000-0000-0000-0000-000000000001';
+const db=new PGlite();
+await db.exec(`create role anon;create role authenticated;create role service_role;create schema private;create schema auth;
+create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+create table public.users(id uuid primary key,role text,is_banned boolean,full_name text,username text);
+insert into public.users values('${admin}','admin',false,'Admin','admin'),('${teacher}','teacher',false,'T','t');
+create table public.academic_skill_registry_versions(id uuid primary key default gen_random_uuid(),code text unique,subject_key text,title text,description text,authority_model text,status text,effective_from date,created_at timestamptz default now());
+create table public.academic_skill_registry_nodes(id uuid primary key default gen_random_uuid(),registry_version_id uuid,parent_id uuid,node_type text,code text unique,name text,description text,applicable_phases text[],status text default 'active',created_at timestamptz default now(),updated_at timestamptz default now());
+create table private.ielts_reviewed_practice(material_type text,material_id text,content jsonb,release_ready boolean);
+create table private.ielts_learning_tasks(code text primary key,questions jsonb);
+create table public.ielts_reading_sets(id bigserial primary key,slug text unique,title text,description text,level text,duration_minutes int,passage_text text,is_active boolean,required_tier text);
+create table public.ielts_reading_questions(id bigserial primary key,set_id bigint,question_order int,question_type text,body text,options jsonb,correct_answer jsonb,explanation text);
+create table public.ielts_writing_tasks(id bigserial primary key,slug text unique,task_type text,title text,prompt text,is_active boolean,required_tier text);
+create table public.ielts_speaking_tasks(id bigserial primary key,slug text unique,part int,prompt text,follow_ups jsonb,is_active boolean,required_tier text);
+create table private.flags(material_type text,material_id text,reason text);
+create table private.reviews(material_type text,material_id text,rationale text,reviewer uuid);
+create function private.ielts_material_code(t text,i text) returns text language sql as $$select upper(left(replace(t,'ielts_',''),1))||'-'||i$$;
+create function private.ielts_originality_payload(t text,i text) returns jsonb language sql as $$select jsonb_build_object('content_hash',md5(t||i))$$;
+create function private.ielts_originality_matches(t text,i text) returns jsonb language sql as $$select coalesce(jsonb_agg(jsonb_build_object('display_code','X','reason',reason)),'[]') from private.flags f where f.material_type=t and f.material_id=i$$;
+create function private.ielts_originality_hash(p text) returns text language sql as $$select md5(p)$$;
+create function public.rpc_ielts_material_originality_review(t text,i text,h text,mh text,d text,pt text,pi text,ph text,r text,c boolean,rc boolean,pub boolean) returns jsonb language plpgsql as $$
+begin insert into private.reviews values(t,i,r,auth.uid());execute format('update public.%I set is_active=true where id::text=$1',t||'s') using i;return '{}';end$$;`);
+await db.query("insert into public.academic_skill_registry_nodes(node_type,code,name,description,applicable_phases) select 'subskill',c,c,c,array['upper_secondary'] from unnest($1::text[]) c",[[...KNOWN_CONSTRUCTS].filter(c=>!c.startsWith('bh-ielts-core-v1'))]);
+for(const f of ['20261019060000_ielts_practice_construct_mapping.sql','20261019110000_ielts_practice_bank_review.sql','20261019110050_ielts_practice_bank_installer.sql','20261019110100_ielts_practice_bank_batch_01.sql'])await db.exec(readFileSync('supabase/migrations/'+f,'utf8').replace(/insert into private\.ielts_material_construct_maps\(batch_id,material_type,material_id,item_key,node_id,role,rationale\)\nselect b\.id, x\.t[\s\S]*?x\.c;/,'select 1;').replace(/do \$\$ begin\n if \(select count\(\*\) from private\.ielts_material_construct_maps m join[\s\S]*?end \$\$;/,''));
+const as=id=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[id??'']);
+const one=async(sql,p=[])=>(await db.query(sql,p)).rows[0];
+test('every bank file passes the automated contract',()=>{for(const p of bankPaths())assert.deepEqual(validateBank(JSON.parse(readFileSync(p,'utf8')),{constructs:KNOWN_CONSTRUCTS}),[]);});
+test('batch 01 installs 21 unavailable drafts with proposed mappings, once',async()=>{
+ const r=await one(`select (select count(*)::int from public.ielts_reading_sets where not is_active) rs,(select count(*)::int from public.ielts_reading_questions) q,(select count(*)::int from public.ielts_writing_tasks where not is_active) w,(select count(*)::int from public.ielts_speaking_tasks where not is_active) s,(select count(*)::int from private.ielts_content_batch_items) items,(select count(*)::int from private.ielts_material_construct_maps where status='proposed') maps`);
+ assert.deepEqual({rs:r.rs,q:r.q,w:r.w,s:r.s,items:r.items},{rs:6,q:42,w:6,s:9,items:21});assert.ok(r.maps>60);
+ await db.exec(readFileSync('supabase/migrations/20261019110100_ielts_practice_bank_batch_01.sql','utf8'));assert.equal((await one('select count(*)::int n from private.ielts_content_batch_items')).n,21,'idempotent');
+});
+test('only administrators decide; flagged items must be sampled; approval publishes and records a review per item',async()=>{
+ await as(teacher);await assert.rejects(db.query('select public.rpc_ielts_practice_content_queue()'),/forbidden/);
+ await as(admin);const b=(await one('select public.rpc_ielts_practice_content_queue() j')).j[0];assert.equal(b.items.length,21);assert.equal(b.minimum_sample,5);
+ assert.ok(b.items[0].preview.passage||b.items[0].preview.prompt);
+ const refs=b.items.map(i=>i.ref);
+ const decide=(sample,rejected=[],notes='Checked keys, evidence and mappings in the sample.')=>db.query("select public.rpc_ielts_practice_content_decide($1,$2,'approved',$3,$4,$5) j",[b.id,b.sha256,sample,rejected,notes]);
+ await assert.rejects(decide(refs.slice(0,2)),/sample_too_small/);
+ await assert.rejects(decide(refs.slice(0,5),[],'too short'),/notes_required/);
+ const flagged=b.items.find(i=>i.material_type==='ielts_speaking_task');
+ await db.query("insert into private.flags values($1,$2,'similar_content')",[flagged.material_type,flagged.material_id]);
+ const b2=(await one('select public.rpc_ielts_practice_content_queue() j')).j[0];
+ await assert.rejects(db.query("select public.rpc_ielts_practice_content_decide($1,$2,'approved',$3,'{}','Checked keys, evidence and mappings in the sample.')",[b2.id,b2.sha256,refs.slice(0,5)]),/flagged_item_not_sampled/);
+ const rejected=refs[1];
+ const res=(await one("select public.rpc_ielts_practice_content_decide($1,$2,'approved',$3,$4,'Checked keys, evidence and mappings in the sample.') j",[b2.id,b2.sha256,[...refs.slice(0,5),flagged.ref],[rejected]])).j;
+ assert.equal(res.approved,20);
+ const s=await one(`select (select count(*)::int from private.reviews) reviews,(select count(*)::int from private.reviews where reviewer='${admin}') mine,(select count(*)::int from public.ielts_reading_sets where is_active)+(select count(*)::int from public.ielts_writing_tasks where is_active)+(select count(*)::int from public.ielts_speaking_tasks where is_active) active,(select count(*)::int from private.ielts_material_construct_maps where status='proposed') left_proposed`);
+ assert.deepEqual(s,{reviews:20,mine:20,active:20,left_proposed:0});
+ assert.match((await one('select rationale from private.reviews limit 1')).rationale,/Batch sample review/);
+ await assert.rejects(db.query("select public.rpc_ielts_construct_mapping_decide($1,$2,'approved','{}','{}','attempt via mapping path')",[b.id,'x']),/batch_not_found/,'content batches cannot be decided as mapping-only');
+});

@@ -5,6 +5,7 @@ import IeltsMaterialOriginalityReview, { type MaterialReviewTarget } from './Iel
 
 const LegacyCleanup=React.lazy(()=>import('./IeltsLegacyCleanup'));
 const ConstructMappingReview=React.lazy(()=>import('./IeltsConstructMappingReview'));
+const PracticeBankReview=React.lazy(()=>import('./IeltsPracticeBankReview'));
 
 type SkillTab = 'reading' | 'listening' | 'writing' | 'speaking';
 type Q = { question_order:number; question_type:string; body:string; options:string; correct_answer:string; explanation:string };
@@ -197,7 +198,7 @@ const IeltsContentManager: React.FC = () => {
   return <div className="ix-workspace space-y-4 rounded-xl border ix-border ix-surface p-4">{/* existing UI omitted for brevity in style parity */}
     <button type="button" className="ix-button ix-button--secondary" aria-expanded={showCleanup} onClick={()=>setShowCleanup(x=>!x)}>{showCleanup?'Hide corrected materials':'Review corrected materials & retirements'}</button>
     {showCleanup&&<React.Suspense fallback={<p role="status">Opening cleanup…</p>}><LegacyCleanup/></React.Suspense>}
-    <React.Suspense fallback={null}><ConstructMappingReview/></React.Suspense>
+    <React.Suspense fallback={null}><PracticeBankReview/><ConstructMappingReview/></React.Suspense>
     <div className="flex flex-wrap gap-3 items-center justify-between"><h2 className="text-xl font-bold ix-accent">IELTS Content</h2><input className="rounded border ix-border ix-surface px-3 py-2 text-sm ix-ink" aria-label="Search material title" placeholder="Search title" value={query} onChange={e=>setQuery(e.target.value)} /></div>
     <div className="flex flex-wrap gap-2">{tabs.map(t=><button key={t} aria-pressed={t===activeTab} onClick={()=>setActiveTab(t)} className={`rounded px-3 py-1 text-sm ${t===activeTab?'ix-action-primary ix-ink':'ix-surface ix-muted'}`}>{t[0].toUpperCase()+t.slice(1)}</button>)}</div>
     {activeTab==='reading'&&<button onClick={()=>setEditingReading(blankReading())} className="rounded ix-action-primary px-3 py-1 text-sm font-semibold ix-ink">New Reading Task</button>}

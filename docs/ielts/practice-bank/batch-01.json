@@ -1,0 +1,979 @@
+{
+  "schema": "bh-ielts-practice-bank/1",
+  "batch": "practice-bank-01",
+  "status": "AI-drafted; pending named content-administrator batch review (Diagnostic Bible 2.0.0 section 15E.2A)",
+  "authorship": "Brains Heist original practice written by Claude (AI assistant) on the owner's instruction of 2026-10-19; fictional settings and data",
+  "bibles": {
+    "diagnostic": "2.0.0",
+    "lessons": "1.2.0",
+    "visual": "1.2.0"
+  },
+  "reading": [
+    {
+      "key": "rb01",
+      "title": "A school garden that measures its own water",
+      "level": "Foundation practice",
+      "passage": "A. When the science teachers at Hillcrest School started a vegetable garden, they expected the main problem to be pests. Instead, the biggest difficulty was water. In the first summer, some beds were flooded while others dried out, and nobody knew exactly how much water each bed received.\n\nB. In the second year, a group of fifteen-year-old students offered to collect data. They placed a simple rain gauge in the middle of the garden and pushed small moisture sensors into six of the twelve beds. Every afternoon, two students wrote down the readings in a shared notebook. They did not water any bed until they had checked its sensor.\n\nC. After eight weeks, the notebook showed a clear pattern. Beds near the wall stayed damp for longer because the wall shaded them in the afternoon. Beds in the open dried out almost twice as fast. The students also noticed that the old habit of watering every bed at the same time had wasted water on beds that did not need it.\n\nD. The group suggested a new routine. Shaded beds would be watered every third day, and open beds every day during hot weeks. The headteacher agreed to try the routine for the rest of the season. By the end of the summer, the school had used less water than in the first year, although the students pointed out that the summer had also been cooler.\n\nE. The project did not end there. The students wrote a short guide for next year's group, explaining how to read the sensors and why the records mattered. In their final report, they warned that six sensors could not describe every bed perfectly, and they recommended buying more if the budget allowed.",
+      "questions": [
+        {
+          "type": "multiple_choice",
+          "q": "What was the main problem in the garden's first summer?",
+          "options": [
+            "Insects damaged the vegetables",
+            "Water was not shared evenly between the beds",
+            "The students had no time to help",
+            "The beds were too close to the wall"
+          ],
+          "key": "Water was not shared evenly between the beds",
+          "evidence": "A: some beds were flooded while others dried out",
+          "construct": "eng.reading.explicit-information.locate-detail",
+          "supporting": "eng.reading.main-ideas.summary"
+        },
+        {
+          "type": "fill_blank",
+          "q": "The students put moisture sensors into _____ beds.",
+          "key": [
+            "six",
+            "6"
+          ],
+          "evidence": "B: moisture sensors into six of the twelve beds",
+          "construct": "eng.reading.explicit-information.locate-detail",
+          "supporting": "eng.reading.strategy-selection.scan"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "The students checked a bed's sensor before watering it.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "True",
+          "evidence": "B: They did not water any bed until they had checked its sensor",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "Beds in the open stayed damp longer than beds near the wall.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "False",
+          "evidence": "C: Beds near the wall stayed damp for longer ... Beds in the open dried out almost twice as fast",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "The vegetables grew larger in the second year.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "Not Given",
+          "evidence": "The passage reports water use, not vegetable size",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "multiple_choice",
+          "q": "Why did the students mention that the summer had been cooler?",
+          "options": [
+            "To show that the new routine had failed",
+            "To explain that the lower water use may not be due only to the routine",
+            "To ask for a larger budget",
+            "To prove that the wall gave more shade"
+          ],
+          "key": "To explain that the lower water use may not be due only to the routine",
+          "evidence": "D: less water ... although the students pointed out that the summer had also been cooler",
+          "construct": "eng.reading.inference.unstated-meaning",
+          "supporting": null
+        },
+        {
+          "type": "multiple_choice",
+          "q": "Which title best describes the whole passage?",
+          "options": [
+            "How pests were removed from a school garden",
+            "Students using simple records to improve watering",
+            "Why every school should build a garden wall",
+            "The cost of moisture sensors"
+          ],
+          "key": "Students using simple records to improve watering",
+          "evidence": "A–E describe collecting data, changing the routine and recording limits",
+          "construct": "eng.reading.main-ideas.gist",
+          "supporting": null
+        }
+      ]
+    },
+    {
+      "key": "rb02",
+      "title": "Night buses in a growing city",
+      "level": "Foundation practice",
+      "passage": "A. For many years, the city of Darvan had no public transport after eleven o'clock at night. Hospital workers, cleaners and students who finished late had to walk, pay for taxis, or ask friends for lifts. In 2023, the transport office decided to test two night bus routes for six months.\n\nB. The planners did not simply guess where the buses should go. First, they asked large employers how many staff finished work late. Then they studied taxi records, which showed the most common late journeys. The two routes they chose connected the main hospital, the university and three large housing areas. Buses were planned to run every forty minutes until five in the morning.\n\nC. During the trial, each bus counted passengers automatically as they boarded. On weekdays, the buses carried an average of 40 passengers per journey, but at weekends the figure rose to more than 70. The transport office had expected most passengers to be young people leaving restaurants, so it was surprised that nearly half were travelling to or from work.\n\nD. Not everything went smoothly. Drivers reported that some stops were poorly lit, and several passengers said they felt unsafe while waiting. The office added lights to eight stops in the third month. It also changed one timetable after nurses explained that the bus left the hospital five minutes before their shifts ended.\n\nE. At the end of the trial, the office made both routes permanent and promised to review the timetables every year. A local newspaper called the trial a success, but the transport office was more careful. Its report said that the routes still lost money and that their future would depend on whether passenger numbers continued to grow.",
+      "questions": [
+        {
+          "type": "fill_blank",
+          "q": "Before the trial, there was no public transport after _____ o'clock at night.",
+          "key": [
+            "eleven",
+            "11"
+          ],
+          "evidence": "A: no public transport after eleven o'clock at night",
+          "construct": "eng.reading.explicit-information.locate-detail",
+          "supporting": "eng.reading.strategy-selection.scan"
+        },
+        {
+          "type": "multiple_choice",
+          "q": "How did the planners choose the routes?",
+          "options": [
+            "They copied the daytime routes",
+            "They used information from employers and taxi records",
+            "They asked passengers to vote online",
+            "They followed the newspaper's advice"
+          ],
+          "key": "They used information from employers and taxi records",
+          "evidence": "B: asked large employers ... studied taxi records",
+          "construct": "eng.reading.explicit-information.locate-detail",
+          "supporting": "eng.reading.main-ideas.summary"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "More passengers used the night buses at weekends than on weekdays.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "True",
+          "evidence": "C: On weekdays, the buses carried an average of 40 passengers per journey ... at weekends the figure rose to more than 70",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "The transport office correctly predicted who would use the buses most.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "False",
+          "evidence": "C: it was surprised that nearly half were travelling to or from work",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.inference.unstated-meaning"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "Ticket prices were lower on the night buses than in the daytime.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "Not Given",
+          "evidence": "Ticket prices are not mentioned",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "multiple_choice",
+          "q": "In paragraph D, what does 'It' in 'It also changed one timetable' refer to?",
+          "options": [
+            "The hospital",
+            "The office",
+            "The bus",
+            "The third month"
+          ],
+          "key": "The office",
+          "evidence": "D: The office added lights ... It also changed one timetable",
+          "construct": "eng.reading.connections.reference",
+          "supporting": null
+        },
+        {
+          "type": "multiple_choice",
+          "q": "What is the transport office's view in paragraph E?",
+          "options": [
+            "The trial was a complete success",
+            "The routes should be closed",
+            "The routes have a future only if more people use them",
+            "The newspaper report was dishonest"
+          ],
+          "key": "The routes have a future only if more people use them",
+          "evidence": "E: their future would depend on whether passenger numbers continued to grow",
+          "construct": "eng.reading.purpose-viewpoint.viewpoint",
+          "supporting": "eng.reading.inference.purpose-intention"
+        }
+      ]
+    },
+    {
+      "key": "rb03",
+      "title": "Why some museums let visitors touch",
+      "level": "Extended practice",
+      "passage": "A. For most of the last century, museums followed a simple rule: visitors could look, but they could not touch. Objects were kept behind glass, and guards reminded anyone who came too close. The rule protected valuable items, but it also meant that many people experienced museums as quiet, distant places.\n\nB. In recent years, a number of museums have introduced 'handling collections'. These are groups of objects, often copies or less fragile items, that visitors are allowed to pick up and examine. A regional museum in the north of the country, for example, now offers a table of old farming tools, while a science museum lets visitors hold real rock samples.\n\nC. Supporters argue that touch helps people to understand objects in ways that sight alone cannot. Holding a heavy iron tool, they say, makes it easier to imagine the effort of farm work two hundred years ago. Teachers have also reported that pupils who struggle to concentrate on written labels often stay longer at handling tables.\n\nD. However, the change has critics. Some curators worry that handling collections give visitors a false idea of the past, because copies may look and feel different from the originals. Others point out that every object handled will eventually show wear, so museums must spend money replacing or repairing items. A few also argue that the excitement of touching can distract from careful observation.\n\nE. Most museums have tried to balance these concerns. Staff usually supervise handling tables, and labels explain clearly whether an object is an original or a copy. Some museums also ask visitors to describe what they notice before they pick anything up. Whether touch truly improves learning is still being studied, but few museums that have started handling collections have chosen to stop.",
+      "questions": [
+        {
+          "type": "multiple_choice",
+          "q": "According to paragraph A, what was one disadvantage of the 'look, don't touch' rule?",
+          "options": [
+            "Objects were often stolen",
+            "Museums felt distant to many people",
+            "Guards were too expensive",
+            "Glass cases damaged objects"
+          ],
+          "key": "Museums felt distant to many people",
+          "evidence": "A: many people experienced museums as quiet, distant places",
+          "construct": "eng.reading.explicit-information.locate-detail",
+          "supporting": null
+        },
+        {
+          "type": "multiple_choice",
+          "q": "What is the main purpose of paragraph B?",
+          "options": [
+            "To criticise handling collections",
+            "To explain what handling collections are and give examples",
+            "To compare two museums' budgets",
+            "To describe the history of farming tools"
+          ],
+          "key": "To explain what handling collections are and give examples",
+          "evidence": "B defines handling collections and gives two examples",
+          "construct": "eng.reading.inference.purpose-intention",
+          "supporting": "eng.reading.connections.structure"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "All objects in handling collections are copies.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "False",
+          "evidence": "B: often copies or less fragile items ... real rock samples",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "Some teachers say pupils spend more time at handling tables than reading labels.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "True",
+          "evidence": "C: pupils who struggle to concentrate on written labels often stay longer at handling tables",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.main-ideas.summary"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "Handling collections have increased the number of museum visitors.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "Not Given",
+          "evidence": "Visitor numbers are not reported",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "multiple_choice",
+          "q": "Which of these is NOT given in paragraph D as a criticism?",
+          "options": [
+            "Copies may give a false idea of the past",
+            "Objects wear out and cost money to replace",
+            "Touching may distract from careful looking",
+            "Handling tables take space from original exhibits"
+          ],
+          "key": "Handling tables take space from original exhibits",
+          "evidence": "D lists false idea, wear and cost, and distraction only",
+          "construct": "eng.reading.main-ideas.main-supporting",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "multiple_choice",
+          "q": "What does the writer suggest in the final sentence?",
+          "options": [
+            "Research has proved that touch improves learning",
+            "Museums are likely to keep handling collections",
+            "Most museums plan to close their handling tables",
+            "Visitors prefer glass cases"
+          ],
+          "key": "Museums are likely to keep handling collections",
+          "evidence": "E: few museums that have started handling collections have chosen to stop",
+          "construct": "eng.reading.inference.unstated-meaning",
+          "supporting": "eng.reading.purpose-viewpoint.viewpoint"
+        }
+      ]
+    },
+    {
+      "key": "rb04",
+      "title": "Learning a language with short daily lessons",
+      "level": "Extended practice",
+      "passage": "A. Language-learning apps often promise that a few minutes a day is enough to make progress. To test this claim, a university research group followed 120 adult beginners who were learning Spanish for three months. Half of them studied for ten minutes every day; the other half studied for seventy minutes once a week. Both groups therefore spent the same total time learning, and both used the same app and the same lessons.\n\nB. At the end of the three months, the daily group remembered more vocabulary. On a test of 200 common words, they scored on average 15 per cent higher than the weekly group. The researchers believe this happened because short, repeated sessions give the brain more chances to recall words before they are forgotten, a process sometimes called 'spaced practice'.\n\nC. The results for speaking were different. When the learners took part in a short conversation with a teacher, the weekly group performed slightly better. The researchers suggest that longer sessions allowed time for more complex activities, such as role plays, which are difficult to fit into ten minutes.\n\nD. The study had limitations. All the participants were volunteers who were already interested in learning a language, so they may have been more motivated than typical learners. In addition, the researchers could not check whether the participants practised outside the study, for example by watching films in Spanish.\n\nE. The research group does not conclude that one method is better. Instead, it recommends combining the two: short daily reviews to keep vocabulary fresh, and at least one longer weekly session for speaking. It also plans a second study with teenagers, who may respond differently, and a longer study to see whether the vocabulary is still remembered after a year.",
+      "questions": [
+        {
+          "type": "fill_blank",
+          "q": "The study followed _____ adult beginners.",
+          "key": [
+            "120",
+            "one hundred and twenty",
+            "one hundred twenty"
+          ],
+          "evidence": "A: followed 120 adult beginners",
+          "construct": "eng.reading.explicit-information.locate-detail",
+          "supporting": "eng.reading.strategy-selection.scan"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "The daily group spent more time studying in total than the weekly group.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "False",
+          "evidence": "A: Both groups therefore spent the same total time learning",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "The daily group did better on the vocabulary test.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "True",
+          "evidence": "B: the daily group remembered more vocabulary ... 15 per cent higher",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "Most participants continued learning Spanish after the study.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "Not Given",
+          "evidence": "The passage does not report what happened after the study",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "multiple_choice",
+          "q": "In paragraph B, what does 'spaced practice' mean?",
+          "options": [
+            "Studying in a large, quiet room",
+            "Recalling information several times with gaps between",
+            "Learning with a partner",
+            "Taking long breaks from study"
+          ],
+          "key": "Recalling information several times with gaps between",
+          "evidence": "B: short, repeated sessions give the brain more chances to recall words before they are forgotten",
+          "construct": "eng.reading.vocabulary-context.context-clues",
+          "supporting": null
+        },
+        {
+          "type": "multiple_choice",
+          "q": "Why might the weekly group have done better at speaking?",
+          "options": [
+            "They had better teachers",
+            "Longer sessions left time for activities like role plays",
+            "They watched more Spanish films",
+            "They were younger than the daily group"
+          ],
+          "key": "Longer sessions left time for activities like role plays",
+          "evidence": "C: longer sessions allowed time for more complex activities, such as role plays",
+          "construct": "eng.reading.connections.logical-relations",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "multiple_choice",
+          "q": "Which statement best summarises the researchers' recommendation?",
+          "options": [
+            "Daily study is always better",
+            "Weekly study is always better",
+            "Use short daily reviews and a longer weekly speaking session",
+            "Adults should not use language apps"
+          ],
+          "key": "Use short daily reviews and a longer weekly speaking session",
+          "evidence": "E: combining the two ...",
+          "construct": "eng.reading.main-ideas.summary",
+          "supporting": "eng.reading.main-ideas.gist"
+        }
+      ]
+    },
+    {
+      "key": "rb05",
+      "title": "The return of the town market",
+      "level": "Extended practice",
+      "passage": "A. Twenty years ago, the weekly market in the small town of Elmsford closed. Most residents had started driving to a large supermarket on the edge of town, and the few remaining stallholders could no longer earn enough. For years, the market square was used only as a car park.\n\nB. In 2021, a group of local farmers and craftspeople asked the town council for permission to reopen the market on Saturday mornings. The council was cautious. It agreed to a one-year trial on condition that the organisers paid for their own insurance and cleaned the square afterwards.\n\nC. The first few weeks were difficult. Only nine stalls appeared, and bad weather kept many shoppers at home. The organisers responded by adding covered areas and by inviting a local bakery, which quickly became the market's most popular stall. They also began to advertise each week's stallholders on social media, which, according to their own survey, brought in younger shoppers.\n\nD. By the end of the trial, the market had grown to thirty-two stalls. Shops around the square reported more customers on Saturdays, although two cafés complained that market food stalls were taking their business. The council asked the organisers to limit hot-food stalls to four, a compromise that both sides accepted.\n\nE. Supporters say the market has done more than increase trade. They argue that it has given residents a reason to meet in the centre of the town again. Critics reply that a weekly market cannot replace the shops that closed during the past twenty years. Both points may be true: the market is not a solution to every problem, but it has clearly changed how the square is used.",
+      "questions": [
+        {
+          "type": "multiple_choice",
+          "q": "Why did the market close twenty years ago?",
+          "options": [
+            "The council sold the square",
+            "Shoppers went to a supermarket and stallholders could not earn enough",
+            "A fire damaged the stalls",
+            "Farmers moved to another town"
+          ],
+          "key": "Shoppers went to a supermarket and stallholders could not earn enough",
+          "evidence": "A: residents had started driving to a large supermarket ... could no longer earn enough",
+          "construct": "eng.reading.connections.logical-relations",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "The council paid for the market's insurance during the trial.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "False",
+          "evidence": "B: on condition that the organisers paid for their own insurance",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "The bakery became the most popular stall.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "True",
+          "evidence": "C: a local bakery, which quickly became the market's most popular stall",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "The market made more money than the supermarket on Saturdays.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "Not Given",
+          "evidence": "No comparison of income with the supermarket is given",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "fill_blank",
+          "q": "By the end of the trial, the market had _____ stalls.",
+          "key": [
+            "thirty-two",
+            "32",
+            "thirty two"
+          ],
+          "evidence": "D: grown to thirty-two stalls",
+          "construct": "eng.reading.explicit-information.locate-detail",
+          "supporting": "eng.reading.strategy-selection.scan"
+        },
+        {
+          "type": "multiple_choice",
+          "q": "What was the 'compromise' in paragraph D?",
+          "options": [
+            "Closing the cafés on Saturdays",
+            "Allowing no more than four hot-food stalls",
+            "Moving the market to the supermarket car park",
+            "Charging the cafés a fee"
+          ],
+          "key": "Allowing no more than four hot-food stalls",
+          "evidence": "D: limit hot-food stalls to four, a compromise that both sides accepted",
+          "construct": "eng.reading.vocabulary-context.context-clues",
+          "supporting": "eng.reading.connections.reference"
+        },
+        {
+          "type": "multiple_choice",
+          "q": "What is the writer's overall position in paragraph E?",
+          "options": [
+            "The market has solved the town's problems",
+            "The critics are completely wrong",
+            "The market has limits but has changed how the square is used",
+            "The market should close again"
+          ],
+          "key": "The market has limits but has changed how the square is used",
+          "evidence": "E: the market is not a solution to every problem, but it has clearly changed how the square is used",
+          "construct": "eng.reading.purpose-viewpoint.viewpoint",
+          "supporting": "eng.reading.main-ideas.gist"
+        }
+      ]
+    },
+    {
+      "key": "rb06",
+      "title": "Measuring noise in a hospital ward",
+      "level": "Extended practice",
+      "passage": "A. Patients often say that the hardest part of a hospital stay is not pain but the lack of sleep. In one regional hospital, nurses decided to find out why. Over four weeks, they placed sound meters in two wards and recorded the noise level every minute, day and night. They also kept a diary of events, such as emergencies and visits, so that they could explain unusual readings.\n\nB. The recordings surprised the staff. The loudest moments were not caused by medical equipment, as many had expected, but by conversations at the nurses' station and by the trolleys used to deliver meals and medicine. Night-time noise was lower than daytime noise, but it often rose suddenly when staff changed shifts at eleven o'clock.\n\nC. The nurses introduced several small changes in one ward while the other ward continued as before. Shift handovers moved from the corridor into a side room, soft wheels were fitted to the trolleys, and lights were dimmed after ten o'clock. Staff also agreed to wear shoes that made less noise on the hard floor.\n\nD. After the changes, average night-time noise in the first ward fell by about a quarter, while noise in the second ward stayed much the same. Patients in the first ward also reported sleeping better in a short questionnaire. The nurses were careful to note, however, that patients in the two wards had different illnesses, which might also have affected their sleep.\n\nE. The hospital has now asked other wards to try the same changes. The nurses who led the project believe that the most important lesson was not any single change, but the act of measuring: once staff could see the noise they were making, they were more willing to change their habits.",
+      "questions": [
+        {
+          "type": "multiple_choice",
+          "q": "Why did the nurses start the project?",
+          "options": [
+            "To test new medical equipment",
+            "To find out why patients slept badly",
+            "To reduce the cost of meals",
+            "To compare two hospitals"
+          ],
+          "key": "To find out why patients slept badly",
+          "evidence": "A: the lack of sleep ... nurses decided to find out why",
+          "construct": "eng.reading.inference.purpose-intention",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "Medical equipment caused the loudest noises.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "False",
+          "evidence": "B: The loudest moments were not caused by medical equipment",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "fill_blank",
+          "q": "Noise often rose suddenly when staff changed shifts at _____ o'clock.",
+          "key": [
+            "eleven",
+            "11"
+          ],
+          "evidence": "B: when staff changed shifts at eleven o'clock",
+          "construct": "eng.reading.explicit-information.locate-detail",
+          "supporting": "eng.reading.strategy-selection.scan"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "Both wards made the same changes.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "False",
+          "evidence": "C: in one ward while the other ward continued as before",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "true_false_ng",
+          "q": "The new trolley wheels were the most effective change.",
+          "options": [
+            "True",
+            "False",
+            "Not Given"
+          ],
+          "key": "Not Given",
+          "evidence": "The effect of each change separately is not reported",
+          "construct": "eng.reading.argument-evaluation.claims-evidence",
+          "supporting": "eng.reading.explicit-information.locate-detail"
+        },
+        {
+          "type": "multiple_choice",
+          "q": "Why did the nurses mention that patients had different illnesses?",
+          "options": [
+            "To show that the changes had no effect",
+            "To warn that something else might explain the difference in sleep",
+            "To ask for more nurses",
+            "To explain why the questionnaire was short"
+          ],
+          "key": "To warn that something else might explain the difference in sleep",
+          "evidence": "D: different illnesses, which might also have affected their sleep",
+          "construct": "eng.reading.inference.unstated-meaning",
+          "supporting": "eng.reading.argument-evaluation.claims-evidence"
+        },
+        {
+          "type": "multiple_choice",
+          "q": "According to the nurses, what was the most important lesson?",
+          "options": [
+            "Soft wheels are essential",
+            "Measuring the noise made staff willing to change",
+            "Patients should wear earplugs",
+            "Night shifts should end earlier"
+          ],
+          "key": "Measuring the noise made staff willing to change",
+          "evidence": "E: the most important lesson was ... the act of measuring",
+          "construct": "eng.reading.main-ideas.main-supporting",
+          "supporting": "eng.reading.main-ideas.summary"
+        }
+      ]
+    }
+  ],
+  "writing": [
+    {
+      "key": "wb01",
+      "title": "Homework in primary schools",
+      "type": "opinion",
+      "prompt": "Some people believe that children in primary school should not be given homework. To what extent do you agree or disagree?\n\nGive reasons for your answer and include any relevant examples from your own knowledge or experience.\n\nWrite at least 250 words.",
+      "constructs": [
+        [
+          "eng.writing.argumentation.claim-position",
+          "primary",
+          "Opinion essay: state and keep a clear position."
+        ],
+        [
+          "eng.writing.content-development.develop-ideas",
+          "supporting",
+          "Explain each reason fully."
+        ],
+        [
+          "eng.writing.content-development.support-examples",
+          "supporting",
+          "Support reasons with relevant examples."
+        ]
+      ]
+    },
+    {
+      "key": "wb02",
+      "title": "Working abroad",
+      "type": "advantages-disadvantages",
+      "prompt": "More and more young people choose to work in another country for a few years before settling down.\n\nDo the advantages of this outweigh the disadvantages?\n\nGive reasons for your answer and include any relevant examples from your own knowledge or experience.\n\nWrite at least 250 words.",
+      "constructs": [
+        [
+          "eng.writing.argumentation.claim-position",
+          "primary",
+          "Weigh advantages against disadvantages and give a clear judgement."
+        ],
+        [
+          "eng.writing.organization-cohesion.paragraphing",
+          "supporting",
+          "One clear paragraph for each side."
+        ],
+        [
+          "eng.writing.content-development.develop-ideas",
+          "supporting",
+          "Develop each advantage and disadvantage."
+        ]
+      ]
+    },
+    {
+      "key": "wb03",
+      "title": "Traffic in city centres",
+      "type": "problem-solution",
+      "prompt": "In many cities, traffic in the centre is becoming a serious problem.\n\nWhat are the causes of this problem, and what measures could be taken to solve it?\n\nGive reasons for your answer and include any relevant examples from your own knowledge or experience.\n\nWrite at least 250 words.",
+      "constructs": [
+        [
+          "eng.writing.content-development.task-relevance",
+          "primary",
+          "Answer both parts: causes and solutions."
+        ],
+        [
+          "eng.writing.content-development.develop-ideas",
+          "supporting",
+          "Link each solution to a cause."
+        ],
+        [
+          "eng.writing.organization-cohesion.logical-order",
+          "supporting",
+          "Organise causes and solutions logically."
+        ]
+      ]
+    },
+    {
+      "key": "wb04",
+      "title": "Online and classroom learning",
+      "type": "discussion",
+      "prompt": "Some people think that online courses are as effective as classroom lessons, while others believe that students learn better with a teacher in the same room.\n\nDiscuss both views and give your own opinion.\n\nWrite at least 250 words.",
+      "constructs": [
+        [
+          "eng.writing.argumentation.claim-position",
+          "primary",
+          "Discuss both views and give your own opinion."
+        ],
+        [
+          "eng.writing.argumentation.counterargument",
+          "supporting",
+          "Present the other view fairly before responding."
+        ],
+        [
+          "eng.writing.organization-cohesion.linking",
+          "supporting",
+          "Connect contrasting ideas clearly."
+        ]
+      ]
+    },
+    {
+      "key": "wb05",
+      "title": "Older people and technology",
+      "type": "two-part",
+      "prompt": "Many older people find it difficult to use modern technology such as smartphones and online banking.\n\nWhy is this the case? How could they be helped?\n\nGive reasons for your answer and include any relevant examples from your own knowledge or experience.\n\nWrite at least 250 words.",
+      "constructs": [
+        [
+          "eng.writing.content-development.task-relevance",
+          "primary",
+          "Answer both questions fully."
+        ],
+        [
+          "eng.writing.content-development.support-examples",
+          "supporting",
+          "Use specific examples of difficulties and help."
+        ],
+        [
+          "eng.writing.organization-cohesion.paragraphing",
+          "supporting",
+          "One paragraph per question."
+        ]
+      ]
+    },
+    {
+      "key": "wb06",
+      "title": "Fast fashion",
+      "type": "positive-negative",
+      "prompt": "Clothes are now cheaper than ever, and many people buy new clothes very often.\n\nIs this a positive or negative development?\n\nGive reasons for your answer and include any relevant examples from your own knowledge or experience.\n\nWrite at least 250 words.",
+      "constructs": [
+        [
+          "eng.writing.argumentation.claim-position",
+          "primary",
+          "Decide whether the development is positive or negative and say so clearly."
+        ],
+        [
+          "eng.writing.argumentation.evidence-reasoning",
+          "supporting",
+          "Support the judgement with reasoning."
+        ],
+        [
+          "eng.writing.vocabulary-control.precision",
+          "supporting",
+          "Choose precise words for effects and consequences."
+        ]
+      ]
+    }
+  ],
+  "speaking": [
+    {
+      "key": "sb01",
+      "part": 1,
+      "prompt": "Let's talk about your daily routine. What time do you usually get up on weekdays?",
+      "follow_ups": [
+        "What is the busiest part of your day?",
+        "Do you prefer mornings or evenings? Why?",
+        "Has your routine changed in the last few years?",
+        "Is there anything you would like to change about your routine?"
+      ],
+      "prep": 0,
+      "turn": 30,
+      "constructs": [
+        [
+          "eng.speaking.interaction.respond-develop",
+          "primary",
+          "Part 1: answer a familiar question and extend it."
+        ],
+        [
+          "eng.speaking.message-development.expand",
+          "supporting",
+          "Add a reason or an example."
+        ]
+      ]
+    },
+    {
+      "key": "sb02",
+      "part": 1,
+      "prompt": "Let's talk about music. What kind of music do you enjoy listening to?",
+      "follow_ups": [
+        "When do you usually listen to music?",
+        "Did you learn to play an instrument as a child?",
+        "Is music important in your culture? Why?",
+        "Do you prefer live music or recorded music?"
+      ],
+      "prep": 0,
+      "turn": 30,
+      "constructs": [
+        [
+          "eng.speaking.interaction.respond-develop",
+          "primary",
+          "Part 1: answer a familiar question and extend it."
+        ],
+        [
+          "eng.speaking.vocabulary-control.range",
+          "supporting",
+          "Use a range of words about a familiar topic."
+        ]
+      ]
+    },
+    {
+      "key": "sb03",
+      "part": 1,
+      "prompt": "Let's talk about the weather. What is the weather usually like where you live?",
+      "follow_ups": [
+        "What is your favourite season? Why?",
+        "Does the weather change your mood?",
+        "What do people in your area do when it is very hot or very cold?",
+        "Have you noticed any changes in the weather in recent years?"
+      ],
+      "prep": 0,
+      "turn": 30,
+      "constructs": [
+        [
+          "eng.speaking.interaction.respond-develop",
+          "primary",
+          "Part 1: answer a familiar question and extend it."
+        ],
+        [
+          "eng.speaking.message-development.expand",
+          "supporting",
+          "Add a reason or an example."
+        ]
+      ]
+    },
+    {
+      "key": "sb04",
+      "part": 2,
+      "prompt": "Describe a skill you learned that took a long time to master.\n\nYou should say:\n- what the skill is\n- how you learned it\n- what difficulties you had\n- and explain why it took so long to learn.",
+      "follow_ups": [
+        "Do you think it is better to learn skills as a child or as an adult?",
+        "What skills do you think will be important in the future?"
+      ],
+      "prep": 60,
+      "turn": 120,
+      "constructs": [
+        [
+          "eng.speaking.fluency-coherence.sustain",
+          "primary",
+          "Part 2: sustain a long turn."
+        ],
+        [
+          "eng.speaking.fluency-coherence.link-ideas",
+          "supporting",
+          "Organise the cue-card points clearly."
+        ]
+      ]
+    },
+    {
+      "key": "sb05",
+      "part": 2,
+      "prompt": "Describe a place in your town or city where you like to spend time.\n\nYou should say:\n- where it is\n- what it looks like\n- what you do there\n- and explain why you like spending time there.",
+      "follow_ups": [
+        "Do young people and older people like the same kinds of places?",
+        "How could public places in your town be improved?"
+      ],
+      "prep": 60,
+      "turn": 120,
+      "constructs": [
+        [
+          "eng.speaking.fluency-coherence.sustain",
+          "primary",
+          "Part 2: sustain a long turn."
+        ],
+        [
+          "eng.speaking.functional-language.explaining",
+          "supporting",
+          "Describe and explain."
+        ]
+      ]
+    },
+    {
+      "key": "sb06",
+      "part": 2,
+      "prompt": "Describe a time when you helped someone.\n\nYou should say:\n- who you helped\n- what the situation was\n- what you did\n- and explain how you felt afterwards.",
+      "follow_ups": [
+        "Do people help their neighbours less than in the past?",
+        "Should schools teach children to volunteer?"
+      ],
+      "prep": 60,
+      "turn": 120,
+      "constructs": [
+        [
+          "eng.speaking.fluency-coherence.sustain",
+          "primary",
+          "Part 2: sustain a long turn."
+        ],
+        [
+          "eng.speaking.grammar-control.range",
+          "supporting",
+          "Use past tenses accurately to tell a story."
+        ]
+      ]
+    },
+    {
+      "key": "sb07",
+      "part": 3,
+      "prompt": "Let's discuss learning and work more generally. Do you think schools prepare young people well for working life?",
+      "follow_ups": [
+        "What skills should employers teach rather than schools?",
+        "Will people need to change careers more often in the future? Why?",
+        "Is it better to have a job you enjoy or a job that pays well?",
+        "How has technology changed the way people learn new skills?"
+      ],
+      "prep": 0,
+      "turn": 120,
+      "constructs": [
+        [
+          "eng.speaking.functional-language.opinions",
+          "primary",
+          "Part 3: discuss abstract issues and give opinions."
+        ],
+        [
+          "eng.speaking.message-development.expand",
+          "supporting",
+          "Justify and develop answers."
+        ]
+      ]
+    },
+    {
+      "key": "sb08",
+      "part": 3,
+      "prompt": "Let's discuss cities and public spaces more generally. Why do some cities have more green spaces than others?",
+      "follow_ups": [
+        "Who should pay for parks: local government or residents?",
+        "How do public spaces affect people's health?",
+        "Should cars be banned from city centres? Why or why not?",
+        "What will cities look like in fifty years?"
+      ],
+      "prep": 0,
+      "turn": 120,
+      "constructs": [
+        [
+          "eng.speaking.functional-language.opinions",
+          "primary",
+          "Part 3: discuss abstract issues and give opinions."
+        ],
+        [
+          "eng.speaking.fluency-coherence.link-ideas",
+          "supporting",
+          "Link reasons and examples coherently."
+        ]
+      ]
+    },
+    {
+      "key": "sb09",
+      "part": 3,
+      "prompt": "Let's discuss helping others more generally. Why do some people volunteer while others do not?",
+      "follow_ups": [
+        "Should companies give employees time to volunteer?",
+        "Is it the government's job to help people in need, or the community's?",
+        "How has the internet changed the way people help each other?",
+        "Do people become more generous as they get older?"
+      ],
+      "prep": 0,
+      "turn": 120,
+      "constructs": [
+        [
+          "eng.speaking.functional-language.opinions",
+          "primary",
+          "Part 3: discuss abstract issues and give opinions."
+        ],
+        [
+          "eng.speaking.message-development.expand",
+          "supporting",
+          "Justify and develop answers."
+        ]
+      ]
+    }
+  ]
+}
