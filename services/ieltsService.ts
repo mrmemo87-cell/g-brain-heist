@@ -1,3 +1,4 @@
+import { PRACTICE_QUESTION_COLUMNS } from './ieltsPracticeReview';
 import {availablePracticeIds} from './ieltsReviewedPracticeService';
 import { supabase } from './supabaseClient';
 import { buildReadingAttemptPayload, type RawScoreInput } from '../src/lib/ieltsPracticeScoring';
@@ -575,7 +576,7 @@ export const finaliseSession = async (
 export const fetchReadingQuestions = async (setId: number) => {
   const { data, error } = await supabase
     .from('ielts_reading_questions')
-    .select('*')
+    .select(PRACTICE_QUESTION_COLUMNS)
     .eq('set_id', setId)
     .order('question_order', { ascending: true });
 
