@@ -1,0 +1,687 @@
+{
+ "schema": "bh-ielts-practice-bank/1",
+ "batch": "practice-bank-02",
+ "status": "AI-drafted; recordings produced; pending named content-administrator review including listening to every recording in full (Diagnostic Bible 2.0.0 sections 6.1 and 15E.2A)",
+ "authorship": "Brains Heist original Listening practice written by Claude (AI assistant) on the owner's instruction of 2026-10-19; fictional people, places and data; recordings produced with Runway (eleven_v4)",
+ "bibles": {
+  "diagnostic": "2.0.0",
+  "lessons": "1.2.0",
+  "visual": "1.2.0"
+ },
+ "reading": [],
+ "writing": [],
+ "speaking": [],
+ "listening": [
+  {
+   "key": "lb01",
+   "title": "Joining a weekend swimming course",
+   "part": 1,
+   "intro": "You will hear a man phoning a sports centre about a swimming course.",
+   "instructions": "Complete the form. Write ONE WORD AND/OR A NUMBER for each answer.",
+   "voices": {
+    "RECEPTIONIST": "Paula",
+    "CALLER": "James"
+   },
+   "lines": [
+    "RECEPTIONIST: Good morning, Riverside Sports Centre. How can I help?",
+    "CALLER: Hello. I'd like to book a place on the adult swimming course for beginners.",
+    "RECEPTIONIST: Of course. Can I take your name, please?",
+    "CALLER: Yes, it's Daniel Hartley. That's H-A-R-T-L-E-Y.",
+    "RECEPTIONIST: Thank you. The beginners' course runs on Saturday mornings. Sorry, I'm looking at last year's timetable. This year it's on Sunday mornings.",
+    "CALLER: Sunday is fine. What time does it start?",
+    "RECEPTIONIST: The lesson starts at half past nine and finishes at half past ten.",
+    "CALLER: And how many weeks is the course?",
+    "RECEPTIONIST: It used to be eight weeks, but it's ten weeks now, so you get two extra lessons.",
+    "CALLER: Great. How much does it cost?",
+    "RECEPTIONIST: The full price is ninety-five pounds, but members pay seventy. Are you a member?",
+    "CALLER: No, I'm not, so I'll pay the full price.",
+    "RECEPTIONIST: All right. Is there anything you need to bring? Well, a towel, obviously, but the important thing is a padlock for the lockers. We don't provide those.",
+    "CALLER: I'll remember that. Where should I go when I arrive?",
+    "RECEPTIONIST: Please wait by the café on the ground floor. The instructor will meet the group there."
+   ],
+   "questions": [
+    {
+     "type": "fill_blank",
+     "q": "Name: Daniel _____",
+     "key": [
+      "Hartley"
+     ],
+     "evidence": "Yes, it's Daniel Hartley. That's H-A-R-T-L-E-Y.",
+     "construct": "bh-ielts-listening-v1-explicit-detail",
+     "supporting": "bh-ielts-core-v1-word-limit-spelling"
+    },
+    {
+     "type": "fill_blank",
+     "q": "Day of the course: _____",
+     "key": [
+      "Sunday",
+      "Sundays"
+     ],
+     "evidence": "This year it's on Sunday mornings.",
+     "construct": "bh-ielts-listening-v1-dates-times",
+     "supporting": "bh-ielts-listening-v1-distractor-resistance"
+    },
+    {
+     "type": "fill_blank",
+     "q": "Number of weeks: _____",
+     "key": [
+      "10",
+      "ten"
+     ],
+     "evidence": "It used to be eight weeks, but it's ten weeks now",
+     "construct": "bh-ielts-listening-v1-numerical-information",
+     "supporting": "bh-ielts-listening-v1-distractor-resistance"
+    },
+    {
+     "type": "fill_blank",
+     "q": "Price to pay: £_____",
+     "key": [
+      "95",
+      "ninety-five",
+      "ninety five"
+     ],
+     "evidence": "The full price is ninety-five pounds, but members pay seventy.",
+     "construct": "bh-ielts-listening-v1-numerical-information",
+     "supporting": "bh-ielts-listening-v1-distractor-resistance"
+    },
+    {
+     "type": "fill_blank",
+     "q": "Bring a towel and a _____",
+     "key": [
+      "padlock"
+     ],
+     "evidence": "the important thing is a padlock for the lockers",
+     "construct": "bh-ielts-listening-v1-explicit-detail",
+     "supporting": "bh-ielts-core-v1-word-limit-spelling"
+    },
+    {
+     "type": "fill_blank",
+     "q": "Meeting place: by the _____ on the ground floor",
+     "key": [
+      "café",
+      "cafe"
+     ],
+     "evidence": "Please wait by the café on the ground floor.",
+     "construct": "bh-ielts-listening-v1-explicit-detail",
+     "supporting": "bh-ielts-core-v1-word-limit-spelling"
+    }
+   ],
+   "level": "Foundation practice",
+   "recording": {
+    "url": "https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/ielts-audio/practice-bank-02/BH-LB01_v1_1fe18d8980c0.mp3",
+    "sha256": "1fe18d8980c08fd3da79d89f964cc1483e1332d35a3868b09bacc4813281e252",
+    "bytes": 1677596,
+    "duration_seconds": 139.752,
+    "integrated_lufs": -18.7,
+    "true_peak_dbfs": -1.7,
+    "structure": "copyright notice, intro, 30 s reading time, listen cue, recording, end cue, 15 s checking time",
+    "runway_tasks": {
+     "passage": "8e1d725d-a13b-4697-b105-8aa0e38cdcdc",
+     "intro": "ac678a18-c953-484f-8cc6-a957e020ebc5",
+     "listen_cue": "8b963180-9489-40ce-8d32-037cbae07dd7"
+    },
+    "human_listening": "pending"
+   }
+  },
+  {
+   "key": "lb02",
+   "title": "How the recycling centre works",
+   "part": 2,
+   "intro": "You will hear a guide explaining how a town recycling centre processes waste.",
+   "instructions": "Complete the flow chart. Write ONE WORD for each answer.",
+   "voices": {
+    "GUIDE": "Marlene"
+   },
+   "lines": [
+    "GUIDE: Welcome, everyone, to the Northfield Recycling Centre. I'm going to explain what happens to your recycling from the moment it arrives.",
+    "GUIDE: First, the lorries drive onto a large scale, where the whole load is weighed. This tells us how much each area of the town is recycling.",
+    "GUIDE: Next, the load is tipped onto the floor of the main hall, and staff remove anything that obviously doesn't belong, such as garden hoses or old clothes, because these can damage the machines.",
+    "GUIDE: After that, everything goes onto a moving belt. Along the belt, powerful magnets lift out steel cans. Aluminium cans aren't magnetic, so they're separated later by a different machine.",
+    "GUIDE: Then the paper and card are blown upwards by jets of air, because they're lighter than glass and plastic. They're collected at the top of the machine.",
+    "GUIDE: The plastic bottles are sorted by a camera, which recognises different types of plastic by their colour and shape.",
+    "GUIDE: Finally, each material is pressed into large blocks called bales, which are stored outside until a buyer collects them. Some of you have asked whether glass is pressed too. It isn't: glass is crushed and kept in separate containers.",
+    "GUIDE: Right, let's go up to the viewing gallery so you can see the belt in action."
+   ],
+   "questions": [
+    {
+     "type": "fill_blank",
+     "q": "Step 1: Each load is _____ on a large scale.",
+     "key": [
+      "weighed"
+     ],
+     "evidence": "the lorries drive onto a large scale, where the whole load is weighed",
+     "construct": "bh-ielts-listening-v1-sequencing",
+     "supporting": "bh-ielts-listening-v1-explicit-detail"
+    },
+    {
+     "type": "fill_blank",
+     "q": "Step 2: Staff remove items such as hoses and old _____.",
+     "key": [
+      "clothes"
+     ],
+     "evidence": "such as garden hoses or old clothes",
+     "construct": "bh-ielts-listening-v1-sequencing",
+     "supporting": "bh-ielts-listening-v1-explicit-detail"
+    },
+    {
+     "type": "fill_blank",
+     "q": "Step 3: _____ lift out steel cans from the belt.",
+     "key": [
+      "magnets"
+     ],
+     "evidence": "powerful magnets lift out steel cans",
+     "construct": "bh-ielts-listening-v1-sequencing",
+     "supporting": "bh-ielts-listening-v1-explicit-detail"
+    },
+    {
+     "type": "fill_blank",
+     "q": "Step 4: Paper and card are blown upwards by jets of _____.",
+     "key": [
+      "air"
+     ],
+     "evidence": "the paper and card are blown upwards by jets of air",
+     "construct": "bh-ielts-listening-v1-sequencing",
+     "supporting": "bh-ielts-listening-v1-explicit-detail"
+    },
+    {
+     "type": "fill_blank",
+     "q": "Step 5: A _____ sorts plastic bottles by colour and shape.",
+     "key": [
+      "camera"
+     ],
+     "evidence": "The plastic bottles are sorted by a camera",
+     "construct": "bh-ielts-listening-v1-sequencing",
+     "supporting": "bh-ielts-listening-v1-explicit-detail"
+    },
+    {
+     "type": "multiple_choice",
+     "q": "What happens to the glass?",
+     "options": [
+      "It is pressed into bales",
+      "It is crushed and kept separately",
+      "It is sent back to the shops",
+      "It is removed by magnets"
+     ],
+     "key": "It is crushed and kept separately",
+     "evidence": "It isn't: glass is crushed and kept in separate containers.",
+     "construct": "bh-ielts-listening-v1-distractor-resistance",
+     "supporting": "bh-ielts-listening-v1-paraphrase-recognition"
+    }
+   ],
+   "level": "Foundation practice",
+   "recording": {
+    "url": "https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/ielts-audio/practice-bank-02/BH-LB02_v1_5413ede12948.mp3",
+    "sha256": "5413ede129483b29ddf014e3e829c1808ac75edc2b6f999e5fc83bade9d1da22",
+    "bytes": 1836284,
+    "duration_seconds": 152.976,
+    "integrated_lufs": -18.5,
+    "true_peak_dbfs": -1.5,
+    "structure": "copyright notice, intro, 30 s reading time, listen cue, recording, end cue, 15 s checking time",
+    "runway_tasks": {
+     "passage": "71d2098d-ea8d-4c00-aa75-10c2aa1c894d",
+     "intro": "c7f864cb-9ddb-44d2-9b58-1b3537f6e70a",
+     "listen_cue": "8b963180-9489-40ce-8d32-037cbae07dd7"
+    },
+    "human_listening": "pending"
+   }
+  },
+  {
+   "key": "lb03",
+   "title": "Welcome talk at a summer festival",
+   "part": 2,
+   "intro": "You will hear an organiser speaking to volunteers before a summer festival.",
+   "instructions": "Choose the correct letter, A, B, C or D.",
+   "voices": {
+    "ORGANISER": "Tom"
+   },
+   "lines": [
+    "ORGANISER: Good morning, and thank you all for giving up your weekend to help at the Lakeside Festival. Before we start, I want to make sure everyone knows what to expect.",
+    "ORGANISER: Last year, our biggest problem wasn't the weather or the music. It was the queues at the main gate. So this year, we've opened a second entrance on Mill Road, and most of you will be working there in the morning.",
+    "ORGANISER: You'll each get a radio. Please don't use it for chatting; keep it for anything urgent, like a lost child or someone who feels unwell.",
+    "ORGANISER: A few of you asked about food. You won't need to bring a packed lunch, because every volunteer gets a free meal token for the food tents. You will need to bring water, though, as it's going to be hot.",
+    "ORGANISER: Now, I'm sometimes asked why we need so many volunteers when we could just hire security staff. The honest answer is that visitors tell us the friendly welcome is what makes this festival different, and that comes from you.",
+    "ORGANISER: Finally, if you're not sure about anything during the day, don't guess. Come and find one of the team leaders in the yellow jackets."
+   ],
+   "questions": [
+    {
+     "type": "multiple_choice",
+     "q": "What was the main problem at last year's festival?",
+     "options": [
+      "Bad weather",
+      "Long queues at the entrance",
+      "Poor-quality music",
+      "Too few food tents"
+     ],
+     "key": "Long queues at the entrance",
+     "evidence": "It was the queues at the main gate.",
+     "construct": "bh-ielts-listening-v1-paraphrase-recognition",
+     "supporting": "bh-ielts-listening-v1-distractor-resistance"
+    },
+    {
+     "type": "multiple_choice",
+     "q": "Where will most volunteers work in the morning?",
+     "options": [
+      "At the main gate",
+      "In the food tents",
+      "At the new entrance on Mill Road",
+      "By the lake"
+     ],
+     "key": "At the new entrance on Mill Road",
+     "evidence": "we've opened a second entrance on Mill Road, and most of you will be working there in the morning",
+     "construct": "bh-ielts-listening-v1-explicit-detail",
+     "supporting": "bh-ielts-listening-v1-distractor-resistance"
+    },
+    {
+     "type": "multiple_choice",
+     "q": "What should the radios be used for?",
+     "options": [
+      "Chatting with other volunteers",
+      "Urgent situations only",
+      "Playing music",
+      "Calling the food tents"
+     ],
+     "key": "Urgent situations only",
+     "evidence": "keep it for anything urgent, like a lost child or someone who feels unwell",
+     "construct": "bh-ielts-listening-v1-paraphrase-recognition",
+     "supporting": null
+    },
+    {
+     "type": "multiple_choice",
+     "q": "What should volunteers bring?",
+     "options": [
+      "A packed lunch",
+      "Water",
+      "A meal token",
+      "A yellow jacket"
+     ],
+     "key": "Water",
+     "evidence": "You will need to bring water, though, as it's going to be hot.",
+     "construct": "bh-ielts-listening-v1-distractor-resistance",
+     "supporting": "bh-ielts-listening-v1-explicit-detail"
+    },
+    {
+     "type": "multiple_choice",
+     "q": "Why does the organiser mention hiring security staff?",
+     "options": [
+      "To explain why volunteers are valuable",
+      "To announce that security staff will replace volunteers",
+      "To complain about the cost of the festival",
+      "To introduce the team leaders"
+     ],
+     "key": "To explain why volunteers are valuable",
+     "evidence": "visitors tell us the friendly welcome is what makes this festival different, and that comes from you",
+     "construct": "bh-ielts-listening-v1-speaker-purpose",
+     "supporting": "bh-ielts-listening-v1-paraphrase-recognition"
+    },
+    {
+     "type": "multiple_choice",
+     "q": "What should volunteers do if they are unsure about something?",
+     "options": [
+      "Make their best guess",
+      "Use the radio",
+      "Ask a team leader",
+      "Go to the main gate"
+     ],
+     "key": "Ask a team leader",
+     "evidence": "Come and find one of the team leaders in the yellow jackets.",
+     "construct": "bh-ielts-listening-v1-paraphrase-recognition",
+     "supporting": null
+    }
+   ],
+   "level": "Foundation practice",
+   "recording": {
+    "url": "https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/ielts-audio/practice-bank-02/BH-LB03_v1_c3a7d88b883a.mp3",
+    "sha256": "c3a7d88b883a3cc112bd17c32efc196fa61566d66157069398c519f1817bcb07",
+    "bytes": 1651964,
+    "duration_seconds": 137.616,
+    "integrated_lufs": -18.7,
+    "true_peak_dbfs": -1.6,
+    "structure": "copyright notice, intro, 30 s reading time, listen cue, recording, end cue, 15 s checking time",
+    "runway_tasks": {
+     "passage": "f9eb5675-63ec-42ed-b2e3-4e3b01f770a1",
+     "intro": "f6f11dc1-6ba2-4dc2-9563-8c6e928d229d",
+     "listen_cue": "8b963180-9489-40ce-8d32-037cbae07dd7"
+    },
+    "human_listening": "pending"
+   }
+  },
+  {
+   "key": "lb04",
+   "title": "Planning a group presentation",
+   "part": 3,
+   "intro": "You will hear two students, Amira and Leo, discussing a presentation about city transport.",
+   "instructions": "Choose the correct letter, A, B, C or D.",
+   "voices": {
+    "AMIRA": "Maggie",
+    "LEO": "Noah"
+   },
+   "lines": [
+    "AMIRA: So, Leo, we need to decide how to start our presentation on city transport. I thought we could open with some statistics about traffic.",
+    "LEO: Hmm, I'm not sure. Everyone else will probably start with numbers. What if we began with a short story about one person's journey to work? It might hold people's attention better.",
+    "AMIRA: That's a good point, actually. Statistics can come straight after that.",
+    "LEO: Agreed. Now, about the bike-sharing scheme. I read that it was very popular in the first year, but I think the newer figures are more useful.",
+    "AMIRA: Definitely. The early figures make it look like a huge success, but use dropped a lot when the price went up. We should be honest about that.",
+    "LEO: What about the tram extension? I was going to say it was a complete failure.",
+    "AMIRA: I wouldn't go that far. It was late and over budget, but passenger numbers are now higher than the planners predicted.",
+    "LEO: OK, so it's mixed, really. I'll present it that way.",
+    "AMIRA: For the final part, our tutor said she wants a recommendation, not just a summary.",
+    "LEO: Then let's recommend cheaper bike-sharing for students. That links our two main sections.",
+    "AMIRA: Perfect. I'll make the slides tonight, and you can write the story for the opening."
+   ],
+   "questions": [
+    {
+     "type": "multiple_choice",
+     "q": "Why does Leo want to start with a story?",
+     "options": [
+      "Statistics are too difficult to find",
+      "It may keep the audience interested",
+      "The tutor asked for a story",
+      "It is shorter than statistics"
+     ],
+     "key": "It may keep the audience interested",
+     "evidence": "It might hold people's attention better.",
+     "construct": "bh-ielts-listening-v1-speaker-purpose",
+     "supporting": "bh-ielts-listening-v1-paraphrase-recognition"
+    },
+    {
+     "type": "multiple_choice",
+     "q": "What do they agree about the bike-sharing figures?",
+     "options": [
+      "Only the first-year figures matter",
+      "The newer figures give a more honest picture",
+      "The figures are not reliable",
+      "The scheme was always unpopular"
+     ],
+     "key": "The newer figures give a more honest picture",
+     "evidence": "use dropped a lot when the price went up. We should be honest about that.",
+     "construct": "bh-ielts-listening-v1-speaker-attitude",
+     "supporting": "bh-ielts-listening-v1-paraphrase-recognition"
+    },
+    {
+     "type": "multiple_choice",
+     "q": "What is Amira's opinion of the tram extension?",
+     "options": [
+      "It was a complete failure",
+      "It was a complete success",
+      "It had problems but now has more passengers than expected",
+      "It should be closed"
+     ],
+     "key": "It had problems but now has more passengers than expected",
+     "evidence": "It was late and over budget, but passenger numbers are now higher than the planners predicted.",
+     "construct": "bh-ielts-listening-v1-speaker-attitude",
+     "supporting": "bh-ielts-listening-v1-distractor-resistance"
+    },
+    {
+     "type": "multiple_choice",
+     "q": "How will Leo describe the tram extension?",
+     "options": [
+      "As a failure",
+      "As mixed",
+      "As the best project",
+      "He will not mention it"
+     ],
+     "key": "As mixed",
+     "evidence": "OK, so it's mixed, really. I'll present it that way.",
+     "construct": "bh-ielts-listening-v1-speaker-attitude",
+     "supporting": "bh-ielts-listening-v1-distractor-resistance"
+    },
+    {
+     "type": "multiple_choice",
+     "q": "What does the tutor want at the end of the presentation?",
+     "options": [
+      "A summary",
+      "A recommendation",
+      "A story",
+      "A list of statistics"
+     ],
+     "key": "A recommendation",
+     "evidence": "our tutor said she wants a recommendation, not just a summary",
+     "construct": "bh-ielts-listening-v1-paraphrase-recognition",
+     "supporting": "bh-ielts-listening-v1-distractor-resistance"
+    },
+    {
+     "type": "multiple_choice",
+     "q": "Who will prepare the slides?",
+     "options": [
+      "Leo",
+      "Amira",
+      "The tutor",
+      "Both students together"
+     ],
+     "key": "Amira",
+     "evidence": "I'll make the slides tonight, and you can write the story for the opening.",
+     "construct": "bh-ielts-listening-v1-explicit-detail",
+     "supporting": null
+    }
+   ],
+   "level": "Extended practice",
+   "recording": {
+    "url": "https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/ielts-audio/practice-bank-02/BH-LB04_v1_9c64847368a2.mp3",
+    "sha256": "9c64847368a2738b286be309b1fe942a2ca12cbb40d7ce2e7888a2129a3d6416",
+    "bytes": 1774364,
+    "duration_seconds": 147.816,
+    "integrated_lufs": -18.5,
+    "true_peak_dbfs": -0.9,
+    "structure": "copyright notice, intro, 30 s reading time, listen cue, recording, end cue, 15 s checking time",
+    "runway_tasks": {
+     "passage": "7b6db003-5113-4ec7-b5f7-62985d273c31",
+     "intro": "d01c45f7-7b73-4639-bf47-9d0e4a56c456",
+     "listen_cue": "8b963180-9489-40ce-8d32-037cbae07dd7"
+    },
+    "human_listening": "pending"
+   }
+  },
+  {
+   "key": "lb05",
+   "title": "Lecture: how honeybees find food",
+   "part": 4,
+   "intro": "You will hear part of a biology lecture about how honeybees share information.",
+   "instructions": "Complete the notes. Write ONE WORD for each answer.",
+   "voices": {
+    "LECTURER": "Miriam"
+   },
+   "lines": [
+    "LECTURER: Today I want to look at one of the most remarkable forms of communication in the animal world: the way honeybees tell each other where to find food.",
+    "LECTURER: When a worker bee discovers a good source of nectar, she returns to the hive and performs what scientists call a waggle dance. The dance takes place on the vertical surface of the honeycomb, inside the dark hive, so other bees follow it mainly by touch rather than by sight.",
+    "LECTURER: The direction of the dance tells the other bees the direction of the food. Straight up the honeycomb represents the direction of the sun. So if the bee dances at an angle of forty degrees to the right of vertical, the food is forty degrees to the right of the sun.",
+    "LECTURER: Distance is shown in a different way. It's the length of the waggle run, not the speed of the dance, that tells the bees how far to fly. A longer run means the food is further away.",
+    "LECTURER: Bees also need to judge quality. A bee that has found a particularly rich source repeats her dance many more times, which recruits more followers.",
+    "LECTURER: Interestingly, researchers have found that bees don't follow every dance. Younger foragers, in particular, often ignore dances and search on their own, which helps the colony discover new sources.",
+    "LECTURER: In the next session, we'll look at how changes in farming have affected these foraging patterns."
+   ],
+   "questions": [
+    {
+     "type": "fill_blank",
+     "q": "Inside the hive, bees follow the dance mainly by _____.",
+     "key": [
+      "touch"
+     ],
+     "evidence": "other bees follow it mainly by touch rather than by sight",
+     "construct": "bh-ielts-listening-v1-explicit-detail",
+     "supporting": "bh-ielts-listening-v1-distractor-resistance"
+    },
+    {
+     "type": "fill_blank",
+     "q": "Straight up the honeycomb represents the direction of the _____.",
+     "key": [
+      "sun"
+     ],
+     "evidence": "Straight up the honeycomb represents the direction of the sun.",
+     "construct": "bh-ielts-listening-v1-explicit-detail",
+     "supporting": "bh-ielts-core-v1-word-limit-spelling"
+    },
+    {
+     "type": "fill_blank",
+     "q": "Distance is shown by the _____ of the waggle run.",
+     "key": [
+      "length"
+     ],
+     "evidence": "It's the length of the waggle run, not the speed of the dance",
+     "construct": "bh-ielts-listening-v1-distractor-resistance",
+     "supporting": "bh-ielts-listening-v1-paraphrase-recognition"
+    },
+    {
+     "type": "fill_blank",
+     "q": "A rich food source makes the bee _____ her dance many more times.",
+     "key": [
+      "repeat",
+      "repeats"
+     ],
+     "evidence": "A bee that has found a particularly rich source repeats her dance many more times",
+     "construct": "bh-ielts-listening-v1-paraphrase-recognition",
+     "supporting": "bh-ielts-listening-v1-explicit-detail"
+    },
+    {
+     "type": "fill_blank",
+     "q": "_____ foragers often ignore dances and search alone.",
+     "key": [
+      "Younger",
+      "young"
+     ],
+     "evidence": "Younger foragers, in particular, often ignore dances and search on their own",
+     "construct": "bh-ielts-listening-v1-explicit-detail",
+     "supporting": "bh-ielts-core-v1-word-limit-spelling"
+    },
+    {
+     "type": "multiple_choice",
+     "q": "What will the next session be about?",
+     "options": [
+      "How bees build honeycomb",
+      "The effect of farming changes on foraging",
+      "How young bees learn to dance",
+      "The speed of bee flight"
+     ],
+     "key": "The effect of farming changes on foraging",
+     "evidence": "we'll look at how changes in farming have affected these foraging patterns",
+     "construct": "bh-ielts-listening-v1-paraphrase-recognition",
+     "supporting": null
+    }
+   ],
+   "level": "Extended practice",
+   "recording": {
+    "url": "https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/ielts-audio/practice-bank-02/BH-LB05_v1_8df5f4c0d053.mp3",
+    "sha256": "8df5f4c0d053d93006885b39ac018cb6e2a45a15927d6ab0062f323396bc7300",
+    "bytes": 1948316,
+    "duration_seconds": 162.312,
+    "integrated_lufs": -18.5,
+    "true_peak_dbfs": -1.7,
+    "structure": "copyright notice, intro, 30 s reading time, listen cue, recording, end cue, 15 s checking time",
+    "runway_tasks": {
+     "passage": "fd5c7b7f-0336-4f68-8332-61bc3838b5f8",
+     "intro": "e99a9b2f-9da4-4bf6-a185-bafe4344dd23",
+     "listen_cue": "8b963180-9489-40ce-8d32-037cbae07dd7"
+    },
+    "human_listening": "pending"
+   }
+  },
+  {
+   "key": "lb06",
+   "title": "Reporting lost property",
+   "part": 1,
+   "intro": "You will hear a woman calling a railway lost property office.",
+   "instructions": "Complete the notes. Write ONE WORD AND/OR A NUMBER for each answer.",
+   "voices": {
+    "CLERK": "Frank",
+    "CALLER": "Niki"
+   },
+   "lines": [
+    "CLERK: Lost property office, good afternoon.",
+    "CALLER: Hi. I think I left my bag on a train yesterday.",
+    "CLERK: I'm sorry to hear that. What kind of bag is it?",
+    "CALLER: It's a small black backpack. Oh, sorry, it's dark blue, actually. It just looks black.",
+    "CLERK: Dark blue. And which train were you on?",
+    "CALLER: The one from Westbridge to the city. It left Westbridge at seven fifteen in the morning.",
+    "CLERK: OK, the seven fifteen. Do you remember which carriage you were in?",
+    "CALLER: I think it was carriage six. No, wait, I moved to carriage four because six was full.",
+    "CLERK: Carriage four. What was inside the bag?",
+    "CALLER: My laptop, a notebook and a water bottle. The laptop has a sticker of a mountain on it.",
+    "CLERK: That's helpful. Can I have a phone number in case we find it?",
+    "CALLER: Yes, it's oh-seven-seven, four-five-two, nine-three-eight-one.",
+    "CLERK: Thank you. We'll keep any found items for twenty-eight days, so do call back if you don't hear from us."
+   ],
+   "questions": [
+    {
+     "type": "fill_blank",
+     "q": "Colour of bag: dark _____",
+     "key": [
+      "blue"
+     ],
+     "evidence": "it's dark blue, actually",
+     "construct": "bh-ielts-listening-v1-distractor-resistance",
+     "supporting": "bh-ielts-listening-v1-explicit-detail"
+    },
+    {
+     "type": "fill_blank",
+     "q": "Train left Westbridge at _____ a.m.",
+     "key": [
+      "7:15",
+      "7.15",
+      "seven fifteen"
+     ],
+     "evidence": "It left Westbridge at seven fifteen in the morning.",
+     "construct": "bh-ielts-listening-v1-dates-times",
+     "supporting": "bh-ielts-listening-v1-numerical-information"
+    },
+    {
+     "type": "fill_blank",
+     "q": "Carriage number: _____",
+     "key": [
+      "4",
+      "four"
+     ],
+     "evidence": "I moved to carriage four because six was full",
+     "construct": "bh-ielts-listening-v1-distractor-resistance",
+     "supporting": "bh-ielts-listening-v1-numerical-information"
+    },
+    {
+     "type": "fill_blank",
+     "q": "The laptop has a sticker of a _____ on it.",
+     "key": [
+      "mountain"
+     ],
+     "evidence": "The laptop has a sticker of a mountain on it.",
+     "construct": "bh-ielts-listening-v1-explicit-detail",
+     "supporting": "bh-ielts-core-v1-word-limit-spelling"
+    },
+    {
+     "type": "fill_blank",
+     "q": "Phone number: 077 452 _____",
+     "key": [
+      "9381"
+     ],
+     "evidence": "oh-seven-seven, four-five-two, nine-three-eight-one",
+     "construct": "bh-ielts-listening-v1-numerical-information",
+     "supporting": null
+    },
+    {
+     "type": "fill_blank",
+     "q": "Found items are kept for _____ days.",
+     "key": [
+      "28",
+      "twenty-eight",
+      "twenty eight"
+     ],
+     "evidence": "We'll keep any found items for twenty-eight days",
+     "construct": "bh-ielts-listening-v1-numerical-information",
+     "supporting": null
+    }
+   ],
+   "level": "Foundation practice",
+   "recording": {
+    "url": "https://sozodkxwhubespiedgxm.supabase.co/storage/v1/object/public/ielts-audio/practice-bank-02/BH-LB06_v1_02333cb28d86.mp3",
+    "sha256": "02333cb28d8696a4eca1cad28d22651e4de4a32c8c8579d5dde5c820a28b8fd1",
+    "bytes": 1551740,
+    "duration_seconds": 129.264,
+    "integrated_lufs": -18.7,
+    "true_peak_dbfs": -1.6,
+    "structure": "copyright notice, intro, 30 s reading time, listen cue, recording, end cue, 15 s checking time",
+    "runway_tasks": {
+     "passage": "a45e8d10-14c8-4a10-8013-c4c63c30891b",
+     "intro": "3892935c-fa64-4533-a52c-d20c4a441f52",
+     "listen_cue": "8b963180-9489-40ce-8d32-037cbae07dd7"
+    },
+    "human_listening": "pending"
+   }
+  }
+ ]
+}

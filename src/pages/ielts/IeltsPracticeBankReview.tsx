@@ -1,14 +1,37 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { practiceContentQueue, decidePracticeContent, randomSample, type PracticeContentBatch, type PracticeContentItem } from '../../../services/ieltsConstructMapping';
+import { practiceContentQueue, decidePracticeContent, markRecordingHeard, randomSample, type PracticeContentBatch, type PracticeContentItem } from '../../../services/ieltsConstructMapping';
 import { IeltsButton, IeltsNotice } from '../../components/ielts/IeltsUi';
 
 const kind = (t: string) => t === 'ielts_reading_set' ? 'Reading' : t === 'ielts_writing_task' ? 'Writing' : t === 'ielts_speaking_task' ? 'Speaking' : 'Listening';
 const answer = (a: unknown) => Array.isArray(a) ? a.join(' / ') : String(a);
 
-function Preview({ item }: { item: PracticeContentItem }) {
+/** Counts only continuous forward playback, so skipping ahead does not count as listening (Diagnostic Bible 15E.2). */
+export function ListeningCheck({ batch, item, onHeard }: { batch: PracticeContentBatch; item: PracticeContentItem; onHeard: () => void }) {
+  const p = item.preview!; const played = useRef(0), last = useRef<number | null>(null);
+  const [state, setState] = useState<'idle' | 'saving' | 'heard' | 'short' | 'error'>(item.heard_by_me ? 'heard' : 'idle'); const [err, setErr] = useState('');
+  const tick = (e: React.SyntheticEvent<HTMLAudioElement>) => { const t = e.currentTarget.currentTime; if (last.current !== null && t > last.current && t - last.current < 1.5) played.current += t - last.current; last.current = t; };
+  const ended = async () => {
+    const need = (p.duration_seconds ?? 0) - 2;
+    if (played.current < need) { setState('short'); played.current = 0; last.current = null; return; }
+    setState('saving');
+    try { await markRecordingHeard(batch, item, Math.round(played.current * 10) / 10); setState('heard'); onHeard(); } catch (e) { setErr((e as Error).message); setState('error'); }
+  };
+  return <div className="ix-row">
+    <p><strong>Recording</strong>{p.duration_seconds ? ` · ${Math.floor(p.duration_seconds / 60)}:${String(Math.round(p.duration_seconds % 60)).padStart(2, '0')}` : ''}{p.recording_matches === false ? ' · ⚠ stored recording does not match' : ''}</p>
+    <audio controls preload="none" src={p.audio_url} onTimeUpdate={tick} onSeeking={e => { last.current = e.currentTarget.currentTime; }} onEnded={() => void ended()} style={{ width: '100%' }} />
+    <p role="status" aria-live="polite" className={state === 'heard' ? '' : 'ix-muted'}>
+      {state === 'heard' ? '✓ You played this recording to the end.' : state === 'saving' ? 'Saving…' : state === 'short' ? 'Parts were skipped. Play it again from the start without skipping.' : state === 'error' ? err : 'Play the whole recording without skipping. Check the voices, every answer and the pauses against the transcript.'}
+    </p>
+    {p.transcript && <details><summary>Transcript</summary><div style={{ whiteSpace: 'pre-wrap' }}>{p.transcript}</div></details>}
+  </div>;
+}
+
+function Preview({ item, batch, onHeard }: { item: PracticeContentItem; batch: PracticeContentBatch; onHeard: () => void }) {
   const p = item.preview;
   if (!p) return <p className="ix-muted">Preview unavailable.</p>;
   return <div>
+    {p.instructions && <p><em>{p.instructions}</em></p>}
+    {p.audio_url && <ListeningCheck batch={batch} item={item} onHeard={onHeard} />}
     {p.passage && <div style={{ whiteSpace: 'pre-wrap' }}>{p.passage}</div>}
     {p.prompt && <p style={{ whiteSpace: 'pre-wrap' }}>{p.prompt}</p>}
     {p.follow_ups && <ul>{p.follow_ups.map(f => <li key={f}>{f}</li>)}</ul>}
@@ -23,6 +46,7 @@ function Preview({ item }: { item: PracticeContentItem }) {
 export default function IeltsPracticeBankReview() {
   const [batches, setBatches] = useState<PracticeContentBatch[] | null>(null);
   const [open, setOpen] = useState(false), [error, setError] = useState(''), [message, setMessage] = useState(''), [busy, setBusy] = useState(false);
+  const [heard, setHeard] = useState<string[]>([]);
   const [sample, setSample] = useState<string[]>([]), [rejected, setRejected] = useState<string[]>([]), [notes, setNotes] = useState(''), [reload, setReload] = useState(0);
   const lock = useRef(false);
   useEffect(() => { let alive = true; practiceContentQueue().then(b => { if (alive) setBatches(b); }).catch(e => { if (alive) { setBatches([]); setError(e.message); } }); return () => { alive = false; }; }, [reload]);
@@ -30,7 +54,9 @@ export default function IeltsPracticeBankReview() {
   const batch = batches.find(b => b.status === 'pending') ?? null;
   const flagged = batch?.items.filter(i => i.matches.length > 0).map(i => i.ref) ?? [];
   const toggle = (list: string[], id: string, on: boolean) => on ? [...new Set([...list, id])] : list.filter(x => x !== id);
-  const enough = batch ? sample.length >= Math.min(batch.minimum_sample, batch.items.length) && flagged.every(f => sample.includes(f)) : false;
+  const listening = batch?.items.filter(i => i.material_type === 'ielts_listening_set' && !rejected.includes(i.ref)) ?? [];
+  const unheard = listening.filter(i => !i.heard_by_me && !heard.includes(i.ref)).length;
+  const enough = batch ? sample.length >= Math.min(batch.minimum_sample, batch.items.length) && flagged.every(f => sample.includes(f)) && unheard === 0 && listening.every(i => sample.includes(i.ref)) : false;
   const decide = async (decision: 'approved' | 'changes_requested') => {
     if (!batch || lock.current) return; lock.current = true; setBusy(true); setError(''); setMessage('');
     try {
@@ -46,14 +72,15 @@ export default function IeltsPracticeBankReview() {
     {open && !batch && <p className="ix-muted">No practice batch is waiting.</p>}
     {open && batch && <>
       <article className="ix-row"><h3>{batch.title}</h3><p>{batch.proposed_by}. {batch.proposal_basis}</p>
+        {listening.length > 0 && <p><strong>Listening: {listening.length - unheard} of {listening.length} recordings played in full by you.</strong> Every Listening set must be heard to the end by the person approving; AI cannot do this step.</p>}
         <p className="ix-muted">Check at least {batch.minimum_sample} materials (20%, minimum 3) in full: passage or prompt, every answer and its evidence, and the skill tags. Items with an originality flag must be checked. Reject any material with a problem; approving releases the rest to students.</p>
         <div className="ix-actions"><IeltsButton disabled={busy} onClick={() => setSample([...new Set([...flagged, ...randomSample(batch.items.filter(i => !flagged.includes(i.ref)), Math.max(0, batch.minimum_sample - flagged.length)).map(i => i.ref)])])}>Pick a random sample</IeltsButton>
           <span role="status" aria-live="polite">{sample.length} checked · {rejected.length} rejected{flagged.length ? ` · ${flagged.length} flagged` : ''}</span></div></article>
       {batch.items.map(item => <details key={item.ref} className={`ix-row${sample.includes(item.ref) ? ' ix-row--selected' : ''}`}>
         <summary><strong>{item.display_code ?? item.item_key}</strong> · {kind(item.material_type)} · {item.preview?.title ?? item.item_key}{item.matches.length ? ` · ⚠ similar to ${item.matches.map(m => m.display_code).join(', ')}` : ''}{sample.includes(item.ref) ? ' · in sample' : ''}</summary>
-        <Preview item={item} />
+        <Preview item={item} batch={batch} onHeard={() => { setHeard(h => [...new Set([...h, item.ref])]); setSample(s => toggle(s, item.ref, true)); }} />
         <div className="ix-actions">
-          <label className="ix-check"><input type="checkbox" checked={sample.includes(item.ref)} disabled={busy} onChange={e => setSample(s => toggle(s, item.ref, e.target.checked))} /><span>I checked this material in full</span></label>
+          <label className="ix-check"><input type="checkbox" checked={sample.includes(item.ref)} disabled={busy || (item.material_type === 'ielts_listening_set' && !item.heard_by_me && !heard.includes(item.ref))} onChange={e => setSample(s => toggle(s, item.ref, e.target.checked))} /><span>I checked this material in full</span></label>
           <label className="ix-check"><input type="checkbox" checked={rejected.includes(item.ref)} disabled={busy} onChange={e => { setRejected(r => toggle(r, item.ref, e.target.checked)); if (e.target.checked) setSample(s => toggle(s, item.ref, true)); }} /><span>Reject</span></label>
         </div>
       </details>)}
