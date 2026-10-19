@@ -63,3 +63,28 @@ export function randomSample<T>(items: T[], size: number, random: () => number =
   }
   return copy.slice(0, Math.min(size, copy.length));
 }
+
+/** Practice-content batches (Diagnostic Bible 2.0.0 section 15E.2A): AI-drafted materials released by batch sample review. */
+export interface PracticeContentItem {
+  ref: string; material_type: string; material_id: string; item_key: string; display_code: string | null; status: string;
+  preview: { title?: string; level?: string; passage?: string; prompt?: string; part?: number; follow_ups?: string[]; task_type?: string;
+    questions?: { n: number; question: string; options: string[] | null; answer: unknown; evidence: string }[] } | null;
+  matches: { display_code: string; reason: string; similarity?: number }[];
+  constructs: { item_key: string | null; role: string; name: string; code: string }[];
+}
+export interface PracticeContentBatch extends Omit<ConstructMappingBatch, 'items'> { items: PracticeContentItem[] }
+const contentMessages: Record<string, string> = {
+  ...messages, notes_required: 'Add a note of at least 20 characters describing what you checked.',
+  flagged_item_not_sampled: 'Every item with an originality flag must be in your sample. Open and check the flagged items.',
+  item_needs_individual_review: 'One item shares content with existing material. Reject it here and review it individually.',
+};
+export async function practiceContentQueue(): Promise<PracticeContentBatch[]> {
+  const { data, error } = await supabase.rpc('rpc_ielts_practice_content_queue');
+  if (error) throw new Error(Object.entries(contentMessages).find(([k]) => error.message.includes(k))?.[1] ?? 'The practice bank could not load.');
+  return (data ?? []) as PracticeContentBatch[];
+}
+export async function decidePracticeContent(batch: PracticeContentBatch, decision: 'approved' | 'changes_requested', sample: string[], rejected: string[], notes: string) {
+  const { data, error } = await supabase.rpc('rpc_ielts_practice_content_decide', { p_batch: batch.id, p_sha256: batch.sha256, p_decision: decision, p_sample: sample, p_rejected: rejected, p_notes: notes });
+  if (error) throw new Error(Object.entries(contentMessages).find(([k]) => error.message.includes(k))?.[1] ?? 'The review could not be saved. Check your connection and retry.');
+  return data as { status: string; approved: number; total: number };
+}
