@@ -569,6 +569,12 @@ export default function IeltsLearningPractice() {
                 <p>{detail.content.passage}</p>
               </article>
             )}
+            {detail.content?.summary && (
+              <article className="il-passage il-summary">
+                <h3>Summary</h3>
+                <p>{detail.content.summary}</p>
+              </article>
+            )}
             {detail.content?.prompt && <h3>{detail.content.prompt}</h3>}
             {detail.content?.scaffold && (
               <p className="il-support">
@@ -580,7 +586,7 @@ export default function IeltsLearningPractice() {
                 <div key={q.id} className="il-answer">
                   <label>
                     {i + 1}. {q.prompt}
-                    {skill === "reading" ? (
+                    {skill === "reading" && q.answer_format !== "text" ? (
                       <select
                         value={answers[q.id] ?? ""}
                         disabled={disabled}
@@ -589,8 +595,8 @@ export default function IeltsLearningPractice() {
                         }
                       >
                         <option value="">Choose an answer</option>
-                        {["TRUE", "FALSE", "NOT GIVEN"].map((v) => (
-                          <option key={v}>{v}</option>
+                        {(q.options ?? ["TRUE", "FALSE", "NOT GIVEN"].map((v) => ({ value: v, label: v }))).map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
                         ))}
                       </select>
                     ) : (
@@ -604,7 +610,7 @@ export default function IeltsLearningPractice() {
                       />
                     )}
                   </label>
-                  {skill === "reading" && (
+                  {skill === "reading" && !q.options && q.answer_format !== "text" && (
                     <label>
                       Your evidence or the missing fact
                       <textarea

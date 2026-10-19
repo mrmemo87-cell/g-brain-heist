@@ -60,7 +60,10 @@ export interface LearningContent {
   scope?: string;
   suggested_minutes?: number;
   mapping_scope?: string;
+  summary?: string;
 }
+/** Reading items may offer their own choices (e.g. headings) or a short typed answer; otherwise TRUE/FALSE/NOT GIVEN. */
+export interface LearningQuestion { id: string; prompt: string; options?: { value: string; label: string }[]; answer_format?: 'text'; }
 export interface LearningDetail {
   originality_label?: string | null;
   display_code?: string;
@@ -83,7 +86,7 @@ export interface LearningDetail {
   instructions: string;
   success_description: string;
   reason: string;
-  questions: { id: string; prompt: string }[];
+  questions: LearningQuestion[];
   audio_bucket: string;
   audio_path: string;
   audio_sha256: string;
