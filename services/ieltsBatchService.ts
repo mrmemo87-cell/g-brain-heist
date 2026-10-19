@@ -27,6 +27,6 @@ export const assignBatchPractice=(batch:string,revision:number,task:string,stude
 /** Weekly learning loop (Diagnostic Bible 2.0.0 sections 8A.4A and 15B.5), computed on the server under bh-learning-policy-v1. */
 export type LearningState='possible_difficulty'|'repeated_difficulty'|'persistent_candidate'|'difficulty_observed_again'|'mixed'|'improvement_observed'|'improvement_sustained'|'possible_strength'|'repeated_strength'|'no_concern';
 export interface LoopPractice {material_type:string;material_id:string;display_code:string|null;title:string;purpose:string;}
-export interface LoopConstruct {node_id:string;code:string;name:string;skill:string;state:LearningState;stale:boolean;sources:number;opportunities:number;correct:number;newest_at:string|null;practice:LoopPractice[];extension:string|null;}
+export interface LoopConstruct {node_id:string;code:string;name:string;skill:string;state:LearningState;stale:boolean;sources:number;opportunities:number;correct:number;newest_at:string|null;practised_at?:string|null;practice:LoopPractice[];extension:string|null;}
 export interface BatchLearningLoop {batch:{id:string;name:string;revision:number};policy:string;students:{id:string;name:string;has_evidence:boolean;constructs:LoopConstruct[]}[];gaps:{node_id:string;code:string;name:string}[];}
 export const batchLearningLoop=(batch:string)=>rpc<BatchLearningLoop>('rpc_ielts_batch_learning_loop',{p_batch:batch});
