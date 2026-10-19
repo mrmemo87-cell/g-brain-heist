@@ -5,7 +5,7 @@ import { groupLearningLoop, stateLabel, type SharedTarget } from './batchLearnin
 
 export interface PreparedAssignment { task: string; students: string[]; reason: string; material?: string }
 
-const evidence = (c: LoopConstruct) => `${c.correct}/${c.opportunities} correct across ${c.sources} ${c.sources === 1 ? 'source' : 'sources'}${c.stale ? ' · evidence needs updating' : ''}`;
+const evidence = (c: LoopConstruct) => `${c.correct}/${c.opportunities} correct across ${c.sources} ${c.sources === 1 ? 'source' : 'sources'}${c.stale ? ' · evidence needs updating' : ''}${c.practised_at ? ` · practised ${new Date(c.practised_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} (a fresh check shows any change)` : ''}`;
 
 /** "This week" view of a batch: who needs what next, who is improving, who is stuck after practice, and bank gaps. */
 export default function IeltsBatchLearningLoop({ batchId, onPrepare }: { batchId: string; onPrepare: (p: PreparedAssignment) => void }) {
