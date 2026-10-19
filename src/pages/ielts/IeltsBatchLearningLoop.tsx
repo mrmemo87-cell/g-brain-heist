@@ -3,7 +3,7 @@ import { batchLearningLoop, type BatchLearningLoop, type LoopConstruct } from '.
 import { IeltsButton, IeltsNotice } from '../../components/ielts/IeltsUi';
 import { groupLearningLoop, stateLabel, type SharedTarget } from './batchLearningLoop';
 
-export interface PreparedAssignment { task: string; students: string[]; reason: string }
+export interface PreparedAssignment { task: string; students: string[]; reason: string; material?: string }
 
 const evidence = (c: LoopConstruct) => `${c.correct}/${c.opportunities} correct across ${c.sources} ${c.sources === 1 ? 'source' : 'sources'}${c.stale ? ' · evidence needs updating' : ''}`;
 
@@ -28,7 +28,7 @@ export default function IeltsBatchLearningLoop({ batchId, onPrepare }: { batchId
     if (!t.practice.length) return <p className="ix-muted">No reviewed practice is mapped to this skill yet (practice bank gap).</p>;
     return <div className="ix-actions">
       {targeted.map(p => <IeltsButton key={p.material_id} onClick={() => onPrepare({ task: p.material_id, students: t.students.map(s => s.id), reason: `Shared target: ${t.name}. Evidence from each student's screener and checks (provisional policy v1).` })}>Prepare {p.display_code ?? p.title} for {t.students.length} {t.students.length === 1 ? 'student' : 'students'}</IeltsButton>)}
-      {catalogue.length > 0 && <span className="ix-muted">Catalogue practice: {catalogue.map(p => p.display_code ?? p.title).join(', ')} (assign under Course materials)</span>}
+      {catalogue.map(p => <IeltsButton key={p.material_type + p.material_id} onClick={() => onPrepare({ task: '', material: `${p.material_type}:${p.material_id}`, students: t.students.map(s => s.id), reason: `Shared target: ${t.name}. Evidence from each student's screener and checks (provisional policy v1).` })}>Prepare {p.display_code ?? p.title}{p.title && p.display_code ? ` · ${p.title}` : ''} for {t.students.length} {t.students.length === 1 ? 'student' : 'students'}</IeltsButton>)}
     </div>;
   };
 
