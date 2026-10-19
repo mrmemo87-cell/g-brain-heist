@@ -18,9 +18,9 @@ export function ListeningCheck({ batch, item, onHeard }: { batch: PracticeConten
   };
   return <div className="ix-row">
     <p><strong>Recording</strong>{p.duration_seconds ? ` · ${Math.floor(p.duration_seconds / 60)}:${String(Math.round(p.duration_seconds % 60)).padStart(2, '0')}` : ''}{p.recording_matches === false ? ' · ⚠ stored recording does not match' : ''}</p>
-    <audio controls preload="none" src={p.audio_url} onTimeUpdate={tick} onSeeking={e => { last.current = e.currentTarget.currentTime; }} onEnded={() => void ended()} style={{ width: '100%' }} />
+    <audio controls preload="none" src={p.audio_url} onTimeUpdate={tick} onSeeking={e => { last.current = e.currentTarget.currentTime; }} onEnded={() => void ended()} onPlay={e => { const me = e.currentTarget; me.ownerDocument.querySelectorAll('audio').forEach(a => { if (a !== me && !a.paused) a.pause(); }); }} style={{ width: '100%' }} />
     <p role="status" aria-live="polite" className={state === 'heard' ? '' : 'ix-muted'}>
-      {state === 'heard' ? '✓ You played this recording to the end.' : state === 'saving' ? 'Saving…' : state === 'short' ? 'Parts were skipped. Play it again from the start without skipping.' : state === 'error' ? err : 'Play the whole recording without skipping. Check the voices, every answer and the pauses against the transcript.'}
+      {state === 'heard' ? '✓ You played this recording to the end.' : state === 'saving' ? 'Saving…' : state === 'short' ? 'Parts were skipped. Play it again from the start without skipping.' : state === 'error' ? err : 'Only one recording plays at a time. Play the whole recording without skipping. Check the voices, every answer and the pauses against the transcript.'}
     </p>
     {p.transcript && <details><summary>Transcript</summary><div style={{ whiteSpace: 'pre-wrap' }}>{p.transcript}</div></details>}
   </div>;

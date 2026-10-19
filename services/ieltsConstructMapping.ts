@@ -82,6 +82,7 @@ const contentMessages: Record<string, string> = {
   item_needs_individual_review: 'One item shares content with existing material. Reject it here and review it individually.',
   recording_not_heard: 'Play every Listening recording to the end yourself, and keep each one in your sample, before approving.',
   recording_not_finished: 'The recording was not played to the end. Play it through without skipping.',
+  recordings_overlap: 'Another recording was playing at the same time. Play this one again on its own, from the start.',
   recording_changed: 'This recording changed after you opened it. Reload and listen to the current version.',
 };
 export async function practiceContentQueue(): Promise<PracticeContentBatch[]> {

@@ -28,7 +28,7 @@ create function public.rpc_ielts_material_originality_review(t text,i text,h tex
 begin if t='ielts_listening_set' and rc is distinct from true then raise exception 'Listen to the actual recording'; end if;
 insert into private.reviews values(t,i,r,auth.uid(),rc);execute format('update public.%I set is_active=true where id::text=$1',t||'s') using i;return '{}';end$$;`);
 await db.query("insert into public.academic_skill_registry_nodes(node_type,code,name,description,applicable_phases) select 'subskill',c,c,c,array['upper_secondary'] from unnest($1::text[]) c",[[...KNOWN_CONSTRUCTS]]);
-for(const f of ['20261019060000_ielts_practice_construct_mapping.sql','20261019110000_ielts_practice_bank_review.sql','20261019110050_ielts_practice_bank_installer.sql','20261019130000_ielts_practice_bank_listening.sql','20261019130100_ielts_practice_bank_batch_02.sql'])
+for(const f of ['20261019060000_ielts_practice_construct_mapping.sql','20261019110000_ielts_practice_bank_review.sql','20261019110050_ielts_practice_bank_installer.sql','20261019130000_ielts_practice_bank_listening.sql','20261019130100_ielts_practice_bank_batch_02.sql','20261019140000_ielts_listen_one_at_a_time.sql'])
  await db.exec(readFileSync('supabase/migrations/'+f,'utf8').replace(/insert into private\.ielts_material_construct_maps\(batch_id,material_type,material_id,item_key,node_id,role,rationale\)\nselect b\.id, x\.t[\s\S]*?x\.c;/,'select 1;').replace(/do \$\$ begin\n if \(select count\(\*\) from private\.ielts_material_construct_maps m join[\s\S]*?end \$\$;/,''));
 const as=id=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[id??'']);
 const one=async(sql,p=[])=>(await db.query(sql,p)).rows[0];
@@ -63,7 +63,11 @@ test('approval needs the deciding administrator to have played each recording to
  await assert.rejects(listen(it,it.preview.audio_url,10),/recording_not_finished/);
  await assert.rejects(listen(it,'https://x/storage/v1/object/public/ielts-audio/other.mp3',999),/recording_changed/);
  await assert.rejects(db.query("select public.rpc_ielts_practice_content_listened($1,'ielts_reading_set:1','u',999)",[b.id]),/not_a_listening_item/);
- for(const i of b.items)await listen(i,i.preview.audio_url,i.preview.duration_seconds);
+ // Two recordings played at the same time: the second check is refused.
+ await listen(b.items[0],b.items[0].preview.audio_url,b.items[0].preview.duration_seconds);
+ await assert.rejects(listen(b.items[1],b.items[1].preview.audio_url,b.items[1].preview.duration_seconds),/recordings_overlap/);
+ const later=()=>db.exec("update private.ielts_content_listen_checks set checked_at=checked_at-interval '1 hour'");
+ for(const i of b.items.slice(1)){await later();await listen(i,i.preview.audio_url,i.preview.duration_seconds);}
  // Another administrator's listening does not count for this reviewer, and every Listening set must be in the sample.
  await as(other);await assert.rejects(db.query("select public.rpc_ielts_practice_content_decide($1,$2,'approved',$3,'{}',$4)",[b.id,b.sha256,refs,NOTES]),/recording_not_heard/);
  await as(admin);assert.equal((await queue()).items.every(i=>i.heard_by_me),true);
