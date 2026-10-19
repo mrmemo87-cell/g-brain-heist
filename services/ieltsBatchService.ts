@@ -30,3 +30,8 @@ export interface LoopPractice {material_type:string;material_id:string;display_c
 export interface LoopConstruct {node_id:string;code:string;name:string;skill:string;state:LearningState;stale:boolean;sources:number;opportunities:number;correct:number;newest_at:string|null;practised_at?:string|null;practice:LoopPractice[];extension:string|null;}
 export interface BatchLearningLoop {batch:{id:string;name:string;revision:number};policy:string;students:{id:string;name:string;has_evidence:boolean;constructs:LoopConstruct[]}[];gaps:{node_id:string;code:string;name:string}[];}
 export const batchLearningLoop=(batch:string)=>rpc<BatchLearningLoop>('rpc_ielts_batch_learning_loop',{p_batch:batch});
+export type PracticeEffectVerdict='waiting_for_check'|'no_starting_point'|'too_few_questions'|'higher'|'higher_not_secure'|'similar'|'lower'|'teacher_judged'|'not_practised';
+export interface PracticeEffectCheck{code:string;display_code:string|null;title:string;}
+export interface PracticeEffectRow{student_id:string;student:string;node_id:string;code:string;skill_name:string;first_practice_at:string;last_practice_at:string;practice_count:number;practice:string[]|null;verdict:PracticeEffectVerdict;before:{opportunities:number;correct:number;at:string|null};after:{opportunities:number;correct:number;at:string|null};fresh_checks:PracticeEffectCheck[];pending_checks:PracticeEffectCheck[];}
+export interface BatchPracticeEffect{batch:{id:string;name:string;revision:number};policy:string;rows:PracticeEffectRow[];members:number;}
+export const batchPracticeEffect=(batch:string)=>rpc<BatchPracticeEffect>('rpc_ielts_batch_practice_effect',{p_batch:batch});
