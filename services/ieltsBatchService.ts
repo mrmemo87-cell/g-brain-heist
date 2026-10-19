@@ -35,3 +35,8 @@ export interface PracticeEffectCheck{code:string;display_code:string|null;title:
 export interface PracticeEffectRow{student_id:string;student:string;node_id:string;code:string;skill_name:string;first_practice_at:string;last_practice_at:string;practice_count:number;practice:string[]|null;verdict:PracticeEffectVerdict;before:{opportunities:number;correct:number;at:string|null};after:{opportunities:number;correct:number;at:string|null};fresh_checks:PracticeEffectCheck[];pending_checks:PracticeEffectCheck[];}
 export interface BatchPracticeEffect{batch:{id:string;name:string;revision:number};policy:string;rows:PracticeEffectRow[];members:number;}
 export const batchPracticeEffect=(batch:string)=>rpc<BatchPracticeEffect>('rpc_ielts_batch_practice_effect',{p_batch:batch});
+export type ProductiveVerdict='higher'|'similar'|'lower'|'waiting_for_fresh_task'|'different_scales'|'no_rating';
+export interface ProductiveRating{at:string;task:string;scale:'band'|'status';value:string;source:'practice'|'screener'|'interview';}
+export interface ProductiveEffectRow{student_id:string;student:string;skill:'writing'|'speaking';criterion:string;verdict:ProductiveVerdict;pieces:number;first:ProductiveRating|null;last:ProductiveRating|null;}
+export interface BatchProductiveEffect{batch:{id:string;name:string;revision:number};policy:string;rows:ProductiveEffectRow[];}
+export const batchProductiveEffect=(batch:string)=>rpc<BatchProductiveEffect>('rpc_ielts_batch_productive_effect',{p_batch:batch});
