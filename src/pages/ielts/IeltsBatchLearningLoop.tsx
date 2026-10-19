@@ -27,8 +27,8 @@ export default function IeltsBatchLearningLoop({ batchId, onPrepare }: { batchId
     const catalogue = t.practice.filter(p => p.material_type !== 'targeted');
     if (!t.practice.length) return <p className="ix-muted">No reviewed practice is mapped to this skill yet (practice bank gap).</p>;
     return <div className="ix-actions">
-      {targeted.map(p => <IeltsButton key={p.material_id} onClick={() => onPrepare({ task: p.material_id, students: t.students.map(s => s.id), reason: `Shared target: ${t.name}. Evidence from each student's screener and checks (provisional policy v1).` })}>Prepare {p.display_code ?? p.title} for {t.students.length} {t.students.length === 1 ? 'student' : 'students'}</IeltsButton>)}
-      {catalogue.map(p => <IeltsButton key={p.material_type + p.material_id} onClick={() => onPrepare({ task: '', material: `${p.material_type}:${p.material_id}`, students: t.students.map(s => s.id), reason: `Shared target: ${t.name}. Evidence from each student's screener and checks (provisional policy v1).` })}>Prepare {p.display_code ?? p.title}{p.title && p.display_code ? ` · ${p.title}` : ''} for {t.students.length} {t.students.length === 1 ? 'student' : 'students'}</IeltsButton>)}
+      {targeted.map(p => <IeltsButton key={p.material_id} onClick={() => onPrepare({ task: p.material_id, students: t.students.map(s => s.id), reason: `Practice focus: ${t.name}.` })}>Prepare {p.display_code ?? p.title} for {t.students.length} {t.students.length === 1 ? 'student' : 'students'}</IeltsButton>)}
+      {catalogue.map(p => <IeltsButton key={p.material_type + p.material_id} onClick={() => onPrepare({ task: '', material: `${p.material_type}:${p.material_id}`, students: t.students.map(s => s.id), reason: `Practice focus: ${t.name}.` })}>Prepare {p.display_code ?? p.title}{p.title && p.display_code ? ` · ${p.title}` : ''} for {t.students.length} {t.students.length === 1 ? 'student' : 'students'}</IeltsButton>)}
     </div>;
   };
 

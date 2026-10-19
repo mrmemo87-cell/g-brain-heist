@@ -29,7 +29,7 @@ import { schoolAdminIeltsUrl } from '../../lib/schoolAdminIeltsNavigation';
 import IeltsAnimatedHero from '../../components/ielts/IeltsAnimatedHero';
 import IeltsPrimeDashboard from '../../components/ielts/IeltsPrimeDashboard';
 import IeltsSchoolLearnerLinks from '../../components/ielts/IeltsSchoolLearnerLinks';
-import IeltsTargetedPractice from '../../components/ielts/IeltsTargetedPractice';
+import IeltsStudentWork from '../../components/ielts/IeltsStudentWork';
 
 const IeltsHome: React.FC = () => {
   const navigate = useNavigate();
@@ -496,12 +496,11 @@ const IeltsHome: React.FC = () => {
 
   if (isSchoolStudentWorkspace) {
     return <div style={{minHeight:'100vh',background:'#f8fafc',color:'#0f172a',padding:'1.25rem 1rem 4rem'}}><main style={{maxWidth:1120,margin:'0 auto',display:'grid',gap:'1rem'}}>
-      <header><p className="ij-eyebrow">Brains Heist IELTS</p><h1 className="text-3xl font-bold tracking-tight">Your IELTS workspace</h1><p>Find your checks, practise your next focus and read your teacher’s feedback.</p></header>
+      <header className="iw-top"><button type="button" className="iw-back" onClick={()=>navigate('/')}>← Brains Heist</button><p className="ij-eyebrow">IELTS</p><h1 className="iw-title">Your IELTS workspace</h1></header>
       <IeltsSchoolLearnerLinks onNavigate={navigate} />
-      <IeltsTargetedPractice key={authUserId + '-practice'} />
+      <IeltsStudentWork key={authUserId + '-practice'} />
       <IeltsScreenerHub key={authUserId} />
-      <button type="button" className="ij-link" onClick={()=>navigate('/ielts?view=library')}>Explore other practice tools →</button>
-      <button type="button" className="ij-link" onClick={()=>navigate('/')}>Back to Brains Heist Game</button>
+      <p className="iw-foot"><button type="button" className="ij-link" onClick={()=>navigate('/ielts?view=library')}>Explore other practice tools →</button></p>
     </main></div>;
   }
 

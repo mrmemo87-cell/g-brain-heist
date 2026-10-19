@@ -15,7 +15,6 @@ import IeltsScreenerHub from '../../../components/ielts/IeltsScreenerHub';
 import IeltsSkillIcon from '../../../components/ielts/IeltsSkillIcon';
 import '../../../styles/ielts-journey.css';
 import IeltsSchoolLearnerLinks from '../../../components/ielts/IeltsSchoolLearnerLinks';
-import IeltsTargetedPractice from '../../../components/ielts/IeltsTargetedPractice';
 const IeltsStudentLearningPlan = React.lazy(() => import('./IeltsStudentLearningPlan'));
 const title = (s: string) => s[0].toUpperCase() + s.slice(1);
 const date = (v?: string | null) =>
@@ -127,7 +126,6 @@ export default function IeltsStudentJourney({
         </div>
       </header>
       <IeltsSchoolLearnerLinks onNavigate={navigate} active="journey" />
-      <IeltsTargetedPractice />
       <section className="ij-next" aria-labelledby="next-step-heading">
         <div>
           <p className="ij-eyebrow">Your next step</p>
@@ -314,14 +312,13 @@ export default function IeltsStudentJourney({
           <div>
             <p className="ij-eyebrow">Purposeful practice</p>
             <h2 id="practice-heading">School assignments</h2>
-            <button type="button" className="ij-primary" onClick={() => navigate('/ielts/practice/targeted')}>Open your next targeted task →</button>
           </div>
           <button
             type="button"
             className="ij-link"
             onClick={() => navigate('/ielts/practice/assigned')}
           >
-            Open school assignments →
+            Open assignments →
           </button>
         </div>
         {journey.assigned_practice.length ? (
@@ -354,7 +351,7 @@ export default function IeltsStudentJourney({
         ) : (
           <p>
             {startingPoint.school_managed
-              ? 'No active school assignments right now. Agree one practice focus with your teacher using the feedback above.'
+              ? 'No active school assignments right now. Finished assignments and their results stay in Assignments.'
               : 'No assigned tasks yet. Use the teacher’s next step as a practice focus.'}
           </p>
         )}

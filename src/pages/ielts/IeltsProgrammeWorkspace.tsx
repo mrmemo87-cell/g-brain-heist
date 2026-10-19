@@ -11,7 +11,7 @@ import {
 } from "../../../services/ieltsProgrammeService";
 import SchoolAdminContext from "../../../components/school-admin/SchoolAdminContext";
 import IeltsStudentProgress from "./IeltsStudentProgress";
-import IeltsTeacherDisclosure from "../../components/ielts/IeltsTeacherDisclosure";
+import { rpcIeltsReviewQueue, type IeltsReviewQueueItem } from "../../../services/ieltsTeacherReviewService";
 import IeltsTeacherNavigation, { type IeltsTeacherNavKey } from "./IeltsTeacherNavigation";
 import IeltsAssignmentEntry from "./IeltsAssignmentEntry";
 import "../../styles/ielts-teacher-navigation.css";
@@ -44,29 +44,11 @@ const sections = [
   "assign",
   "batches",
 ];
-function Mark({ kind = "school" }: { kind?: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path
-        d={
-          kind === "voice"
-            ? "M12 3v10m-4-6v6a4 4 0 008 0V7M5 12a7 7 0 0014 0M12 19v3m-4 0h8"
-            : kind === "review"
-              ? "M5 3h14v18H5zM8 8h8M8 12h5M8 16h3"
-              : "M3 10l9-7 9 7M5 9v12h14V9M9 21v-7h6v7"
-        }
-      />
-    </svg>
-  );
-}
+type WaitingItem = { key: string; name: string; at: string; kind: string; route: string; started: boolean };
+const formatDay = (iso: string) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+};
 export default function IeltsProgrammeWorkspace({
   embedded = false,
   schoolId,
@@ -98,12 +80,22 @@ export default function IeltsProgrammeWorkspace({
     [confirmed, setConfirmed] = useState(false),
     [saving, setSaving] = useState(false),
     [message, setMessage] = useState("");
+  const [practiceQueue, setPracticeQueue] = useState<IeltsReviewQueueItem[] | null>(null);
+  const [practiceError, setPracticeError] = useState(false);
   const [planStudent, setPlanStudent] = useState<string | null>(null);
   const [planFocus, setPlanFocus] = useState<"plan" | "reports">("plan");
-  const [navOpen, setNavOpen] = useState(false);
   useEffect(() => {
     setPlanStudent(null);
   }, [data?.school_id]);
+  // Assigned practice waiting for a teacher; refreshed when the teacher returns to Today or the Review desk.
+  useEffect(() => {
+    if (!data?.can_manage || (section !== "overview" && section !== "reviews")) return;
+    let alive = true;
+    rpcIeltsReviewQueue({ schoolId: data.school_id, limit: 100 })
+      .then((rows) => { if (alive) { setPracticeQueue(rows.filter((r) => r.review_status !== "finalized")); setPracticeError(false); } })
+      .catch(() => { if (alive) { setPracticeQueue(null); setPracticeError(true); } });
+    return () => { alive = false; };
+  }, [data?.school_id, data?.can_manage, section, retry]);
   const lock = useRef(false),
     changeId = useRef<string | null>(null);
   useEffect(() => {
@@ -156,7 +148,6 @@ export default function IeltsProgrammeWorkspace({
     return () => window.removeEventListener("popstate", restore);
   }, [schoolId]);
   const open = (s: Section) => {
-    setNavOpen(false);
     if (s === "practice") {
       setApplied("");
       setSearch("");
@@ -178,24 +169,11 @@ export default function IeltsProgrammeWorkspace({
     open("practice");
   };
   const teacherNavActive: IeltsTeacherNavKey =
-    section === "overview" ? "today" : section === "students" ? "students" :
-    section === "lessons" ? "lessons" : section === "assign" ? "create" :
-    section === "reviews" ? "reviews" : section === "exams" ? "exams" :
-    section === "team" ? "team" : section === "batches" ? "batches" :
-    section === "practice" ? (new URLSearchParams(window.location.search).get("practice") === "school" ? "manage" :
-      new URLSearchParams(window.location.search).get("practice") === "targeted" ? "create" : "history") : "today";
+    section === "overview" ? "today" : section === "assign" ? "practice" : section;
   const navigateTeacher = (key: IeltsTeacherNavKey) => {
     if (key === "today") open("overview");
-    else if (key === "students") open("students");
-    else if (key === "lessons") open("lessons");
-    else if (key === "create") open("assign");
-    else if (key === "manage") openPractice("school");
-    else if (key === "history") openPractice("history");
-    else if (key === "reviews") open("reviews");
-    else if (key === "exams") open("exams");
-    else if (key === "batches") open("batches");
-    else if (key === "team") open("team");
-    else if (key === "interviews") navigate("/ielts/speaking-interviews");
+    else if (key === "practice") openPractice("history");
+    else open(key);
   };
   useEffect(() => {
     if (section !== "students") return;
@@ -205,12 +183,6 @@ export default function IeltsProgrammeWorkspace({
     }, 380);
     return () => window.clearTimeout(timer);
   }, [search, applied, section]);
-  useEffect(() => {
-    if (!navOpen) return;
-    const closeMenu = (event: KeyboardEvent) => { if (event.key === "Escape") setNavOpen(false); };
-    window.addEventListener("keydown", closeMenu);
-    return () => window.removeEventListener("keydown", closeMenu);
-  }, [navOpen]);
   const save = async () => {
     if (!data || lock.current || !confirmed) return;
     lock.current = true;
@@ -241,102 +213,80 @@ export default function IeltsProgrammeWorkspace({
     }
   };
   const school = data?.schools.find((s) => s.id === data.school_id);
-  const reviewRoute = (skill: string, id: string) =>
+  const screenerRoute = (skill: string, id: string) =>
     skill === "writing"
       ? `/ielts/writing-screener/reviews/${encodeURIComponent(id)}`
       : `/ielts/speaking-pilot/${encodeURIComponent(id)}`;
+  // One queue for everything that needs a teacher: screener essays/interviews (programme workspace)
+  // and assigned practice writing/speaking (rpc_ielts_review_queue). Read-only listing; review rules unchanged.
+  const waiting: WaitingItem[] = [
+    ...(data?.queue ?? []).map((q) => ({
+      key: `s-${q.skill}-${q.attempt_id}`, name: q.name, at: q.created_at,
+      kind: q.skill === "writing" ? "Writing screener essay" : "Speaking screener interview",
+      route: screenerRoute(q.skill, q.attempt_id), started: false,
+    })),
+    ...(practiceQueue ?? []).map((q) => ({
+      key: `p-${q.skill}-${q.attempt_id}`, name: q.student_name ?? "Student", at: q.submitted_at ?? "",
+      kind: `${q.skill === "writing" ? "Writing" : "Speaking"} practice${q.task_title ? ` · ${q.task_title}` : ""}`,
+      route: `/ielts/reviews/${q.skill}/${encodeURIComponent(q.attempt_id)}`, started: q.review_status === "in_review",
+    })),
+  ].sort((x, y) => (x.at || "").localeCompare(y.at || ""));
+  const waitingCount = (data?.pending_count ?? 0) + (practiceQueue?.length ?? 0);
+  const waitingList = (limit?: number) => (
+    <ul className="ip-waiting" aria-label="Work waiting for review">
+      {waiting.slice(0, limit).map((w, i) => (
+        <li key={w.key}>
+          <div>
+            <strong>{w.name}</strong>
+            <span>{w.kind}{w.at ? ` · submitted ${formatDay(w.at)}` : ""}{w.started ? " · draft saved" : ""}</span>
+          </div>
+          <button type="button" className={i === 0 ? "sp-primary" : "sp-secondary"} onClick={() => navigate(w.route)}>
+            {w.started ? "Continue review" : "Review"}
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+  const sectionHead = (title: string, purpose: string, extra?: React.ReactNode) => (
+    <header className="ip-section-head">
+      <div><h2>{title}</h2><p>{purpose}</p></div>
+      {extra}
+    </header>
+  );
   const queue = (
     <div className="ip-workspace-flow">
-      <IeltsTeacherDisclosure title="Writing & Speaking review queue" hint="Review submitted work and share verified feedback" icon={<Mark kind="review" />} marker={`${data?.pending_count ?? 0} awaiting review`} defaultExpanded>
-    <section className="sp-card">
-      <div className="ip-heading">
-        <div>
-          <p className="sp-eyebrow">Your review desk</p>
-          <h2>Feedback that moves learning forward</h2>
-        </div>
-        <span className="sp-pill">
-          {data?.pending_count ?? 0} awaiting review
-        </span>
-      </div>
-      <p>
-        Open the original work, draft with AI if useful, check the evidence and
-        share your feedback.
-      </p>
-      {data?.queue.length ? (
-        data.queue.map((q) => (
-          <article
-            className="sp-session-row"
-            key={`${q.skill}-${q.attempt_id}`}
-          >
-            <div>
-              <strong>{q.name}</strong>
-              <p>
-                {q.skill === "writing" ? "Writing essay" : "Speaking interview"}{" "}
-                · {new Date(q.created_at).toLocaleDateString()}
-              </p>
-            </div>
-            <button
-              className="sp-primary"
-              onClick={() => navigate(reviewRoute(q.skill, q.attempt_id))}
-            >
-              Review →
-            </button>
-          </article>
-        ))
-      ) : (
-        <div className="ip-empty">
-          <Mark kind="review" />
-          <strong>Your review desk is clear.</strong>
-          <p>New submitted essays and interviews will appear here.</p>
-        </div>
-      )}
-      {(data?.pending_count ?? 0) > 30 && (
-        <p>
-          The 30 oldest submissions are shown first. Shared reviews leave this
-          queue.
-        </p>
-      )}
+      {sectionHead("Review desk", "Everything your students submitted that needs a teacher. Oldest first.",
+        <span className="ip-count-pill">{waitingCount} waiting</span>)}
+      <section className="sp-card ip-panel">
+        {waiting.length ? waitingList() : (
+          <div className="ip-empty">
+            <strong>Nothing is waiting for review.</strong>
+            <p>Submitted essays and interviews appear here as soon as students send them.</p>
+          </div>
+        )}
+        {practiceError && <p className="ip-note-line" role="status">Assigned practice could not be checked just now. <button type="button" className="ip-link-button" onClick={() => setRetry((n) => n + 1)}>Try again</button></p>}
+        {(data?.pending_count ?? 0) > 30 && <p className="ip-note-line">The 30 oldest screener submissions are shown.</p>}
+        {data?.can_manage && (
+          <p className="ip-note-line">
+            <button type="button" className="ip-link-button" onClick={() => navigate(`/ielts/reviews?school=${data?.school_id}`)}>See reviewed and earlier work →</button>
+          </p>
+        )}
+      </section>
       {data?.can_manage && (
-        <IeltsTeacherDisclosure title="Additional practice reviews" hint="Open the existing teacher practice review workflow" icon="✎" defaultExpanded={false}>
-          <React.Suspense fallback={<p role="status">Loading practice reviews…</p>}>
+        <section className="sp-card ip-panel" aria-label="Targeted practice feedback">
+          <React.Suspense fallback={<p role="status">Loading targeted practice…</p>}>
             <Practice schoolId={data.school_id} reviewOnly />
           </React.Suspense>
-        </IeltsTeacherDisclosure>
+        </section>
       )}
-      {data?.can_manage && (
-        <details>
-          <summary>Other practice submissions</summary>
-          <p>Previously assigned practice uses its existing review workflow.</p>
-          <button
-            className="sp-secondary"
-            onClick={() => navigate(`/ielts/reviews?school=${data?.school_id}`)}
-          >
-            Open practice reviews
-          </button>
-        </details>
-      )}
-    </section>
-      </IeltsTeacherDisclosure>
     </div>
   );
   return (
     <main className={`sp-page ip-page ${embedded ? "ip-embedded" : ""}`}>
-      <header className="sp-hero">
-        <div>
-          {!embedded && (
-            <a className="sp-back" href="/">
-              ← Brains Heist
-            </a>
-          )}
-          <span className="sp-eyebrow">Brains Heist · IELTS Programme</span>
-          <h1>Your IELTS teaching workspace</h1>
-          <p>
-            {school?.name ?? "Your school workspace"} · Lessons, assignments, reviews and learner progress in one place.
-          </p>
-        </div>
-        <div className="ip-brand">
-          <Mark />
-        </div>
+      <header className="ip-top">
+        {!embedded && <a className="ip-back" href="/">← Brains Heist</a>}
+        <p className="ip-eyebrow">IELTS Programme{school?.name ? ` · ${school.name}` : ""}</p>
+        <h1>Teaching workspace</h1>
       </header>
       {error && (
         <div className="sp-alert" role="alert">
@@ -401,131 +351,101 @@ export default function IeltsProgrammeWorkspace({
               </select>
             </label>
           )}
-          <IeltsTeacherNavigation active={teacherNavActive} onNavigate={navigateTeacher} canManage={data.can_manage} disabled={saving} />
+          <IeltsTeacherNavigation active={teacherNavActive} onNavigate={navigateTeacher} canManage={data.can_manage} disabled={saving} reviewCount={waitingCount} />
           {section === "overview" && (
             <div className="ip-today">
-              <IeltsTeacherDisclosure title="Today’s priority" hint="Your most useful next action" icon="◎" marker={data.pending_count > 0 ? `${data.pending_count} to review` : "Ready"} defaultExpanded>
-              <section className="sp-card ip-today-priority" aria-labelledby="ip-today-priority-title">
+              <section className="sp-card ip-panel ip-today-priority" aria-labelledby="ip-today-priority-title">
                 <div className="ip-today-priority-copy">
-                  <p className="sp-eyebrow">Your next step</p>
+                  <p className="ip-eyebrow">Needs you now</p>
                   <h2 id="ip-today-priority-title">
-                    {data.pending_count > 0
-                      ? "Student work is waiting for your review"
+                    {waitingCount > 0
+                      ? `${waitingCount} ${waitingCount === 1 ? "piece of work is" : "pieces of work are"} waiting for your review`
                       : data.can_manage
-                        ? "Get your next IELTS lesson ready"
-                        : "See how your students are doing"}
+                        ? "Nothing to review. Get your next lesson ready"
+                        : "Nothing to review. See how your students are doing"}
                   </h2>
-                  <p>
-                    {data.pending_count > 0
-                      ? `${data.pending_count} submitted ${data.pending_count === 1 ? "essay or interview needs" : "essays or interviews need"} a teacher's attention. Open the evidence, review it and decide the next step.`
-                      : data.can_manage
-                        ? "Open the lesson pack, prepare your resources and plan the practice students will do next."
-                        : "Open student progress to see available evidence across Listening, Reading, Writing and Speaking."}
-                  </p>
+                  {waitingCount > 0 ? waitingList(3) : (
+                    <p>{data.can_manage
+                      ? "Open the lesson pack, prepare your resources and plan the practice students will do next."
+                      : "Open student progress to see available evidence across Listening, Reading, Writing and Speaking."}</p>
+                  )}
                   <div className="ip-today-priority-actions">
                     <button
                       type="button"
-                      className="sp-primary"
-                      onClick={() => open(data.pending_count > 0 ? "reviews" : data.can_manage ? "lessons" : "students")}
+                      className={waiting.length > 0 ? "sp-secondary" : "sp-primary"}
+                      onClick={() => open(waitingCount > 0 ? "reviews" : data.can_manage ? "lessons" : "students")}
                     >
-                      {data.pending_count > 0
+                      {waitingCount > 0
                         ? "Open review desk"
                         : data.can_manage
                           ? "Open lesson library"
                           : "View student progress"} →
                     </button>
-                    {data.can_manage && data.pending_count > 0 && (
-                      <button type="button" className="sp-secondary" onClick={() => open("lessons")}>
-                        Prepare a lesson
-                      </button>
-                    )}
                   </div>
                 </div>
-                {data.pending_count > 0 && (
-                  <div className="ip-today-priority-count" aria-label={`${data.pending_count} submissions waiting for review`}>
-                    <strong>{data.pending_count}</strong>
-                    <span>Awaiting review</span>
-                  </div>
-                )}
               </section>
-              </IeltsTeacherDisclosure>
 
-              <IeltsTeacherDisclosure title="Everyday teaching" hint="Prepare lessons, assign work, review and follow up" icon={<Mark />} defaultExpanded>
               <section className="ip-today-teaching" aria-labelledby="ip-today-teaching-title">
-                <div className="ip-today-heading">
-                  <p className="sp-eyebrow">Everyday teaching</p>
-                  <h2 id="ip-today-teaching-title">What would you like to do?</h2>
-                  <p>Choose the job you're here for. Each option opens the existing tools, with your school access preserved.</p>
-                </div>
+                <h2 id="ip-today-teaching-title" className="ip-subhead">Everyday teaching</h2>
                 <div className="ip-today-actions">
                   {data.can_manage && (
                     <button type="button" className="ip-today-action" onClick={() => open("lessons")}>
-                      <span className="ip-today-action-mark" aria-hidden="true"><Mark kind="review" /></span>
                       <span className="ip-today-action-copy">
                         <span className="ip-today-action-category">Prepare</span>
                         <strong>Lessons & teaching packs</strong>
-                        <span>Lesson plans, presentations, workbooks, approved audio and downloads.</span>
+                        <span>Lesson plans, slides, workbooks and approved audio.</span>
                       </span>
                       <span className="ip-today-arrow" aria-hidden="true">→</span>
                     </button>
                   )}
                   {data.can_manage && (
                     <button type="button" className="ip-today-action" onClick={() => open("assign")}>
-                      <span className="ip-today-action-mark" aria-hidden="true"><Mark /></span>
                       <span className="ip-today-action-copy">
                         <span className="ip-today-action-category">Assign</span>
                         <strong>Create assignment</strong>
-                        <span>Choose a class, IELTS batch or individual student.</span>
+                        <span>Give practice to a class, a course batch or one student.</span>
                       </span>
                       <span className="ip-today-arrow" aria-hidden="true">→</span>
                     </button>
                   )}
                   <button type="button" className="ip-today-action" onClick={() => open("reviews")}>
-                    <span className="ip-today-action-mark" aria-hidden="true"><Mark kind="review" /></span>
                     <span className="ip-today-action-copy">
                       <span className="ip-today-action-category">Review</span>
                       <strong>Writing & Speaking reviews</strong>
-                      <span>Open saved work and provide feedback under your existing review permissions.</span>
+                      <span>Read submitted work and share your feedback.</span>
                     </span>
                     <span className="ip-today-arrow" aria-hidden="true">→</span>
                   </button>
                   <button type="button" className="ip-today-action" onClick={() => open("students")}>
-                    <span className="ip-today-action-mark" aria-hidden="true"><Mark /></span>
                     <span className="ip-today-action-copy">
                       <span className="ip-today-action-category">Follow up</span>
                       <strong>Student progress & plans</strong>
-                      <span>Find a learner, inspect four-skill evidence and open learning plans or reports.</span>
+                      <span>Find a learner, see their four-skill evidence and open plans or reports.</span>
                     </span>
                     <span className="ip-today-arrow" aria-hidden="true">→</span>
                   </button>
                 </div>
               </section>
-              </IeltsTeacherDisclosure>
 
               {data.can_manage && (
-                <IeltsTeacherDisclosure title="More teaching tools" hint="Specialist practice, batches, interviews and exams" icon="✧" defaultExpanded={false}>
-                <section className="sp-card ip-today-more" aria-labelledby="ip-today-more-title">
-                  <div className="ip-today-heading">
-                    <p className="sp-eyebrow">More teaching tools</p>
-                    <h2 id="ip-today-more-title">Everything else is here when you need it</h2>
-                    <p>Specialist workflows stay one click away, without crowding your everyday teaching.</p>
-                  </div>
+                <section className="ip-today-more" aria-labelledby="ip-today-more-title">
+                  <h2 id="ip-today-more-title" className="ip-subhead">More tools</h2>
                   <div className="ip-today-links">
                     <button type="button" onClick={() => openPractice("targeted")}>
                       <strong>Targeted practice</strong>
-                      <span>Assign evidence-led work to a student</span>
+                      <span>Evidence-led work for one student</span>
                     </button>
                     <button type="button" onClick={() => openPractice("history")}>
                       <strong>Practice history</strong>
-                      <span>Find current and previous student work</span>
+                      <span>Current and previous student work</span>
                     </button>
                     <button type="button" onClick={() => open("batches")}>
                       <strong>Course batches</strong>
-                      <span>Rosters, cross-class groups and late joiners</span>
+                      <span>Rosters and this week's practice</span>
                     </button>
                     <button type="button" onClick={() => navigate("/ielts/speaking-interviews")}>
                       <strong>Speaking interviews</strong>
-                      <span>Conduct interviews and save recordings</span>
+                      <span>Conduct and record interviews</span>
                     </button>
                     <button type="button" onClick={() => open("exams")}>
                       <strong>Exam sessions</strong>
@@ -533,14 +453,10 @@ export default function IeltsProgrammeWorkspace({
                     </button>
                   </div>
                 </section>
-                </IeltsTeacherDisclosure>
               )}
-              <IeltsTeacherDisclosure title="Evidence guidance" hint="How to interpret screeners and missing evidence" icon="ⓘ" defaultExpanded={false}>
-              <section className="ip-note" aria-label="IELTS evidence guidance">
-                <strong>Evidence before estimates.</strong>
-                <p>Screeners show a starting point, not an official IELTS band. Missing evidence is not a weakness; use reviewed work and appropriate follow-up before drawing conclusions.</p>
-              </section>
-              </IeltsTeacherDisclosure>
+              <p className="ip-note-line ip-evidence-note">
+                <strong>Evidence before estimates.</strong> Screeners show a starting point, not an official IELTS band. Missing evidence is not a weakness.
+              </p>
               {data.platform_owner && (
                 <details className="ip-today-admin">
                   <summary>Platform content & analytics</summary>
@@ -585,9 +501,9 @@ export default function IeltsProgrammeWorkspace({
               }}
             />
           )}
-          {section === "batches" && data.can_manage && <IeltsTeacherDisclosure title="Course batches" hint="Manage IELTS course groups, rosters and participation" icon="♧" defaultExpanded><React.Suspense fallback={<p role="status">Opening course batches…</p>}><Batches key={data.school_id} schoolId={data.school_id} onAssign={() => { const u=new URL(window.location.href);u.searchParams.set("practice","school");window.history.replaceState({},"",u.pathname+u.search);open("practice"); }} /></React.Suspense></IeltsTeacherDisclosure>}
+          {section === "batches" && data.can_manage && <div className="ip-workspace-flow">{sectionHead("Course batches", "Group IELTS students across classes, see this week's practice and follow each student.")}<React.Suspense fallback={<p role="status">Opening course batches…</p>}><Batches key={data.school_id} schoolId={data.school_id} onAssign={() => { const u=new URL(window.location.href);u.searchParams.set("practice","school");window.history.replaceState({},"",u.pathname+u.search);open("practice"); }} /></React.Suspense></div>}
           {section === "team" && (
-            <IeltsTeacherDisclosure title="Programme lead & school access" hint="View ownership and manage teacher allocation when authorized" icon={<Mark />} defaultExpanded>
+            <div className="ip-workspace-flow">{sectionHead("Programme team", "Who leads IELTS at your school and who can manage it.")}
             <section className="sp-card">
               <p className="sp-eyebrow">A clear owner for your programme</p>
               <h2>
@@ -665,18 +581,13 @@ export default function IeltsProgrammeWorkspace({
                 Teacher workspace: brainsheist.com/ielts/programme →
               </a>
             </section>
-            </IeltsTeacherDisclosure>
+            </div>
           )}
           {(section === "practice" || section === "exams") && (
-            <IeltsTeacherDisclosure title={section === "practice" ? "Practice & assignments" : "Controlled exam manager"} hint={section === "practice" ? "Assign, revisit and review school IELTS practice" : "Manage authorized IELTS exam sessions"} icon="▤" defaultExpanded>
-            <section className="sp-card">
-              <button className="sp-secondary" onClick={() => open("overview")}>
-                ← Today
-              </button>
+            <div className="ip-workspace-flow">
+              {section === "exams" && sectionHead("Exams", "Schedule, launch and monitor controlled IELTS exam sessions.")}
               {data.can_manage ? (
-                <React.Suspense
-                  fallback={<p role="status">Opening teaching tools…</p>}
-                >
+                <React.Suspense fallback={<p role="status">Opening teaching tools…</p>}>
                   {section === "practice" ? (
                     <SchoolAdminContext.Provider
                       value={{
@@ -703,10 +614,9 @@ export default function IeltsProgrammeWorkspace({
                   )}
                 </React.Suspense>
               ) : (
-                <p>Your programme lead manages these school tools.</p>
+                <section className="sp-card"><p>Your programme lead manages these school tools.</p></section>
               )}
-            </section>
-            </IeltsTeacherDisclosure>
+            </div>
           )}
         </>
       )}

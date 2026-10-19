@@ -52,13 +52,17 @@ test('IELTS review queue is discoverable only from school admin workflows', () =
   assert.doesNotMatch(teacherPortal, /IELTS Reviews|\/ielts\/reviews/i, 'Teacher Portal must not expose IELTS review navigation');
 });
 
-test('IELTS review queue defaults to pending writing submissions with a clear empty state', () => {
+// UX pass 2026-10-19: waiting work lives on the Programme review desk; this page lists all practice reviews.
+test('IELTS all-reviews page lists every status with clear filters and empty state', () => {
   const queue = read('src/pages/ielts/IeltsReviewQueue.tsx');
+  const programme = read('src/pages/ielts/IeltsProgrammeWorkspace.tsx');
 
-  assert.match(queue, /useState<IeltsReviewSkill \| ''>\('writing'\)/, 'queue skill filter must default to writing');
-  assert.match(queue, /useState\('pending'\)/, 'queue status filter must default to pending');
-  assert.match(queue, /Pending writing submissions are shown first/i, 'queue UI must document the default filters');
-  assert.match(queue, /No submissions waiting for review/i, 'queue empty state must be clear');
+  assert.match(queue, /useState<IeltsReviewSkill \| ''>\(''\)/, 'queue skill filter shows writing and speaking');
+  assert.match(queue, /useState\(''\)/, 'queue status filter shows every status');
+  assert.match(queue, /Waiting for review/, 'statuses use plain labels');
+  assert.match(queue, /No submissions match these filters/i, 'queue empty state must be clear');
+  assert.match(programme, /rpcIeltsReviewQueue\(/, 'review desk lists waiting practice submissions');
+  assert.match(programme, /review_status !== "finalized"/, 'review desk counts only work that still needs a teacher');
 });
 
 test('IELTS writing submissions are inserted as pending review attempts', () => {
@@ -101,7 +105,7 @@ test('IELTS review frontend maps queue/detail/submit RPCs and exposes student re
   assert.match(service, /functions\/v1\/ielts_ai_review_draft/i, 'service must call secure AI review edge function');
   assert.match(service, /task_achievement[\s\S]*coherence_cohesion[\s\S]*lexical_resource[\s\S]*grammar/i, 'writing rubric keys must be modeled');
   assert.match(service, /fluency[\s\S]*lexical_resource[\s\S]*grammar[\s\S]*pronunciation/i, 'speaking rubric keys must be modeled');
-  assert.match(queue, /IELTS Review Queue/i, 'queue UI must exist');
+  assert.match(queue, /All practice reviews/i, 'queue UI must exist');
   assert.match(review, /Writing Review|Speaking Review/i, 'review screens must support writing and speaking');
   assert.match(review, /Student answer[\s\S]*Word count/i, 'writing review must show answer and word count');
   assert.match(review, /Speaking evidence[\s\S]*Duration[\s\S]*audio/i, 'speaking review must show duration and audio area');

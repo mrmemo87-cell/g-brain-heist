@@ -11,7 +11,7 @@ test('this week view groups evidence-based targets and prepares a pre-filled ass
  assert.match(text(),/Practice bank gaps · 1/);assert.match(text(),/Initial assessment needed: Waiting Student/);
  [...w.document.querySelectorAll('button')].find(b=>b.textContent.startsWith('Prepare R-001')).click();
  await m.wait(()=>w.document.querySelector('select')?.value==='practice'&&w.document.querySelector('input[type=checkbox]')?.checked);
- assert.match(w.document.querySelector('textarea').value,/Shared target: Claims and evidence/);
+ assert.match(w.document.querySelector('textarea').value,/Practice focus: Claims and evidence/);
  assert.equal(m.calls.filter(c=>c.fn==='rpc_ielts_batch_assign_practice').length,0,'nothing is assigned until the teacher confirms');
  assert.deepEqual(m.errors,[]);}finally{m.w.root.unmount();m.dom.window.close();}});
 

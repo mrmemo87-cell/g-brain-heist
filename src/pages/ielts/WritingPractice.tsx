@@ -3,6 +3,7 @@ import type {CleanupChart} from '../../../services/ieltsLegacyCleanupService';
 import {reviewedPracticeDelivery} from '../../../services/ieltsReviewedPracticeService';
 import IeltsMaterialProvenance from "../../components/ielts/IeltsMaterialProvenance";
 import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
+import '../../styles/ielts-design-system.css';
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -474,7 +475,9 @@ const WritingPractice: React.FC = () => {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        background: 'var(--bh-ielts-background)',
+        color: 'var(--bh-ielts-foreground)',
+        fontFamily: 'var(--bh-ielts-font-body)',
         padding: 'clamp(1rem, 3vw, 2rem)'
       }}>
         <div style={{
@@ -488,20 +491,20 @@ const WritingPractice: React.FC = () => {
           {/* Submission Header */}
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <div style={{
-              width: 'clamp(3.5rem, 10vw, 5rem)',
-              height: 'clamp(3.5rem, 10vw, 5rem)',
-              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+              width: '3rem',
+              height: '3rem',
+              background: 'var(--bh-ielts-success)',
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 1.5rem'
+              margin: '0 auto 1rem'
             }}>
-              <svg style={{ width: 'clamp(1.75rem, 5vw, 2.5rem)', height: 'clamp(1.75rem, 5vw, 2.5rem)', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg style={{ width: '1.5rem', height: '1.5rem', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <p>{ieltsMaterialTitle(task.display_code, task.title || "Writing Practice")}<IeltsMaterialProvenance label={task.originality_label}/></p>
+            <p style={{ color: 'var(--bh-ielts-foreground-muted)', fontWeight: 600, margin: '0 0 0.25rem' }}>{ieltsMaterialTitle(task.display_code, task.title || "Writing Practice")}<IeltsMaterialProvenance label={task.originality_label}/></p>
             {isAssignmentCompletedBySubmission ? (
               <>
                 <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
@@ -526,6 +529,23 @@ const WritingPractice: React.FC = () => {
             )}
           </div>
 
+          {lastAttemptId && hasFinalizedReview ? (
+            <div style={{ background: 'var(--bh-ielts-secondary)', border: '1px solid var(--bh-ielts-border)', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ color: 'var(--bh-ielts-foreground)', fontWeight: 600 }}>Your teacher's feedback is ready.</span>
+              <button
+                type="button"
+                onClick={() => navigate(`/ielts/review-result/writing/${encodeURIComponent(lastAttemptId)}`)}
+                style={{ background: 'var(--bh-ielts-primary)', color: 'white', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1rem', cursor: 'pointer', fontWeight: 700 }}
+              >
+                View teacher review result
+              </button>
+            </div>
+          ) : lastAttemptId ? (
+            <div style={{ background: 'var(--bh-ielts-secondary)', border: '1px solid var(--bh-ielts-border)', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
+              <span style={{ color: '#1e3a8a', fontWeight: 600 }}>Teacher feedback will appear here after finalization.</span>
+            </div>
+          ) : null}
+
           {(submittedText ?? answer) ? (
             <details style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
               <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#1e293b' }}>Your response ({wordCount} words)</summary>
@@ -541,48 +561,31 @@ const WritingPractice: React.FC = () => {
             onNavigate={navigate}
           />
 
-          {lastAttemptId && hasFinalizedReview ? (
-            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span style={{ color: '#1e3a8a', fontWeight: 600 }}>Finalized teacher feedback is ready.</span>
-              <button
-                type="button"
-                onClick={() => navigate(`/ielts/review-result/writing/${encodeURIComponent(lastAttemptId)}`)}
-                style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1rem', cursor: 'pointer', fontWeight: 700 }}
-              >
-                View teacher review result
-              </button>
-            </div>
-          ) : lastAttemptId ? (
-            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
-              <span style={{ color: '#1e3a8a', fontWeight: 600 }}>Teacher feedback will appear here after finalization.</span>
-            </div>
-          ) : null}
-
           {/* Submission Summary */}
           <div style={{
-            background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
-            border: '1px solid #6ee7b7',
+            background: 'var(--bh-ielts-surface-muted)',
+            border: '1px solid var(--bh-ielts-border)',
             borderRadius: '0.75rem',
             padding: 'clamp(1rem, 3vw, 1.5rem)',
             marginBottom: '1.5rem'
           }}>
-            <h3 style={{ fontSize: 'clamp(0.875rem, 2.5vw, 1rem)', fontWeight: '600', color: '#065f46', marginBottom: '1rem' }}>📊 Submission Summary</h3>
+            <h3 style={{ fontSize: 'clamp(0.875rem, 2.5vw, 1rem)', fontWeight: '600', color: 'var(--bh-ielts-foreground)', marginBottom: '1rem' }}>Your submission</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
               <div style={{ background: 'white', borderRadius: '0.5rem', padding: 'clamp(0.75rem, 2vw, 1rem)' }}>
                 <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b' }}>Word Count</div>
-                <div style={{ fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', fontWeight: 'bold', color: wordCount >= getMinWords() ? '#16a34a' : '#f59e0b' }}>
+                <div style={{ fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', fontWeight: 'bold', color: 'var(--bh-ielts-foreground)' }}>
                   {wordCount}
                 </div>
                 <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: '#94a3b8' }}>Assignment completion minimum: {MIN_MEANINGFUL_WORDS}</div>
               </div>
-              <div style={{ background: 'white', borderRadius: '0.5rem', padding: 'clamp(0.75rem, 2vw, 1rem)' }}>
-                <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b' }}>Time Spent</div>
-                <div style={{ fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', fontWeight: 'bold', color: '#10b981' }}>{formatTime(timeElapsed)}</div>
-                <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: '#94a3b8' }}>Recommended: 20-40 min</div>
-              </div>
+              {timeElapsed >= 60 && <div style={{ background: 'white', borderRadius: '0.5rem', padding: 'clamp(0.75rem, 2vw, 1rem)' }}>
+                <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b' }}>Time spent</div>
+                <div style={{ fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', fontWeight: 'bold', color: 'var(--bh-ielts-foreground)' }}>{formatTime(timeElapsed)}</div>
+                <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: '#64748b' }}>Recommended: 20-40 min</div>
+              </div>}
               <div style={{ background: 'white', borderRadius: '0.5rem', padding: 'clamp(0.75rem, 2vw, 1rem)' }}>
                 <div style={{ fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', color: '#64748b' }}>Task word minimum</div>
-                <div style={{ fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', fontWeight: 'bold', color: '#0f766e' }}>{task.minimum_words??(/task\s*1/i.test(task.task_type)?150:250)}</div>
+                <div style={{ fontSize: 'clamp(1.25rem, 4vw, 1.5rem)', fontWeight: 'bold', color: 'var(--bh-ielts-foreground)' }}>{task.minimum_words??(/task\s*1/i.test(task.task_type)?150:250)}</div>
                 <div style={{ fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', color: '#94a3b8' }}>Recommended target words</div>
               </div>
             </div>
@@ -596,15 +599,15 @@ const WritingPractice: React.FC = () => {
                 style={{
                   width: '100%',
                   padding: '0.875rem 1.5rem',
-                  background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                  color: '#92400e',
-                  border: '1px solid #f59e0b',
+                  background: 'var(--bh-ielts-surface)',
+                  color: 'var(--bh-ielts-primary)',
+                  border: '1px solid var(--bh-ielts-border)',
                   borderRadius: '0.5rem',
                   cursor: 'pointer',
                   fontWeight: 600
                 }}
               >
-                {showSample ? '🙈 Hide Sample Answer' : '📝 View Sample Answer'}
+                {showSample ? 'Hide sample answer' : 'View a sample answer'}
               </button>
               
               {showSample && (
@@ -625,33 +628,6 @@ const WritingPractice: React.FC = () => {
               )}
             </div>
           )}
-
-          {/* Personalized Writing Tips */}
-          <div style={{
-            background: 'linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%)',
-            border: '1px solid #e879f9',
-            borderRadius: '0.75rem',
-            padding: '1.5rem',
-            marginBottom: '1.5rem'
-          }}>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#86198f', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              📊 Personalized Writing Tips
-            </h3>
-            
-            <div style={{ marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                <span style={{ fontSize: '1.5rem' }}>✍️</span>
-                <span style={{ fontWeight: 600, color: '#7c3aed' }}>How to Improve Your Writing</span>
-              </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#475569' }}>
-                <li style={{ marginBottom: '0.5rem' }}>📖 <strong>Task Response:</strong> Always address all parts of the question</li>
-                <li style={{ marginBottom: '0.5rem' }}>🔗 <strong>Coherence:</strong> Use linking words (However, Furthermore, Moreover)</li>
-                <li style={{ marginBottom: '0.5rem' }}>📝 <strong>Vocabulary:</strong> Use topic-specific vocabulary and synonyms</li>
-                <li style={{ marginBottom: '0.5rem' }}>✅ <strong>Grammar:</strong> Use a variety of complex sentence structures</li>
-                <li>⏱️ <strong>Time Management:</strong> Spend 5 mins planning, 30 mins writing, 5 mins reviewing</li>
-              </ul>
-            </div>
-          </div>
 
           {!isPrimeUser && (
             <div style={{
@@ -692,7 +668,7 @@ const WritingPractice: React.FC = () => {
             style={{
               width: '100%',
               padding: '0.875rem 2rem',
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              background: 'var(--bh-ielts-primary)',
               color: 'white',
               border: 'none',
               borderRadius: '0.5rem',

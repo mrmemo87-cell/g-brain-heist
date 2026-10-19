@@ -1,0 +1,68 @@
+/* Teacher Writing/Speaking review — Evidence Blue, light surface, readable at 375/768/1440.
+   Visual only: the same fields, the same save/finalise calls and the same locking rules. */
+.ir-page { min-height: 100vh; padding: clamp(14px, 3vw, 32px); background: var(--bh-ielts-background) !important; color: var(--bh-ielts-foreground) !important; font-family: var(--bh-ielts-font-body); line-height: 1.6; color-scheme: light; }
+.ir-page.ir-embedded { min-height: 0; padding: 0; background: transparent !important; }
+.ir-page *, .ir-page *::before, .ir-page *::after { box-sizing: border-box; }
+.ir-shell { max-width: 1200px; margin: 0 auto; display: grid; gap: 16px; min-width: 0; }
+.ir-page :is(h1, h2, h3, p) { margin: 0; }
+.ir-page h1 { font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.2; color: var(--bh-ielts-foreground); letter-spacing: -.02em; }
+.ir-page h2 { font-size: 1.05rem; color: var(--bh-ielts-foreground); }
+.ir-page h3 { font-size: .95rem; color: var(--bh-ielts-foreground); }
+.ir-page p, .ir-page label, .ir-page li { color: var(--bh-ielts-foreground); }
+.ir-muted, .ir-page .ir-muted { color: var(--bh-ielts-foreground-muted); }
+.ir-small { font-size: .85rem; font-weight: 400; }
+.ir-back { justify-self: start; min-height: 40px; padding: 0; border: 0; background: none; color: var(--bh-ielts-primary); font: 600 .9rem/1.4 var(--bh-ielts-font-body); cursor: pointer; }
+.ir-back:hover { text-decoration: underline; }
+.ir-eyebrow { color: var(--bh-ielts-primary) !important; font-size: .8rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.ir-head { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.ir-head > div { min-width: 0; flex: 1 1 280px; display: grid; gap: 4px; }
+.ir-status { padding: 4px 12px; border-radius: 999px; border: 1px solid var(--bh-ielts-border); background: var(--bh-ielts-secondary); color: var(--bh-ielts-secondary-foreground); font-size: .85rem; font-weight: 600; white-space: nowrap; }
+.ir-status--final { color: var(--bh-ielts-success); background: #ecfdf5; border-color: #a7f3d0; }
+.ir-status--in_review { color: var(--bh-ielts-warning); background: #fffbeb; border-color: #fde68a; }
+.ir-notice { padding: 12px 16px; border: 1px solid var(--bh-ielts-border); border-left: 3px solid var(--bh-ielts-accent); border-radius: var(--bh-ielts-radius-sm); background: var(--bh-ielts-surface); color: var(--bh-ielts-foreground); }
+.ir-notice--error { border-left-color: var(--bh-ielts-danger); color: var(--bh-ielts-danger); }
+.ir-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); gap: 16px; align-items: start; }
+.ir-card { min-width: 0; display: grid; gap: 12px; padding: clamp(16px, 2vw, 24px); border: 1px solid var(--bh-ielts-border); border-radius: var(--bh-ielts-radius-md); background: var(--bh-ielts-surface); box-shadow: var(--bh-ielts-shadow-sm); }
+.ir-prompt { white-space: pre-wrap; padding: 14px 16px; border-radius: var(--bh-ielts-radius-sm); background: var(--bh-ielts-surface-muted); color: var(--bh-ielts-foreground); overflow-wrap: anywhere; }
+.ir-answer { white-space: pre-wrap; padding: 16px; border: 1px solid var(--bh-ielts-border); border-radius: var(--bh-ielts-radius-sm); color: var(--bh-ielts-foreground); font-size: 1rem; line-height: 1.75; overflow-wrap: anywhere; }
+.ir-audio { width: 100%; }
+.ir-warning { color: var(--bh-ielts-warning) !important; }
+.ir-error { color: var(--bh-ielts-danger) !important; font-size: .875rem; }
+/* The AI practice panel inside the evidence column inherits readable ink. */
+.ir-card section[aria-labelledby="practice-ai-feedback"] { color: var(--bh-ielts-foreground); margin: 0 !important; }
+.ir-card section[aria-labelledby="practice-ai-feedback"] p { color: inherit; }
+.ir-form { position: sticky; top: 16px; }
+.ir-bands { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ir-field { display: grid; gap: 6px; font-size: .9rem; font-weight: 600; color: var(--bh-ielts-foreground); min-width: 0; }
+.ir-field--strong { padding: 12px; border-radius: var(--bh-ielts-radius-sm); background: var(--bh-ielts-secondary); }
+.ir-field :is(select, textarea) { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid var(--bh-ielts-input-border); border-radius: var(--bh-ielts-radius-sm); background: var(--bh-ielts-surface); color: var(--bh-ielts-foreground); font: 400 .95rem/1.5 var(--bh-ielts-font-body); }
+.ir-field textarea { resize: vertical; }
+.ir-field :is(select, textarea):disabled { background: var(--bh-ielts-surface-muted); color: var(--bh-ielts-foreground); opacity: 1; cursor: default; }
+.ir-field :is(select, textarea):focus-visible, .ir-back:focus-visible { outline: 3px solid var(--bh-ielts-focus); outline-offset: 2px; }
+.ir-hint { color: var(--bh-ielts-primary); font-size: .8rem; font-weight: 500; }
+.ir-ai { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid #c9d7f2; border-radius: var(--bh-ielts-radius-sm); background: #f3f7ff; }
+.ir-ai p { font-size: .875rem; }
+.ir-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ir-actions--submit .ix-button { flex: 1 1 180px; }
+.ir-draft summary { cursor: pointer; color: var(--bh-ielts-primary); font-weight: 600; font-size: .875rem; }
+.ir-draft pre { margin: 8px 0 0; white-space: pre-wrap; font-size: .8rem; color: var(--bh-ielts-foreground); }
+.ir-print { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--bh-ielts-border); }
+@media (max-width: 1023px) {
+  .ir-grid { grid-template-columns: minmax(0, 1fr); }
+  .ir-form { position: static; }
+}
+@media (max-width: 480px) {
+  .ir-bands { grid-template-columns: minmax(0, 1fr); }
+  .ir-actions .ix-button { width: 100%; }
+}
+.ir-filters { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.ir-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.ir-row { grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; }
+.ir-row > div { display: grid; gap: 2px; min-width: 0; }
+.ir-row > div > span { overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .ir-row { grid-template-columns: minmax(0, 1fr); }
+  .ir-row .ix-button { width: 100%; }
+  .ir-row .ir-status { justify-self: start; }
+}
+.ir-page h1, .ir-page h2, .ir-page h3 { font-weight: 700 !important; font-family: var(--bh-ielts-font-heading); }

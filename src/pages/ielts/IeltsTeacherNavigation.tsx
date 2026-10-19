@@ -1,52 +1,40 @@
-import React, { useState } from "react";
+import React from "react";
 
 export type IeltsTeacherNavKey =
-  | "today" | "students" | "lessons" | "create" | "manage" | "history"
-  | "reviews" | "interviews" | "exams" | "batches" | "team";
+  | "today" | "reviews" | "students" | "practice" | "batches" | "lessons" | "exams" | "team";
 
-type Group = { title: string; icon: string; entries: { key: IeltsTeacherNavKey; label: string }[] };
-const groups: Group[] = [
-  { title: "Overview", icon: "◫", entries: [{ key: "today", label: "Today" }, { key: "students", label: "Student progress" }] },
-  { title: "Teaching & Assignments", icon: "▤", entries: [{ key: "lessons", label: "Lesson library" }, { key: "create", label: "Create assignment" }, { key: "manage", label: "Manage assignments" }, { key: "history", label: "Practice history" }] },
-  { title: "Assessment & Reviews", icon: "✓", entries: [{ key: "reviews", label: "Review desk" }, { key: "interviews", label: "Speaking interviews" }, { key: "exams", label: "Controlled exams" }] },
-  { title: "Programme Management", icon: "♧", entries: [{ key: "batches", label: "Course batches" }, { key: "team", label: "Programme team" }] },
+// Visual & UX Bible 1.2.0 section 2: the Programme tabs stay visible as plain tabs (no dropdown groups),
+// each with its own tappable box; on phones they wrap into a two-column grid instead of hiding.
+const entries: { key: IeltsTeacherNavKey; label: string; manageOnly?: boolean }[] = [
+  { key: "today", label: "Today" },
+  { key: "reviews", label: "Review desk" },
+  { key: "students", label: "Student progress" },
+  { key: "practice", label: "Practice & assignments", manageOnly: true },
+  { key: "batches", label: "Course batches", manageOnly: true },
+  { key: "lessons", label: "Lessons", manageOnly: true },
+  { key: "exams", label: "Exams", manageOnly: true },
+  { key: "team", label: "Programme team" },
 ];
 
 export default function IeltsTeacherNavigation({
-  active, onNavigate, canManage, disabled = false,
+  active, onNavigate, canManage, disabled = false, reviewCount = 0,
 }: {
   active: IeltsTeacherNavKey;
   onNavigate: (key: IeltsTeacherNavKey) => void;
   canManage: boolean;
   disabled?: boolean;
+  reviewCount?: number;
 }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
   return (
-    <div className="ip-nav-shell">
-      <button className="ip-navigation-toggle" type="button" aria-controls="ielts-teacher-navigation" aria-expanded={mobileOpen} onClick={() => setMobileOpen(v => !v)}>
-        <span>☰ Teacher workspace navigation</span><span aria-hidden="true">{mobileOpen ? "⌃" : "⌄"}</span>
-      </button>
-      <nav id="ielts-teacher-navigation" aria-label="IELTS teacher workspace" className={"ip-teacher-navigation" + (mobileOpen ? " ip-teacher-navigation-open" : "")}>
-        {groups.map((group, index) => {
-          const entries = group.entries.filter(e => canManage || !["lessons","create","manage","history","interviews","exams","batches"].includes(e.key));
-          if (!entries.length) return null;
-          return (
-            <details key={group.title + ":" + entries.some(e => e.key === active)} className="ip-nav-group" defaultOpen={index < 3 || entries.some(e => e.key === active)}>
-              <summary><span className="ip-nav-group-symbol" aria-hidden="true">{group.icon}</span><span>{group.title}</span><span className="ip-nav-chevron" aria-hidden="true">⌄</span></summary>
-              <div className="ip-nav-options">
-                {entries.map(entry => (
-                  <button key={entry.key} type="button" className={"ip-nav-item" + (active === entry.key ? " ip-nav-item-active" : "")}
-                    aria-current={active === entry.key ? "page" : undefined} disabled={disabled}
-                    onClick={() => { onNavigate(entry.key); setMobileOpen(false); }}>
-                    {entry.label}
-                    {active === entry.key && <span className="ip-nav-active-dot" aria-hidden="true" />}
-                  </button>
-                ))}
-              </div>
-            </details>
-          );
-        })}
-      </nav>
-    </div>
+    <nav aria-label="IELTS teacher workspace" className="ip-tabs">
+      {entries.filter(e => canManage || !e.manageOnly).map(entry => (
+        <button key={entry.key} type="button" className={"ip-tab" + (active === entry.key ? " ip-tab-active" : "")}
+          aria-current={active === entry.key ? "page" : undefined} disabled={disabled}
+          onClick={() => onNavigate(entry.key)}>
+          <span>{entry.label}</span>
+          {entry.key === "reviews" && reviewCount > 0 && <span className="ip-tab-count" aria-label={`${reviewCount} waiting`}>{reviewCount}</span>}
+        </button>
+      ))}
+    </nav>
   );
 }
