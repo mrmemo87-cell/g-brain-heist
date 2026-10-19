@@ -75,7 +75,9 @@ const IeltsExtraPracticeGuard = lazyRetry(() => import('./src/pages/ielts/IeltsE
 const BookedDemoPage = lazyRetry(() => import('./src/pages/BookedDemoPage'), 'BookedDemoPage');
 const PresentationPage = lazyRetry(() => import('./src/pages/PresentationPage'), 'PresentationPage');
 
-const queryClient = new QueryClient();
+// Returning to a browser/phone tab must not refetch every screen (owner report 2026-10-19); data still loads
+// fresh whenever a screen opens, and screens offer their own refresh.
+const queryClient = new QueryClient({ defaultOptions: { queries: { refetchOnWindowFocus: false } } });
 
 const withSchoolIeltsAccess = (element: React.ReactElement, lockedFallback?: React.ReactElement): React.ReactElement => (
   <SchoolProgrammeRouteGuard programme="ielts" lockedFallback={lockedFallback}>{element}</SchoolProgrammeRouteGuard>

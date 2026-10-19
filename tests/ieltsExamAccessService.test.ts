@@ -139,7 +139,8 @@ test('IELTS Exam Mode guard hides previously authorized content during every rec
   assert.match(guard, /const requestIdRef = useRef\(0\)/, 'guard must version overlapping authorization checks');
   assert.match(guard, /const requestId = \+\+requestIdRef\.current;\s*setState\('loading'\)/, 'every recheck must hide protected children first');
   assert.match(guard, /requestId !== requestIdRef\.current/, 'stale authorization responses must be ignored');
-  assert.match(guard, /requestIdRef\.current \+= 1;\s*subscription\.unsubscribe\(\)/, 'unmount must invalidate pending checks');
+  assert.match(guard, /requestIdRef\.current \+= 1;\s*unsubscribe\(\)/, 'unmount must invalidate pending checks');
+  assert.match(guard, /subscribeToAccountChanges\(/, 'rechecks follow account changes, not token refreshes on tab return');
   assert.match(guard, /result\.reason === 'verification_error' \? 'error' : 'denied'/, 'verification failures must not masquerade as permission denials');
   assert.match(guard, /role="status" aria-live="polite"/, 'exam access verification must be announced politely');
 

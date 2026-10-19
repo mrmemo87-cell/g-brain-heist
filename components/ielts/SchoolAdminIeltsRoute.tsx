@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { resolveMySchoolCapabilities } from '../../services/schoolAdminService';
-import { supabase } from '../../services/supabaseClient';
+import { subscribeToAccountChanges } from '../../src/lib/accountChange';
 import {
   isValidSchoolAdminIeltsReviewAttemptId,
   isValidSchoolAdminIeltsRouteExamId,
@@ -38,12 +38,11 @@ const SchoolAdminIeltsRoute: React.FC<SchoolAdminIeltsRouteProps> = ({ children,
 
   useEffect(() => {
     void checkAccess();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      void checkAccess();
-    });
+    // Only a different account re-checks access; token refreshes on tab return keep the workspace mounted.
+    const unsubscribe = subscribeToAccountChanges(() => { void checkAccess(); });
     return () => {
       requestIdRef.current += 1;
-      subscription.unsubscribe();
+      unsubscribe();
     };
   }, [checkAccess]);
 
