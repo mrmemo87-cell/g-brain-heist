@@ -1,5 +1,5 @@
 import {supabase} from './supabaseClient';
-import type{KudosKey,PracticeKind,PracticeResult,PracticeRun,RetentionMetrics,RetentionSnapshot,TrialControl}from '../src/features/retention/retentionModel';
+import type{KudosKey,PracticeKind,PracticeResult,PracticeRun,RetentionEvidence,RetentionMetrics,RetentionSnapshot,TrialControl}from '../src/features/retention/retentionModel';
 import type { CompanionProfile, CompanionSnapshot, CrewSignal } from '../src/features/retention/companionModel';
 const cache=new Map<string,{expires:number;data:RetentionSnapshot}>();
 const pending=new Map<string,Promise<RetentionSnapshot>>();
@@ -12,6 +12,7 @@ export async function sendTrialKudos(userId:string,assignmentId:string,key:Kudos
 export const getTrialControl=()=>rpc<TrialControl>('rpc_retention_trial_control');
 export const setTrialControl=(c:TrialControl)=>rpc<TrialControl>('rpc_retention_trial_control',{p_enabled:c.enabled,p_audience:c.audience,p_pilot_user_ids:c.pilot_user_ids,p_school_id:c.school_id});
 export const getTrialMetrics=()=>rpc<RetentionMetrics>('rpc_retention_trial_metrics');
+export const getTrialEvidence=()=>rpc<RetentionEvidence>('rpc_retention_trial_evidence_v2');
 const companionCache = new Map<string, { expires: number; data: CompanionSnapshot }>();
 const companionPending = new Map<string, Promise<CompanionSnapshot>>();
 export function getCompanionSnapshot(userId: string, fresh = false): Promise<CompanionSnapshot> {

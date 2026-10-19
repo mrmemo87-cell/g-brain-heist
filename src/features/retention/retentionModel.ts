@@ -12,3 +12,57 @@ export function weeklyTheme(now=new Date()){const day=Math.floor((now.getTime()+
 export function vaultPercent(v:RetentionSnapshot['vault']){return v&&v.total>0?Math.min(100,Math.max(0,Math.round(v.completed/v.total*100))):0;}
 export const IDENTITIES=[{id:'rookie',title:'Fresh Perspective',icon:'✦',runs:0,tone:'cyan'},{id:'detective',title:'Detail Detective',icon:'◎',runs:1,tone:'violet'},{id:'comeback',title:'Comeback Specialist',icon:'↗',runs:3,tone:'pink'},{id:'steady',title:'Steady Operator',icon:'◇',runs:7,tone:'gold'}] as const;
 export function trialError(error:unknown){const message=typeof error==='object'&&error&&'message'in error?String(error.message):'';if(/TRIAL_PAUSED/.test(message))return 'The trial is paused. Your normal Brains Heist tools are still available.';if(/DAILY_LIMIT/.test(message))return 'You have finished today’s three practice rounds. Come back tomorrow.';if(/FOCUS_NOT_READY/.test(message))return 'Not enough recent skill evidence for a focused rescue yet. Try the Weekly Drop.';if(/BASELINE_REQUIRED/.test(message))return 'Finish a Weekly Drop first, then try different questions in a comeback.';if(/POOL_NOT_READY/.test(message))return 'Five suitable verified questions are not available for this round yet. Try another option.';if(/GRADE_REQUIRED/.test(message))return 'Your school grade needs to be set before selecting suitable questions.';if(/RUN_EXPIRED/.test(message))return 'This round expired. Close it and start a fresh round.';return 'We could not save that just now. Please try again. Your normal tools are still available.';}
+
+/** Superadmin-only, aggregated source-of-truth retention evidence. Never include student PII. */
+export interface RetentionEvidence {
+  generated_at: string;
+  timezone: string;
+  window_days: number;
+  cohort_definition: string;
+  disclaimer: string;
+  summary: {
+    student_users_28d: number;
+    teacher_users_28d: number;
+    online_completions_28d: number;
+    online_students_28d: number;
+    teacher_assignments_28d: number;
+    teachers_creating_28d: number;
+    teacher_paper_captures_28d: number;
+    teacher_interventions_28d: number;
+    quest_completions_28d: number;
+    quest_users_28d: number;
+    trial_practice_completions_28d: number;
+    trial_practice_users_28d: number;
+    student_repeat_2weeks_28d: number;
+    active_schools_28d: number;
+    paper_completions_28d: number;
+    trial_view_user_days_28d: number;
+  };
+  weekly: Array<{
+    week: string;
+    actor_role: 'student' | 'teacher';
+    users: number;
+    actions: number;
+    online_assignments: number;
+    quests: number;
+    trial_practice: number;
+    teacher_assignments: number;
+    teacher_paper_captures: number;
+    teacher_interventions: number;
+    is_partial: boolean;
+  }>;
+  cohorts: Array<{
+    first_week: string;
+    actor_role: 'student' | 'teacher';
+    users: number;
+    week_one: number;
+    week_four: number;
+    week_one_mature: boolean;
+    week_four_mature: boolean;
+  }>;
+  quality: {
+    excluded_username_flags: number;
+    excluded_named_test_schools: number;
+    exclusion_rule: string;
+  };
+}
