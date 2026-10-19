@@ -30,6 +30,9 @@ for(const name of ['rpc_ielts_practice_create_assignment','rpc_ielts_practice_as
  await db.exec(foundation.slice(start,end));
 }
 await db.exec(readFileSync('supabase/migrations/20261015044759_ielts_course_batches.sql','utf8'));
+// Columns added by later lifecycle migrations that the current creator checks.
+await db.exec('alter table private.ielts_course_batches add column if not exists archived_at timestamptz, add column if not exists deleted_at timestamptz');
+await db.exec(readFileSync('supabase/migrations/20261019160000_ielts_batch_assign_chosen_students.sql','utf8'));
 test.after(()=>db.close());
 const actor=x=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[x]);
 const sql=async(q,args=[])=>(await db.query(q,args)).rows[0];
@@ -56,6 +59,19 @@ test('batch assignment creation is idempotent, snapshots recipients and exposes 
  assignment=(await sql(q,params)).data;assert.equal(assignment.batch_id,batch);assert.equal(assignment.batch_name,'October');assert.equal(assignment.class_id,null);
  assert.equal((await sql(q,params)).data.id,assignment.id);assert.equal((await sql('select count(*)::integer n from ielts_practice_assignments')).n,1);
  await assert.rejects(()=>sql(q,[batch,2,id(21),'Stale',null,null,'[]']),/batch_changed/);
+});
+test('a draft for chosen students snapshots exactly them and allocates without the rest of the batch',async()=>{
+ const items=JSON.stringify([{skill:'listening',content_type:'ielts_listening_set',content_id:'32',required:true}]);
+ const q='select rpc_ielts_batch_create_assignment_for($1,$2,$3,$4,$5,$6,$7,$8) data';
+ await assert.rejects(()=>sql(q,[batch,3,id(30),'One',null,null,items,[outsider]]),/batch_roster_needs_review/);
+ await assert.rejects(()=>sql(q,[batch,3,id(31),'One',null,null,items,[]]),/students_required/);
+ const one=(await sql(q,[batch,3,id(32),'One',null,null,items,[b]])).data;
+ assert.deepEqual((await sql('select student_ids from private.ielts_batch_assignment_links where assignment_id=$1',[one.id])).student_ids,[b]);
+ assert.equal((await sql(q,[batch,3,id(32),'One',null,null,items,[b]])).data.id,one.id,'idempotent retry');
+ await assert.rejects(()=>sql(q,[batch,3,id(32),'One',null,null,items,[a]]),/request_changed/);
+ await sql('select rpc_ielts_batch_allocate($1) data',[one.id]);
+ assert.deepEqual((await db.query('select student_id from ielts_practice_assignment_students where assignment_id=$1',[one.id])).rows.map(r=>r.student_id),[b]);
+ await db.query('delete from ielts_practice_assignment_students where assignment_id=$1',[one.id]);await db.query("update ielts_practice_assignments set status='closed' where id=$1",[one.id]);
 });
 test('allocation retry preserves completed students; late joining does not allocate until explicit catch-up',async()=>{
  const allocated=(await sql('select rpc_ielts_batch_allocate($1) data',[assignment.id])).data;assert.equal(allocated.total_students,2);
