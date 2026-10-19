@@ -115,3 +115,12 @@ test('Reading headings use the task options and typed answers use a text box, wi
  await m.wait(()=>m.w.document.querySelector('select').value==='ii');m.button('Submit for review').click();await m.wait(()=>m.calls.some(c=>c.fn==='rpc_ielts_learning_submit'));
  const saved=m.calls.filter(c=>c.fn==='rpc_ielts_learning_save').at(-1);assert.equal(saved.args.p_answers.q1,'ii');assert.equal(saved.args.p_answers.q3,'grant');assert.deepEqual(m.errors,[]);m.dom.window.close();
 });
+test('Listening multiple choice uses the task letters; listening gap items stay text boxes',async()=>{
+ const opts=[{value:'A',label:'A  It went well.'},{value:'B',label:'B  It was disappointing.'},{value:'C',label:'C  It was too crowded.'}];
+ const questions=[{id:'q1',prompt:"What is Peter's overall view?",options:opts},...Array.from({length:5},(_,i)=>({id:'q'+(i+2),prompt:'Detail '+(i+2)}))];
+ const m=await mount({server:{...base,questions}});
+ const selects=[...m.w.document.querySelectorAll('select')];assert.equal(selects.length,1);assert.deepEqual([...selects[0].options].map(o=>o.value),['','A','B','C']);
+ assert.doesNotMatch(selects[0].textContent,/NOT GIVEN/);assert.equal(m.w.document.querySelectorAll('.il-answer input').length,5);
+ assert.doesNotMatch(m.w.document.body.textContent,/Your evidence or the missing fact/);
+ try{m.change(selects[0],'A');await m.wait(()=>selects[0].value==='A');m.button('Save now').click();await m.wait(()=>m.calls.some(c=>c.fn==='rpc_ielts_learning_save'&&c.args.p_answers.q1==='A'));assert.deepEqual(m.errors,[]);}finally{m.dom.window.close();}
+});

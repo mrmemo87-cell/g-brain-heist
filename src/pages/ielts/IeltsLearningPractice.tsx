@@ -586,7 +586,7 @@ export default function IeltsLearningPractice() {
                 <div key={q.id} className="il-answer">
                   <label>
                     {i + 1}. {q.prompt}
-                    {skill === "reading" && q.answer_format !== "text" ? (
+                    {(skill === "reading" && q.answer_format !== "text") || (skill === "listening" && q.options) ? (
                       <select
                         value={answers[q.id] ?? ""}
                         disabled={disabled}
