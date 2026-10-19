@@ -35,6 +35,9 @@ test('Listening sets must be played to the end by the reviewer before they can b
  assert.match(m.w.document.body.textContent,/0 of 3 recordings played in full by you/);
  const boxes=()=>[...m.w.document.querySelectorAll('label')].filter(l=>l.textContent==='I checked this material in full').map(l=>l.querySelector('input'));
  assert.ok(boxes().every(b=>b.disabled),'cannot tick a Listening set before hearing it');
+ m.button('Pick a random sample').click();await new Promise(r=>setTimeout(r,20));
+ assert.ok(boxes().every(b=>!b.checked),'the random pick never ticks an unheard recording');
+ assert.match(m.w.document.body.textContent,/Locked: play 3 more recordings to the end/);
  const audios=[...m.w.document.querySelectorAll('audio')];assert.equal(audios.length,3);
  const play=async(a,times)=>{let t=0;Object.defineProperty(a,'currentTime',{configurable:true,get:()=>t});for(const x of times){t=x;a.dispatchEvent(new m.w.Event(x<0?'seeking':'timeupdate',{bubbles:false}));}a.dispatchEvent(new m.w.Event('ended'));await new Promise(r=>setTimeout(r,20));};
  // Skipping from 1 s to 9 s does not count as listening.
