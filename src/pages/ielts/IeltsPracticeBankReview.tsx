@@ -56,6 +56,8 @@ export default function IeltsPracticeBankReview() {
   const toggle = (list: string[], id: string, on: boolean) => on ? [...new Set([...list, id])] : list.filter(x => x !== id);
   const listening = batch?.items.filter(i => i.material_type === 'ielts_listening_set' && !rejected.includes(i.ref)) ?? [];
   const unheard = listening.filter(i => !i.heard_by_me && !heard.includes(i.ref)).length;
+  // A Listening set can only join the sample once the reviewer has heard it (never through the random pick).
+  const heardRefs = listening.filter(i => i.heard_by_me || heard.includes(i.ref)).map(i => i.ref);
   const enough = batch ? sample.length >= Math.min(batch.minimum_sample, batch.items.length) && flagged.every(f => sample.includes(f)) && unheard === 0 && listening.every(i => sample.includes(i.ref)) : false;
   const decide = async (decision: 'approved' | 'changes_requested') => {
     if (!batch || lock.current) return; lock.current = true; setBusy(true); setError(''); setMessage('');
@@ -74,7 +76,7 @@ export default function IeltsPracticeBankReview() {
       <article className="ix-row"><h3>{batch.title}</h3><p>{batch.proposed_by}. {batch.proposal_basis}</p>
         {listening.length > 0 && <p><strong>Listening: {listening.length - unheard} of {listening.length} recordings played in full by you.</strong> Every Listening set must be heard to the end by the person approving; AI cannot do this step.</p>}
         <p className="ix-muted">Check at least {batch.minimum_sample} materials (20%, minimum 3) in full: passage or prompt, every answer and its evidence, and the skill tags. Items with an originality flag must be checked. Reject any material with a problem; approving releases the rest to students.</p>
-        <div className="ix-actions"><IeltsButton disabled={busy} onClick={() => setSample([...new Set([...flagged, ...randomSample(batch.items.filter(i => !flagged.includes(i.ref)), Math.max(0, batch.minimum_sample - flagged.length)).map(i => i.ref)])])}>Pick a random sample</IeltsButton>
+        <div className="ix-actions"><IeltsButton disabled={busy} onClick={() => setSample([...new Set([...flagged, ...heardRefs, ...randomSample(batch.items.filter(i => !flagged.includes(i.ref) && i.material_type !== 'ielts_listening_set'), Math.max(0, batch.minimum_sample - flagged.length - heardRefs.length)).map(i => i.ref)])])}>Pick a random sample</IeltsButton>
           <span role="status" aria-live="polite">{sample.length} checked · {rejected.length} rejected{flagged.length ? ` · ${flagged.length} flagged` : ''}</span></div></article>
       {batch.items.map(item => <details key={item.ref} className={`ix-row${sample.includes(item.ref) ? ' ix-row--selected' : ''}`}>
         <summary><strong>{item.display_code ?? item.item_key}</strong> · {kind(item.material_type)} · {item.preview?.title ?? item.item_key}{item.matches.length ? ` · ⚠ similar to ${item.matches.map(m => m.display_code).join(', ')}` : ''}{sample.includes(item.ref) ? ' · in sample' : ''}</summary>
@@ -86,6 +88,7 @@ export default function IeltsPracticeBankReview() {
       </details>)}
       <label className="ix-field">What did you check?<textarea value={notes} maxLength={2000} onChange={e => setNotes(e.target.value)} placeholder="For example: read 5 materials in full, checked every key against its evidence and the skill tags; rejected one prompt." /></label>
       <div className="ix-actions">
+        {unheard > 0 && <p role="status"><strong>Locked: play {unheard} more recording{unheard === 1 ? '' : 's'} to the end</strong> ({listening.filter(i => !i.heard_by_me && !heard.includes(i.ref)).map(i => i.display_code ?? i.item_key).join(', ')}). Reading the transcript does not count.</p>}
         <IeltsButton variant="primary" disabled={busy || !enough || notes.trim().length < 20} onClick={() => void decide('approved')}>{busy ? 'Saving…' : `Approve and release ${batch.items.length - rejected.length} materials`}</IeltsButton>
         <IeltsButton disabled={busy || notes.trim().length < 20} onClick={() => void decide('changes_requested')}>Request changes</IeltsButton>
       </div>
