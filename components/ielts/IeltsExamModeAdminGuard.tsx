@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { supabase } from '../../services/supabaseClient';
+import { subscribeToAccountChanges } from '../../src/lib/accountChange';
 import { checkIeltsExamModeAdminAccess } from '../../services/ieltsExamAccessService';
 import AccessDenied from './AccessDenied';
 
@@ -33,9 +33,8 @@ const IeltsExamModeAdminGuard: React.FC<{ children: React.ReactNode }> = ({ chil
 
     runCheck();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
+    // Only a different account re-checks access; token refreshes on tab return keep the page mounted.
+    const unsubscribe = subscribeToAccountChanges(() => {
       if (isMounted) {
         checkAccess();
       }
@@ -44,7 +43,7 @@ const IeltsExamModeAdminGuard: React.FC<{ children: React.ReactNode }> = ({ chil
     return () => {
       isMounted = false;
       requestIdRef.current += 1;
-      subscription.unsubscribe();
+      unsubscribe();
     };
   }, [checkAccess]);
 
