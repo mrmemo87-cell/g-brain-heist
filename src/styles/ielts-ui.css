@@ -77,3 +77,19 @@
 .ix-batch-toolbar > nav { flex:0 0 auto; }
 .ix-batch-row h3 { font-size:1.05rem; }
 @media (max-width:640px) { .ix-batch-row .ix-actions .ix-button { flex:1 1 auto; } }
+
+/* "Did it work?" (practice effect) */
+.ix-effect-summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; }
+.ix-effect-summary > div { display:grid; gap:2px; padding:12px; border:1px solid var(--bh-ielts-border); border-radius:var(--bh-ielts-radius-sm); background:var(--bh-ielts-surface); }
+.ix-effect-summary strong { font-size:1.5rem; line-height:1.2; color:var(--bh-ielts-foreground); }
+.ix-effect-summary span { font-size:.85rem; color:var(--bh-ielts-foreground-muted); }
+.ix-effect-list { display:grid; gap:0; margin:0; padding:0; list-style:none; }
+.ix-effect-list li { display:grid; gap:6px; padding:12px 0; border-top:1px solid var(--bh-ielts-border); }
+.ix-effect-list li:first-child { border-top:0; }
+.ix-effect-list .ix-button { justify-self:start; }
+.ix-effect-head { display:flex; gap:8px; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+.ix-effect-up { color:var(--bh-ielts-success); background:#ecfdf5; border-color:#a7f3d0; }
+.ix-effect-down { color:var(--bh-ielts-warning); background:#fffbeb; border-color:#fde68a; }
+.ix-effect-note { font-size:.85rem; }
+.ix-effect > .ix-button { justify-self:start; }
+.ix-actions > .ix-button[aria-pressed=true] { background:var(--bh-ielts-surface); color:var(--bh-ielts-primary); border-color:var(--bh-ielts-primary); box-shadow:inset 0 -2px var(--bh-ielts-primary); }

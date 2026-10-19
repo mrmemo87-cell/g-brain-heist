@@ -1,12 +1,13 @@
 import IeltsBatchCourseMaterials,{type CoursePreset} from './IeltsBatchCourseMaterials';
 import IeltsBatchLearningLoop,{type PreparedAssignment} from './IeltsBatchLearningLoop';
 import IeltsMockCapture from './IeltsMockCapture';
+import IeltsBatchPracticeEffect from './IeltsBatchPracticeEffect';
 import React, {useEffect,useRef,useState} from 'react';
 import {batchPracticePreview,assignBatchPractice,type BatchPracticePreview} from '../../../services/ieltsBatchService';
 import {programmeEvidenceRoute} from '../../../services/ieltsProgrammeService';
 import {IeltsButton,IeltsNotice} from '../../components/ielts/IeltsUi';
 export default function IeltsBatchPractice({batchId,onClose}:{batchId:string;onClose:()=>void}){
- const [mode,setMode]=useState<'loop'|'targeted'|'course'|'mocks'>('loop');
+ const [mode,setMode]=useState<'loop'|'effect'|'targeted'|'course'|'mocks'>('loop');
  const [coursePreset,setCoursePreset]=useState<CoursePreset|null>(null);
  const pending=useRef<string[]|null>(null);
  const [data,setData]=useState<BatchPracticePreview|null>(null),[task,setTask]=useState(''),[selected,setSelected]=useState<string[]>([]);
@@ -21,6 +22,7 @@ export default function IeltsBatchPractice({batchId,onClose}:{batchId:string;onC
  const ready=(s:BatchPracticePreview['students'][number])=>s.eligible&&s.source_ready&&!s.active&&!(material?.purpose==='independent_check'&&s.prior_count>0);
  const readyStudents=data?.students.filter(ready)??[];
  const repeating=data?.students.some(s=>selected.includes(s.id)&&s.prior_count>0)??false;
+ const prepare=(p:PreparedAssignment)=>{if(p.material){setCoursePreset({material:p.material,students:p.students,reason:p.reason});setMode('course');return;}pending.current=p.students;setReason(p.reason);setMessage('');request.current=crypto.randomUUID();setTask(p.task);setRefresh(n=>n+1);setMode('targeted');};
  const save=async()=>{
   if(lock.current||!data||!material||!reviewed||reason.trim().length<10||!selected.length||(repeating&&!repeat))return;
   lock.current=true;setSaving(true);setError('');setMessage('');
@@ -29,8 +31,8 @@ export default function IeltsBatchPractice({batchId,onClose}:{batchId:string;onC
   finally{lock.current=false;setSaving(false);}
  };
  return <section className="ix-panel" aria-label="Assign batch practice"><header className="ix-header"><div><p className="ix-eyebrow">Released practice · Four skills</p><h2>Assign tasks to {data?.batch.name??'your batch'}</h2></div><IeltsButton disabled={saving} onClick={onClose}>Back to batches</IeltsButton></header>
-<div className="ix-actions"><IeltsButton disabled={saving} aria-pressed={mode==='loop'} onClick={()=>setMode('loop')}>This week</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='targeted'} onClick={()=>setMode('targeted')}>Targeted practice</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='mocks'} onClick={()=>setMode('mocks')}>Mock results</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='course'} onClick={()=>{setCoursePreset(null);setMode('course');}}>Course materials</IeltsButton></div>
- {mode==='loop'?<IeltsBatchLearningLoop batchId={batchId} onPrepare={(p:PreparedAssignment)=>{if(p.material){setCoursePreset({material:p.material,students:p.students,reason:p.reason});setMode('course');return;}pending.current=p.students;setReason(p.reason);setMessage('');request.current=crypto.randomUUID();setTask(p.task);setRefresh(n=>n+1);setMode('targeted');}}/>:mode==='mocks'?<IeltsMockCapture batchId={batchId}/>:mode==='course'?<IeltsBatchCourseMaterials batchId={batchId} onBusyChange={setSaving} preset={coursePreset}/>:<>
+<div className="ix-actions"><IeltsButton disabled={saving} aria-pressed={mode==='loop'} onClick={()=>setMode('loop')}>This week</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='effect'} onClick={()=>setMode('effect')}>Did it work?</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='targeted'} onClick={()=>setMode('targeted')}>Targeted practice</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='mocks'} onClick={()=>setMode('mocks')}>Mock results</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='course'} onClick={()=>{setCoursePreset(null);setMode('course');}}>Course materials</IeltsButton></div>
+ {mode==='loop'?<IeltsBatchLearningLoop batchId={batchId} onPrepare={prepare}/>:mode==='effect'?<IeltsBatchPracticeEffect batchId={batchId} onPrepare={prepare}/>:mode==='mocks'?<IeltsMockCapture batchId={batchId}/>:mode==='course'?<IeltsBatchCourseMaterials batchId={batchId} onBusyChange={setSaving} preset={coursePreset}/>:<>
  <IeltsNotice>Practice only. Screeners stay in initial assessments and are excluded from this material list.</IeltsNotice>
  {message&&<p role="status">{message}</p>}{error&&<IeltsNotice error>{error}</IeltsNotice>}{loading&&<p role="status">Checking materials and student readiness…</p>}
  <IeltsButton disabled={saving||loading} onClick={()=>setRefresh(n=>n+1)}>Refresh preview</IeltsButton>
