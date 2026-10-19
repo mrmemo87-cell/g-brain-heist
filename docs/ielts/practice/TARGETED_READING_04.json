@@ -1,0 +1,3254 @@
+{
+ "bible": "2.0.0",
+ "scope": "Named-student pilot (Gulzada) until the owner releases each task; Jess confirms content before allocation.",
+ "tasks": [
+  {
+   "code": "bh-ielts-targeted-reading-r10-v1",
+   "version": "0.1.0",
+   "title": "Streetlights: cause, contrast and result",
+   "skill": "reading",
+   "purpose": "guided_practice",
+   "instructions": "Read the passage. Choose the correct letter, A, B, C or D, for each question.",
+   "success_description": "Find the linking word (because, however, as a result, although, if) and decide what it connects before you choose.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "Why did the town replace its streetlights?",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "supporting_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Because residents complained about them"
+      },
+      {
+       "value": "B",
+       "label": "B  To reduce the cost of electricity"
+      },
+      {
+       "value": "C",
+       "label": "C  To reduce the number of road closures"
+      },
+      {
+       "value": "D",
+       "label": "D  Because the orange lamps were too bright"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "What happened because residents complained?",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "supporting_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  The council removed the LED lamps"
+      },
+      {
+       "value": "B",
+       "label": "B  Electricity costs doubled"
+      },
+      {
+       "value": "C",
+       "label": "C  Shields were fitted and the lamps were dimmed at night"
+      },
+      {
+       "value": "D",
+       "label": "D  Workers replaced the lamps more often"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "What does the sentence beginning “Although” show?",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "supporting_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  The changes cost some savings but reduced complaints"
+      },
+      {
+       "value": "B",
+       "label": "B  The changes increased the savings"
+      },
+      {
+       "value": "C",
+       "label": "C  The changes caused more complaints"
+      },
+      {
+       "value": "D",
+       "label": "D  The changes were made before the new lamps arrived"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "Why do fewer roads have to be closed for repairs?",
+     "accepted_answers": [
+      "D"
+     ],
+     "taxonomy_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "supporting_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  The lamps are dimmed after midnight"
+      },
+      {
+       "value": "B",
+       "label": "B  Residents complain less"
+      },
+      {
+       "value": "C",
+       "label": "C  The council has fewer workers"
+      },
+      {
+       "value": "D",
+       "label": "D  The LED lamps last longer"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "According to the council, what would have happened if the lamps had not been dimmed?",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "supporting_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  The savings would have been higher"
+      },
+      {
+       "value": "B",
+       "label": "B  More lamps would have broken"
+      },
+      {
+       "value": "C",
+       "label": "C  Complaints would have fallen faster"
+      },
+      {
+       "value": "D",
+       "label": "D  Roads would have been closed less often"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "What does “As a result” introduce?",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "supporting_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  A contrast with the previous sentence"
+      },
+      {
+       "value": "B",
+       "label": "B  A consequence of the complaints"
+      },
+      {
+       "value": "C",
+       "label": "C  An example of the savings"
+      },
+      {
+       "value": "D",
+       "label": "D  A condition for the change"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 12,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "Ten years ago, the town of Marlow Bridge replaced its old orange streetlights with white LED lamps. The main reason was cost: the new lamps use about half as much electricity. However, the change was not popular at first. Many residents said the white light was too harsh, and some complained that it kept them awake. As a result, the council fitted shields to lamps near bedroom windows and lowered their brightness after midnight. Although these changes reduced the savings slightly, complaints fell sharply. The council also found an unexpected benefit. Because the LED lamps last much longer, workers now replace them every twelve years instead of every four, so fewer roads have to be closed for repairs. If the lamps had not been dimmed, the council estimates that savings would have been ten per cent higher.",
+    "teacher_notes": "1 B — “The main reason was cost” (A is a later effect, not the reason).\n2 C — “As a result, the council fitted shields … and lowered their brightness”.\n3 A — concession: a small loss of savings, a large fall in complaints.\n4 D — “Because the LED lamps last much longer … so fewer roads”.\n5 A — third conditional: savings would have been ten per cent higher.\n6 B — “As a result” follows the complaints.\nTeach: underline each linking word and draw an arrow from cause to effect.",
+    "focus": "Recognise logical relationships: cause, result, contrast, concession and condition signalled by linking words."
+   },
+   "skill_name": "Recognise logical relationships",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "6d95b95299e6ed78739c3328c6a4bc730193ef9736cd4c8b7e2c8250c1d34e4a"
+  },
+  {
+   "code": "bh-ielts-targeted-reading-r11-v1",
+   "version": "0.1.0",
+   "title": "Late library: why, despite and if",
+   "skill": "reading",
+   "purpose": "independent_check",
+   "instructions": "Read the passage. Choose the correct letter, A, B, C or D, for each question. Work on your own, without notes, a dictionary or help. Tell your teacher if anything interrupted you.",
+   "success_description": "Find the linking word (because, however, as a result, although, if) and decide what it connects before you choose.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "Why did the library start opening late?",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "supporting_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Security staff asked for longer hours"
+      },
+      {
+       "value": "B",
+       "label": "B  Borrowing of books had fallen"
+      },
+      {
+       "value": "C",
+       "label": "C  Many adults could not visit during the day because of work"
+      },
+      {
+       "value": "D",
+       "label": "D  Children needed reading clubs"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "Why was extending the hours expensive?",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "supporting_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  More books had to be bought"
+      },
+      {
+       "value": "B",
+       "label": "B  Extra security staff were needed"
+      },
+      {
+       "value": "C",
+       "label": "C  The building needed more heating"
+      },
+      {
+       "value": "D",
+       "label": "D  Volunteers had to be paid"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "What does “Nevertheless” show?",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "supporting_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  The library continued with the change despite the cost"
+      },
+      {
+       "value": "B",
+       "label": "B  The cost was lower than expected"
+      },
+      {
+       "value": "C",
+       "label": "C  The survey had been wrong"
+      },
+      {
+       "value": "D",
+       "label": "D  Evening visits fell"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "What was one result of the late opening?",
+     "accepted_answers": [
+      "D"
+     ],
+     "taxonomy_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "supporting_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Weekend reading clubs began"
+      },
+      {
+       "value": "B",
+       "label": "B  Security costs fell"
+      },
+      {
+       "value": "C",
+       "label": "C  Friday visits rose"
+      },
+      {
+       "value": "D",
+       "label": "D  Borrowing of study books increased"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "Why was the Friday late opening cancelled?",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "supporting_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Very few people came"
+      },
+      {
+       "value": "B",
+       "label": "B  Security staff were not available"
+      },
+      {
+       "value": "C",
+       "label": "C  The volunteers left"
+      },
+      {
+       "value": "D",
+       "label": "D  The survey recommended it"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "The weekend reading clubs will start only if …",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "supporting_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Friday visits increase"
+      },
+      {
+       "value": "B",
+       "label": "B  the council pays more"
+      },
+      {
+       "value": "C",
+       "label": "C  enough volunteers are found"
+      },
+      {
+       "value": "D",
+       "label": "D  adults ask for them"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 8,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "Last year, a public library in a coastal city began opening until 10 p.m. on weekdays. The decision followed a survey which showed that many adults could not visit during the day because of work. Extending the hours was expensive, since extra security staff had to be employed. Nevertheless, the library judged the change worthwhile. Evening visits rose steadily, and borrowing of study books increased by a third. Despite this success, the late opening on Fridays was cancelled after six months because very few people came. The library now plans to use the Friday budget for weekend reading clubs for children, provided that enough volunteers can be found.",
+    "teacher_notes": "1 C — “because of work”.\n2 B — “since extra security staff had to be employed”.\n3 A — “Nevertheless” = despite the expense.\n4 D — “borrowing of study books increased by a third”.\n5 A — “because very few people came”.\n6 C — “provided that enough volunteers can be found”.\nDifferent text from R10; not a calibrated equivalent form.",
+    "focus": "Recognise logical relationships: cause, result, contrast, concession and condition signalled by linking words."
+   },
+   "skill_name": "Recognise logical relationships",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "2104a9e003938ac61780f705b419a9741648cbffb2bcaa3c52bf3313ef998c79"
+  },
+  {
+   "code": "bh-ielts-targeted-reading-r12-v1",
+   "version": "0.1.0",
+   "title": "Honeybees: what does it refer to?",
+   "skill": "reading",
+   "purpose": "guided_practice",
+   "instructions": "Read the passage. Choose the correct letter, A, B, C or D, for each question.",
+   "success_description": "Look back to the nearest noun or idea that makes sense in place of the word, then check by replacing the word with your answer.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "In “several causes for this”, “this” refers to …",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "fd1c70d0-1cde-4423-b18c-b2d9fa5842b3",
+     "supporting_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  the loss of honeybees each winter"
+      },
+      {
+       "value": "B",
+       "label": "B  the work of scientists"
+      },
+      {
+       "value": "C",
+       "label": "C  a tiny parasite"
+      },
+      {
+       "value": "D",
+       "label": "D  the cold weather"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "In “attaches itself to bees”, “itself” refers to …",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "fd1c70d0-1cde-4423-b18c-b2d9fa5842b3",
+     "supporting_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  the bee"
+      },
+      {
+       "value": "B",
+       "label": "B  the parasite"
+      },
+      {
+       "value": "C",
+       "label": "C  the scientist"
+      },
+      {
+       "value": "D",
+       "label": "D  the flower"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "In “which means bees have fewer sources of food”, “which” refers to …",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "fd1c70d0-1cde-4423-b18c-b2d9fa5842b3",
+     "supporting_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  the parasite"
+      },
+      {
+       "value": "B",
+       "label": "B  the winter"
+      },
+      {
+       "value": "C",
+       "label": "C  the loss of wild flowers"
+      },
+      {
+       "value": "D",
+       "label": "D  the beekeepers"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "In “These provide food from spring to autumn”, “These” refers to …",
+     "accepted_answers": [
+      "D"
+     ],
+     "taxonomy_node_id": "fd1c70d0-1cde-4423-b18c-b2d9fa5842b3",
+     "supporting_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  the farmers"
+      },
+      {
+       "value": "B",
+       "label": "B  the fields"
+      },
+      {
+       "value": "C",
+       "label": "C  the crop pests"
+      },
+      {
+       "value": "D",
+       "label": "D  the strips of flowers"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "In “although they are tested for safety”, “they” refers to …",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "fd1c70d0-1cde-4423-b18c-b2d9fa5842b3",
+     "supporting_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  the bees"
+      },
+      {
+       "value": "B",
+       "label": "B  the chemicals"
+      },
+      {
+       "value": "C",
+       "label": "C  the crops"
+      },
+      {
+       "value": "D",
+       "label": "D  the researchers"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "In “it is the combination that matters”, the combination is of …",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "fd1c70d0-1cde-4423-b18c-b2d9fa5842b3",
+     "supporting_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  the different causes"
+      },
+      {
+       "value": "B",
+       "label": "B  flowers and insects"
+      },
+      {
+       "value": "C",
+       "label": "C  chemicals and crops"
+      },
+      {
+       "value": "D",
+       "label": "D  beekeepers and scientists"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 10,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "Beekeepers in many countries have reported losing large numbers of honeybees each winter. Scientists have suggested several causes for this. One is a tiny parasite that attaches itself to bees and weakens them. Another is the loss of wild flowers, which means bees have fewer sources of food. Some farmers have responded by planting strips of flowers along the edges of their fields. These provide food from spring to autumn, and they also attract other insects that eat crop pests. A third cause may be the chemicals used to protect crops; although they are tested for safety, their combined effect on bees is less well understood. Researchers say that no single factor explains the losses. Instead, it is the combination that matters.",
+    "teacher_notes": "1 A — “this” = the winter losses.\n2 B — the parasite attaches itself.\n3 C — loss of wild flowers → fewer sources of food.\n4 D — the strips of flowers provide food.\n5 B — the chemicals are tested.\n6 A — no single factor; the combination of causes.\nTeach: replace the word with your answer and read the sentence again.",
+    "focus": "Track reference: identify what pronouns and words such as this, which and these refer to."
+   },
+   "skill_name": "Track reference",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "b902c771307caed9cf56d87ea46d22c17988ec4cd126fdf862b59842b211ff5d"
+  },
+  {
+   "code": "bh-ielts-targeted-reading-r13-v1",
+   "version": "0.1.0",
+   "title": "Railway path: track the reference",
+   "skill": "reading",
+   "purpose": "independent_check",
+   "instructions": "Read the passage. Choose the correct letter, A, B, C or D, for each question. Work on your own, without notes, a dictionary or help. Tell your teacher if anything interrupted you.",
+   "success_description": "Look back to the nearest noun or idea that makes sense in place of the word, then check by replacing the word with your answer.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "“The idea” refers to …",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "fd1c70d0-1cde-4423-b18c-b2d9fa5842b3",
+     "supporting_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  turning the railway line into a path"
+      },
+      {
+       "value": "B",
+       "label": "B  building a new road"
+      },
+      {
+       "value": "C",
+       "label": "C  clearing the bushes"
+      },
+      {
+       "value": "D",
+       "label": "D  opening a café"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "In “because it would cost less than building a new road”, “it” refers to …",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "fd1c70d0-1cde-4423-b18c-b2d9fa5842b3",
+     "supporting_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  the council"
+      },
+      {
+       "value": "B",
+       "label": "B  the town"
+      },
+      {
+       "value": "C",
+       "label": "C  the path project"
+      },
+      {
+       "value": "D",
+       "label": "D  the railway company"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "In “which had been covered by bushes”, “which” refers to …",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "fd1c70d0-1cde-4423-b18c-b2d9fa5842b3",
+     "supporting_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  the volunteers"
+      },
+      {
+       "value": "B",
+       "label": "B  the route"
+      },
+      {
+       "value": "C",
+       "label": "C  the town"
+      },
+      {
+       "value": "D",
+       "label": "D  the council"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "In “Their owners now pay for benches”, “Their” refers to …",
+     "accepted_answers": [
+      "D"
+     ],
+     "taxonomy_node_id": "fd1c70d0-1cde-4423-b18c-b2d9fa5842b3",
+     "supporting_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  the volunteers’"
+      },
+      {
+       "value": "B",
+       "label": "B  the cyclists’"
+      },
+      {
+       "value": "C",
+       "label": "C  the council’s"
+      },
+      {
+       "value": "D",
+       "label": "D  the local shops’"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "In “To deal with this”, “this” refers to …",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "fd1c70d0-1cde-4423-b18c-b2d9fa5842b3",
+     "supporting_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  some cyclists riding too fast"
+      },
+      {
+       "value": "B",
+       "label": "B  the narrow path"
+      },
+      {
+       "value": "C",
+       "label": "C  rising sales"
+      },
+      {
+       "value": "D",
+       "label": "D  the old station"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "In “where the path is narrowest”, “where” refers to …",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "fd1c70d0-1cde-4423-b18c-b2d9fa5842b3",
+     "supporting_node_id": "e75c01d6-b850-4f9e-87bb-f014b7c3947f",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  the shops"
+      },
+      {
+       "value": "B",
+       "label": "B  the entrance"
+      },
+      {
+       "value": "C",
+       "label": "C  near the old station"
+      },
+      {
+       "value": "D",
+       "label": "D  the café"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 8,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "In 2015, a disused railway line outside the town was turned into a path for walkers and cyclists. The idea came from a group of residents, and the council supported it because it would cost less than building a new road. Volunteers cleared the route, which had been covered by bushes for decades. When the path opened, local shops near its entrance noticed that their sales rose. Their owners now pay for benches and a small café along the way. However, the path has created one problem: some cyclists ride too fast. To deal with this, the council has put up signs asking them to slow down near the old station, where the path is narrowest.",
+    "teacher_notes": "1 A.\n2 C — the project would cost less than a road.\n3 B — the route had been covered by bushes.\n4 D — the shops’ owners.\n5 A — cyclists riding too fast.\n6 C — near the old station.\nDifferent text from R12; not a calibrated equivalent form.",
+    "focus": "Track reference: identify what pronouns and words such as this, which and these refer to."
+   },
+   "skill_name": "Track reference",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "ba2701c4dcb8ebe968f98b24a39f02c69766c2abf98d1a524d5bde390f94120a"
+  },
+  {
+   "code": "bh-ielts-targeted-reading-r14-v1",
+   "version": "0.1.0",
+   "title": "Noisy classrooms: what does each paragraph do?",
+   "skill": "reading",
+   "purpose": "guided_practice",
+   "instructions": "Read the passage. Choose what each paragraph, A–F, does in the text from the list. There are more choices than paragraphs.",
+   "success_description": "Ask what job each paragraph does in the whole text (background, problem, solution, evidence, result, objection), not what it is about.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "Paragraph A",
+     "accepted_answers": [
+      "i"
+     ],
+     "taxonomy_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "supporting_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "options": [
+      {
+       "value": "i",
+       "label": "i  gives background"
+      },
+      {
+       "value": "ii",
+       "label": "ii  describes a problem"
+      },
+      {
+       "value": "iii",
+       "label": "iii  proposes a solution"
+      },
+      {
+       "value": "iv",
+       "label": "iv  describes a trial"
+      },
+      {
+       "value": "v",
+       "label": "v  reports the results"
+      },
+      {
+       "value": "vi",
+       "label": "vi  raises a reservation"
+      },
+      {
+       "value": "vii",
+       "label": "vii  compares two countries"
+      },
+      {
+       "value": "viii",
+       "label": "viii  summarises the whole text"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "Paragraph B",
+     "accepted_answers": [
+      "ii"
+     ],
+     "taxonomy_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "supporting_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "options": [
+      {
+       "value": "i",
+       "label": "i  gives background"
+      },
+      {
+       "value": "ii",
+       "label": "ii  describes a problem"
+      },
+      {
+       "value": "iii",
+       "label": "iii  proposes a solution"
+      },
+      {
+       "value": "iv",
+       "label": "iv  describes a trial"
+      },
+      {
+       "value": "v",
+       "label": "v  reports the results"
+      },
+      {
+       "value": "vi",
+       "label": "vi  raises a reservation"
+      },
+      {
+       "value": "vii",
+       "label": "vii  compares two countries"
+      },
+      {
+       "value": "viii",
+       "label": "viii  summarises the whole text"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "Paragraph C",
+     "accepted_answers": [
+      "iii"
+     ],
+     "taxonomy_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "supporting_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "options": [
+      {
+       "value": "i",
+       "label": "i  gives background"
+      },
+      {
+       "value": "ii",
+       "label": "ii  describes a problem"
+      },
+      {
+       "value": "iii",
+       "label": "iii  proposes a solution"
+      },
+      {
+       "value": "iv",
+       "label": "iv  describes a trial"
+      },
+      {
+       "value": "v",
+       "label": "v  reports the results"
+      },
+      {
+       "value": "vi",
+       "label": "vi  raises a reservation"
+      },
+      {
+       "value": "vii",
+       "label": "vii  compares two countries"
+      },
+      {
+       "value": "viii",
+       "label": "viii  summarises the whole text"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "Paragraph D",
+     "accepted_answers": [
+      "iv"
+     ],
+     "taxonomy_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "supporting_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "options": [
+      {
+       "value": "i",
+       "label": "i  gives background"
+      },
+      {
+       "value": "ii",
+       "label": "ii  describes a problem"
+      },
+      {
+       "value": "iii",
+       "label": "iii  proposes a solution"
+      },
+      {
+       "value": "iv",
+       "label": "iv  describes a trial"
+      },
+      {
+       "value": "v",
+       "label": "v  reports the results"
+      },
+      {
+       "value": "vi",
+       "label": "vi  raises a reservation"
+      },
+      {
+       "value": "vii",
+       "label": "vii  compares two countries"
+      },
+      {
+       "value": "viii",
+       "label": "viii  summarises the whole text"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "Paragraph E",
+     "accepted_answers": [
+      "v"
+     ],
+     "taxonomy_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "supporting_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "options": [
+      {
+       "value": "i",
+       "label": "i  gives background"
+      },
+      {
+       "value": "ii",
+       "label": "ii  describes a problem"
+      },
+      {
+       "value": "iii",
+       "label": "iii  proposes a solution"
+      },
+      {
+       "value": "iv",
+       "label": "iv  describes a trial"
+      },
+      {
+       "value": "v",
+       "label": "v  reports the results"
+      },
+      {
+       "value": "vi",
+       "label": "vi  raises a reservation"
+      },
+      {
+       "value": "vii",
+       "label": "vii  compares two countries"
+      },
+      {
+       "value": "viii",
+       "label": "viii  summarises the whole text"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "Paragraph F",
+     "accepted_answers": [
+      "vi"
+     ],
+     "taxonomy_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "supporting_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "options": [
+      {
+       "value": "i",
+       "label": "i  gives background"
+      },
+      {
+       "value": "ii",
+       "label": "ii  describes a problem"
+      },
+      {
+       "value": "iii",
+       "label": "iii  proposes a solution"
+      },
+      {
+       "value": "iv",
+       "label": "iv  describes a trial"
+      },
+      {
+       "value": "v",
+       "label": "v  reports the results"
+      },
+      {
+       "value": "vi",
+       "label": "vi  raises a reservation"
+      },
+      {
+       "value": "vii",
+       "label": "vii  compares two countries"
+      },
+      {
+       "value": "viii",
+       "label": "viii  summarises the whole text"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 12,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "A. For decades, schools have been built with hard floors and bare walls, because these are cheap and easy to clean.\n\nB. Such rooms echo, however. Studies of classrooms show that pupils at the back often miss one word in four when the teacher is speaking.\n\nC. One answer is to fit sound-absorbing panels to the ceilings and to put rugs in reading corners.\n\nD. A primary school in a northern city tried this in two classrooms in 2019, while two similar rooms were left unchanged.\n\nE. After a term, teachers in the treated rooms said they spoke less loudly, and pupils’ scores on listening tasks were slightly higher.\n\nF. Critics point out that the study was small and that the panels are expensive, so the results may not justify the cost for every school.",
+    "teacher_notes": "A i background (why rooms are hard and bare).\nB ii problem (echo; missed words).\nC iii solution (panels and rugs).\nD iv trial (two treated rooms, two unchanged).\nE v results.\nF vi reservation (small study, cost).\nvii and viii are distractors: no countries are compared and no paragraph sums up.\nTeach: label each paragraph’s job before reading the options.",
+    "focus": "Recognise text organisation: the function of each paragraph in a problem–solution–evaluation text."
+   },
+   "skill_name": "Recognise text organisation",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "3fafdf00005983ffe4c0e2235d0417f17b48fce03ee5ff3d352da4e86dc57bac"
+  },
+  {
+   "code": "bh-ielts-targeted-reading-r15-v1",
+   "version": "0.1.0",
+   "title": "Parcel boxes: what does each paragraph do?",
+   "skill": "reading",
+   "purpose": "independent_check",
+   "instructions": "Read the passage. Choose what each paragraph, A–F, does in the text from the list. There are more choices than paragraphs. Work on your own, without notes, a dictionary or help. Tell your teacher if anything interrupted you.",
+   "success_description": "Ask what job each paragraph does in the whole text (background, problem, solution, evidence, result, objection), not what it is about.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "Paragraph A",
+     "accepted_answers": [
+      "iii"
+     ],
+     "taxonomy_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "supporting_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "options": [
+      {
+       "value": "i",
+       "label": "i  reports the results"
+      },
+      {
+       "value": "ii",
+       "label": "ii  raises a reservation"
+      },
+      {
+       "value": "iii",
+       "label": "iii  gives background"
+      },
+      {
+       "value": "iv",
+       "label": "iv  explains why customers prefer large boxes"
+      },
+      {
+       "value": "v",
+       "label": "v  describes a trial"
+      },
+      {
+       "value": "vi",
+       "label": "vi  proposes a solution"
+      },
+      {
+       "value": "vii",
+       "label": "vii  describes a problem"
+      },
+      {
+       "value": "viii",
+       "label": "viii  gives the history of cardboard"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "Paragraph B",
+     "accepted_answers": [
+      "vii"
+     ],
+     "taxonomy_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "supporting_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "options": [
+      {
+       "value": "i",
+       "label": "i  reports the results"
+      },
+      {
+       "value": "ii",
+       "label": "ii  raises a reservation"
+      },
+      {
+       "value": "iii",
+       "label": "iii  gives background"
+      },
+      {
+       "value": "iv",
+       "label": "iv  explains why customers prefer large boxes"
+      },
+      {
+       "value": "v",
+       "label": "v  describes a trial"
+      },
+      {
+       "value": "vi",
+       "label": "vi  proposes a solution"
+      },
+      {
+       "value": "vii",
+       "label": "vii  describes a problem"
+      },
+      {
+       "value": "viii",
+       "label": "viii  gives the history of cardboard"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "Paragraph C",
+     "accepted_answers": [
+      "vi"
+     ],
+     "taxonomy_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "supporting_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "options": [
+      {
+       "value": "i",
+       "label": "i  reports the results"
+      },
+      {
+       "value": "ii",
+       "label": "ii  raises a reservation"
+      },
+      {
+       "value": "iii",
+       "label": "iii  gives background"
+      },
+      {
+       "value": "iv",
+       "label": "iv  explains why customers prefer large boxes"
+      },
+      {
+       "value": "v",
+       "label": "v  describes a trial"
+      },
+      {
+       "value": "vi",
+       "label": "vi  proposes a solution"
+      },
+      {
+       "value": "vii",
+       "label": "vii  describes a problem"
+      },
+      {
+       "value": "viii",
+       "label": "viii  gives the history of cardboard"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "Paragraph D",
+     "accepted_answers": [
+      "v"
+     ],
+     "taxonomy_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "supporting_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "options": [
+      {
+       "value": "i",
+       "label": "i  reports the results"
+      },
+      {
+       "value": "ii",
+       "label": "ii  raises a reservation"
+      },
+      {
+       "value": "iii",
+       "label": "iii  gives background"
+      },
+      {
+       "value": "iv",
+       "label": "iv  explains why customers prefer large boxes"
+      },
+      {
+       "value": "v",
+       "label": "v  describes a trial"
+      },
+      {
+       "value": "vi",
+       "label": "vi  proposes a solution"
+      },
+      {
+       "value": "vii",
+       "label": "vii  describes a problem"
+      },
+      {
+       "value": "viii",
+       "label": "viii  gives the history of cardboard"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "Paragraph E",
+     "accepted_answers": [
+      "i"
+     ],
+     "taxonomy_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "supporting_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "options": [
+      {
+       "value": "i",
+       "label": "i  reports the results"
+      },
+      {
+       "value": "ii",
+       "label": "ii  raises a reservation"
+      },
+      {
+       "value": "iii",
+       "label": "iii  gives background"
+      },
+      {
+       "value": "iv",
+       "label": "iv  explains why customers prefer large boxes"
+      },
+      {
+       "value": "v",
+       "label": "v  describes a trial"
+      },
+      {
+       "value": "vi",
+       "label": "vi  proposes a solution"
+      },
+      {
+       "value": "vii",
+       "label": "vii  describes a problem"
+      },
+      {
+       "value": "viii",
+       "label": "viii  gives the history of cardboard"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "Paragraph F",
+     "accepted_answers": [
+      "ii"
+     ],
+     "taxonomy_node_id": "6820bff3-06df-4ab2-9437-c0da69fa3906",
+     "supporting_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "options": [
+      {
+       "value": "i",
+       "label": "i  reports the results"
+      },
+      {
+       "value": "ii",
+       "label": "ii  raises a reservation"
+      },
+      {
+       "value": "iii",
+       "label": "iii  gives background"
+      },
+      {
+       "value": "iv",
+       "label": "iv  explains why customers prefer large boxes"
+      },
+      {
+       "value": "v",
+       "label": "v  describes a trial"
+      },
+      {
+       "value": "vi",
+       "label": "vi  proposes a solution"
+      },
+      {
+       "value": "vii",
+       "label": "vii  describes a problem"
+      },
+      {
+       "value": "viii",
+       "label": "viii  gives the history of cardboard"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 8,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "A. Online shops send millions of parcels every day, and most of them arrive in cardboard boxes.\n\nB. Many of these boxes are far larger than the items inside, so delivery vans carry a great deal of air and use more fuel than necessary.\n\nC. Some companies now use machines that measure each order and cut a box to fit it exactly.\n\nD. One warehouse tested such a machine for three months on half of its orders.\n\nE. The boxes it produced used 30 per cent less cardboard, and each van could carry more parcels.\n\nF. The machines are costly, however, and smaller sellers say they cannot afford them.",
+    "teacher_notes": "A iii background.\nB vii problem (oversized boxes, wasted fuel).\nC vi solution (made-to-fit boxes).\nD v trial.\nE i results.\nF ii reservation (cost for small sellers).\niv and viii are distractors.\nDifferent text and list order from R14; not a calibrated equivalent form.",
+    "focus": "Recognise text organisation: the function of each paragraph in a problem–solution–evaluation text."
+   },
+   "skill_name": "Recognise text organisation",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "ec703d9743a618fde214f971b044fabdc1a0f16f287fb357ba3194b0c2f16d88"
+  },
+  {
+   "code": "bh-ielts-targeted-reading-r16-v1",
+   "version": "0.1.0",
+   "title": "Teenage sleep: why does the writer mention it?",
+   "skill": "reading",
+   "purpose": "guided_practice",
+   "instructions": "Read the passage. Choose the correct letter, A, B, C or D, for each question.",
+   "success_description": "Ask why the writer included this point: to introduce a view, explain, give evidence, admit a problem or conclude.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "Why does the writer mention parents’ complaints?",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "7e4ffe5a-500d-4297-a16b-5b965fb1b705",
+     "supporting_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To show that parents are right"
+      },
+      {
+       "value": "B",
+       "label": "B  To introduce a common view that the writer will question"
+      },
+      {
+       "value": "C",
+       "label": "C  To criticise teenagers"
+      },
+      {
+       "value": "D",
+       "label": "D  To describe a research method"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "Why does the writer mention melatonin?",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "7e4ffe5a-500d-4297-a16b-5b965fb1b705",
+     "supporting_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To explain why teenagers feel awake late at night"
+      },
+      {
+       "value": "B",
+       "label": "B  To recommend a medicine"
+      },
+      {
+       "value": "C",
+       "label": "C  To compare the diets of children and adults"
+      },
+      {
+       "value": "D",
+       "label": "D  To show that sleep is unimportant"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "What is the purpose of the sentence beginning “In other words”?",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "7e4ffe5a-500d-4297-a16b-5b965fb1b705",
+     "supporting_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To introduce a new topic"
+      },
+      {
+       "value": "B",
+       "label": "B  To disagree with the research"
+      },
+      {
+       "value": "C",
+       "label": "C  To restate the scientific point in simple terms"
+      },
+      {
+       "value": "D",
+       "label": "D  To give an example of a school"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "Why does the writer mention schools that start at 8.30?",
+     "accepted_answers": [
+      "D"
+     ],
+     "taxonomy_node_id": "7e4ffe5a-500d-4297-a16b-5b965fb1b705",
+     "supporting_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To show that bus timetables are a problem"
+      },
+      {
+       "value": "B",
+       "label": "B  To criticise attendance rules"
+      },
+      {
+       "value": "C",
+       "label": "C  To describe after-school sports"
+      },
+      {
+       "value": "D",
+       "label": "D  To give evidence that a later start can help"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "Why does the writer mention bus timetables and after-school sports?",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "7e4ffe5a-500d-4297-a16b-5b965fb1b705",
+     "supporting_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To admit that a later start has practical difficulties"
+      },
+      {
+       "value": "B",
+       "label": "B  To argue that schools should start earlier"
+      },
+      {
+       "value": "C",
+       "label": "C  To give more evidence of the benefits"
+      },
+      {
+       "value": "D",
+       "label": "D  To change the topic to sport"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "What is the writer’s main purpose?",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "7e4ffe5a-500d-4297-a16b-5b965fb1b705",
+     "supporting_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To describe how hormones work"
+      },
+      {
+       "value": "B",
+       "label": "B  To argue that school times should reflect teenagers’ sleep patterns"
+      },
+      {
+       "value": "C",
+       "label": "C  To complain about lazy teenagers"
+      },
+      {
+       "value": "D",
+       "label": "D  To compare schools in different countries"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 12,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "Many parents complain that their teenage children stay up late and are difficult to wake in the morning. It is easy to see this as laziness, but research suggests another explanation. During adolescence, the body releases the sleep hormone melatonin about two hours later than in childhood. In other words, teenagers are not choosing to feel awake at night; their bodies are. Some schools have moved the start of the school day from 7.30 to 8.30 a.m. In those schools, attendance improved and fewer students fell asleep in class. Of course, a later start creates problems for bus timetables and after-school sports. Even so, the evidence suggests that school times should take teenagers’ biology into account.",
+    "teacher_notes": "1 B — sets up the “laziness” view, then “but research suggests another explanation”.\n2 A.\n3 C — “In other words” restates.\n4 D — evidence: attendance improved.\n5 A — concession “Of course …”.\n6 B — final sentence states the position.\nTeach: purpose verbs — introduce, explain, illustrate, support, concede, conclude.",
+    "focus": "Infer the writer's purpose: why a detail, example or sentence is included."
+   },
+   "skill_name": "Infer the writer's purpose",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "0b5709e60a99e3848a8b6aea9b4caa1f48003ead3dc3c2fec5406303e840139f"
+  },
+  {
+   "code": "bh-ielts-targeted-reading-r17-v1",
+   "version": "0.1.0",
+   "title": "Plastic bags: why does the writer mention it?",
+   "skill": "reading",
+   "purpose": "independent_check",
+   "instructions": "Read the passage. Choose the correct letter, A, B, C or D, for each question. Work on your own, without notes, a dictionary or help. Tell your teacher if anything interrupted you.",
+   "success_description": "Ask why the writer included this point: to introduce a view, explain, give evidence, admit a problem or conclude.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "Why does the writer mention people’s predictions?",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "7e4ffe5a-500d-4297-a16b-5b965fb1b705",
+     "supporting_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To show that the predictions were correct"
+      },
+      {
+       "value": "B",
+       "label": "B  To explain the price of the bags"
+      },
+      {
+       "value": "C",
+       "label": "C  To contrast them with what actually happened"
+      },
+      {
+       "value": "D",
+       "label": "D  To criticise psychologists"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "Why does the writer compare the charge to “the price of a sweet”?",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "7e4ffe5a-500d-4297-a16b-5b965fb1b705",
+     "supporting_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To show how small the charge was"
+      },
+      {
+       "value": "B",
+       "label": "B  To suggest that sweets should be taxed"
+      },
+      {
+       "value": "C",
+       "label": "C  To show that shoppers bought sweets instead"
+      },
+      {
+       "value": "D",
+       "label": "D  To show that the charge was unfair"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "Why does the writer mention psychologists?",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "7e4ffe5a-500d-4297-a16b-5b965fb1b705",
+     "supporting_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To question the figures"
+      },
+      {
+       "value": "B",
+       "label": "B  To explain why such a small charge worked"
+      },
+      {
+       "value": "C",
+       "label": "C  To introduce paper cups"
+      },
+      {
+       "value": "D",
+       "label": "D  To recommend higher charges"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "Why does the writer mention paper cups?",
+     "accepted_answers": [
+      "D"
+     ],
+     "taxonomy_node_id": "7e4ffe5a-500d-4297-a16b-5b965fb1b705",
+     "supporting_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To prove that all charges fail"
+      },
+      {
+       "value": "B",
+       "label": "B  To praise cafés"
+      },
+      {
+       "value": "C",
+       "label": "C  To give the price of coffee"
+      },
+      {
+       "value": "D",
+       "label": "D  To show that a similar charge can have a different effect"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "Why does the writer say coffee customers are “often in a hurry”?",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "7e4ffe5a-500d-4297-a16b-5b965fb1b705",
+     "supporting_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To suggest a reason for the smaller effect"
+      },
+      {
+       "value": "B",
+       "label": "B  To criticise the customers"
+      },
+      {
+       "value": "C",
+       "label": "C  To recommend faster service"
+      },
+      {
+       "value": "D",
+       "label": "D  To describe the plastic bag charge"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "What is the purpose of the last sentence?",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "7e4ffe5a-500d-4297-a16b-5b965fb1b705",
+     "supporting_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To describe the charge on paper cups"
+      },
+      {
+       "value": "B",
+       "label": "B  To report what shoppers said"
+      },
+      {
+       "value": "C",
+       "label": "C  To draw a general lesson from the examples"
+      },
+      {
+       "value": "D",
+       "label": "D  To introduce a new charge"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 8,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "When a small country introduced a charge for plastic bags in shops, many people predicted that shoppers would simply pay it and carry on as before. The charge was very low—about the price of a sweet. Yet within a year, the number of bags used fell by more than 70 per cent. Psychologists point out that people dislike paying for something that used to be free, even when the amount is tiny. Interestingly, a similar charge on paper cups in some cafés had a much smaller effect. One explanation is that customers buying coffee are often in a hurry. Anyone who wants to change people’s behaviour, therefore, should consider not only the size of a charge but also the situation in which people meet it.",
+    "teacher_notes": "1 C — “Yet within a year … fell by more than 70 per cent”.\n2 A.\n3 B.\n4 D — contrast case.\n5 A — “One explanation”.\n6 C — “therefore” draws the conclusion.\nDifferent text from R16; not a calibrated equivalent form.",
+    "focus": "Infer the writer's purpose: why a detail, example or sentence is included."
+   },
+   "skill_name": "Infer the writer's purpose",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "6fc7d79d6caf4d31b6837e387ee0c9e585d90232a90d9e3725b84148ee912255"
+  },
+  {
+   "code": "bh-ielts-targeted-reading-r18-v1",
+   "version": "0.1.0",
+   "title": "The new manager: read between the lines",
+   "skill": "reading",
+   "purpose": "guided_practice",
+   "instructions": "Read the passage. Choose the correct letter, A, B, C or D, for each question.",
+   "success_description": "The answer is not written directly. Find the related sentences and ask what must be true if they are true, without adding outside ideas.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "What can we infer about Mrs Tan’s approach?",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "ef91c64b-df96-4ea3-9ac2-a9f89526b23b",
+     "supporting_node_id": "c591b5d5-06ee-4107-be00-1947ce662d09",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  She wanted to understand the problems before acting"
+      },
+      {
+       "value": "B",
+       "label": "B  She disliked the cooks"
+      },
+      {
+       "value": "C",
+       "label": "C  She had worked in the kitchen before"
+      },
+      {
+       "value": "D",
+       "label": "D  She planned to close the restaurant"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "What does the waiters’ observation suggest?",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "ef91c64b-df96-4ea3-9ac2-a9f89526b23b",
+     "supporting_node_id": "c591b5d5-06ee-4107-be00-1947ce662d09",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  She was often late"
+      },
+      {
+       "value": "B",
+       "label": "B  She worked long hours"
+      },
+      {
+       "value": "C",
+       "label": "C  She ate too much"
+      },
+      {
+       "value": "D",
+       "label": "D  She did not trust the waiters"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "Why did she probably remove four dishes?",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "ef91c64b-df96-4ea3-9ac2-a9f89526b23b",
+     "supporting_node_id": "c591b5d5-06ee-4107-be00-1947ce662d09",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  The chef asked her to"
+      },
+      {
+       "value": "B",
+       "label": "B  They were too cheap"
+      },
+      {
+       "value": "C",
+       "label": "C  Customers often sent them back"
+      },
+      {
+       "value": "D",
+       "label": "D  The owner disliked them"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "What can we infer about the restaurant before Mrs Tan arrived?",
+     "accepted_answers": [
+      "D"
+     ],
+     "taxonomy_node_id": "ef91c64b-df96-4ea3-9ac2-a9f89526b23b",
+     "supporting_node_id": "c591b5d5-06ee-4107-be00-1947ce662d09",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  It served only breakfast"
+      },
+      {
+       "value": "B",
+       "label": "B  It was closed at weekends"
+      },
+      {
+       "value": "C",
+       "label": "C  It had too many staff"
+      },
+      {
+       "value": "D",
+       "label": "D  It was usually not full at lunchtime"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "Why did one of the chefs probably leave?",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "ef91c64b-df96-4ea3-9ac2-a9f89526b23b",
+     "supporting_node_id": "c591b5d5-06ee-4107-be00-1947ce662d09",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  He was unhappy with the changes"
+      },
+      {
+       "value": "B",
+       "label": "B  He was asked to manage breakfast"
+      },
+      {
+       "value": "C",
+       "label": "C  He wanted to work at lunchtime"
+      },
+      {
+       "value": "D",
+       "label": "D  The restaurant closed"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "What does the owner’s request at the end suggest?",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "ef91c64b-df96-4ea3-9ac2-a9f89526b23b",
+     "supporting_node_id": "c591b5d5-06ee-4107-be00-1947ce662d09",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  The breakfast room was closing"
+      },
+      {
+       "value": "B",
+       "label": "B  He was pleased with her work"
+      },
+      {
+       "value": "C",
+       "label": "C  He wanted her to leave the restaurant"
+      },
+      {
+       "value": "D",
+       "label": "D  He disagreed with her prices"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 12,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "When Mrs Tan took over the hotel restaurant, she did not change the menu at once. Instead, for the first month she ate lunch in the kitchen with the cooks and asked them which dishes customers sent back most often. The waiters noticed that she always arrived before them and left after them. In her second month, she removed four dishes and introduced two cheaper set lunches. Some of the older staff were unhappy, and one of the chefs left. By the end of the year, however, the restaurant was full at lunchtime for the first time in years, and the hotel owner asked her to manage the breakfast room as well.",
+    "teacher_notes": "1 A — a month of asking before changing.\n2 B — always arrived before and left after them.\n3 C — she had asked which dishes were sent back.\n4 D — “full at lunchtime for the first time in years”.\n5 A — follows “Some of the older staff were unhappy”.\n6 B — more responsibility implies approval.\nTeach: every inference must point to a sentence; reject options that need outside knowledge.",
+    "focus": "Infer unstated meaning: reach conclusions the text supports but does not state."
+   },
+   "skill_name": "Infer unstated meaning",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "00d973dd6cd0ffd774e8a350a759a4061b673fddb31b8ab96c21ed520c8d4427"
+  },
+  {
+   "code": "bh-ielts-targeted-reading-r19-v1",
+   "version": "0.1.0",
+   "title": "The bread run: read between the lines",
+   "skill": "reading",
+   "purpose": "independent_check",
+   "instructions": "Read the passage. Choose the correct letter, A, B, C or D, for each question. Work on your own, without notes, a dictionary or help. Tell your teacher if anything interrupted you.",
+   "success_description": "The answer is not written directly. Find the related sentences and ask what must be true if they are true, without adding outside ideas.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "How did Daniyar probably learn about the problem?",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "ef91c64b-df96-4ea3-9ac2-a9f89526b23b",
+     "supporting_node_id": "c591b5d5-06ee-4107-be00-1947ce662d09",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  From a newspaper"
+      },
+      {
+       "value": "B",
+       "label": "B  From the bakeries"
+      },
+      {
+       "value": "C",
+       "label": "C  From his mother"
+      },
+      {
+       "value": "D",
+       "label": "D  From the shelter manager"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "What can we infer from “it meant giving up his gym membership”?",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "ef91c64b-df96-4ea3-9ac2-a9f89526b23b",
+     "supporting_node_id": "c591b5d5-06ee-4107-be00-1947ce662d09",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  He could not easily afford both the van and the gym"
+      },
+      {
+       "value": "B",
+       "label": "B  He disliked exercise"
+      },
+      {
+       "value": "C",
+       "label": "C  The van was free"
+      },
+      {
+       "value": "D",
+       "label": "D  The gym had closed"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "Why did he probably buy the van?",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "ef91c64b-df96-4ea3-9ac2-a9f89526b23b",
+     "supporting_node_id": "c591b5d5-06ee-4107-be00-1947ce662d09",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To visit his mother"
+      },
+      {
+       "value": "B",
+       "label": "B  To carry more bread"
+      },
+      {
+       "value": "C",
+       "label": "C  To drive to the gym"
+      },
+      {
+       "value": "D",
+       "label": "D  To sell it later"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "What does the manager’s comment suggest about Friday breakfasts before Daniyar began?",
+     "accepted_answers": [
+      "D"
+     ],
+     "taxonomy_node_id": "ef91c64b-df96-4ea3-9ac2-a9f89526b23b",
+     "supporting_node_id": "c591b5d5-06ee-4107-be00-1947ce662d09",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  They were cooked by the bakers"
+      },
+      {
+       "value": "B",
+       "label": "B  They were never served"
+      },
+      {
+       "value": "C",
+       "label": "C  They were free only for volunteers"
+      },
+      {
+       "value": "D",
+       "label": "D  They sometimes ran out"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "What does his condition for the interview suggest?",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "ef91c64b-df96-4ea3-9ac2-a9f89526b23b",
+     "supporting_node_id": "c591b5d5-06ee-4107-be00-1947ce662d09",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  He did not want attention for himself"
+      },
+      {
+       "value": "B",
+       "label": "B  He wanted to become famous"
+      },
+      {
+       "value": "C",
+       "label": "C  He disliked the bakeries"
+      },
+      {
+       "value": "D",
+       "label": "D  He wanted to be paid"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "What can we infer about the bread he collects?",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "ef91c64b-df96-4ea3-9ac2-a9f89526b23b",
+     "supporting_node_id": "c591b5d5-06ee-4107-be00-1947ce662d09",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  The bakeries deliver it themselves"
+      },
+      {
+       "value": "B",
+       "label": "B  The bakeries ask to be paid for it"
+      },
+      {
+       "value": "C",
+       "label": "C  The bakeries would not otherwise sell it"
+      },
+      {
+       "value": "D",
+       "label": "D  Daniyar bakes it himself"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 8,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "Every Thursday evening, Daniyar collects leftover bread from three bakeries and drives it to a shelter for homeless people. He started two years ago, after his mother, a nurse at the shelter, mentioned that breakfasts often ran out. At first he went by bus and could carry only two bags. Last spring he bought a small second-hand van, although it meant giving up his gym membership. The shelter’s manager says that since Daniyar began, no one has had to leave without breakfast on Fridays. When a newspaper asked to interview him, he agreed only if the article named the bakeries rather than him.",
+    "teacher_notes": "1 C — his mother mentioned it.\n2 A — a trade-off implies limited money.\n3 B — by bus he could carry only two bags.\n4 D — “no one has had to leave without breakfast” since he began.\n5 A — named the bakeries rather than him.\n6 C — “leftover” bread.\nDifferent text from R18; not a calibrated equivalent form.",
+    "focus": "Infer unstated meaning: reach conclusions the text supports but does not state."
+   },
+   "skill_name": "Infer unstated meaning",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "2daf0ca38f1bbfd365431171db16192c00ba857168be108230c2552118760aa0"
+  },
+  {
+   "code": "bh-ielts-targeted-reading-r20-v1",
+   "version": "0.1.0",
+   "title": "City trees: main point or detail?",
+   "skill": "reading",
+   "purpose": "guided_practice",
+   "instructions": "Read the passage. For each paragraph, choose the letter, A, B, C or D, that gives its MAIN point. The other options are details or ideas from elsewhere.",
+   "success_description": "Find the sentence the rest of the paragraph explains or supports. Examples, numbers and reasons are usually supporting details.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "Paragraph 1",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "supporting_node_id": "492b5389-b4b7-4efc-b08f-e62d17ce46ff",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Trees make city streets cooler"
+      },
+      {
+       "value": "B",
+       "label": "B  One tree can lower the temperature by several degrees"
+      },
+      {
+       "value": "C",
+       "label": "C  Pavements stay cool after sunset"
+      },
+      {
+       "value": "D",
+       "label": "D  Trees grow fastest in summer"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "Paragraph 2",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "supporting_node_id": "492b5389-b4b7-4efc-b08f-e62d17ce46ff",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Hospital patients recover faster with a view of trees"
+      },
+      {
+       "value": "B",
+       "label": "B  Trees are good for people’s health"
+      },
+      {
+       "value": "C",
+       "label": "C  People on tree-lined streets feel less stress"
+      },
+      {
+       "value": "D",
+       "label": "D  Trees make streets cooler"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "Paragraph 3",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "supporting_node_id": "492b5389-b4b7-4efc-b08f-e62d17ce46ff",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Roots can damage pipes"
+      },
+      {
+       "value": "B",
+       "label": "B  Dead branches must be removed"
+      },
+      {
+       "value": "C",
+       "label": "C  Looking after city trees is expensive"
+      },
+      {
+       "value": "D",
+       "label": "D  Some species drop few branches"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "Paragraph 4",
+     "accepted_answers": [
+      "D"
+     ],
+     "taxonomy_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "supporting_node_id": "492b5389-b4b7-4efc-b08f-e62d17ce46ff",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Some trees have deep roots"
+      },
+      {
+       "value": "B",
+       "label": "B  Some trees drop few branches"
+      },
+      {
+       "value": "C",
+       "label": "C  Roots damage pavements"
+      },
+      {
+       "value": "D",
+       "label": "D  Choosing suitable species lowers the costs"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "Paragraph 5",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "supporting_node_id": "492b5389-b4b7-4efc-b08f-e62d17ce46ff",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Residents are being asked to help care for trees"
+      },
+      {
+       "value": "B",
+       "label": "B  People can water trees in dry weeks"
+      },
+      {
+       "value": "C",
+       "label": "C  People can adopt a tree"
+      },
+      {
+       "value": "D",
+       "label": "D  Trees reduce stress"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "Paragraph 6",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "supporting_node_id": "492b5389-b4b7-4efc-b08f-e62d17ce46ff",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  More trees will solve every city problem"
+      },
+      {
+       "value": "B",
+       "label": "B  The benefits of trees outweigh their costs"
+      },
+      {
+       "value": "C",
+       "label": "C  Trees are expensive"
+      },
+      {
+       "value": "D",
+       "label": "D  Residents should water trees"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 12,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "1. Trees make city streets cooler in summer. A single large tree can lower the temperature beneath it by several degrees, and shaded pavements stay cooler long after sunset.\n\n2. Trees also improve people’s health. Patients in hospital rooms with a view of trees have been found to recover faster, and people living on tree-lined streets report less stress.\n\n3. However, city trees are expensive to look after. Their roots can damage pipes and pavements, and dead branches must be removed before they fall.\n\n4. Choosing the right species reduces these costs. Some trees have deep roots that stay away from pipes, and others drop few branches.\n\n5. Many cities now ask residents to help. In some places, people can adopt a tree and water it during dry weeks.\n\n6. Planting more trees will not solve every city problem, but their benefits are greater than their costs.",
+    "teacher_notes": "Main points are the first sentence of each paragraph here; the other options are supporting details (B, C in 1; A, C in 2 …) or come from other paragraphs.\n6: A misreads “will not solve every city problem”.\nTeach: ask “what does the rest of the paragraph prove?”",
+    "focus": "Distinguish main and supporting ideas: tell the point of a paragraph from the examples and details that support it."
+   },
+   "skill_name": "Distinguish main and supporting ideas",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "eb91031573b2d3073ed7c214b4d4d510087035814b6a2aacf46b1f6fe30a4fc4"
+  },
+  {
+   "code": "bh-ielts-targeted-reading-r21-v1",
+   "version": "0.1.0",
+   "title": "Working from home: main point or detail?",
+   "skill": "reading",
+   "purpose": "independent_check",
+   "instructions": "Read the passage. For each paragraph, choose the letter, A, B, C or D, that gives its MAIN point. The other options are details or ideas from elsewhere. Work on your own, without notes, a dictionary or help. Tell your teacher if anything interrupted you.",
+   "success_description": "Find the sentence the rest of the paragraph explains or supports. Examples, numbers and reasons are usually supporting details.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "Paragraph 1",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "supporting_node_id": "492b5389-b4b7-4efc-b08f-e62d17ce46ff",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  More than half of staff in some companies work at home two days a week"
+      },
+      {
+       "value": "B",
+       "label": "B  Staff work at home on Fridays"
+      },
+      {
+       "value": "C",
+       "label": "C  Working from home has become common"
+      },
+      {
+       "value": "D",
+       "label": "D  Offices are closing"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "Paragraph 2",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "supporting_node_id": "492b5389-b4b7-4efc-b08f-e62d17ce46ff",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Many employees feel more productive at home"
+      },
+      {
+       "value": "B",
+       "label": "B  Employees start work earlier"
+      },
+      {
+       "value": "C",
+       "label": "C  Employees are interrupted less"
+      },
+      {
+       "value": "D",
+       "label": "D  Managers worry about teamwork"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "Paragraph 3",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "supporting_node_id": "492b5389-b4b7-4efc-b08f-e62d17ce46ff",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  New employees rarely meet colleagues"
+      },
+      {
+       "value": "B",
+       "label": "B  Managers are concerned about teamwork"
+      },
+      {
+       "value": "C",
+       "label": "C  New staff learn from experienced colleagues"
+      },
+      {
+       "value": "D",
+       "label": "D  Teams have office days"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "Paragraph 4",
+     "accepted_answers": [
+      "D"
+     ],
+     "taxonomy_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "supporting_node_id": "492b5389-b4b7-4efc-b08f-e62d17ce46ff",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Teams have meetings in the office"
+      },
+      {
+       "value": "B",
+       "label": "B  Training happens on office days"
+      },
+      {
+       "value": "C",
+       "label": "C  Everyone works at home"
+      },
+      {
+       "value": "D",
+       "label": "D  Agreed office days are a compromise"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "Paragraph 5",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "supporting_node_id": "492b5389-b4b7-4efc-b08f-e62d17ce46ff",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Office design is changing"
+      },
+      {
+       "value": "B",
+       "label": "B  Desks are being removed"
+      },
+      {
+       "value": "C",
+       "label": "C  Quiet areas are being added"
+      },
+      {
+       "value": "D",
+       "label": "D  Employees prefer meeting rooms"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "Paragraph 6",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "2b18f4c1-ed3c-4281-b352-8057fa69494b",
+     "supporting_node_id": "492b5389-b4b7-4efc-b08f-e62d17ce46ff",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Experts know the long-term effects"
+      },
+      {
+       "value": "B",
+       "label": "B  Offices will return to the old pattern"
+      },
+      {
+       "value": "C",
+       "label": "C  The change is likely to last, although its effects are not yet known"
+      },
+      {
+       "value": "D",
+       "label": "D  Working from home is unpopular"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 8,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "1. In some companies, more than half of the staff now spend at least two days a week at home. Working from home has clearly become common in many offices.\n\n2. Without a daily journey, employees start earlier, and they are interrupted less. Many say they are more productive at home.\n\n3. Managers, however, worry about teamwork. New employees in particular may find it hard to learn from experienced colleagues they rarely meet.\n\n4. Some firms have found a compromise. Teams agree on two “office days” each week when everyone comes in for meetings and training.\n\n5. Offices themselves are changing as a result. Rows of desks are being replaced by meeting rooms and quiet areas.\n\n6. It is too early to know the long-term effects, but few experts expect offices to return to the old pattern.",
+    "teacher_notes": "Note: in 1 and 2 the main point comes AFTER the supporting detail — students who always pick the first sentence will choose A in paragraph 1 and B in 2.\n6: B reverses “few experts expect … return”.\nDifferent text from R20; not a calibrated equivalent form.",
+    "focus": "Distinguish main and supporting ideas: tell the point of a paragraph from the examples and details that support it."
+   },
+   "skill_name": "Distinguish main and supporting ideas",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "088f049a14d1b39abd033a2b6245e4f7a74774418039e1845d9ae9ca9dd1471a"
+  },
+  {
+   "code": "bh-ielts-targeted-reading-r22-v1",
+   "version": "0.1.0",
+   "title": "Tourism in small towns: the writer’s views",
+   "skill": "reading",
+   "purpose": "guided_practice",
+   "instructions": "Read the passage. Do the statements agree with the views of the writer? Choose YES if the statement agrees with the writer’s views, NO if it contradicts them, or NOT GIVEN if it is impossible to say what the writer thinks.",
+   "success_description": "Look for the writer’s own opinion words (in my view, I believe, I am not convinced). Do not confuse the writer’s view with what “some argue”.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "Tourism is a simple way for small towns to become richer.",
+     "accepted_answers": [
+      "NO"
+     ],
+     "taxonomy_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "supporting_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+     "options": [
+      {
+       "value": "YES",
+       "label": "YES"
+      },
+      {
+       "value": "NO",
+       "label": "NO"
+      },
+      {
+       "value": "NOT GIVEN",
+       "label": "NOT GIVEN"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "Visitors should be discouraged from coming to small towns.",
+     "accepted_answers": [
+      "NO"
+     ],
+     "taxonomy_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "supporting_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+     "options": [
+      {
+       "value": "YES",
+       "label": "YES"
+      },
+      {
+       "value": "NO",
+       "label": "NO"
+      },
+      {
+       "value": "NOT GIVEN",
+       "label": "NOT GIVEN"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "Many tourism jobs are poorly paid.",
+     "accepted_answers": [
+      "YES"
+     ],
+     "taxonomy_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "supporting_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+     "options": [
+      {
+       "value": "YES",
+       "label": "YES"
+      },
+      {
+       "value": "NO",
+       "label": "NO"
+      },
+      {
+       "value": "NOT GIVEN",
+       "label": "NOT GIVEN"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "Limiting the number of holiday rentals is an effective solution.",
+     "accepted_answers": [
+      "NO"
+     ],
+     "taxonomy_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "supporting_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+     "options": [
+      {
+       "value": "YES",
+       "label": "YES"
+      },
+      {
+       "value": "NO",
+       "label": "NO"
+      },
+      {
+       "value": "NOT GIVEN",
+       "label": "NOT GIVEN"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "Holiday rentals should be taxed.",
+     "accepted_answers": [
+      "YES"
+     ],
+     "taxonomy_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "supporting_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+     "options": [
+      {
+       "value": "YES",
+       "label": "YES"
+      },
+      {
+       "value": "NO",
+       "label": "NO"
+      },
+      {
+       "value": "NOT GIVEN",
+       "label": "NOT GIVEN"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "Tourists would be willing to pay higher prices.",
+     "accepted_answers": [
+      "NOT GIVEN"
+     ],
+     "taxonomy_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "supporting_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+     "options": [
+      {
+       "value": "YES",
+       "label": "YES"
+      },
+      {
+       "value": "NO",
+       "label": "NO"
+      },
+      {
+       "value": "NOT GIVEN",
+       "label": "NOT GIVEN"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 12,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "Tourism is often presented as an easy way for small towns to grow richer. In my view, this picture is too simple. It is true that visitors bring money to cafés and hotels, and I would not want to discourage them. But the jobs created are frequently seasonal and poorly paid, and house prices tend to rise as owners turn homes into holiday rentals. Some argue that local councils should simply limit the number of rentals. I am not convinced this works; in the towns I have studied, owners found ways around such rules. A better approach, I believe, is to tax holiday rentals and use the money to build homes for local workers. Whether tourists themselves would accept higher prices is a question I cannot answer.",
+    "teacher_notes": "1 NO — “this picture is too simple”.\n2 NO — “I would not want to discourage them”.\n3 YES — “frequently seasonal and poorly paid”.\n4 NO — “I am not convinced this works” (the limit is what “some argue”).\n5 YES — “A better approach, I believe, is to tax holiday rentals”.\n6 NOT GIVEN — “a question I cannot answer”.\nTeach: YES/NO is about the writer’s opinion, not facts in the world.",
+    "focus": "Identify viewpoint and attitude: separate the writer’s opinion from other people’s views and from facts."
+   },
+   "skill_name": "Identify viewpoint and attitude",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "ba092358a214a6585fd0568f80d623dad22afb7efb19b4daafa5ef28408d9730"
+  },
+  {
+   "code": "bh-ielts-targeted-reading-r23-v1",
+   "version": "0.1.0",
+   "title": "Electric scooters: the writer’s views",
+   "skill": "reading",
+   "purpose": "independent_check",
+   "instructions": "Read the passage. Do the statements agree with the views of the writer? Choose YES if the statement agrees with the writer’s views, NO if it contradicts them, or NOT GIVEN if it is impossible to say what the writer thinks. Work on your own, without notes, a dictionary or help. Tell your teacher if anything interrupted you.",
+   "success_description": "Look for the writer’s own opinion words (in my view, I believe, I am not convinced). Do not confuse the writer’s view with what “some argue”.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "Electric scooters are, overall, a good thing for cities.",
+     "accepted_answers": [
+      "YES"
+     ],
+     "taxonomy_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "supporting_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+     "options": [
+      {
+       "value": "YES",
+       "label": "YES"
+      },
+      {
+       "value": "NO",
+       "label": "NO"
+      },
+      {
+       "value": "NOT GIVEN",
+       "label": "NOT GIVEN"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "Scooters cost more to use than taxis.",
+     "accepted_answers": [
+      "NO"
+     ],
+     "taxonomy_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "supporting_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+     "options": [
+      {
+       "value": "YES",
+       "label": "YES"
+      },
+      {
+       "value": "NO",
+       "label": "NO"
+      },
+      {
+       "value": "NOT GIVEN",
+       "label": "NOT GIVEN"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "Scooters left on pavements are a genuine danger.",
+     "accepted_answers": [
+      "YES"
+     ],
+     "taxonomy_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "supporting_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+     "options": [
+      {
+       "value": "YES",
+       "label": "YES"
+      },
+      {
+       "value": "NO",
+       "label": "NO"
+      },
+      {
+       "value": "NOT GIVEN",
+       "label": "NOT GIVEN"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "Cities that banned scooters made the right decision.",
+     "accepted_answers": [
+      "NO"
+     ],
+     "taxonomy_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "supporting_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+     "options": [
+      {
+       "value": "YES",
+       "label": "YES"
+      },
+      {
+       "value": "NO",
+       "label": "NO"
+      },
+      {
+       "value": "NOT GIVEN",
+       "label": "NOT GIVEN"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "There is good evidence that scooters reduce air pollution.",
+     "accepted_answers": [
+      "NO"
+     ],
+     "taxonomy_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "supporting_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+     "options": [
+      {
+       "value": "YES",
+       "label": "YES"
+      },
+      {
+       "value": "NO",
+       "label": "NO"
+      },
+      {
+       "value": "NOT GIVEN",
+       "label": "NOT GIVEN"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "Scooter companies should pay for the parking areas.",
+     "accepted_answers": [
+      "NOT GIVEN"
+     ],
+     "taxonomy_node_id": "3cc4beec-8c09-4289-bd3d-185f5319240a",
+     "supporting_node_id": "bcddba69-28bc-436c-bb54-01a3c5733099",
+     "options": [
+      {
+       "value": "YES",
+       "label": "YES"
+      },
+      {
+       "value": "NO",
+       "label": "NO"
+      },
+      {
+       "value": "NOT GIVEN",
+       "label": "NOT GIVEN"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 8,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "Rental electric scooters have appeared in many cities, and opinions about them are divided. I think they are, on balance, a positive development. They allow people to make short journeys without a car, and they are cheaper than taxis. Critics say that scooters left on pavements are dangerous for pedestrians, and I agree that this is a real problem. However, banning scooters, as some cities have done, seems to me an overreaction. Requiring riders to leave scooters in marked parking areas would solve most of the difficulty. Some people also claim that scooters reduce air pollution, but I have seen no convincing evidence of this, since many riders would otherwise have walked.",
+    "teacher_notes": "1 YES — “on balance, a positive development”.\n2 NO — “cheaper than taxis”.\n3 YES — “I agree that this is a real problem”.\n4 NO — “an overreaction”.\n5 NO — “I have seen no convincing evidence”.\n6 NOT GIVEN — who pays is not discussed.\nDifferent text from R22; not a calibrated equivalent form.",
+    "focus": "Identify viewpoint and attitude: separate the writer’s opinion from other people’s views and from facts."
+   },
+   "skill_name": "Identify viewpoint and attitude",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "444183285c5e26ae399f4332301936de88502976fe5db5edf6cada6f799240c1"
+  },
+  {
+   "code": "bh-ielts-targeted-reading-r24-v1",
+   "version": "0.1.0",
+   "title": "Desert farming: meaning from context",
+   "skill": "reading",
+   "purpose": "guided_practice",
+   "instructions": "Read the passage. Choose the meaning, A, B, C or D, of each word as it is used in the passage.",
+   "success_description": "Use the sentence around the word: look for an explanation, an example, a contrast (yet, but) or a result nearby.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "“revived”",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "aafe14e8-c993-48b3-ae4a-2c26b2021897",
+     "supporting_node_id": "e3155f38-aea7-4267-a0c3-44273b1d7d14",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  brought back into use"
+      },
+      {
+       "value": "B",
+       "label": "B  invented for the first time"
+      },
+      {
+       "value": "C",
+       "label": "C  sold to others"
+      },
+      {
+       "value": "D",
+       "label": "D  stopped using"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "“arid”",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "aafe14e8-c993-48b3-ae4a-2c26b2021897",
+     "supporting_node_id": "e3155f38-aea7-4267-a0c3-44273b1d7d14",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  very cold"
+      },
+      {
+       "value": "B",
+       "label": "B  very dry"
+      },
+      {
+       "value": "C",
+       "label": "C  crowded"
+      },
+      {
+       "value": "D",
+       "label": "D  rich in plants"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "“laborious”",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "aafe14e8-c993-48b3-ae4a-2c26b2021897",
+     "supporting_node_id": "e3155f38-aea7-4267-a0c3-44273b1d7d14",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  dangerous"
+      },
+      {
+       "value": "B",
+       "label": "B  cheap"
+      },
+      {
+       "value": "C",
+       "label": "C  needing a lot of hard work"
+      },
+      {
+       "value": "D",
+       "label": "D  quick"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "“durable”",
+     "accepted_answers": [
+      "D"
+     ],
+     "taxonomy_node_id": "aafe14e8-c993-48b3-ae4a-2c26b2021897",
+     "supporting_node_id": "e3155f38-aea7-4267-a0c3-44273b1d7d14",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  attractive"
+      },
+      {
+       "value": "B",
+       "label": "B  modern"
+      },
+      {
+       "value": "C",
+       "label": "C  easily broken"
+      },
+      {
+       "value": "D",
+       "label": "D  long-lasting"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "“sceptical”",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "aafe14e8-c993-48b3-ae4a-2c26b2021897",
+     "supporting_node_id": "e3155f38-aea7-4267-a0c3-44273b1d7d14",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  doubtful"
+      },
+      {
+       "value": "B",
+       "label": "B  excited"
+      },
+      {
+       "value": "C",
+       "label": "C  angry"
+      },
+      {
+       "value": "D",
+       "label": "D  well informed"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "“dispelled”",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "aafe14e8-c993-48b3-ae4a-2c26b2021897",
+     "supporting_node_id": "e3155f38-aea7-4267-a0c3-44273b1d7d14",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  increased"
+      },
+      {
+       "value": "B",
+       "label": "B  removed"
+      },
+      {
+       "value": "C",
+       "label": "C  written down"
+      },
+      {
+       "value": "D",
+       "label": "D  shared"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 10,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "In parts of North Africa, farmers have revived an ancient method of growing vegetables in arid land, where rain may fall only a few times a year. They dig deep pits and line them with stones, which stay cool and gather moisture from the night air. The technique is laborious: a single pit can take a family several days to build. Yet once completed, it is remarkably durable, lasting for decades with little repair. Agricultural experts were at first sceptical, doubting that such a simple system could feed many people. Their doubts were dispelled when harvests in a trial village tripled in five years.",
+    "teacher_notes": "1 A — “an ancient method” → brought back.\n2 B — “rain may fall only a few times a year”.\n3 C — explained after the colon: several days to build.\n4 D — “lasting for decades with little repair”.\n5 A — “doubting that …”.\n6 B — doubts disappear when harvests triple.\nTeach: underline the clue that proves each meaning.",
+    "focus": "Infer word meaning from context: work out an unfamiliar word from the clues around it."
+   },
+   "skill_name": "Infer word meaning from context",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "463923de75e120637ce6c03adf22868bd1839a5f34f44346033166f742bc3562"
+  },
+  {
+   "code": "bh-ielts-targeted-reading-r25-v1",
+   "version": "0.1.0",
+   "title": "Lighthouse keepers: meaning from context",
+   "skill": "reading",
+   "purpose": "independent_check",
+   "instructions": "Read the passage. Choose the meaning, A, B, C or D, of each word as it is used in the passage. Work on your own, without notes, a dictionary or help. Tell your teacher if anything interrupted you.",
+   "success_description": "Use the sentence around the word: look for an explanation, an example, a contrast (yet, but) or a result nearby.",
+   "taxonomy_version_id": "ad250533-8582-4bc5-986b-32b0c9640a16",
+   "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "“isolated”",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "aafe14e8-c993-48b3-ae4a-2c26b2021897",
+     "supporting_node_id": "e3155f38-aea7-4267-a0c3-44273b1d7d14",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  very tall"
+      },
+      {
+       "value": "B",
+       "label": "B  brightly lit"
+      },
+      {
+       "value": "C",
+       "label": "C  far from other people"
+      },
+      {
+       "value": "D",
+       "label": "D  newly built"
+      }
+     ]
+    },
+    {
+     "id": "q2",
+     "prompt": "“neglect”",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "aafe14e8-c993-48b3-ae4a-2c26b2021897",
+     "supporting_node_id": "e3155f38-aea7-4267-a0c3-44273b1d7d14",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  fail to give attention to"
+      },
+      {
+       "value": "B",
+       "label": "B  enjoy"
+      },
+      {
+       "value": "C",
+       "label": "C  repair"
+      },
+      {
+       "value": "D",
+       "label": "D  share with others"
+      }
+     ]
+    },
+    {
+     "id": "q3",
+     "prompt": "“postponed”",
+     "accepted_answers": [
+      "D"
+     ],
+     "taxonomy_node_id": "aafe14e8-c993-48b3-ae4a-2c26b2021897",
+     "supporting_node_id": "e3155f38-aea7-4267-a0c3-44273b1d7d14",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  cancelled for ever"
+      },
+      {
+       "value": "B",
+       "label": "B  increased"
+      },
+      {
+       "value": "C",
+       "label": "C  paid for"
+      },
+      {
+       "value": "D",
+       "label": "D  delayed"
+      }
+     ]
+    },
+    {
+     "id": "q4",
+     "prompt": "“self-sufficient”",
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "aafe14e8-c993-48b3-ae4a-2c26b2021897",
+     "supporting_node_id": "e3155f38-aea7-4267-a0c3-44273b1d7d14",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  lonely"
+      },
+      {
+       "value": "B",
+       "label": "B  able to provide for themselves"
+      },
+      {
+       "value": "C",
+       "label": "C  wealthy"
+      },
+      {
+       "value": "D",
+       "label": "D  unwell"
+      }
+     ]
+    },
+    {
+     "id": "q5",
+     "prompt": "“automated”",
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "aafe14e8-c993-48b3-ae4a-2c26b2021897",
+     "supporting_node_id": "e3155f38-aea7-4267-a0c3-44273b1d7d14",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  operated by machines"
+      },
+      {
+       "value": "B",
+       "label": "B  closed to visitors"
+      },
+      {
+       "value": "C",
+       "label": "C  painted"
+      },
+      {
+       "value": "D",
+       "label": "D  sold"
+      }
+     ]
+    },
+    {
+     "id": "q6",
+     "prompt": "“monotonous”",
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "aafe14e8-c993-48b3-ae4a-2c26b2021897",
+     "supporting_node_id": "e3155f38-aea7-4267-a0c3-44273b1d7d14",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  dangerous"
+      },
+      {
+       "value": "B",
+       "label": "B  well paid"
+      },
+      {
+       "value": "C",
+       "label": "C  dull and repetitive"
+      },
+      {
+       "value": "D",
+       "label": "D  noisy"
+      }
+     ]
+    }
+   ],
+   "content": {
+    "scope": "Targeted IELTS preparation exercise; not a full paper.",
+    "suggested_minutes": 8,
+    "mapping_scope": "Task-specific reviewed focus with canonical English registry references. Not an IELTS/English equivalence or a pooled Academic Profile claim.",
+    "focus_code": "bh-ielts-reading-targeted-focus-v1",
+    "passage": "For centuries, lighthouse keepers lived in isolated towers, often many kilometres from the nearest village. Their main task was to keep the lamp lit throughout the night, a duty they could never neglect, since a single dark hour might cause a shipwreck. Supplies arrived by boat, but in rough weather deliveries could be postponed for weeks. Keepers therefore stored enough food to be self-sufficient. Today, almost all lighthouses are automated, and the remaining towers are maintained by engineers who visit only occasionally. Some former keepers say they miss the solitude, although others admit that the life was monotonous.",
+    "teacher_notes": "1 C — “many kilometres from the nearest village”.\n2 A — “a single dark hour might cause a shipwreck”.\n3 D — “for weeks” in rough weather.\n4 B — “therefore stored enough food”.\n5 A — engineers only visit occasionally.\n6 C — contrast with “miss the solitude”.\nDifferent text from R24; not a calibrated equivalent form.",
+    "focus": "Infer word meaning from context: work out an unfamiliar word from the clues around it."
+   },
+   "skill_name": "Infer word meaning from context",
+   "review_record": {
+    "author": "Brains Heist AI-assisted original",
+    "rights": "Original Brains Heist text; no third-party passages or questions copied.",
+    "bible": "2.0.0",
+    "human_review": "pending",
+    "difficulty_comparability": "Not calibrated equivalent forms; no bands. Change is judged only by bh-practice-effect-v1 (provisional).",
+    "source": "docs/ielts/practice/TARGETED_READING_04.json 0.1.0"
+   },
+   "content_sha256": "97ede741fbd1134b10533873b03db27abd63e389961994a66954687e5c932fd3"
+  }
+ ]
+}
