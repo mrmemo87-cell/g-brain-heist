@@ -3,6 +3,7 @@ import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import IeltsPracticeSkillResults, { skillBreakdown } from '../../components/ielts/IeltsPracticeSkillResults';
 import { fetchPracticeAttemptReview, PRACTICE_QUESTION_COLUMNS, type PracticeAttemptReview } from '../../../services/ieltsPracticeReview';
 import {
   fetchActiveReadingSets,
@@ -473,6 +474,8 @@ const ReadingPractice: React.FC = () => {
             </div>
           </div>}
 
+          <IeltsPracticeSkillResults review={review} />
+          {skillBreakdown(review).length === 0 && <>
           {/* Personalized Improvement Tips */}
           <div style={{
             background: 'linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%)',
@@ -526,6 +529,7 @@ const ReadingPractice: React.FC = () => {
               </div>
             )}
           </div>
+          </>}
 
           {!isPrimeUser && (
             <div style={{
