@@ -30,7 +30,7 @@ test('teachers see every skill with practice, fresh check, starting point and me
  const s=m.w.document.querySelector('[aria-label="Coverage summary"]').textContent;
  assert.match(s,/3 of 6skills with practice and a fresh check/);assert.match(s,/2ready for every student/);assert.match(s,/1pilot only/);assert.match(s,/3gaps/);
  assert.match(rowText(m.w,'Dates and times'),/3 released tasks.*5 bank materials.*1 released check.*screener, mock tests.*4 of 9 students.*Ready for all students/);
- assert.match(rowText(m.w,'Sequencing'),/None.*Gap · no practice task/);
+ assert.match(rowText(m.w,'Sequencing'),/None.*Gap · no targeted practice/);
  assert.match(rowText(m.w,'Identify gist'),/1 pilot task.*1 pilot check.*Pilot only · awaiting approval/);
  assert.match(rowText(m.w,'Recognise text organisation'),/First fresh check.*Gap · no fresh check/);
  assert.match(rowText(m.w,'Grammar (range and accuracy)'),/12 writing tasks · 1 released targeted task.*1 compared · 3 rated.*Ready/);

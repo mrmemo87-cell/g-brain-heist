@@ -9,7 +9,7 @@ type Status = 'ready' | 'pilot' | 'no_practice' | 'no_check';
 const SKILLS: { key: SkillCoverageRow['skill']; label: string }[] = [
   { key: 'listening', label: 'Listening' }, { key: 'reading', label: 'Reading' }, { key: 'writing', label: 'Writing' }, { key: 'speaking', label: 'Speaking' },
 ];
-const statusLabel: Record<Status, string> = { ready: 'Ready for all students', pilot: 'Pilot only · awaiting approval', no_practice: 'Gap · no practice task', no_check: 'Gap · no fresh check' };
+const statusLabel: Record<Status, string> = { ready: 'Ready for all students', pilot: 'Pilot only · awaiting approval', no_practice: 'Gap · no targeted practice', no_check: 'Gap · no fresh check' };
 const statusTone: Record<Status, string> = { ready: 'up', pilot: 'neutral', no_practice: 'down', no_check: 'down' };
 const total = (c: CoverageCount) => c.released + c.pilot;
 
@@ -67,7 +67,7 @@ export default function IeltsBatchSkillCoverage({ batchId }: { batchId: string }
             const s = coverageStatus(r);
             return <tr key={r.code}>
               <th scope="row">{productive ? (criterionName[r.code] ?? r.name) : r.name}</th>
-              <td>{productive ? `${r.materials} ${key} tasks${total(r.practice) ? ` · ${counts(r.practice, 'targeted task')}` : ''}` : <>{counts(r.practice, 'task')}{r.materials ? <span className="ix-muted"> · {r.materials} bank materials</span> : null}</>}</td>
+              <td>{productive ? `${r.materials} ${key} tasks${total(r.practice) ? ` · ${counts(r.practice, 'targeted task')}` : ''}` : <>{counts(r.practice, 'task')}{r.materials ? <span className="ix-muted"> · {r.materials} bank material{r.materials === 1 ? '' : 's'}</span> : null}</>}</td>
               <td>{counts(r.checks, 'check')}</td>
               <td>{start(r)}</td>
               <td>{productive ? `${r.students_measured} compared · ${r.students_rated ?? 0} rated` : `${r.students_measured} of ${data.members} students`}</td>
