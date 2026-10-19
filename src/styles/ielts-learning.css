@@ -207,3 +207,4 @@
 .il-alloc p { margin: 4px 0; }
 .il-alloc .il-history-badge { margin: 6px 0 10px; }
 .il-alloc--done .il-history-badge { background: #ecfdf5; border-color: #a7f3d0; color: var(--bh-ielts-success); }
+.il-summary { margin-top: 1rem; padding: 1rem 1.25rem; border-left: 3px solid var(--bh-ielts-accent); background: var(--bh-ielts-surface-muted); border-radius: var(--bh-ielts-radius-sm); }

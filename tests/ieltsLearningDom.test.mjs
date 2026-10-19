@@ -105,3 +105,13 @@ test('failed sharing keeps the feedback editor open and preserves all teacher wo
  await m.wait(()=>!m.button('Confirm and share feedback').disabled);m.button('Confirm and share feedback').click();await m.wait(()=>m.w.document.querySelector('[role=alert]'));
  assert.equal(editor.hidden,false);assert.equal(m.button('View or edit feedback'),undefined);assert.equal(editor.querySelector('textarea').value,'Keep this teacher feedback safe.');m.dom.window.close();
 });
+test('Reading headings use the task options and typed answers use a text box, without TFNG explanations',async()=>{
+ const heads=[{value:'i',label:'i  First heading'},{value:'ii',label:'ii  Second heading'}];
+ const questions=[{id:'q1',prompt:'Paragraph A',options:heads},{id:'q2',prompt:'Paragraph B',options:heads},{id:'q3',prompt:'Residents could receive a ______.',answer_format:'text'},{id:'q4',prompt:'Gap 4',answer_format:'text'},{id:'q5',prompt:'Gap 5',answer_format:'text'},{id:'q6',prompt:'Gap 6',answer_format:'text'}];
+ const server={...base,skill:'reading',questions,content:{passage:'A. One.\n\nB. Two.',summary:'Residents could receive a (1) ______.'},recordings:[]};const m=await mount({server});
+ const selects=[...m.w.document.querySelectorAll('select')];assert.equal(selects.length,2);assert.deepEqual([...selects[0].options].map(o=>o.value),['','i','ii']);assert.match(selects[0].textContent,/First heading/);assert.doesNotMatch(selects[0].textContent,/NOT GIVEN/);
+ assert.doesNotMatch(m.w.document.body.textContent,/Your evidence or the missing fact/,'no TFNG explanation boxes');assert.match(m.w.document.body.textContent,/Summary\s*Residents could receive/);
+ m.change(selects[0],'ii');const inputs=[...m.w.document.querySelectorAll('.il-answer input')];assert.equal(inputs.length,4);m.change(inputs[0],'grant');
+ await m.wait(()=>m.w.document.querySelector('select').value==='ii');m.button('Submit for review').click();await m.wait(()=>m.calls.some(c=>c.fn==='rpc_ielts_learning_submit'));
+ const saved=m.calls.filter(c=>c.fn==='rpc_ielts_learning_save').at(-1);assert.equal(saved.args.p_answers.q1,'ii');assert.equal(saved.args.p_answers.q3,'grant');assert.deepEqual(m.errors,[]);m.dom.window.close();
+});
