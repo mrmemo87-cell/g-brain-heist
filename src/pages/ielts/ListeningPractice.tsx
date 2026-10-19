@@ -3,12 +3,13 @@ import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { fetchPracticeAttemptReview, PRACTICE_QUESTION_COLUMNS, type PracticeAttemptReview } from '../../../services/ieltsPracticeReview';
 import { supabase } from '../../../services/supabaseClient';
 import { ensureIeltsProfile, getUserTier, isIeltsPrime, saveNotificationPreferences } from '../../../services/ieltsService';
 import { rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
-import { buildListeningAttemptPayload, doesAnswerMatchCorrectAnswer, toRawScoreResult } from '../../lib/ieltsPracticeScoring';
+import { buildListeningAttemptPayload, toRawScoreResult } from '../../lib/ieltsPracticeScoring';
 
 interface ListeningSet {
   originality_label?: string | null;
@@ -37,8 +38,8 @@ interface ListeningQuestion {
   question_type: string;
   body: string;
   options: string[] | null;
-  correct_answer: string;
-  explanation: string | null;
+  correct_answer?: unknown;
+  explanation?: string | null;
 }
 
 const ListeningPractice: React.FC = () => {
@@ -220,7 +221,7 @@ const ListeningPractice: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ielts_listening_questions')
-        .select('*')
+        .select(PRACTICE_QUESTION_COLUMNS)
         .eq('set_id', setId)
         .order('question_order', { ascending: true });
       
@@ -231,6 +232,8 @@ const ListeningPractice: React.FC = () => {
   });
 
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
+  const [review, setReview] = useState<PracticeAttemptReview | null>(null);
+  const keyFor = (questionId: number) => review?.items.find((item) => item.question_id === questionId) ?? null;
   const [assignmentProgress, setAssignmentProgress] = useState<IeltsPracticeAssignmentProgress | null>(null);
   const [assignmentCompletionError, setAssignmentCompletionError] = useState<string | null>(null);
   const [isMeaningfulSubmission, setIsMeaningfulSubmission] = useState(true);
@@ -298,9 +301,11 @@ const ListeningPractice: React.FC = () => {
         }
       }
 
-      return { attempt: result, progress, itemCompletionError, answeredCount, canComplete, totalQuestions };
+      const review = result?.id ? await fetchPracticeAttemptReview('listening', result.id) : null;
+      return { attempt: result, review, progress, itemCompletionError, answeredCount, canComplete, totalQuestions };
     },
     onSuccess: (data) => {
+      setReview(data.review);
       setLastAttemptId(data.attempt?.id);
       setAssignmentProgress(data.progress);
       setAssignmentCompletionError(data.itemCompletionError);
@@ -363,19 +368,10 @@ const ListeningPractice: React.FC = () => {
     submitNow();
   };
 
+  // Scored by the database from the real keys; the browser never has them before submitting.
   const calculateResults = () => {
-    if (!questions) return { correct: 0, total: 0, percentage: 0 };
-    
-    let correct = 0;
-    questions.forEach((q: ListeningQuestion) => {
-      const userAnswer = answers[q.id];
-
-      if (doesAnswerMatchCorrectAnswer(userAnswer, q.correct_answer)) {
-        correct++;
-      }
-    });
-
-    return toRawScoreResult(correct, questions.length);
+    if (!review) return { correct: 0, total: questions?.length ?? 0, percentage: 0 };
+    return toRawScoreResult(review.raw_score, review.total);
   };
 
   const formatTime = (seconds: number) => {
@@ -600,8 +596,9 @@ const ListeningPractice: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {questions.map((q: ListeningQuestion, idx: number) => {
                 const userAnswer = answers[q.id];
-                const correctAnswer = q.correct_answer;
-                const isCorrect = doesAnswerMatchCorrectAnswer(userAnswer, correctAnswer);
+                const reviewed = keyFor(q.id);
+                const correctAnswer = reviewed?.correct_answer ?? null;
+                const isCorrect = reviewed?.is_correct ?? false;
 
                 return (
                   <div key={q.id} style={{
@@ -640,9 +637,9 @@ const ListeningPractice: React.FC = () => {
                               Correct answer: <span style={{ color: '#16a34a' }}>{correctAnswer}</span>
                             </div>
                           )}
-                          {q.explanation && (
+                          {keyFor(q.id)?.explanation && (
                             <div style={{ marginTop: '0.5rem', color: '#64748b', fontStyle: 'italic' }}>
-                              {q.explanation}
+                              {keyFor(q.id)?.explanation}
                             </div>
                           )}
                         </div>

@@ -3,6 +3,7 @@ import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { fetchPracticeAttemptReview, PRACTICE_QUESTION_COLUMNS, type PracticeAttemptReview } from '../../../services/ieltsPracticeReview';
 import {
   fetchActiveReadingSets,
   fetchReadingQuestions,
@@ -15,7 +16,7 @@ import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/au
 import { rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import type { IELTSReadingQuestion } from '../../../types';
-import { doesAnswerMatchCorrectAnswer, toRawScoreResult } from '../../lib/ieltsPracticeScoring';
+import { toRawScoreResult } from '../../lib/ieltsPracticeScoring';
 
 interface Answer {
   questionId: number;
@@ -80,6 +81,8 @@ const ReadingPractice: React.FC = () => {
   });
 
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
+  const [review, setReview] = useState<PracticeAttemptReview | null>(null);
+  const keyFor = (questionId: number) => review?.items.find((item) => item.question_id === questionId) ?? null;
   const [assignmentProgress, setAssignmentProgress] = useState<IeltsPracticeAssignmentProgress | null>(null);
   const [assignmentCompletionError, setAssignmentCompletionError] = useState<string | null>(null);
   const [isMeaningfulSubmission, setIsMeaningfulSubmission] = useState(true);
@@ -121,9 +124,11 @@ const ReadingPractice: React.FC = () => {
         }
       }
 
-      return { attempt, progress, itemCompletionError, answeredCount, totalQuestions };
+      const review = attempt?.id ? await fetchPracticeAttemptReview('reading', attempt.id) : null;
+      return { attempt, review, progress, itemCompletionError, answeredCount, totalQuestions };
     },
     onSuccess: (data) => {
+      setReview(data.review);
       setLastAttemptId(data.attempt?.id);
       setAssignmentProgress(data.progress);
       setAssignmentCompletionError(data.itemCompletionError);
@@ -203,21 +208,10 @@ const ReadingPractice: React.FC = () => {
     submitNow();
   };
 
+  // Scored by the database from the real keys; the browser never has them before submitting.
   const calculateResults = () => {
-    if (!questions) return { correct: 0, total: 0, percentage: 0 };
-    
-    let correct = 0;
-    questions.forEach((q: IELTSReadingQuestion) => {
-      const userAnswer = answers[q.id];
-      // correct_answer is already parsed from JSONB, no need to JSON.parse
-      const correctAnswer = q.correct_answer;
-      
-      if (doesAnswerMatchCorrectAnswer(userAnswer, correctAnswer)) {
-        correct++;
-      }
-    });
-
-    return toRawScoreResult(correct, questions.length);
+    if (!review) return { correct: 0, total: questions?.length ?? 0, percentage: 0 };
+    return toRawScoreResult(review.raw_score, review.total);
   };
 
   if (loadingSets || loadingQuestions) {
@@ -424,8 +418,9 @@ const ReadingPractice: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {questions.map((q: IELTSReadingQuestion, idx: number) => {
                 const userAnswer = answers[q.id];
-                const correctAnswer = q.correct_answer;
-                const isCorrect = doesAnswerMatchCorrectAnswer(userAnswer, correctAnswer);
+                const reviewed = keyFor(q.id);
+                const correctAnswer = reviewed?.correct_answer ?? null;
+                const isCorrect = reviewed?.is_correct ?? false;
 
                 return (
                   <div key={q.id} style={{
@@ -464,9 +459,9 @@ const ReadingPractice: React.FC = () => {
                               Correct answer: <span style={{ color: '#16a34a' }}>{correctAnswer}</span>
                             </div>
                           )}
-                          {q.explanation && (
+                          {keyFor(q.id)?.explanation && (
                             <div style={{ marginTop: '0.5rem', color: '#64748b', fontStyle: 'italic' }}>
-                              {q.explanation}
+                              {keyFor(q.id)?.explanation}
                             </div>
                           )}
                         </div>
