@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { batchPracticeEffect, type BatchPracticeEffect, type PracticeEffectRow, type PracticeEffectVerdict } from '../../../services/ieltsBatchService';
 import { IeltsButton, IeltsNotice } from '../../components/ielts/IeltsUi';
 import type { PreparedAssignment } from './IeltsBatchLearningLoop';
+import IeltsBatchProductiveEffect from './IeltsBatchProductiveEffect';
 
 // Teacher wording for bh-practice-effect-v1 (provisional). Never "improved" or "did not improve" (Diagnostic Bible 8A.6).
 export const verdictLabel: Record<PracticeEffectVerdict, string> = {
@@ -78,7 +79,7 @@ export default function IeltsBatchPracticeEffect({ batchId, onPrepare }: { batch
             <div className="ix-effect-head"><strong>{r.skill_name}</strong><span className={`ix-status ix-effect-${tone[r.verdict] ?? 'neutral'}`}>{verdictLabel[r.verdict]}</span></div>
             <p className="ix-muted">Practised {r.practice_count === 1 ? 'once' : `${r.practice_count} times`} from {day(r.first_practice_at)}{r.practice?.length ? `: ${r.practice.slice(0, 3).join(', ')}` : ''}.</p>
             {r.verdict === 'teacher_judged'
-              ? <p>Writing and Speaking change is your call: compare a fresh, comparable task with the earlier one in the review desk.</p>
+              ? <p>Writing and Speaking are measured from your criterion ratings: see “Writing and Speaking · teacher ratings” below.</p>
               : <p><span className="ix-muted">Before practice:</span> {score(r.before)} · <span className="ix-muted">Fresh check after:</span> {r.after.opportunities ? score(r.after) : 'not yet'}</p>}
             {r.verdict !== 'teacher_judged' && r.after.opportunities === 0 && (
               r.pending_checks.length
@@ -92,5 +93,6 @@ export default function IeltsBatchPracticeEffect({ batchId, onPrepare }: { batch
       </article>;
     })}
     <p className="ix-muted ix-effect-note">Only fresh, unseen checks, first screener attempts and mocks count; practice never does. A higher result does not prove the practice caused it. {data.policy}.</p>
+    <IeltsBatchProductiveEffect batchId={batchId} />
   </section>;
 }
