@@ -40,3 +40,7 @@ export interface ProductiveRating{at:string;task:string;scale:'band'|'status';va
 export interface ProductiveEffectRow{student_id:string;student:string;skill:'writing'|'speaking';criterion:string;verdict:ProductiveVerdict;pieces:number;first:ProductiveRating|null;last:ProductiveRating|null;}
 export interface BatchProductiveEffect{batch:{id:string;name:string;revision:number};policy:string;rows:ProductiveEffectRow[];}
 export const batchProductiveEffect=(batch:string)=>rpc<BatchProductiveEffect>('rpc_ielts_batch_productive_effect',{p_batch:batch});
+export interface CoverageCount{released:number;pilot:number;}
+export interface SkillCoverageRow{skill:'listening'|'reading'|'writing'|'speaking';ord:number;code:string;name:string;method:'fresh_questions'|'teacher_ratings';practice:CoverageCount;checks:CoverageCount;materials:number;baseline:{screener?:boolean;mock?:boolean;interview?:boolean};students_measured:number;students_rated?:number;}
+export interface BatchSkillCoverage{batch:{id:string;name:string;revision:number};policy:string;members:number;rows:SkillCoverageRow[];}
+export const batchSkillCoverage=(batch:string)=>rpc<BatchSkillCoverage>('rpc_ielts_batch_skill_coverage',{p_batch:batch});

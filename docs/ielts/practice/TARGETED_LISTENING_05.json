@@ -1,0 +1,2180 @@
+{
+ "pack": "TARGETED_LISTENING_05",
+ "taxonomy_version_id": "d4ad52b6-fd0f-4068-9982-28b89ff389c5",
+ "pilot_student": "b30e9c28-96f1-4d34-83e9-9b28b4926f42",
+ "status": "draft: recordings produced; owner must listen to each exact file before installation; teacher must confirm content before allocation",
+ "tasks": [
+  {
+   "code": "bh-ielts-targeted-listening-l5-v1",
+   "version": "0.1.0",
+   "skill": "listening",
+   "purpose": "guided_practice",
+   "title": "Rent a garden plot: Greenway Allotments",
+   "focus": "distractor",
+   "focus_name": "Distractor resistance",
+   "format": "gap",
+   "instructions": "You will hear a telephone conversation between a woman and an officer at a community garden. Answer questions 1 to 6. Write NO MORE THAN TWO WORDS AND/OR A NUMBER for each answer. You may pause or replay for practice.",
+   "success_description": "Each answer is mentioned after a wrong option. Wait for the speaker to correct, update or reject the first detail before you write.",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "Yearly cost of a small plot: £",
+     "accepted_answers": [
+      "35",
+      "thirty-five",
+      "thirty five"
+     ],
+     "taxonomy_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+     "supporting_node_id": "d5b1fddb-ba6f-4be1-8513-bb26d822357a"
+    },
+    {
+     "id": "q2",
+     "prompt": "Plot location: next to the",
+     "accepted_answers": [
+      "greenhouse",
+      "the greenhouse"
+     ],
+     "taxonomy_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+     "supporting_node_id": "d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b"
+    },
+    {
+     "id": "q3",
+     "prompt": "Start date",
+     "accepted_answers": [
+      "15 March",
+      "15th March",
+      "March 15",
+      "March 15th",
+      "fifteenth March"
+     ],
+     "taxonomy_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+     "supporting_node_id": "0dbe1c8f-403a-493f-afd3-c219310fb18a"
+    },
+    {
+     "id": "q4",
+     "prompt": "Must bring a",
+     "accepted_answers": [
+      "padlock"
+     ],
+     "taxonomy_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+     "supporting_node_id": "d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b"
+    },
+    {
+     "id": "q5",
+     "prompt": "Adviser's surname",
+     "accepted_answers": [
+      "Price"
+     ],
+     "taxonomy_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+     "supporting_node_id": "d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b"
+    },
+    {
+     "id": "q6",
+     "prompt": "Payment method",
+     "accepted_answers": [
+      "bank transfer",
+      "transfer"
+     ],
+     "taxonomy_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+     "supporting_node_id": "d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b"
+    }
+   ],
+   "content": {
+    "scope": "Original IELTS-style targeted Listening practice; not an official IELTS recording or a band assessment.",
+    "focus": "Distractor resistance",
+    "teacher_notes": "Transcript:\nOfficer: Good afternoon, Greenway Allotments. How can I help?\nCaller: Hi. I'd like to rent a garden plot. A friend told me the small plots are thirty pounds a year.\nOfficer: They were, but the price went up in January. A small plot is now thirty-five pounds a year.\nCaller: That's fine. Could I have one near the car park? I'll be carrying tools.\nOfficer: The car park plots have all gone, I'm afraid. The nearest free ones are beside the greenhouse. It's only a short walk.\nCaller: Next to the greenhouse, then. When could I start?\nOfficer: New tenants usually begin on the first of March, but the paths are being repaired this year, so you'll start on the fifteenth of March.\nCaller: OK. Do I need my own spade and fork?\nOfficer: No, we lend those free of charge. What you do need is a padlock for the tool box on your plot.\nCaller: A padlock. Right. Is there anyone I can ask for advice? I've never grown vegetables.\nOfficer: Our manager, Mr Hughes, used to help beginners, but he's retired now. Ask Joanna Price. She's our volunteer adviser. That's P, R, I, C, E.\nCaller: Joanna Price. And how should I pay?\nOfficer: We don't take cash any more, and the card machine is broken, so please pay by bank transfer.\nCaller: Bank transfer. Thanks very much.\n\nKey and teaching notes:\nq1: 35 / thirty-five / thirty five. Thirty pounds was the old price; it is now thirty-five. Primary: Distractor resistance; supporting: Numerical information.\nq2: greenhouse / the greenhouse. The car park plots have gone; the free plots are beside the greenhouse. Primary: Distractor resistance; supporting: Explicit detail.\nq3: 15 March / 15th March / March 15 / March 15th / fifteenth March. The usual date is 1 March; this year it is the fifteenth. Primary: Distractor resistance; supporting: Dates and times.\nq4: padlock. A spade and fork are lent free; the caller needs a padlock. Primary: Distractor resistance; supporting: Explicit detail.\nq5: Price. Mr Hughes has retired; the adviser is Joanna Price. Primary: Distractor resistance; supporting: Explicit detail.\nq6: bank transfer / transfer. Cash is no longer taken and the card machine is broken. Primary: Distractor resistance; supporting: Explicit detail."
+   },
+   "voices": {
+    "OFFICER": "James",
+    "CALLER": "Paula"
+   },
+   "script": [
+    {
+     "speaker": "OFFICER",
+     "text": "Good afternoon, Greenway Allotments. How can I help?"
+    },
+    {
+     "speaker": "CALLER",
+     "text": "Hi. I'd like to rent a garden plot. A friend told me the small plots are thirty pounds a year."
+    },
+    {
+     "speaker": "OFFICER",
+     "text": "They were, but the price went up in January. A small plot is now thirty-five pounds a year."
+    },
+    {
+     "speaker": "CALLER",
+     "text": "That's fine. Could I have one near the car park? I'll be carrying tools."
+    },
+    {
+     "speaker": "OFFICER",
+     "text": "The car park plots have all gone, I'm afraid. The nearest free ones are beside the greenhouse. It's only a short walk."
+    },
+    {
+     "speaker": "CALLER",
+     "text": "Next to the greenhouse, then. When could I start?"
+    },
+    {
+     "speaker": "OFFICER",
+     "text": "New tenants usually begin on the first of March, but the paths are being repaired this year, so you'll start on the fifteenth of March."
+    },
+    {
+     "speaker": "CALLER",
+     "text": "OK. Do I need my own spade and fork?"
+    },
+    {
+     "speaker": "OFFICER",
+     "text": "No, we lend those free of charge. What you do need is a padlock for the tool box on your plot."
+    },
+    {
+     "speaker": "CALLER",
+     "text": "A padlock. Right. Is there anyone I can ask for advice? I've never grown vegetables."
+    },
+    {
+     "speaker": "OFFICER",
+     "text": "Our manager, Mr Hughes, used to help beginners, but he's retired now. Ask Joanna Price. She's our volunteer adviser. That's P, R, I, C, E."
+    },
+    {
+     "speaker": "CALLER",
+     "text": "Joanna Price. And how should I pay?"
+    },
+    {
+     "speaker": "OFFICER",
+     "text": "We don't take cash any more, and the card machine is broken, so please pay by bank transfer."
+    },
+    {
+     "speaker": "CALLER",
+     "text": "Bank transfer. Thanks very much."
+    }
+   ],
+   "script_chars": 1122,
+   "intro_text": "You will hear a telephone conversation between a woman and an officer at a community garden. First, you have thirty seconds to look at questions one to six.",
+   "audio": {
+    "file": "BH-TL05-L5_v1.mp3",
+    "sha256": "a45632cd2e752097f850cb53febe2c207a7324e97438c38aa910ecf17feaf96a",
+    "bytes": 3574389,
+    "duration_seconds": 148.896,
+    "integrated_lufs": -18.5,
+    "true_peak_dbfs": -1.5,
+    "decoded_clipped_samples": 0,
+    "detected_pauses_seconds": [
+     30.149,
+     15.097
+    ],
+    "plan": "copyright notice, 0.7 s, intro, 30 s reading time, listen cue, 1.0 s, passage, 1.2 s, end cue, 15 s check time",
+    "provider": "Runway (ElevenLabs eleven_v4 passage; eleven_multilingual_v2 narrator Tom)",
+    "runway_tasks": {
+     "passage": "252ccdfd-1d7b-4db9-a1bb-5d89760be726",
+     "intro": "fc1c7e53-d99d-4111-99b8-6f0923908694",
+     "notice": "12913992-e693-495b-a014-4f52b1a3d6ed",
+     "listen": "2f2f98fa-8c2c-463a-8978-b6f099c664eb",
+     "end": "7b33b1d7-2a29-49c8-b3f8-5c70646ed45a"
+    },
+    "owner_audio_approval": null
+   }
+  },
+  {
+   "code": "bh-ielts-targeted-listening-l6-v1",
+   "version": "0.1.0",
+   "skill": "listening",
+   "purpose": "independent_check",
+   "title": "Join a running club: Northgate Runners",
+   "focus": "distractor",
+   "focus_name": "Distractor resistance",
+   "format": "gap",
+   "instructions": "You will hear a telephone conversation between a woman and a coach at a running club. Answer questions 1 to 6. Write NO MORE THAN TWO WORDS AND/OR A NUMBER for each answer. This is a fresh check: listen once, without pausing, and answer on your own.",
+   "success_description": "Each answer is mentioned after a wrong option. Write the final, confirmed detail.",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "Beginners' day",
+     "accepted_answers": [
+      "Wednesday",
+      "Wednesdays"
+     ],
+     "taxonomy_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+     "supporting_node_id": "0dbe1c8f-403a-493f-afd3-c219310fb18a"
+    },
+    {
+     "id": "q2",
+     "prompt": "Start time",
+     "accepted_answers": [
+      "6:30",
+      "6.30",
+      "18:30",
+      "six thirty",
+      "6:30pm",
+      "6.30pm",
+      "6:30 pm",
+      "6.30 pm"
+     ],
+     "taxonomy_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+     "supporting_node_id": "0dbe1c8f-403a-493f-afd3-c219310fb18a"
+    },
+    {
+     "id": "q3",
+     "prompt": "Meet outside the",
+     "accepted_answers": [
+      "library",
+      "the library"
+     ],
+     "taxonomy_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+     "supporting_node_id": "d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b"
+    },
+    {
+     "id": "q4",
+     "prompt": "Cost of the trial month: £",
+     "accepted_answers": [
+      "12",
+      "twelve"
+     ],
+     "taxonomy_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+     "supporting_node_id": "d5b1fddb-ba6f-4be1-8513-bb26d822357a"
+    },
+    {
+     "id": "q5",
+     "prompt": "Must wear a",
+     "accepted_answers": [
+      "reflective vest"
+     ],
+     "taxonomy_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+     "supporting_node_id": "d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b"
+    },
+    {
+     "id": "q6",
+     "prompt": "On arrival, ask for",
+     "accepted_answers": [
+      "Helen"
+     ],
+     "taxonomy_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2",
+     "supporting_node_id": "d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b"
+    }
+   ],
+   "content": {
+    "scope": "Original IELTS-style targeted Listening fresh check; not an official IELTS recording or a band assessment.",
+    "focus": "Distractor resistance",
+    "teacher_notes": "Transcript:\nCaller: Hello, is that Northgate Running Club? I saw a poster about joining.\nCoach: Yes, it is. I'm Sam, one of the coaches. What would you like to know?\nCaller: The poster says beginners meet on Tuesdays.\nCoach: We used to, but a school has booked the track on Tuesdays, so beginners meet on Wednesdays now.\nCaller: Wednesday's fine. What time?\nCoach: Seven o'clock in summer, but it gets dark early at this time of year, so we start at six thirty.\nCaller: And where do you meet? At the sports hall?\nCoach: The sports hall is closed for painting. Meet us outside the library instead. It's well lit, so it's safe.\nCaller: The library. Is there a membership fee?\nCoach: Adults pay forty pounds a year, but the first month is a trial, and that costs twelve pounds.\nCaller: I'll start with the trial, then. Do I need special running shoes?\nCoach: Ordinary trainers are fine at first. The one thing we insist on is a reflective vest, so drivers can see you.\nCaller: A reflective vest. And who should I ask for when I arrive? You?\nCoach: I'm away next week, so look for Helen. She leads the beginners' group.\nCaller: Helen. Great, thanks.\n\nKey and teaching notes:\nq1: Wednesday / Wednesdays. Tuesday was on the poster; beginners now meet on Wednesdays. Primary: Distractor resistance; supporting: Dates and times.\nq2: 6:30 / 6.30 / 18:30 / six thirty / 6:30pm / 6.30pm / 6:30 pm / 6.30 pm. Seven o'clock is the summer time; now it is six thirty. Primary: Distractor resistance; supporting: Dates and times.\nq3: library / the library. The sports hall is closed; they meet outside the library. Primary: Distractor resistance; supporting: Explicit detail.\nq4: 12 / twelve. Forty pounds is the yearly fee; the trial month is twelve. Primary: Distractor resistance; supporting: Numerical information.\nq5: reflective vest. Special shoes are not needed; a reflective vest is required. Primary: Distractor resistance; supporting: Explicit detail.\nq6: Helen. Sam is away; Helen leads the beginners. Primary: Distractor resistance; supporting: Explicit detail."
+   },
+   "voices": {
+    "COACH": "Frank",
+    "CALLER": "Kylie"
+   },
+   "script": [
+    {
+     "speaker": "CALLER",
+     "text": "Hello, is that Northgate Running Club? I saw a poster about joining."
+    },
+    {
+     "speaker": "COACH",
+     "text": "Yes, it is. I'm Sam, one of the coaches. What would you like to know?"
+    },
+    {
+     "speaker": "CALLER",
+     "text": "The poster says beginners meet on Tuesdays."
+    },
+    {
+     "speaker": "COACH",
+     "text": "We used to, but a school has booked the track on Tuesdays, so beginners meet on Wednesdays now."
+    },
+    {
+     "speaker": "CALLER",
+     "text": "Wednesday's fine. What time?"
+    },
+    {
+     "speaker": "COACH",
+     "text": "Seven o'clock in summer, but it gets dark early at this time of year, so we start at six thirty."
+    },
+    {
+     "speaker": "CALLER",
+     "text": "And where do you meet? At the sports hall?"
+    },
+    {
+     "speaker": "COACH",
+     "text": "The sports hall is closed for painting. Meet us outside the library instead. It's well lit, so it's safe."
+    },
+    {
+     "speaker": "CALLER",
+     "text": "The library. Is there a membership fee?"
+    },
+    {
+     "speaker": "COACH",
+     "text": "Adults pay forty pounds a year, but the first month is a trial, and that costs twelve pounds."
+    },
+    {
+     "speaker": "CALLER",
+     "text": "I'll start with the trial, then. Do I need special running shoes?"
+    },
+    {
+     "speaker": "COACH",
+     "text": "Ordinary trainers are fine at first. The one thing we insist on is a reflective vest, so drivers can see you."
+    },
+    {
+     "speaker": "CALLER",
+     "text": "A reflective vest. And who should I ask for when I arrive? You?"
+    },
+    {
+     "speaker": "COACH",
+     "text": "I'm away next week, so look for Helen. She leads the beginners' group."
+    },
+    {
+     "speaker": "CALLER",
+     "text": "Helen. Great, thanks."
+    }
+   ],
+   "script_chars": 1006,
+   "intro_text": "You will hear a telephone conversation between a woman and a coach at a running club. First, you have thirty seconds to look at questions one to six.",
+   "audio": {
+    "file": "BH-TL05-L6_v1.mp3",
+    "sha256": "7e494ee370337c64a6135a10d5c7e5e0b4af2d8144e5d25e4391f16f89448d63",
+    "bytes": 3383735,
+    "duration_seconds": 140.952,
+    "integrated_lufs": -18.6,
+    "true_peak_dbfs": -1.4,
+    "decoded_clipped_samples": 0,
+    "detected_pauses_seconds": [
+     30.143,
+     15.097
+    ],
+    "plan": "copyright notice, 0.7 s, intro, 30 s reading time, listen cue, 1.0 s, passage, 1.2 s, end cue, 15 s check time",
+    "provider": "Runway (ElevenLabs eleven_v4 passage; eleven_multilingual_v2 narrator Tom)",
+    "runway_tasks": {
+     "passage": "fdc7bb47-dcf0-499e-88fb-c9575a101127",
+     "intro": "a01b3eb0-b4a1-483d-a866-5788f18a3823",
+     "notice": "12913992-e693-495b-a014-4f52b1a3d6ed",
+     "listen": "2f2f98fa-8c2c-463a-8978-b6f099c664eb",
+     "end": "7b33b1d7-2a29-49c8-b3f8-5c70646ed45a"
+    },
+    "owner_audio_approval": null
+   }
+  },
+  {
+   "code": "bh-ielts-targeted-listening-l7-v1",
+   "version": "0.1.0",
+   "skill": "listening",
+   "purpose": "guided_practice",
+   "title": "Report on a field trip: the wetland centre",
+   "focus": "paraphrase",
+   "focus_name": "Paraphrase recognition",
+   "format": "mcq",
+   "instructions": "You will hear a conversation between a tutor and a student, Daniel, about a field trip. Answer questions 1 to 6. Choose the correct letter, A, B or C, for each question. You may pause or replay for practice.",
+   "success_description": "The correct option uses different words from the speaker. Options that repeat words you hear are often wrong; match the meaning, not the words.",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "What surprised Daniel about the trip?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  There were more birds than he expected."
+      },
+      {
+       "value": "B",
+       "label": "B  It focused mainly on controlling water."
+      },
+      {
+       "value": "C",
+       "label": "C  The weather was worse than forecast."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q2",
+     "prompt": "How did the guide teach the group?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  She gave a detailed introduction."
+      },
+      {
+       "value": "B",
+       "label": "B  She showed them a short film."
+      },
+      {
+       "value": "C",
+       "label": "C  She encouraged them to find answers themselves."
+      }
+     ],
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q3",
+     "prompt": "How did the centre deal with flooding?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  It built higher walls."
+      },
+      {
+       "value": "B",
+       "label": "B  It allowed some land to become wet again."
+      },
+      {
+       "value": "C",
+       "label": "C  It sent water to a nearby river."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q4",
+     "prompt": "Why have visitor numbers increased?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Earlier visitors recommended the centre."
+      },
+      {
+       "value": "B",
+       "label": "B  There was a new advertising campaign."
+      },
+      {
+       "value": "C",
+       "label": "C  Family tickets became cheaper."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q5",
+     "prompt": "Why did Daniel change his data collection?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  His equipment broke."
+      },
+      {
+       "value": "B",
+       "label": "B  The guide advised him to."
+      },
+      {
+       "value": "C",
+       "label": "C  Low temperatures meant there were few insects."
+      }
+     ],
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q6",
+     "prompt": "What does Daniel plan to do next?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Visit at a different time of year."
+      },
+      {
+       "value": "B",
+       "label": "B  Write a report for the centre."
+      },
+      {
+       "value": "C",
+       "label": "C  Study a different wetland."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    }
+   ],
+   "content": {
+    "scope": "Original IELTS-style targeted Listening practice; not an official IELTS recording or a band assessment.",
+    "focus": "Paraphrase recognition",
+    "teacher_notes": "Transcript:\nTutor: So, Daniel, you've just come back from the wetland centre. How was the trip?\nDaniel: Better than I expected. I'd assumed it would just be birdwatching, but most of the day was about how the water is managed.\nTutor: And the guide? Was she helpful?\nDaniel: Very. She didn't give us a long talk at the start. Instead, she stopped every few minutes and got us to work things out for ourselves.\nTutor: Good. The centre had a problem with flooding a few years ago, didn't it?\nDaniel: Yes. The old walls kept breaking, so instead of building stronger ones, they let part of the land turn back into marsh. Now that soaks up the extra water.\nTutor: Interesting. What about visitor numbers?\nDaniel: They've gone up, but not because of advertising. The guide said it's mainly families who came once and then told their friends.\nTutor: Did you manage to collect data for your project?\nDaniel: Some. My plan was to count insects, but it was so cold there weren't many about, so I measured the water temperature at different points instead.\nTutor: Sensible. And what will you do next?\nDaniel: I'd like to go back in spring, when it's warmer, and repeat the measurements, so I can compare the two seasons.\n\nKey and teaching notes:\nq1: B. \"most of the day was about how the water is managed\" = controlling water. Birds are mentioned but were not the focus. Primary: Paraphrase recognition; supporting: Distractor resistance.\nq2: C. \"got us to work things out for ourselves\" = find answers themselves. She did NOT give a long talk. Primary: Paraphrase recognition; supporting: Distractor resistance.\nq3: B. \"let part of the land turn back into marsh\" = allowed land to become wet again. \"walls\" is the trap word. Primary: Paraphrase recognition; supporting: Distractor resistance.\nq4: A. \"families who came once and then told their friends\" = recommendations. Advertising is rejected. Primary: Paraphrase recognition; supporting: Distractor resistance.\nq5: C. \"so cold there weren't many about\" = low temperatures, few insects. Primary: Paraphrase recognition; supporting: Distractor resistance.\nq6: A. \"go back in spring ... compare the two seasons\" = a different time of year. Primary: Paraphrase recognition; supporting: Distractor resistance."
+   },
+   "voices": {
+    "TUTOR": "Marlene",
+    "DANIEL": "James"
+   },
+   "script": [
+    {
+     "speaker": "TUTOR",
+     "text": "So, Daniel, you've just come back from the wetland centre. How was the trip?"
+    },
+    {
+     "speaker": "DANIEL",
+     "text": "Better than I expected. I'd assumed it would just be birdwatching, but most of the day was about how the water is managed."
+    },
+    {
+     "speaker": "TUTOR",
+     "text": "And the guide? Was she helpful?"
+    },
+    {
+     "speaker": "DANIEL",
+     "text": "Very. She didn't give us a long talk at the start. Instead, she stopped every few minutes and got us to work things out for ourselves."
+    },
+    {
+     "speaker": "TUTOR",
+     "text": "Good. The centre had a problem with flooding a few years ago, didn't it?"
+    },
+    {
+     "speaker": "DANIEL",
+     "text": "Yes. The old walls kept breaking, so instead of building stronger ones, they let part of the land turn back into marsh. Now that soaks up the extra water."
+    },
+    {
+     "speaker": "TUTOR",
+     "text": "Interesting. What about visitor numbers?"
+    },
+    {
+     "speaker": "DANIEL",
+     "text": "They've gone up, but not because of advertising. The guide said it's mainly families who came once and then told their friends."
+    },
+    {
+     "speaker": "TUTOR",
+     "text": "Did you manage to collect data for your project?"
+    },
+    {
+     "speaker": "DANIEL",
+     "text": "Some. My plan was to count insects, but it was so cold there weren't many about, so I measured the water temperature at different points instead."
+    },
+    {
+     "speaker": "TUTOR",
+     "text": "Sensible. And what will you do next?"
+    },
+    {
+     "speaker": "DANIEL",
+     "text": "I'd like to go back in spring, when it's warmer, and repeat the measurements, so I can compare the two seasons."
+    }
+   ],
+   "script_chars": 1096,
+   "intro_text": "You will hear a conversation between a tutor and a student, Daniel, about a field trip. First, you have thirty seconds to look at questions one to six.",
+   "audio": {
+    "file": "BH-TL05-L7_v1.mp3",
+    "sha256": "9d054b008c567a96137785041d2c42b19a0ffb8570681b3ec24eda443880e2d9",
+    "bytes": 3376248,
+    "duration_seconds": 140.64,
+    "integrated_lufs": -18.4,
+    "true_peak_dbfs": -1.5,
+    "decoded_clipped_samples": 0,
+    "detected_pauses_seconds": [
+     30.145,
+     15.097
+    ],
+    "plan": "copyright notice, 0.7 s, intro, 30 s reading time, listen cue, 1.0 s, passage, 1.2 s, end cue, 15 s check time",
+    "provider": "Runway (ElevenLabs eleven_v4 passage; eleven_multilingual_v2 narrator Tom)",
+    "runway_tasks": {
+     "passage": "131ebc66-9137-4dd7-9740-d34783bf4ee3",
+     "intro": "aa67a2fe-d80c-40e7-9e01-a685191ac25f",
+     "notice": "12913992-e693-495b-a014-4f52b1a3d6ed",
+     "listen": "2f2f98fa-8c2c-463a-8978-b6f099c664eb",
+     "end": "7b33b1d7-2a29-49c8-b3f8-5c70646ed45a"
+    },
+    "owner_audio_approval": null
+   }
+  },
+  {
+   "code": "bh-ielts-targeted-listening-l8-v1",
+   "version": "0.1.0",
+   "skill": "listening",
+   "purpose": "independent_check",
+   "title": "Radio interview: the new Brookfield Library",
+   "focus": "paraphrase",
+   "focus_name": "Paraphrase recognition",
+   "format": "mcq",
+   "instructions": "You will hear a radio interview with Ruth Ellis, the manager of a local library. Answer questions 1 to 6. Choose the correct letter, A, B or C, for each question. This is a fresh check: listen once, without pausing, and answer on your own.",
+   "success_description": "The correct option expresses the speaker's meaning in different words.",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "What is the main change to the ground floor?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  More shelves have been added."
+      },
+      {
+       "value": "B",
+       "label": "B  It has become a meeting area."
+      },
+      {
+       "value": "C",
+       "label": "C  It is now used for storage."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q2",
+     "prompt": "What happened to the library's books?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  All of them were kept."
+      },
+      {
+       "value": "B",
+       "label": "B  Old ones were sold."
+      },
+      {
+       "value": "C",
+       "label": "C  Some were given to schools."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q3",
+     "prompt": "Who paid most of the cost?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  The council."
+      },
+      {
+       "value": "B",
+       "label": "B  Library users, through higher charges."
+      },
+      {
+       "value": "C",
+       "label": "C  Companies in the area."
+      }
+     ],
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q4",
+     "prompt": "What has changed about the opening hours?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  It is now open for part of Sunday."
+      },
+      {
+       "value": "B",
+       "label": "B  It opens later on weekdays."
+      },
+      {
+       "value": "C",
+       "label": "C  It closes earlier on Saturdays."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q5",
+     "prompt": "Why is a room reserved for teenagers?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  They wanted somewhere to meet friends."
+      },
+      {
+       "value": "B",
+       "label": "B  They had no quiet place to study at home."
+      },
+      {
+       "value": "C",
+       "label": "C  They asked for more computers."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q6",
+     "prompt": "What will the library do next?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Make the building bigger."
+      },
+      {
+       "value": "B",
+       "label": "B  Employ more staff."
+      },
+      {
+       "value": "C",
+       "label": "C  Ask users for their opinions."
+      }
+     ],
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    }
+   ],
+   "content": {
+    "scope": "Original IELTS-style targeted Listening fresh check; not an official IELTS recording or a band assessment.",
+    "focus": "Paraphrase recognition",
+    "teacher_notes": "Transcript:\nInterviewer: Today I'm talking to Ruth Ellis, who manages Brookfield Library. Ruth, the library reopened last month. What's the biggest change?\nRuth: The building looks much the same, but people use it differently. The old rows of shelves were moved upstairs, so the ground floor is now open space where groups can get together.\nInterviewer: Were people unhappy about losing the shelves?\nRuth: A few were at first. But not a single book was thrown away or sold. We still have the whole collection.\nInterviewer: How was the work paid for?\nRuth: The council had no money for it, and we didn't want to put up our charges. In the end, local firms covered most of the bill.\nInterviewer: And the opening hours?\nRuth: Weekdays and Saturdays are the same. The real difference is Sunday. We used to be closed all day; now we open from one until five.\nInterviewer: What about young people?\nRuth: Teenagers told us there was nowhere peaceful at home to do their homework, so a room is reserved just for them after school.\nInterviewer: Finally, what's next?\nRuth: We want to hear from the people who come here. A questionnaire goes out next week, and we'll plan the next stage around what they tell us.\n\nKey and teaching notes:\nq1: B. \"open space where groups can get together\" = a meeting area. Primary: Paraphrase recognition; supporting: Distractor resistance.\nq2: A. \"not a single book was thrown away or sold\" = all kept. Primary: Paraphrase recognition; supporting: Distractor resistance.\nq3: C. \"local firms covered most of the bill\" = companies in the area. Primary: Paraphrase recognition; supporting: Distractor resistance.\nq4: A. \"now we open from one until five\" on Sunday = part of Sunday. Primary: Paraphrase recognition; supporting: Distractor resistance.\nq5: B. \"nowhere peaceful at home to do their homework\" = no quiet place to study. Primary: Paraphrase recognition; supporting: Distractor resistance.\nq6: C. \"A questionnaire goes out ... what they tell us\" = ask users for opinions. Primary: Paraphrase recognition; supporting: Distractor resistance."
+   },
+   "voices": {
+    "INTERVIEWER": "Vincent",
+    "RUTH": "Paula"
+   },
+   "script": [
+    {
+     "speaker": "INTERVIEWER",
+     "text": "Today I'm talking to Ruth Ellis, who manages Brookfield Library. Ruth, the library reopened last month. What's the biggest change?"
+    },
+    {
+     "speaker": "RUTH",
+     "text": "The building looks much the same, but people use it differently. The old rows of shelves were moved upstairs, so the ground floor is now open space where groups can get together."
+    },
+    {
+     "speaker": "INTERVIEWER",
+     "text": "Were people unhappy about losing the shelves?"
+    },
+    {
+     "speaker": "RUTH",
+     "text": "A few were at first. But not a single book was thrown away or sold. We still have the whole collection."
+    },
+    {
+     "speaker": "INTERVIEWER",
+     "text": "How was the work paid for?"
+    },
+    {
+     "speaker": "RUTH",
+     "text": "The council had no money for it, and we didn't want to put up our charges. In the end, local firms covered most of the bill."
+    },
+    {
+     "speaker": "INTERVIEWER",
+     "text": "And the opening hours?"
+    },
+    {
+     "speaker": "RUTH",
+     "text": "Weekdays and Saturdays are the same. The real difference is Sunday. We used to be closed all day; now we open from one until five."
+    },
+    {
+     "speaker": "INTERVIEWER",
+     "text": "What about young people?"
+    },
+    {
+     "speaker": "RUTH",
+     "text": "Teenagers told us there was nowhere peaceful at home to do their homework, so a room is reserved just for them after school."
+    },
+    {
+     "speaker": "INTERVIEWER",
+     "text": "Finally, what's next?"
+    },
+    {
+     "speaker": "RUTH",
+     "text": "We want to hear from the people who come here. A questionnaire goes out next week, and we'll plan the next stage around what they tell us."
+    }
+   ],
+   "script_chars": 1065,
+   "intro_text": "You will hear a radio interview with Ruth Ellis, the manager of a local library. First, you have thirty seconds to look at questions one to six.",
+   "audio": {
+    "file": "BH-TL05-L8_v1.mp3",
+    "sha256": "70bbb88ce8e9b81c3dd7ecc445bb69d0fe436c33047fc8e24382a0b344a0b5c4",
+    "bytes": 3442492,
+    "duration_seconds": 143.4,
+    "integrated_lufs": -18.7,
+    "true_peak_dbfs": -1.6,
+    "decoded_clipped_samples": 0,
+    "detected_pauses_seconds": [
+     30.147,
+     15.097
+    ],
+    "plan": "copyright notice, 0.7 s, intro, 30 s reading time, listen cue, 1.0 s, passage, 1.2 s, end cue, 15 s check time",
+    "provider": "Runway (ElevenLabs eleven_v4 passage; eleven_multilingual_v2 narrator Tom)",
+    "runway_tasks": {
+     "passage": "0a4e5122-effb-4f69-8508-c4f4f21439c5",
+     "intro": "8adc4e64-b647-4047-95a5-ec1d6afa506d",
+     "notice": "12913992-e693-495b-a014-4f52b1a3d6ed",
+     "listen": "2f2f98fa-8c2c-463a-8978-b6f099c664eb",
+     "end": "7b33b1d7-2a29-49c8-b3f8-5c70646ed45a"
+    },
+    "owner_audio_approval": null
+   }
+  },
+  {
+   "code": "bh-ielts-targeted-listening-l9-v1",
+   "version": "0.1.0",
+   "skill": "listening",
+   "purpose": "guided_practice",
+   "title": "Follow a process: making recycled paper",
+   "focus": "sequencing",
+   "focus_name": "Sequencing",
+   "format": "mcq",
+   "instructions": "You will hear a conversation between an art instructor and a student about how to make recycled paper. Answer questions 1 to 6. Choose the correct letter, A, B or C, for each question. You may pause or replay for practice.",
+   "success_description": "The steps are not always mentioned in the order they happen. Listen for \"before\", \"once\", \"only then\", \"after\" and \"last\" to rebuild the real order.",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "What do students do immediately after tearing the paper?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Blend it."
+      },
+      {
+       "value": "B",
+       "label": "B  Soak it in warm water."
+      },
+      {
+       "value": "C",
+       "label": "C  Pour it into a tray."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "5bcb6e11-1f2d-4ce6-b1af-093acc342ff1",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q2",
+     "prompt": "When should colour be added?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  During blending."
+      },
+      {
+       "value": "B",
+       "label": "B  Before soaking."
+      },
+      {
+       "value": "C",
+       "label": "C  After pressing."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "5bcb6e11-1f2d-4ce6-b1af-093acc342ff1",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q3",
+     "prompt": "What happens immediately before the frame is lowered?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  The pulp is blended."
+      },
+      {
+       "value": "B",
+       "label": "B  The frame is turned over."
+      },
+      {
+       "value": "C",
+       "label": "C  The pulp is poured into a tray of water."
+      }
+     ],
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "5bcb6e11-1f2d-4ce6-b1af-093acc342ff1",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q4",
+     "prompt": "What do students do immediately after lifting the frame out?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Leave it on the frame to dry."
+      },
+      {
+       "value": "B",
+       "label": "B  Turn it over onto a cloth."
+      },
+      {
+       "value": "C",
+       "label": "C  Hang it on a line."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "5bcb6e11-1f2d-4ce6-b1af-093acc342ff1",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q5",
+     "prompt": "What is the last stage?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Pressing with a sponge."
+      },
+      {
+       "value": "B",
+       "label": "B  Lifting the frame."
+      },
+      {
+       "value": "C",
+       "label": "C  Drying on a line overnight."
+      }
+     ],
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "5bcb6e11-1f2d-4ce6-b1af-093acc342ff1",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q6",
+     "prompt": "Which stage comes between soaking and pouring into the tray?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Blending."
+      },
+      {
+       "value": "B",
+       "label": "B  Tearing."
+      },
+      {
+       "value": "C",
+       "label": "C  Pressing."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "5bcb6e11-1f2d-4ce6-b1af-093acc342ff1",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    }
+   ],
+   "content": {
+    "scope": "Original IELTS-style targeted Listening practice; not an official IELTS recording or a band assessment.",
+    "focus": "Sequencing",
+    "teacher_notes": "Transcript:\nInstructor: Today we're making recycled paper. Let me go through the process before you start. The very first thing is to tear your old paper into small pieces.\nStudent: Do we put the pieces straight into the blender?\nInstructor: Not yet. Before blending, the pieces need to soak in warm water for about an hour. That softens them. Once they're soft, you blend them into a pulp.\nStudent: Can we add colour?\nInstructor: Yes. Add a little food colouring while you're blending, not afterwards.\nStudent: And after blending, we pour it onto the frame?\nInstructor: Almost. First you pour the pulp into a tray of water. Only then do you lower the frame into the tray and lift it out slowly, so a thin layer sits on the screen.\nStudent: Then we leave it on the frame to dry?\nInstructor: No, that's a common mistake. Straight after lifting it out, you turn the frame over onto a cloth and press out the extra water with a sponge.\nStudent: And that's it?\nInstructor: One more stage, and it's the last one. Hang the cloth on a line overnight to dry. In the morning, peel off your paper.\n\nKey and teaching notes:\nq1: B. The student suggests the blender, but \"Not yet. Before blending, the pieces need to soak\". Primary: Sequencing; supporting: Distractor resistance.\nq2: A. \"Add a little food colouring while you're blending, not afterwards.\" Primary: Sequencing; supporting: Distractor resistance.\nq3: C. \"First you pour the pulp into a tray of water. Only then do you lower the frame\". Primary: Sequencing; supporting: Distractor resistance.\nq4: B. Leaving it on the frame is \"a common mistake\"; \"Straight after lifting it out, you turn the frame over\". Primary: Sequencing; supporting: Distractor resistance.\nq5: C. \"One more stage, and it's the last one. Hang the cloth on a line overnight\". Primary: Sequencing; supporting: Distractor resistance.\nq6: A. Soak → blend → pour into the tray. Primary: Sequencing; supporting: Distractor resistance."
+   },
+   "voices": {
+    "INSTRUCTOR": "Miriam",
+    "STUDENT": "Noah"
+   },
+   "script": [
+    {
+     "speaker": "INSTRUCTOR",
+     "text": "Today we're making recycled paper. Let me go through the process before you start. The very first thing is to tear your old paper into small pieces."
+    },
+    {
+     "speaker": "STUDENT",
+     "text": "Do we put the pieces straight into the blender?"
+    },
+    {
+     "speaker": "INSTRUCTOR",
+     "text": "Not yet. Before blending, the pieces need to soak in warm water for about an hour. That softens them. Once they're soft, you blend them into a pulp."
+    },
+    {
+     "speaker": "STUDENT",
+     "text": "Can we add colour?"
+    },
+    {
+     "speaker": "INSTRUCTOR",
+     "text": "Yes. Add a little food colouring while you're blending, not afterwards."
+    },
+    {
+     "speaker": "STUDENT",
+     "text": "And after blending, we pour it onto the frame?"
+    },
+    {
+     "speaker": "INSTRUCTOR",
+     "text": "Almost. First you pour the pulp into a tray of water. Only then do you lower the frame into the tray and lift it out slowly, so a thin layer sits on the screen."
+    },
+    {
+     "speaker": "STUDENT",
+     "text": "Then we leave it on the frame to dry?"
+    },
+    {
+     "speaker": "INSTRUCTOR",
+     "text": "No, that's a common mistake. Straight after lifting it out, you turn the frame over onto a cloth and press out the extra water with a sponge."
+    },
+    {
+     "speaker": "STUDENT",
+     "text": "And that's it?"
+    },
+    {
+     "speaker": "INSTRUCTOR",
+     "text": "One more stage, and it's the last one. Hang the cloth on a line overnight to dry. In the morning, peel off your paper."
+    }
+   ],
+   "script_chars": 948,
+   "intro_text": "You will hear a conversation between an art instructor and a student about how to make recycled paper. First, you have thirty seconds to look at questions one to six.",
+   "audio": {
+    "file": "BH-TL05-L9_v1.mp3",
+    "sha256": "b84254c2ef86d13039cbacd60d93c4e6ba5255672bf632088ee139bd68b49021",
+    "bytes": 3418869,
+    "duration_seconds": 142.416,
+    "integrated_lufs": -18.9,
+    "true_peak_dbfs": -1.2,
+    "decoded_clipped_samples": 0,
+    "detected_pauses_seconds": [
+     30.153,
+     15.097
+    ],
+    "plan": "copyright notice, 0.7 s, intro, 30 s reading time, listen cue, 1.0 s, passage, 1.2 s, end cue, 15 s check time",
+    "provider": "Runway (ElevenLabs eleven_v4 passage; eleven_multilingual_v2 narrator Tom)",
+    "runway_tasks": {
+     "passage": "e7303a41-e528-473c-9fd0-1a1ec96de422",
+     "intro": "c7b88412-4cf6-42cf-aa1a-686384da43a2",
+     "notice": "12913992-e693-495b-a014-4f52b1a3d6ed",
+     "listen": "2f2f98fa-8c2c-463a-8978-b6f099c664eb",
+     "end": "7b33b1d7-2a29-49c8-b3f8-5c70646ed45a"
+    },
+    "owner_audio_approval": null
+   }
+  },
+  {
+   "code": "bh-ielts-targeted-listening-l10-v1",
+   "version": "0.1.0",
+   "skill": "listening",
+   "purpose": "independent_check",
+   "title": "Getting started at the gym",
+   "focus": "sequencing",
+   "focus_name": "Sequencing",
+   "format": "mcq",
+   "instructions": "You will hear a conversation between a new gym member and a receptionist. Answer questions 1 to 6. Choose the correct letter, A, B or C, for each question. This is a fresh check: listen once, without pausing, and answer on your own.",
+   "success_description": "Rebuild the real order of the steps, even when the speakers mention them out of order.",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "What must the member do immediately after paying?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Book a fitness test."
+      },
+      {
+       "value": "B",
+       "label": "B  Complete a health questionnaire."
+      },
+      {
+       "value": "C",
+       "label": "C  Collect a membership card."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "5bcb6e11-1f2d-4ce6-b1af-093acc342ff1",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q2",
+     "prompt": "When is the member's photo taken?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  At the end of the fitness test."
+      },
+      {
+       "value": "B",
+       "label": "B  When the questionnaire is handed in."
+      },
+      {
+       "value": "C",
+       "label": "C  During the induction."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "5bcb6e11-1f2d-4ce6-b1af-093acc342ff1",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q3",
+     "prompt": "What does the member need before booking an induction?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  A personal programme."
+      },
+      {
+       "value": "B",
+       "label": "B  A trainer's signature."
+      },
+      {
+       "value": "C",
+       "label": "C  A membership card."
+      }
+     ],
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "5bcb6e11-1f2d-4ce6-b1af-093acc342ff1",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q4",
+     "prompt": "What happens immediately after the induction?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  The card is printed."
+      },
+      {
+       "value": "B",
+       "label": "B  The trainer writes a personal programme."
+      },
+      {
+       "value": "C",
+       "label": "C  The member takes a fitness test."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "5bcb6e11-1f2d-4ce6-b1af-093acc342ff1",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q5",
+     "prompt": "What is the final step before the member can train alone?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Receiving a personal programme."
+      },
+      {
+       "value": "B",
+       "label": "B  Booking a fitness test."
+      },
+      {
+       "value": "C",
+       "label": "C  Swimming in the pool."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "5bcb6e11-1f2d-4ce6-b1af-093acc342ff1",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    },
+    {
+     "id": "q6",
+     "prompt": "From which point can the member use the pool?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  After the induction."
+      },
+      {
+       "value": "B",
+       "label": "B  After the fitness test."
+      },
+      {
+       "value": "C",
+       "label": "C  After completing the questionnaire."
+      }
+     ],
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "5bcb6e11-1f2d-4ce6-b1af-093acc342ff1",
+     "supporting_node_id": "f9064b63-e3f1-4bfa-8e8e-97a02756afb2"
+    }
+   ],
+   "content": {
+    "scope": "Original IELTS-style targeted Listening fresh check; not an official IELTS recording or a band assessment.",
+    "focus": "Sequencing",
+    "teacher_notes": "Transcript:\nMember: Hi. I've just joined the gym. What do I need to do before I can use the machines?\nReceptionist: Welcome! There are a few steps. You've already paid, so the next thing is a short health questionnaire. You fill that in here at reception.\nMember: And then I get my membership card?\nReceptionist: Not straight away. Once we have your questionnaire, you book a fitness test with a trainer. Your card is printed after the test, because it has your photo on it, and the trainer takes the photo at the end of the test.\nMember: OK. So when do I learn how to use the machines?\nReceptionist: That's the induction session. You can only book it once you have your card, because the booking system asks for your card number.\nMember: And the induction is the final step?\nReceptionist: Nearly. After the induction, the trainer writes you a personal programme. When you've got that, you're free to train on your own.\nMember: Can I use the swimming pool before all this?\nReceptionist: Yes, actually. The pool doesn't need an induction, so you can swim as soon as your questionnaire is done.\n\nKey and teaching notes:\nq1: B. \"You've already paid, so the next thing is a short health questionnaire.\" Primary: Sequencing; supporting: Distractor resistance.\nq2: A. \"the trainer takes the photo at the end of the test\". Primary: Sequencing; supporting: Distractor resistance.\nq3: C. \"You can only book it once you have your card\". Primary: Sequencing; supporting: Distractor resistance.\nq4: B. \"After the induction, the trainer writes you a personal programme.\" Primary: Sequencing; supporting: Distractor resistance.\nq5: A. \"When you've got that, you're free to train on your own.\" Primary: Sequencing; supporting: Distractor resistance.\nq6: C. \"you can swim as soon as your questionnaire is done\". Primary: Sequencing; supporting: Distractor resistance."
+   },
+   "voices": {
+    "RECEPTIONIST": "Kylie",
+    "MEMBER": "Frank"
+   },
+   "script": [
+    {
+     "speaker": "MEMBER",
+     "text": "Hi. I've just joined the gym. What do I need to do before I can use the machines?"
+    },
+    {
+     "speaker": "RECEPTIONIST",
+     "text": "Welcome! There are a few steps. You've already paid, so the next thing is a short health questionnaire. You fill that in here at reception."
+    },
+    {
+     "speaker": "MEMBER",
+     "text": "And then I get my membership card?"
+    },
+    {
+     "speaker": "RECEPTIONIST",
+     "text": "Not straight away. Once we have your questionnaire, you book a fitness test with a trainer. Your card is printed after the test, because it has your photo on it, and the trainer takes the photo at the end of the test."
+    },
+    {
+     "speaker": "MEMBER",
+     "text": "OK. So when do I learn how to use the machines?"
+    },
+    {
+     "speaker": "RECEPTIONIST",
+     "text": "That's the induction session. You can only book it once you have your card, because the booking system asks for your card number."
+    },
+    {
+     "speaker": "MEMBER",
+     "text": "And the induction is the final step?"
+    },
+    {
+     "speaker": "RECEPTIONIST",
+     "text": "Nearly. After the induction, the trainer writes you a personal programme. When you've got that, you're free to train on your own."
+    },
+    {
+     "speaker": "MEMBER",
+     "text": "Can I use the swimming pool before all this?"
+    },
+    {
+     "speaker": "RECEPTIONIST",
+     "text": "Yes, actually. The pool doesn't need an induction, so you can swim as soon as your questionnaire is done."
+    }
+   ],
+   "script_chars": 961,
+   "intro_text": "You will hear a conversation between a new gym member and a receptionist. First, you have thirty seconds to look at questions one to six.",
+   "audio": {
+    "file": "BH-TL05-L10_v1.mp3",
+    "sha256": "d2d37340e0427722a7946a7dbe83815d2bf5ab90410ef7229cf8156dfbdce75e",
+    "bytes": 3199980,
+    "duration_seconds": 133.296,
+    "integrated_lufs": -18.7,
+    "true_peak_dbfs": -1.6,
+    "decoded_clipped_samples": 0,
+    "detected_pauses_seconds": [
+     30.141,
+     15.097
+    ],
+    "plan": "copyright notice, 0.7 s, intro, 30 s reading time, listen cue, 1.0 s, passage, 1.2 s, end cue, 15 s check time",
+    "provider": "Runway (ElevenLabs eleven_v4 passage; eleven_multilingual_v2 narrator Tom)",
+    "runway_tasks": {
+     "passage": "8a8177da-57e0-4639-9ca0-f1e00cfe63a8",
+     "intro": "d2f01752-1f51-4bec-a04a-dfcae473942e",
+     "notice": "12913992-e693-495b-a014-4f52b1a3d6ed",
+     "listen": "2f2f98fa-8c2c-463a-8978-b6f099c664eb",
+     "end": "7b33b1d7-2a29-49c8-b3f8-5c70646ed45a"
+    },
+    "owner_audio_approval": null
+   }
+  },
+  {
+   "code": "bh-ielts-targeted-listening-l11-v1",
+   "version": "0.1.0",
+   "skill": "listening",
+   "purpose": "guided_practice",
+   "title": "Choosing next term's modules",
+   "focus": "attitude",
+   "focus_name": "Speaker attitude or opinion",
+   "format": "mcq",
+   "instructions": "You will hear a conversation between two students, Emma and Raj, about their course options. Answer questions 1 to 6. Choose the correct letter, A, B or C, for each question. You may pause or replay for practice.",
+   "success_description": "Listen for how each speaker feels, not only what they talk about. Words like \"but\", \"honestly\", \"I'm not convinced\" and \"fair enough\" often signal the real opinion.",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "How does Raj feel about the Urban Planning lectures?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  They were inspiring."
+      },
+      {
+       "value": "B",
+       "label": "B  They were too long."
+      },
+      {
+       "value": "C",
+       "label": "C  They were hard to follow."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "0c24d56c-a8ad-4747-8fab-0a99042e6d77",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q2",
+     "prompt": "What is Emma's opinion of Statistics?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  It is too difficult."
+      },
+      {
+       "value": "B",
+       "label": "B  It will help her find work."
+      },
+      {
+       "value": "C",
+       "label": "C  It repeats what she studied at school."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "0c24d56c-a8ad-4747-8fab-0a99042e6d77",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q3",
+     "prompt": "What is Raj's attitude to Statistics?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  He is keen to start."
+      },
+      {
+       "value": "B",
+       "label": "B  He thinks it is badly taught."
+      },
+      {
+       "value": "C",
+       "label": "C  He doubts it will be useful to him."
+      }
+     ],
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "0c24d56c-a8ad-4747-8fab-0a99042e6d77",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q4",
+     "prompt": "What is Raj's condition for group work?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Groups must be small."
+      },
+      {
+       "value": "B",
+       "label": "B  Students must choose their own groups."
+      },
+      {
+       "value": "C",
+       "label": "C  Tutors must check everyone's work."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "0c24d56c-a8ad-4747-8fab-0a99042e6d77",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q5",
+     "prompt": "What does Raj think about the cost of the Lisbon trip?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  It is acceptable."
+      },
+      {
+       "value": "B",
+       "label": "B  It is too high."
+      },
+      {
+       "value": "C",
+       "label": "C  It should be paid by the department."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "0c24d56c-a8ad-4747-8fab-0a99042e6d77",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q6",
+     "prompt": "What is Raj's view of Dr Moss?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  She does not know her subject well."
+      },
+      {
+       "value": "B",
+       "label": "B  She speaks too quickly."
+      },
+      {
+       "value": "C",
+       "label": "C  She sets too much work."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "0c24d56c-a8ad-4747-8fab-0a99042e6d77",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    }
+   ],
+   "content": {
+    "scope": "Original IELTS-style targeted Listening practice; not an official IELTS recording or a band assessment.",
+    "focus": "Speaker attitude or opinion",
+    "teacher_notes": "Transcript:\nEmma: Have you decided which options to take next term, Raj?\nRaj: Almost. I'm definitely doing Urban Planning. The lectures last year were brilliant. I came out of every one full of ideas.\nEmma: I liked them too, though I found the reading list far too long.\nRaj: Fair enough. What about Statistics? It's optional.\nEmma: I know people complain about it, but honestly, I think it's worth doing. Employers keep asking for data skills.\nRaj: Hmm. I'm not convinced. I can't see myself ever using it in the kind of job I want.\nEmma: And the group project? I'm a bit nervous. Last time, two people in my group did nothing.\nRaj: I don't mind group work, as long as we choose our own groups. That's the part I'd insist on.\nEmma: Then there's the field trip to Lisbon. It sounds amazing, but it's so expensive.\nRaj: Is it, though? Flights are cheap in March, and the department pays for the hostel. I think it's reasonable.\nEmma: Maybe. And what did you think of the new tutor, Dr Moss?\nRaj: She clearly knows her subject, but she spoke so fast I couldn't take notes. I hope she slows down.\n\nKey and teaching notes:\nq1: A. \"brilliant ... came out of every one full of ideas\" = inspiring. \"too long\" was Emma's view of the reading list. Primary: Speaker attitude or opinion; supporting: Paraphrase recognition.\nq2: B. \"worth doing. Employers keep asking for data skills.\" She mentions others' complaints but disagrees. Primary: Speaker attitude or opinion; supporting: Paraphrase recognition.\nq3: C. \"I'm not convinced. I can't see myself ever using it\". Primary: Speaker attitude or opinion; supporting: Paraphrase recognition.\nq4: B. \"as long as we choose our own groups ... I'd insist on\". Primary: Speaker attitude or opinion; supporting: Paraphrase recognition.\nq5: A. \"Is it, though? ... I think it's reasonable.\" Emma thinks it is expensive. Primary: Speaker attitude or opinion; supporting: Paraphrase recognition.\nq6: B. \"She clearly knows her subject, but she spoke so fast\". Primary: Speaker attitude or opinion; supporting: Paraphrase recognition."
+   },
+   "voices": {
+    "EMMA": "Katie",
+    "RAJ": "Arjun"
+   },
+   "script": [
+    {
+     "speaker": "EMMA",
+     "text": "Have you decided which options to take next term, Raj?"
+    },
+    {
+     "speaker": "RAJ",
+     "text": "Almost. I'm definitely doing Urban Planning. The lectures last year were brilliant. I came out of every one full of ideas."
+    },
+    {
+     "speaker": "EMMA",
+     "text": "I liked them too, though I found the reading list far too long."
+    },
+    {
+     "speaker": "RAJ",
+     "text": "Fair enough. What about Statistics? It's optional."
+    },
+    {
+     "speaker": "EMMA",
+     "text": "I know people complain about it, but honestly, I think it's worth doing. Employers keep asking for data skills."
+    },
+    {
+     "speaker": "RAJ",
+     "text": "Hmm. I'm not convinced. I can't see myself ever using it in the kind of job I want."
+    },
+    {
+     "speaker": "EMMA",
+     "text": "And the group project? I'm a bit nervous. Last time, two people in my group did nothing."
+    },
+    {
+     "speaker": "RAJ",
+     "text": "I don't mind group work, as long as we choose our own groups. That's the part I'd insist on."
+    },
+    {
+     "speaker": "EMMA",
+     "text": "Then there's the field trip to Lisbon. It sounds amazing, but it's so expensive."
+    },
+    {
+     "speaker": "RAJ",
+     "text": "Is it, though? Flights are cheap in March, and the department pays for the hostel. I think it's reasonable."
+    },
+    {
+     "speaker": "EMMA",
+     "text": "Maybe. And what did you think of the new tutor, Dr Moss?"
+    },
+    {
+     "speaker": "RAJ",
+     "text": "She clearly knows her subject, but she spoke so fast I couldn't take notes. I hope she slows down."
+    }
+   ],
+   "script_chars": 1004,
+   "intro_text": "You will hear a conversation between two students, Emma and Raj, about their course options. First, you have thirty seconds to look at questions one to six.",
+   "audio": {
+    "file": "BH-TL05-L11_v1.mp3",
+    "sha256": "73d108de1bd1053b87890c4ec31607bdfc3bf97f539562d91a22833dcf6868fe",
+    "bytes": 3421739,
+    "duration_seconds": 142.536,
+    "integrated_lufs": -18.4,
+    "true_peak_dbfs": -1.6,
+    "decoded_clipped_samples": 0,
+    "detected_pauses_seconds": [
+     30.151,
+     15.097
+    ],
+    "plan": "copyright notice, 0.7 s, intro, 30 s reading time, listen cue, 1.0 s, passage, 1.2 s, end cue, 15 s check time",
+    "provider": "Runway (ElevenLabs eleven_v4 passage; eleven_multilingual_v2 narrator Tom)",
+    "runway_tasks": {
+     "passage": "b661cde3-b8ff-43c8-8bb9-30373d1f8a2b",
+     "intro": "870d0032-4bf8-417c-a0d5-94dc92711fcd",
+     "notice": "12913992-e693-495b-a014-4f52b1a3d6ed",
+     "listen": "2f2f98fa-8c2c-463a-8978-b6f099c664eb",
+     "end": "7b33b1d7-2a29-49c8-b3f8-5c70646ed45a"
+    },
+    "owner_audio_approval": null
+   }
+  },
+  {
+   "code": "bh-ielts-targeted-listening-l12-v1",
+   "version": "0.1.0",
+   "skill": "listening",
+   "purpose": "independent_check",
+   "title": "Looking back on the town festival",
+   "focus": "attitude",
+   "focus_name": "Speaker attitude or opinion",
+   "format": "mcq",
+   "instructions": "You will hear a conversation between two volunteers, Lucy and Peter, after a town festival. Answer questions 1 to 6. Choose the correct letter, A, B or C, for each question. This is a fresh check: listen once, without pausing, and answer on your own.",
+   "success_description": "Identify what Peter really thinks, even when Lucy offers a different view.",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "What is Peter's overall view of the festival?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  It went well."
+      },
+      {
+       "value": "B",
+       "label": "B  It was disappointing."
+      },
+      {
+       "value": "C",
+       "label": "C  It was too crowded."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "0c24d56c-a8ad-4747-8fab-0a99042e6d77",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q2",
+     "prompt": "How does Peter feel about the new location?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  It was ideal."
+      },
+      {
+       "value": "B",
+       "label": "B  It was hard to reach."
+      },
+      {
+       "value": "C",
+       "label": "C  It was too small."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "0c24d56c-a8ad-4747-8fab-0a99042e6d77",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q3",
+     "prompt": "What does Peter think of the local bands?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  They played for too long."
+      },
+      {
+       "value": "B",
+       "label": "B  They were less popular than the famous singer."
+      },
+      {
+       "value": "C",
+       "label": "C  They were better than the well-known performer."
+      }
+     ],
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "0c24d56c-a8ad-4747-8fab-0a99042e6d77",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q4",
+     "prompt": "What does Peter think should be changed first?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  The number of food stalls."
+      },
+      {
+       "value": "B",
+       "label": "B  The ticket prices."
+      },
+      {
+       "value": "C",
+       "label": "C  The opening times."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "0c24d56c-a8ad-4747-8fab-0a99042e6d77",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q5",
+     "prompt": "How did Peter feel about the weather before the festival?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  Anxious."
+      },
+      {
+       "value": "B",
+       "label": "B  Unconcerned."
+      },
+      {
+       "value": "C",
+       "label": "C  Annoyed."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "0c24d56c-a8ad-4747-8fab-0a99042e6d77",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q6",
+     "prompt": "What is Peter's opinion of the volunteers?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  They needed more training."
+      },
+      {
+       "value": "B",
+       "label": "B  They did an excellent job."
+      },
+      {
+       "value": "C",
+       "label": "C  They were often late."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "0c24d56c-a8ad-4747-8fab-0a99042e6d77",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    }
+   ],
+   "content": {
+    "scope": "Original IELTS-style targeted Listening fresh check; not an official IELTS recording or a band assessment.",
+    "focus": "Speaker attitude or opinion",
+    "teacher_notes": "Transcript:\nLucy: So, the festival's over. What did you make of it, Peter?\nPeter: Overall, I'd call it a success. Far more people came than last year.\nLucy: And the new spot by the river was lovely, wasn't it?\nPeter: It looked nice, but I wasn't happy with it. It was a long walk from the bus station, and older visitors really struggled.\nLucy: True. What about the music? I thought the local bands were the best part.\nPeter: I'd agree with you there. To be honest, they were better than the famous singer we paid so much for.\nLucy: And the food stalls?\nPeter: There weren't nearly enough. People were queuing for forty minutes. That's the first thing I'd change.\nLucy: I was so worried the weather would ruin everything.\nPeter: I wasn't. The forecast was good all week, and we had the big tents anyway.\nLucy: And the volunteers? Some were completely new.\nPeter: They were fantastic. Several had never done anything like it, but they stayed calm and friendly all weekend. I'd happily work with them again.\n\nKey and teaching notes:\nq1: A. \"I'd call it a success.\" Primary: Speaker attitude or opinion; supporting: Paraphrase recognition.\nq2: B. \"It looked nice, but I wasn't happy ... a long walk from the bus station\". Primary: Speaker attitude or opinion; supporting: Paraphrase recognition.\nq3: C. \"they were better than the famous singer\". Primary: Speaker attitude or opinion; supporting: Paraphrase recognition.\nq4: A. \"There weren't nearly enough ... That's the first thing I'd change.\" Primary: Speaker attitude or opinion; supporting: Paraphrase recognition.\nq5: B. Lucy was worried; Peter: \"I wasn't.\" Primary: Speaker attitude or opinion; supporting: Paraphrase recognition.\nq6: B. \"They were fantastic ... I'd happily work with them again.\" Primary: Speaker attitude or opinion; supporting: Paraphrase recognition."
+   },
+   "voices": {
+    "LUCY": "Maggie",
+    "PETER": "Vincent"
+   },
+   "script": [
+    {
+     "speaker": "LUCY",
+     "text": "So, the festival's over. What did you make of it, Peter?"
+    },
+    {
+     "speaker": "PETER",
+     "text": "Overall, I'd call it a success. Far more people came than last year."
+    },
+    {
+     "speaker": "LUCY",
+     "text": "And the new spot by the river was lovely, wasn't it?"
+    },
+    {
+     "speaker": "PETER",
+     "text": "It looked nice, but I wasn't happy with it. It was a long walk from the bus station, and older visitors really struggled."
+    },
+    {
+     "speaker": "LUCY",
+     "text": "True. What about the music? I thought the local bands were the best part."
+    },
+    {
+     "speaker": "PETER",
+     "text": "I'd agree with you there. To be honest, they were better than the famous singer we paid so much for."
+    },
+    {
+     "speaker": "LUCY",
+     "text": "And the food stalls?"
+    },
+    {
+     "speaker": "PETER",
+     "text": "There weren't nearly enough. People were queuing for forty minutes. That's the first thing I'd change."
+    },
+    {
+     "speaker": "LUCY",
+     "text": "I was so worried the weather would ruin everything."
+    },
+    {
+     "speaker": "PETER",
+     "text": "I wasn't. The forecast was good all week, and we had the big tents anyway."
+    },
+    {
+     "speaker": "LUCY",
+     "text": "And the volunteers? Some were completely new."
+    },
+    {
+     "speaker": "PETER",
+     "text": "They were fantastic. Several had never done anything like it, but they stayed calm and friendly all weekend. I'd happily work with them again."
+    }
+   ],
+   "script_chars": 904,
+   "intro_text": "You will hear a conversation between two volunteers, Lucy and Peter, after a town festival. First, you have thirty seconds to look at questions one to six.",
+   "audio": {
+    "file": "BH-TL05-L12_v1.mp3",
+    "sha256": "a3fdf6d974ac5281f449b4fa15e1f5e3f3d771281e60da3b5cf4c60e0dfaf2f0",
+    "bytes": 3123955,
+    "duration_seconds": 130.128,
+    "integrated_lufs": -18.6,
+    "true_peak_dbfs": -1.6,
+    "decoded_clipped_samples": 0,
+    "detected_pauses_seconds": [
+     30.147,
+     15.097
+    ],
+    "plan": "copyright notice, 0.7 s, intro, 30 s reading time, listen cue, 1.0 s, passage, 1.2 s, end cue, 15 s check time",
+    "provider": "Runway (ElevenLabs eleven_v4 passage; eleven_multilingual_v2 narrator Tom)",
+    "runway_tasks": {
+     "passage": "f6e9fb93-edc6-4c21-8216-db9ad0a29998",
+     "intro": "c99c5ee9-418f-4afd-b867-c15c0d5922b6",
+     "notice": "12913992-e693-495b-a014-4f52b1a3d6ed",
+     "listen": "2f2f98fa-8c2c-463a-8978-b6f099c664eb",
+     "end": "7b33b1d7-2a29-49c8-b3f8-5c70646ed45a"
+    },
+    "owner_audio_approval": null
+   }
+  },
+  {
+   "code": "bh-ielts-targeted-listening-l13-v1",
+   "version": "0.1.0",
+   "skill": "listening",
+   "purpose": "guided_practice",
+   "title": "A guided tour of Hartwell House",
+   "focus": "purpose",
+   "focus_name": "Speaker purpose",
+   "format": "mcq",
+   "instructions": "You will hear a talk by a guide at the start of a tour of an old house. Answer questions 1 to 6. Choose the correct letter, A, B or C, for each question. You may pause or replay for practice.",
+   "success_description": "Ask WHY the speaker says something: to explain a rule, correct a mistake, warn, give a reason or set a task. The topic alone is not the purpose.",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "Why does the guide mention camera flashes?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To explain the reason for a rule."
+      },
+      {
+       "value": "B",
+       "label": "B  To recommend a type of camera."
+      },
+      {
+       "value": "C",
+       "label": "C  To describe a recent accident."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "896804e2-f2eb-4c92-80f3-4479e71c377b",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q2",
+     "prompt": "Why does the guide mention the television drama?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To advertise the programme."
+      },
+      {
+       "value": "B",
+       "label": "B  To correct a possible misunderstanding."
+      },
+      {
+       "value": "C",
+       "label": "C  To explain why the house is famous."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "896804e2-f2eb-4c92-80f3-4479e71c377b",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q3",
+     "prompt": "Why are tea plants shown in the dining room?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To remind servants of their work."
+      },
+      {
+       "value": "B",
+       "label": "B  To decorate a plain room cheaply."
+      },
+      {
+       "value": "C",
+       "label": "C  To show where the owner's money came from."
+      }
+     ],
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "896804e2-f2eb-4c92-80f3-4479e71c377b",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q4",
+     "prompt": "Why does the guide talk about the library windows?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To warn visitors about bright light."
+      },
+      {
+       "value": "B",
+       "label": "B  To explain a design decision."
+      },
+      {
+       "value": "C",
+       "label": "C  To point out a building fault."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "896804e2-f2eb-4c92-80f3-4479e71c377b",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q5",
+     "prompt": "Why does the guide mention the distance between the kitchen and the dining room?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To give visitors a question to think about."
+      },
+      {
+       "value": "B",
+       "label": "B  To apologise for a long walk."
+      },
+      {
+       "value": "C",
+       "label": "C  To describe a fire."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "896804e2-f2eb-4c92-80f3-4479e71c377b",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q6",
+     "prompt": "Why does the guide mention when the café closes?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To recommend the food."
+      },
+      {
+       "value": "B",
+       "label": "B  To suggest visitors eat before the tour."
+      },
+      {
+       "value": "C",
+       "label": "C  To stop visitors being surprised later."
+      }
+     ],
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "896804e2-f2eb-4c92-80f3-4479e71c377b",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    }
+   ],
+   "content": {
+    "scope": "Original IELTS-style targeted Listening practice; not an official IELTS recording or a band assessment.",
+    "focus": "Speaker purpose",
+    "teacher_notes": "Transcript:\nGuide: Good morning, and welcome to Hartwell House. Before we go in, I should mention that flash photography isn't allowed inside, because camera flashes damage the old paintings. You're welcome to take pictures in the gardens, though.\nGuide: Now, many of you will have seen the house in a television drama last year. I mention that because visitors often ask to see the famous staircase. In fact, that scene was filmed in a studio, not here, so please don't go looking for it.\nGuide: The house was built in 1720 by a merchant called Thomas Hartwell, who made his money trading tea. That's why almost every decoration in the dining room shows tea plants. He wanted his guests to know exactly where his wealth came from.\nGuide: Our first stop is the library. You'll notice the windows face north. That wasn't an accident. Hartwell's daughter, who collected books, insisted on it, because direct sunlight fades the covers.\nGuide: After the library, we'll see the kitchen. It's a very long way from the dining room. I'd like you to think about why, and we'll discuss your ideas at the end of the tour.\nGuide: Finally, a practical point. The tour lasts about an hour, and there's a café by the gate. I'm telling you now because it closes at four, earlier than the house, and people are sometimes caught out.\n\nKey and teaching notes:\nq1: A. Flashes damage paintings, so flash photography is not allowed inside. Primary: Speaker purpose; supporting: Paraphrase recognition.\nq2: B. Visitors look for the staircase, but \"that scene was filmed in a studio\". Primary: Speaker purpose; supporting: Paraphrase recognition.\nq3: C. \"He wanted his guests to know exactly where his wealth came from.\" Primary: Speaker purpose; supporting: Paraphrase recognition.\nq4: B. \"That wasn't an accident ... she insisted on it, because direct sunlight fades the covers.\" Primary: Speaker purpose; supporting: Paraphrase recognition.\nq5: A. \"I'd like you to think about why, and we'll discuss your ideas\". Primary: Speaker purpose; supporting: Paraphrase recognition.\nq6: C. \"it closes at four ... people are sometimes caught out.\" Primary: Speaker purpose; supporting: Paraphrase recognition."
+   },
+   "voices": {
+    "GUIDE": "Benjamin"
+   },
+   "script": [
+    {
+     "speaker": "GUIDE",
+     "text": "Good morning, and welcome to Hartwell House. Before we go in, I should mention that flash photography isn't allowed inside, because camera flashes damage the old paintings. You're welcome to take pictures in the gardens, though."
+    },
+    {
+     "speaker": "GUIDE",
+     "text": "Now, many of you will have seen the house in a television drama last year. I mention that because visitors often ask to see the famous staircase. In fact, that scene was filmed in a studio, not here, so please don't go looking for it."
+    },
+    {
+     "speaker": "GUIDE",
+     "text": "The house was built in 1720 by a merchant called Thomas Hartwell, who made his money trading tea. That's why almost every decoration in the dining room shows tea plants. He wanted his guests to know exactly where his wealth came from."
+    },
+    {
+     "speaker": "GUIDE",
+     "text": "Our first stop is the library. You'll notice the windows face north. That wasn't an accident. Hartwell's daughter, who collected books, insisted on it, because direct sunlight fades the covers."
+    },
+    {
+     "speaker": "GUIDE",
+     "text": "After the library, we'll see the kitchen. It's a very long way from the dining room. I'd like you to think about why, and we'll discuss your ideas at the end of the tour."
+    },
+    {
+     "speaker": "GUIDE",
+     "text": "Finally, a practical point. The tour lasts about an hour, and there's a café by the gate. I'm telling you now because it closes at four, earlier than the house, and people are sometimes caught out."
+    }
+   ],
+   "script_chars": 1256,
+   "intro_text": "You will hear a talk by a guide at the start of a tour of an old house. First, you have thirty seconds to look at questions one to six.",
+   "audio": {
+    "file": "BH-TL05-L13_v1.mp3",
+    "sha256": "fd0b1c23512a453050f30e412756a7efcb2aab58fe4dce23131b8180ddec3197",
+    "bytes": 3660206,
+    "duration_seconds": 152.472,
+    "integrated_lufs": -18.3,
+    "true_peak_dbfs": -1.7,
+    "decoded_clipped_samples": 0,
+    "detected_pauses_seconds": [
+     30.145,
+     15.097
+    ],
+    "plan": "copyright notice, 0.7 s, intro, 30 s reading time, listen cue, 1.0 s, passage, 1.2 s, end cue, 15 s check time",
+    "provider": "Runway (ElevenLabs eleven_v4 passage; eleven_multilingual_v2 narrator Tom)",
+    "runway_tasks": {
+     "passage": "a73c23f8-01af-4e8e-9337-6fad4549ead4",
+     "intro": "a4ea3d25-16b7-4567-8d3a-306ceb03a0b2",
+     "notice": "12913992-e693-495b-a014-4f52b1a3d6ed",
+     "listen": "2f2f98fa-8c2c-463a-8978-b6f099c664eb",
+     "end": "7b33b1d7-2a29-49c8-b3f8-5c70646ed45a"
+    },
+    "owner_audio_approval": null
+   }
+  },
+  {
+   "code": "bh-ielts-targeted-listening-l14-v1",
+   "version": "0.1.0",
+   "skill": "listening",
+   "purpose": "independent_check",
+   "title": "Welcome talk: Student Services",
+   "focus": "purpose",
+   "focus_name": "Speaker purpose",
+   "format": "mcq",
+   "instructions": "You will hear a welcome talk for new university students by Claire from Student Services. Answer questions 1 to 6. Choose the correct letter, A, B or C, for each question. This is a fresh check: listen once, without pausing, and answer on your own.",
+   "success_description": "For each point, decide why the speaker includes it.",
+   "questions": [
+    {
+     "id": "q1",
+     "prompt": "Why does Claire mention the email about societies?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To make sure students read important information in it."
+      },
+      {
+       "value": "B",
+       "label": "B  To persuade students to join a society."
+      },
+      {
+       "value": "C",
+       "label": "C  To apologise for sending too many emails."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "896804e2-f2eb-4c92-80f3-4479e71c377b",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q2",
+     "prompt": "Why does Claire talk about last year's first-years?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To praise their results."
+      },
+      {
+       "value": "B",
+       "label": "B  To encourage new students to ask for help early."
+      },
+      {
+       "value": "C",
+       "label": "C  To explain a change in the rules."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "896804e2-f2eb-4c92-80f3-4479e71c377b",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q3",
+     "prompt": "Why does Claire mention the builders?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To apologise for the noise."
+      },
+      {
+       "value": "B",
+       "label": "B  To describe a new sports hall."
+      },
+      {
+       "value": "C",
+       "label": "C  To tell students where to leave bicycles for now."
+      }
+     ],
+     "accepted_answers": [
+      "C"
+     ],
+     "taxonomy_node_id": "896804e2-f2eb-4c92-80f3-4479e71c377b",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q4",
+     "prompt": "Why does Claire mention second-year students?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To suggest a cheaper way to get books."
+      },
+      {
+       "value": "B",
+       "label": "B  To explain who organises the tour."
+      },
+      {
+       "value": "C",
+       "label": "C  To warn about old editions."
+      }
+     ],
+     "accepted_answers": [
+      "A"
+     ],
+     "taxonomy_node_id": "896804e2-f2eb-4c92-80f3-4479e71c377b",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q5",
+     "prompt": "Why does Claire introduce Amir?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  He will give the next talk."
+      },
+      {
+       "value": "B",
+       "label": "B  He will lead the campus tour."
+      },
+      {
+       "value": "C",
+       "label": "C  He organises the book fair."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "896804e2-f2eb-4c92-80f3-4479e71c377b",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    },
+    {
+     "id": "q6",
+     "prompt": "Why does Claire mention how long she has been talking?",
+     "options": [
+      {
+       "value": "A",
+       "label": "A  To apologise for running late."
+      },
+      {
+       "value": "B",
+       "label": "B  To announce a break."
+      },
+      {
+       "value": "C",
+       "label": "C  To invite questions."
+      }
+     ],
+     "accepted_answers": [
+      "B"
+     ],
+     "taxonomy_node_id": "896804e2-f2eb-4c92-80f3-4479e71c377b",
+     "supporting_node_id": "94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d"
+    }
+   ],
+   "content": {
+    "scope": "Original IELTS-style targeted Listening fresh check; not an official IELTS recording or a band assessment.",
+    "focus": "Speaker purpose",
+    "teacher_notes": "Transcript:\nClaire: Hello, everyone, and welcome to your first week. I'm Claire from Student Services, and I'll keep this short.\nClaire: First, you'll all have received an email with a long list of societies. I'm mentioning it because a lot of new students delete it, thinking it's advertising. It actually contains the link to your timetable, so please do open it.\nClaire: Second, I want to tell you about last year's first-years. Many of them waited until they were really struggling before they came to us. Please don't do that. Come and see us early, even if a problem seems small.\nClaire: You may have noticed builders near the main gate. That's a new bike park, and it won't be finished until December. Until then, please lock your bicycles behind the sports hall, or they may be removed.\nClaire: Some of you have asked whether you need to buy every book on your reading lists. You don't. Second-year students sell their old copies at the book fair in week two, usually for half price.\nClaire: Now, I'd like to introduce Amir, who's sitting at the front. He's in his final year, and he'll be showing you around the campus after this.\nClaire: I've been talking for ten minutes, and I know you've had a long day, so let's have a short break before the tour begins.\n\nKey and teaching notes:\nq1: A. \"It actually contains the link to your timetable, so please do open it.\" Primary: Speaker purpose; supporting: Paraphrase recognition.\nq2: B. \"Please don't do that. Come and see us early\". Primary: Speaker purpose; supporting: Paraphrase recognition.\nq3: C. \"Until then, please lock your bicycles behind the sports hall\". Primary: Speaker purpose; supporting: Paraphrase recognition.\nq4: A. \"sell their old copies ... usually for half price.\" Primary: Speaker purpose; supporting: Paraphrase recognition.\nq5: B. \"he'll be showing you around the campus after this.\" Primary: Speaker purpose; supporting: Paraphrase recognition.\nq6: B. \"so let's have a short break\". Primary: Speaker purpose; supporting: Paraphrase recognition."
+   },
+   "voices": {
+    "CLAIRE": "Marlene"
+   },
+   "script": [
+    {
+     "speaker": "CLAIRE",
+     "text": "Hello, everyone, and welcome to your first week. I'm Claire from Student Services, and I'll keep this short."
+    },
+    {
+     "speaker": "CLAIRE",
+     "text": "First, you'll all have received an email with a long list of societies. I'm mentioning it because a lot of new students delete it, thinking it's advertising. It actually contains the link to your timetable, so please do open it."
+    },
+    {
+     "speaker": "CLAIRE",
+     "text": "Second, I want to tell you about last year's first-years. Many of them waited until they were really struggling before they came to us. Please don't do that. Come and see us early, even if a problem seems small."
+    },
+    {
+     "speaker": "CLAIRE",
+     "text": "You may have noticed builders near the main gate. That's a new bike park, and it won't be finished until December. Until then, please lock your bicycles behind the sports hall, or they may be removed."
+    },
+    {
+     "speaker": "CLAIRE",
+     "text": "Some of you have asked whether you need to buy every book on your reading lists. You don't. Second-year students sell their old copies at the book fair in week two, usually for half price."
+    },
+    {
+     "speaker": "CLAIRE",
+     "text": "Now, I'd like to introduce Amir, who's sitting at the front. He's in his final year, and he'll be showing you around the campus after this."
+    },
+    {
+     "speaker": "CLAIRE",
+     "text": "I've been talking for ten minutes, and I know you've had a long day, so let's have a short break before the tour begins."
+    }
+   ],
+   "script_chars": 1194,
+   "intro_text": "You will hear a welcome talk for new university students by Claire from Student Services. First, you have thirty seconds to look at questions one to six.",
+   "audio": {
+    "file": "BH-TL05-L14_v1.mp3",
+    "sha256": "a312eaa1e1829c539c7da116796228835a38ead93193b9e89fc28c3c5b7dcac3",
+    "bytes": 3664240,
+    "duration_seconds": 152.64,
+    "integrated_lufs": -18.3,
+    "true_peak_dbfs": -1.6,
+    "decoded_clipped_samples": 0,
+    "detected_pauses_seconds": [
+     30.149,
+     15.097
+    ],
+    "plan": "copyright notice, 0.7 s, intro, 30 s reading time, listen cue, 1.0 s, passage, 1.2 s, end cue, 15 s check time",
+    "provider": "Runway (ElevenLabs eleven_v4 passage; eleven_multilingual_v2 narrator Tom)",
+    "runway_tasks": {
+     "passage": "4ff565ca-b194-403c-84b0-a8fe3580efa3",
+     "intro": "6a5ebbd5-392e-406b-a230-c76018cb9479",
+     "notice": "12913992-e693-495b-a014-4f52b1a3d6ed",
+     "listen": "2f2f98fa-8c2c-463a-8978-b6f099c664eb",
+     "end": "7b33b1d7-2a29-49c8-b3f8-5c70646ed45a"
+    },
+    "owner_audio_approval": null
+   }
+  }
+ ]
+}

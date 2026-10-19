@@ -2,12 +2,13 @@ import IeltsBatchCourseMaterials,{type CoursePreset} from './IeltsBatchCourseMat
 import IeltsBatchLearningLoop,{type PreparedAssignment} from './IeltsBatchLearningLoop';
 import IeltsMockCapture from './IeltsMockCapture';
 import IeltsBatchPracticeEffect from './IeltsBatchPracticeEffect';
+import IeltsBatchSkillCoverage from './IeltsBatchSkillCoverage';
 import React, {useEffect,useRef,useState} from 'react';
 import {batchPracticePreview,assignBatchPractice,type BatchPracticePreview} from '../../../services/ieltsBatchService';
 import {programmeEvidenceRoute} from '../../../services/ieltsProgrammeService';
 import {IeltsButton,IeltsNotice} from '../../components/ielts/IeltsUi';
 export default function IeltsBatchPractice({batchId,onClose}:{batchId:string;onClose:()=>void}){
- const [mode,setMode]=useState<'loop'|'effect'|'targeted'|'course'|'mocks'>('loop');
+ const [mode,setMode]=useState<'loop'|'effect'|'coverage'|'targeted'|'course'|'mocks'>('loop');
  const [coursePreset,setCoursePreset]=useState<CoursePreset|null>(null);
  const pending=useRef<string[]|null>(null);
  const [data,setData]=useState<BatchPracticePreview|null>(null),[task,setTask]=useState(''),[selected,setSelected]=useState<string[]>([]);
@@ -31,8 +32,8 @@ export default function IeltsBatchPractice({batchId,onClose}:{batchId:string;onC
   finally{lock.current=false;setSaving(false);}
  };
  return <section className="ix-panel" aria-label="Assign batch practice"><header className="ix-header"><div><p className="ix-eyebrow">Released practice · Four skills</p><h2>Assign tasks to {data?.batch.name??'your batch'}</h2></div><IeltsButton disabled={saving} onClick={onClose}>Back to batches</IeltsButton></header>
-<div className="ix-actions"><IeltsButton disabled={saving} aria-pressed={mode==='loop'} onClick={()=>setMode('loop')}>This week</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='effect'} onClick={()=>setMode('effect')}>Did it work?</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='targeted'} onClick={()=>setMode('targeted')}>Targeted practice</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='mocks'} onClick={()=>setMode('mocks')}>Mock results</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='course'} onClick={()=>{setCoursePreset(null);setMode('course');}}>Course materials</IeltsButton></div>
- {mode==='loop'?<IeltsBatchLearningLoop batchId={batchId} onPrepare={prepare}/>:mode==='effect'?<IeltsBatchPracticeEffect batchId={batchId} onPrepare={prepare}/>:mode==='mocks'?<IeltsMockCapture batchId={batchId}/>:mode==='course'?<IeltsBatchCourseMaterials batchId={batchId} onBusyChange={setSaving} preset={coursePreset}/>:<>
+<div className="ix-actions"><IeltsButton disabled={saving} aria-pressed={mode==='loop'} onClick={()=>setMode('loop')}>This week</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='effect'} onClick={()=>setMode('effect')}>Did it work?</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='coverage'} onClick={()=>setMode('coverage')}>Skill coverage</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='targeted'} onClick={()=>setMode('targeted')}>Targeted practice</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='mocks'} onClick={()=>setMode('mocks')}>Mock results</IeltsButton><IeltsButton disabled={saving} aria-pressed={mode==='course'} onClick={()=>{setCoursePreset(null);setMode('course');}}>Course materials</IeltsButton></div>
+ {mode==='loop'?<IeltsBatchLearningLoop batchId={batchId} onPrepare={prepare}/>:mode==='effect'?<IeltsBatchPracticeEffect batchId={batchId} onPrepare={prepare}/>:mode==='coverage'?<IeltsBatchSkillCoverage batchId={batchId}/>:mode==='mocks'?<IeltsMockCapture batchId={batchId}/>:mode==='course'?<IeltsBatchCourseMaterials batchId={batchId} onBusyChange={setSaving} preset={coursePreset}/>:<>
  <IeltsNotice>Practice only. Screeners stay in initial assessments and are excluded from this material list.</IeltsNotice>
  {message&&<p role="status">{message}</p>}{error&&<IeltsNotice error>{error}</IeltsNotice>}{loading&&<p role="status">Checking materials and student readiness…</p>}
  <IeltsButton disabled={saving||loading} onClick={()=>setRefresh(n=>n+1)}>Refresh preview</IeltsButton>
