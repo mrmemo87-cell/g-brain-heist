@@ -56,6 +56,42 @@ export function validateBank(bank, { constructs }) {
     if (!s.constructs?.some(c => c[1] === 'primary')) err(s.key, 'a primary construct is required');
     for (const [c] of s.constructs ?? []) if (!known(c)) err(s.key, `unknown construct ${c}`);
   }
+  for (const l of bank.listening ?? []) {
+    if (keys.has(l.key)) err(l.key, 'duplicate key'); keys.add(l.key);
+    if (![1, 2, 3, 4].includes(l.part)) err(l.key, 'part 1-4');
+    if (!l.intro || !l.instructions) err(l.key, 'intro and instructions are required');
+    const speakers = new Set();
+    for (const line of l.lines ?? []) {
+      const m = /^([A-Z]+): (.+)$/.exec(line);
+      if (!m) { err(l.key, `line must be "SPEAKER: text": ${line.slice(0, 40)}`); continue; }
+      speakers.add(m[1]); if (!l.voices?.[m[1]]) err(l.key, `no voice for ${m[1]}`);
+    }
+    const transcript = (l.lines ?? []).map(x => x.replace(/^[A-Z]+: /, '')).join(' ');
+    const chars = transcript.length;
+    if (chars < 700 || chars > 2000) err(l.key, `transcript has ${chars} characters (700-2000, one recording call)`);
+    if (BANNED.test(transcript)) err(l.key, 'no band or official claims');
+    const rec = l.recording;
+    if (!rec || !/^https:\/\/[^/]+\/storage\/v1\/object\/public\/ielts-audio\//.test(rec.url ?? '') || !/^[0-9a-f]{64}$/.test(rec.sha256 ?? '') || !(rec.duration_seconds > 60)) err(l.key, 'a stored recording (ielts-audio URL, SHA-256, duration) is required');
+    if (rec && rec.human_listening !== 'pending') err(l.key, 'a new batch cannot claim the recording was already heard');
+    const qs = l.questions ?? [];
+    if (qs.length < 6) err(l.key, 'at least 6 questions');
+    if (!qs.some(q => /distractor-resistance/.test(`${q.construct} ${q.supporting}`))) err(l.key, 'at least one item must test distractor resistance');
+    qs.forEach((q, i) => {
+      const id = `${l.key}.q${i + 1}`;
+      if (!known(q.construct)) err(id, `unknown construct ${q.construct}`);
+      if (q.supporting && !known(q.supporting)) err(id, `unknown supporting construct ${q.supporting}`);
+      if (!q.evidence || !norm(transcript).includes(norm(q.evidence))) err(id, 'evidence must be quoted from the transcript');
+      if (q.type === 'multiple_choice') { if (!Array.isArray(q.options) || q.options.length !== 4 || !q.options.includes(q.key)) err(id, 'multiple choice needs 4 options including the key'); }
+      else if (q.type === 'fill_blank') {
+        if (!Array.isArray(q.key) || !q.key.length) err(id, 'fill_blank key must be a list');
+        else if (!/^[\d:.]+$/.test(q.key[0]) && !q.key.some(k => norm(q.evidence ?? '').includes(norm(k)))) err(id, 'one accepted answer must be heard in the evidence');
+        if (!q.q.includes('_____')) err(id, 'fill_blank needs a gap');
+        const limit = /ONE WORD AND\/OR A NUMBER/.test(l.instructions) ? 1 : /ONE WORD/.test(l.instructions) ? 1 : 3;
+        // The first key is the canonical written answer; later keys are accepted spellings of the same number or time.
+        if (words(String(q.key[0])) > limit) err(id, `answer exceeds the word limit (${limit})`);
+      } else err(id, `unsupported type ${q.type}`);
+    });
+  }
   return errors;
 }
 

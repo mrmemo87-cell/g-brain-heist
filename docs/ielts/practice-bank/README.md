@@ -18,6 +18,17 @@ sections 7.5 and 15E.2A).
 **Batches**
 | Batch | Contents | State |
 |---|---|---|
-| practice-bank-01 | Reading R-013–R-018 (6 sets, 42 questions); Writing Task 2 W-010–W-015; Speaking S-010–S-018 (Parts 1–3) | Installed 2026-10-19; pending review |
+| practice-bank-01 | Reading R-013–R-018 (6 sets, 42 questions); Writing Task 2 W-010–W-015; Speaking S-010–S-018 (Parts 1–3) | Approved 2026-10-19 on the owner's instruction (see migration 20261019120000) |
+| practice-bank-02 | Listening L-014–L-019 (6 sets, 36 questions, Parts 1–4) with recordings | Installed 2026-10-19; pending review — every recording must be played in full by the approver |
 
-Listening practice needs recordings and is planned for a later batch (Runway budget to be confirmed with the owner).
+**Listening sets** (Diagnostic Bible 6.1, 15E.2) also carry a `recording` (public `ielts-audio` URL, SHA-256, duration)
+and speaker `lines`, which become the private transcript. The contract requires every evidence quote to appear in the
+transcript and at least one distractor-resistance item per set. Recordings are produced from the same lines (Runway
+eleven_v4: dialogue mode for conversations, one voice for monologues; instructions by Tom) and assembled as copyright
+notice → intro → 30 s reading time → listen cue → recording → end cue → 15 s checking time at −18 LUFS.
+The approver must play each recording to the end in the review screen (skipping does not count); the database refuses
+to approve a Listening set the deciding administrator has not heard, and AI cannot record that check.
+
+**practice-bank-02 coverage** (primary constructs, 36 items): explicit detail 9, paraphrase recognition 6, sequencing 5,
+distractor resistance 5, numerical information 4, speaker attitude 3, dates and times 2, speaker purpose 2. Most items
+also carry a supporting construct (distractor resistance is a supporting construct on 9 more items).
