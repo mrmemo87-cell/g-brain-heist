@@ -97,3 +97,10 @@
 .ix-effect-table th { text-align:left; color:var(--bh-ielts-foreground-muted); font-weight:600; padding:8px 10px; border-bottom:1px solid var(--bh-ielts-border); }
 .ix-effect-table td { padding:8px 10px; border-bottom:1px solid var(--bh-ielts-border); vertical-align:top; }
 .ix-effect header h3 { font-size:1.1rem; }
+/* This week: practise first, then a fresh check, other practice folded away. */
+.ix-loop-steps { display:grid; gap:12px; }
+.ix-loop-step { display:grid; gap:6px; justify-items:start; }
+.ix-loop-step .ix-muted { font-size:.85rem; }
+.ix-loop-label { font-size:.75rem; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--bh-ielts-foreground-muted); }
+.ix-loop-more > summary { cursor:pointer; color:var(--bh-ielts-primary, var(--bh-ielts-foreground)); font-weight:600; padding:4px 0; }
+.ix-loop-more .ix-actions { margin-top:8px; }

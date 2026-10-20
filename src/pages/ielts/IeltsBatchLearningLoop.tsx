@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { batchLearningLoop, type BatchLearningLoop, type LoopConstruct } from '../../../services/ieltsBatchService';
+import { batchLearningLoop, type BatchLearningLoop, type LoopConstruct, type LoopPractice } from '../../../services/ieltsBatchService';
 import { IeltsButton, IeltsNotice } from '../../components/ielts/IeltsUi';
 import { groupLearningLoop, stateLabel, type SharedTarget } from './batchLearningLoop';
 
@@ -22,13 +22,21 @@ export default function IeltsBatchLearningLoop({ batchId, onPrepare }: { batchId
   if (!data) return <p role="status">Checking each student's evidence…</p>;
   const g = groupLearningLoop(data);
 
+  const members = data.students.length;
+  const label = (p: LoopPractice) => p.display_code && p.title && p.title !== p.display_code ? `${p.display_code} · ${p.title}` : (p.display_code ?? p.title);
+  const prepare = (t: SharedTarget, p: LoopPractice) => onPrepare(p.material_type === 'targeted'
+    ? { task: p.material_id, students: t.students.map(s => s.id), reason: `${p.purpose === 'independent_check' ? 'Fresh check after practice' : 'Practice focus'}: ${t.name}.` }
+    : { task: '', material: `${p.material_type}:${p.material_id}`, students: t.students.map(s => s.id), reason: `Practice focus: ${t.name}.` });
   const practiceLine = (t: SharedTarget) => {
-    const targeted = t.practice.filter(p => p.material_type === 'targeted');
-    const catalogue = t.practice.filter(p => p.material_type !== 'targeted');
     if (!t.practice.length) return <p className="ix-muted">No reviewed practice is mapped to this skill yet (practice bank gap).</p>;
-    return <div className="ix-actions">
-      {targeted.map(p => <IeltsButton key={p.material_id} onClick={() => onPrepare({ task: p.material_id, students: t.students.map(s => s.id), reason: `Practice focus: ${t.name}.` })}>Prepare {p.display_code ?? p.title} for {t.students.length} {t.students.length === 1 ? 'student' : 'students'}</IeltsButton>)}
-      {catalogue.map(p => <IeltsButton key={p.material_type + p.material_id} onClick={() => onPrepare({ task: '', material: `${p.material_type}:${p.material_id}`, students: t.students.map(s => s.id), reason: `Practice focus: ${t.name}.` })}>Prepare {p.display_code ?? p.title}{p.title && p.display_code ? ` · ${p.title}` : ''} for {t.students.length} {t.students.length === 1 ? 'student' : 'students'}</IeltsButton>)}
+    // Targeted tasks are written for one skill, so they come first; fresh checks are kept apart so they are not given before practice.
+    const practice = t.practice.filter(p => p.purpose !== 'independent_check').sort((a, b) => Number(b.material_type === 'targeted') - Number(a.material_type === 'targeted'));
+    const checks = t.practice.filter(p => p.purpose === 'independent_check');
+    const [first, ...more] = practice;
+    return <div className="ix-loop-steps">
+      {first && <div className="ix-loop-step"><span className="ix-loop-label">1 · Practise</span><IeltsButton variant="primary" onClick={() => prepare(t, first)}>Prepare {label(first)}</IeltsButton></div>}
+      {checks.length > 0 && <div className="ix-loop-step"><span className="ix-loop-label">2 · Then a fresh check</span><div className="ix-actions">{checks.map(p => <IeltsButton key={p.material_type + p.material_id} onClick={() => prepare(t, p)}>Prepare {label(p)}</IeltsButton>)}</div><span className="ix-muted">Give after the practice. It only counts if the student has not seen it before.</span></div>}
+      {more.length > 0 && <details className="ix-loop-more"><summary>More practice for this skill ({more.length})</summary><div className="ix-actions">{more.map(p => <IeltsButton key={p.material_type + p.material_id} onClick={() => prepare(t, p)}>Prepare {label(p)}</IeltsButton>)}</div></details>}
     </div>;
   };
 
@@ -39,8 +47,8 @@ export default function IeltsBatchLearningLoop({ batchId, onPrepare }: { batchId
     <section className="ix-row" aria-labelledby="loop-shared"><h3 id="loop-shared">Shared targets · assign this week's practice</h3>
       {!g.shared.length && <p className="ix-muted">No difficulty is supported by the current evidence yet.</p>}
       {g.shared.map(t => <article key={t.node_id} className="ix-row">
-        <h4>{t.name} · {t.students.length} {t.students.length === 1 ? 'student' : 'students'}</h4>
-        <p className="ix-muted">{t.students.map(s => s.name).join(', ')}</p>
+        <h4>{t.name}</h4>
+        <p><strong>For {t.students.map(s => s.name).join(', ')}</strong> <span className="ix-muted">· {t.students.length} of {members} students in this batch need this skill</span></p>
         {t.extension && t.students.length >= 2 && <p><strong>Suggested lesson:</strong> {t.extension} (optional extension lesson)</p>}
         {practiceLine(t)}
       </article>)}
