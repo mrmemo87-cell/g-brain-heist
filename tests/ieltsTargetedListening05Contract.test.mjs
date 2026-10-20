@@ -1,17 +1,19 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
 // Targeted Listening 05 source contract: a guided practice and a fresh check for each of the five Listening skills that had
 // none, six items each mapped to that skill, answers short enough for the server's two-word listening rule, keys among the
-// options, transcripts that contain the key evidence, and exact-file audio metadata awaiting the owner's listen.
+// options, transcripts that contain the key evidence, and exact-file audio the owner listened to before a pilot-only install.
 const src=JSON.parse(readFileSync('docs/ielts/practice/TARGETED_LISTENING_05.json','utf8'));
 const LISTENING_V1='d4ad52b6-fd0f-4068-9982-28b89ff389c5';
 const NODES={distractor:'f9064b63-e3f1-4bfa-8e8e-97a02756afb2',paraphrase:'94c5d4f7-ab5b-464a-a1f8-4cac4f1d2d2d',sequencing:'5bcb6e11-1f2d-4ce6-b1af-093acc342ff1',attitude:'0c24d56c-a8ad-4747-8fab-0a99042e6d77',purpose:'896804e2-f2eb-4c92-80f3-4479e71c377b'};
 const ALL=new Set([...Object.values(NODES),'0dbe1c8f-403a-493f-afd3-c219310fb18a','d0aa0bad-ecfa-4598-8f2f-07e93d3fa59b','d5b1fddb-ba6f-4be1-8513-bb26d822357a']);
-test('ten tasks: a practice and a fresh check for each of five skills, nothing approved by the pack itself',()=>{
+test('ten tasks: a practice and a fresh check for each of five skills, installed only after the owner approved each exact file',()=>{
  assert.equal(src.taxonomy_version_id,LISTENING_V1);assert.equal(src.tasks.length,10);
  for(const [focus,node] of Object.entries(NODES)){const ts=src.tasks.filter(t=>t.focus===focus);assert.deepEqual(ts.map(t=>t.purpose).sort(),['guided_practice','independent_check']);
   for(const t of ts)for(const q of t.questions)assert.equal(q.taxonomy_node_id,node,`${t.code} ${q.id} primary is the focus skill`);}
  assert.equal(new Set(src.tasks.map(t=>t.code)).size,10);
- for(const t of src.tasks)assert.equal(t.audio.owner_audio_approval,null,'owner approval is recorded only after the owner listens');
+ const sql=['20261020050000_ielts_targeted_listening_05_install','20261020050100_ielts_targeted_listening_05_install_b'].map(f=>readFileSync(`supabase/migrations/${f}.sql`,'utf8')).join('');
+ for(const t of src.tasks){assert.equal(t.audio.owner_audio_approval.sha256,t.audio.sha256,'owner approved this exact file');assert.ok(sql.includes(`'${t.code}'`)&&sql.includes(t.content_sha256)&&sql.includes(`'${t.audio.storage.path}'`));}
+ assert.doesNotMatch(sql,/ielts_learning_releases/,'installing never releases');
 });
 for(const t of src.tasks)test(`${t.code} is well formed`,()=>{
  assert.match(t.code,/^bh-ielts-targeted-listening-l(\d+)-v1$/);assert.equal(t.skill,'listening');
