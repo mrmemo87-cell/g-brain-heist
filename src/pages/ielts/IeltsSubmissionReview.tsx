@@ -17,6 +17,8 @@ import { friendlyIeltsAdminError } from '../../lib/schoolAdminPresentation';
 import { useSchoolBranding } from '../../hooks/useSchoolBranding';
 import IeltsPracticeAiFeedback from '../../components/ielts/IeltsPracticeAiFeedback';
 import { IeltsButton } from '../../components/ielts/IeltsUi';
+import { IeltsEmailOptions, IeltsEmailStatusLine } from '../../components/ielts/IeltsEmailControls';
+import { notifyIeltsStudents, type IeltsEmailQueued } from '../../../services/ieltsEmailService';
 import '../../styles/ielts-submission-review.css';
 import { practiceFeedback, criterionLabel } from '../../../services/ieltsPracticeFeedback';
 
@@ -191,6 +193,9 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
     };
   }, [detail?.audio_url, skill]);
 
+  const [emailFeedback, setEmailFeedback] = useState(false);
+  const [emailQueued, setEmailQueued] = useState<IeltsEmailQueued | null>(null);
+  const [emailError, setEmailError] = useState('');
   const submitMutation = useMutation({
     mutationFn: (finalize: boolean) => rpcIeltsSubmitReview({
       skill,
@@ -204,7 +209,16 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
       privateNotes,
       finalize,
     }),
-    onSuccess: () => void refetch(),
+    onSuccess: (_data, finalize) => {
+      void refetch();
+      if (finalize && emailFeedback) {
+        setEmailQueued(null);
+        setEmailError('');
+        notifyIeltsStudents('practice_feedback', [attemptId])
+          .then(setEmailQueued)
+          .catch(() => setEmailError('Feedback is shared, but the email could not be queued. The student will still see it in their IELTS work.'));
+      }
+    },
   });
 
   const aiCheckMutation = useMutation({
@@ -389,9 +403,11 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
 
               {submitMutation.error ? <div className="ir-notice ir-notice--error" role="alert">{friendlyIeltsAdminError(submitMutation.error, 'Unable to save the review. Please try again.')}</div> : null}
               {submitMutation.isSuccess ? <div className="ir-notice" role="status">Review saved.</div> : null}
+              <IeltsEmailStatusLine queued={emailQueued} error={emailError} />
 
               {!locked ? (
                 <>
+                  <IeltsEmailOptions email={emailFeedback} onEmail={setEmailFeedback} label="When I finalize, email the student that feedback is ready" />
                   <div className="ir-actions ir-actions--submit">
                     <IeltsButton type="button" disabled={submitMutation.isPending} onClick={() => submitMutation.mutate(false)}>Save draft</IeltsButton>
                     <IeltsButton type="button" variant="primary" disabled={submitMutation.isPending || overallBand === null} onClick={() => submitMutation.mutate(true)}>Finalize review</IeltsButton>

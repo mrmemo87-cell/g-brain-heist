@@ -43,6 +43,6 @@ test('teachers see before vs fresh check per student and skill, with honest smal
  m.button('Prepare fresh check R-020').click();
  await m.wait(()=>m.w.document.querySelector('textarea')?.value.includes('Fresh check after practice on Summarise and paraphrase'));
  const preview=m.calls.filter(c=>c.fn==='rpc_ielts_batch_practice_preview').at(-1);assert.equal(preview.args.p_task,'check-1');
- await m.wait(()=>m.w.document.querySelectorAll('input[type=checkbox]:checked').length===1);
+ await m.wait(()=>m.w.document.querySelectorAll('input[type=checkbox]:checked:not(.ix-email-options input)').length===1);
  assert.equal(m.calls.some(c=>c.fn.includes('assign')),false,'preparing never assigns');assert.deepEqual(m.errors,[]);
 }finally{m.w.root.unmount();m.dom.window.close();}});

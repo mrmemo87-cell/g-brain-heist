@@ -104,3 +104,4 @@
 .ix-loop-label { font-size:.75rem; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--bh-ielts-foreground-muted); }
 .ix-loop-more > summary { cursor:pointer; color:var(--bh-ielts-primary, var(--bh-ielts-foreground)); font-weight:600; padding:4px 0; }
 .ix-loop-more .ix-actions { margin-top:8px; }
+.ix-email-options { display:grid; gap:6px; padding:10px 12px; border:1px solid var(--bh-ielts-border); border-radius:var(--bh-ielts-radius-sm); background:var(--bh-ielts-surface); }
