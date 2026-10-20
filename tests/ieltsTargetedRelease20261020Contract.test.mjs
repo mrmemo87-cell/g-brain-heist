@@ -10,3 +10,11 @@ test('releases exactly R-019 to R-043, pinned to exact hashes',()=>{
  assert.ok(sql.indexOf('ielts_material_originality_reviews')<sql.indexOf('ielts_learning_releases('),'originality before release');
  assert.match(sql,/1d4f3b8d-f24f-4651-ad33-85165359cf88/);assert.doesNotMatch(sql,/\bupdate\s+private\.|\bdelete\s+from/i);
 });
+test('releases Listening L-020 to L-029 pinned to exact content and audio hashes',()=>{
+ const l=readFileSync('supabase/migrations/20261020060000_ielts_targeted_listening_05_release.sql','utf8');
+ const src=JSON.parse(readFileSync('docs/ielts/practice/TARGETED_LISTENING_05.json','utf8'));
+ const rows=[...l.matchAll(/\('(L-\d{3})','(bh-ielts-targeted-listening-l\d+-v1)','([a-f0-9]{64})','([a-f0-9]{64})'\)/g)];
+ assert.deepEqual(rows.map(r=>r[1]),Array.from({length:10},(_,i)=>`L-0${20+i}`));
+ for(const r of rows){const t=src.tasks.find(t=>t.code===r[2]);assert.equal(r[4],t.audio.sha256);assert.equal(t.audio.owner_audio_approval.sha256,r[4]);}
+ assert.match(l,/reviewed_release_version_changed/);assert.match(l,/release_not_effective/);assert.doesNotMatch(l,/\bupdate\s+private\.|\bdelete\s+from/i);
+});
