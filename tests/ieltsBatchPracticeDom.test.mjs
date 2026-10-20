@@ -20,7 +20,7 @@ test('this week view groups evidence-based targets and prepares a pre-filled ass
 test('bank practice on a this-week card opens course materials for exactly those students',async()=>{const m=await mount(false,false);try{const {w}=m;
  const btn=[...w.document.querySelectorAll('button')].find(b=>b.textContent.startsWith('Prepare R-013'));assert.ok(btn,'bank practice has its own Prepare button');btn.click();
  await m.wait(()=>w.document.querySelector('select')?.value==='ielts_reading_set:35');
- const checked=[...w.document.querySelectorAll('input[type=checkbox]')].filter(c=>c.checked);assert.equal(checked.length,1,'only the student with this target is chosen');
+ const checked=[...w.document.querySelectorAll('input[type=checkbox]')].filter(c=>c.checked&&!c.closest('.ix-email-options'));assert.equal(w.document.querySelector('.ix-email-options input').checked,true,'course email is ticked by default');assert.equal(checked.length,1,'only the student with this target is chosen');
  assert.match(w.document.body.textContent,/Assign to 1 students/);
  assert.equal(m.calls.filter(c=>c.fn==='rpc_ielts_batch_create_assignment_for').length,0,'nothing is assigned until the teacher confirms');
 }finally{m.w.root.unmount();m.dom.window.close();}});

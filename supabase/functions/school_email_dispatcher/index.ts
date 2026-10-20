@@ -186,6 +186,42 @@ const templateFor = (row: ClaimedOutbox, schoolName: string): BrandedEmail => {
           url: appRoute(`/ielts/review-result/${encodeURIComponent(attemptType)}/${encodeURIComponent(cleanText(payload.attempt_id, 100))}`),
         },
       };
+    case "ielts_task_assigned": {
+      const isCheck = cleanText(payload.kind, 20) === "fresh_check";
+      const skill = cleanText(payload.skill, 60);
+      const teacher = cleanText(payload.teacher_name, 100) || "Your teacher";
+      return {
+        subject: `New IELTS task: ${title || "practice"} | Brains Heist`,
+        preview: `${teacher} has given you a new IELTS task.`,
+        kicker: isCheck ? "IELTS fresh check" : "IELTS practice",
+        headline: "You have a new IELTS task",
+        intro: `${teacher} has given you a new task. Open your IELTS work to start it.${isCheck ? " This is a fresh check: work on your own, without help." : ""}`,
+        details: [
+          { label: "Task", value: title || "IELTS task" },
+          { label: "Skill", value: skill ? skill.charAt(0).toUpperCase() + skill.slice(1) : "" },
+          { label: "Due", value: payload.due_at ? fmt(payload.due_at) : "" },
+        ],
+        action: { label: "Open my IELTS work", url: appRoute(cleanText(payload.path, 200).startsWith("/ielts") ? cleanText(payload.path, 200) : "/ielts") },
+      };
+    }
+    case "ielts_task_due_reminder":
+      return {
+        subject: `Due tomorrow: ${title || "IELTS task"} | Brains Heist`,
+        preview: "Your IELTS task is due in about 24 hours.",
+        kicker: "Due soon", headline: "Your IELTS task is due tomorrow",
+        intro: "A friendly reminder to finish your task. Your saved answers are waiting for you.",
+        details: [{ label: "Task", value: title || "IELTS task" }, { label: "Due", value: fmt(payload.due_at) }],
+        action: { label: "Continue my task", url: appRoute(cleanText(payload.path, 200).startsWith("/ielts") ? cleanText(payload.path, 200) : "/ielts") },
+      };
+    case "ielts_task_feedback_ready":
+      return {
+        subject: `Feedback ready: ${title || "IELTS task"} | Brains Heist`,
+        preview: "Your teacher has shared feedback on your IELTS task.",
+        kicker: "IELTS feedback", headline: "Your teacher's feedback is ready",
+        intro: `${cleanText(payload.teacher_name, 100) || "Your teacher"} has shared feedback on your task. Sign in to read it. Feedback is never placed in email.`,
+        details: [{ label: "Task", value: title || "IELTS task" }],
+        action: { label: "Read my feedback", url: appRoute(cleanText(payload.path, 200).startsWith("/ielts") ? cleanText(payload.path, 200) : "/ielts") },
+      };
     case "academic_report_ready":
       return {
         subject: `Academic report ready | ${schoolName} × Brains Heist`,

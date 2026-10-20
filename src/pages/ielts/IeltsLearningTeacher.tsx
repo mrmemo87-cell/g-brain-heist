@@ -15,6 +15,8 @@ import {
 import { useIeltsMaterialUsage } from "./useIeltsMaterialUsage";
 import { materialUsageLabel } from "../../../services/ieltsTeacherPracticeService";
 import "../../styles/ielts-learning.css";
+import { IeltsEmailOptions, IeltsEmailStatusLine } from "../../components/ielts/IeltsEmailControls";
+import { notifyIeltsStudents, type IeltsEmailQueued } from "../../../services/ieltsEmailService";
 export default function IeltsLearningTeacher({
   schoolId,
   reviewOnly = false,
@@ -37,6 +39,9 @@ export default function IeltsLearningTeacher({
     [busy, setBusy] = useState(false),
     [retry, setRetry] = useState(0),
     [usageRevision, setUsageRevision] = useState(0);
+  const [emailOn, setEmailOn] = useState(true),
+    [emailQueued, setEmailQueued] = useState<IeltsEmailQueued | null>(null),
+    [emailError, setEmailError] = useState("");
   const request = useRef(crypto.randomUUID()),
     scope = useRef(schoolId);
   scope.current = schoolId;
@@ -140,6 +145,7 @@ export default function IeltsLearningTeacher({
           : "Review the task, connect the matching screener evidence and explain why it is useful. These tasks do not automatically create a band estimate or improvement label."}
       </p>
       {message && <p role="status">{message}</p>}
+      <IeltsEmailStatusLine queued={emailQueued} error={emailError} />
       {(!data || message.startsWith("Student evidence could not load")) && (
         <button onClick={() => setRetry((n) => n + 1)}>
           Retry loading practice
@@ -318,7 +324,7 @@ export default function IeltsLearningTeacher({
                 </>
               )}
               <label className="il-answer bh-ielts-field-reason">
-                Why this task for this student?
+                Why this task for this student? <span className="il-muted">The student sees this message.</span>
                 <textarea
                   maxLength={1200}
                   value={reason}
@@ -329,6 +335,7 @@ export default function IeltsLearningTeacher({
                   placeholder="Explain the reviewed finding, or clearly label this as a delivery pilot."
                 />
               </label>
+              <IeltsEmailOptions email={emailOn} onEmail={setEmailOn} label="Email this student about this task" />
               <button
                 disabled={
                   busy ||
@@ -344,7 +351,9 @@ export default function IeltsLearningTeacher({
                 onClick={() =>
                   void run(async () => {
                     if (!student || !source) return;
-                    await allocateLearning(
+                    setEmailQueued(null);
+                    setEmailError("");
+                    const allocationId = await allocateLearning(
                       schoolId,
                       student.id,
                       task,
@@ -352,6 +361,10 @@ export default function IeltsLearningTeacher({
                       reason,
                       request.current,
                     );
+                    if (emailOn && allocationId)
+                      notifyIeltsStudents("targeted_assigned", [allocationId])
+                        .then(setEmailQueued)
+                        .catch(() => setEmailError("The task is assigned, but the email could not be queued. The student will still see it on their IELTS home."));
                     const next = await learningWorkspace(schoolId);
                     if (scope.current === schoolId) {
                       setData(next);

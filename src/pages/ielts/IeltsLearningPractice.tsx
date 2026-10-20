@@ -1,6 +1,8 @@
 import IeltsMaterialProvenance from "../../components/ielts/IeltsMaterialProvenance";
 import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { IeltsEmailOptions, IeltsEmailStatusLine } from "../../components/ielts/IeltsEmailControls";
+import { notifyIeltsStudents, type IeltsEmailQueued } from "../../../services/ieltsEmailService";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   learningWorkspace,
@@ -113,6 +115,9 @@ export default function IeltsLearningPractice() {
     [error, setError] = useState(""),
     [url, setUrl] = useState(""),
     [working, setWorking] = useState(false);
+  const [emailFeedback, setEmailFeedback] = useState(false),
+    [emailQueued, setEmailQueued] = useState<IeltsEmailQueued | null>(null),
+    [emailError, setEmailError] = useState("");
   const [feedback, setFeedback] = useState<LearningFeedback>(blankFeedback),
     [playing, setPlaying] = useState(false),
     [position, setPosition] = useState(0);
@@ -883,6 +888,7 @@ export default function IeltsLearningPractice() {
                   />
                 </label>
               ))}
+              <IeltsEmailOptions email={emailFeedback} onEmail={setEmailFeedback} label="Email the student that feedback is ready" />
               <button
                 disabled={
                   working || aiBusy || !!proposedDraft ||
@@ -905,6 +911,12 @@ export default function IeltsLearningPractice() {
                     );
                     setDetail(d);
                     setMessage("Teacher feedback shared.");
+                    setEmailQueued(null);
+                    setEmailError("");
+                    if (emailFeedback && d.review)
+                      notifyIeltsStudents("targeted_feedback", [detail.id])
+                        .then(setEmailQueued)
+                        .catch(() => setEmailError("Feedback is shared, but the email could not be queued. The student will still see it in Targeted Practice."));
                     if (d.review) {
                       setReviewOpen(false);
                       window.requestAnimationFrame(() => reviewToggle.current?.focus());
@@ -925,6 +937,7 @@ export default function IeltsLearningPractice() {
               </div>
             </section>
           )}
+          <IeltsEmailStatusLine queued={emailQueued} error={emailError} />
           <Link to={detail.manager ? teacherRoute : "/ielts/practice/targeted"}>{detail.manager ? "Back to assigned work and reviews →" : "All targeted practice →"}</Link>
         </>
       )}
