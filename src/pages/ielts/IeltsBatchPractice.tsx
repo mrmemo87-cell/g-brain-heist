@@ -3,6 +3,7 @@ import IeltsBatchLearningLoop,{type PreparedAssignment} from './IeltsBatchLearni
 import IeltsMockCapture from './IeltsMockCapture';
 import IeltsBatchPracticeEffect from './IeltsBatchPracticeEffect';
 import IeltsBatchSkillCoverage from './IeltsBatchSkillCoverage';
+import {groupBySkill} from './materialLabel';
 import React, {useEffect,useRef,useState} from 'react';
 import {batchPracticePreview,assignBatchPractice,type BatchPracticePreview} from '../../../services/ieltsBatchService';
 import {programmeEvidenceRoute} from '../../../services/ieltsProgrammeService';
@@ -38,7 +39,7 @@ export default function IeltsBatchPractice({batchId,onClose}:{batchId:string;onC
  {message&&<p role="status">{message}</p>}{error&&<IeltsNotice error>{error}</IeltsNotice>}{loading&&<p role="status">Checking materials and student readiness…</p>}
  <IeltsButton disabled={saving||loading} onClick={()=>setRefresh(n=>n+1)}>Refresh preview</IeltsButton>
  {data&&<fieldset disabled={saving||loading} className="ix-list" style={{border:0,padding:0,margin:0}}>
- <label className="ix-field">Practice material<select value={task} onChange={e=>{setTask(e.target.value);setData(null);setSelected([]);setReviewed(false);setRepeat(false);setMessage('');request.current=crypto.randomUUID();}}><option value="">Choose a released practice task</option>{data.tasks.map(t=><option key={t.code} value={t.code}>{t.display_code} · {t.title} · {t.purpose==='guided_practice'?'Guided practice':'Fresh independent check'}</option>)}</select></label>
+ <label className="ix-field">Practice material<select value={task} onChange={e=>{setTask(e.target.value);setData(null);setSelected([]);setReviewed(false);setRepeat(false);setMessage('');request.current=crypto.randomUUID();}}><option value="">Choose a released practice task</option>{groupBySkill(data.tasks).map(g=><optgroup key={g.skill} label={`${g.label} (${g.items.length})`}>{g.items.map(t=><option key={t.code} value={t.code}>{t.display_code} · {t.title} · {t.purpose==='guided_practice'?'Practice':'Fresh check'}</option>)}</optgroup>)}</select></label>
  {!data.tasks.length&&<p>No released practice is available. Ask the content administrator to finish review; screeners cannot be substituted.</p>}
  {material&&<><article className="ix-row"><h3>{material.display_code} · {material.title}</h3><p>{material.instructions}</p><p><strong>Success looks like:</strong> {material.success_description}</p><p className="ix-muted">{material.purpose==='guided_practice'?'Guided practice supports learning.':'Fresh checks require unseen material and are checked again for related prior exposure.'} Completing this task does not establish a band or improvement.</p></article>
  <div className="ix-header"><h3>Choose students · {readyStudents.length} of {data.students.length} ready</h3><IeltsButton disabled={!readyStudents.length} onClick={()=>{setSelected(readyStudents.map(s=>s.id));setReviewed(false);}}>Select all ready students</IeltsButton><IeltsButton onClick={()=>{setSelected([]);setReviewed(false);}}>Clear selection</IeltsButton></div>
