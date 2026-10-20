@@ -6,6 +6,7 @@ export type EmailSchoolBrand = {
   id?: string | null;
   name?: string | null;
   logo_url?: string | null;
+  time_zone?: string | null;
 };
 
 export type BrandedEmail = {
@@ -23,6 +24,20 @@ export type EmailRenderMode = "school" | "platform_operations";
 
 export const cleanText = (value: unknown, maxLength = 500) =>
   String(value ?? "").trim().slice(0, maxLength);
+
+/** "Fri, 24 Oct 2026 at 6:00 PM (Bishkek time)" in the school's time zone; schools without one get "UTC". */
+export const fmtIn = (value: unknown, timeZone?: string | null) => {
+  const raw = cleanText(value, 80);
+  if (!raw) return "Not specified";
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return raw;
+  let zone = cleanText(timeZone, 64) || "UTC";
+  try { new Intl.DateTimeFormat("en", { timeZone: zone }); } catch { zone = "UTC"; }
+  const day = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: zone }).format(date);
+  const time = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: zone }).format(date);
+  const label = zone === "UTC" || zone === "Etc/UTC" ? "UTC" : `${zone.slice(zone.lastIndexOf("/") + 1).replaceAll("_", " ")} time`;
+  return `${day.replace(/^(\w{3}) /, "$1, ")} at ${time} (${label})`;
+};
 
 export const escapeHtml = (value: unknown) =>
   String(value ?? "").replace(/[&<>'"]/g, (character) => ({
@@ -94,11 +109,16 @@ const schoolMark = (school: EmailSchoolBrand) => {
   const schoolName = cleanText(school.name, 140) || "Your school";
   const schoolLogo = safeHttpsUrl(school.logo_url);
   if (schoolLogo) {
-    return `<img src="${escapeHtml(schoolLogo)}" alt="${escapeHtml(schoolName)} logo" width="50" height="50" style="display:block;width:50px;height:50px;object-fit:contain;border-radius:12px;background:#fff;padding:5px"/>`;
+    return `<img src="${escapeHtml(schoolLogo)}" alt="${escapeHtml(schoolName)} logo" width="44" height="44" style="display:block;width:44px;height:44px;object-fit:contain;border-radius:8px;background:#ffffff;border:1px solid #e5e7eb"/>`;
   }
 
-  return `<span role="img" aria-label="${escapeHtml(schoolName)} school mark" style="display:inline-block;width:50px;height:50px;line-height:50px;text-align:center;border-radius:12px;background:#fff;color:#0f172a;font-size:22px;font-weight:800">${escapeHtml(schoolName.slice(0, 1).toUpperCase() || "S")}</span>`;
+  return `<span role="img" aria-label="${escapeHtml(schoolName)} school mark" style="display:inline-block;width:44px;height:44px;line-height:44px;text-align:center;border-radius:8px;background:#eef2ff;color:#3730a3;font-size:20px;font-weight:700">${escapeHtml(schoolName.slice(0, 1).toUpperCase() || "S")}</span>`;
 };
+
+// Light, quiet layout: one accent colour, a clear headline, a details table and one button. Reads well on phones and
+// in clients that force light mode. Private results are never placed in email.
+const INK = "#111827", BODY = "#374151", MUTED = "#6b7280", LINE = "#e5e7eb", ACCENT = "#4338ca";
+const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 
 export const renderBrandedEmail = (
   school: EmailSchoolBrand,
@@ -109,24 +129,27 @@ export const renderBrandedEmail = (
   const isOperations = mode === "platform_operations";
   const details = (email.details || []).filter((item) => cleanText(item.value));
   const detailHtml = details.length
-    ? `<div style="margin:20px 0;padding:17px;border-radius:12px;background:#111f33;color:#cbd5e1">${details.map((item) => `<p style="margin:0 0 8px"><strong>${escapeHtml(item.label)}:</strong> ${escapeHtml(item.value)}</p>`).join("").replace(/<\/p>$/, "</p>")}</div>`
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;border:1px solid ${LINE};border-radius:8px;border-collapse:separate;background:#f9fafb">${details.map((item, index) => `<tr><td valign="top" style="padding:12px 16px;${index ? `border-top:1px solid ${LINE};` : ""}width:96px;color:${MUTED};font-size:13px;line-height:1.5">${escapeHtml(item.label)}</td><td valign="top" style="padding:12px 16px 12px 0;${index ? `border-top:1px solid ${LINE};` : ""}color:${INK};font-size:14px;font-weight:600;line-height:1.5">${escapeHtml(item.value)}</td></tr>`).join("")}</table>`
     : "";
   const actionUrl = safeHttpsUrl(email.action?.url);
   const actionHtml = email.action && actionUrl
-    ? `<a href="${escapeHtml(actionUrl)}" style="display:inline-block;margin-top:6px;padding:13px 20px;border-radius:10px;background:#22d3ee;color:#04111f;font-weight:800;text-decoration:none">${escapeHtml(email.action.label)}</a>`
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 8px"><tr><td style="border-radius:8px;background:${ACCENT}"><a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:13px 24px;border-radius:8px;background:${ACCENT};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none">${escapeHtml(email.action.label)}</a></td></tr></table><p style="margin:0;color:${MUTED};font-size:12px;line-height:1.5">If the button doesn’t work, open <a href="${escapeHtml(actionUrl)}" style="color:${ACCENT};text-decoration:underline">${escapeHtml(actionUrl.replace(/^https:\/\//, ""))}</a></p>`
     : "";
   const noteHtml = cleanText(email.note, 1200)
-    ? `<p style="margin:18px 0 0;color:#94a3b8;font-size:13px;line-height:1.6">${escapeHtml(email.note)}</p>`
+    ? `<p style="margin:20px 0 0;padding-top:16px;border-top:1px solid ${LINE};color:${MUTED};font-size:13px;line-height:1.6">${escapeHtml(email.note)}</p>`
     : "";
-  const productMark = `<img src="${PRODUCT_LOGO_URL}" alt="Brains Heist logo" width="46" height="46" style="display:block;width:46px;height:46px;object-fit:contain;border-radius:11px;background:#08111f;padding:3px"/>`;
+  const productMark = `<img src="${PRODUCT_LOGO_URL}" alt="Brains Heist logo" width="20" height="20" style="display:inline-block;width:20px;height:20px;vertical-align:middle;border-radius:5px;background:#08111f"/>`;
   const brandHeader = isOperations
-    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="62" valign="middle">${productMark}</td><td valign="middle"><div style="color:#fff;font-size:17px;font-weight:800">Brains Heist Operations</div><div style="color:#67e8f9;font-size:11px;margin-top:3px">Internal platform notification</div></td></tr></table>`
-    : `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="62" valign="middle">${schoolMark(school)}</td><td valign="middle" style="padding-right:12px"><div style="color:#fff;font-size:17px;font-weight:800">${escapeHtml(schoolName)}</div><div style="color:#cbd5e1;font-size:11px;margin-top:3px">School communication</div></td><td width="18" align="center" style="color:#94a3b8;font-size:18px">×</td><td width="54" align="right">${productMark}</td><td valign="middle" style="padding-left:9px"><div style="color:#fff;font-size:14px;font-weight:800;white-space:nowrap">Brains Heist</div><div style="color:#67e8f9;font-size:10px;margin-top:2px;white-space:nowrap">Academic progress platform</div></td></tr></table>`;
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td valign="middle" style="padding-right:12px"><img src="${PRODUCT_LOGO_URL}" alt="Brains Heist logo" width="44" height="44" style="display:block;width:44px;height:44px;border-radius:8px;background:#08111f"/></td><td valign="middle"><div style="color:${INK};font-size:16px;font-weight:700">Brains Heist Operations</div><div style="color:${MUTED};font-size:12px;margin-top:2px">Internal platform notification</div></td></tr></table>`
+    : `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td valign="middle" style="padding-right:12px">${schoolMark(school)}</td><td valign="middle"><div style="color:${INK};font-size:16px;font-weight:700;line-height:1.3">${escapeHtml(schoolName)}</div><div style="color:${MUTED};font-size:12px;margin-top:2px">School communication</div></td></tr></table>`;
   const footer = isOperations
     ? "This Brains Heist operational notification was generated for an authorized platform administrator. Review sensitive details only inside the protected administration workspace."
-    : "This school-authorized transactional message was delivered securely through Brains Heist. Sign in to view private academic information; sensitive results are never placed in email.";
+    : `Sent on behalf of ${schoolName}. Marks, results and feedback are never included in email. Sign in to Brains Heist to see them.`;
+  const signature = isOperations
+    ? `${productMark}&nbsp; <span style="color:${BODY};font-weight:600">Brains Heist</span>`
+    : `${productMark}&nbsp; <span style="color:${BODY};font-weight:600">${escapeHtml(schoolName)} <span style="color:${MUTED};font-weight:400">×</span> Brains Heist</span> <span style="color:${MUTED}">· Academic progress platform</span>`;
 
-  const html = `<!doctype html><html lang="en"><body style="margin:0;background:#07111f;font-family:Arial,sans-serif;color:#e2e8f0"><div style="display:none;max-height:0;overflow:hidden">${escapeHtml(email.preview)}</div><div style="padding:30px 14px"><div style="max-width:640px;margin:0 auto;border:1px solid #1e3a5f;border-radius:18px;overflow:hidden;background:#0b1728"><div style="padding:26px 28px;background:linear-gradient(135deg,#082f49,#312e81,#581c87)">${brandHeader}</div><div style="padding:28px"><p style="margin:0 0 8px;color:#67e8f9;font-size:12px;font-weight:800;letter-spacing:1.6px">${escapeHtml(email.kicker.toUpperCase())}</p><h1 style="margin:0 0 16px;color:#fff;font-size:27px;line-height:1.25">${escapeHtml(email.headline)}</h1><p style="margin:0 0 20px;color:#cbd5e1;line-height:1.65">${escapeHtml(email.intro)}</p>${detailHtml}${actionHtml}${noteHtml}<p style="margin:26px 0 0;color:#64748b;font-size:12px;line-height:1.55">${escapeHtml(footer)}</p></div></div></div></body></html>`;
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><title>${escapeHtml(email.subject)}</title></head><body style="margin:0;padding:0;background:#f3f4f6;font-family:${FONT};color:${BODY};-webkit-text-size-adjust:100%"><div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(email.preview)}</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f3f4f6"><tr><td align="center" style="padding:28px 12px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#ffffff;border:1px solid ${LINE};border-radius:12px;border-collapse:separate;overflow:hidden"><tr><td style="height:4px;line-height:4px;font-size:0;background:${ACCENT}">&nbsp;</td></tr><tr><td style="padding:22px 28px;border-bottom:1px solid ${LINE}">${brandHeader}</td></tr><tr><td style="padding:28px 28px 30px"><p style="margin:0 0 10px;color:${ACCENT};font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase">${escapeHtml(email.kicker)}</p><h1 style="margin:0 0 14px;color:${INK};font-size:23px;line-height:1.3;font-weight:700">${escapeHtml(email.headline)}</h1><p style="margin:0 0 24px;color:${BODY};font-size:15px;line-height:1.65">${escapeHtml(email.intro)}</p>${detailHtml}${actionHtml}${noteHtml}</td></tr></table><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px"><tr><td style="padding:18px 8px 0;font-size:12px;line-height:1.6;color:${MUTED}"><p style="margin:0 0 6px">${signature}</p><p style="margin:0">${escapeHtml(footer)}</p></td></tr></table></td></tr></table></body></html>`;
 
   const text = [
     isOperations ? "Brains Heist Operations" : `${schoolName} × Brains Heist`,

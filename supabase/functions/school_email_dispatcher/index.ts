@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.78.0";
 import {
   PRODUCT_APP_URL,
   cleanText,
+  fmtIn,
   isRoutableEmailAddress,
   operationsSender,
   renderBrandedEmail,
@@ -29,15 +30,6 @@ const json = (status: number, body: Record<string, unknown>) => new Response(JSO
 });
 const retryAt = (attempts: number) =>
   new Date(Date.now() + Math.min(60, 2 ** Math.max(0, attempts - 1)) * 60_000).toISOString();
-const fmt = (value: unknown) => {
-  const raw = cleanText(value, 80);
-  if (!raw) return "Not specified";
-  const date = new Date(raw);
-  if (Number.isNaN(date.getTime())) return raw;
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium", timeStyle: "short", timeZone: "UTC",
-  }).format(date) + " UTC";
-};
 const fmtMoney = (amountMinor: unknown, currency: unknown) => {
   const amount = Number(cleanText(amountMinor, 40));
   const code = cleanText(currency, 3).toUpperCase() || "USD";
@@ -68,7 +60,8 @@ const sha256 = async (value: string) => {
 const appRoute = (path: string) =>
   `${(Deno.env.get("SCHOOL_EMAIL_APP_URL")?.trim() || PRODUCT_APP_URL).replace(/\/$/, "")}${path}`;
 
-const templateFor = (row: ClaimedOutbox, schoolName: string): BrandedEmail => {
+const templateFor = (row: ClaimedOutbox, schoolName: string, timeZone?: string | null): BrandedEmail => {
+  const fmt = (value: unknown) => fmtIn(value, timeZone);
   const payload = row.payload || {};
   const title = cleanText(payload.title, 180);
   const subjectName = cleanText(payload.subject, 100);
@@ -488,7 +481,7 @@ Deno.serve(async (req) => {
           : null;
         const schoolId = assignment.school_id || student.school_id || teacherUser?.school_id;
         const schoolData = schoolId
-          ? (await db.from("schools").select("id,name,logo_url").eq("id", schoolId).maybeSingle()).data
+          ? (await db.from("schools").select("id,name,logo_url,time_zone").eq("id", schoolId).maybeSingle()).data
           : null;
         const school: EmailSchoolBrand = schoolData || { id: schoolId, name: "Your school", logo_url: null };
         const schoolName = cleanText(school.name, 140) || "Your school";
@@ -502,7 +495,7 @@ Deno.serve(async (req) => {
           preview: `New assignment from ${schoolName}`,
           kicker: "New assignment", headline: title,
           intro: `Hi ${studentName}, ${teacherName} has published ${categoryName === "Uncategorized" ? "an assignment" : `a ${categoryName.toLowerCase()}`} for ${subjectName}.`,
-          details: [{ label: "Subject", value: subjectName }, { label: "Type", value: categoryName }, { label: "Due", value: fmt(assignment.due_at) }],
+          details: [{ label: "Subject", value: subjectName }, { label: "Type", value: categoryName }, { label: "Due", value: fmtIn(assignment.due_at, school.time_zone) }],
           action: { label: "Open assignment in Brains Heist", url: appRoute("/") },
           note: cleanText(assignment.description, 1000) || null,
         });
@@ -538,7 +531,7 @@ Deno.serve(async (req) => {
               .select("id,invited_email,relationship_label,expires_at,claimed_at,revoked_at")
               .eq("id", claim.invitation_id).single(),
             db.from("users").select("full_name,username").eq("id", claim.student_id).single(),
-            db.from("schools").select("id,name,logo_url").eq("id", claim.school_id).single(),
+            db.from("schools").select("id,name,logo_url,time_zone").eq("id", claim.school_id).single(),
           ]);
         if (!queue || !invitation || !schoolData || !queue.raw_token || invitation.claimed_at ||
             invitation.revoked_at || new Date(invitation.expires_at).getTime() <= Date.now()) {
@@ -570,7 +563,7 @@ Deno.serve(async (req) => {
           kicker: "Secure parent access",
           headline: `You’ve been invited to follow ${studentName}’s progress`,
           intro: `${schoolName} has invited you as ${relationship} to a private, school-approved parent view in Brains Heist.`,
-          details: [{ label: "Student", value: studentName }, { label: "Invitation expires", value: fmt(invitation.expires_at) }],
+          details: [{ label: "Student", value: studentName }, { label: "Invitation expires", value: fmtIn(invitation.expires_at, school.time_zone) }],
           action: { label: "Accept secure invitation", url: inviteUrl },
           note: "For privacy, sign in or create the parent account using the exact invited email address. The link is time-limited and can be revoked by the school.",
         });
@@ -649,7 +642,7 @@ Deno.serve(async (req) => {
           continue;
         }
         const schoolData = row.school_id
-          ? (await db.from("schools").select("id,name,logo_url")
+          ? (await db.from("schools").select("id,name,logo_url,time_zone")
             .eq("id", row.school_id).maybeSingle()).data
           : null;
         const contextSchool: EmailSchoolBrand = schoolData || {
@@ -664,7 +657,7 @@ Deno.serve(async (req) => {
           : contextSchool;
         const rendered = renderBrandedEmail(
           renderBrand,
-          templateFor(row, contextSchoolName),
+          templateFor(row, contextSchoolName, isPlatformOperations ? null : contextSchool.time_zone),
           isPlatformOperations ? "platform_operations" : "school",
         );
         const providerId = await sendWithResend({
