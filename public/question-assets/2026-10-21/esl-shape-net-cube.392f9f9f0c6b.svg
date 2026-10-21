@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+  <title>A flat net that folds into a solid</title>
+  <rect width="640" height="360" rx="24" fill="#0f172a"/>
+  <rect x="1" y="1" width="638" height="358" rx="23" fill="none" stroke="#334155" stroke-width="2"/>
+  <text x="32" y="42" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="start">THIS NET FOLDS INTO WHICH SOLID?</text>
+  <path d="M32 58H608" stroke="#334155" stroke-width="2"/>
+  <path d="M260 118L320 118L320 178L260 178Z" fill="#22d3ee" fill-opacity="0.25" stroke="none"/>
+  <path d="M260 118L320 118L320 178L260 178L260 118" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M200 178L260 178L260 238L200 238Z" fill="#22d3ee" fill-opacity="0.25" stroke="none"/>
+  <path d="M200 178L260 178L260 238L200 238L200 178" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M260 178L320 178L320 238L260 238Z" fill="#22d3ee" fill-opacity="0.25" stroke="none"/>
+  <path d="M260 178L320 178L320 238L260 238L260 178" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M320 178L380 178L380 238L320 238Z" fill="#22d3ee" fill-opacity="0.25" stroke="none"/>
+  <path d="M320 178L380 178L380 238L320 238L320 178" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M380 178L440 178L440 238L380 238Z" fill="#22d3ee" fill-opacity="0.25" stroke="none"/>
+  <path d="M380 178L440 178L440 238L380 238L380 178" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M260 238L320 238L320 298L260 298Z" fill="#22d3ee" fill-opacity="0.25" stroke="none"/>
+  <path d="M260 238L320 238L320 298L260 298L260 238" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

@@ -1,0 +1,798 @@
+[
+ {
+  "key": "esl-shape-cube",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-cube.0fe4cf64b36b.svg",
+   "sha256": "0fe4cf64b36bb50811437a14e1a461a90f5a6c6c43f412aaf3d66ddbbc613ca7",
+   "path": "/question-assets/2026-10-21/esl-shape-cube.0fe4cf64b36b.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-cube.0fe4cf64b36b.svg"
+  },
+  "question": {
+   "text": "Look at the picture. Which solid is this?",
+   "options": [
+    "cube",
+    "square",
+    "cuboid",
+    "square-based pyramid"
+   ],
+   "answer": "cube",
+   "explanation": "Six equal square faces make a cube. A cuboid has rectangular faces that are not all the same.",
+   "difficulty": "easy",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "cube"
+   ],
+   "alt": "A line drawing of a solid with six equal square faces. Hidden edges are shown as dashed lines."
+  }
+ },
+ {
+  "key": "esl-shape-cuboid",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-cuboid.22955f8f2324.svg",
+   "sha256": "22955f8f2324e69a26733c2c7d8d9a558c349d0427cfbf4ec24bc4ed716d2a4f",
+   "path": "/question-assets/2026-10-21/esl-shape-cuboid.22955f8f2324.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-cuboid.22955f8f2324.svg"
+  },
+  "question": {
+   "text": "What is the name of the solid in the picture?",
+   "options": [
+    "rectangle",
+    "cuboid",
+    "cube",
+    "triangular prism"
+   ],
+   "answer": "cuboid",
+   "explanation": "Six rectangular faces, with a length longer than the height, make a cuboid. A cube has six equal squares.",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "cuboid"
+   ],
+   "alt": "A line drawing of a box-shaped solid with six rectangular faces, longer than it is tall. Hidden edges are dashed."
+  }
+ },
+ {
+  "key": "esl-shape-sphere",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-sphere.8ab58be916e8.svg",
+   "sha256": "8ab58be916e86b0e751809c96ff1a4334f9ec83739ce8ab5a56ede67f801e1dd",
+   "path": "/question-assets/2026-10-21/esl-shape-sphere.8ab58be916e8.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-sphere.8ab58be916e8.svg"
+  },
+  "question": {
+   "text": "Look at the diagram. What do we call this 3D shape?",
+   "options": [
+    "cylinder",
+    "hemisphere",
+    "sphere",
+    "circle"
+   ],
+   "answer": "sphere",
+   "explanation": "A perfectly round solid like a ball is a sphere. A circle is the flat 2D shape.",
+   "difficulty": "easy",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "sphere"
+   ],
+   "alt": "A drawing of a perfectly round solid like a ball, with a dashed line around its middle."
+  }
+ },
+ {
+  "key": "esl-shape-hemisphere",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-hemisphere.05b7e0848ab7.svg",
+   "sha256": "05b7e0848ab79049fa05c2a6c81f7208bcc31aff7d2dd492063d6884bff01f72",
+   "path": "/question-assets/2026-10-21/esl-shape-hemisphere.05b7e0848ab7.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-hemisphere.05b7e0848ab7.svg"
+  },
+  "question": {
+   "text": "Which word names the shape in the picture?",
+   "options": [
+    "semicircle",
+    "sphere",
+    "cone",
+    "hemisphere"
+   ],
+   "answer": "hemisphere",
+   "explanation": "A dome with one flat circular face is half a sphere: a hemisphere.",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "hemisphere"
+   ],
+   "alt": "A drawing of a dome-shaped solid: a curved top resting on one flat circular face. The hidden back edge is dashed."
+  }
+ },
+ {
+  "key": "esl-shape-cone",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-cone.c4e7bfa498b1.svg",
+   "sha256": "c4e7bfa498b18fe0ec8b36e1fee668df71dca7da7c538e07a8796635a9671380",
+   "path": "/question-assets/2026-10-21/esl-shape-cone.c4e7bfa498b1.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-cone.c4e7bfa498b1.svg"
+  },
+  "question": {
+   "text": "Look carefully at the faces. Which solid is shown?",
+   "options": [
+    "cone",
+    "square-based pyramid",
+    "cylinder",
+    "triangle"
+   ],
+   "answer": "cone",
+   "explanation": "One circular base and a curved side rising to a point make a cone.",
+   "difficulty": "easy",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "cone"
+   ],
+   "alt": "A drawing of a solid with a circular base and a curved side that rises to one point. The hidden back of the base is dashed."
+  }
+ },
+ {
+  "key": "esl-shape-cylinder",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-cylinder.e69f931014c4.svg",
+   "sha256": "e69f931014c453e0090ad3e90d30dc228c03775945b7fdba52d5aa4fbb9efc8e",
+   "path": "/question-assets/2026-10-21/esl-shape-cylinder.e69f931014c4.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-cylinder.e69f931014c4.svg"
+  },
+  "question": {
+   "text": "Look at the picture. Which solid is this?",
+   "options": [
+    "cuboid",
+    "cylinder",
+    "cone",
+    "circle"
+   ],
+   "answer": "cylinder",
+   "explanation": "Two equal circular ends joined by a curved side make a cylinder.",
+   "difficulty": "easy",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "cylinder"
+   ],
+   "alt": "A drawing of a solid with two equal circular ends joined by a curved side. The hidden back of the bottom circle is dashed."
+  }
+ },
+ {
+  "key": "esl-shape-triangular-prism",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-triangular-prism.f55d3bc666f3.svg",
+   "sha256": "f55d3bc666f3a0402c89d35bf44b97b859bed56aa1e7259306935c2bf20d6cea",
+   "path": "/question-assets/2026-10-21/esl-shape-triangular-prism.f55d3bc666f3.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-triangular-prism.f55d3bc666f3.svg"
+  },
+  "question": {
+   "text": "What is the name of the solid in the picture?",
+   "options": [
+    "triangle",
+    "triangular pyramid",
+    "triangular prism",
+    "cuboid"
+   ],
+   "answer": "triangular prism",
+   "explanation": "Two equal triangular ends joined by rectangles make a triangular prism. A pyramid ends in a point.",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "triangular-prism"
+   ],
+   "alt": "A line drawing of a solid with two equal triangular ends joined by three rectangles. Hidden edges are dashed."
+  }
+ },
+ {
+  "key": "esl-shape-hexagonal-prism",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-hexagonal-prism.b2e1a8ab0a8b.svg",
+   "sha256": "b2e1a8ab0a8bcf33f5e6516c748588f3cab1d5dc37d8a2ff7d331f8a5660d745",
+   "path": "/question-assets/2026-10-21/esl-shape-hexagonal-prism.b2e1a8ab0a8b.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-hexagonal-prism.b2e1a8ab0a8b.svg"
+  },
+  "question": {
+   "text": "Look at the diagram. What do we call this 3D shape?",
+   "options": [
+    "triangular prism",
+    "hexagon",
+    "cylinder",
+    "hexagonal prism"
+   ],
+   "answer": "hexagonal prism",
+   "explanation": "Two equal six-sided ends joined by rectangles make a hexagonal prism. A hexagon is only the flat end.",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "hexagonal-prism"
+   ],
+   "alt": "A line drawing of a solid with two equal six-sided ends joined by six rectangles. Hidden edges are dashed."
+  }
+ },
+ {
+  "key": "esl-shape-square-based-pyramid",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-square-based-pyramid.f2ee15c81108.svg",
+   "sha256": "f2ee15c81108f7129b7c3d6557a762bbf6311e92ca75c7b60e8fe4e52e67b991",
+   "path": "/question-assets/2026-10-21/esl-shape-square-based-pyramid.f2ee15c81108.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-square-based-pyramid.f2ee15c81108.svg"
+  },
+  "question": {
+   "text": "Which word names the shape in the picture?",
+   "options": [
+    "square-based pyramid",
+    "triangular prism",
+    "triangular pyramid",
+    "cube"
+   ],
+   "answer": "square-based pyramid",
+   "explanation": "A square base with four triangles meeting at a point is a square-based pyramid.",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "square-based-pyramid"
+   ],
+   "alt": "A line drawing of a solid with a square base and four triangular faces meeting at one point. Hidden edges are dashed."
+  }
+ },
+ {
+  "key": "esl-shape-triangular-pyramid",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-triangular-pyramid.ac9cd80c277e.svg",
+   "sha256": "ac9cd80c277e752c0f954316fa02b7d2b80c7f10bf1b1e05659f6a33aaf0386b",
+   "path": "/question-assets/2026-10-21/esl-shape-triangular-pyramid.ac9cd80c277e.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-triangular-pyramid.ac9cd80c277e.svg"
+  },
+  "question": {
+   "text": "Look carefully at the faces. Which solid is shown?",
+   "options": [
+    "triangle",
+    "triangular pyramid",
+    "triangular prism",
+    "square-based pyramid"
+   ],
+   "answer": "triangular pyramid",
+   "explanation": "A triangular base with three triangles meeting at a point is a triangular pyramid.",
+   "difficulty": "hard",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "triangular-pyramid"
+   ],
+   "alt": "A line drawing of a solid with a triangular base and three triangular faces meeting at one point. Hidden edges are dashed."
+  }
+ },
+ {
+  "key": "esl-shape-lineup-1",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-lineup-1.8dca1768dfe7.svg",
+   "sha256": "8dca1768dfe71b21820d3ba24c28a662166be29e6138d4d3dd6a0c3ee3caa9ca",
+   "path": "/question-assets/2026-10-21/esl-shape-lineup-1.8dca1768dfe7.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-lineup-1.8dca1768dfe7.svg"
+  },
+  "question": {
+   "text": "Look at the four solids. What is the name of shape C?",
+   "options": [
+    "cylinder",
+    "hemisphere",
+    "cube",
+    "cone"
+   ],
+   "answer": "cube",
+   "explanation": "Shape C is a cube. Six equal square faces make a cube. A cuboid has rectangular faces that are not all the same.",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "labelled shapes"
+   ],
+   "alt": "Four solid shapes in a row labelled A, B, C and D: a can shape, a shape with a point, a box shape, a dome."
+  }
+ },
+ {
+  "key": "esl-shape-lineup-2",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-lineup-2.f484ed28044a.svg",
+   "sha256": "f484ed28044a75b7f85450fd7cbdb2787a397298ffebb7d6b1e4f5c01411aa02",
+   "path": "/question-assets/2026-10-21/esl-shape-lineup-2.f484ed28044a.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-lineup-2.f484ed28044a.svg"
+  },
+  "question": {
+   "text": "Look at the four solids. What is the name of shape B?",
+   "options": [
+    "sphere",
+    "square-based pyramid",
+    "cuboid",
+    "triangular prism"
+   ],
+   "answer": "triangular prism",
+   "explanation": "Shape B is a triangular prism. Two equal triangular ends joined by rectangles make a triangular prism. A pyramid ends in a point.",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "labelled shapes"
+   ],
+   "alt": "Four solid shapes in a row labelled A, B, C and D: a pointed shape on a square, a tent shape, a ball shape, a long box."
+  }
+ },
+ {
+  "key": "esl-shape-lineup-3",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-lineup-3.ac62ac78094a.svg",
+   "sha256": "ac62ac78094af1eccc07c1480dbd970caff2cdf0f322edc850531434afe296ac",
+   "path": "/question-assets/2026-10-21/esl-shape-lineup-3.ac62ac78094a.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-lineup-3.ac62ac78094a.svg"
+  },
+  "question": {
+   "text": "Look at the four solids. What is the name of shape D?",
+   "options": [
+    "cone",
+    "triangular pyramid",
+    "cylinder",
+    "hexagonal prism"
+   ],
+   "answer": "cone",
+   "explanation": "Shape D is a cone. One circular base and a curved side rising to a point make a cone.",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "labelled shapes"
+   ],
+   "alt": "Four solid shapes in a row labelled A, B, C and D: a pencil shape, a can shape, a pointed shape on a triangle, a shape with a point."
+  }
+ },
+ {
+  "key": "esl-shape-object-tent",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-object-tent.1c42bcc4696a.svg",
+   "sha256": "1c42bcc4696ae81609e909e189129f26b4c53f6dca5af6ea3dbc1905af2e9584",
+   "path": "/question-assets/2026-10-21/esl-shape-object-tent.1c42bcc4696a.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-object-tent.1c42bcc4696a.svg"
+  },
+  "question": {
+   "text": "Look at the object in the picture. Which solid is it shaped like?",
+   "options": [
+    "cuboid",
+    "triangular prism",
+    "cone",
+    "triangular pyramid"
+   ],
+   "answer": "triangular prism",
+   "explanation": "A camping tent: two triangular ends joined by rectangular sides.",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "real-world objects",
+    "triangular-prism"
+   ],
+   "alt": "A drawing of a camping tent with a door, standing on the ground. It has two triangular ends and sloping rectangular sides."
+  }
+ },
+ {
+  "key": "esl-shape-object-tin",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-object-tin.e82c6b9504ff.svg",
+   "sha256": "e82c6b9504fff84ff84b6baa5d40abac63ae41553a537e645cf5e5da09a971e1",
+   "path": "/question-assets/2026-10-21/esl-shape-object-tin.e82c6b9504ff.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-object-tin.e82c6b9504ff.svg"
+  },
+  "question": {
+   "text": "Look at the object in the picture. Which solid is it shaped like?",
+   "options": [
+    "cuboid",
+    "sphere",
+    "cylinder",
+    "cone"
+   ],
+   "answer": "cylinder",
+   "explanation": "A tin of food has two circular ends and a curved side: a cylinder.",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "real-world objects",
+    "cylinder"
+   ],
+   "alt": "A drawing of a food tin with a coloured label band around its middle."
+  }
+ },
+ {
+  "key": "esl-shape-object-ice-cream",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-object-ice-cream.88aaa90b5e9f.svg",
+   "sha256": "88aaa90b5e9f49ce7125c00a70c7413bb1e59e867f65f8ce8c7d667cc4356a55",
+   "path": "/question-assets/2026-10-21/esl-shape-object-ice-cream.88aaa90b5e9f.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-object-ice-cream.88aaa90b5e9f.svg"
+  },
+  "question": {
+   "text": "Look at the object in the picture. Which solid is it shaped like?",
+   "options": [
+    "hemisphere",
+    "triangular pyramid",
+    "cylinder",
+    "cone"
+   ],
+   "answer": "cone",
+   "explanation": "An ice cream cone narrows from a circle to a single point: a cone.",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "real-world objects",
+    "cone"
+   ],
+   "alt": "A drawing of an ice cream: three scoops sitting on top of a crispy holder that narrows to a point at the bottom."
+  }
+ },
+ {
+  "key": "esl-shape-object-dome",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-object-dome.a46f5cb8bb9a.svg",
+   "sha256": "a46f5cb8bb9a88352fbd9270c562e2f52ee3bea14c63686bf621aec16fab612e",
+   "path": "/question-assets/2026-10-21/esl-shape-object-dome.a46f5cb8bb9a.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-object-dome.a46f5cb8bb9a.svg"
+  },
+  "question": {
+   "text": "Look at the object in the picture. Which solid is it shaped like?",
+   "options": [
+    "hemisphere",
+    "cylinder",
+    "cone",
+    "sphere"
+   ],
+   "answer": "hemisphere",
+   "explanation": "A dome-shaped building is half a sphere, with a flat circular floor: a hemisphere.",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-und"
+   ],
+   "tags": [
+    "picture",
+    "real-world objects",
+    "hemisphere"
+   ],
+   "alt": "A drawing of a round dome-shaped building with a small door, standing on flat ground."
+  }
+ },
+ {
+  "key": "esl-shape-part-face",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-part-face.0ee97cbff1d8.svg",
+   "sha256": "0ee97cbff1d8ecdf08cb40a08be70b5036549ffb719f969552bb663a13717e24",
+   "path": "/question-assets/2026-10-21/esl-shape-part-face.0ee97cbff1d8.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-part-face.0ee97cbff1d8.svg"
+  },
+  "question": {
+   "text": "Look at the cube. Which word names the part marked with the arrow?",
+   "options": [
+    "vertex",
+    "face",
+    "net",
+    "edge"
+   ],
+   "answer": "face",
+   "explanation": "A face is a flat surface of a solid. A cube has six faces.",
+   "difficulty": "easy",
+   "taxonomy": [
+    "shape-rem"
+   ],
+   "tags": [
+    "picture",
+    "faces edges vertices",
+    "face"
+   ],
+   "alt": "A cube drawing. One whole flat side of the cube is coloured amber and an arrow with a question mark points to it."
+  }
+ },
+ {
+  "key": "esl-shape-part-edge",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-part-edge.b6fe52b0876c.svg",
+   "sha256": "b6fe52b0876c39b6270f83b2bd8174543af5413fb143475d3052d848735ae79b",
+   "path": "/question-assets/2026-10-21/esl-shape-part-edge.b6fe52b0876c.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-part-edge.b6fe52b0876c.svg"
+  },
+  "question": {
+   "text": "Look at the cube. Which word names the part marked with the arrow?",
+   "options": [
+    "net",
+    "vertex",
+    "edge",
+    "face"
+   ],
+   "answer": "edge",
+   "explanation": "An edge is a line where two faces meet. A cube has twelve edges.",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-rem"
+   ],
+   "tags": [
+    "picture",
+    "faces edges vertices",
+    "edge"
+   ],
+   "alt": "A cube drawing. One straight line where two sides meet is thick and amber, and an arrow with a question mark points to it."
+  }
+ },
+ {
+  "key": "esl-shape-part-vertex",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-part-vertex.f5ecd4b53a33.svg",
+   "sha256": "f5ecd4b53a3373610a5a484c22b08861a5f8e0c4229cff7cd1d5e725ea156c2f",
+   "path": "/question-assets/2026-10-21/esl-shape-part-vertex.f5ecd4b53a33.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-part-vertex.f5ecd4b53a33.svg"
+  },
+  "question": {
+   "text": "Look at the cube. Which word names the part marked with the arrow?",
+   "options": [
+    "face",
+    "edge",
+    "net",
+    "vertex"
+   ],
+   "answer": "vertex",
+   "explanation": "A vertex is a corner point where edges meet. A cube has eight vertices.",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-rem"
+   ],
+   "tags": [
+    "picture",
+    "faces edges vertices",
+    "vertex"
+   ],
+   "alt": "A cube drawing. One corner point is marked with an amber dot and an arrow with a question mark points to it."
+  }
+ },
+ {
+  "key": "esl-shape-net-cube",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-net-cube.392f9f9f0c6b.svg",
+   "sha256": "392f9f9f0c6bb4edc5cec3d80a69f933da0a813c93196ea73cc19c2373da8678",
+   "path": "/question-assets/2026-10-21/esl-shape-net-cube.392f9f9f0c6b.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-net-cube.392f9f9f0c6b.svg"
+  },
+  "question": {
+   "text": "Look at the net. Which solid does it make when you fold it?",
+   "options": [
+    "cube",
+    "triangular prism",
+    "square-based pyramid",
+    "cuboid"
+   ],
+   "answer": "cube",
+   "explanation": "Six equal squares fold up into a cube.",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-net"
+   ],
+   "tags": [
+    "picture",
+    "nets",
+    "cube"
+   ],
+   "alt": "A flat net made of six equal squares joined edge to edge in a cross pattern."
+  }
+ },
+ {
+  "key": "esl-shape-net-square-based-pyramid",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-net-square-based-pyramid.754a28b0c552.svg",
+   "sha256": "754a28b0c552a41c6e95722e5ca8608820b0ab9a1b64e2fd87e225f6ed548a5d",
+   "path": "/question-assets/2026-10-21/esl-shape-net-square-based-pyramid.754a28b0c552.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-net-square-based-pyramid.754a28b0c552.svg"
+  },
+  "question": {
+   "text": "Look at the net. Which solid does it make when you fold it?",
+   "options": [
+    "cube",
+    "square-based pyramid",
+    "triangular prism",
+    "triangular pyramid"
+   ],
+   "answer": "square-based pyramid",
+   "explanation": "One square with four triangles around it folds into a square-based pyramid.",
+   "difficulty": "hard",
+   "taxonomy": [
+    "shape-net"
+   ],
+   "tags": [
+    "picture",
+    "nets",
+    "square-based-pyramid"
+   ],
+   "alt": "A flat net made of one square in the middle with a triangle attached to each of its four sides."
+  }
+ },
+ {
+  "key": "esl-shape-net-triangular-prism",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-net-triangular-prism.63ea8d9d0385.svg",
+   "sha256": "63ea8d9d0385fa733246c9655920718472c968b1f486ab54254f5684c4a1e748",
+   "path": "/question-assets/2026-10-21/esl-shape-net-triangular-prism.63ea8d9d0385.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-net-triangular-prism.63ea8d9d0385.svg"
+  },
+  "question": {
+   "text": "Look at the net. Which solid does it make when you fold it?",
+   "options": [
+    "triangular pyramid",
+    "hexagonal prism",
+    "triangular prism",
+    "cuboid"
+   ],
+   "answer": "triangular prism",
+   "explanation": "Three rectangles with a triangle at each end fold into a triangular prism.",
+   "difficulty": "hard",
+   "taxonomy": [
+    "shape-net"
+   ],
+   "tags": [
+    "picture",
+    "nets",
+    "triangular-prism"
+   ],
+   "alt": "A flat net made of three rectangles in a row with one triangle attached at each end."
+  }
+ },
+ {
+  "key": "esl-shape-net-cylinder",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-net-cylinder.f8da3974aa0b.svg",
+   "sha256": "f8da3974aa0b069682dd9a06086dcbbfea13c90891fba974283f48952bc47db4",
+   "path": "/question-assets/2026-10-21/esl-shape-net-cylinder.f8da3974aa0b.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-net-cylinder.f8da3974aa0b.svg"
+  },
+  "question": {
+   "text": "Look at the net. Which solid does it make when you fold it?",
+   "options": [
+    "cone",
+    "sphere",
+    "cuboid",
+    "cylinder"
+   ],
+   "answer": "cylinder",
+   "explanation": "One rectangle with two equal circles folds into a cylinder: the rectangle rolls into the curved side.",
+   "difficulty": "hard",
+   "taxonomy": [
+    "shape-net"
+   ],
+   "tags": [
+    "picture",
+    "nets",
+    "cylinder"
+   ],
+   "alt": "A flat net made of one rectangle with an equal circle touching its top edge and another touching its bottom edge."
+  }
+ },
+ {
+  "key": "esl-shape-pair-circle-sphere",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-pair-circle-sphere.80f55ba2aa9d.svg",
+   "sha256": "80f55ba2aa9de4faa121ec50bc13c49c072a6a9cc7b7877bae13d77c5aeffe6c",
+   "path": "/question-assets/2026-10-21/esl-shape-pair-circle-sphere.80f55ba2aa9d.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-pair-circle-sphere.80f55ba2aa9d.svg"
+  },
+  "question": {
+   "text": "Shape A is a circle. What is the name of solid shape B?",
+   "options": [
+    "sphere",
+    "circle",
+    "cylinder",
+    "hemisphere"
+   ],
+   "answer": "sphere",
+   "explanation": "A circle is flat (2D). The solid, ball-shaped version is a sphere (3D).",
+   "difficulty": "easy",
+   "taxonomy": [
+    "shape-class"
+   ],
+   "tags": [
+    "picture",
+    "2D and 3D",
+    "sphere"
+   ],
+   "alt": "Two shapes labelled A and B. Shape A is a flat round shape. Shape B is a round solid like a ball."
+  }
+ },
+ {
+  "key": "esl-shape-pair-hexagon-prism",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-pair-hexagon-prism.8518a8fa0924.svg",
+   "sha256": "8518a8fa09248a7c1641742f41fada4d12d99d505f2a310d955f0a72827e56d7",
+   "path": "/question-assets/2026-10-21/esl-shape-pair-hexagon-prism.8518a8fa0924.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-pair-hexagon-prism.8518a8fa0924.svg"
+  },
+  "question": {
+   "text": "Shape A is a hexagon. What is the name of solid shape B?",
+   "options": [
+    "hexagonal pyramid",
+    "hexagonal prism",
+    "cylinder",
+    "hexagon"
+   ],
+   "answer": "hexagonal prism",
+   "explanation": "A hexagon is flat (2D). Two hexagons joined by rectangles make the solid hexagonal prism (3D).",
+   "difficulty": "medium",
+   "taxonomy": [
+    "shape-class"
+   ],
+   "tags": [
+    "picture",
+    "2D and 3D",
+    "hexagonal-prism"
+   ],
+   "alt": "Two shapes labelled A and B. Shape A is a flat six-sided shape. Shape B is a solid with six-sided ends joined by rectangles."
+  }
+ },
+ {
+  "key": "esl-shape-flat-or-solid",
+  "asset": {
+   "file": "public/question-assets/2026-10-21/esl-shape-flat-or-solid.1c202ccce9d0.svg",
+   "sha256": "1c202ccce9d081f239c8ab25f0abdab96921ba795df9e76f3d61e34d53f02bdf",
+   "path": "/question-assets/2026-10-21/esl-shape-flat-or-solid.1c202ccce9d0.svg",
+   "url": "https://www.brainsheist.com/question-assets/2026-10-21/esl-shape-flat-or-solid.1c202ccce9d0.svg"
+  },
+  "question": {
+   "text": "Look at shapes A, B, C and D. Which one is a flat 2D shape?",
+   "options": [
+    "Shape A",
+    "Shape B",
+    "Shape C",
+    "Shape D"
+   ],
+   "answer": "Shape C",
+   "explanation": "Shape C is a triangle, which is flat (2D). A is a cone, B is a cube and D is a cylinder: all solid 3D shapes.",
+   "difficulty": "easy",
+   "taxonomy": [
+    "shape-class"
+   ],
+   "tags": [
+    "picture",
+    "2D and 3D"
+   ],
+   "alt": "Four shapes in a row labelled A to D. C is drawn flat with three straight sides. A, B and D are drawn as solids with depth and dashed hidden edges."
+  }
+ }
+]

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+  <title>Part of a solid marked with an arrow</title>
+  <rect width="640" height="360" rx="24" fill="#0f172a"/>
+  <rect x="1" y="1" width="638" height="358" rx="23" fill="none" stroke="#334155" stroke-width="2"/>
+  <text x="32" y="42" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="start">NAME THE MARKED PART</text>
+  <path d="M32 58H608" stroke="#334155" stroke-width="2"/>
+  <path d="M158.9 320.2L328.9 320.2L328.9 150.2L158.9 150.2Z" fill="#22d3ee" fill-opacity="0.3" stroke="none"/>
+  <path d="M158.9 150.2L328.9 150.2L405.4 95.8L235.4 95.8Z" fill="#22d3ee" fill-opacity="0.4" stroke="none"/>
+  <path d="M328.9 320.2L328.9 150.2L405.4 95.8L405.4 265.8Z" fill="#fbbf24" fill-opacity="0.6" stroke="none"/>
+  <path d="M235.4 265.8L405.4 265.8" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 8" fill="none"/>
+  <path d="M235.4 265.8L235.4 95.8" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 8" fill="none"/>
+  <path d="M158.9 320.2L235.4 265.8" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 8" fill="none"/>
+  <path d="M158.9 320.2L328.9 320.2" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M328.9 320.2L328.9 150.2" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M328.9 150.2L158.9 150.2" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M158.9 320.2L158.9 150.2" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M405.4 265.8L405.4 95.8" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M405.4 95.8L235.4 95.8" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M328.9 320.2L405.4 265.8" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M328.9 150.2L405.4 95.8" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M158.9 150.2L235.4 95.8" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M497.1 148L383.1 201" stroke="#fbbf24" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M383.1 201L403.2 201.6L395.7 185.3Z" fill="#fbbf24" fill-opacity="1" stroke="none"/>
+  <text x="511.1" y="144" fill="#fbbf24" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="800" text-anchor="middle">?</text>
+</svg>
