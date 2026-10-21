@@ -49,3 +49,11 @@ test('teachers reach the screen from the workspace navigation', () => {
   assert.match(shell, /onPlanPractice=\{openInterventionsForStudent\}/);
   assert.match(notifications, /teacher_reminder: \{ emoji:/);
 });
+
+test('notification inserts are limited to yourself or staff in your own school', () => {
+  const scope = readFileSync('supabase/migrations/20261021110000_scope_notification_inserts.sql', 'utf8');
+  assert.match(scope, /drop policy if exists notifications_insert_system on public\.notifications/i);
+  assert.match(scope, /with check \(public\.can_notify_user\(user_id\)\)/i);
+  assert.match(scope, /target\.role in \('teacher', 'school_admin', 'admin'\)/i);
+  assert.match(scope, /revoke all on function public\.can_notify_user\(uuid\) from public, anon/i);
+});
