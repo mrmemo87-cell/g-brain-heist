@@ -24,6 +24,7 @@ import LevelUpModal from './components/LevelUpModal';
 import StreakRewardModal from './components/StreakRewardModal';
 import DailyMissionCard from './components/student/DailyMissionCard';
 import WeeklyClassBoard from './components/student/WeeklyClassBoard';
+import ClassConquestCard from './components/classConquest/ClassConquestCard';
 import { ToastContainer } from './components/ToastNotification';
 import BackButton from './components/BackButton';
 import { type SchoolCapabilities } from './services/schoolAdminService';
@@ -2529,6 +2530,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
                           />
                         )}
                         {isStudent && hasSchool && <WeeklyClassBoard refreshKey={weeklyBoardRefreshKey} />}
+                        {isStudent && hasSchool && <ClassConquestCard refreshKey={weeklyBoardRefreshKey} />}
                         <RetentionTrialGate userId={profile.id} fallback={nextMissionCard}>
                           <RetentionStudentPanel userId={profile.id} name={profile.username} hasSchool={hasSchool} nextMove={nextMissionCard}
                             onOpenProgress={() => { setStudentDashboardTab('learn'); setStudentLearningView('academic-profile'); }} />

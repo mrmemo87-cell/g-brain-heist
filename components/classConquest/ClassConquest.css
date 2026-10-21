@@ -1,0 +1,70 @@
+/* Class Conquest — student card (dark dashboard) and teacher projector page. */
+
+.ccq { display: grid; gap: 0.75rem; padding: 1.25rem; }
+.ccq-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+.ccq-pill { padding: 0.3rem 0.75rem; border: 1px solid rgba(168, 85, 247, 0.55); border-radius: 999px; background: rgba(168, 85, 247, 0.14); color: #d8b4fe; font-size: 0.72rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+.ccq-meta { color: #cbd5e1; font-size: 0.8rem; font-weight: 600; }
+.ccq-title { margin: 0; color: #fff; font-size: 1.2rem; line-height: 1.3; }
+.ccq-capture { display: inline-flex; align-items: center; gap: 0.45rem; justify-self: start; margin: 0; padding: 0.35rem 0.75rem; border-radius: 999px; background: rgba(74, 222, 128, 0.14); color: #86efac; font-size: 0.85rem; font-weight: 800; }
+.ccq-map-wrap, .conquest-map { width: 100%; min-width: 0; }
+.conquest-map-loading { aspect-ratio: 4 / 3; border-radius: 1rem; background: rgba(15, 23, 42, 0.7); }
+
+.ccq-standings { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
+.ccq-row { display: grid; grid-template-columns: 2.2rem 0.9rem minmax(0, 1fr) auto auto; align-items: center; gap: 0.55rem; min-height: 2.6rem; padding: 0.35rem 0.75rem; border: 1px solid transparent; border-radius: 0.75rem; background: rgba(15, 23, 42, 0.55); color: #e2e8f0; }
+.ccq-row.is-mine { border-color: rgba(168, 85, 247, 0.7); background: rgba(168, 85, 247, 0.14); color: #fff; }
+.ccq-rank { color: #94a3b8; font-size: 0.85rem; font-weight: 800; }
+.ccq-swatch { display: inline-block; width: 0.9rem; height: 0.9rem; border-radius: 0.25rem; }
+.ccq-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
+.ccq-stat { font-size: 0.85rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ccq-today { color: #94a3b8; }
+.ccq-goal { margin: 0; color: #f1f5f9; font-size: 0.95rem; font-weight: 700; line-height: 1.4; }
+.ccq-how { margin: 0; color: #94a3b8; font-size: 0.75rem; line-height: 1.45; }
+
+@media (max-width: 420px) {
+  .ccq-row { grid-template-columns: 2rem 0.8rem minmax(0, 1fr) auto; }
+  .ccq-today { grid-column: 3 / -1; justify-self: start; margin-top: -0.35rem; font-size: 0.75rem; }
+}
+
+/* Teacher page */
+.ccq-teacher { min-height: 100%; padding: 1rem; background: #f5f7fb; color: #0f172a; }
+.ccq-teacher-head { display: flex; gap: 1rem; align-items: flex-start; max-width: 1200px; margin: 0 auto 1rem; }
+.ccq-teacher-head h1 { margin: 0.1rem 0; font-size: 1.8rem; }
+.ccq-eyebrow { margin: 0; color: #7c3aed; font-size: 0.75rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+.ccq-sub { margin: 0; max-width: 42rem; color: #475569; font-size: 0.95rem; line-height: 1.5; }
+.ccq-back { min-height: 44px; padding: 0 0.9rem; border: 1px solid #cbd5e1; border-radius: 0.75rem; background: #fff; color: #0f172a; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.ccq-toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; justify-content: space-between; max-width: 1200px; margin: 0 auto 1rem; }
+.ccq-grade { display: grid; gap: 0.25rem; color: #334155; font-size: 0.8rem; font-weight: 700; }
+.ccq-grade select { min-height: 44px; min-width: 9rem; padding: 0 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.75rem; background: #fff; color: #0f172a; font-size: 0.95rem; }
+.ccq-present { min-height: 48px; padding: 0 1.25rem; border: 0; border-radius: 0.85rem; background: #7c3aed; color: #fff; font-size: 0.95rem; font-weight: 800; cursor: pointer; }
+.ccq-present:disabled { background: #c4b5fd; cursor: not-allowed; }
+.ccq-back:focus-visible, .ccq-present:focus-visible, .ccq-grade select:focus-visible { outline: 3px solid #a78bfa; outline-offset: 2px; }
+.ccq-empty { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; border: 1px dashed #cbd5e1; border-radius: 1rem; background: #fff; color: #475569; text-align: center; }
+
+/* The battle stage is dark so it looks the same on a projector and on the student card. */
+.ccq-stage { max-width: 1200px; margin: 0 auto; padding: 1.25rem; border-radius: 1.25rem; background: linear-gradient(145deg, #1e1b4b, #0f172a 55%, #020617); color: #e2e8f0; display: grid; gap: 1rem; align-content: start; }
+.ccq-stage-title { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: baseline; justify-content: space-between; }
+.ccq-stage-title h2 { margin: 0; color: #fff; font-size: 1.6rem; }
+.ccq-stage-title span { color: #cbd5e1; font-weight: 700; }
+.ccq-capture--big { font-size: 1rem; padding: 0.5rem 1rem; }
+.ccq-stage-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+.ccq-side { display: grid; gap: 1rem; min-width: 0; }
+.ccq-standings--big .ccq-row { min-height: 3.2rem; font-size: 1.05rem; }
+.ccq-power { color: #c4b5fd; }
+.ccq-table-wrap { overflow-x: auto; border-radius: 0.75rem; }
+.ccq-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.ccq-table caption { text-align: left; padding-bottom: 0.4rem; color: #cbd5e1; font-weight: 700; }
+.ccq-table th, .ccq-table td { padding: 0.45rem 0.5rem; border-bottom: 1px solid rgba(148, 163, 184, 0.2); text-align: center; white-space: nowrap; }
+.ccq-table th[scope="row"] { text-align: left; display: flex; align-items: center; gap: 0.45rem; color: #fff; }
+.ccq-table thead th { color: #94a3b8; font-weight: 800; }
+.ccq-stage .ccq-how { color: #cbd5e1; }
+
+.ccq-stage.is-presenting { max-width: none; width: 100%; height: 100%; min-height: 100vh; margin: 0; border-radius: 0; padding: 2rem 2.5rem; overflow: auto; }
+.ccq-stage.is-presenting .ccq-stage-title h2 { font-size: 2.6rem; }
+.ccq-stage.is-presenting .ccq-stage-title span, .ccq-stage.is-presenting .ccq-capture--big { font-size: 1.35rem; }
+.ccq-stage.is-presenting .ccq-standings--big .ccq-row { min-height: 4rem; font-size: 1.5rem; }
+.ccq-stage.is-presenting .ccq-table { font-size: 1.15rem; }
+
+@media (max-width: 860px) {
+  .ccq-stage-grid { grid-template-columns: 1fr; }
+  .ccq-teacher-head { flex-direction: column; }
+}
