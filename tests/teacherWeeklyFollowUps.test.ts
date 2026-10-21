@@ -63,3 +63,28 @@ test('teachers can read their own follow-up log for the weekly counter', () => {
   assert.match(grant, /grant select on table public\.teacher_followups to authenticated/i);
   assert.doesNotMatch(grant, /grant[^;]*insert/i);
 });
+
+const practiceMigration = readFileSync('supabase/migrations/20261021180000_teacher_practice_results.sql', 'utf8');
+
+test('practice results only show the calling teacher’s own students and stay out of the profile', () => {
+  assert.match(practiceMigration, /create or replace function public\.rpc_get_teacher_practice_results\(\)/i);
+  assert.match(practiceMigration, /t\.teacher_user_id = v_uid/i);
+  assert.match(practiceMigration, /i\.created_by = v_uid/i);
+  assert.match(practiceMigration, /revoke all on function public\.rpc_get_teacher_practice_results\(\) from public, anon/i);
+  assert.doesNotMatch(practiceMigration, /student_learning_observations|insert into public\.student_learning_focus_states/i);
+  assert.match(practiceMigration, /teacher_question_ids = case when cardinality\(v_teacher_ids\) > 0 then v_teacher_ids end/i);
+});
+
+test('the follow-ups page shows practice results with clear statuses', async () => {
+  const { practiceStatus } = await import('../services/teacherFollowUpService');
+  assert.equal(practiceStatus({ answered: 0, correct: 0 }), 'waiting');
+  assert.equal(practiceStatus({ answered: 2, correct: 0 }), 'practising');
+  assert.equal(practiceStatus({ answered: 3, correct: 3 }), 'on-track');
+  assert.equal(practiceStatus({ answered: 5, correct: 4 }), 'on-track');
+  assert.equal(practiceStatus({ answered: 3, correct: 1 }), 'struggling');
+  assert.equal(practiceStatus({ answered: 6, correct: 4 }), 'practising');
+  assert.match(page, /Practice you set/);
+  assert.match(page, /it does not change their profile/);
+  assert.match(page, /Plan more support/);
+  assert.match(service, /rpc\('rpc_get_teacher_practice_results'\)/);
+});

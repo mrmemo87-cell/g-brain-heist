@@ -1,10 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   fetchFollowUpsThisWeek,
+  fetchPracticeResults,
   fetchTeacherFollowUps,
   logTeacherFollowUps,
+  practiceStatus,
   type FlaggedStudent,
   type FollowUpTab,
+  type PracticeResult,
+  type PracticeStatus,
 } from '../../services/teacherFollowUpService';
 import {
   getAcademicProgressExperienceContext,
@@ -34,10 +38,26 @@ const initials = (name: string) => name
 
 const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
+const daysAgo = (iso: string) => {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  return days <= 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`;
+};
+
+const STATUS_ORDER: Record<PracticeStatus, number> = { struggling: 0, waiting: 1, practising: 2, 'on-track': 3 };
+
+const statusText = (row: PracticeResult, status: PracticeStatus) => {
+  const score = `${row.correct} of ${row.answered} correct`;
+  if (status === 'waiting') return `Not practised yet (set ${daysAgo(row.set_at)})`;
+  if (status === 'on-track') return `On track: ${score}`;
+  if (status === 'struggling') return `Still struggling: ${score}`;
+  return `Practising: ${score}`;
+};
+
 const TeacherWeeklyFollowUpsPage: React.FC<TeacherWeeklyFollowUpsPageProps> = ({ onBack, onPlanPractice }) => {
   const [rows, setRows] = useState<FlaggedStudent[]>([]);
   const [context, setContext] = useState<AcademicProgressExperienceContext | null>(null);
   const [weekCount, setWeekCount] = useState<number | null>(null);
+  const [practice, setPractice] = useState<PracticeResult[]>([]);
   const [tab, setTab] = useState<FollowUpTab>('late');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [reminded, setReminded] = useState<Set<string>>(new Set());
@@ -50,12 +70,14 @@ const TeacherWeeklyFollowUpsPage: React.FC<TeacherWeeklyFollowUpsPageProps> = ({
     setLoading(true);
     setError(null);
     try {
-      const [list, count, nextContext] = await Promise.all([
+      const [list, count, nextContext, results] = await Promise.all([
         fetchTeacherFollowUps(),
         fetchFollowUpsThisWeek().catch(() => null),
         getAcademicProgressExperienceContext().catch(() => null),
+        fetchPracticeResults().catch(() => []),
       ]);
       setRows(list);
+      setPractice(results);
       setWeekCount(count);
       setContext(nextContext);
       const firstWithStudents = TABS.find((item) => list.some((row) => row.tab === item.id));
@@ -75,6 +97,11 @@ const TeacherWeeklyFollowUpsPage: React.FC<TeacherWeeklyFollowUpsPageProps> = ({
     (Object.keys(groups) as FollowUpTab[]).forEach((key) => groups[key].sort((a, b) => b.sort_key - a.sort_key));
     return groups;
   }, [rows]);
+
+  const practiceRows = useMemo(() => practice
+    .map((row) => ({ row, status: practiceStatus(row) }))
+    .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
+      || new Date(b.row.set_at).getTime() - new Date(a.row.set_at).getTime()), [practice]);
 
   const flaggedCount = useMemo(() => new Set(rows.map((row) => row.student_id)).size, [rows]);
   const current = byTab[tab];
@@ -240,6 +267,40 @@ const TeacherWeeklyFollowUpsPage: React.FC<TeacherWeeklyFollowUpsPageProps> = ({
             </ul>
           )}
         </section>
+
+        {practiceRows.length > 0 ? (
+          <section className="tfu-results" aria-labelledby="tfu-results-title">
+            <div className="tfu-results-head">
+              <h2 id="tfu-results-title">Practice you set</h2>
+              <span>Daily mission answers on the topic you chose, last 14 days. Practice only: it does not change their profile.</span>
+            </div>
+            <ul className="tfu-list">
+              {practiceRows.map(({ row, status }) => (
+                <li key={`${row.student_id}-${row.topic}`} className={`tfu-result is-${status}`}>
+                  <span className="tfu-avatar" aria-hidden="true">{initials(row.display_name)}</span>
+                  <span className="tfu-result-body">
+                    <strong>{row.display_name}</strong>
+                    <span className="tfu-result-topic">{row.topic}</span>
+                    <span className="tfu-result-status">
+                      {statusText(row, status)}
+                      {row.days_practised > 1 ? ` over ${row.days_practised} days` : ''}
+                    </span>
+                  </span>
+                  {status === 'struggling' && onPlanPractice ? (
+                    <button
+                      type="button"
+                      className="tfu-practice"
+                      onClick={() => onPlanPractice(row.student_id)}
+                      aria-label={`Plan more support for ${row.display_name}`}
+                    >
+                      Plan more support
+                    </button>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
       </main>
 
       <footer className="tfu-actions">
