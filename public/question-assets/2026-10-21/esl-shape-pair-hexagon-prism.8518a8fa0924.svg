@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+  <title>A flat shape next to a solid shape</title>
+  <rect width="640" height="360" rx="24" fill="#0f172a"/>
+  <rect x="1" y="1" width="638" height="358" rx="23" fill="none" stroke="#334155" stroke-width="2"/>
+  <text x="32" y="42" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="start">SHAPE A AND SHAPE B</text>
+  <path d="M32 58H608" stroke="#334155" stroke-width="2"/>
+  <path d="M265.7 236.5L180 286L94.3 236.5L94.3 137.5L180 88L265.7 137.5L265.7 236.5Z" fill="#22d3ee" fill-opacity="0.3" stroke="none"/>
+  <path d="M265.7 236.5L180 286L94.3 236.5L94.3 137.5L180 88L265.7 137.5L265.7 236.5" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <text x="180" y="326" fill="#fbbf24" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800" text-anchor="middle">A</text>
+  <path d="M484.1 178.1L422.1 142.3L360 178.1L360 249.8L422.1 285.6L484.1 249.8Z" fill="#22d3ee" fill-opacity="0.3" stroke="none"/>
+  <path d="M484.1 178.1L422.1 142.3L497.9 88.4L560 124.2Z" fill="#22d3ee" fill-opacity="0.4" stroke="none"/>
+  <path d="M422.1 142.3L360 178.1L435.9 124.2L497.9 88.4Z" fill="#22d3ee" fill-opacity="0.3" stroke="none"/>
+  <path d="M484.1 249.8L484.1 178.1L560 124.2L560 195.9Z" fill="#22d3ee" fill-opacity="0.2" stroke="none"/>
+  <path d="M435.9 124.2L435.9 195.9" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 8" fill="none"/>
+  <path d="M435.9 195.9L497.9 231.7" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 8" fill="none"/>
+  <path d="M497.9 231.7L560 195.9" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 8" fill="none"/>
+  <path d="M360 249.8L435.9 195.9" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 8" fill="none"/>
+  <path d="M422.1 285.6L497.9 231.7" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 8" fill="none"/>
+  <path d="M484.1 178.1L422.1 142.3" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M422.1 142.3L360 178.1" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M360 178.1L360 249.8" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M360 249.8L422.1 285.6" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M422.1 285.6L484.1 249.8" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M484.1 178.1L484.1 249.8" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M560 124.2L497.9 88.4" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M497.9 88.4L435.9 124.2" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M560 124.2L560 195.9" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M422.1 142.3L497.9 88.4" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M484.1 178.1L560 124.2" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M360 178.1L435.9 124.2" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M484.1 249.8L560 195.9" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <text x="460" y="326" fill="#fbbf24" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800" text-anchor="middle">B</text>
+</svg>

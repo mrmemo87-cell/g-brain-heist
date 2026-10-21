@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+  <title>An everyday object drawn as a solid</title>
+  <rect width="640" height="360" rx="24" fill="#0f172a"/>
+  <rect x="1" y="1" width="638" height="358" rx="23" fill="none" stroke="#334155" stroke-width="2"/>
+  <text x="32" y="42" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="start">WHAT SHAPE IS THIS OBJECT?</text>
+  <path d="M32 58H608" stroke="#334155" stroke-width="2"/>
+  <path d="M195 312.2L378.8 312.2L286.9 174.4Z" fill="#22d3ee" fill-opacity="0.3" stroke="none"/>
+  <path d="M378.8 312.2L286.9 174.4L394.4 97.9L486.3 235.8Z" fill="#22d3ee" fill-opacity="0.3" stroke="none"/>
+  <path d="M302.5 235.8L486.3 235.8" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 8" fill="none"/>
+  <path d="M302.5 235.8L394.4 97.9" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 8" fill="none"/>
+  <path d="M195 312.2L302.5 235.8" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 8" fill="none"/>
+  <path d="M195 312.2L378.8 312.2" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M378.8 312.2L286.9 174.4" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M195 312.2L286.9 174.4" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M486.3 235.8L394.4 97.9" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M378.8 312.2L486.3 235.8" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M286.9 174.4L394.4 97.9" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M250.2 312.2L286.9 215.7L323.7 312.2" stroke="#fbbf24" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M150 318.1L490 318.1" stroke="#64748b" stroke-width="2" stroke-linecap="round" fill="none"/>
+</svg>

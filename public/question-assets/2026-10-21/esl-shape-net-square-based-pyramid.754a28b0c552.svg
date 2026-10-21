@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+  <title>A flat net that folds into a solid</title>
+  <rect width="640" height="360" rx="24" fill="#0f172a"/>
+  <rect x="1" y="1" width="638" height="358" rx="23" fill="none" stroke="#334155" stroke-width="2"/>
+  <text x="32" y="42" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="start">THIS NET FOLDS INTO WHICH SOLID?</text>
+  <path d="M32 58H608" stroke="#334155" stroke-width="2"/>
+  <path d="M272.1 160.1L367.9 160.1L367.9 255.9L272.1 255.9Z" fill="#22d3ee" fill-opacity="0.25" stroke="none"/>
+  <path d="M272.1 160.1L367.9 160.1L367.9 255.9L272.1 255.9L272.1 160.1" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M272.1 160.1L367.9 160.1L320 74Z" fill="#22d3ee" fill-opacity="0.25" stroke="none"/>
+  <path d="M272.1 160.1L367.9 160.1L320 74L272.1 160.1" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M367.9 160.1L367.9 255.9L454 208Z" fill="#22d3ee" fill-opacity="0.25" stroke="none"/>
+  <path d="M367.9 160.1L367.9 255.9L454 208L367.9 160.1" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M367.9 255.9L272.1 255.9L320 342Z" fill="#22d3ee" fill-opacity="0.25" stroke="none"/>
+  <path d="M367.9 255.9L272.1 255.9L320 342L367.9 255.9" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M272.1 255.9L272.1 160.1L186 208Z" fill="#22d3ee" fill-opacity="0.25" stroke="none"/>
+  <path d="M272.1 255.9L272.1 160.1L186 208L272.1 255.9" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
