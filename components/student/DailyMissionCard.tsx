@@ -43,7 +43,9 @@ const DailyMissionCard: React.FC<DailyMissionCardProps> = ({ currentStreak, onPr
 
   const current = mission.questions.find((question) => !question.answered) || null;
   const position = Math.min(mission.answered + 1, mission.total);
-  const focusText = mission.focus_label
+  const focusText = mission.teacher_topic
+    ? t('Practice from your teacher: {topic}', { topic: mission.teacher_topic })
+    : mission.focus_label
     ? (mission.source === 'review' ? t('Fix your mistakes in {topic}', { topic: mission.focus_label }) : t('Focus: {topic}', { topic: mission.focus_label }))
     : t('Picked for your level');
 
@@ -110,7 +112,7 @@ const DailyMissionCard: React.FC<DailyMissionCardProps> = ({ currentStreak, onPr
     return (
       <article className="student-feed-card dmc" aria-labelledby="dmc-title">
         <div className="dmc-head">
-          <span className="dmc-pill">{t('Today’s mission')}</span>
+          <span className="dmc-pill">{mission.teacher_topic ? t('Set by your teacher') : t('Today’s mission')}</span>
           <span className="dmc-meta">{t('{count} questions · about 4 min', { count: mission.total })}</span>
         </div>
         <h2 id="dmc-title" className="dmc-title font-heading">{focusText}</h2>

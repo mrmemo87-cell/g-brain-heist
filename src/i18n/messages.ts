@@ -1140,6 +1140,14 @@ export const messages = {
   "Power each day = share of your class that finished the daily mission.": {
     "ar": "القوة كل يوم = نسبة صفك التي أنهت مهمة اليوم.",
     "ru": "Сила за день = доля класса, выполнившая задание дня."
+  },
+  "Practice from your teacher: {topic}": {
+    "ar": "تدريب من معلمك: {topic}",
+    "ru": "Задание от учителя: {topic}"
+  },
+  "Set by your teacher": {
+    "ar": "من معلمك",
+    "ru": "От учителя"
   }
 } as const;
 

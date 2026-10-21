@@ -18,6 +18,8 @@ export interface DailyMission {
   mission_date: string;
   source: DailyMissionSource;
   focus_label: string | null;
+  /** Set when a teacher's follow-up or support plan chose part of today's questions. */
+  teacher_topic?: string | null;
   total: number;
   answered: number;
   correct: number;
