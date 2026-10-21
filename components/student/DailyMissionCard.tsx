@@ -84,7 +84,7 @@ const DailyMissionCard: React.FC<DailyMissionCardProps> = ({ currentStreak, onPr
           <span className="dmc-pill dmc-pill--done">{t('Done for today')}</span>
           <span className="dmc-meta">🔥 {t('Streak: {count}', { count: currentStreak })}</span>
         </div>
-        <h2 id="dmc-title" className="dmc-title">{t('Today’s mission complete')}</h2>
+        <h2 id="dmc-title" className="dmc-title font-heading">{t('Today’s mission complete')}</h2>
         <p className="dmc-copy">
           {t('You got {correct} of {total} right. Come back tomorrow to keep your streak going.', { correct: mission.correct, total: mission.total })}
         </p>
@@ -104,7 +104,7 @@ const DailyMissionCard: React.FC<DailyMissionCardProps> = ({ currentStreak, onPr
           <span className="dmc-pill">{t('Today’s mission')}</span>
           <span className="dmc-meta">{t('{count} questions · about 4 min', { count: mission.total })}</span>
         </div>
-        <h2 id="dmc-title" className="dmc-title">{focusText}</h2>
+        <h2 id="dmc-title" className="dmc-title font-heading">{focusText}</h2>
         <p className="dmc-copy">
           {mission.reward_claimed_today
             ? t('Practise to grow your skills. Today’s streak reward is already yours.')
