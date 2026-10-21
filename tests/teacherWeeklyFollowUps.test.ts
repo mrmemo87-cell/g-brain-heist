@@ -57,3 +57,9 @@ test('notification inserts are limited to yourself or staff in your own school',
   assert.match(scope, /target\.role in \('teacher', 'school_admin', 'admin'\)/i);
   assert.match(scope, /revoke all on function public\.can_notify_user\(uuid\) from public, anon/i);
 });
+
+test('teachers can read their own follow-up log for the weekly counter', () => {
+  const grant = readFileSync('supabase/migrations/20261021120000_grant_teacher_followups_select.sql', 'utf8');
+  assert.match(grant, /grant select on table public\.teacher_followups to authenticated/i);
+  assert.doesNotMatch(grant, /grant[^;]*insert/i);
+});
