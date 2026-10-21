@@ -44,7 +44,7 @@ test('the dashboard shows the mission card and celebrates the reward', () => {
   assert.match(service, /rpc\('rpc_get_daily_mission'\)/);
   assert.match(service, /rpc\('rpc_submit_daily_mission_answer'/);
   assert.match(card, /Start mission/);
-  assert.match(card, /onStreakReward\?\.\(result\.streak_reward\)/);
+  assert.match(card, /if \(reward\) onStreakReward\?\.\(reward\);/);
   assert.match(app, /<DailyMissionCard/);
   assert.match(app, /setStreakRewardData\(receipt\)/);
   assert.match(guide, /Finish today’s mission/);

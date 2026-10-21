@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../../src/contexts/LanguageContext';
 import { fetchWeeklyClassBoard, type WeeklyClassBoard as Board } from '../../services/weeklyClassBoardService';
+import { mascotMoment } from '../../src/features/studentMascot/mascotMoments';
 import './WeeklyClassBoard.css';
 
 interface WeeklyClassBoardProps {
@@ -16,7 +17,23 @@ const WeeklyClassBoard: React.FC<WeeklyClassBoardProps> = ({ refreshKey = 0 }) =
 
   useEffect(() => {
     let cancelled = false;
-    void fetchWeeklyClassBoard().then((next) => { if (!cancelled) setBoard(next); });
+    void fetchWeeklyClassBoard().then((next) => {
+      if (cancelled) return;
+      setBoard(next);
+      // The cat cheers once for each new climb today.
+      if (next && next.places_climbed_today > 0) {
+        try {
+          const key = `bh:mascot-climb:${new Date().toDateString()}`;
+          const seen = Number(localStorage.getItem(key) || 0);
+          if (next.places_climbed_today > seen) {
+            localStorage.setItem(key, String(next.places_climbed_today));
+            mascotMoment('climb');
+          }
+        } catch {
+          /* storage unavailable: skip the cheer */
+        }
+      }
+    });
     return () => { cancelled = true; };
   }, [refreshKey]);
 
