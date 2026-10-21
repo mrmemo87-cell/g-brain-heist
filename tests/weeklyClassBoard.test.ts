@@ -36,3 +36,17 @@ test('finishing the mission refreshes the board on the home screen', () => {
 test('the board hides itself when unavailable', () => {
   assert.match(board, /if \(!board\) return null;/);
 });
+
+test('student cards keep the dark theme in performance (light) mode', () => {
+  // body.light-mode is the app's performance mode, not a light colour theme.
+  for (const file of ['components/student/DailyMissionCard.css', 'components/student/WeeklyClassBoard.css']) {
+    assert.doesNotMatch(readFileSync(file, 'utf8'), /body\.light-mode/, `${file} must not restyle for performance mode`);
+  }
+});
+
+test('mission fill-up never uses subjects the student has not studied', () => {
+  const fix = readFileSync('supabase/migrations/20261021150000_daily_mission_relevant_subjects.sql', 'utf8');
+  assert.match(fix, /studied_subjects as/);
+  assert.match(fix, /p\.subject in \('English', 'Mathematics', 'Maths', 'Science'\)/);
+  assert.doesNotMatch(fix, /from pool p where v_grade is not null and p\.grade = v_grade\s*\)/);
+});

@@ -42,7 +42,7 @@ const WeeklyClassBoard: React.FC<WeeklyClassBoardProps> = ({ refreshKey = 0 }) =
         <span className="wcb-pill">{t('{label} · this week', { label: board.class_label })}</span>
         <span className="wcb-meta">{resetText}</span>
       </div>
-      <h2 id="wcb-title" className="wcb-title">{headline}</h2>
+      <h2 id="wcb-title" className="wcb-title font-heading">{headline}</h2>
       {board.places_climbed_today > 0 ? (
         <p className="wcb-climb" role="status">
           <span aria-hidden="true">▲</span>
