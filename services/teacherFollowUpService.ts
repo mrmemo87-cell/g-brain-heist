@@ -65,3 +65,43 @@ export async function logTeacherFollowUps(
   if (error) throw userFacingError(error, 'We could not save this follow-up. Please try again.');
   return Number(data) || 0;
 }
+
+export interface PracticeResult {
+  student_id: string;
+  display_name: string;
+  topic: string;
+  set_at: string;
+  days_practised: number;
+  answered: number;
+  correct: number;
+  last_practised: string | null;
+}
+
+export type PracticeStatus = 'waiting' | 'on-track' | 'struggling' | 'practising';
+
+/** How a student is doing on practice the teacher set. Needs 3 answers before judging. */
+export function practiceStatus(result: Pick<PracticeResult, 'answered' | 'correct'>): PracticeStatus {
+  if (result.answered <= 0) return 'waiting';
+  if (result.answered < 3) return 'practising';
+  const ratio = result.correct / result.answered;
+  if (ratio >= 0.8) return 'on-track';
+  if (ratio <= 0.5) return 'struggling';
+  return 'practising';
+}
+
+/**
+ * Daily-mission results on the topics this teacher set in the last 14 days
+ * (follow-ups with a weak topic, or support plans they created). Practice only:
+ * it never changes the student's academic profile. Returns [] when the feature
+ * is not available yet so the rest of the page still works.
+ */
+export async function fetchPracticeResults(): Promise<PracticeResult[]> {
+  const { data, error } = await supabase.rpc('rpc_get_teacher_practice_results');
+  if (error) return [];
+  return ((data || []) as PracticeResult[]).map((row) => ({
+    ...row,
+    days_practised: Number(row.days_practised) || 0,
+    answered: Number(row.answered) || 0,
+    correct: Number(row.correct) || 0,
+  }));
+}

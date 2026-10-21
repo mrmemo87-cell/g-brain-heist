@@ -310,6 +310,68 @@
   background: #a9b8d6;
 }
 
+.tfu-results {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+}
+
+.tfu-results-head {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.tfu-results-head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--tfu-ink);
+}
+
+.tfu-results-head span {
+  color: var(--tfu-muted);
+  font-size: 0.85rem;
+}
+
+.tfu-result {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--tfu-line);
+  border-left: 4px solid #c3cbd4;
+  border-radius: 0.9rem;
+  background: #fff;
+}
+
+.tfu-result-body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.tfu-result-topic {
+  color: var(--tfu-muted);
+  font-size: 0.82rem;
+}
+
+.tfu-result-status {
+  justify-self: start;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: #eef1f5;
+  color: #33414f;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tfu-result.is-on-track { border-left-color: #2e9e5b; }
+.tfu-result.is-on-track .tfu-result-status { background: #e8f5ec; color: #145a2e; }
+.tfu-result.is-struggling { border-left-color: #e07b00; }
+.tfu-result.is-struggling .tfu-result-status { background: #fff1e0; color: #7a4300; }
+.tfu-result.is-practising { border-left-color: var(--tfu-accent); }
+.tfu-result.is-practising .tfu-result-status { background: var(--tfu-accent-soft); color: #173f94; }
+
 @media (max-width: 560px) {
   .tfu-card {
     flex-wrap: wrap;
@@ -317,6 +379,14 @@
 
   .tfu-practice {
     width: 100%;
+  }
+
+  .tfu-result {
+    flex-wrap: wrap;
+  }
+
+  .tfu-result .tfu-practice {
+    flex-basis: 100%;
   }
 
   .tfu-summary > div {
