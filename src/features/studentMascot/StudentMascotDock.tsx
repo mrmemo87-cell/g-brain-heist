@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { AnimationAction } from 'three';
 import { useFloatingCompanion } from '../../contexts/FloatingCompanionContext';
+import { MASCOT_MOMENT_EVENT, mascotMotionReduced, type MascotMomentDetail } from './mascotMoments';
 import './StudentMascotDock.css';
 
-type ActionName = 'idle' | 'cheer' | 'angry' | 'greet' | 'box' | 'clap';
-const MODEL = '/mascot/brains-heist-neon-cat.glb';
+type ActionName = 'idle' | 'cheer' | 'angry' | 'greet' | 'box' | 'clap' | 'warmup' | 'dance' | 'dance2' | 'flip';
+// v2 adds warm-up, two dances and a backflip; the query busts old cached copies.
+const MODEL = '/mascot/brains-heist-neon-cat.glb?v=2';
 const poster = '/retention/heist-companion-v1.webp';
 const keyFor = (id: string) => `bh:student-mascot:hidden:v1:${id}`;
 const isHidden = (id: string) => { try { return localStorage.getItem(keyFor(id)) === '1'; } catch { return false; } };
@@ -14,7 +16,7 @@ function MascotAvatar({ userId }: { userId: string }) {
   const [ready, setReady] = useState(false);
   const host = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
-  const controller = useRef<{ play: (name: ActionName) => void; dispose: () => void } | null>(null);
+  const controller = useRef<{ play: (name: ActionName, seconds?: number) => void; dispose: () => void } | null>(null);
 
   useEffect(() => {
     const callback = (event: Event) => {
@@ -58,15 +60,17 @@ function MascotAvatar({ userId }: { userId: string }) {
         camera.position.set(0, .05, 2.65); camera.lookAt(0, 0, 0);
         const mixer = new THREE.AnimationMixer(gltf.scene);
         const actions = new Map<ActionName, AnimationAction>();
-        for (const [name, prefix] of [['idle','idle'],['cheer','cheer'],['angry','angry_03'],['greet','greet_03'],['box','box_01'],['clap','clap']] as const) {
+        for (const [name, prefix] of [['idle','idle'],['cheer','cheer'],['angry','angry_03'],['greet','greet_03'],['box','box_01'],['clap','clap'],['warmup','warm_up'],['dance','dance_03'],['dance2','dance_05'],['flip','flip']] as const) {
           const clip = gltf.animations.find(a => a.name.toLowerCase().startsWith(prefix));
           if (clip) actions.set(name, mixer.clipAction(clip));
         }
         const idle = actions.get('idle');
         idle?.setLoop(THREE.LoopRepeat, Infinity); idle?.play();
         let current = idle;
-        const play = (name: ActionName) => {
+        let backToIdle = 0;
+        const play = (name: ActionName, seconds?: number) => {
           if (document.hidden) return;
+          window.clearTimeout(backToIdle);
           const action = actions.get(name) ?? idle;
           if (!action || action === current && name !== 'idle') return;
           if (current !== action) current?.fadeOut(.18);
@@ -74,6 +78,8 @@ function MascotAvatar({ userId }: { userId: string }) {
           if (name !== 'idle') { action.setLoop(THREE.LoopOnce, 1); action.clampWhenFinished = true; }
           else action.setLoop(THREE.LoopRepeat, Infinity);
           action.play(); current = action;
+          // Long clips (cheer, clap, warm-up) are cut to a short reaction.
+          if (seconds && name !== 'idle') backToIdle = window.setTimeout(() => play('idle'), seconds * 1000);
         };
         const done = (event: { action: AnimationAction }) => { if (event.action === current) play('idle'); };
         mixer.addEventListener('finished', done);
@@ -97,7 +103,46 @@ function MascotAvatar({ userId }: { userId: string }) {
         const visibility = () => { if (document.hidden || media?.matches) { pause(); if (!document.hidden && media?.matches) renderer.render(scene, camera); } else start(); };
         document.addEventListener('visibilitychange', visibility); media?.addEventListener?.('change', visibility);
         if (media?.matches) { renderer.render(scene, camera); } else start();
+        // Reactions to things the student does (see mascotMoments.ts).
+        let celebrating = false;
+        const timers: number[] = [];
+        const later = (ms: number, fn: () => void) => { timers.push(window.setTimeout(fn, ms)); };
+        const moment = (event: Event) => {
+          const detail = (event as CustomEvent<MascotMomentDetail>).detail;
+          if (!detail || media?.matches || document.hidden) return; // no animation loop in reduced motion
+          if (detail.moment === 'mission-complete') {
+            if (celebrating) return;
+            if (mascotMotionReduced()) { play('flip'); return; } // performance mode: pose only, in its corner
+            celebrating = true;
+            let finish: () => void = () => {};
+            detail.claim?.(new Promise<void>(resolve => { finish = resolve; }));
+            const box = stage.getBoundingClientRect();
+            const dx = window.innerWidth / 2 - (box.left + box.width / 2);
+            const dy = window.innerHeight * 0.42 - (box.top + box.height / 2);
+            const grow = Math.min(2.6, (Math.min(window.innerWidth, window.innerHeight) * 0.6) / Math.max(box.width, 1));
+            renderer.setPixelRatio(Math.min((window.devicePixelRatio || 1) * grow, 4)); size();
+            stage.classList.add('is-celebrating');
+            stage.style.transform = `translate(${dx}px, ${dy}px) scale(${grow})`;
+            later(300, () => play('flip'));
+            later(4600, () => { stage.style.transform = ''; });
+            later(5250, () => {
+              stage.classList.remove('is-celebrating');
+              renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); size();
+              celebrating = false; finish();
+            });
+            return;
+          }
+          if (celebrating) return;
+          if (detail.moment === 'mission-start') play('warmup', 7);
+          else if (detail.moment === 'correct') play('dance2');
+          else if (detail.moment === 'wrong') play('greet', 2.6); // a friendly wave, never the angry clip
+          else if (detail.moment === 'climb') play('cheer', 3);
+        };
+        window.addEventListener(MASCOT_MOMENT_EVENT, moment);
         const dispose = () => {
+          window.removeEventListener(MASCOT_MOMENT_EVENT, moment);
+          timers.forEach(id => window.clearTimeout(id)); window.clearTimeout(backToIdle);
+          stage.classList.remove('is-celebrating'); stage.style.transform = '';
           pause(); observer?.disconnect(); resize?.disconnect();
           document.removeEventListener('visibilitychange', visibility); media?.removeEventListener?.('change', visibility);
           mixer.removeEventListener('finished', done); mixer.stopAllAction();

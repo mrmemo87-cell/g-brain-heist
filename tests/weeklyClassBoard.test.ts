@@ -28,7 +28,7 @@ test('the board shows the gap to the next person and today’s climb', () => {
 });
 
 test('finishing the mission refreshes the board on the home screen', () => {
-  assert.match(mission, /if \(result\.completed\) onMissionCompleted\?\.\(\);/);
+  assert.match(mission, /celebrateWithMascot\(\)\.then\(\(\) => \{[\s\S]*?onMissionCompleted\?\.\(\);/);
   assert.match(app, /onMissionCompleted=\{\(\) => setWeeklyBoardRefreshKey\(\(key\) => key \+ 1\)\}/);
   assert.match(app, /<WeeklyClassBoard refreshKey=\{weeklyBoardRefreshKey\} \/>/);
 });

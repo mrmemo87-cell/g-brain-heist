@@ -7,6 +7,7 @@ import {
   type DailyMissionAnswerResult,
 } from '../../services/dailyMissionService';
 import type { DailyStreakRewardReceipt } from '../../types';
+import { celebrateWithMascot, mascotMoment } from '../../src/features/studentMascot/mascotMoments';
 import './DailyMissionCard.css';
 
 interface DailyMissionCardProps {
@@ -62,8 +63,16 @@ const DailyMissionCard: React.FC<DailyMissionCardProps> = ({ currentStreak, onPr
         questions: prev.questions.map((question) => question.id === questionId ? { ...question, answered: true } : question),
       });
       if (result.final_profile_values) onProfileValues?.(result.final_profile_values);
-      if (result.streak_reward) onStreakReward?.(result.streak_reward);
-      if (result.completed) onMissionCompleted?.();
+      if (result.completed) {
+        // The cat celebrates first, then the coin reward opens, so they never overlap.
+        const reward = result.streak_reward;
+        void celebrateWithMascot().then(() => {
+          if (reward) onStreakReward?.(reward);
+          onMissionCompleted?.();
+        });
+      } else {
+        mascotMoment(result.correct ? 'correct' : 'wrong');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : t('We could not save your answer.'));
     } finally {
@@ -115,7 +124,7 @@ const DailyMissionCard: React.FC<DailyMissionCardProps> = ({ currentStreak, onPr
         <div className="dmc-dots" aria-label={t('{answered} of {total} answered', { answered: mission.answered, total: mission.total })}>
           {mission.questions.map((question) => <span key={question.id} className={question.answered ? 'is-filled' : undefined} />)}
         </div>
-        <button type="button" className="student-primary-button dmc-start" onClick={() => setPlaying(true)}>
+        <button type="button" className="student-primary-button dmc-start" onClick={() => { if (!started) mascotMoment('mission-start'); setPlaying(true); }}>
           {started ? t('Continue ({answered}/{total})', { answered: mission.answered, total: mission.total }) : t('Start mission')}
           <span aria-hidden="true">→</span>
         </button>

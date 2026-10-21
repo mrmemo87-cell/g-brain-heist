@@ -8,12 +8,12 @@ const dock = fs.readFileSync(path.join(root,'src/features/studentMascot/StudentM
 const css = fs.readFileSync(path.join(root,'src/features/studentMascot/StudentMascotDock.css'),'utf8');
 const asset = fs.readFileSync(path.join(root,'public/mascot/brains-heist-neon-cat.glb'));
 
-test('approved Tripo asset is valid, six-clip, embedded skin/texture GLB',()=>{
+test('approved Tripo asset is valid, ten-clip, embedded skin/texture GLB',()=>{
  assert.equal(asset.toString('utf8',0,4),'glTF');
  assert.ok(asset.length < 5_000_000, 'must remain below 5MB');
  const jsonLength=asset.readUInt32LE(12);
  const gltf=JSON.parse(asset.subarray(20,20+jsonLength).toString('utf8'));
- assert.deepEqual(gltf.animations.map(a=>a.name),['idle.001','cheer.001','angry_03.001','greet_03.001','box_01.001','clap.001']);
+ assert.deepEqual(gltf.animations.map(a=>a.name),['idle.001','cheer.001','angry_03.001','greet_03.001','box_01.001','clap.001','warm_up.001','dance_03.001','flip.001','dance_05.001']);
  assert.ok(gltf.skins?.[0]?.joints?.length>=60);
  assert.ok(gltf.images?.every(i=>i.bufferView!==undefined));
 });
