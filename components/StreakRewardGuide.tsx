@@ -25,9 +25,9 @@ const StreakRewardGuide: React.FC<StreakRewardGuideProps> = ({ currentStreak }) 
     <div className="relative overflow-hidden rounded-2xl border border-orange-400/40 bg-gradient-to-br from-orange-500/20 via-fuchsia-500/10 to-cyan-500/10 p-5 sm:p-6">
       <div className="pointer-events-none absolute -right-8 -top-10 text-9xl opacity-10" aria-hidden="true">🔥</div>
       <p className="text-xs font-black uppercase tracking-[0.28em] text-orange-300">Daily streak protocol</p>
-      <h2 className="mt-2 font-heading text-2xl text-white sm:text-3xl">Show up. Build heat. Bank coins.</h2>
+      <h2 className="mt-2 font-heading text-2xl text-white sm:text-3xl">Practise daily. Build heat. Bank coins.</h2>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
-        Open Brains Heist on consecutive days and the vault pays you automatically. Longer streaks unlock much bigger drops.
+        Finish today’s 5-question mission on consecutive days and the vault pays you. Longer streaks unlock much bigger drops.
       </p>
       {typeof currentStreak === 'number' && (
         <div className="mt-4 inline-flex items-center gap-3 rounded-xl border border-orange-300/30 bg-black/30 px-4 py-3">
@@ -62,9 +62,9 @@ const StreakRewardGuide: React.FC<StreakRewardGuideProps> = ({ currentStreak }) 
 
     <section className="grid gap-3 sm:grid-cols-3">
       {[
-        ['1', 'Enter the game', 'Your reward is deposited automatically when Brains Heist records your first activity of the day.'],
+        ['1', 'Finish today’s mission', 'Answer all 5 questions in today’s mission on your home screen. Your reward is paid the moment you finish.'],
         ['2', 'Protect the chain', 'Return on the next calendar day to increase your streak. One reward can be earned per day.'],
-        ['3', 'Don’t go cold', 'Miss a full day and your next visit restarts the streak at Day 1.'],
+        ['3', 'Don’t go cold', 'Miss a full day without finishing the mission and your streak restarts at Day 1.'],
       ].map(([step, title, copy]) => (
         <div key={step} className="rounded-xl border border-slate-700 bg-slate-900/70 p-4">
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-cyan-400 font-black text-slate-950">{step}</span>

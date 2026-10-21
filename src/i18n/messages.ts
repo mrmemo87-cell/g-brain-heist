@@ -940,6 +940,102 @@ export const messages = {
   "{label}: {used} of {total} used": {
     "ar": "{label}: المستخدم {used} من {total}",
     "ru": "{label}: использовано {used} из {total}"
+  },
+  "Fix your mistakes in {topic}": {
+    "ar": "أصلح أخطاءك في {topic}",
+    "ru": "Исправь ошибки: {topic}"
+  },
+  "Focus: {topic}": {
+    "ar": "التركيز: {topic}",
+    "ru": "Тема: {topic}"
+  },
+  "Picked for your level": {
+    "ar": "مختار لمستواك",
+    "ru": "Подобрано под твой уровень"
+  },
+  "We could not save your answer.": {
+    "ar": "تعذر حفظ إجابتك.",
+    "ru": "Не удалось сохранить ответ."
+  },
+  "Done for today": {
+    "ar": "انتهيت لليوم",
+    "ru": "На сегодня всё"
+  },
+  "Streak: {count}": {
+    "ar": "السلسلة: {count}",
+    "ru": "Серия: {count}"
+  },
+  "Today’s mission complete": {
+    "ar": "اكتملت مهمة اليوم",
+    "ru": "Задание дня выполнено"
+  },
+  "You got {correct} of {total} right. Come back tomorrow to keep your streak going.": {
+    "ar": "أجبت بشكل صحيح عن {correct} من {total}. عد غدًا للحفاظ على سلسلتك.",
+    "ru": "Верно: {correct} из {total}. Возвращайся завтра, чтобы сохранить серию."
+  },
+  "Today’s mission": {
+    "ar": "مهمة اليوم",
+    "ru": "Задание дня"
+  },
+  "{count} questions · about 4 min": {
+    "ar": "{count} أسئلة · حوالي 4 دقائق",
+    "ru": "{count} вопросов · около 4 мин"
+  },
+  "Practise to grow your skills. Today’s streak reward is already yours.": {
+    "ar": "تدرّب لتنمية مهاراتك. مكافأة سلسلة اليوم أصبحت لك بالفعل.",
+    "ru": "Тренируйся, чтобы расти. Награда за серию сегодня уже получена."
+  },
+  "Finish all {count} to keep your 🔥 {streak}-day streak and earn today’s coins.": {
+    "ar": "أكمل الأسئلة الـ{count} للحفاظ على سلسلتك 🔥 البالغة {streak} يومًا وكسب عملات اليوم.",
+    "ru": "Ответь на все {count}, чтобы сохранить 🔥 серию ({streak} дн.) и получить монеты дня."
+  },
+  "Finish all {count} to start a streak and earn today’s coins.": {
+    "ar": "أكمل الأسئلة الـ{count} لبدء سلسلة وكسب عملات اليوم.",
+    "ru": "Ответь на все {count}, чтобы начать серию и получить монеты дня."
+  },
+  "{answered} of {total} answered": {
+    "ar": "تمت الإجابة عن {answered} من {total}",
+    "ru": "Отвечено {answered} из {total}"
+  },
+  "Continue ({answered}/{total})": {
+    "ar": "متابعة ({answered}/{total})",
+    "ru": "Продолжить ({answered}/{total})"
+  },
+  "Start mission": {
+    "ar": "ابدأ المهمة",
+    "ru": "Начать задание"
+  },
+  "Question {n} of {total}": {
+    "ar": "السؤال {n} من {total}",
+    "ru": "Вопрос {n} из {total}"
+  },
+  "Pause": {
+    "ar": "إيقاف مؤقت",
+    "ru": "Пауза"
+  },
+  "Correct!": {
+    "ar": "صحيح!",
+    "ru": "Верно!"
+  },
+  "Not quite.": {
+    "ar": "ليس تمامًا.",
+    "ru": "Не совсем."
+  },
+  "The answer is: {answer}": {
+    "ar": "الإجابة هي: {answer}",
+    "ru": "Правильный ответ: {answer}"
+  },
+  "Finish": {
+    "ar": "إنهاء",
+    "ru": "Завершить"
+  },
+  "Next question": {
+    "ar": "السؤال التالي",
+    "ru": "Следующий вопрос"
+  },
+  "A short adaptive quest based on your current level. Great extra practice after today’s mission.": {
+    "ar": "مغامرة قصيرة تتكيّف مع مستواك الحالي. تدريب إضافي رائع بعد مهمة اليوم.",
+    "ru": "Короткий адаптивный квест по твоему уровню. Отличная дополнительная практика после задания дня."
   }
 } as const;
 

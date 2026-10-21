@@ -475,7 +475,7 @@ const HelpModal: React.FC<HelpModalProps> = ({
               <p><strong>🏰 Social:</strong> Join clans and interact with others</p>
               <p><strong>💰 Collector:</strong> Earn coins and buy items</p>
               <p><strong>📈 Progression:</strong> Reach certain levels and milestones</p>
-              <p><strong>🔥 Streak:</strong> Maintain daily login streaks</p>
+              <p><strong>🔥 Streak:</strong> Finish today’s mission every day</p>
             </div>
           </div>
 
@@ -510,7 +510,7 @@ const HelpModal: React.FC<HelpModalProps> = ({
             <h3 className="text-base sm:text-lg font-bold text-red-400 mb-2">💡 Pro Tips</h3>
             <ul className="list-disc list-inside space-y-1">
               <li>Mix questing and PvP to progress multiple achievement categories at once.</li>
-              <li>Check in daily to keep streak achievements alive and grab easy coin boosts.</li>
+              <li>Finish the 5-question daily mission to keep your streak alive and earn coin boosts.</li>
               <li>Use earned rewards immediately on boosters or shields to snowball faster wins.</li>
             </ul>
           </div>
