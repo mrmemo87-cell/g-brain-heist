@@ -1036,6 +1036,54 @@ export const messages = {
   "A short adaptive quest based on your current level. Great extra practice after today’s mission.": {
     "ar": "مغامرة قصيرة تتكيّف مع مستواك الحالي. تدريب إضافي رائع بعد مهمة اليوم.",
     "ru": "Короткий адаптивный квест по твоему уровню. Отличная дополнительная практика после задания дня."
+  },
+  "Nobody has points yet. Finish today’s mission to take #1.": {
+    "ar": "لا أحد لديه نقاط بعد. أكمل مهمة اليوم لتصبح رقم 1.",
+    "ru": "Пока ни у кого нет очков. Выполни задание дня и стань №1."
+  },
+  "You’re #1 in {label} this week. Keep it up!": {
+    "ar": "أنت رقم 1 في {label} هذا الأسبوع. واصل!",
+    "ru": "Ты №1 в {label} на этой неделе. Так держать!"
+  },
+  "You’re #{rank}, {points} points behind {name}.": {
+    "ar": "أنت رقم {rank}، متأخر بـ{points} نقطة عن {name}.",
+    "ru": "Ты №{rank}, до {name} — {points} очк."
+  },
+  "You’re #{rank} in {label} this week.": {
+    "ar": "أنت رقم {rank} في {label} هذا الأسبوع.",
+    "ru": "Ты №{rank} в {label} на этой неделе."
+  },
+  "Resets tomorrow": {
+    "ar": "يُعاد التعيين غدًا",
+    "ru": "Сброс завтра"
+  },
+  "Resets in {count} days": {
+    "ar": "يُعاد التعيين بعد {count} أيام",
+    "ru": "Сброс через {count} дн."
+  },
+  "{label} · this week": {
+    "ar": "{label} · هذا الأسبوع",
+    "ru": "{label} · эта неделя"
+  },
+  "You moved up 1 place today": {
+    "ar": "تقدّمت مركزًا واحدًا اليوم",
+    "ru": "Сегодня ты поднялся на 1 место"
+  },
+  "You moved up {count} places today": {
+    "ar": "تقدّمت {count} مراكز اليوم",
+    "ru": "Сегодня ты поднялся на {count} мест"
+  },
+  "You": {
+    "ar": "أنت",
+    "ru": "Ты"
+  },
+  "{count} pts": {
+    "ar": "{count} نقطة",
+    "ru": "{count} очк."
+  },
+  "Daily mission: 10 pts + 2 per correct answer · Assignment: 5 pts": {
+    "ar": "مهمة اليوم: 10 نقاط + 2 لكل إجابة صحيحة · الواجب: 5 نقاط",
+    "ru": "Задание дня: 10 очк. + 2 за верный ответ · Домашнее задание: 5 очк."
   }
 } as const;
 

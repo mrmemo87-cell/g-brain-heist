@@ -15,11 +15,13 @@ interface DailyMissionCardProps {
   onProfileValues?: (values: NonNullable<DailyMissionAnswerResult['final_profile_values']>) => void;
   /** Called once when finishing the mission earns today's streak reward. */
   onStreakReward?: (receipt: DailyStreakRewardReceipt) => void;
+  /** Called once when the last question is answered. */
+  onMissionCompleted?: () => void;
 }
 
 type Feedback = { questionId: string; chosen: string; result: DailyMissionAnswerResult };
 
-const DailyMissionCard: React.FC<DailyMissionCardProps> = ({ currentStreak, onProfileValues, onStreakReward }) => {
+const DailyMissionCard: React.FC<DailyMissionCardProps> = ({ currentStreak, onProfileValues, onStreakReward, onMissionCompleted }) => {
   const { t } = useLanguage();
   const [mission, setMission] = useState<DailyMission | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -61,6 +63,7 @@ const DailyMissionCard: React.FC<DailyMissionCardProps> = ({ currentStreak, onPr
       });
       if (result.final_profile_values) onProfileValues?.(result.final_profile_values);
       if (result.streak_reward) onStreakReward?.(result.streak_reward);
+      if (result.completed) onMissionCompleted?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : t('We could not save your answer.'));
     } finally {
