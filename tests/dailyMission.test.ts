@@ -54,3 +54,15 @@ test('the dashboard hides the card when the mission is unavailable', () => {
   assert.match(service, /if \(error \|\| !data \|\| data\.available !== true\) return null;/);
   assert.match(card, /if \(!loaded \|\| !mission\) return null;/);
 });
+
+test('teacher follow-ups and support plans steer the daily mission', () => {
+  const focus = readFileSync('supabase/migrations/20261021170000_teacher_focus_missions.sql', 'utf8');
+  assert.match(focus, /from public\.teacher_followups t/);
+  assert.match(focus, /from public\.student_learning_interventions i/);
+  assert.match(focus, /private\.verified_questions_for_learning_focus\(/);
+  assert.match(focus, /not \('purpose:reassessment' = any \(coalesce\(q\.tags, '\{\}'\)\)\)/, 'reassessment questions stay unseen');
+  assert.match(focus, /limit 3/, 'at most 3 of 5 questions');
+  assert.match(focus, /if cardinality\(v_row\.answered_ids\) > 0 then return v_row; end if;/, 'a started mission is never swapped');
+  assert.match(focus, /'teacher_topic', v_mission\.teacher_topic/);
+  assert.match(card, /Practice from your teacher: \{topic\}/);
+});

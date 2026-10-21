@@ -116,7 +116,7 @@ const TeacherWeeklyFollowUpsPage: React.FC<TeacherWeeklyFollowUpsPageProps> = ({
       setWeekCount((prev) => (prev ?? 0) + logged);
       setSelected(new Set());
       setNotice(logged > 0
-        ? `Reminder sent to ${plural(logged, 'student', 'students')}. They will see it next time they open Brains Heist.`
+        ? `Reminder sent to ${plural(logged, 'student', 'students')}. They will see it next time they open Brains Heist${selectedInTab.some((row) => row.weak_topic) ? ', and for the next 7 days 3 of their 5 daily mission questions will practise their weak topic' : ''}.`
         : 'These students no longer need a follow-up. Refreshing the list.');
       if (logged === 0) void load();
     } catch (err) {
