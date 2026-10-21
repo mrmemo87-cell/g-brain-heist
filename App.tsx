@@ -23,6 +23,7 @@ import Toast from './components/Toast';
 import LevelUpModal from './components/LevelUpModal';
 import StreakRewardModal from './components/StreakRewardModal';
 import DailyMissionCard from './components/student/DailyMissionCard';
+import WeeklyClassBoard from './components/student/WeeklyClassBoard';
 import { ToastContainer } from './components/ToastNotification';
 import BackButton from './components/BackButton';
 import { type SchoolCapabilities } from './services/schoolAdminService';
@@ -273,6 +274,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
   const [showHelp, setShowHelp] = useState(false);
   const [helpInitialSection, setHelpInitialSection] = useState<'overview' | 'streak'>('overview');
   const [streakRewardData, setStreakRewardData] = useState<DailyStreakRewardReceipt | null>(null);
+  const [weeklyBoardRefreshKey, setWeeklyBoardRefreshKey] = useState(0);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [tutorialChecked, setTutorialChecked] = useState(false); // Track if we've checked tutorial status
   const tutorialCheckedRef = useRef(tutorialChecked);
@@ -2523,8 +2525,10 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
                               setProfile((prev) => prev ? { ...prev, streak: receipt.streak, coins: receipt.coins } : prev);
                               setStreakRewardData(receipt);
                             }}
+                            onMissionCompleted={() => setWeeklyBoardRefreshKey((key) => key + 1)}
                           />
                         )}
+                        {isStudent && hasSchool && <WeeklyClassBoard refreshKey={weeklyBoardRefreshKey} />}
                         <RetentionTrialGate userId={profile.id} fallback={nextMissionCard}>
                           <RetentionStudentPanel userId={profile.id} name={profile.username} hasSchool={hasSchool} nextMove={nextMissionCard}
                             onOpenProgress={() => { setStudentDashboardTab('learn'); setStudentLearningView('academic-profile'); }} />
