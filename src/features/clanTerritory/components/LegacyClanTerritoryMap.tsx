@@ -711,6 +711,9 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   const lastStyleKeyRef = useRef<Record<string, string>>({});
+  // Bumped after a new SVG is injected so ownership colours are painted onto it.
+  // Without this, a map whose zones do not change after loading stays grey.
+  const [svgInjectedVersion, setSvgInjectedVersion] = useState(0);
 
   // IMPORTANT: inject SVG ONLY when svg changes (prevents style wipe)
   useEffect(() => {
@@ -724,6 +727,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
     svgRef.current = svg;
 
     lastStyleKeyRef.current = {};
+    setSvgInjectedVersion((version) => version + 1);
 
     if (!svg) return;
 
@@ -946,7 +950,7 @@ export const ClanTerritoryMap: React.FC<ClanTerritoryMapProps> = ({
         }
       });
     });
-  }, [zones, clans, mapId, mapConfig, selectedZoneId, hoveredZoneId]);
+  }, [zones, clans, mapId, mapConfig, selectedZoneId, hoveredZoneId, svgInjectedVersion]);
 
   const activeClanIds = useMemo(() => {
     const ids = new Set<ClanId>();

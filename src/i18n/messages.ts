@@ -1084,6 +1084,62 @@ export const messages = {
   "Daily mission: 10 pts + 2 per correct answer · Assignment: 5 pts": {
     "ar": "مهمة اليوم: 10 نقاط + 2 لكل إجابة صحيحة · الواجب: 5 نقاط",
     "ru": "Задание дня: 10 очк. + 2 за верный ответ · Домашнее задание: 5 очк."
+  },
+  "1 more mission from {class} today wins another oblast.": {
+    "ar": "مهمة واحدة إضافية من {class} اليوم تكسب إقليمًا آخر.",
+    "ru": "Ещё 1 задание от {class} сегодня — и новая область ваша."
+  },
+  "{count} more missions from {class} today win another oblast.": {
+    "ar": "{count} مهام إضافية من {class} اليوم تكسب إقليمًا آخر.",
+    "ru": "Ещё {count} заданий от {class} сегодня — и новая область ваша."
+  },
+  "Everyone in {class} finished today. Unbeatable!": {
+    "ar": "أنهى الجميع في {class} اليوم. لا يُهزمون!",
+    "ru": "Сегодня в {class} справились все. Непобедимы!"
+  },
+  "Each mission today adds {power} power to {class}.": {
+    "ar": "كل مهمة اليوم تضيف {power} قوة إلى {class}.",
+    "ru": "Каждое задание сегодня добавляет {class} {power} силы."
+  },
+  "{class} holds no oblasts yet. Win some back!": {
+    "ar": "لا يملك {class} أي إقليم بعد. استعيدوا بعضها!",
+    "ru": "У {class} пока нет областей. Отвоюйте их!"
+  },
+  "{class} rules all of Kyrgyzstan!": {
+    "ar": "{class} يحكم كل قيرغيزستان!",
+    "ru": "{class} правит всем Кыргызстаном!"
+  },
+  "{class} holds {count} of 7 oblasts": {
+    "ar": "{class} يملك {count} من 7 أقاليم",
+    "ru": "У {class} {count} из 7 областей"
+  },
+  "Class Conquest · Grade {grade}": {
+    "ar": "غزو الصفوف · الصف {grade}",
+    "ru": "Битва классов · {grade} класс"
+  },
+  "Today {class} captured {oblasts}!": {
+    "ar": "اليوم استولى {class} على {oblasts}!",
+    "ru": "Сегодня {class} захватил: {oblasts}!"
+  },
+  "Map of Kyrgyzstan showing which class holds each oblast": {
+    "ar": "خريطة قيرغيزستان توضّح أي صف يملك كل إقليم",
+    "ru": "Карта Кыргызстана: какой класс владеет каждой областью"
+  },
+  "{count} oblasts": {
+    "ar": "{count} أقاليم",
+    "ru": "Областей: {count}"
+  },
+  "{done}/{size} today": {
+    "ar": "{done}/{size} اليوم",
+    "ru": "{done}/{size} сегодня"
+  },
+  "{class} took {oblast} today.": {
+    "ar": "استولى {class} على {oblast} اليوم.",
+    "ru": "{class} сегодня взял {oblast}."
+  },
+  "Power each day = share of your class that finished the daily mission.": {
+    "ar": "القوة كل يوم = نسبة صفك التي أنهت مهمة اليوم.",
+    "ru": "Сила за день = доля класса, выполнившая задание дня."
   }
 } as const;
 
