@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type TeacherWorkspaceIconName = 'home' | 'classes' | 'assignments' | 'reports' | 'profiles' | 'curriculum' | 'interventions' | 'questions' | 'writing' | 'cambridge' | 'battle' | 'more';
+export type TeacherWorkspaceIconName = 'home' | 'classes' | 'assignments' | 'reports' | 'profiles' | 'curriculum' | 'interventions' | 'followups' | 'questions' | 'writing' | 'cambridge' | 'battle' | 'more';
 const paths: Record<TeacherWorkspaceIconName, React.ReactNode> = {
   home: <><path d="m3 10 9-7 9 7v11h-6v-7H9v7H3z"/></>,
   classes: <><path d="M3 21V7h18v14M8 7V3h8v4M2 21h20M9 21v-6h6v6M7 10h1m8 0h1"/></>,
@@ -9,6 +9,7 @@ const paths: Record<TeacherWorkspaceIconName, React.ReactNode> = {
   profiles: <><circle cx="12" cy="7" r="4"/><path d="M4 21v-3a8 8 0 0 1 16 0v3"/></>,
   curriculum: <><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></>,
   interventions: <><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></>,
+  followups: <><path d="M5 21V4m0 0h11l-2 4 2 4H5"/></>,
   questions: <><path d="M12 5v16M3 4c4-1 6 0 9 1 3-1 5-2 9-1v16c-4-1-6 0-9 1-3-1-5-2-9-1z"/></>,
   writing: <><path d="m14 4 6 6M4 20l4-1L21 6l-4-4L4 15z"/></>,
   cambridge: <><path d="M5 3h14v18H5zM8 7h8m-8 4h5m-5 5 2 2 5-5"/></>,

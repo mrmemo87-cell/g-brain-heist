@@ -7,10 +7,11 @@ import './student-progress/AcademicProfileWorkspace.css';
 const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/TeacherAcademicProfilesPage'));
 const TeacherInterventionIntelligencePage = React.lazy(() => import('./student-progress/TeacherInterventionIntelligencePage'));
 const InterventionTargetedPracticeWorkspace = React.lazy(() => import('./student-progress/InterventionTargetedPracticeWorkspace'));
+const TeacherWeeklyFollowUpsPage = React.lazy(() => import('./student-progress/TeacherWeeklyFollowUpsPage'));
 import type { TargetedPracticeContext } from './student-progress/TeacherInterventionIntelligencePageV2';
 
 type TeacherPortalShellProps = React.ComponentProps<typeof TeacherPortal>;
-type AcademicTool = 'academic-profiles' | 'interventions';
+type AcademicTool = 'academic-profiles' | 'interventions' | 'follow-ups';
 
 type TeacherDashboardAssignmentMetrics = {
   assignment_count: number;
@@ -169,7 +170,7 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
 
   const navigateSection = (section: TeacherNavSection) => {
     setTargetedPractice(null);
-    if (section === 'academic-profiles' || section === 'interventions') {
+    if (section === 'academic-profiles' || section === 'interventions' || section === 'follow-ups') {
       if (section === 'interventions') {
         const url = new URL(window.location.href);
         ['student', 'subject', 'focus'].forEach(key => url.searchParams.delete(key));
@@ -185,6 +186,15 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
   const closeAcademicTool = () => {
     setActiveTool(null);
     setTargetedPractice(null);
+  };
+
+  const openInterventionsForStudent = (studentId: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('student', studentId);
+    ['subject', 'focus'].forEach(key => url.searchParams.delete(key));
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    setTargetedPractice(null);
+    setActiveTool('interventions');
   };
 
   const returnToInterventions = () => {
@@ -216,6 +226,7 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
         }
         .teacher-academic-tool-host > .sap-shell,
         .teacher-academic-tool-host > .intervention-page,
+        .teacher-academic-tool-host > .tfu-page,
         .teacher-academic-tool-host > .intervention-targeted-workspace {
           max-width: none;
           margin: 0;
@@ -230,6 +241,8 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
               ? <InterventionTargetedPracticeWorkspace context={targetedPractice} onBack={returnToInterventions} onComplete={returnToInterventions} />
               : activeTool === 'academic-profiles'
                 ? <TeacherAcademicProfilesPage onBack={closeAcademicTool} />
+                : activeTool === 'follow-ups'
+                ? <TeacherWeeklyFollowUpsPage onBack={closeAcademicTool} onPlanPractice={openInterventionsForStudent} />
                 : <TeacherInterventionIntelligencePage onBack={closeAcademicTool} onCreateTargetedPractice={openTargetedPractice} />}
           </Suspense>,
           portalHost,

@@ -1,0 +1,331 @@
+.tfu-page {
+  --tfu-ink: #14202b;
+  --tfu-muted: #556270;
+  --tfu-line: #e3e7ec;
+  --tfu-soft: #f7f8fa;
+  --tfu-accent: #1f55c9;
+  --tfu-accent-soft: #eef3fd;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #f5f7fb;
+  color: var(--tfu-ink);
+}
+
+.tfu-main {
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 1rem;
+  box-sizing: border-box;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.tfu-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.tfu-summary > div {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--tfu-line);
+  border-radius: 0.9rem;
+  background: #fff;
+  min-width: 9rem;
+}
+
+.tfu-summary strong {
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.tfu-summary span {
+  color: var(--tfu-muted);
+  font-size: 0.8rem;
+}
+
+.tfu-refresh {
+  margin-left: auto;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid #c3cbd4;
+  border-radius: 0.75rem;
+  background: #fff;
+  color: var(--tfu-ink);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tfu-tabs {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.1rem;
+}
+
+.tfu-tabs button {
+  min-height: 44px;
+  padding: 0 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid #d5dbe2;
+  border-radius: 999px;
+  background: #fff;
+  color: #33414f;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tfu-tabs button b {
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #eef1f5;
+  font-size: 0.75rem;
+}
+
+.tfu-tabs button.is-active {
+  background: var(--tfu-accent);
+  border-color: var(--tfu-accent);
+  color: #fff;
+}
+
+.tfu-tabs button.is-active b {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.tfu-tabs button:focus-visible,
+.tfu-refresh:focus-visible,
+.tfu-link:focus-visible,
+.tfu-practice:focus-visible,
+.tfu-actions button:focus-visible,
+.tfu-card input:focus-visible {
+  outline: 3px solid #9bb7f0;
+  outline-offset: 2px;
+}
+
+.tfu-alert,
+.tfu-notice {
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.tfu-alert {
+  background: #fef3f2;
+  color: #912018;
+}
+
+.tfu-notice {
+  background: #e8f5ec;
+  color: #145a2e;
+  font-weight: 500;
+}
+
+.tfu-panel {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.tfu-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--tfu-muted);
+  font-size: 0.85rem;
+}
+
+.tfu-link {
+  min-height: 44px;
+  padding: 0 0.25rem;
+  border: 0;
+  background: transparent;
+  color: var(--tfu-accent);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tfu-empty {
+  padding: 2rem 1rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 0.9rem;
+  background: #fff;
+  color: var(--tfu-muted);
+  text-align: center;
+}
+
+.tfu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.tfu-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border: 1px solid var(--tfu-line);
+  border-radius: 0.9rem;
+  background: var(--tfu-soft);
+}
+
+.tfu-card.is-selected {
+  border-color: var(--tfu-accent);
+  background: var(--tfu-accent-soft);
+}
+
+.tfu-card input {
+  width: 1.35rem;
+  height: 1.35rem;
+  margin: 0.3rem 0 0;
+  flex: none;
+  accent-color: var(--tfu-accent);
+  cursor: pointer;
+}
+
+.tfu-card-body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.tfu-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.tfu-name-row strong {
+  font-size: 1rem;
+}
+
+.tfu-avatar {
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e7ecf3;
+  color: #33414f;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.tfu-badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #e8f5ec;
+  color: #145a2e;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.tfu-reason {
+  color: #3d4a57;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.tfu-topic {
+  justify-self: start;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: #fff1e0;
+  color: #7a4300;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.tfu-practice {
+  flex: none;
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border: 1px solid #c3cbd4;
+  border-radius: 0.7rem;
+  background: #fff;
+  color: var(--tfu-ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tfu-actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem max(1rem, calc((100% - 880px) / 2 + 1rem));
+  border-top: 1px solid var(--tfu-line);
+  background: #fff;
+  color: var(--tfu-muted);
+  font-size: 0.85rem;
+}
+
+.tfu-actions button {
+  min-height: 48px;
+  padding: 0 1.25rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: var(--tfu-accent);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tfu-page button:disabled,
+.tfu-card input:disabled {
+  cursor: not-allowed;
+}
+
+.tfu-actions button:disabled {
+  background: #a9b8d6;
+}
+
+@media (max-width: 560px) {
+  .tfu-card {
+    flex-wrap: wrap;
+  }
+
+  .tfu-practice {
+    width: 100%;
+  }
+
+  .tfu-summary > div {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .tfu-refresh {
+    margin-left: 0;
+    width: 100%;
+  }
+}

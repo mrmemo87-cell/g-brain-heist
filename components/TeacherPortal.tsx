@@ -105,7 +105,7 @@ interface TeacherPortalProps {
 let _cachedPlanDetails: SchoolPlanDetails | null = null;
 
 export type PortalView = 'dashboard' | 'students' | 'create-question' | 'question-bank' | 'question-batch' | 'csv-upload' | 'assignments' | 'create-assignment' | 'reports' | 'report-detail' | 'report-analysis' | 'collective-report' | 'academic-profiles' | 'curriculum-intelligence' | 'interventions' | 'documents' | 'writing-hub' | 'writing-monitoring' | 'writing-analytics' | 'writing-export-center' | 'clan-wars' | 'geometry-diagrams' | 'cambridge-reports' | 'join-school';
-export type TeacherNavSection = 'dashboard' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'curriculum-intelligence' | 'interventions' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school' | 'ielts-programme';
+export type TeacherNavSection = 'dashboard' | 'follow-ups' | 'students' | 'questions' | 'assignments' | 'reports' | 'academic-profiles' | 'curriculum-intelligence' | 'interventions' | 'writing-hub' | 'cambridge' | 'clan-wars' | 'join-school' | 'ielts-programme';
 type WritingHubSection = 'monitor' | 'analytics' | 'reports';
 
 const TEACHER_VIEW_FEATURES: Partial<Record<PortalView, FeatureKey>> = {
@@ -9006,6 +9006,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   const navTabs: Array<{ id: TeacherNavSection; label: string; icon: React.ReactNode; description: string; proOnly?: boolean; highlight?: boolean }> = [
     { id: 'dashboard', label: 'Dashboard', icon: <TeacherWorkspaceIcon name="home" />, description: 'Overview & Quick Actions' },
+    { id: 'follow-ups', label: 'Follow-ups', icon: <TeacherWorkspaceIcon name="followups" />, description: 'Who needs you this week' },
     ...(ieltsProgramme.entry ? [{ id: 'ielts-programme' as const, label: 'IELTS Programme', icon: <IeltsProgrammeIcon />, description: 'Review, plan & guide your school programme', highlight: true }] : []),
     { id: 'students', label: 'My Classes', icon: <TeacherWorkspaceIcon name="classes" />, description: 'Allocated Classes & Students' },
     ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: <TeacherWorkspaceIcon name="classes" />, description: 'Use your invite code to unlock school features', highlight: true }] : []),
