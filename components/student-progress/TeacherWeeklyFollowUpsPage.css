@@ -373,6 +373,25 @@
 .tfu-result.is-practising .tfu-result-status { background: var(--tfu-accent-soft); color: #173f94; }
 
 @media (max-width: 560px) {
+  /* Three equal tabs that always fit: label on top, count below. */
+  .tfu-tabs button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 56px;
+    padding: 0.4rem 0.3rem;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.2rem;
+    border-radius: 0.9rem;
+    font-size: 0.85rem;
+  }
+
+  .tfu-tabs button span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .tfu-card {
     flex-wrap: wrap;
   }
