@@ -1,0 +1,256 @@
+.dmc {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.25rem;
+  border-color: rgba(251, 146, 60, 0.45);
+}
+
+.dmc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dmc-pill {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid rgba(251, 146, 60, 0.55);
+  border-radius: 999px;
+  background: rgba(251, 146, 60, 0.12);
+  color: #fdba74;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dmc-pill--done {
+  border-color: rgba(74, 222, 128, 0.5);
+  background: rgba(74, 222, 128, 0.12);
+  color: #86efac;
+}
+
+.dmc-meta {
+  color: #cbd5e1;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.dmc-title {
+  margin: 0;
+  color: #fff;
+  font-family: var(--font-heading, inherit);
+  font-size: 1.45rem;
+  line-height: 1.2;
+}
+
+.dmc-copy {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.dmc-dots {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.dmc-dots span {
+  flex: 1;
+  max-width: 3.5rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.25);
+}
+
+.dmc-dots span.is-filled {
+  background: linear-gradient(90deg, #fb923c, #facc15);
+}
+
+.dmc-start,
+.dmc-next {
+  justify-self: start;
+}
+
+.dmc-link {
+  min-height: 44px;
+  padding: 0 0.5rem;
+  border: 0;
+  background: transparent;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dmc-progress {
+  height: 0.4rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.2);
+  overflow: hidden;
+}
+
+.dmc-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #fb923c, #facc15);
+  transition: width 240ms ease;
+}
+
+.dmc-topic {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.dmc-question {
+  margin: 0;
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1.45;
+  font-weight: 700;
+  white-space: pre-line;
+}
+
+.dmc-image {
+  max-width: 100%;
+  max-height: 16rem;
+  border-radius: 0.75rem;
+  object-fit: contain;
+  background: #fff;
+}
+
+.dmc-options {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.dmc-option {
+  min-height: 48px;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 0.85rem;
+  background: rgba(15, 23, 42, 0.6);
+  color: #f1f5f9;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.dmc-option:hover:not(:disabled) {
+  border-color: rgba(251, 146, 60, 0.7);
+  background: rgba(251, 146, 60, 0.1);
+}
+
+.dmc-option:disabled {
+  cursor: default;
+}
+
+.dmc-option.is-correct {
+  border-color: #4ade80;
+  background: rgba(74, 222, 128, 0.16);
+  color: #dcfce7;
+}
+
+.dmc-option.is-wrong {
+  border-color: #f87171;
+  background: rgba(248, 113, 113, 0.14);
+  color: #fee2e2;
+}
+
+.dmc-option:focus-visible,
+.dmc-link:focus-visible {
+  outline: 3px solid #fdba74;
+  outline-offset: 2px;
+}
+
+.dmc-feedback {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.85rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.dmc-feedback.is-correct {
+  background: rgba(74, 222, 128, 0.12);
+  color: #dcfce7;
+}
+
+.dmc-feedback.is-wrong {
+  background: rgba(248, 113, 113, 0.12);
+  color: #fee2e2;
+}
+
+.dmc-feedback strong {
+  font-size: 1rem;
+}
+
+.dmc-next {
+  margin-top: 0.35rem;
+}
+
+.dmc-error {
+  margin: 0;
+  color: #fecaca;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 560px) {
+  .dmc-start,
+  .dmc-next {
+    justify-self: stretch;
+    width: 100%;
+  }
+}
+
+body.light-mode .dmc-title,
+body.light-mode .dmc-question {
+  color: #0f172a;
+}
+
+body.light-mode .dmc-copy,
+body.light-mode .dmc-meta,
+body.light-mode .dmc-link {
+  color: #334155;
+}
+
+body.light-mode .dmc-option {
+  background: #fff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+body.light-mode .dmc-option.is-correct {
+  background: #dcfce7;
+  color: #14532d;
+}
+
+body.light-mode .dmc-option.is-wrong {
+  background: #fee2e2;
+  color: #7f1d1d;
+}
+
+body.light-mode .dmc-feedback.is-correct {
+  background: #dcfce7;
+  color: #14532d;
+}
+
+body.light-mode .dmc-feedback.is-wrong {
+  background: #fee2e2;
+  color: #7f1d1d;
+}
+
+body.light-mode .dmc-pill {
+  color: #9a3412;
+}
+
+body.light-mode .dmc-pill--done {
+  color: #166534;
+}

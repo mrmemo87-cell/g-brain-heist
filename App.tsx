@@ -22,6 +22,7 @@ import CapTracker from './components/CapTracker';
 import Toast from './components/Toast';
 import LevelUpModal from './components/LevelUpModal';
 import StreakRewardModal from './components/StreakRewardModal';
+import DailyMissionCard from './components/student/DailyMissionCard';
 import { ToastContainer } from './components/ToastNotification';
 import BackButton from './components/BackButton';
 import { type SchoolCapabilities } from './services/schoolAdminService';
@@ -2478,7 +2479,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
                             <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300">
                               {activeAssignment
                                 ? `${activeAssignment.subject_name || t("General")} · ${activeAssignment.due_at ? t('Due {date}', { date: new Date(activeAssignment.due_at).toLocaleString(language) }) : t("No deadline")}`
-                                : t("A short adaptive mission based on your current level. Finish it to keep your streak moving.")}
+                                : t("A short adaptive quest based on your current level. Great extra practice after today\u2019s mission.")}
                             </p>
                             <button type="button" onClick={handleQuestAction} className="student-primary-button mt-5">
                               {nextActionLabel} <span className="ml-2" aria-hidden>→</span>
@@ -2508,6 +2509,22 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
                     {studentDashboardTab === 'home' && (
                       <>
                         {renderProfileSlot()}
+                        {isStudent && (
+                          <DailyMissionCard
+                            currentStreak={profile?.streak || 0}
+                            onProfileValues={(values) => setProfile((prev) => prev ? {
+                              ...prev,
+                              xp: values.xp ?? prev.xp,
+                              coins: values.coins ?? prev.coins,
+                              level: values.level ?? prev.level,
+                              gemstones: values.gemstones ?? prev.gemstones,
+                            } : prev)}
+                            onStreakReward={(receipt) => {
+                              setProfile((prev) => prev ? { ...prev, streak: receipt.streak, coins: receipt.coins } : prev);
+                              setStreakRewardData(receipt);
+                            }}
+                          />
+                        )}
                         <RetentionTrialGate userId={profile.id} fallback={nextMissionCard}>
                           <RetentionStudentPanel userId={profile.id} name={profile.username} hasSchool={hasSchool} nextMove={nextMissionCard}
                             onOpenProgress={() => { setStudentDashboardTab('learn'); setStudentLearningView('academic-profile'); }} />
