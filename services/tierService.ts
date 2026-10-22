@@ -112,7 +112,9 @@ export const QUOTA_LABELS: Record<PilotFeatureId, string> = {
 // ── Fetch effective tier (cached, calls get_effective_tier RPC) ──
 
 const tierReads = createScopedReadCache<AccountTier>(5 * 60 * 1000);
-const planReads = createScopedReadCache<SchoolPlanDetails>(15_000, value => value.success);
+// Plans change only through billing, which calls invalidateTierCache(), so a
+// 5-minute cache is safe and stops every dashboard visit re-reading billing.
+const planReads = createScopedReadCache<SchoolPlanDetails>(5 * 60 * 1000, value => value.success);
 
 export async function fetchEffectiveTier(): Promise<AccountTier> {
   const { data } = await supabase.auth.getSession();
