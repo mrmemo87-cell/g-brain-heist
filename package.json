@@ -13,7 +13,7 @@
     "guard:school-admin-portal": "node scripts/check-school-admin-portal-integrity.mjs",
     "test:clean": "rm -rf dist-tests",
     "test:build": "tsc --project tsconfig.tests.json && node scripts/fix-test-esm-imports.mjs",
-    "test": "node scripts/materialize_commander_elixirs.mjs && python3 scripts/materialize_assignment_edit_feature.py && npm run test:clean && npm run test:build && NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/*.js && npm run test:ielts:programme && npm run test:language:dom && npm run test:classroom:db && npm run test:teacher-assignment-cards && npm run test:teacher-sidebar && npm run test:student-assignments && npm run test:retention && npm run test:ielts:teacher-packs",
+    "test": "node scripts/materialize_commander_elixirs.mjs && python3 scripts/materialize_assignment_edit_feature.py && npm run test:clean && npm run test:build && NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/*.js && npm run test:ielts:programme && npm run test:language:dom && npm run test:classroom:db && npm run test:teacher-assignment-cards && npm run test:teacher-sidebar && npm run test:student-assignments && npm run test:retention && npm run test:ielts:teacher-packs && node --test tests/eventLoadReduction.test.mjs",
     "load:leaderboard": "k6 run load-tests/leaderboard.js",
     "load:shop": "k6 run load-tests/shop.js",
     "load:pvp": "k6 run load-tests/pvp.js",

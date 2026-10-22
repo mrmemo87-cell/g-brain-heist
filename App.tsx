@@ -1668,6 +1668,24 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
     }
   };
 
+  // Rewards can arrive once per answered question. Coalesce them into a single
+  // light profile snapshot a few seconds after the last one.
+  const rewardProfileSyncTimerRef = useRef<number | null>(null);
+  const scheduleRewardProfileSync = (delayMs = 5000) => {
+    if (rewardProfileSyncTimerRef.current !== null) {
+      window.clearTimeout(rewardProfileSyncTimerRef.current);
+    }
+    rewardProfileSyncTimerRef.current = window.setTimeout(() => {
+      rewardProfileSyncTimerRef.current = null;
+      void refreshProfile(true);
+    }, delayMs);
+  };
+  useEffect(() => () => {
+    if (rewardProfileSyncTimerRef.current !== null) {
+      window.clearTimeout(rewardProfileSyncTimerRef.current);
+    }
+  }, []);
+
   const handleJoinSchoolSuccess = useCallback(async () => {
     await refreshProfile();
     retryNonCritical('tasks');
@@ -1777,7 +1795,9 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
       }
       
       console.log('[handleGrantReward] Profile synced with backend values:', finalValues);
-      refreshProfile();
+      // The server already returned exact totals, so only a light, batched
+      // snapshot is needed (not the full whoami reload on every answer).
+      scheduleRewardProfileSync();
       return; // No need for verification when we have exact values
     }
 
@@ -1793,28 +1813,11 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
       };
     });
 
-    // Verify rewards were actually saved to database by refreshing after a short delay
-    // This helps catch silent failures in the reward persistence
+    // Verify rewards were actually saved by re-reading the user's row. The light
+    // snapshot reads the same xp/coins/gems columns as whoami without its ~10
+    // extra queries, and bursts of rewards share one read.
     if ((deltas.xp || 0) + (deltas.coins || 0) + (deltas.gemstones || 0) > 0) {
-      setTimeout(async () => {
-        try {
-          const currentProfile = await GameService.whoami();
-          // Sync local profile with database values to ensure consistency
-          setProfile(currentProfile);
-          console.log('[REWARD VERIFICATION] Profile synced with database:', {
-            xp: currentProfile.xp,
-            coins: currentProfile.coins
-          });
-        } catch (error) {
-          console.error('[REWARD VERIFICATION] Failed to verify rewards:', error);
-          // On verification failure, try to refresh profile to get accurate data
-          try {
-            await refreshProfile();
-          } catch (refreshError) {
-            console.error('[REWARD VERIFICATION] Failed to refresh profile:', refreshError);
-          }
-        }
-      }, 2000); // Wait 2 seconds for DB to settle
+      scheduleRewardProfileSync(2000);
     }
   };
 

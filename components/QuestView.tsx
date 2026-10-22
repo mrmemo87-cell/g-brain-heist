@@ -1648,17 +1648,34 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
   recoverAnswerRef.current = handleAnswerSubmit;
   const recoveryStateRef = useRef({ mode, answerSaveError, answerRecoveryEnabled, isSubmitting, selectedOption });
   recoveryStateRef.current = { mode, answerSaveError, answerRecoveryEnabled, isSubmitting, selectedOption };
+  // Automatic retries back off (about 15s, 30s, 60s, then every 2 min, with a
+  // little jitter) so a class of devices does not keep hitting a struggling
+  // database in lockstep. Coming back online still retries at once.
+  const answerRetryRef = useRef({ attempts: 0, nextAt: 0 });
   useEffect(() => {
-    const recover = () => {
+    if (!answerSaveError) {
+      answerRetryRef.current = { attempts: 0, nextAt: 0 };
+    } else if (answerRetryRef.current.nextAt === 0) {
+      // First automatic retry waits ~15s, as before.
+      answerRetryRef.current = { attempts: 0, nextAt: Date.now() + 15000 + Math.floor(Math.random() * 5000) };
+    }
+  }, [answerSaveError]);
+  useEffect(() => {
+    const recover = (event?: Event) => {
       setConnectionAvailable(navigator.onLine);
       const state = recoveryStateRef.current;
       if (navigator.onLine && state.mode === 'assignment' && state.answerSaveError && state.answerRecoveryEnabled && !state.isSubmitting && state.selectedOption !== null) {
+        const retry = answerRetryRef.current;
+        const now = Date.now();
+        if (event?.type !== 'online' && now < retry.nextAt) return;
+        const delayMs = Math.min(15000 * 2 ** (retry.attempts + 1), 120000) + Math.floor(Math.random() * 5000);
+        answerRetryRef.current = { attempts: retry.attempts + 1, nextAt: now + delayMs };
         void recoverAnswerRef.current(state.selectedOption);
       }
     };
     const offline = () => setConnectionAvailable(false);
     window.addEventListener('online', recover); window.addEventListener('offline', offline);
-    const timer = window.setInterval(recover, 15000);
+    const timer = window.setInterval(() => recover(), 5000);
     return () => { window.removeEventListener('online', recover); window.removeEventListener('offline', offline); window.clearInterval(timer); };
   }, []);
   useEffect(() => {

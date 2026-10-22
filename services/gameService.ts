@@ -100,22 +100,64 @@ const formatLocalDateKey = (date: Date): string => {
 
 let pendingDailyStreakReward: DailyStreakRewardReceipt | null = null;
 
+// The server awards at most once per Bishkek calendar day (UTC+6, no DST), but
+// whoami, whoamiFast and the App shell each ask on every profile load. Share one
+// in-flight request and remember a successful answer for the rest of the day so
+// repeat loads skip the RPC (and its per-student advisory lock) entirely.
+type DailyStreakRpcData = { claimed?: boolean; reward_date?: string; streak?: number; coins_awarded?: number; coins?: number };
+type DailyStreakRpcResult = { data: DailyStreakRpcData; initiator: boolean };
+let dailyStreakInFlight: { userId: string; promise: Promise<DailyStreakRpcData | null> } | null = null;
+let dailyStreakRecorded: { userId: string; date: string; data: DailyStreakRpcData } | null = null;
+const bishkekDateKey = (): string => new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+const requestDailyStreak = async (userId: string): Promise<DailyStreakRpcResult | null> => {
+  const today = bishkekDateKey();
+  if (dailyStreakRecorded?.userId === userId && dailyStreakRecorded.date === today) {
+    return { data: dailyStreakRecorded.data, initiator: false };
+  }
+  if (dailyStreakInFlight?.userId === userId) {
+    const shared = await dailyStreakInFlight.promise;
+    return shared ? { data: shared, initiator: false } : null;
+  }
+
+  const promise = (async () => {
+    const { data, error } = await supabase.rpc('rpc_record_daily_streak');
+    if (error) {
+      console.warn('[whoami] Daily streak reward could not be recorded:', error.message);
+      return null; // Not remembered: the next profile load retries.
+    }
+    if (!data) return null;
+    dailyStreakRecorded = { userId, date: today, data: data as DailyStreakRpcData };
+    return data as DailyStreakRpcData;
+  })();
+  const inFlight = { userId, promise };
+  dailyStreakInFlight = inFlight;
+  try {
+    const data = await promise;
+    return data ? { data, initiator: true } : null;
+  } finally {
+    if (dailyStreakInFlight === inFlight) dailyStreakInFlight = null;
+  }
+};
+
 export const recordDailyStreakForProfile = async (profile: Profile): Promise<void> => {
   if ((profile.role ?? 'student') !== 'student') return;
+  if (!profile.id) return;
 
-  const { data, error } = await supabase.rpc('rpc_record_daily_streak');
-  if (error) {
-    console.warn('[whoami] Daily streak reward could not be recorded:', error.message);
-    return;
-  }
-  if (!data) return;
+  const result = await requestDailyStreak(profile.id);
+  if (!result) return;
+  const { data, initiator } = result;
 
   const receipt: DailyStreakRewardReceipt = {
-    claimed: data.claimed === true,
+    // Only the request that actually reached the server may report a fresh
+    // claim, so a shared or remembered answer never re-opens the celebration.
+    claimed: initiator && data.claimed === true,
     reward_date: String(data.reward_date ?? formatLocalDateKey(new Date())),
-    streak: Number(data.streak ?? profile.streak ?? 0),
+    // A remembered answer's totals may be stale (the daily mission can also
+    // change them), so prefer the freshly loaded profile values in that case.
+    streak: initiator ? Number(data.streak ?? profile.streak ?? 0) : Number(profile.streak ?? data.streak ?? 0),
     coins_awarded: Number(data.coins_awarded ?? 0),
-    coins: Number(data.coins ?? profile.coins ?? 0),
+    coins: initiator ? Number(data.coins ?? profile.coins ?? 0) : Number(profile.coins ?? data.coins ?? 0),
   };
 
   if (receipt.claimed) pendingDailyStreakReward = receipt;
