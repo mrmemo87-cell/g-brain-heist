@@ -145,6 +145,10 @@ test('v1.1.1 summary, process branches and numeric-only audio keys meet the sour
   assert.ok(summary.summary_text.includes('(6) ______'));
   assert.equal(summary.items.length, 6);
   assert.deepEqual(x1.followup.blocks[1].items.map((i) => i.answer), ['G', 'E', 'B', 'D']);
+  assert.equal(x1.followup.blocks[1].items[0].prompt, 'An old clock tower could be preserved for its appearance');
+  assert.equal(x1.followup.blocks[1].stimulus.paragraphs[6], 'G  even after its original use as a public timekeeping device had faded.');
+  assert.equal(x1.followup.blocks[1].stimulus.paragraphs[4], 'E  although few residents remembered checking it during the previous week.');
+  assert.ok(!x1.followup.blocks[1].stimulus.paragraphs[4].includes('hardly anyone'));
   assert.match(x1.followup.blocks[1].items[1].prompt, /public clock important to local identity/i);
   assert.match(x2.followup.blocks[0].items[0].prompt, /shopper behaviour/i);
 
