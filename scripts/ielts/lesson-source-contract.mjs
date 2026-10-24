@@ -103,7 +103,7 @@ function checkItem(item, block, errors, where) {
       const limit = Number(item.word_limit);
       if (!limit) errors.push(`${label}: completion item needs word_limit`);
       for (const candidate of [answer, ...(item.accept ?? [])]) {
-        if (limit && wordCount(candidate) > limit) errors.push(`${label}: accepted answer "${candidate}" exceeds ${limit}-word limit`);
+        if (limit && (candidate === answer || item.enforce_accept_word_limit === true) && wordCount(candidate) > limit) errors.push(`${label}: accepted answer "${candidate}" exceeds ${limit}-word limit`);
       }
       if (block.stimulus?.type === 'passage') {
         // Reading completion answers must be taken from the passage verbatim.
