@@ -41,6 +41,7 @@ const SchoolSubjectsManager: React.FC = () => {
     teachers = [],
     addToast,
     loadAdminTools,
+    setActiveTab,
   } = useSchoolAdmin();
 
   const [catalog, setCatalog] = useState<SchoolSubjectCatalog | null>(null);
@@ -215,7 +216,7 @@ const SchoolSubjectsManager: React.FC = () => {
     return next;
   });
 
-  const handleSave = async () => {
+  const handleSave = async (nextTab?: 'classes') => {
     if (!school?.id || !name.trim()) return;
     if (gradeLevel && !currentYear?.id) {
       addToast('Create or activate an academic year before adding a grade offering.', 'info');
@@ -269,6 +270,7 @@ const SchoolSubjectsManager: React.FC = () => {
         load(),
         typeof loadAdminTools === 'function' ? loadAdminTools(school.id) : Promise.resolve(),
       ]);
+      if (nextTab) setActiveTab?.(nextTab);
     } catch (error) {
       console.error('Failed to save school subject', error);
       addToast(error instanceof Error ? error.message : 'The subject could not be saved.', 'error');
@@ -468,7 +470,7 @@ const SchoolSubjectsManager: React.FC = () => {
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-700">{editingSubjectId ? 'Manage subject' : 'New school subject'}</span>
                 <h3 id="school-subject-editor-title" className="mt-1 text-2xl font-bold tracking-tight text-slate-950">{editingSubjectId ? name || 'Edit subject' : 'Add a subject'}</h3>
-                <p className="mt-1 text-sm text-slate-500">The school subject stays independent even when it shares academic resources with another subject.</p>
+                <p className="mt-1 text-sm text-slate-500">Choose the subject, its question bank and the grades that study it.</p>
               </div>
               <button type="button" disabled={saving} onClick={() => setEditorOpen(false)} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-slate-200 text-lg text-slate-500 transition hover:bg-slate-50">×</button>
             </div>
@@ -476,7 +478,7 @@ const SchoolSubjectsManager: React.FC = () => {
             <div className="flex-1 overflow-y-auto px-6 py-6 sm:px-8">
               <div className="space-y-7">
                 <section>
-                  <div className="mb-4 flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-950 text-xs font-bold text-white">1</span><div><h4 className="text-sm font-bold text-slate-950">Subject identity</h4><p className="text-xs text-slate-500">Use the name your school actually uses.</p></div></div>
+                  <div className="mb-4 flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-950 text-xs font-bold text-white">1</span><div><h4 className="text-sm font-bold text-slate-950">Subject identity</h4><p className="text-xs text-slate-500">The name teachers and students will see.</p></div></div>
                   <div className="grid gap-4 sm:grid-cols-[1fr_180px]">
                     <label><span className="text-xs font-bold text-slate-700">Subject name</span><input autoFocus={!editingSubjectId} value={name} onChange={(event) => updateName(event.target.value)} placeholder="e.g. ESL, Math Club, Chinese" className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3.5 text-sm font-semibold text-slate-950 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100" /></label>
                     <label><span className="text-xs font-bold text-slate-700">Code <span className="font-normal text-slate-400">optional</span></span><input value={code} onChange={(event) => { setCodeTouched(true); setCode(event.target.value.toUpperCase()); }} placeholder="ESL" className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3.5 text-sm font-semibold uppercase tracking-wide text-slate-950 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100" /></label>
@@ -484,10 +486,10 @@ const SchoolSubjectsManager: React.FC = () => {
                 </section>
 
                 <section className="border-t border-slate-200 pt-6">
-                  <div className="mb-4 flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-950 text-xs font-bold text-white">2</span><div><h4 className="text-sm font-bold text-slate-950">Academic resources</h4><p className="text-xs text-slate-500">Optional. Mapping shares curriculum/questions; it never merges the subject. A local subject name or exam code does not select this mapping.</p></div></div>
-                  <label className="block"><span className="text-xs font-bold text-slate-700">Map to Brains Heist academic subject</span><select value={academicSubjectId} onChange={(event) => setAcademicSubjectId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm font-semibold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"><option value="">No academic mapping yet</option>{academicChoices.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+                  <div className="mb-4 flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-950 text-xs font-bold text-white">2</span><div><h4 className="text-sm font-bold text-slate-950">Academic resources</h4><p className="text-xs text-slate-500">Choose the Brains Heist subject that provides the question bank and curriculum. Your school can keep its own subject name.</p></div></div>
+                  <label className="block"><span className="text-xs font-bold text-slate-700">Question bank & curriculum</span><select value={academicSubjectId} onChange={(event) => setAcademicSubjectId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm font-semibold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"><option value="">No academic mapping yet</option>{academicChoices.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
                   {academicSubjectId ? (
-                    <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4"><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-600 text-xs font-bold text-white">✓</span><div><p className="text-sm font-semibold text-emerald-950">{name.trim() || 'This subject'} will use {selectedAcademic?.name} academic resources.</p><p className="mt-1 text-xs leading-5 text-emerald-800">Assignments, grades and student membership remain attached to <strong>{name.trim() || 'the school subject'}</strong>, not to {selectedAcademic?.name}.</p></div></div></div>
+                    <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4"><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-600 text-xs font-bold text-white">✓</span><div><p className="text-sm font-semibold text-emerald-950">Connected to the {selectedAcademic?.name} question bank and curriculum.</p><p className="mt-1 text-xs leading-5 text-emerald-800">Teachers and students will see <strong>{name.trim() || 'the school subject'}</strong> as the subject name.</p></div></div></div>
                   ) : (
                     <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-4"><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-amber-500 text-sm font-bold text-white">!</span><div><p className="text-sm font-semibold text-amber-950">Academic mapping needed</p><p className="mt-1 text-xs leading-5 text-amber-800">You can still create and use this school subject. Brains Heist will open an academic-mapping request and notify the platform team. Governed question resources stay unavailable until a mapping is added.</p></div></div></div>
                   )}
@@ -518,11 +520,15 @@ const SchoolSubjectsManager: React.FC = () => {
 
                 {gradeLevel ? (
                   <section className="border-t border-slate-200 pt-6">
-                    <div className="mb-4 flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-950 text-xs font-bold text-white">4</span><div><h4 className="text-sm font-bold text-slate-950">Teaching groups &amp; staffing</h4><p className="text-xs text-slate-500">Teaching groups decide who studies together. Registration classes remain unchanged.</p></div></div>
+                    <div className="mb-4 flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-950 text-xs font-bold text-white">4</span><div><h4 className="text-sm font-bold text-slate-950">Class teaching</h4><p className="text-xs text-slate-500">School classes link automatically. Special group arrangements are optional.</p></div></div>
                     {(() => {
                       const currentSubject = editingSubjectId ? catalog.subjects.find((item) => item.id === editingSubjectId) : null;
-                      const currentOffering = currentSubject?.offerings.find((item) => String(item.gradeLevel) === String(gradeLevel));
+                      const currentOffering = currentSubject?.offerings.find((item) => item.academicYearId === currentYear?.id && item.status === 'active' && String(item.gradeLevel) === String(gradeLevel));
                       return currentOffering ? (
+                        <>
+                        <p className="mb-3 text-sm text-slate-600">{currentOffering.deliveryMode === 'by_class' ? `Grade ${gradeLevel} classes are linked automatically. Assign its teacher in Teacher Allocation.` : 'This subject uses a whole-grade or custom teaching arrangement. Manage it below.'}</p>
+                        {currentOffering.deliveryMode === 'by_class' && !activeClasses.some((item: any) => String(item.grade_level) === String(gradeLevel)) ? <button type="button" className="admin-button-primary admin-button-small mb-3" disabled={saving} onClick={() => void handleSave('classes')}>Save and open Classes</button> : null}
+                        <details open={currentOffering.deliveryMode !== 'by_class'} className="rounded-xl border border-slate-200 p-4"><summary className="cursor-pointer text-sm font-semibold text-slate-700">Whole-grade or custom groups (optional)</summary>
                         <SubjectTeachingGroupsPanel
                           schoolId={school.id}
                           subjectName={name || currentSubject?.name || 'Subject'}
@@ -533,10 +539,12 @@ const SchoolSubjectsManager: React.FC = () => {
                           addToast={addToast}
                           onChanged={load}
                         />
+                        </details>
+                        </>
                       ) : (
                         <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-4 text-xs leading-5 text-blue-900">
-                          <strong className="block text-sm">Save the subject offering first</strong>
-                          After saving, reopen this subject and choose whether students learn in their <strong>registration classes</strong>, as a <strong>whole grade</strong>, or in a <strong>mixed-class group</strong> such as Grade 8 ESL.
+                          <strong className="block text-sm">Ready to save</strong>
+                          Save this subject, create a class for this grade in Classes, then assign a teacher in Teacher Allocation. The class connection is automatic.
                         </div>
                       );
                     })()}

@@ -41,7 +41,7 @@
     "test:retention": "node --test tests/echo3dRenderer.test.mjs tests/retentionTrialDatabase.test.mjs tests/retentionTrialDom.test.mjs tests/retentionTrialModel.test.mjs tests/retentionSound.test.mjs tests/retentionArtwork.test.mjs tests/retentionCompanionDatabase.test.mjs tests/retentionCompanionDom.test.mjs tests/echoModel.test.mjs tests/echoAvatarDom.test.mjs tests/studentMascotRollout.test.mjs",
     "test:ielts:teacher-packs": "node --test --test-concurrency=1 tests/ieltsApprovedTeacherPacksDatabase.test.mjs tests/ieltsApprovedTeacherPacksDom.test.mjs tests/ieltsApprovedTeacherPacksService.test.mjs tests/ieltsGlobalTeacherPacksDatabase.test.mjs tests/ieltsPackBranding.test.mjs tests/ieltsReviewDraftPacksDatabase.test.mjs tests/ieltsReviewDraftPacksService.test.mjs tests/ieltsReviewDraftPacksDom.test.mjs",
     "test:physics": "node --test tests/physics0654Database.test.mjs tests/physics0654Dom.test.mjs",
-    "test:school-coverage": "node --test tests/schoolRegistryCoverage.test.mjs"
+    "test:school-coverage": "node --test tests/schoolRegistryCoverage.test.mjs tests/schoolClassSetupDom.test.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

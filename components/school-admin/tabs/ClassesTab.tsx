@@ -1,5 +1,5 @@
 import React from 'react';
-import { fetchSchoolAcademicSetup, type SchoolAcademicSetup } from '../../../services/schoolAcademicSetupService';
+import { useSchoolSubjectOfferings } from '../hooks/useSchoolSubjectOfferings';
 import * as SchoolAdminService from '../../../services/schoolAdminService';
 import { friendlySchoolAdminError } from '../../../src/lib/schoolAdminPresentation';
 import { useSchoolAdmin } from '../SchoolAdminContext';
@@ -10,33 +10,18 @@ const ClassesTab: React.FC = () => {
     setClassForm, setConfirmDialog, setConfirmReason, studentAssignments, students,
     teacherAllocations, teachers, school, setActiveTab,
   } = useSchoolAdmin();
-  const [academicSetup, setAcademicSetup] = React.useState<SchoolAcademicSetup | null>(null);
+  const { offerings: currentOfferings, error: subjectLoadError } = useSchoolSubjectOfferings(school.id);
   const [wizardStep, setWizardStep] = React.useState<1 | 2 | 3>(1);
   const [showWizard, setShowWizard] = React.useState(false);
   const wasSaving = React.useRef(false);
   const wizardRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
-    let active = true;
-    void fetchSchoolAcademicSetup(school.id).then((setup) => {
-      if (!active) return;
-      setAcademicSetup(setup);
-    }).catch(() => { if (active) setAcademicSetup(null); });
-    return () => { active = false; };
-  }, [school.id]);
-
-  React.useEffect(() => {
     if (wasSaving.current && !classSaving && !classForm.id && !classForm.class_code) { setWizardStep(1); setShowWizard(false); }
     wasSaving.current = classSaving;
   }, [classForm.class_code, classForm.id, classSaving]);
 
-  const currentYear = academicSetup?.years.find((year) => year.status === 'current') || academicSetup?.years[0];
-  const currentOfferings = React.useMemo(() => (academicSetup?.offerings || []).filter((offering) => !currentYear || offering.academicYearId === currentYear.id), [academicSetup?.offerings, currentYear]);
-  const configuredGrades = React.useMemo(() => Array.from(new Set(currentOfferings.map((offering) => Number(offering.gradeLevel)).filter(Number.isFinite))).sort((a, b) => a - b), [currentOfferings]);
-  const gradeLevels = React.useMemo(() => Array.from(new Set([
-    ...configuredGrades,
-    ...classes.map((schoolClass: any) => Number(schoolClass.grade_level)).filter(Number.isFinite),
-  ])).sort((a, b) => a - b), [classes, configuredGrades]);
+  const gradeLevels = Array.from({ length: 12 }, (_, index) => index + 1);
   const activeClasses = classes.filter((schoolClass: any) => schoolClass.is_active !== false);
   const activeClassIds = new Set(activeClasses.map((schoolClass: any) => schoolClass.id));
   const teachingStaffIds = new Set(teachers.map((teacher: any) => teacher.user_id));
@@ -70,7 +55,7 @@ const ClassesTab: React.FC = () => {
       return { classCode: base, className: `Grade ${gradeLevel}` };
     }
     for (let index = 1; index < 26; index += 1) {
-      const section = String.fromCharCode(65 + index);
+      const section = String.fromCharCode(64 + index);
       if (!usedCodes.has(`${base}${section}`.toUpperCase())) {
         return { classCode: `${base}-${section}`, className: `Grade ${gradeLevel} ${section}` };
       }
@@ -155,15 +140,15 @@ const ClassesTab: React.FC = () => {
   return (
     <div className="space-y-6">
       <section ref={wizardRef} className="admin-form-card class-creation-wizard">
-        <div className="admin-card-heading"><div><h3>{classForm.id ? 'Edit class' : classForm.grade_level ? `Add class to Grade ${classForm.grade_level}` : 'Add another class'}</h3><p>Saving a grade plan creates its first class automatically. Add another class only when a grade level needs sections such as 7A and 7B.</p></div><button type="button" className="admin-button-ghost admin-button-small" aria-expanded={showWizard} onClick={() => showWizard ? resetWizard() : setShowWizard(true)}>{showWizard ? 'Close' : 'Add class'}</button></div>
+        <div className="admin-card-heading"><div><h3>{classForm.id ? 'Edit class' : classForm.grade_level ? `Add class to Grade ${classForm.grade_level}` : 'Create a class'}</h3><p>Choose a grade and name the class. Subjects already offered for that grade link automatically; you can add subjects later.</p></div><button type="button" className="admin-button-ghost admin-button-small" aria-expanded={showWizard} onClick={() => showWizard ? resetWizard() : setShowWizard(true)}>{showWizard ? 'Close' : 'Add class'}</button></div>
         {showWizard ? <>
         <ol className="class-wizard-steps" aria-label="Class creation steps">
           {['Choose grade', 'Class details', 'Review'].map((label, index) => <li key={label} className={wizardStep === index + 1 ? 'is-current' : wizardStep > index + 1 ? 'is-complete' : ''}><span>{index + 1}</span>{label}</li>)}
         </ol>
-        {!gradeLevels.length ? <div className="admin-inline-warning"><strong>No configured grade levels</strong><span>Save a grade level and its subjects before creating classes.</span><button type="button" className="admin-button-ghost admin-button-small" onClick={() => setActiveTab('subjects')}>Open Curriculum &amp; Subjects</button></div> : null}
-        {wizardStep === 1 && !classForm.id ? <div className="class-wizard-panel"><label className="admin-field admin-field-wide"><span>Grade level</span><select value={classForm.grade_level} onChange={(event) => selectGrade(event.target.value)}><option value="">Select grade level</option>{gradeLevels.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}</select><small>Only grade levels configured in Curriculum &amp; Subjects are shown.</small></label><div className="admin-form-actions"><button type="button" className="admin-button-primary" disabled={!classForm.grade_level} onClick={() => setWizardStep(2)}>Continue to class details</button></div></div> : null}
+        {subjectLoadError ? <p role="status" className="admin-field-help">Subject information is temporarily unavailable. You can still create a class.</p> : null}
+        {wizardStep === 1 && !classForm.id ? <div className="class-wizard-panel"><label className="admin-field admin-field-wide"><span>Grade level</span><select value={classForm.grade_level} onChange={(event) => selectGrade(event.target.value)}><option value="">Select grade level</option>{gradeLevels.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}</select><small>You can create a class before adding subjects or students.</small></label><div className="admin-form-actions"><button type="button" className="admin-button-primary" disabled={!classForm.grade_level} onClick={() => setWizardStep(2)}>Continue to class details</button></div></div> : null}
         {(wizardStep === 2 || classForm.id) ? <div className="class-wizard-panel"><div className="admin-form-grid admin-form-grid-three"><label className="admin-field"><span>Grade level</span><select value={classForm.grade_level} onChange={(event) => selectGrade(event.target.value)}><option value="">Select grade level</option>{gradeLevels.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}</select></label><label className="admin-field"><span>Class code <i>Required</i></span><input type="text" value={classForm.class_code} onChange={(event) => setClassForm((previous: any) => ({ ...previous, class_code: event.target.value }))} placeholder="For example, G9-B" /></label><label className="admin-field"><span>Class name <i>Required</i></span><input type="text" value={classForm.class_name} onChange={(event) => setClassForm((previous: any) => ({ ...previous, class_name: event.target.value }))} placeholder="For example, Grade 9 B" /></label></div><div className="admin-form-actions"><button type="button" className="admin-button-ghost" onClick={resetWizard}>Cancel</button><button type="button" className="admin-button-primary" disabled={!classForm.grade_level || !classForm.class_code.trim() || !classForm.class_name.trim()} onClick={() => classForm.id ? void handleSaveClass() : setWizardStep(3)}>{classForm.id ? 'Update class' : 'Review class'}</button></div></div> : null}
-        {wizardStep === 3 && !classForm.id ? <div className="class-wizard-panel"><div className="class-review-card"><span>Ready to create</span><strong>{classForm.class_code} — {classForm.class_name}</strong><small>Grade {classForm.grade_level} · active class</small></div><div className="admin-form-actions"><button type="button" className="admin-button-ghost" onClick={() => setWizardStep(2)}>Back</button><button type="button" className="admin-button-primary" disabled={classSaving} onClick={() => void handleSaveClass()}>{classSaving ? 'Creating class…' : 'Create class'}</button></div></div> : null}
+        {wizardStep === 3 && !classForm.id ? <div className="class-wizard-panel"><div className="class-review-card"><span>Ready to create</span><strong>{classForm.class_code} — {classForm.class_name}</strong><small>Grade {classForm.grade_level} · active class</small><small>{currentOfferings.filter((offering) => String(offering.gradeLevel) === String(classForm.grade_level)).map((offering) => offering.subjectName).join(' · ') || 'No subjects added yet. Add them in School Subjects after creating this class.'}</small></div><div className="admin-form-actions"><button type="button" className="admin-button-ghost" onClick={() => setWizardStep(2)}>Back</button><button type="button" className="admin-button-primary" disabled={classSaving} onClick={() => void handleSaveClass()}>{classSaving ? 'Creating class…' : 'Create class'}</button></div></div> : null}
         </> : null}
       </section>
 

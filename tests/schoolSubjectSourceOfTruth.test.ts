@@ -33,7 +33,7 @@ test('academic mapping is explicit and optional instead of inferred from a label
   assert.match(adminMigration, /p_academic_subject_id uuid default null/i);
   assert.match(adminMigration, /case when p_academic_subject_id is null then 'unmapped' else 'mapped' end/i);
   assert.match(manager, /No academic mapping yet/);
-  assert.match(manager, /Mapping shares curriculum\/questions; it never merges the subject/);
+  assert.match(manager, /Your school can keep its own subject name/);
 });
 
 test('different school subjects can share one academic map without sharing operational identity', () => {
