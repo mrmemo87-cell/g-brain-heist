@@ -1,0 +1,3546 @@
+{
+  "schemaVersion": 1,
+  "packageId": "bh-physics-0654-2025-2027-v1",
+  "packageVersion": "1.0.0",
+  "contentVersion": "physics-0654-2025-2027-v1",
+  "registryVersion": "bh-science-core-v1",
+  "subjectCode": "physics",
+  "authority": "PENDING HUMAN REVIEW - DO NOT PUBLISH",
+  "releaseNotes": "Uploaded bank, corrected and proposed for 0654 Physics alignment. Grades 9–11; explicit upper-secondary programme context, not automatic grade-to-stage equivalence. Confirm offering exam years before activation. Difficulty is editorial, not calibrated.",
+  "questions": [
+    {
+      "externalId": "bh-physics-0654-2025-2027-001",
+      "topic": "P2 Thermal physics",
+      "questionText": "Which statement describes the particles in a liquid?",
+      "questionType": "multiple_choice",
+      "options": [
+        "They are close together, in an irregular arrangement, and slide past each other.",
+        "They are far apart, in a regular pattern, and vibrate.",
+        "They are far apart and move randomly at high speed.",
+        "They are close together, in a fixed regular pattern, and vibrate."
+      ],
+      "correctAnswer": "They are close together, in an irregular arrangement, and slide past each other.",
+      "explanation": "Liquid particles are close together but irregularly arranged and can move around each other, so liquids flow but have a fixed volume.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.liquid-particles",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to describe liquid particle arrangement and motion. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P2.1.2.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 1; proposed alignment P2.1.2.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-002",
+      "topic": "P2 Thermal physics",
+      "questionText": "Which property is true for a gas but NOT for a liquid?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It has a fixed volume.",
+        "It has no fixed volume.",
+        "It has no fixed shape.",
+        "Its particles are in contact."
+      ],
+      "correctAnswer": "It has no fixed volume.",
+      "explanation": "Both liquids and gases have no fixed shape, but only a gas has no fixed volume — it fills its container.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.gas-volume",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to distinguish gas and liquid volume properties. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P2.1.1.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 2; proposed alignment P2.1.1.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-003",
+      "topic": "P2 Thermal physics",
+      "questionText": "Smoke particles in air are seen through a microscope moving in a random, jerky way. What causes this motion?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Collisions between the smoke particles themselves",
+        "The smoke particles being heated by the microscope light",
+        "Collisions of fast-moving, much smaller air molecules with the smoke particles",
+        "Convection currents in the air"
+      ],
+      "correctAnswer": "Collisions of fast-moving, much smaller air molecules with the smoke particles",
+      "explanation": "Brownian motion: light, fast-moving air molecules hit the larger smoke particles unevenly from all sides, pushing them randomly.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.brownian-motion",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain Brownian motion using molecular collisions. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P2.1.2.5",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 3; proposed alignment P2.1.2.5; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-006",
+      "topic": "P2 Thermal physics",
+      "questionText": "A sealed container of gas is heated. Its volume stays the same. Why does the pressure increase?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The particles stop colliding with each other.",
+        "The particles get bigger.",
+        "The number of particles increases.",
+        "The particles move faster, hitting the walls more often and with greater force."
+      ],
+      "correctAnswer": "The particles move faster, hitting the walls more often and with greater force.",
+      "explanation": "Higher temperature means higher average kinetic energy, so collisions with the walls are more frequent and each has a larger change of momentum.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.gases",
+          "evidenceFocusCode": "science.physics.thermal.gases.focus.constant-volume-heating",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain gas pressure increase at constant volume. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P2.1.3.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 6; proposed alignment P2.1.3.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-007",
+      "topic": "P2 Thermal physics",
+      "questionText": "How do gas particles exert a pressure on the walls of their container?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Their change of momentum when they hit the walls produces a force on the walls.",
+        "They stick to the walls and push outwards.",
+        "Their weight pushes down on the base of the container only.",
+        "They are attracted to the particles of the wall."
+      ],
+      "correctAnswer": "Their change of momentum when they hit the walls produces a force on the walls.",
+      "explanation": "Each collision changes the particle's momentum, which needs a force; the total force per unit area of wall is the pressure.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.gases",
+          "evidenceFocusCode": "science.physics.thermal.gases.focus.gas-wall-collisions",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain gas pressure using wall collisions. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P2.1.2.6",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 7; proposed alignment P2.1.2.6; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-009",
+      "topic": "P2 Thermal physics",
+      "questionText": "The volume of a fixed mass of gas is doubled while its temperature stays constant. What happens to its pressure?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It doubles.",
+        "It halves.",
+        "It stays the same.",
+        "It becomes four times larger."
+      ],
+      "correctAnswer": "It halves.",
+      "explanation": "pV = constant, so if V doubles, p must halve. Particles hit each unit area of wall less often.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.gases",
+          "evidenceFocusCode": "science.physics.thermal.gases.focus.pressure-volume-prediction",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to predict pressure change at constant temperature. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P2.1.3.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-predictions"
+        ],
+        "sourceReference": "Uploaded source question 9; proposed alignment P2.1.3.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-010",
+      "topic": "P2 Thermal physics",
+      "questionText": "A gas is cooled at constant volume. Which quantity decreases?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The size of each particle",
+        "The number of particles",
+        "The average kinetic energy of the particles",
+        "The mass of each particle"
+      ],
+      "correctAnswer": "The average kinetic energy of the particles",
+      "explanation": "Temperature is linked to the average kinetic energy of the particles; mass, size and number of particles do not change.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.relate-temperature-to-kinetic-energy-3488ba5482",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to relate temperature to average particle kinetic energy. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P2.1.2.2",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 10; proposed alignment P2.1.2.2; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-011",
+      "topic": "P2 Thermal physics",
+      "questionText": "For typical materials at constant pressure, equal initial volumes of a solid, a liquid and a gas have the same temperature rise. What is the usual order of increasing expansion?",
+      "questionType": "multiple_choice",
+      "options": [
+        "gas, liquid, solid",
+        "liquid, solid, gas",
+        "solid, gas, liquid",
+        "solid, liquid, gas"
+      ],
+      "correctAnswer": "solid, liquid, gas",
+      "explanation": "Typically, solids expand least, liquids more and gases most. Particular substances and conditions can show exceptions.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.compare-expansion",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to compare thermal expansion of states of matter. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P2.2.1.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 11; proposed alignment P2.2.1.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-012",
+      "topic": "P2 Thermal physics",
+      "questionText": "Why are small gaps left between sections of a concrete bridge?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To allow the sections to expand in hot weather without cracking",
+        "To make the bridge lighter",
+        "To reduce noise from traffic",
+        "To let rainwater drain away"
+      ],
+      "correctAnswer": "To allow the sections to expand in hot weather without cracking",
+      "explanation": "Concrete expands when heated; without gaps the expanding sections would push against each other and crack or buckle.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.expansion-applications",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain expansion gaps in structures. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P2.2.1.2",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 12; proposed alignment P2.2.1.2; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-013",
+      "topic": "P2 Thermal physics",
+      "questionText": "Why does a metal rod expand when it is heated?",
+      "questionType": "multiple_choice",
+      "options": [
+        "More particles are produced.",
+        "The particles vibrate with larger amplitude and move further apart on average.",
+        "The particles lose mass.",
+        "The particles get larger."
+      ],
+      "correctAnswer": "The particles vibrate with larger amplitude and move further apart on average.",
+      "explanation": "Heating increases the kinetic energy of the particles, so they vibrate more and their average separation increases.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.expansion-particles",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain expansion using mean particle separation. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P2.1.2.4",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 13; proposed alignment P2.1.2.4; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-017",
+      "topic": "P2 Thermal physics",
+      "questionText": "An object is heated and its temperature rises without a change of state. What happens to the average kinetic energy of its particles?",
+      "questionType": "multiple_choice",
+      "options": [
+        "They become heavier.",
+        "They stop vibrating.",
+        "Their average kinetic energy increases.",
+        "Their average kinetic energy decreases."
+      ],
+      "correctAnswer": "Their average kinetic energy increases.",
+      "explanation": "A rise in temperature corresponds to an increase in the average kinetic energy of the particles.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.relate-temperature-to-kinetic-energy-3488ba5482",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to relate temperature to average particle kinetic energy. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P2.1.2.2",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 17; proposed alignment P2.1.2.2; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-018",
+      "topic": "P2 Thermal physics",
+      "questionText": "Ice at 0 °C is heated and melts. The temperature stays at 0 °C until all the ice has melted. Why?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Ice cannot absorb energy.",
+        "The particles slow down as the ice melts.",
+        "Energy is being lost to the surroundings as fast as it is supplied.",
+        "The energy supplied increases particle potential energy by overcoming attractive forces, rather than increasing average kinetic energy."
+      ],
+      "correctAnswer": "The energy supplied increases particle potential energy by overcoming attractive forces, rather than increasing average kinetic energy.",
+      "explanation": "During a change of state the energy supplied increases the potential energy of the particles (separating them), not their kinetic energy, so temperature is constant.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.melting-energy",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain constant temperature during melting. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P2.2.2.5",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 18; proposed alignment P2.2.2.5; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-019",
+      "topic": "P2 Thermal physics",
+      "questionText": "Why does evaporation cause a liquid to cool down?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The most energetic particles escape, so the average kinetic energy of the remaining particles falls.",
+        "Air above the liquid takes in heat by conduction only.",
+        "The particles in the liquid get smaller.",
+        "The least energetic particles escape from the surface."
+      ],
+      "correctAnswer": "The most energetic particles escape, so the average kinetic energy of the remaining particles falls.",
+      "explanation": "More energetic particles are more likely to escape. Their loss reduces the average kinetic energy of the particles remaining in the liquid, causing cooling.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.evaporation-cooling",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain evaporative cooling through particle energies. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P2.2.2.3",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 19; proposed alignment P2.2.2.3; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-020",
+      "topic": "P2 Thermal physics",
+      "questionText": "At constant pressure, which statement correctly compares evaporation and boiling?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Evaporation happens throughout the liquid; boiling happens only at the surface.",
+        "Both happen only at a fixed temperature.",
+        "Evaporation happens only at the surface and at any temperature; boiling happens throughout the liquid at a fixed temperature.",
+        "Boiling can happen at any temperature; evaporation happens only at 100 °C."
+      ],
+      "correctAnswer": "Evaporation happens only at the surface and at any temperature; boiling happens throughout the liquid at a fixed temperature.",
+      "explanation": "Evaporation occurs at the surface over a range of temperatures. A pure liquid boils throughout its volume at its boiling point for the given pressure.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.boiling-evaporation",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to distinguish boiling and evaporation. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P2.2.2.6",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 20; proposed alignment P2.2.2.6; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-021",
+      "topic": "P2 Thermal physics",
+      "questionText": "Why are metals good thermal conductors?",
+      "questionType": "multiple_choice",
+      "options": [
+        "They are good absorbers of infrared radiation.",
+        "They contain free (delocalised) electrons that carry energy through the metal.",
+        "Their atoms are very far apart.",
+        "Convection currents form inside them."
+      ],
+      "correctAnswer": "They contain free (delocalised) electrons that carry energy through the metal.",
+      "explanation": "In metals, free electrons move quickly through the lattice and transfer energy, in addition to atomic vibrations.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.heat-transfer",
+          "evidenceFocusCode": "science.physics.thermal.heat-transfer.focus.explain-metal-thermal-conduction-using-mobile-electrons-ce99ed61ef",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain thermal conduction using mobile electrons. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P2.3.1.2",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 21; proposed alignment P2.3.1.2; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-022",
+      "topic": "P2 Thermal physics",
+      "questionText": "How is thermal energy conducted through a non-metal such as glass?",
+      "questionType": "multiple_choice",
+      "options": [
+        "By free electrons moving through the glass",
+        "By the glass particles moving from the hot end to the cold end",
+        "By vibrating atoms passing energy to neighbouring atoms",
+        "By infrared radiation only"
+      ],
+      "correctAnswer": "By vibrating atoms passing energy to neighbouring atoms",
+      "explanation": "Energy is passed between neighbouring atoms through vibrations. Glass has no mobile conduction electrons comparable to those in metals; it is generally a poor thermal conductor.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.heat-transfer",
+          "evidenceFocusCode": "science.physics.thermal.heat-transfer.focus.lattice-conduction",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain conduction through particle vibrations. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P2.3.1.2",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 22; proposed alignment P2.3.1.2; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-023",
+      "topic": "P2 Thermal physics",
+      "questionText": "Why can convection NOT happen in a solid?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Solids have no particles.",
+        "Solids do not expand when heated.",
+        "Solids are always cold.",
+        "The particles in a solid cannot move from place to place."
+      ],
+      "correctAnswer": "The particles in a solid cannot move from place to place.",
+      "explanation": "Convection needs the heated material itself to flow. Particles in a solid only vibrate about fixed positions.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.heat-transfer",
+          "evidenceFocusCode": "science.physics.thermal.heat-transfer.focus.convection-medium",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to identify why convection requires a flowing medium. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P2.3.2.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 23; proposed alignment P2.3.2.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-024",
+      "topic": "P2 Thermal physics",
+      "questionText": "Why is a room heater usually placed near the floor?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Air near the heater expands, becomes less dense and rises, setting up a convection current.",
+        "Thermal energy is conducted through the air to the ceiling.",
+        "Cold air cannot be heated near the ceiling.",
+        "Hot air is denser and sinks to the floor."
+      ],
+      "correctAnswer": "Air near the heater expands, becomes less dense and rises, setting up a convection current.",
+      "explanation": "Warm air is less dense, so it rises; cooler, denser air moves in to replace it, circulating heat around the room.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.heat-transfer",
+          "evidenceFocusCode": "science.physics.thermal.heat-transfer.focus.convection-density",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain convection through density changes. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P2.3.2.3",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 24; proposed alignment P2.3.2.3; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-025",
+      "topic": "P2 Thermal physics",
+      "questionText": "Which method of thermal energy transfer can take place through a vacuum?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Convection only",
+        "Thermal radiation",
+        "Conduction and convection",
+        "Conduction only"
+      ],
+      "correctAnswer": "Thermal radiation",
+      "explanation": "Thermal radiation transfers energy electromagnetically and requires no material medium. It is mainly infrared at ordinary temperatures.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.heat-transfer",
+          "evidenceFocusCode": "science.physics.thermal.heat-transfer.focus.radiation-vacuum",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to identify radiation as energy transfer through vacuum. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P2.3.3.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 25; proposed alignment P2.3.3.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-026",
+      "topic": "P2 Thermal physics",
+      "questionText": "Four identical cans contain equal masses of water at the same initial temperature in the same cooler surroundings. Their surfaces differ. Which is expected to lose energy fastest by thermal radiation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Shiny white",
+        "Dull white",
+        "Dull black",
+        "Shiny silver"
+      ],
+      "correctAnswer": "Dull black",
+      "explanation": "Dull black surfaces are the best emitters (and absorbers) of infrared radiation.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.heat-transfer",
+          "evidenceFocusCode": "science.physics.thermal.heat-transfer.focus.surface-emission",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to compare thermal emission from different surfaces. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P2.3.3.2",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-predictions"
+        ],
+        "sourceReference": "Uploaded source question 26; proposed alignment P2.3.3.2; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-027",
+      "topic": "P2 Thermal physics",
+      "questionText": "A kettle is designed to lose as little energy as possible by radiation. Which outer surface is best?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Dull grey",
+        "Matt dark green",
+        "Dull black",
+        "Shiny silver"
+      ],
+      "correctAnswer": "Shiny silver",
+      "explanation": "Shiny, light surfaces are poor emitters of infrared, so a shiny silver kettle loses energy by radiation most slowly.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.heat-transfer",
+          "evidenceFocusCode": "science.physics.thermal.heat-transfer.focus.surface-emission",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to compare thermal emission from different surfaces. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P2.3.3.2",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-predictions"
+        ],
+        "sourceReference": "Uploaded source question 27; proposed alignment P2.3.3.2; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-029",
+      "topic": "P2 Thermal physics",
+      "questionText": "If the average temperature of the Earth is constant over a long period, which energy balance must hold?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The Earth absorbs no radiation from the Sun.",
+        "The rate at which the Earth absorbs radiation equals the rate at which it emits radiation.",
+        "The Earth emits no radiation into space.",
+        "The atmosphere stops all infrared radiation."
+      ],
+      "correctAnswer": "The rate at which the Earth absorbs radiation equals the rate at which it emits radiation.",
+      "explanation": "A constant average temperature requires the average absorbed and emitted radiation powers to balance. A sustained imbalance changes the stored energy and temperature.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.heat-transfer",
+          "evidenceFocusCode": "science.physics.thermal.heat-transfer.focus.radiative-equilibrium",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain temperature stability using radiation balance. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P2.3.3.3",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 29; proposed alignment P2.3.3.3; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-030",
+      "topic": "P2 Thermal physics",
+      "questionText": "In a vacuum flask, what is the main purpose of the vacuum between the two walls?",
+      "questionType": "multiple_choice",
+      "options": [
+        "To reflect infrared radiation",
+        "To reduce energy transfer by radiation",
+        "To reduce energy transfer by conduction and convection",
+        "To increase energy transfer by convection"
+      ],
+      "correctAnswer": "To reduce energy transfer by conduction and convection",
+      "explanation": "Conduction and convection need particles; the vacuum has none. The silvered walls are what reduce radiation.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.heat-transfer",
+          "evidenceFocusCode": "science.physics.thermal.heat-transfer.focus.vacuum-insulation",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain vacuum insulation against conduction and convection. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P2.3.4.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 30; proposed alignment P2.3.4.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-031",
+      "topic": "P5 Nuclear physics",
+      "questionText": "Which pair of particle types can be found in atomic nuclei?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Neutrons and electrons",
+        "Protons, neutrons and electrons",
+        "Protons and electrons",
+        "Protons and neutrons"
+      ],
+      "correctAnswer": "Protons and neutrons",
+      "explanation": "Nuclei contain protons and usually neutrons; hydrogen-1 is the common exception with a single proton and no neutron. Electrons occupy the region outside the nucleus.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.atomic-structure",
+          "evidenceFocusCode": "science.physics.nuclear.atomic-structure.focus.nuclear-composition",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to identify nuclear constituents. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.1.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 31; proposed alignment P5.1.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-032",
+      "topic": "P5 Nuclear physics",
+      "questionText": "A nuclide is written as ²³₁₁Na. How many protons and neutrons does its nucleus contain?",
+      "questionType": "multiple_choice",
+      "options": [
+        "11 protons, 12 neutrons",
+        "12 protons, 11 neutrons",
+        "11 protons, 23 neutrons",
+        "23 protons, 11 neutrons"
+      ],
+      "correctAnswer": "11 protons, 12 neutrons",
+      "explanation": "Proton number Z = 11; nucleon number A = 23; neutrons = A − Z = 23 − 11 = 12.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.atomic-structure",
+          "evidenceFocusCode": "science.physics.nuclear.atomic-structure.focus.nuclide-numbers",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate proton and neutron numbers from nuclide notation. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.1.3",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-problem-solving"
+        ],
+        "sourceReference": "Uploaded source question 32; proposed alignment P5.1.3; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-033",
+      "topic": "P5 Nuclear physics",
+      "questionText": "What are isotopes of an element?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Atoms with the same number of protons but different numbers of neutrons",
+        "Atoms with different numbers of electrons only",
+        "Atoms with the same number of neutrons but different numbers of protons",
+        "Atoms with the same nucleon number but different proton numbers"
+      ],
+      "correctAnswer": "Atoms with the same number of protons but different numbers of neutrons",
+      "explanation": "Isotopes have the same proton number (same element) but different neutron numbers, so different nucleon numbers.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.atomic-structure",
+          "evidenceFocusCode": "science.physics.nuclear.atomic-structure.focus.isotopes",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to distinguish isotopes using proton and neutron numbers. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.1.5",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 33; proposed alignment P5.1.5; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-036",
+      "topic": "P5 Nuclear physics",
+      "questionText": "What happens in nuclear fission?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A nucleus absorbs a gamma ray and becomes stable.",
+        "Two light nuclei join to form a heavier nucleus.",
+        "An electron is emitted from the nucleus.",
+        "A large, unstable nucleus splits into two smaller nuclei, releasing energy."
+      ],
+      "correctAnswer": "A large, unstable nucleus splits into two smaller nuclei, releasing energy.",
+      "explanation": "In fission, a heavy nucleus (e.g. uranium-235, after absorbing a neutron) splits into two smaller nuclei plus neutrons, releasing energy.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.nuclear-reactions",
+          "evidenceFocusCode": "science.physics.nuclear.nuclear-reactions.focus.fission",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to distinguish nuclear fission from fusion. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P5.1.7",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 36; proposed alignment P5.1.7; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-037",
+      "topic": "P5 Nuclear physics",
+      "questionText": "What happens in nuclear fusion?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Two light nuclei join to form a heavier nucleus, releasing energy.",
+        "A heavy nucleus splits into two lighter nuclei.",
+        "A neutron changes into a proton.",
+        "An atom gains electrons."
+      ],
+      "correctAnswer": "Two light nuclei join to form a heavier nucleus, releasing energy.",
+      "explanation": "Fusion joins light nuclei (e.g. hydrogen into helium). It is the energy source of stars.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.nuclear-reactions",
+          "evidenceFocusCode": "science.physics.nuclear.nuclear-reactions.focus.fusion",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to distinguish nuclear fusion from fission. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P5.1.7",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 37; proposed alignment P5.1.7; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-038",
+      "topic": "P5 Nuclear physics",
+      "questionText": "Which of these is a source of background radiation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Microwave ovens",
+        "Radon gas from rocks",
+        "Wi-Fi routers",
+        "Mobile phones"
+      ],
+      "correctAnswer": "Radon gas from rocks",
+      "explanation": "Radon gas, rocks and buildings, cosmic rays, food and medical sources contribute to background radiation. The others give non-ionising radiation.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.background-sources",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to identify sources of ionising background radiation. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.1.2",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 38; proposed alignment P5.2.1.2; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-040",
+      "topic": "P5 Nuclear physics",
+      "questionText": "What is an alpha particle?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A high-speed electron",
+        "A helium nucleus: 2 protons and 2 neutrons",
+        "An electromagnetic wave",
+        "A single neutron"
+      ],
+      "correctAnswer": "A helium nucleus: 2 protons and 2 neutrons",
+      "explanation": "An alpha particle is ⁴₂He: two protons and two neutrons, with a charge of +2.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.alpha-nature",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to identify alpha particle composition. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.2.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-terminology"
+        ],
+        "sourceReference": "Uploaded source question 40; proposed alignment P5.2.2.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-041",
+      "topic": "P5 Nuclear physics",
+      "questionText": "What is a beta-minus particle?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A helium nucleus",
+        "A gamma ray",
+        "A high-speed electron emitted from the nucleus",
+        "An electron from the outer shell of the atom"
+      ],
+      "correctAnswer": "A high-speed electron emitted from the nucleus",
+      "explanation": "A beta particle is a fast-moving electron produced in, and emitted from, the nucleus.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.beta-nature",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to identify beta-minus particles. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.2.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-terminology"
+        ],
+        "sourceReference": "Uploaded source question 41; proposed alignment P5.2.2.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-042",
+      "topic": "P5 Nuclear physics",
+      "questionText": "What is gamma radiation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A stream of protons",
+        "A stream of electrons",
+        "A helium nucleus",
+        "Electromagnetic radiation"
+      ],
+      "correctAnswer": "Electromagnetic radiation",
+      "explanation": "Gamma rays are high-frequency electromagnetic waves with no mass and no charge.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.gamma-nature",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to identify gamma as electromagnetic radiation. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.2.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-terminology"
+        ],
+        "sourceReference": "Uploaded source question 42; proposed alignment P5.2.2.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-043",
+      "topic": "P5 Nuclear physics",
+      "questionText": "Which type of radiation is the most strongly ionising?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Alpha",
+        "Beta",
+        "Gamma",
+        "All are equally ionising"
+      ],
+      "correctAnswer": "Alpha",
+      "explanation": "Alpha particles are large and have a +2 charge, so they ionise strongly — which is also why their range is short.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.ionisation",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to compare ionising effects of nuclear emissions. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.2.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 43; proposed alignment P5.2.2.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-044",
+      "topic": "P5 Nuclear physics",
+      "questionText": "A radiation passes through a sheet of paper but is stopped by a few millimetres of aluminium. Which type is it?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Alpha",
+        "Beta",
+        "Gamma",
+        "Alpha and gamma"
+      ],
+      "correctAnswer": "Beta",
+      "explanation": "Alpha is stopped by paper; beta needs a few mm of aluminium; gamma is only reduced by thick lead or concrete.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.penetration",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to identify emissions using absorber evidence. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.2.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-predictions"
+        ],
+        "sourceReference": "Uploaded source question 44; proposed alignment P5.2.2.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-045",
+      "topic": "P5 Nuclear physics",
+      "questionText": "Which type of radiation is the most penetrating?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Alpha",
+        "Beta",
+        "Gamma",
+        "They are all equally penetrating"
+      ],
+      "correctAnswer": "Gamma",
+      "explanation": "Of alpha, beta and gamma radiation, gamma is the most penetrating. Thick lead or concrete attenuates gamma radiation; it is not stopped at a single definite range.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.penetration",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to compare penetration of nuclear emissions. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.2.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 45; proposed alignment P5.2.2.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-048",
+      "topic": "P5 Nuclear physics",
+      "questionText": "Radium-226 (²²⁶₈₈Ra) decays by emitting an alpha particle. Which nuclide is produced?",
+      "questionType": "multiple_choice",
+      "options": [
+        "²²⁶₈₉Ac",
+        "²²²₈₆Rn",
+        "²²⁶₈₇Fr",
+        "²²²₈₈Ra"
+      ],
+      "correctAnswer": "²²²₈₆Rn",
+      "explanation": "Alpha decay removes ⁴₂He: nucleon number 226 − 4 = 222, proton number 88 − 2 = 86 (radon).",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.alpha-decay",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to determine daughter nuclides after alpha decay. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P5.2.3.4",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-problem-solving"
+        ],
+        "sourceReference": "Uploaded source question 48; proposed alignment P5.2.3.4; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-049",
+      "topic": "P5 Nuclear physics",
+      "questionText": "Carbon-14 (¹⁴₆C) decays by beta-minus emission. Which nuclide is produced?",
+      "questionType": "multiple_choice",
+      "options": [
+        "¹⁴₅B",
+        "¹⁰₄Be",
+        "¹⁴₇N",
+        "¹³₆C"
+      ],
+      "correctAnswer": "¹⁴₇N",
+      "explanation": "In beta decay the nucleon number is unchanged (14) and the proton number increases by 1 (6 → 7, nitrogen).",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.beta-decay-nuclide",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to determine daughter nuclides after beta-minus decay. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P5.2.3.4",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-problem-solving"
+        ],
+        "sourceReference": "Uploaded source question 49; proposed alignment P5.2.3.4; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-050",
+      "topic": "P5 Nuclear physics",
+      "questionText": "What happens inside the nucleus during beta-minus decay?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Two protons and two neutrons are emitted.",
+        "An electron is captured from the outer shell.",
+        "A proton changes into a neutron and an electron.",
+        "A neutron changes into a proton and an electron."
+      ],
+      "correctAnswer": "A neutron changes into a proton and an electron.",
+      "explanation": "A neutron changes into a proton and an electron; the electron is emitted. An electron antineutrino is also emitted, although it is outside the required 0654 description.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.beta-decay-process",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to describe nuclear change in beta-minus emission. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.3.3",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 50; proposed alignment P5.2.3.3; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-051",
+      "topic": "P5 Nuclear physics",
+      "questionText": "A nucleus emits a gamma ray. What happens to its proton number and nucleon number?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Both decrease by 1.",
+        "Proton number increases by 1; nucleon number is unchanged.",
+        "Proton number decreases by 2; nucleon number decreases by 4.",
+        "Both stay the same."
+      ],
+      "correctAnswer": "Both stay the same.",
+      "explanation": "Gamma emission releases nuclear energy as a photon. The numbers of protons and neutrons remain unchanged.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.gamma-decay",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to determine nucleon and proton changes in gamma emission. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P5.2.3.4",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 51; proposed alignment P5.2.3.4; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-052",
+      "topic": "P5 Nuclear physics",
+      "questionText": "Which statement about radioactive decay is correct?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It is random and spontaneous.",
+        "It can be stopped by putting the source in a magnetic field.",
+        "Each nucleus decays at a predictable time.",
+        "It speeds up when the source is heated."
+      ],
+      "correctAnswer": "It is random and spontaneous.",
+      "explanation": "Decay is random (we cannot predict which nucleus decays next) and spontaneous (unaffected by temperature, pressure or chemical changes).",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.random-decay",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain random and spontaneous radioactive decay. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.3.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 52; proposed alignment P5.2.3.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-053",
+      "topic": "P5 Nuclear physics",
+      "questionText": "What is meant by the half-life of a radioactive isotope?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Half the time taken for all the nuclei to decay",
+        "The time taken for half the nuclei in a sample to decay",
+        "The time taken for the mass of the sample to halve because of evaporation",
+        "The time taken for the count rate to fall to zero"
+      ],
+      "correctAnswer": "The time taken for half the nuclei in a sample to decay",
+      "explanation": "Half-life is the time for half the initially undecayed nuclei to decay. The source count rate also halves over this interval when background is negligible or properly corrected.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.half-life-definition",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to define radioactive half-life. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.4.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-terminology"
+        ],
+        "sourceReference": "Uploaded source question 53; proposed alignment P5.2.4.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-054",
+      "topic": "P5 Nuclear physics",
+      "questionText": "A radioactive isotope has a half-life of 8 days. A sample contains 800 undecayed nuclei. How many remain undecayed after 24 days?",
+      "questionType": "multiple_choice",
+      "options": [
+        "400",
+        "200",
+        "100",
+        "50"
+      ],
+      "correctAnswer": "100",
+      "explanation": "24 ÷ 8 = 3 half-lives: 800 → 400 → 200 → 100.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.half-life-remaining",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate undecayed quantity after whole half-lives. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.4.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-problem-solving"
+        ],
+        "sourceReference": "Uploaded source question 54; proposed alignment P5.2.4.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-055",
+      "topic": "P5 Nuclear physics",
+      "questionText": "The count rate from a source falls from 640 counts/s to 80 counts/s in 30 minutes. What is the half-life? (Background is negligible.)",
+      "questionType": "multiple_choice",
+      "options": [
+        "5 minutes",
+        "10 minutes",
+        "15 minutes",
+        "30 minutes"
+      ],
+      "correctAnswer": "10 minutes",
+      "explanation": "640 → 320 → 160 → 80 is 3 half-lives in 30 minutes, so one half-life = 10 minutes.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.half-life-from-data",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to determine half-life from decay data. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.4.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-problem-solving"
+        ],
+        "sourceReference": "Uploaded source question 55; proposed alignment P5.2.4.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-057",
+      "topic": "P5 Nuclear physics",
+      "questionText": "What fraction of a radioactive sample remains undecayed after 4 half-lives?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1/4",
+        "1/8",
+        "1/16",
+        "1/32"
+      ],
+      "correctAnswer": "1/16",
+      "explanation": "(1/2)⁴ = 1/16.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.half-life-remaining",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate undecayed fraction after whole half-lives. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.4.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-problem-solving"
+        ],
+        "sourceReference": "Uploaded source question 57; proposed alignment P5.2.4.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-058",
+      "topic": "P5 Nuclear physics",
+      "questionText": "Why is an alpha source used in smoke detectors?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Alpha sources have very short half-lives.",
+        "Alpha radiation is very penetrating, so it reaches every room.",
+        "Alpha radiation strongly ionises the air; smoke reduces the ionisation current.",
+        "Alpha radiation is not affected by smoke."
+      ],
+      "correctAnswer": "Alpha radiation strongly ionises the air; smoke reduces the ionisation current.",
+      "explanation": "The sealed alpha source ionises air so a small current flows. Smoke reduces this current and triggers the alarm. Its short range limits external exposure in an intact detector; radioactive sources still require controlled handling.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.smoke-detectors",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain alpha radiation use in smoke detectors. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.5.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-applications"
+        ],
+        "sourceReference": "Uploaded source question 58; proposed alignment P5.2.5.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-059",
+      "topic": "P5 Nuclear physics",
+      "questionText": "A factory monitors the thickness of paper as it is made. Which source is most suitable?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A gamma source",
+        "A source of visible light",
+        "An alpha source",
+        "A beta source"
+      ],
+      "correctAnswer": "A beta source",
+      "explanation": "Beta absorption changes usefully with paper thickness. Alpha is too readily absorbed, while gamma is generally too penetrating for this application.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.thickness-monitoring",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to select radiation for thickness monitoring. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.5.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-predictions"
+        ],
+        "sourceReference": "Uploaded source question 59; proposed alignment P5.2.5.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-060",
+      "topic": "P5 Nuclear physics",
+      "questionText": "Which action does NOT reduce a person's exposure to ionising radiation from a source?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Wearing a dark-coloured coat",
+        "Increasing the distance from the source",
+        "Reducing the time spent near the source",
+        "Using lead shielding"
+      ],
+      "correctAnswer": "Wearing a dark-coloured coat",
+      "explanation": "Safety relies on time, distance and shielding (e.g. lead). Clothing colour has no effect on ionising radiation.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.radiation-safety",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to select effective exposure-reduction precautions. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P5.2.5.3",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-apparatus-safety"
+        ],
+        "sourceReference": "Uploaded source question 60; proposed alignment P5.2.5.3; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-066",
+      "topic": "P6 Space physics",
+      "questionText": "Which planet is fifth in order from the Sun?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Jupiter",
+        "Saturn",
+        "Earth",
+        "Mars"
+      ],
+      "correctAnswer": "Jupiter",
+      "explanation": "Order: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.solar-system",
+          "evidenceFocusCode": "science.physics.space.solar-system.focus.planet-order",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to recall planet order from the Sun. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P6.1.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 66; proposed alignment P6.1.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-070",
+      "topic": "P6 Space physics",
+      "questionText": "How does the orbital speed of planets generally change with increasing distance from the Sun?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Orbital speed decreases.",
+        "Orbital speed stays the same.",
+        "Orbital speed doubles for each doubling of distance.",
+        "Orbital speed increases."
+      ],
+      "correctAnswer": "Orbital speed decreases.",
+      "explanation": "More distant planets generally have lower orbital speeds, consistent with the weakening gravitational field of the Sun.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.solar-system",
+          "evidenceFocusCode": "science.physics.space.solar-system.focus.orbital-speed-distance",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to predict orbital speed with distance from the Sun. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P6.2.1.7",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-predictions"
+        ],
+        "sourceReference": "Uploaded source question 70; proposed alignment P6.2.1.7; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-071",
+      "topic": "P6 Space physics",
+      "questionText": "The Earth orbits the Sun at a radius of 1.5 × 10¹¹ m with a period of 3.2 × 10⁷ s. What is its approximate orbital speed?",
+      "questionType": "multiple_choice",
+      "options": [
+        "4.7 × 10³ m/s",
+        "2.9 × 10⁴ m/s",
+        "4.7 × 10⁴ m/s",
+        "2.9 × 10⁵ m/s"
+      ],
+      "correctAnswer": "2.9 × 10⁴ m/s",
+      "explanation": "v = 2πr/T = (2 × 3.14 × 1.5 × 10¹¹) ÷ 3.2 × 10⁷ ≈ 2.9 × 10⁴ m/s (about 30 km/s).",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.solar-system",
+          "evidenceFocusCode": "science.physics.space.solar-system.focus.orbital-speed-calculation",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate orbital speed from radius and period. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P6.2.1.6",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-problem-solving"
+        ],
+        "sourceReference": "Uploaded source question 71; proposed alignment P6.2.1.6; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-072",
+      "topic": "P6 Space physics",
+      "questionText": "The Sun is 1.5 × 10¹¹ m from the Earth. The speed of light is 3.0 × 10⁸ m/s. How long does light take to travel from the Sun to the Earth?",
+      "questionType": "multiple_choice",
+      "options": [
+        "50 s",
+        "500 s",
+        "5000 s",
+        "4.5 × 10¹⁹ s"
+      ],
+      "correctAnswer": "500 s",
+      "explanation": "t = d/v = 1.5 × 10¹¹ ÷ 3.0 × 10⁸ = 500 s (about 8 minutes).",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.solar-system",
+          "evidenceFocusCode": "science.physics.space.solar-system.focus.light-travel-time",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate light travel time across astronomical distances. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P6.2.1.2",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-problem-solving"
+        ],
+        "sourceReference": "Uploaded source question 72; proposed alignment P6.2.1.2; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-074",
+      "topic": "P6 Space physics",
+      "questionText": "Which statement about the Sun is correct?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It is a white dwarf.",
+        "It is a very large star made mostly of iron.",
+        "It is a medium-sized star made mostly of hydrogen and helium.",
+        "It is a planet that reflects light."
+      ],
+      "correctAnswer": "It is a medium-sized star made mostly of hydrogen and helium.",
+      "explanation": "The Sun is a medium-sized star consisting mainly of hydrogen and helium.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.stars",
+          "evidenceFocusCode": "science.physics.space.stars.focus.stellar-composition",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to describe the Sun's composition and size. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P6.2.1.5",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 74; proposed alignment P6.2.1.5; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-075",
+      "topic": "P6 Space physics",
+      "questionText": "In which regions of the electromagnetic spectrum does the Sun radiate most of its energy?",
+      "questionType": "multiple_choice",
+      "options": [
+        "X-rays and gamma rays",
+        "Microwaves and X-rays",
+        "Radio waves and microwaves",
+        "Infrared, visible light and ultraviolet"
+      ],
+      "correctAnswer": "Infrared, visible light and ultraviolet",
+      "explanation": "Most of the Sun's output is infrared, visible and ultraviolet radiation.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.stars",
+          "evidenceFocusCode": "science.physics.space.stars.focus.solar-spectrum",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to identify the main regions of solar radiation. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P6.2.1.5",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 75; proposed alignment P6.2.1.5; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-076",
+      "topic": "P6 Space physics",
+      "questionText": "What is the source of energy in a stable star such as the Sun?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Nuclear fusion of hydrogen into helium",
+        "Radioactive decay of carbon",
+        "Burning of hydrogen gas with oxygen",
+        "Nuclear fission of uranium"
+      ],
+      "correctAnswer": "Nuclear fusion of hydrogen into helium",
+      "explanation": "In the core, hydrogen nuclei fuse to form helium, releasing large amounts of energy.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.stars",
+          "evidenceFocusCode": "science.physics.space.stars.focus.stellar-fusion",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to identify hydrogen fusion as stable-star energy source. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P6.2.1.8",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 76; proposed alignment P6.2.1.8; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-077",
+      "topic": "P6 Space physics",
+      "questionText": "What is a galaxy?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A group of planets orbiting one star",
+        "A collection of many billions of stars",
+        "A cloud of gas around a planet",
+        "Another name for the Solar System"
+      ],
+      "correctAnswer": "A collection of many billions of stars",
+      "explanation": "A galaxy contains many billions of stars. The Sun is one star in the Milky Way galaxy.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.cosmology",
+          "evidenceFocusCode": "science.physics.space.cosmology.focus.galaxy-structure",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to describe galaxies as collections of stars. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P6.2.3.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 77; proposed alignment P6.2.3.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-078",
+      "topic": "P6 Space physics",
+      "questionText": "What does the light-year measure?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Time",
+        "Speed",
+        "Distance",
+        "Brightness"
+      ],
+      "correctAnswer": "Distance",
+      "explanation": "A light-year is the distance light travels in one year, about 9.5 × 10¹⁵ m.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.solar-system",
+          "evidenceFocusCode": "science.physics.space.solar-system.focus.light-year-definition",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to identify light-year as a distance unit. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P6.2.1.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-terminology"
+        ],
+        "sourceReference": "Uploaded source question 78; proposed alignment P6.2.1.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-079",
+      "topic": "P6 Space physics",
+      "questionText": "The nearest star to the Sun is 4.2 light-years away. 1 light-year = 9.5 × 10¹⁵ m. What is this distance in metres?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2.3 × 10¹⁵ m",
+        "4.0 × 10¹⁶ m",
+        "4.0 × 10¹⁵ m",
+        "9.5 × 10¹⁶ m"
+      ],
+      "correctAnswer": "4.0 × 10¹⁶ m",
+      "explanation": "4.2 × 9.5 × 10¹⁵ ≈ 40 × 10¹⁵ = 4.0 × 10¹⁶ m.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.solar-system",
+          "evidenceFocusCode": "science.physics.space.solar-system.focus.light-year-conversion",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to convert astronomical distances using a supplied light-year value. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P6.2.1.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-problem-solving"
+        ],
+        "sourceReference": "Uploaded source question 79; proposed alignment P6.2.1.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-080",
+      "topic": "P6 Space physics",
+      "questionText": "What is the first stage in the life cycle of a star?",
+      "questionType": "multiple_choice",
+      "options": [
+        "A white dwarf cools down.",
+        "A supernova explodes.",
+        "A red giant forms.",
+        "A protostar forms from a cloud of gas and dust collapsing under gravity."
+      ],
+      "correctAnswer": "A protostar forms from a cloud of gas and dust collapsing under gravity.",
+      "explanation": "An interstellar cloud of gas and dust collapses under gravity to form a protostar, which heats up as it shrinks.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.stars",
+          "evidenceFocusCode": "science.physics.space.stars.focus.protostar-formation",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to describe gravitational protostar formation. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P6.2.2.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 80; proposed alignment P6.2.2.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-082",
+      "topic": "P6 Space physics",
+      "questionText": "What happens to a star like the Sun when most of the hydrogen in its core has been used up?",
+      "questionType": "multiple_choice",
+      "options": [
+        "It immediately becomes a black hole.",
+        "It expands to form a red giant.",
+        "It explodes as a supernova.",
+        "It shrinks to become a protostar."
+      ],
+      "correctAnswer": "It expands to form a red giant.",
+      "explanation": "When core hydrogen runs out, a Sun-like star swells into a red giant.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.stars",
+          "evidenceFocusCode": "science.physics.space.stars.focus.low-mass-evolution",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to identify red-giant evolution of a Sun-like star. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P6.2.2.2",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 82; proposed alignment P6.2.2.2; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-083",
+      "topic": "P6 Space physics",
+      "questionText": "Which stellar remnant is left after a Sun-like star sheds its outer layers?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Black hole",
+        "Neutron star",
+        "White dwarf",
+        "Red supergiant"
+      ],
+      "correctAnswer": "White dwarf",
+      "explanation": "A red giant forms a planetary nebula, leaving behind a white dwarf at its centre.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.stars",
+          "evidenceFocusCode": "science.physics.space.stars.focus.low-mass-remnant",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to identify the white-dwarf remnant of a Sun-like star. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P6.2.2.2",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 83; proposed alignment P6.2.2.2; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-084",
+      "topic": "P6 Space physics",
+      "questionText": "A very massive star reaches the end of its life. Which sequence is correct?",
+      "questionType": "multiple_choice",
+      "options": [
+        "protostar → supernova → white dwarf",
+        "red supergiant → planetary nebula → protostar",
+        "red giant → white dwarf",
+        "red supergiant → supernova → neutron star or black hole"
+      ],
+      "correctAnswer": "red supergiant → supernova → neutron star or black hole",
+      "explanation": "Massive stars become red supergiants, explode as supernovae and leave a neutron star or, for the most massive, a black hole.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.stars",
+          "evidenceFocusCode": "science.physics.space.stars.focus.massive-star-evolution",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to sequence the evolution of massive stars. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P6.2.2.2",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 84; proposed alignment P6.2.2.2; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-2025-2027-085",
+      "topic": "P6 Space physics",
+      "questionText": "What can the nebula formed by a supernova go on to produce?",
+      "questionType": "multiple_choice",
+      "options": [
+        "New stars and planets, containing heavier elements",
+        "Only black holes",
+        "Only hydrogen gas",
+        "Nothing, because all the matter is destroyed"
+      ],
+      "correctAnswer": "New stars and planets, containing heavier elements",
+      "explanation": "A supernova nebula contains hydrogen and heavier elements; it can collapse to form new stars with orbiting planets.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.stars",
+          "evidenceFocusCode": "science.physics.space.stars.focus.stellar-recycling",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to describe star and planet formation from supernova remnants. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO1",
+        "assessmentObjectives": [
+          "AO1"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P6.2.2.3",
+        "objectiveComponents": [
+          "BH-CIE0654-AO1-concepts"
+        ],
+        "sourceReference": "Uploaded source question 85; proposed alignment P6.2.2.3; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    }
+  ]
+}

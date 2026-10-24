@@ -1,0 +1,320 @@
+[
+  {
+    "sourceId": 4,
+    "changes": {
+      "question": {
+        "before": "What is the value of absolute zero?",
+        "after": "Approximately what is the value of absolute zero in degrees Celsius?"
+      },
+      "explanation": {
+        "before": "Absolute zero is 0 K = −273 °C, the temperature at which particles have the least possible kinetic energy.",
+        "after": "Absolute zero is 0 K, equal to -273.15 °C, usually rounded to -273 °C at this level."
+      }
+    }
+  },
+  {
+    "sourceId": 11,
+    "changes": {
+      "question": {
+        "before": "Equal volumes of a solid, a liquid and a gas are heated through the same temperature rise. Which list is in order of increasing expansion?",
+        "after": "For typical materials at constant pressure, equal initial volumes of a solid, a liquid and a gas have the same temperature rise. What is the usual order of increasing expansion?"
+      },
+      "explanation": {
+        "before": "Forces between particles are strongest in solids and weakest in gases, so solids expand least and gases most.",
+        "after": "Typically, solids expand least, liquids more and gases most. Particular substances and conditions can show exceptions."
+      }
+    }
+  },
+  {
+    "sourceId": 17,
+    "changes": {
+      "question": {
+        "before": "When the internal energy of an object increases, its temperature rises. What happens to its particles?",
+        "after": "An object is heated and its temperature rises without a change of state. What happens to the average kinetic energy of its particles?"
+      }
+    }
+  },
+  {
+    "sourceId": 18,
+    "changes": {
+      "D": {
+        "before": "The energy supplied breaks the bonds between particles instead of increasing their kinetic energy.",
+        "after": "The energy supplied increases particle potential energy by overcoming attractive forces, rather than increasing average kinetic energy."
+      }
+    }
+  },
+  {
+    "sourceId": 19,
+    "changes": {
+      "explanation": {
+        "before": "Only the fastest particles have enough energy to escape; losing them lowers the average kinetic energy, and hence the temperature, of the liquid left behind.",
+        "after": "More energetic particles are more likely to escape. Their loss reduces the average kinetic energy of the particles remaining in the liquid, causing cooling."
+      }
+    }
+  },
+  {
+    "sourceId": 20,
+    "changes": {
+      "question": {
+        "before": "Which statement correctly compares evaporation and boiling?",
+        "after": "At constant pressure, which statement correctly compares evaporation and boiling?"
+      },
+      "explanation": {
+        "before": "Evaporation is a surface effect at any temperature; boiling forms bubbles throughout the liquid and only at the boiling point.",
+        "after": "Evaporation occurs at the surface over a range of temperatures. A pure liquid boils throughout its volume at its boiling point for the given pressure."
+      }
+    }
+  },
+  {
+    "sourceId": 22,
+    "changes": {
+      "explanation": {
+        "before": "In non-metals, conduction happens only through lattice vibrations passed from particle to particle, so it is slower than in metals.",
+        "after": "Energy is passed between neighbouring atoms through vibrations. Glass has no mobile conduction electrons comparable to those in metals; it is generally a poor thermal conductor."
+      }
+    }
+  },
+  {
+    "sourceId": 25,
+    "changes": {
+      "B": {
+        "before": "Infrared radiation only",
+        "after": "Thermal radiation"
+      },
+      "explanation": {
+        "before": "Infrared radiation is an electromagnetic wave and needs no medium, which is how energy reaches Earth from the Sun.",
+        "after": "Thermal radiation transfers energy electromagnetically and requires no material medium. It is mainly infrared at ordinary temperatures."
+      }
+    }
+  },
+  {
+    "sourceId": 26,
+    "changes": {
+      "question": {
+        "before": "Four identical cans of hot water have differently painted surfaces. Which one cools fastest?",
+        "after": "Four identical cans contain equal masses of water at the same initial temperature in the same cooler surroundings. Their surfaces differ. Which is expected to lose energy fastest by thermal radiation?"
+      }
+    }
+  },
+  {
+    "sourceId": 28,
+    "changes": {
+      "question": {
+        "before": "Which change increases the rate at which an object emits infrared radiation?",
+        "after": "With other conditions unchanged, which change increases the total power emitted by an object as infrared radiation?"
+      }
+    }
+  },
+  {
+    "sourceId": 29,
+    "changes": {
+      "question": {
+        "before": "The average temperature of the Earth stays roughly constant over a long period. Why?",
+        "after": "If the average temperature of the Earth is constant over a long period, which energy balance must hold?"
+      },
+      "explanation": {
+        "before": "When absorption and emission rates balance, there is no net gain of energy, so temperature stays constant. If emission is reduced (e.g. more greenhouse gases), the temperature rises.",
+        "after": "A constant average temperature requires the average absorbed and emitted radiation powers to balance. A sustained imbalance changes the stored energy and temperature."
+      }
+    }
+  },
+  {
+    "sourceId": 31,
+    "changes": {
+      "question": {
+        "before": "Which particles are found in the nucleus of an atom?",
+        "after": "Which pair of particle types can be found in atomic nuclei?"
+      },
+      "explanation": {
+        "before": "The nucleus contains protons and neutrons (nucleons); electrons are outside the nucleus.",
+        "after": "Nuclei contain protons and usually neutrons; hydrogen-1 is the common exception with a single proton and no neutron. Electrons occupy the region outside the nucleus."
+      }
+    }
+  },
+  {
+    "sourceId": 41,
+    "changes": {
+      "question": {
+        "before": "What is a beta particle?",
+        "after": "What is a beta-minus particle?"
+      }
+    }
+  },
+  {
+    "sourceId": 45,
+    "changes": {
+      "explanation": {
+        "before": "Gamma is weakly ionising, so it travels furthest; it is only significantly reduced by thick lead or concrete.",
+        "after": "Of alpha, beta and gamma radiation, gamma is the most penetrating. Thick lead or concrete attenuates gamma radiation; it is not stopped at a single definite range."
+      }
+    }
+  },
+  {
+    "sourceId": 47,
+    "changes": {
+      "question": {
+        "before": "In an electric field, alpha and beta particles are deflected. Which statement is correct?",
+        "after": "Alpha particles and beta-minus particles enter the same uniform electric field. What can be concluded about the directions of their deflection?"
+      },
+      "A": {
+        "before": "They are deflected in opposite directions; beta is deflected more.",
+        "after": "They deflect in opposite directions because their charges have opposite signs."
+      },
+      "B": {
+        "before": "They are deflected in opposite directions; alpha is deflected more.",
+        "after": "They deflect in the same direction because both have mass."
+      },
+      "C": {
+        "before": "They are deflected in the same direction by the same amount.",
+        "after": "Neither deflects because neither is charged."
+      },
+      "D": {
+        "before": "They are deflected in the same direction; alpha is deflected more.",
+        "after": "Only alpha particles deflect because beta-minus particles have no charge."
+      },
+      "explanation": {
+        "before": "Opposite charges (+2 and −1) give opposite deflections; the beta particle has a much smaller mass, so it is deflected much more.",
+        "after": "Alpha particles carry positive charge and beta-minus particles carry negative charge, so their electric forces point in opposite directions. Comparing deflection sizes also requires information about their motion."
+      }
+    }
+  },
+  {
+    "sourceId": 49,
+    "changes": {
+      "question": {
+        "before": "Carbon-14 (¹⁴₆C) decays by beta emission. Which nuclide is produced?",
+        "after": "Carbon-14 (¹⁴₆C) decays by beta-minus emission. Which nuclide is produced?"
+      }
+    }
+  },
+  {
+    "sourceId": 50,
+    "changes": {
+      "question": {
+        "before": "What happens inside the nucleus during beta decay?",
+        "after": "What happens inside the nucleus during beta-minus decay?"
+      },
+      "explanation": {
+        "before": "A neutron turns into a proton (which stays) and a fast electron (emitted as the beta particle).",
+        "after": "A neutron changes into a proton and an electron; the electron is emitted. An electron antineutrino is also emitted, although it is outside the required 0654 description."
+      }
+    }
+  },
+  {
+    "sourceId": 51,
+    "changes": {
+      "explanation": {
+        "before": "Gamma emission only releases excess energy from the nucleus; no particles are lost, so neither number changes.",
+        "after": "Gamma emission releases nuclear energy as a photon. The numbers of protons and neutrons remain unchanged."
+      }
+    }
+  },
+  {
+    "sourceId": 53,
+    "changes": {
+      "explanation": {
+        "before": "Half-life is the time for half the undecayed nuclei (or the count rate) to halve.",
+        "after": "Half-life is the time for half the initially undecayed nuclei to decay. The source count rate also halves over this interval when background is negligible or properly corrected."
+      }
+    }
+  },
+  {
+    "sourceId": 58,
+    "changes": {
+      "C": {
+        "before": "Alpha radiation strongly ionises the air but has a very short range, so it is safe outside the detector.",
+        "after": "Alpha radiation strongly ionises the air; smoke reduces the ionisation current."
+      },
+      "explanation": {
+        "before": "Alpha ionises the air to make a small current; smoke absorbs the alpha particles and the current drops, setting off the alarm. Its short range keeps users safe.",
+        "after": "The sealed alpha source ionises air so a small current flows. Smoke reduces this current and triggers the alarm. Its short range limits external exposure in an intact detector; radioactive sources still require controlled handling."
+      }
+    }
+  },
+  {
+    "sourceId": 59,
+    "changes": {
+      "explanation": {
+        "before": "Alpha would be completely stopped by paper and gamma would pass straight through. The amount of beta absorbed changes noticeably with paper thickness.",
+        "after": "Beta absorption changes usefully with paper thickness. Alpha is too readily absorbed, while gamma is generally too penetrating for this application."
+      }
+    }
+  },
+  {
+    "sourceId": 64,
+    "changes": {
+      "explanation": {
+        "before": "The Moon orbits the Earth in about one month (roughly 27–29 days).",
+        "after": "The Moon completes an orbit relative to distant stars in about 27.3 days. The cycle of phases takes about 29.5 days; both are approximately one month."
+      }
+    }
+  },
+  {
+    "sourceId": 68,
+    "changes": {
+      "question": {
+        "before": "Why are the four inner planets small and rocky while the outer planets are gas giants?",
+        "after": "Why are the inner planets rocky while the outer planets are much larger and rich in gases or ices?"
+      },
+      "C": {
+        "before": "Near the hot Sun only rocky material could condense; lighter gases were pushed further out.",
+        "after": "Near the hot young Sun, rock and metal could condense; farther out, cooler conditions allowed ice-rich cores to form and some planets retained thick gas envelopes."
+      },
+      "explanation": {
+        "before": "Close to the young Sun it was too hot for gases to condense, so the inner planets formed from rock and metal.",
+        "after": "In the hot inner disc, rock and metal could condense. Farther out, cooler conditions allowed ices to accumulate and large cores to retain gas. Jupiter and Saturn are gas giants; Uranus and Neptune are ice giants."
+      }
+    }
+  },
+  {
+    "sourceId": 70,
+    "changes": {
+      "question": {
+        "before": "How do the orbits of planets change with increasing distance from the Sun?",
+        "after": "How does the orbital speed of planets generally change with increasing distance from the Sun?"
+      },
+      "A": {
+        "before": "Orbital speed decreases and orbital period increases.",
+        "after": "Orbital speed decreases."
+      },
+      "B": {
+        "before": "Orbital speed and period both stay the same.",
+        "after": "Orbital speed stays the same."
+      },
+      "C": {
+        "before": "Orbital speed and period both decrease.",
+        "after": "Orbital speed doubles for each doubling of distance."
+      },
+      "D": {
+        "before": "Orbital speed increases and orbital period decreases.",
+        "after": "Orbital speed increases."
+      },
+      "explanation": {
+        "before": "The Sun's gravitational field weakens with distance, so further planets move more slowly and have much longer orbits.",
+        "after": "More distant planets generally have lower orbital speeds, consistent with the weakening gravitational field of the Sun."
+      }
+    }
+  },
+  {
+    "sourceId": 83,
+    "changes": {
+      "question": {
+        "before": "What is the final stage in the life of a low-mass star like the Sun?",
+        "after": "Which stellar remnant is left after a Sun-like star sheds its outer layers?"
+      }
+    }
+  },
+  {
+    "sourceId": 88,
+    "changes": {
+      "D": {
+        "before": "Microwave radiation of a specific frequency observed from all directions in space",
+        "after": "A nearly uniform background of microwave radiation observed in all directions, with a thermal spectrum."
+      },
+      "explanation": {
+        "before": "The CMBR was produced shortly after the Big Bang; the expansion of the Universe has stretched it into the microwave region. It is evidence for the Big Bang.",
+        "after": "The cosmic microwave background is relic radiation from the early Universe. Expansion has stretched its thermal spectrum into the microwave region; it is not a single-frequency signal."
+      }
+    }
+  }
+]

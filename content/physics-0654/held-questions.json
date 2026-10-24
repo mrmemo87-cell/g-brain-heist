@@ -1,0 +1,1262 @@
+[
+  {
+    "sourceId": 4,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-004",
+      "topic": "P2 Thermal physics",
+      "questionText": "Approximately what is the value of absolute zero in degrees Celsius?",
+      "questionType": "multiple_choice",
+      "options": [
+        "−273 °C",
+        "0 °C",
+        "273 °C",
+        "−100 °C"
+      ],
+      "correctAnswer": "−273 °C",
+      "explanation": "Absolute zero is 0 K, equal to -273.15 °C, usually rounded to -273 °C at this level.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.absolute-zero",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to recognise absolute zero. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 5,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-005",
+      "topic": "P2 Thermal physics",
+      "questionText": "A room is at a temperature of 27 °C. What is this temperature in kelvin?",
+      "questionType": "multiple_choice",
+      "options": [
+        "246 K",
+        "300 K",
+        "327 K",
+        "−246 K"
+      ],
+      "correctAnswer": "300 K",
+      "explanation": "T(K) = θ(°C) + 273 = 27 + 273 = 300 K.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.kelvin-conversion",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to convert Celsius temperatures to kelvin. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 8,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-008",
+      "topic": "P2 Thermal physics",
+      "questionText": "A fixed mass of gas has a pressure of 100 kPa and a volume of 300 cm³. It is compressed to 75 cm³ at constant temperature. What is the new pressure?",
+      "questionType": "multiple_choice",
+      "options": [
+        "25 kPa",
+        "175 kPa",
+        "400 kPa",
+        "7500 kPa"
+      ],
+      "correctAnswer": "400 kPa",
+      "explanation": "pV = constant: 100 × 300 = p × 75, so p = 30 000 ÷ 75 = 400 kPa.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.gases",
+          "evidenceFocusCode": "science.physics.thermal.gases.focus.boyles-law-calculation",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate pressure using inverse pressure-volume relationships. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 14,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-014",
+      "topic": "P2 Thermal physics",
+      "questionText": "What is the specific heat capacity of a substance?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The energy needed to melt 1 kg of the substance",
+        "The energy needed to raise the temperature of 1 kg of the substance by 1 °C",
+        "The total thermal energy stored in 1 kg of the substance",
+        "The temperature at which the substance boils"
+      ],
+      "correctAnswer": "The energy needed to raise the temperature of 1 kg of the substance by 1 °C",
+      "explanation": "c = ΔE ÷ (mΔθ): the energy per unit mass per unit temperature rise.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.specific-heat-definition",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to define specific heat capacity. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 15,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-015",
+      "topic": "P2 Thermal physics",
+      "questionText": "How much energy is needed to raise the temperature of 2.0 kg of water by 10 °C? (specific heat capacity of water = 4200 J/(kg °C))",
+      "questionType": "multiple_choice",
+      "options": [
+        "8400 J",
+        "21 000 J",
+        "84 000 J",
+        "840 000 J"
+      ],
+      "correctAnswer": "84 000 J",
+      "explanation": "ΔE = mcΔθ = 2.0 × 4200 × 10 = 84 000 J.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.heating-energy",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate energy using specific heat capacity. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 16,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-016",
+      "topic": "P2 Thermal physics",
+      "questionText": "A 0.50 kg metal block is supplied with 9000 J of energy. Its temperature rises by 20 °C. What is the specific heat capacity of the metal?",
+      "questionType": "multiple_choice",
+      "options": [
+        "90 J/(kg °C)",
+        "225 J/(kg °C)",
+        "900 J/(kg °C)",
+        "3600 J/(kg °C)"
+      ],
+      "correctAnswer": "900 J/(kg °C)",
+      "explanation": "c = ΔE ÷ (mΔθ) = 9000 ÷ (0.50 × 20) = 900 J/(kg °C).",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.temperature-particle",
+          "evidenceFocusCode": "science.physics.thermal.temperature-particle.focus.specific-heat-calculation",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate specific heat capacity from heating data. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 28,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-028",
+      "topic": "P2 Thermal physics",
+      "questionText": "With other conditions unchanged, which change increases the total power emitted by an object as infrared radiation?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Increasing its surface area",
+        "Decreasing its surface area",
+        "Lowering its surface temperature",
+        "Making its surface shinier"
+      ],
+      "correctAnswer": "Increasing its surface area",
+      "explanation": "Rate of emission increases with higher surface temperature, larger surface area and a darker, duller surface.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.thermal",
+          "atomicSubskillCode": "science.physics.thermal.heat-transfer",
+          "evidenceFocusCode": "science.physics.thermal.heat-transfer.focus.emission-area",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to relate emitting surface area to infrared power. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 34,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-034",
+      "topic": "P5 Nuclear physics",
+      "questionText": "In the alpha-particle scattering experiment, most alpha particles passed straight through the gold foil. What does this show?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The nucleus is negatively charged.",
+        "Most of the atom is empty space.",
+        "Gold atoms contain no protons.",
+        "Alpha particles have no charge."
+      ],
+      "correctAnswer": "Most of the atom is empty space.",
+      "explanation": "Most alpha particles met nothing to deflect them, so the atom must be mostly empty space.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.atomic-structure",
+          "evidenceFocusCode": "science.physics.nuclear.atomic-structure.focus.scattering-empty-space",
+          "assessmentProcessCode": "BH-AO3",
+          "cognitiveProcess": "analyze",
+          "evidenceStatement": "A correct response supports the ability to infer empty space from alpha scattering. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 35,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-035",
+      "topic": "P5 Nuclear physics",
+      "questionText": "In the alpha-particle scattering experiment, a very small number of alpha particles were deflected through large angles. What does this show?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Alpha particles are attracted to the nucleus.",
+        "Electrons are spread evenly through the atom.",
+        "The nucleus is very small, very dense and positively charged.",
+        "The nucleus is large and negatively charged."
+      ],
+      "correctAnswer": "The nucleus is very small, very dense and positively charged.",
+      "explanation": "Large deflections need a strong repulsion from a tiny, massive, positive nucleus; because few were deflected, the nucleus must be very small.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.atomic-structure",
+          "evidenceFocusCode": "science.physics.nuclear.atomic-structure.focus.scattering-nucleus",
+          "assessmentProcessCode": "BH-AO3",
+          "cognitiveProcess": "analyze",
+          "evidenceStatement": "A correct response supports the ability to infer nuclear size and charge from alpha scattering. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 39,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-039",
+      "topic": "P5 Nuclear physics",
+      "questionText": "A detector records 85 counts/minute near a radioactive source. The background count rate is 25 counts/minute. What is the count rate due to the source alone?",
+      "questionType": "multiple_choice",
+      "options": [
+        "25 counts/minute",
+        "60 counts/minute",
+        "85 counts/minute",
+        "110 counts/minute"
+      ],
+      "correctAnswer": "60 counts/minute",
+      "explanation": "Corrected count rate = measured − background = 85 − 25 = 60 counts/minute.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.background-correction",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to correct measured count rate for background radiation. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 46,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-046",
+      "topic": "P5 Nuclear physics",
+      "questionText": "Alpha, beta and gamma radiation pass between two charged metal plates. Which radiation is NOT deflected?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Alpha",
+        "Beta",
+        "Gamma",
+        "None of them is deflected"
+      ],
+      "correctAnswer": "Gamma",
+      "explanation": "Gamma rays carry no charge, so electric (and magnetic) fields do not deflect them.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.field-deflection",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to predict deflection from radiation charge. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 47,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-047",
+      "topic": "P5 Nuclear physics",
+      "questionText": "Alpha particles and beta-minus particles enter the same uniform electric field. What can be concluded about the directions of their deflection?",
+      "questionType": "multiple_choice",
+      "options": [
+        "They deflect in opposite directions because their charges have opposite signs.",
+        "They deflect in the same direction because both have mass.",
+        "Neither deflects because neither is charged.",
+        "Only alpha particles deflect because beta-minus particles have no charge."
+      ],
+      "correctAnswer": "They deflect in opposite directions because their charges have opposite signs.",
+      "explanation": "Alpha particles carry positive charge and beta-minus particles carry negative charge, so their electric forces point in opposite directions. Comparing deflection sizes also requires information about their motion.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.field-deflection-comparison",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to compare alpha and beta electric deflection. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 56,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-056",
+      "topic": "P5 Nuclear physics",
+      "questionText": "A source gives a measured count rate of 420 counts/min. Six hours later the measured count rate is 120 counts/min. The background count rate is 20 counts/min. What is the half-life?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2 hours",
+        "3 hours",
+        "4 hours",
+        "6 hours"
+      ],
+      "correctAnswer": "3 hours",
+      "explanation": "Correct for background: 400 → 100 counts/min. That is 2 half-lives (400 → 200 → 100) in 6 hours, so half-life = 3 hours.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.nuclear",
+          "atomicSubskillCode": "science.physics.nuclear.radioactivity",
+          "evidenceFocusCode": "science.physics.nuclear.radioactivity.focus.half-life-background",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate half-life after background subtraction. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 61,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-061",
+      "topic": "P6 Space physics",
+      "questionText": "What causes day and night on Earth?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The Earth orbiting the Sun",
+        "The Earth spinning on its axis",
+        "The Moon orbiting the Earth",
+        "The tilt of the Earth's axis"
+      ],
+      "correctAnswer": "The Earth spinning on its axis",
+      "explanation": "The Earth rotates on its axis about once every 24 hours; the side facing the Sun has day.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "foundation"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.solar-system",
+          "evidenceFocusCode": "science.physics.space.solar-system.focus.rotation-day-night",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain day and night using rotation. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 62,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-062",
+      "topic": "P6 Space physics",
+      "questionText": "What causes the seasons on Earth?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The Earth's distance from the Sun changing during the year",
+        "The Earth spinning on its axis",
+        "The tilt of the Earth's axis as it orbits the Sun",
+        "The Moon blocking sunlight"
+      ],
+      "correctAnswer": "The tilt of the Earth's axis as it orbits the Sun",
+      "explanation": "Because the axis is tilted, each hemisphere receives more direct sunlight for part of the orbit (summer) and less for the other part (winter).",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "foundation"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.solar-system",
+          "evidenceFocusCode": "science.physics.space.solar-system.focus.axial-tilt-seasons",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain seasons using axial tilt and orbit. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 63,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-063",
+      "topic": "P6 Space physics",
+      "questionText": "Why does the Moon appear to change shape (phases) during a month?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Clouds block parts of the Moon.",
+        "The Earth's shadow covers different parts of the Moon.",
+        "The Moon produces less light at some times.",
+        "As the Moon orbits the Earth, we see different amounts of its sunlit half."
+      ],
+      "correctAnswer": "As the Moon orbits the Earth, we see different amounts of its sunlit half.",
+      "explanation": "The Moon reflects sunlight. Its orbit around Earth changes how much of the lit half faces us. (Earth's shadow only causes eclipses.)",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "foundation"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.solar-system",
+          "evidenceFocusCode": "science.physics.space.solar-system.focus.lunar-phases",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain lunar phases using viewing geometry. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 64,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-064",
+      "topic": "P6 Space physics",
+      "questionText": "Approximately how long does the Moon take to orbit the Earth?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1 day",
+        "1 week",
+        "1 month",
+        "1 year"
+      ],
+      "correctAnswer": "1 month",
+      "explanation": "The Moon completes an orbit relative to distant stars in about 27.3 days. The cycle of phases takes about 29.5 days; both are approximately one month.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "foundation"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.solar-system",
+          "evidenceFocusCode": "science.physics.space.solar-system.focus.lunar-period",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to recall the Moon's orbital period. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 65,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-065",
+      "topic": "P6 Space physics",
+      "questionText": "Approximately how long does the Earth take to orbit the Sun once?",
+      "questionType": "multiple_choice",
+      "options": [
+        "24 hours",
+        "1 month",
+        "365 days",
+        "10 years"
+      ],
+      "correctAnswer": "365 days",
+      "explanation": "The Earth completes one orbit of the Sun in about 365 days (one year).",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "foundation"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.solar-system",
+          "evidenceFocusCode": "science.physics.space.solar-system.focus.earth-period",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "remember",
+          "evidenceStatement": "A correct response supports the ability to recall Earth's orbital period. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 67,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-067",
+      "topic": "P6 Space physics",
+      "questionText": "How is the Solar System thought to have formed?",
+      "questionType": "multiple_choice",
+      "options": [
+        "From comets colliding with the Sun",
+        "From a cloud of gas and dust that collapsed under gravity (accretion)",
+        "From a single planet that broke apart",
+        "From the explosion of the Sun"
+      ],
+      "correctAnswer": "From a cloud of gas and dust that collapsed under gravity (accretion)",
+      "explanation": "In the accretion model, a rotating cloud of gas and dust collapsed under gravity; most matter formed the Sun and the rest clumped into planets.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.solar-system",
+          "evidenceFocusCode": "science.physics.space.solar-system.focus.system-formation",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to describe Solar System formation through accretion. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 68,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-068",
+      "topic": "P6 Space physics",
+      "questionText": "Why are the inner planets rocky while the outer planets are much larger and rich in gases or ices?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Gravity is stronger far from the Sun.",
+        "The inner planets formed much later.",
+        "Near the hot young Sun, rock and metal could condense; farther out, cooler conditions allowed ice-rich cores to form and some planets retained thick gas envelopes.",
+        "The outer planets are hotter than the inner planets."
+      ],
+      "correctAnswer": "Near the hot young Sun, rock and metal could condense; farther out, cooler conditions allowed ice-rich cores to form and some planets retained thick gas envelopes.",
+      "explanation": "In the hot inner disc, rock and metal could condense. Farther out, cooler conditions allowed ices to accumulate and large cores to retain gas. Jupiter and Saturn are gas giants; Uranus and Neptune are ice giants.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.solar-system",
+          "evidenceFocusCode": "science.physics.space.solar-system.focus.planet-composition",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain differences in planetary composition. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 69,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-069",
+      "topic": "P6 Space physics",
+      "questionText": "What determines the gravitational field strength at the surface of a planet?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Only its temperature",
+        "The number of moons it has",
+        "Only its distance from the Sun",
+        "Its mass and its radius"
+      ],
+      "correctAnswer": "Its mass and its radius",
+      "explanation": "Surface g depends on the planet's mass (more mass → stronger) and radius (larger radius → weaker at the surface).",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.fields",
+          "atomicSubskillCode": "science.physics.fields.gravity",
+          "evidenceFocusCode": "science.physics.fields.gravity.focus.surface-gravity",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to relate surface gravitational field to mass and radius. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 73,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-073",
+      "topic": "P6 Space physics",
+      "questionText": "A comet moves in an elliptical orbit around the Sun. Where is its speed greatest?",
+      "questionType": "multiple_choice",
+      "options": [
+        "When it is furthest from the Sun",
+        "When it is closest to the Sun",
+        "Its speed is the same everywhere in the orbit",
+        "Halfway between closest and furthest points"
+      ],
+      "correctAnswer": "When it is closest to the Sun",
+      "explanation": "Moving towards the Sun, gravitational potential energy is converted to kinetic energy, so the comet is fastest at its closest point.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.solar-system",
+          "evidenceFocusCode": "science.physics.space.solar-system.focus.elliptical-orbits",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to predict speed around elliptical orbits. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 81,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-081",
+      "topic": "P6 Space physics",
+      "questionText": "Why does a star stay a stable size for most of its life?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The inward force of gravity is balanced by the outward force from the high temperature in its core.",
+        "Fusion has stopped.",
+        "It is cooling down steadily.",
+        "It has no gravity."
+      ],
+      "correctAnswer": "The inward force of gravity is balanced by the outward force from the high temperature in its core.",
+      "explanation": "Energy from fusion keeps the core very hot, creating an outward force that balances gravity.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.stars",
+          "evidenceFocusCode": "science.physics.space.stars.focus.stellar-equilibrium",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to explain hydrostatic balance in a stable star. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 86,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-086",
+      "topic": "P6 Space physics",
+      "questionText": "Light from distant galaxies shows redshift. What does this mean?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The galaxies are moving towards us.",
+        "The observed wavelength is longer than expected, so the galaxy is moving away from us.",
+        "The galaxies are made of red stars.",
+        "The observed wavelength is shorter than expected."
+      ],
+      "correctAnswer": "The observed wavelength is longer than expected, so the galaxy is moving away from us.",
+      "explanation": "Redshift is an increase in the observed wavelength of light from a source moving away from the observer.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.cosmology",
+          "evidenceFocusCode": "science.physics.space.cosmology.focus.redshift",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to interpret redshift as increased observed wavelength. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 87,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-087",
+      "topic": "P6 Space physics",
+      "questionText": "More distant galaxies show greater redshift. What does this evidence support?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Galaxies are not moving.",
+        "The Universe is shrinking.",
+        "The Universe is expanding, supporting the Big Bang theory.",
+        "The Milky Way is at the centre of the Universe."
+      ],
+      "correctAnswer": "The Universe is expanding, supporting the Big Bang theory.",
+      "explanation": "Greater redshift means faster recession for more distant galaxies, which shows the Universe is expanding from a Big Bang.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.cosmology",
+          "evidenceFocusCode": "science.physics.space.cosmology.focus.expansion-evidence",
+          "assessmentProcessCode": "BH-AO3",
+          "cognitiveProcess": "analyze",
+          "evidenceStatement": "A correct response supports the ability to interpret distance-redshift evidence for expansion. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 88,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-088",
+      "topic": "P6 Space physics",
+      "questionText": "What is the cosmic microwave background radiation (CMBR)?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Radiation emitted only by the Milky Way",
+        "Microwaves produced by mobile phone networks",
+        "Radiation emitted by the Sun",
+        "A nearly uniform background of microwave radiation observed in all directions, with a thermal spectrum."
+      ],
+      "correctAnswer": "A nearly uniform background of microwave radiation observed in all directions, with a thermal spectrum.",
+      "explanation": "The cosmic microwave background is relic radiation from the early Universe. Expansion has stretched its thermal spectrum into the microwave region; it is not a single-frequency signal.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.cosmology",
+          "evidenceFocusCode": "science.physics.space.cosmology.focus.microwave-background",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "A correct response supports the ability to describe the cosmic microwave background. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 89,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-089",
+      "topic": "P6 Space physics",
+      "questionText": "A galaxy is moving away from Earth at 2.2 × 10⁶ m/s. The Hubble constant H₀ = 2.2 × 10⁻¹⁸ s⁻¹. How far away is the galaxy?",
+      "questionType": "multiple_choice",
+      "options": [
+        "4.8 × 10⁻¹² m",
+        "1.0 × 10¹² m",
+        "1.0 × 10²⁴ m",
+        "4.8 × 10⁻²⁴ m"
+      ],
+      "correctAnswer": "1.0 × 10²⁴ m",
+      "explanation": "H₀ = v/d, so d = v/H₀ = 2.2 × 10⁶ ÷ 2.2 × 10⁻¹⁸ = 1.0 × 10²⁴ m.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.cosmology",
+          "evidenceFocusCode": "science.physics.space.cosmology.focus.hubble-distance",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate galaxy distance using Hubble's law. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  },
+  {
+    "sourceId": 90,
+    "status": "held_outside_explicit_0654_outcomes",
+    "reason": "Useful foundation or extension, but not directly supported by an explicit 0654 2025–2027 outcome at the required depth.",
+    "question": {
+      "externalId": "bh-physics-0654-2025-2027-090",
+      "topic": "P6 Space physics",
+      "questionText": "The Hubble constant H₀ is about 2.2 × 10⁻¹⁸ s⁻¹. Which is the best estimate of the age of the Universe?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2.2 × 10⁻¹⁸ s",
+        "4.5 × 10¹⁷ s",
+        "2.2 × 10¹⁸ s",
+        "4.5 × 10⁻¹⁷ s"
+      ],
+      "correctAnswer": "4.5 × 10¹⁷ s",
+      "explanation": "Age ≈ d/v = 1/H₀ = 1 ÷ 2.2 × 10⁻¹⁸ ≈ 4.5 × 10¹⁷ s (about 14 billion years).",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "extension"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.space",
+          "atomicSubskillCode": "science.physics.space.cosmology",
+          "evidenceFocusCode": "science.physics.space.cosmology.focus.hubble-age",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to estimate cosmic age using inverse Hubble constant. It does not identify every reasoning step or establish mastery alone."
+        }
+      ]
+    }
+  }
+]

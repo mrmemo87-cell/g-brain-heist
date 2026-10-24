@@ -1,5 +1,6 @@
 import * as GameService from './gameService';
 import { supabase } from './supabaseClient';
+import { fetchPhysicsAssessmentBreakdown, type PhysicsAssessmentBreakdown } from './physicsAssessmentService';
 import {
   fetchEconomicsPaperReadiness,
   type EconomicsPaperReadiness,
@@ -50,6 +51,7 @@ export interface TeacherCurriculumIntelligence {
   hotspots: CurriculumHotspotEvidence[];
   reteachNext: CurriculumReteachRecommendation[];
   paperReadiness: EconomicsPaperReadiness | null;
+  physicsAssessment: PhysicsAssessmentBreakdown | null;
   dimensions: {
     content: { hotspotCount: number; impactedStudents: number; persistentStudents: number; recurringStudents: number; improvingStudents: number; resolvedStudents: number };
     reasoning: { hotspotCount: number; impactedStudents: number; persistentStudents: number; recurringStudents: number; improvingStudents: number; resolvedStudents: number };
@@ -129,10 +131,19 @@ export const getTeacherCurriculumIntelligence = async (
     })
     : Promise.resolve(null);
 
-  const [registry, groupEvidence, paperReadiness] = await Promise.all([
-    GameService.get_teacher_academic_skill_registry(group.subjectLabel, group.gradeNumber),
+  const physicsPromise = /physics/i.test(group.subjectLabel)
+    ? fetchPhysicsAssessmentBreakdown(schoolId, group.id).catch((error) => {
+      console.warn('Physics assessment breakdown unavailable', error);
+      return null;
+    })
+    : Promise.resolve(null);
+  const [registry, groupEvidence, paperReadiness, physicsAssessment] = await Promise.all([
+    physicsPromise.then((physics) => GameService.get_teacher_academic_skill_registry(
+      group.subjectLabel, group.gradeNumber, physics?.registryPhase || null,
+    )),
     fetchGroupEvidence(schoolId, group.id),
     paperReadinessPromise,
+    physicsPromise,
   ]);
 
   const experience = resolveCurriculumSubjectExperience(group.subjectLabel, registry.registryVersion);
@@ -146,6 +157,7 @@ export const getTeacherCurriculumIntelligence = async (
       hotspots: [],
       reteachNext: [],
       paperReadiness,
+      physicsAssessment,
       dimensions: {
         content: { hotspotCount: 0, impactedStudents: 0, persistentStudents: 0, recurringStudents: 0, improvingStudents: 0, resolvedStudents: 0 },
         reasoning: { hotspotCount: 0, impactedStudents: 0, persistentStudents: 0, recurringStudents: 0, improvingStudents: 0, resolvedStudents: 0 },
@@ -248,6 +260,7 @@ export const getTeacherCurriculumIntelligence = async (
     hotspots,
     reteachNext,
     paperReadiness,
+    physicsAssessment,
     dimensions,
     summary: {
       studentCount,

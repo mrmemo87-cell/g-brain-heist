@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import PhysicsAssessmentPanel from './PhysicsAssessmentPanel';
 import type { Profile } from '../../types';
 import * as GameService from '../../services/gameService';
 import { ProfileIcon, ProfileSection, ProfileStat } from '../student-progress/AcademicProfilePremium';
@@ -173,6 +174,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
           selectedGroup.subjectLabel,
           selectedGroup.gradeNumber,
           selectedLeaf.subskillCode,
+          snapshot?.group.id === selectedGroup.id ? snapshot.physicsAssessment?.registryPhase : null,
         );
         if (active) setFocuses(rows);
       } catch (focusError) {
@@ -184,7 +186,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
     };
     void load();
     return () => { active = false; };
-  }, [selectedLeaf, selectedGroup]);
+  }, [selectedLeaf, selectedGroup, snapshot?.group.id, snapshot?.physicsAssessment?.registryPhase]);
 
   const strands = useMemo(() => {
     if (!snapshot) return [];
@@ -604,6 +606,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
               <span><strong>Progress worth noticing:</strong> some previously identified needs are improving or resolved. They remain visible in the evidence record without being treated as current weaknesses.</span>
             </p>
           ) : null}
+          {/physics/i.test(snapshot.group.subjectLabel) ? <PhysicsAssessmentPanel evidence={snapshot.physicsAssessment} /> : null}
           {snapshot.paperReadiness ? (
             <section className="overflow-hidden rounded-3xl border border-blue-200 bg-white shadow-sm">
               <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-violet-950 p-5 text-white sm:p-6">

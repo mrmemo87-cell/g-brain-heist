@@ -954,6 +954,16 @@ export interface TeacherQuestion {
     evidenceStatement: string;
     assessmentProcess: string;
   }[];
+  assessment_profiles?: {
+    programmeCode: string;
+    sourceVersion: string;
+    paperComponent: string;
+    primaryAssessmentObjective: string;
+    assessmentObjectives: string[];
+    syllabusTier?: 'core' | 'supplement' | null;
+    syllabusReference?: string | null;
+    objectiveComponents?: string[];
+  }[];
   eligible_grade_levels?: number[];
   curriculum_review_status?: 'draft' | 'in_review' | 'approved' | 'rejected';
   content_origin?: QuestionContentOrigin;
