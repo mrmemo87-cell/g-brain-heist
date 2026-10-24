@@ -619,7 +619,7 @@
         "items": [
           {
             "id": "IELTS-X3-C1-Q1",
-            "prompt": "A cloudiness-monitoring device diverts storm runoff if its ______ exceeds the safe level.",
+            "prompt": "Entrance check: runoff is diverted into temporary storage when its monitored ______ becomes too high.",
             "answer": "turbidity",
             "evidence": "measures turbidity, the cloudiness caused by suspended particles",
             "reason": "The monitor measures turbidity before water enters the treatment equipment. The storage branch handles excessive cloudiness.",
