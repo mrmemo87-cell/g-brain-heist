@@ -595,7 +595,7 @@
         "items": [
           {
             "id": "IELTS-X1-C1-Q1",
-            "prompt": "Variations in ______ made early public clocks less reliable.",
+            "prompt": "Shifts in ambient ______ interfered with the precision of early clock mechanisms.",
             "answer": "temperature",
             "evidence": "Temperature changes affected the movement of metal parts",
             "reason": "The cause is the environmental variation, not repair delays.",
@@ -606,7 +606,7 @@
           },
           {
             "id": "IELTS-X1-C1-Q2",
-            "prompt": "By the 1970s, towers were retained chiefly because of their ______ significance.",
+            "prompt": "By the 1970s, many towers survived because of their ______ importance rather than their practical usefulness.",
             "answer": "architectural",
             "evidence": "protected mainly for architectural reasons",
             "reason": "Historical buildings were retained even without their former public service.",
@@ -617,7 +617,7 @@
           },
           {
             "id": "IELTS-X1-C1-Q3",
-            "prompt": "A public clock may assist someone with an exhausted phone ______.",
+            "prompt": "A civic time display might benefit a passer-by whose phone has a flat ______.",
             "answer": "battery",
             "evidence": "whose phone battery is empty",
             "reason": "The question paraphrases empty as exhausted.",
@@ -628,7 +628,7 @@
           },
           {
             "id": "IELTS-X1-C1-Q4",
-            "prompt": "At one coastal site, sea-borne ______ had harmed the internal metal components.",
+            "prompt": "In one seaside location, airborne ______ had caused deterioration inside the original clockwork.",
             "answer": "salt",
             "evidence": "salt carried inland by sea air had corroded the metal gears",
             "reason": "The relevant material is not sea water as a whole.",
@@ -639,7 +639,7 @@
           },
           {
             "id": "IELTS-X1-C1-Q5",
-            "prompt": "Choosing the traditional mechanism meant less investment in the town's ______.",
+            "prompt": "The decision to conserve the working gears diverted public funding away from the local ______.",
             "answer": "library",
             "evidence": "reduce funding available to the nearby library",
             "reason": "Identify the alternative public service receiving less funding.",
@@ -650,7 +650,7 @@
           },
           {
             "id": "IELTS-X1-C1-Q6",
-            "prompt": "Replacement electronic parts may eventually become ______.",
+            "prompt": "The modern controls in a hybrid restoration may become ______ long before the traditional gears wear out.",
             "answer": "obsolete",
             "evidence": "components may become obsolete",
             "reason": "The statement is a possibility, not a certainty.",
@@ -671,22 +671,22 @@
           "type": "options_list",
           "title": "Endings",
           "paragraphs": [
-            "A  although there is little evidence that residents frequently consulted it.",
-            "B  because repairs to the tower would increase railway punctuality.",
-            "C  despite the resulting reduction in funding for a different public service.",
-            "D  because the long-term cost advantage has not yet been demonstrated.",
-            "E  even though its original timekeeping function had lost importance.",
-            "F  since any electronic addition necessarily destroys the object's historical identity.",
-            "G  provided the council replaces all the original parts."
+            "A  because evidence showed that most local residents checked it frequently.",
+            "B  despite the loss of money that could otherwise support another municipal facility.",
+            "C  because restoring it had been shown to increase tourism and retail spending.",
+            "D  because the lifetime expense of the modern components has not yet been established.",
+            "E  despite evidence that hardly anyone could remember actually consulting it.",
+            "F  because specialist engineers would no longer be needed to maintain its mechanical parts.",
+            "G  even after its original usefulness as a public timekeeping service had faded."
           ]
         },
         "items": [
           {
             "id": "IELTS-X1-C2-Q7",
             "prompt": "Residents expressed affection for a restored clock",
-            "answer": "A",
+            "answer": "E",
             "evidence": "few remembered checking it during the previous week",
-            "reason": "Approval is not the same as actual use.",
+            "reason": "Residents' stated attachment contrasts with a survey showing few had checked the time recently. A reverses the survey's finding.",
             "focus": "inference and distractor resistance",
             "type": "matching",
             "options": [
@@ -703,9 +703,9 @@
           {
             "id": "IELTS-X1-C2-Q8",
             "prompt": "The heritage committee selected a costly traditional repair",
-            "answer": "C",
+            "answer": "B",
             "evidence": "reduce funding available to the nearby library",
-            "reason": "The choice has an opportunity cost.",
+            "reason": "The council's decision to preserve mechanical heritage reduced funds available for the library. F wrongly implies all maintenance ended.",
             "focus": "inference and distractor resistance",
             "type": "matching",
             "options": [
@@ -724,7 +724,7 @@
             "prompt": "The financial case for hybrid clock repairs remains uncertain",
             "answer": "D",
             "evidence": "their lifetime costs remain uncertain",
-            "reason": "Early savings do not prove whole-life savings.",
+            "reason": "Electronic controllers may reduce immediate maintenance but whole-life costs remain unproven; D preserves that uncertainty.",
             "focus": "inference and distractor resistance",
             "type": "matching",
             "options": [
@@ -741,9 +741,9 @@
           {
             "id": "IELTS-X1-C2-Q10",
             "prompt": "Many old clock towers were preserved for their appearance",
-            "answer": "E",
+            "answer": "G",
             "evidence": "protected mainly for architectural reasons",
-            "reason": "Architectural conservation outlasted the old service.",
+            "reason": "Towers could survive as architectural landmarks even after practical timekeeping was no longer needed. C invents economic evidence.",
             "focus": "inference and distractor resistance",
             "type": "matching",
             "options": [
@@ -760,7 +760,7 @@
         ]
       }
     ],
-    "review": "Record item-level results and evidence errors, including paraphrase, unsupported inference, spelling and word limits. Record time, aid and prior exposure. No band conversion or automatic readiness claims."
+    "review": "Record item-level results and evidence errors, including paraphrase, unsupported inference, spelling and word limits. Record time, aid and prior exposure. No band conversion or automatic readiness claims. Revision 1.1.0 key audit: sentence endings must be E, B, D, G respectively; verify that unsupported survey, economic and maintenance claims are rejected."
   },
   "delayed_followup": "In Lesson 18 (timed Academic Reading), check whether learners locate summary sections and respect word limits under time pressure. Record it as a later observation.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
