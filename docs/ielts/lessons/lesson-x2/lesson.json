@@ -512,7 +512,7 @@
         "kind": "items",
         "title": "Four perspectives on street-tree programmes",
         "mode": "Unseen independent transfer, timed; passage and keys withheld until completion",
-        "instructions": "Questions 1–8: match the statements to the researchers: A Dr Mara Chen, B Professor Elias Okafor, C Dr Sofia Vale, D Daniel Reyes. Letters may be used more than once. Questions 9–10: write ONE WORD ONLY from the passage.",
+        "instructions": "Questions 1–8: match each claim to the researcher who made it. A Dr Mara Chen, B Professor Elias Okafor, C Dr Sofia Vale, D Daniel Reyes. Any letter may be used more than once. Each researcher discusses a different dimension of success; distinguish measured results from interpretations and recommendations. Questions 9–10: write ONE WORD ONLY from the passage.",
         "stimulus": {
           "type": "passage",
           "title": "Four perspectives on street-tree programmes (fictional research scenario)",
@@ -529,10 +529,10 @@
         "items": [
           {
             "id": "IELTS-X2-C1-Q1",
-            "prompt": "Measurements made at one point in the day should not be treated as representative of every hour.",
-            "answer": "A",
-            "evidence": "measurements taken after sunset showed a much smaller difference",
-            "reason": "Her finding limits a claim about all-day cooling.",
+            "prompt": "Which researcher warns that an apparently positive commercial outcome could have another explanation?",
+            "answer": "C",
+            "evidence": "the two changes could not be separated by the available survey",
+            "reason": "Opening-hour changes create a confound.",
             "focus": "matching research claims; qualification and inference",
             "type": "matching",
             "options": [
@@ -545,7 +545,7 @@
           },
           {
             "id": "IELTS-X2-C1-Q2",
-            "prompt": "Keeping existing plantings alive matters more than maximising new planting figures.",
+            "prompt": "Which researcher considers a headline activity count a poor indicator of whether the project will succeed?",
             "answer": "B",
             "evidence": "supported planting fewer trees initially and directing the remaining budget towards several years of care",
             "reason": "Sheer planting totals obscure poor survival.",
@@ -561,23 +561,7 @@
           },
           {
             "id": "IELTS-X2-C1-Q3",
-            "prompt": "An apparent economic benefit cannot confidently be attributed to the trees.",
-            "answer": "C",
-            "evidence": "the two changes could not be separated by the available survey",
-            "reason": "Opening-hour changes create a confound.",
-            "focus": "matching research claims; qualification and inference",
-            "type": "matching",
-            "options": [
-              "A",
-              "B",
-              "C",
-              "D"
-            ],
-            "level": "core"
-          },
-          {
-            "id": "IELTS-X2-C1-Q4",
-            "prompt": "A substitute for trees may be preferable where maintenance access is constrained.",
+            "prompt": "Which researcher accepts a loss of environmental benefits in exchange for more practical access during repairs?",
             "answer": "D",
             "evidence": "they could be removed during street repairs",
             "reason": "Removability matters on difficult streets.",
@@ -592,11 +576,11 @@
             "level": "core"
           },
           {
-            "id": "IELTS-X2-C1-Q5",
-            "prompt": "The location of pedestrian activity should influence where the programme is concentrated.",
+            "id": "IELTS-X2-C1-Q4",
+            "prompt": "Which researcher cautions against generalising an observed cooling effect to a different time of day?",
             "answer": "A",
-            "evidence": "prioritise routes used by pedestrians rather than distribute trees evenly",
-            "reason": "Benefits depend on who uses the space.",
+            "evidence": "measurements taken after sunset showed a much smaller difference",
+            "reason": "Her finding limits a claim about all-day cooling.",
             "focus": "matching research claims; qualification and inference",
             "type": "matching",
             "options": [
@@ -608,24 +592,8 @@
             "level": "core"
           },
           {
-            "id": "IELTS-X2-C1-Q6",
-            "prompt": "A local variety may perform adequately if the planting conditions are improved.",
-            "answer": "B",
-            "evidence": "the local variety survived as well when planted in deeper soil",
-            "reason": "Soil improvement, not imported species, was recommended.",
-            "focus": "matching research claims; qualification and inference",
-            "type": "matching",
-            "options": [
-              "A",
-              "B",
-              "C",
-              "D"
-            ],
-            "level": "core"
-          },
-          {
-            "id": "IELTS-X2-C1-Q7",
-            "prompt": "Additional street furniture can be essential for people to make use of environmental improvements.",
+            "id": "IELTS-X2-C1-Q5",
+            "prompt": "Which researcher says a supporting facility is essential if people are to benefit fully from the main intervention?",
             "answer": "C",
             "evidence": "benches were not merely decorative additions but a necessary part of making shade usable",
             "reason": "Comfort requires seating as well as shade.",
@@ -640,11 +608,43 @@
             "level": "core"
           },
           {
-            "id": "IELTS-X2-C1-Q8",
-            "prompt": "The proposed alternative delivers less habitat, despite practical advantages.",
+            "id": "IELTS-X2-C1-Q6",
+            "prompt": "Which researcher recommends allocating improvements according to patterns of public exposure rather than geographical equality?",
+            "answer": "A",
+            "evidence": "prioritise routes used by pedestrians rather than distribute trees evenly",
+            "reason": "Benefits depend on who uses the space.",
+            "focus": "matching research claims; qualification and inference",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X2-C1-Q7",
+            "prompt": "Which researcher believes the same intervention should not be imposed on every street, even though it may work well elsewhere?",
             "answer": "D",
             "evidence": "Although these offered less wildlife habitat",
             "reason": "The speaker acknowledges a tradeoff.",
+            "focus": "matching research claims; qualification and inference",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X2-C1-Q8",
+            "prompt": "Which researcher rejects an imported solution because better local conditions could achieve a similar result?",
+            "answer": "B",
+            "evidence": "the local variety survived as well when planted in deeper soil",
+            "reason": "Soil improvement, not imported species, was recommended.",
             "focus": "matching research claims; qualification and inference",
             "type": "matching",
             "options": [
@@ -680,7 +680,7 @@
         ]
       }
     ],
-    "review": "Score each answer independently; examine confusion between measured findings, proposed priorities and qualified claims. Check short answers for word limits and exact textual support. Record conditions; do not convert to IELTS band."
+    "review": "Score each answer independently; examine confusion between measured findings, proposed priorities and qualified claims. Check short answers for word limits and exact textual support. Record conditions; do not convert to IELTS band. Revised matching key must be C, B, D, A, C, A, D, B for Questions 1–8; each answer needs an explicit named-speaker evidence trace, not an assumed repeating sequence."
   },
   "delayed_followup": "In Lesson 18 (timed Academic Reading), check whether learners circle names first and quote evidence when matching under time pressure. Record it as a later observation.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
