@@ -584,7 +584,7 @@
           },
           {
             "id": "IELTS-X4-C1-Q5",
-            "prompt": "Preparation: manage fluctuations in air ______ before documents are handled.",
+            "prompt": "Preparation: protect the original pages against damaging variations in ______.",
             "answer": "humidity",
             "evidence": "fluctuations in humidity cause more damage",
             "reason": "The conservator rejects temperature as the key risk.",
@@ -608,7 +608,7 @@
           },
           {
             "id": "IELTS-X4-C1-Q7",
-            "prompt": "Image capture: the new scan setting is ______ dots per inch.",
+            "prompt": "Image capture: the agreed final scanning resolution is ______ dots per inch.",
             "answer": "600",
             "evidence": "We're using six hundred now",
             "reason": "Three hundred was the superseded plan.",
@@ -622,7 +622,7 @@
           },
           {
             "id": "IELTS-X4-C1-Q8",
-            "prompt": "Data entry: figures are entered by human ______ instead of handwriting-recognition software.",
+            "prompt": "Data entry: readings are copied from images by manual ______ instead of automatic handwriting recognition.",
             "answer": "transcription",
             "evidence": "volunteers will carry out transcription by hand",
             "reason": "The OCR suggestion is rejected.",
@@ -634,7 +634,7 @@
           },
           {
             "id": "IELTS-X4-C1-Q9",
-            "prompt": "Verification: uncertain values receive a yellow ______ so they can be checked again.",
+            "prompt": "Verification: a questionable figure receives a coloured ______, rather than being guessed.",
             "answer": "flag",
             "evidence": "an uncertain reading receives a yellow flag in the database",
             "reason": "They are flagged rather than guessed.",
@@ -646,7 +646,7 @@
           },
           {
             "id": "IELTS-X4-C1-Q10",
-            "prompt": "Storage: a separate building holds the nightly ______ of the database.",
+            "prompt": "Storage: a remote building holds a nightly ______ copy of the archive's data.",
             "answer": "backup",
             "evidence": "copy the database each evening to a backup system in a separate building",
             "reason": "The cloud alternative was discussed but not adopted.",
