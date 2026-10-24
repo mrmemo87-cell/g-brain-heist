@@ -204,7 +204,7 @@ function checkBlock(block, code, errors, where, seenIds) {
     if (block.summary_text) {
       for (const item of block.items ?? []) {
         const number = item.id?.split('-Q').pop();
-        const count = (block.summary_text.match(new RegExp('\\\\(' + number + '\\\\)\\\\s*_+', 'g')) ?? []).length;
+        const count = (block.summary_text.match(new RegExp('\\(' + number + '\\)\\s*_+', 'g')) ?? []).length;
         if (count !== 1) errors.push(`${label}: summary item ${item.id} needs exactly one numbered gap in connected summary`);
       }
     }
@@ -218,7 +218,7 @@ function checkBlock(block, code, errors, where, seenIds) {
       for (const item of block.items ?? []) {
         if (item.type !== 'completion') continue;
         const number = item.id?.split('-Q').pop();
-        const count = (display.match(new RegExp('\\\\(' + number + '\\\\)\\\\s*_+', 'g')) ?? []).length;
+        const count = (display.match(new RegExp('\\(' + number + '\\)\\s*_+', 'g')) ?? []).length;
         if (count !== 1) errors.push(`${label}: completion item ${item.id} needs exactly one gap in flow chart`);
       }
     }
