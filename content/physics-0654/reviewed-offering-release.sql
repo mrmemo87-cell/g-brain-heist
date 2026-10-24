@@ -4,7 +4,7 @@ do $offering$
 declare v_offering uuid:=nullif(current_setting('brains_heist.physics_offering_id',true),'')::uuid;
 begin
   if v_offering is null or coalesce(current_setting('brains_heist.physics_review_authority',true),'')=''
-     or current_setting('brains_heist.physics_review_manifest_sha256',true) is distinct from '56f65c4493bdc29650b08c5b46f099c0c01a6cb6d2d8ba5922c1c9bbb61fc387' then
+     or current_setting('brains_heist.physics_review_manifest_sha256',true) is distinct from '32f28a2e1912ff2d67770dc9f24de27a5592fb11a5e09f230276cff776d8dc32' then
     raise exception 'physics_offering_exact_version_review_required';
   end if;
   if not exists(select 1 from public.school_subject_offerings o

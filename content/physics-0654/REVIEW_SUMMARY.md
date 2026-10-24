@@ -1,6 +1,11 @@
 # Physics bank review summary
 
-**Release state: prepared for review; not deployed or published.**
+**Release state: 62 questions published under explicit owner release authorization.**
+
+See [release-authorization.json](release-authorization.json) for the exact-version
+release and verification record. Independent specialist sign-off is not claimed;
+the cohort exam year remains unconfirmed. The proposal and held items below are
+preserved as the audit trail.
 
 The uploaded bank contains 90 questions. The proposed 0654 2025–2027
 release includes 62 questions: 42 Core and

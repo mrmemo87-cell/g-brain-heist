@@ -144,7 +144,7 @@ write_json('registry-proposal.json', {'status': 'pending_human_review', 'registr
     'policy': 'Additive proposals only. No existing meaning, phase or historic taxonomy is rewritten. Extension-only focuses need not be activated for the aligned release.'})
 for name, data in [('review.csv', audit), ('corrected-source.csv', rows)]:
     with (HERE / name).open('w', encoding='utf-8-sig', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=list(data[0])); writer.writeheader(); writer.writerows(data)
+        writer = csv.DictWriter(f, fieldnames=list(data[0]), lineterminator='\n'); writer.writeheader(); writer.writerows(data)
 coverage = collections.Counter(q['taxonomies'][0]['evidenceFocusCode'] for q in candidate)
 write_json('coverage.json', {'sourceCount': len(rows), 'candidateCount': len(candidate), 'heldCount': len(held),
     'correctedQuestionCount': len(fixes), 'tierCounts': dict(collections.Counter(a['tier'] for a in audit if a['alignment'] == 'candidate')),
@@ -193,7 +193,7 @@ select v.id,p.id,{sql_literal(node['type'])},{sql_literal(node['code'])},{sql_li
 {sql_literal('Transferable Physics capability: ' + node['name'] + '.')},array['upper_secondary'],'active'
 from public.academic_skill_registry_versions v join public.academic_skill_registry_nodes p on p.registry_version_id=v.id and p.code={sql_literal(node['parent'])}
 where v.code='bh-science-core-v1' and v.status='published' and p.status='active'
-on conflict(registry_version_id,code) do nothing;
+on conflict(code) do nothing;
 """)
 for focus in focuses.values():
     if focus['code'] not in candidate_focuses:

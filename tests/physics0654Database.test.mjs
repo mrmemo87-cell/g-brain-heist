@@ -25,7 +25,7 @@ async function setup() {
     create function private.question_content_hash(uuid,text,jsonb,text,text,text,text) returns text language sql immutable as $$select md5(concat($1,$2,$3,$4,$5,$6,$7))$$;
     create function private.physics_test_hash() returns trigger language plpgsql as $$begin new.current_content_hash=private.question_content_hash(new.id,new.question_text,new.options,new.correct_answer,new.explanation,new.image_url,new.question_type);return new;end$$;
     create trigger fixture_hash before insert on questions for each row execute function private.physics_test_hash();
-    create unique index on academic_skill_registry_nodes(registry_version_id,code);
+    create unique index on academic_skill_registry_nodes(code);
     create unique index on academic_skill_evidence_focuses(code);
     create unique index on verified_question_assessment_profiles(question_id,question_content_hash,provider_name,programme_code,source_version) where status='active';
     create table academic_skill_framework_crosswalks(id uuid default gen_random_uuid(),registry_version_id uuid,node_id uuid,provider_name text,programme_code text,programme_name text,phase text,external_strand text,external_reference_code text,alignment_level text,alignment_note text,source_url text,source_version text,status text);
@@ -45,7 +45,7 @@ async function setup() {
       await db.query(`insert into academic_skill_registry_nodes(registry_version_id,parent_id,code,name,node_type,applicable_phases)
         select v.id,p.id,$1,$1,$3,array['upper_secondary'] from academic_skill_registry_versions v
         join academic_skill_registry_nodes p on p.registry_version_id=v.id and p.code=$2
-        on conflict(registry_version_id,code) do nothing`, [code,parent,type]);
+        on conflict(code) do nothing`, [code,parent,type]);
     }
     if (!proposal.evidenceFocuses.some((f) => f.code === tax.evidenceFocusCode)) {
       await db.query(`insert into academic_skill_evidence_focuses(registry_version_id,atomic_subskill_node_id,code,name)
@@ -83,6 +83,13 @@ async function validate(db, profile, subject = 'Physics', mcq = true) {
   return db.query('select private.validate_external_question_assessment_profile($1,$2::jsonb,$3)', [subject,JSON.stringify(profile),mcq]);
 }
 const profile = pkg.questions[0].assessmentProfile;
+
+test('release manifest verifies the exact Git-stored files, including CSV line endings', () => {
+  const manifest=JSON.parse(readFileSync(dir+'review-manifest.json','utf8'));
+  for(const [name,expected] of Object.entries(manifest.sha256)) {
+    assert.equal(createHash('sha256').update(readFileSync(dir+name)).digest('hex'),expected,name);
+  }
+});
 
 test('0654 accepts Core and Supplement MCQ profiles; rejects AO3, wrong tier, wrong version, subject and missing fields', async () => {
   const db = await setup();

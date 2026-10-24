@@ -52,3 +52,24 @@ predicted qualification grade or mastery conclusion is produced by this feature.
 The existing Physics bank's suspicious historical taxonomy placements were
 identified but not rewritten. They require a separate reviewed successor-mapping
 change because historical evidence must retain its original identity.
+
+## Production release follow-up (2026-10-24)
+
+The owner explicitly authorized merge, deploy and go-live. PR #1707 was merged
+and its technical migration applied. The production deployment reached READY.
+Live checks confirmed 62 active verified questions, 62 current approved
+registry taxonomies and 62 current external assessment profiles. Held items
+were not imported. No real student answers were written.
+
+Release rehearsal caught two integration defects before committed publication:
+Git normalized CSV line endings, invalidating the original raw-byte manifest;
+and the actual registry-node unique key is `code`, while the fixture had modeled
+`(registry_version_id, code)`. CSV output is now explicitly LF, checksums match
+the repository bytes, the SQL uses the actual conflict target, and the fixture
+models the live unique key. Eight targeted tests pass, including manifest integrity.
+Both the live dry run and a full publication rehearsal with rollback then passed.
+
+The default pilot account is not enrolled in Physics, and the existing Physics
+groups have no active teacher/student allocations. Those permissions were not
+invented or bypassed. A real teacher/student submission pilot is still unperformed.
+School-specific exam-version mappings remain unset. See `release-authorization.json`.
