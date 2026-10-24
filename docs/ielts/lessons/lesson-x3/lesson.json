@@ -1,690 +1,815 @@
 {
- "schema": "bh-ielts-lesson-source/2",
- "code": "IELTS-X3",
- "number": 3,
- "extension": true,
- "placement": "optional, after Week 3 (Lesson 6)",
- "week": 3,
- "version": "1.0.0",
- "presentation_version": "1.0.0",
- "title": "Reading: diagram labelling and flow-chart completion",
- "status": "Owner approved v1.0.0 on 2026-10-18; teacher release to all eligible schools (optional extension lesson)",
- "duration": 60,
- "test_type": "Academic",
- "bibles": {
-  "diagnostic": "1.10.0",
-  "lessons": "1.1.0",
-  "visual": "1.1.0"
- },
- "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Passages describe general, widely known processes in simplified form without citing specific companies or studies; diagrams are simplified and not to scale. Human editorial, factual, key, mapping, difficulty and originality review pending.",
- "audio": {
-  "required": false,
-  "statement": "No recording required.",
-  "recordings": []
- },
- "prerequisites": [
-  "Lesson 6 (reading for specific information).",
-  "Teacher has checked actual Reading Screener and review states privately.",
-  "Optional extension: use when learners need practice with diagram and flow-chart questions on process passages."
- ],
- "objectives": [
-  {
-   "text": "Use the words printed on a diagram or flow chart as location clues and find the matching sentence in the passage.",
-   "focus": [
-    "locating explicit evidence",
-    "scanning"
-   ]
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-X3",
+  "number": 3,
+  "extension": true,
+  "placement": "optional, after Week 3 (Lesson 6)",
+  "week": 3,
+  "version": "1.1.1",
+  "presentation_version": "1.1.1",
+  "title": "Reading: diagram labelling and flow-chart completion",
+  "status": "Private teacher-review revision DRAFT v1.1.1; not approved or released; prior v1.0.0 approval historical only.",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": {
+    "diagnostic": "2.0.0",
+    "lessons": "1.2.0",
+    "visual": "1.2.0"
   },
-  {
-   "text": "Follow the order of a process passage using sequence words, and complete each stage with a word that fits grammar and meaning.",
-   "focus": [
-    "discourse organization",
-    "grammatical control"
-   ]
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Passages describe general, widely known processes in simplified form without citing specific companies or studies; diagrams are simplified and not to scale. Human editorial, factual, key, mapping, difficulty and originality review pending.",
+  "audio": {
+    "required": false,
+    "statement": "No recording required.",
+    "recordings": []
   },
-  {
-   "text": "Distinguish the name of a part or stage from nearby descriptions and results.",
-   "focus": [
-    "detail discrimination",
-    "distractor resistance"
-   ]
-  }
- ],
- "levels": {
-  "foundation": "Teacher reads the key paragraph aloud while learners point to the diagram; paragraphs mapped to flow-chart stages before reading.",
-  "core": "Complete all ten questions in the time given, with correct spelling and word limits.",
-  "extension": "Explain what each labelled part does in one sentence.",
-  "high_band": "Add a new box to the flow chart and write a fair gap question for it."
- },
- "blocks": [
-  {
-   "id": "IELTS-X3-K1",
-   "kind": "contrast",
-   "title": "Where is the answer on a diagram?",
-   "mode": "Opening challenge; learners decide before the reveal",
-   "instructions": "A learner must label part of a machine shown in a diagram. Which approach will find the answer fastest?",
-   "examples": [
-    {
-     "label": "Approach A",
-     "text": "Read the whole passage slowly from the start, then look at the diagram.",
-     "comment": "Slow: diagram questions usually come from one or two paragraphs. Read the diagram first so you know what to look for."
-    },
-    {
-     "label": "Approach B",
-     "text": "Look at the words already on the diagram ('bottom of the tank', 'small holes') and scan the passage for them.",
-     "comment": "Best: the words around each gap are location clues. Find them in the passage, then read that sentence carefully."
-    },
-    {
-     "label": "Approach C",
-     "text": "Guess the name of each part from general knowledge.",
-     "comment": "Risky: the answer must come from the passage and fit the word limit, even if you know a different technical word."
-    }
-   ]
-  },
-  {
-   "id": "IELTS-X3-G1",
-   "kind": "items",
-   "title": "Diagram labelling",
-   "mode": "Guided practice; answer alone, then check with a partner",
-   "instructions": "Read the passage. Label the diagram. Choose ONE WORD ONLY from the passage for each answer.",
-   "stimulus": {
-    "type": "passage",
-    "title": "From waste paper to new paper",
-    "labelled": false,
-    "paragraphs": [
-     "Paper is one of the most widely recycled materials in the world, yet few people know what happens after they put it in a recycling bin. The process begins with collection. Paper from homes and offices is taken to a sorting centre, where it is separated into grades, because newspapers, office paper and cardboard contain different types of fibre and are used to make different products.",
-     "At the mill, the sorted paper is fed into a machine called a pulper. This is essentially a huge tank, rather like a giant food mixer. The paper is mixed with water, and a rotor at the bottom of the tank turns rapidly, tearing the paper apart until it becomes a wet mixture of fibres known as pulp. Light rubbish such as plastic film floats to the surface, where it is skimmed off, while heavy objects such as staples and paper clips sink to the bottom and are collected in a trap. The pulp leaves the tank through a screen: a metal plate with small holes that lets the fibres pass but holds back larger pieces of waste.",
-     "The pulp is then cleaned further. It is pumped through a series of cone-shaped cleaners, in which it spins at high speed, so that sand and other heavy particles are thrown outwards and removed. Next comes de-inking. Air is blown into the pulp together with special soaps, and the ink particles stick to the air bubbles and rise to form a grey foam, which is scraped away. If very white paper is needed, the pulp may also be bleached at this stage.",
-     "Finally, the clean pulp is sprayed onto a moving wire mesh. Water drains through the mesh, and the fibres begin to bond together into a thin sheet. The sheet is pressed between rollers to squeeze out more water and then passed over heated cylinders until it is dry. The finished paper is wound onto enormous reels.",
-     "Recycling cannot continue for ever. Each time paper is recycled, its fibres become shorter and weaker, and after a number of cycles, often estimated at five to seven, they are too short to form a strong sheet. For this reason, mills usually add some new fibre from wood to maintain quality."
-    ]
-   },
-   "figure": {
-    "type": "diagram",
-    "title": "A pulper",
-    "xlim": [
-     0,
-     112
-    ],
-    "ylim": [
-     0,
-     80
-    ],
-    "note": "Simplified diagram for practice (illustrative, not to scale).",
-    "alt": "Cross-section of a large tank. Paper and water are added from above. A rotor turns at the bottom of the tank. A thin layer of light rubbish floats on the surface. Below the tank, a small box collects heavy objects. On the right side, the pulp leaves through a plate with small holes into a pipe. Four labels need completing.",
-    "shapes": [
-     {
-      "rect": [
-       20,
-       10,
-       50,
-       50
-      ],
-      "kind": "wall"
-     },
-     {
-      "rect": [
-       20.6,
-       10.6,
-       48.8,
-       39
-      ],
-      "kind": "water",
-      "lw": 0
-     },
-     {
-      "rect": [
-       24,
-       49,
-       18,
-       2.2
-      ],
-      "kind": "building",
-      "lw": 1.2,
-      "z": 3
-     },
-     {
-      "rect": [
-       37,
-       11.5,
-       16,
-       3
-      ],
-      "kind": "dark",
-      "z": 3
-     },
-     {
-      "line": [
-       [
-        45,
-        14.5
-       ],
-       [
-        45,
-        20
-       ]
-      ],
-      "kind": "dark",
-      "lw": 3,
-      "z": 3
-     },
-     {
-      "rect": [
-       28,
-       1,
-       10,
-       8.4
-      ],
-      "kind": "wall"
-     },
-     {
-      "rect": [
-       29,
-       9.3,
-       8,
-       1.4
-      ],
-      "kind": "sky",
-      "lw": 0,
-      "z": 3
-     },
-     {
-      "rect": [
-       70,
-       22,
-       24,
-       7
-      ],
-      "kind": "wall"
-     },
-     {
-      "rect": [
-       69,
-       21,
-       2.2,
-       9
-      ],
-      "kind": "dark",
-      "z": 3
-     }
-    ],
-    "flows": [
-     {
-      "points": [
-       [
-        36,
-        74
-       ],
-       [
-        36,
-        53
-       ]
-      ],
-      "kind": "water"
-     },
-     {
-      "points": [
-       [
-        72,
-        25.5
-       ],
-       [
-        92,
-        25.5
-       ]
-      ],
-      "kind": "cool"
-     },
-     {
-      "points": [
-       [
-        33,
-        20
-       ],
-       [
-        33,
-        11
-       ]
-      ],
-      "kind": "warm"
-     }
-    ],
-    "labels": [
-     {
-      "text": "paper and water added",
-      "at": [
-       40,
-       76
-      ]
-     },
-     {
-      "text": "pulp leaves the tank",
-      "at": [
-       74,
-       34
-      ]
-     },
-     {
-      "text": "1   a ______ turns rapidly",
-      "at": [
-       60,
-       6
-      ],
-      "to": [
-       52,
-       13
-      ],
-      "question": true
-     },
-     {
-      "text": "2   plastic ______ is skimmed off",
-      "at": [
-       46,
-       66
-      ],
-      "to": [
-       40,
-       50.5
-      ],
-      "question": true
-     },
-     {
-      "text": "3   staples collected in a ______",
-      "at": [
-       1,
-       3
-      ],
-      "to": [
-       28,
-       5
-      ],
-      "question": true
-     },
-     {
-      "text": "4   a ______ with small holes",
-      "at": [
-       74,
-       46
-      ],
-      "to": [
-       70,
-       28
-      ],
-      "question": true
-     }
-    ]
-   },
-   "items": [
-    {
-     "id": "IELTS-X3-G1-Q1",
-     "prompt": "a ______ turns rapidly (at the bottom of the tank)",
-     "answer": "rotor",
-     "evidence": "a rotor at the bottom of the tank turns rapidly",
-     "reason": "The diagram words 'turns rapidly' locate the sentence.",
-     "focus": "locating explicit evidence",
-     "type": "completion",
-     "word_limit": 1,
-     "hint": "a part of a machine",
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X3-G1-Q2",
-     "prompt": "plastic ______ is skimmed off (at the surface)",
-     "answer": "film",
-     "evidence": "Light rubbish such as plastic film floats to the surface, where it is skimmed off",
-     "reason": "'Skimmed off' is the location clue; the noun after 'plastic' is the answer.",
-     "focus": "explicit detail",
-     "type": "completion",
-     "word_limit": 1,
-     "hint": "a noun",
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X3-G1-Q3",
-     "prompt": "staples collected in a ______ (below the tank)",
-     "answer": "trap",
-     "evidence": "sink to the bottom and are collected in a trap",
-     "reason": "Not 'bottom': the question asks what collects them.",
-     "focus": "detail discrimination",
-     "type": "completion",
-     "word_limit": 1,
-     "hint": "a noun",
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X3-G1-Q4",
-     "prompt": "a ______ with small holes (where the pulp leaves)",
-     "answer": "screen",
-     "evidence": "The pulp leaves the tank through a screen: a metal plate with small holes",
-     "reason": "'Plate' is also in the sentence, but 'screen' is the name of the part.",
-     "focus": "distractor resistance",
-     "type": "completion",
-     "word_limit": 1,
-     "hint": "a noun",
-     "level": "core"
-    }
-   ],
-   "support": "Foundation: the teacher reads paragraph 2 aloud while learners point to each part on the diagram.",
-   "extension": "Write one sentence explaining what each labelled part does."
-  },
-  {
-   "id": "IELTS-X3-P1",
-   "kind": "items",
-   "title": "Flow-chart completion",
-   "mode": "Independent practice under time (7 minutes); then check",
-   "flow": true,
-   "instructions": "Use the passage 'From waste paper to new paper'. Complete the flow chart. Choose ONE WORD ONLY from the passage for each answer.",
-   "stimulus": {
-    "type": "passage",
-    "title": "From waste paper to new paper (same passage)",
-    "labelled": false,
-    "paragraphs": [
-     "Paper is one of the most widely recycled materials in the world, yet few people know what happens after they put it in a recycling bin. The process begins with collection. Paper from homes and offices is taken to a sorting centre, where it is separated into grades, because newspapers, office paper and cardboard contain different types of fibre and are used to make different products.",
-     "At the mill, the sorted paper is fed into a machine called a pulper. This is essentially a huge tank, rather like a giant food mixer. The paper is mixed with water, and a rotor at the bottom of the tank turns rapidly, tearing the paper apart until it becomes a wet mixture of fibres known as pulp. Light rubbish such as plastic film floats to the surface, where it is skimmed off, while heavy objects such as staples and paper clips sink to the bottom and are collected in a trap. The pulp leaves the tank through a screen: a metal plate with small holes that lets the fibres pass but holds back larger pieces of waste.",
-     "The pulp is then cleaned further. It is pumped through a series of cone-shaped cleaners, in which it spins at high speed, so that sand and other heavy particles are thrown outwards and removed. Next comes de-inking. Air is blown into the pulp together with special soaps, and the ink particles stick to the air bubbles and rise to form a grey foam, which is scraped away. If very white paper is needed, the pulp may also be bleached at this stage.",
-     "Finally, the clean pulp is sprayed onto a moving wire mesh. Water drains through the mesh, and the fibres begin to bond together into a thin sheet. The sheet is pressed between rollers to squeeze out more water and then passed over heated cylinders until it is dry. The finished paper is wound onto enormous reels.",
-     "Recycling cannot continue for ever. Each time paper is recycled, its fibres become shorter and weaker, and after a number of cycles, often estimated at five to seven, they are too short to form a strong sheet. For this reason, mills usually add some new fibre from wood to maintain quality."
-    ],
-    "workbook_reference": "Use the passage printed with Questions 1-4."
-   },
-   "form_title": "Recycling paper: the main stages",
-   "items": [
-    {
-     "id": "IELTS-X3-P1-Q5",
-     "prompt": "Paper is separated into ______ at a sorting centre.",
-     "answer": "grades",
-     "evidence": "it is separated into grades",
-     "reason": "Plural noun; the first stage of the process.",
-     "focus": "explicit detail",
-     "type": "completion",
-     "word_limit": 1,
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X3-P1-Q6",
-     "prompt": "Cone-shaped cleaners remove ______ and other heavy particles.",
-     "answer": "sand",
-     "evidence": "so that sand and other heavy particles are thrown outwards and removed",
-     "reason": "The flow chart keeps the words 'heavy particles' as a clue.",
-     "focus": "locating explicit evidence",
-     "type": "completion",
-     "word_limit": 1,
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X3-P1-Q7",
-     "prompt": "Ink particles stick to air ______ and form a foam.",
-     "answer": "bubbles",
-     "evidence": "the ink particles stick to the air bubbles",
-     "reason": "'Foam' is nearby but is the result, not the answer.",
-     "focus": "distractor resistance",
-     "type": "completion",
-     "word_limit": 1,
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X3-P1-Q8",
-     "prompt": "For very white paper, the pulp may be ______.",
-     "answer": "bleached",
-     "evidence": "the pulp may also be bleached at this stage",
-     "reason": "The verb form must fit: may be + past participle.",
-     "focus": "grammatical control",
-     "type": "completion",
-     "word_limit": 1,
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X3-P1-Q9",
-     "prompt": "Pulp is sprayed onto a moving wire ______.",
-     "answer": "mesh",
-     "evidence": "the clean pulp is sprayed onto a moving wire mesh",
-     "reason": "The noun after wire.",
-     "focus": "explicit detail",
-     "type": "completion",
-     "word_limit": 1,
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X3-P1-Q10",
-     "prompt": "The sheet is dried over heated ______.",
-     "answer": "cylinders",
-     "evidence": "passed over heated cylinders until it is dry",
-     "reason": "'Rollers' press the sheet; 'cylinders' dry it.",
-     "focus": "detail discrimination",
-     "type": "completion",
-     "word_limit": 1,
-     "level": "core"
-    }
-   ],
-   "support": "Foundation: before reading, learners number the paragraphs and write which stage of the chart each paragraph covers.",
-   "high_band": "Add one more box to the flow chart for paragraph 5 and write a gap question for it."
-  }
- ],
- "stages": [
-  {
-   "start": 0,
-   "end": 6,
-   "title": "Opening challenge: where is the answer on a diagram?",
-   "show": [
-    {
-     "block": "IELTS-X3-K1",
-     "part": "questions"
-    },
-    {
-     "block": "IELTS-X3-K1",
-     "part": "answers"
-    }
-   ],
-   "student": "Decide which approach is best before the reveal.",
-   "teacher": "Learners vote. Reveal the comments. Point out the location clues printed on any diagram.",
-   "say": "The words on the diagram tell you where to look in the passage.",
-   "check": "Learners can name two location clues on the diagram."
-  },
-  {
-   "start": 6,
-   "end": 10,
-   "title": "How process passages are organised",
-   "show": [],
-   "student": "Note sequence words: begins with, then, next comes, finally.",
-   "teacher": "Explain that process passages follow time order, and that diagrams and flow charts usually follow the same order. Model finding the sequence words in paragraph 3.",
-   "say": "Sequence words are signposts in a process passage.",
-   "check": "Learners have underlined four sequence words."
-  },
-  {
-   "start": 10,
-   "end": 20,
-   "title": "Guided: label the diagram",
-   "show": [
-    {
-     "block": "IELTS-X3-G1",
-     "part": "questions"
-    }
-   ],
-   "student": "Read the passage and label the diagram (Questions 1-4).",
-   "teacher": "Allow 8 minutes including reading. Foundation learners point to each part while the teacher reads paragraph 2.",
-   "say": "Find the location clue, then copy the exact word.",
-   "check": "Every learner has four answers."
-  },
-  {
-   "start": 20,
-   "end": 25,
-   "title": "Check the diagram",
-   "show": [
-    {
-     "block": "IELTS-X3-G1",
-     "part": "answers"
-    }
-   ],
-   "student": "Check answers with a partner.",
-   "teacher": "Reveal one at a time. For Q4, show why 'plate' is tempting but wrong.",
-   "say": "Choose the name of the part, not a description of it.",
-   "check": "Learners can explain Q4."
-  },
-  {
-   "start": 25,
-   "end": 34,
-   "title": "Flow chart under time",
-   "show": [
-    {
-     "block": "IELTS-X3-P1",
-     "part": "questions"
-    }
-   ],
-   "student": "Complete Questions 5-10 in 7 minutes.",
-   "teacher": "Time 7 minutes. No dictionaries.",
-   "say": "Follow the order of the passage from box to box.",
-   "check": "Learners finish in time."
-  },
-  {
-   "start": 34,
-   "end": 40,
-   "title": "Check the flow chart",
-   "show": [
-    {
-     "block": "IELTS-X3-P1",
-     "part": "answers"
-    }
-   ],
-   "student": "Check answers and mark spelling errors separately.",
-   "teacher": "Reveal. Discuss Q8 (grammar fit) and Q10 (rollers versus cylinders).",
-   "say": "Every answer must fit the grammar of the box.",
-   "check": "Learners can explain Q10."
-  },
-  {
-   "start": 40,
-   "end": 50,
-   "title": "Explain the process",
-   "show": [],
-   "student": "In pairs, use the flow chart to explain the whole process aloud in one minute each, using sequence words.",
-   "teacher": "Model the first two stages. Listen for sequence words and passive forms (is separated, is pumped).",
-   "say": "Explaining a process aloud checks that you really understood the order.",
-   "check": "Each learner explains the process once."
-  },
-  {
-   "start": 50,
-   "end": 55,
-   "title": "My reading log",
-   "show": [],
-   "student": "Record each wrong answer as: wrong place, wrong word, word limit or spelling.",
-   "teacher": "Note the error types learners actually record. No band conversion.",
-   "say": "Your log tells you what to practise next.",
-   "check": "Each learner has one target."
-  },
-  {
-   "start": 55,
-   "end": 60,
-   "title": "Exit ticket and homework",
-   "show": [],
-   "student": "Complete the exit ticket and take the homework.",
-   "teacher": "Collect exit tickets. Record the fresh-check date.",
-   "say": "Next time, read the diagram before the passage.",
-   "check": "Everyone knows the homework."
-  }
- ],
- "exit_ticket": [
-  "Where I look first in a diagram question:",
-  "Two sequence words that help in a process passage:",
-  "My target for the next reading task:"
- ],
- "homework": [
-  "Find a short description of a process in English (how something is made or works). Draw a simple flow chart of it with four gaps for a classmate.",
-  "Explain your flow chart aloud in one minute using sequence words.",
-  "Complete only the Brains Heist reading practice your teacher actually assigns. Suggested time: about 25 minutes."
- ],
- "followup": {
-  "id": "IELTS-X3-C1",
-  "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
-  "delivery": "About one teaching week after this lesson. Five minutes, independent, no dictionary, no support. Log timing, support and prior exposure. Classroom observation only.",
-  "blocks": [
-   {
-    "id": "IELTS-X3-C1",
-    "kind": "items",
-    "title": "Making compost at home",
-    "mode": "Withheld fresh check; independent, timed",
-    "flow": true,
-    "instructions": "Complete the flow chart. Choose ONE WORD ONLY from the passage for each answer.",
-    "stimulus": {
-     "type": "passage",
-     "title": "Making compost at home",
-     "labelled": false,
-     "paragraphs": [
-      "Home composting turns kitchen and garden waste into a rich material that improves soil. The process starts with collecting suitable waste: vegetable peelings, fruit, coffee grounds and grass cuttings are all useful, but meat and dairy products should be avoided because they attract rats.",
-      "The waste is placed in a bin with an open base, so that worms can enter from the soil below. It is important to mix green waste, such as grass, with brown waste, such as cardboard or dry leaves, because too much green material makes the heap wet and smelly.",
-      "Every few weeks, the heap should be turned with a fork to let in air, which speeds up the work of the bacteria that break the waste down. After six to twelve months, the compost at the bottom of the bin is dark and crumbly and ready to use."
-     ]
-    },
-    "items": [
-     {
-      "id": "IELTS-X3-C1-Q1",
-      "prompt": "Collect waste, but avoid meat and dairy, which attract ______.",
-      "answer": "rats",
-      "evidence": "they attract rats",
-      "reason": "Plural noun.",
-      "focus": "explicit detail",
-      "type": "completion",
-      "word_limit": 1,
-      "level": "core"
-     },
-     {
-      "id": "IELTS-X3-C1-Q2",
-      "prompt": "Use a bin with an open ______ so that worms can enter.",
-      "answer": "base",
-      "evidence": "a bin with an open base",
-      "reason": "The noun after open.",
-      "focus": "locating explicit evidence",
-      "type": "completion",
-      "word_limit": 1,
-      "level": "core"
-     },
-     {
-      "id": "IELTS-X3-C1-Q3",
-      "prompt": "Mix green waste with brown waste such as cardboard or dry ______.",
-      "answer": "leaves",
-      "evidence": "such as cardboard or dry leaves",
-      "reason": "Plural noun.",
-      "focus": "explicit detail",
-      "type": "completion",
-      "word_limit": 1,
-      "level": "core"
-     },
-     {
-      "id": "IELTS-X3-C1-Q4",
-      "prompt": "Turn the heap every few weeks to let in ______.",
-      "answer": "air",
-      "evidence": "turned with a fork to let in air",
-      "reason": "Uncountable noun.",
-      "focus": "explicit detail",
-      "type": "completion",
-      "word_limit": 1,
-      "level": "core"
-     },
-     {
-      "id": "IELTS-X3-C1-Q5",
-      "prompt": "The compost is ready when it is dark and ______.",
-      "answer": "crumbly",
-      "evidence": "is dark and crumbly and ready to use",
-      "reason": "Adjective joined by and.",
-      "focus": "locating explicit evidence",
-      "type": "completion",
-      "word_limit": 1,
-      "level": "core"
-     }
-    ]
-   }
+  "prerequisites": [
+    "Lesson 6 (reading for specific information).",
+    "Teacher has checked actual Reading Screener and review states privately.",
+    "Optional extension: use when learners need practice with diagram and flow-chart questions on process passages."
   ],
-  "review": "Compare only the observed demands and conditions with this lesson. Record the result as a separate later observation; do not convert it to a band or merge it with screener evidence."
- },
- "delayed_followup": "In Lesson 18 (timed Academic Reading), check whether learners use location clues on visuals under time pressure. Record it as a later observation.",
- "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
- "release_blockers": [
-  "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
-  "Student task publication and platform evidence capture remain separate, governed steps."
- ],
- "approval_record": {
-  "approved_by": "Owner, Brains Heist LLC",
-  "date": "2026-10-18",
-  "version": "1.0.0",
-  "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
-  "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 331c9d8c4c3b0cfbe375081346f324069d6e63613846056c018f648863d4ed7e): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
- }
+  "objectives": [
+    {
+      "text": "Use the words printed on a diagram or flow chart as location clues and find the matching sentence in the passage.",
+      "focus": [
+        "locating explicit evidence",
+        "scanning"
+      ]
+    },
+    {
+      "text": "Follow the order of a process passage using sequence words, and complete each stage with a word that fits grammar and meaning.",
+      "focus": [
+        "discourse organization",
+        "grammatical control"
+      ]
+    },
+    {
+      "text": "Distinguish the name of a part or stage from nearby descriptions and results.",
+      "focus": [
+        "detail discrimination",
+        "distractor resistance"
+      ]
+    }
+  ],
+  "levels": {
+    "foundation": "Teacher reads the key paragraph aloud while learners point to the diagram; paragraphs mapped to flow-chart stages before reading.",
+    "core": "Complete all ten questions in the time given, with correct spelling and word limits.",
+    "extension": "Explain what each labelled part does in one sentence.",
+    "high_band": "After studying an unfamiliar technical passage, complete a visual without marked paragraph locations, distinguish sequence from cause, and defend choices using rephrased textual evidence while respecting the word limit."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-X3-K1",
+      "kind": "contrast",
+      "title": "Where is the answer on a diagram?",
+      "mode": "Opening challenge; learners decide before the reveal",
+      "instructions": "A learner must label part of a machine shown in a diagram. Which approach will find the answer fastest?",
+      "examples": [
+        {
+          "label": "Approach A",
+          "text": "Read the whole passage slowly from the start, then look at the diagram.",
+          "comment": "Slow: diagram questions usually come from one or two paragraphs. Read the diagram first so you know what to look for."
+        },
+        {
+          "label": "Approach B",
+          "text": "Look at the words already on the diagram ('bottom of the tank', 'small holes') and scan the passage for them.",
+          "comment": "Best: the words around each gap are location clues. Find them in the passage, then read that sentence carefully."
+        },
+        {
+          "label": "Approach C",
+          "text": "Guess the name of each part from general knowledge.",
+          "comment": "Risky: the answer must come from the passage and fit the word limit, even if you know a different technical word."
+        }
+      ]
+    },
+    {
+      "id": "IELTS-X3-G1",
+      "kind": "items",
+      "title": "Diagram labelling",
+      "mode": "Guided practice; answer alone, then check with a partner",
+      "instructions": "Read the passage. Label the diagram. Choose ONE WORD ONLY from the passage for each answer.",
+      "stimulus": {
+        "type": "passage",
+        "title": "From waste paper to new paper",
+        "labelled": false,
+        "paragraphs": [
+          "Paper is one of the most widely recycled materials in the world, yet few people know what happens after they put it in a recycling bin. The process begins with collection. Paper from homes and offices is taken to a sorting centre, where it is separated into grades, because newspapers, office paper and cardboard contain different types of fibre and are used to make different products.",
+          "At the mill, the sorted paper is fed into a machine called a pulper. This is essentially a huge tank, rather like a giant food mixer. The paper is mixed with water, and a rotor at the bottom of the tank turns rapidly, tearing the paper apart until it becomes a wet mixture of fibres known as pulp. Light rubbish such as plastic film floats to the surface, where it is skimmed off, while heavy objects such as staples and paper clips sink to the bottom and are collected in a trap. The pulp leaves the tank through a screen: a metal plate with small holes that lets the fibres pass but holds back larger pieces of waste.",
+          "The pulp is then cleaned further. It is pumped through a series of cone-shaped cleaners, in which it spins at high speed, so that sand and other heavy particles are thrown outwards and removed. Next comes de-inking. Air is blown into the pulp together with special soaps, and the ink particles stick to the air bubbles and rise to form a grey foam, which is scraped away. If very white paper is needed, the pulp may also be bleached at this stage.",
+          "Finally, the clean pulp is sprayed onto a moving wire mesh. Water drains through the mesh, and the fibres begin to bond together into a thin sheet. The sheet is pressed between rollers to squeeze out more water and then passed over heated cylinders until it is dry. The finished paper is wound onto enormous reels.",
+          "Recycling cannot continue for ever. Each time paper is recycled, its fibres become shorter and weaker, and after a number of cycles, often estimated at five to seven, they are too short to form a strong sheet. For this reason, mills usually add some new fibre from wood to maintain quality."
+        ]
+      },
+      "figure": {
+        "type": "diagram",
+        "title": "A pulper",
+        "xlim": [
+          0,
+          112
+        ],
+        "ylim": [
+          0,
+          80
+        ],
+        "note": "Simplified diagram for practice (illustrative, not to scale).",
+        "alt": "Cross-section of a large tank. Paper and water are added from above. A rotor turns at the bottom of the tank. A thin layer of light rubbish floats on the surface. Below the tank, a small box collects heavy objects. On the right side, the pulp leaves through a plate with small holes into a pipe. Four labels need completing.",
+        "shapes": [
+          {
+            "rect": [
+              20,
+              10,
+              50,
+              50
+            ],
+            "kind": "wall"
+          },
+          {
+            "rect": [
+              20.6,
+              10.6,
+              48.8,
+              39
+            ],
+            "kind": "water",
+            "lw": 0
+          },
+          {
+            "rect": [
+              24,
+              49,
+              18,
+              2.2
+            ],
+            "kind": "building",
+            "lw": 1.2,
+            "z": 3
+          },
+          {
+            "rect": [
+              37,
+              11.5,
+              16,
+              3
+            ],
+            "kind": "dark",
+            "z": 3
+          },
+          {
+            "line": [
+              [
+                45,
+                14.5
+              ],
+              [
+                45,
+                20
+              ]
+            ],
+            "kind": "dark",
+            "lw": 3,
+            "z": 3
+          },
+          {
+            "rect": [
+              28,
+              1,
+              10,
+              8.4
+            ],
+            "kind": "wall"
+          },
+          {
+            "rect": [
+              29,
+              9.3,
+              8,
+              1.4
+            ],
+            "kind": "sky",
+            "lw": 0,
+            "z": 3
+          },
+          {
+            "rect": [
+              70,
+              22,
+              24,
+              7
+            ],
+            "kind": "wall"
+          },
+          {
+            "rect": [
+              69,
+              21,
+              2.2,
+              9
+            ],
+            "kind": "dark",
+            "z": 3
+          }
+        ],
+        "flows": [
+          {
+            "points": [
+              [
+                36,
+                74
+              ],
+              [
+                36,
+                53
+              ]
+            ],
+            "kind": "water"
+          },
+          {
+            "points": [
+              [
+                72,
+                25.5
+              ],
+              [
+                92,
+                25.5
+              ]
+            ],
+            "kind": "cool"
+          },
+          {
+            "points": [
+              [
+                33,
+                20
+              ],
+              [
+                33,
+                11
+              ]
+            ],
+            "kind": "warm"
+          }
+        ],
+        "labels": [
+          {
+            "text": "paper and water added",
+            "at": [
+              40,
+              76
+            ]
+          },
+          {
+            "text": "pulp leaves the tank",
+            "at": [
+              74,
+              34
+            ]
+          },
+          {
+            "text": "1   a ______ turns rapidly",
+            "at": [
+              60,
+              6
+            ],
+            "to": [
+              52,
+              13
+            ],
+            "question": true
+          },
+          {
+            "text": "2   plastic ______ is skimmed off",
+            "at": [
+              46,
+              66
+            ],
+            "to": [
+              40,
+              50.5
+            ],
+            "question": true
+          },
+          {
+            "text": "3   staples collected in a ______",
+            "at": [
+              1,
+              3
+            ],
+            "to": [
+              28,
+              5
+            ],
+            "question": true
+          },
+          {
+            "text": "4   a ______ with small holes",
+            "at": [
+              74,
+              46
+            ],
+            "to": [
+              70,
+              28
+            ],
+            "question": true
+          }
+        ]
+      },
+      "items": [
+        {
+          "id": "IELTS-X3-G1-Q1",
+          "prompt": "Which component creates the rapid movement at the base of the tank?",
+          "answer": "rotor",
+          "evidence": "a rotor at the bottom of the tank turns rapidly",
+          "reason": "The diagram words 'turns rapidly' locate the sentence.",
+          "focus": "locating explicit evidence",
+          "type": "completion",
+          "word_limit": 1,
+          "hint": "a part of a machine",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X3-G1-Q2",
+          "prompt": "plastic ______ is skimmed off (at the surface)",
+          "answer": "film",
+          "evidence": "Light rubbish such as plastic film floats to the surface, where it is skimmed off",
+          "reason": "'Skimmed off' is the location clue; the noun after 'plastic' is the answer.",
+          "focus": "explicit detail",
+          "type": "completion",
+          "word_limit": 1,
+          "hint": "a noun",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X3-G1-Q3",
+          "prompt": "staples collected in a ______ (below the tank)",
+          "answer": "trap",
+          "evidence": "sink to the bottom and are collected in a trap",
+          "reason": "Not 'bottom': the question asks what collects them.",
+          "focus": "detail discrimination",
+          "type": "completion",
+          "word_limit": 1,
+          "hint": "a noun",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X3-G1-Q4",
+          "prompt": "a ______ with small holes (where the pulp leaves)",
+          "answer": "screen",
+          "evidence": "The pulp leaves the tank through a screen: a metal plate with small holes",
+          "reason": "'Plate' is also in the sentence, but 'screen' is the name of the part.",
+          "focus": "distractor resistance",
+          "type": "completion",
+          "word_limit": 1,
+          "hint": "a noun",
+          "level": "core"
+        }
+      ],
+      "support": "Foundation: the teacher reads paragraph 2 aloud while learners point to each part on the diagram.",
+      "extension": "Write one sentence explaining what each labelled part does. Advanced transfer: before revealing the key, require a cited justification of one correct response and one plausible incorrect response."
+    },
+    {
+      "id": "IELTS-X3-P1",
+      "kind": "items",
+      "title": "Flow-chart completion",
+      "mode": "Independent practice under time (7 minutes); then check",
+      "flow": true,
+      "instructions": "Use the passage 'From waste paper to new paper'. Complete the flow chart. Choose ONE WORD ONLY from the passage for each answer.",
+      "stimulus": {
+        "type": "passage",
+        "title": "From waste paper to new paper (same passage)",
+        "labelled": false,
+        "paragraphs": [
+          "Paper is one of the most widely recycled materials in the world, yet few people know what happens after they put it in a recycling bin. The process begins with collection. Paper from homes and offices is taken to a sorting centre, where it is separated into grades, because newspapers, office paper and cardboard contain different types of fibre and are used to make different products.",
+          "At the mill, the sorted paper is fed into a machine called a pulper. This is essentially a huge tank, rather like a giant food mixer. The paper is mixed with water, and a rotor at the bottom of the tank turns rapidly, tearing the paper apart until it becomes a wet mixture of fibres known as pulp. Light rubbish such as plastic film floats to the surface, where it is skimmed off, while heavy objects such as staples and paper clips sink to the bottom and are collected in a trap. The pulp leaves the tank through a screen: a metal plate with small holes that lets the fibres pass but holds back larger pieces of waste.",
+          "The pulp is then cleaned further. It is pumped through a series of cone-shaped cleaners, in which it spins at high speed, so that sand and other heavy particles are thrown outwards and removed. Next comes de-inking. Air is blown into the pulp together with special soaps, and the ink particles stick to the air bubbles and rise to form a grey foam, which is scraped away. If very white paper is needed, the pulp may also be bleached at this stage.",
+          "Finally, the clean pulp is sprayed onto a moving wire mesh. Water drains through the mesh, and the fibres begin to bond together into a thin sheet. The sheet is pressed between rollers to squeeze out more water and then passed over heated cylinders until it is dry. The finished paper is wound onto enormous reels.",
+          "Recycling cannot continue for ever. Each time paper is recycled, its fibres become shorter and weaker, and after a number of cycles, often estimated at five to seven, they are too short to form a strong sheet. For this reason, mills usually add some new fibre from wood to maintain quality."
+        ],
+        "workbook_reference": "Use the passage printed with Questions 1-4."
+      },
+      "form_title": "Recycling paper: the main stages",
+      "items": [
+        {
+          "id": "IELTS-X3-P1-Q5",
+          "prompt": "Paper is separated into ______ at a sorting centre.",
+          "answer": "grades",
+          "evidence": "it is separated into grades",
+          "reason": "Plural noun; the first stage of the process.",
+          "focus": "explicit detail",
+          "type": "completion",
+          "word_limit": 1,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X3-P1-Q6",
+          "prompt": "Cone-shaped cleaners remove ______ and other heavy particles.",
+          "answer": "sand",
+          "evidence": "so that sand and other heavy particles are thrown outwards and removed",
+          "reason": "The flow chart keeps the words 'heavy particles' as a clue.",
+          "focus": "locating explicit evidence",
+          "type": "completion",
+          "word_limit": 1,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X3-P1-Q7",
+          "prompt": "Ink particles stick to air ______ and form a foam.",
+          "answer": "bubbles",
+          "evidence": "the ink particles stick to the air bubbles",
+          "reason": "'Foam' is nearby but is the result, not the answer.",
+          "focus": "distractor resistance",
+          "type": "completion",
+          "word_limit": 1,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X3-P1-Q8",
+          "prompt": "For very white paper, the pulp may be ______.",
+          "answer": "bleached",
+          "evidence": "the pulp may also be bleached at this stage",
+          "reason": "The verb form must fit: may be + past participle.",
+          "focus": "grammatical control",
+          "type": "completion",
+          "word_limit": 1,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X3-P1-Q9",
+          "prompt": "Pulp is sprayed onto a moving wire ______.",
+          "answer": "mesh",
+          "evidence": "the clean pulp is sprayed onto a moving wire mesh",
+          "reason": "The noun after wire.",
+          "focus": "explicit detail",
+          "type": "completion",
+          "word_limit": 1,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X3-P1-Q10",
+          "prompt": "The sheet is dried over heated ______.",
+          "answer": "cylinders",
+          "evidence": "passed over heated cylinders until it is dry",
+          "reason": "'Rollers' press the sheet; 'cylinders' dry it.",
+          "focus": "detail discrimination",
+          "type": "completion",
+          "word_limit": 1,
+          "level": "core"
+        }
+      ],
+      "support": "Foundation: before reading, learners number the paragraphs and write which stage of the chart each paragraph covers.",
+      "high_band": "Add one more box to the flow chart for paragraph 5 and write a gap question for it."
+    }
+  ],
+  "stages": [
+    {
+      "start": 0,
+      "end": 6,
+      "title": "Opening challenge: where is the answer on a diagram?",
+      "show": [
+        {
+          "block": "IELTS-X3-K1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-X3-K1",
+          "part": "answers"
+        }
+      ],
+      "student": "Decide which approach is best before the reveal.",
+      "teacher": "Learners vote. Reveal the comments. Point out the location clues printed on any diagram.",
+      "say": "The words on the diagram tell you where to look in the passage.",
+      "check": "Learners can name two location clues on the diagram."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "title": "How process passages are organised",
+      "show": [],
+      "student": "Note sequence words: begins with, then, next comes, finally.",
+      "teacher": "Explain that process passages follow time order, and that diagrams and flow charts usually follow the same order. Model finding the sequence words in paragraph 3.",
+      "say": "Sequence words are signposts in a process passage.",
+      "check": "Learners have underlined four sequence words."
+    },
+    {
+      "start": 10,
+      "end": 20,
+      "title": "Guided: label the diagram",
+      "show": [
+        {
+          "block": "IELTS-X3-G1",
+          "part": "questions"
+        }
+      ],
+      "student": "Read the passage and label the diagram (Questions 1-4).",
+      "teacher": "Allow 8 minutes including reading. Foundation learners point to each part while the teacher reads paragraph 2.",
+      "say": "Find the location clue, then copy the exact word.",
+      "check": "Every learner has four answers."
+    },
+    {
+      "start": 20,
+      "end": 25,
+      "title": "Check the diagram",
+      "show": [
+        {
+          "block": "IELTS-X3-G1",
+          "part": "answers"
+        }
+      ],
+      "student": "Check answers with a partner.",
+      "teacher": "Reveal one at a time. For Q4, show why 'plate' is tempting but wrong.",
+      "say": "Choose the name of the part, not a description of it.",
+      "check": "Learners can explain Q4."
+    },
+    {
+      "start": 25,
+      "end": 34,
+      "title": "Flow chart under time",
+      "show": [
+        {
+          "block": "IELTS-X3-P1",
+          "part": "questions"
+        }
+      ],
+      "student": "Complete Questions 5-10 in 7 minutes.",
+      "teacher": "Time 7 minutes. No dictionaries.",
+      "say": "Follow the order of the passage from box to box.",
+      "check": "Learners finish in time."
+    },
+    {
+      "start": 34,
+      "end": 40,
+      "title": "Check the flow chart",
+      "show": [
+        {
+          "block": "IELTS-X3-P1",
+          "part": "answers"
+        }
+      ],
+      "student": "Check answers and mark spelling errors separately.",
+      "teacher": "Reveal. Discuss Q8 (grammar fit) and Q10 (rollers versus cylinders).",
+      "say": "Every answer must fit the grammar of the box.",
+      "check": "Learners can explain Q10."
+    },
+    {
+      "start": 40,
+      "end": 50,
+      "title": "Explain the process",
+      "show": [],
+      "student": "In pairs, use the flow chart to explain the whole process aloud in one minute each, using sequence words.",
+      "teacher": "Model the first two stages. Listen for sequence words and passive forms (is separated, is pumped).",
+      "say": "Explaining a process aloud checks that you really understood the order.",
+      "check": "Each learner explains the process once."
+    },
+    {
+      "start": 50,
+      "end": 55,
+      "title": "My reading log",
+      "show": [],
+      "student": "Record each wrong answer as: wrong place, wrong word, word limit or spelling.",
+      "teacher": "Note the error types learners actually record. No band conversion.",
+      "say": "Your log tells you what to practise next.",
+      "check": "Each learner has one target."
+    },
+    {
+      "start": 55,
+      "end": 60,
+      "title": "Exit ticket and homework",
+      "show": [],
+      "student": "Complete the exit ticket and take the homework.",
+      "teacher": "Collect exit tickets. Record the fresh-check date.",
+      "say": "Next time, read the diagram before the passage.",
+      "check": "Everyone knows the homework."
+    }
+  ],
+  "exit_ticket": [
+    "Where I look first in a diagram question:",
+    "Two sequence words that help in a process passage:",
+    "My target for the next reading task:"
+  ],
+  "homework": [
+    "Find a short description of a process in English (how something is made or works). Draw a simple flow chart of it with four gaps for a classmate.",
+    "Explain your flow chart aloud in one minute using sequence words.",
+    "Complete only the Brains Heist reading practice your teacher actually assigns. Suggested time: about 25 minutes."
+  ],
+  "followup": {
+    "id": "IELTS-X3-C1",
+    "status": "WITHHELD revision draft 1.1.0; human editorial, key and difficulty checks pending.",
+    "delivery": "About one teaching week after the lesson: 16 minutes independently on this unseen text and flow chart. No teacher hints, dictionary or model; log prior exposure and support.",
+    "blocks": [
+      {
+        "id": "IELTS-X3-C1",
+        "kind": "items",
+        "title": "Treating polluted road runoff",
+        "mode": "WITHHELD independent transfer; unseen technical passage, 16 minutes; no aids",
+        "flow": true,
+        "instructions": "Complete the treatment flow chart. Choose ONE WORD ONLY from the passage for each answer. The emergency diversion and the backwash loop are separate from the main forward route.",
+        "stimulus": {
+          "type": "passage",
+          "title": "Treating polluted road runoff (fictional system)",
+          "labelled": false,
+          "paragraphs": [
+            "A fictional coastal town has introduced a treatment system for rainwater collected from roads. The water cannot simply be discharged into the harbour: as it runs over paved surfaces, it picks up fragments of packaging, residues from vehicles and fine particles of rubber. The new installation separates these materials in stages. Each stage is designed for a different kind of pollutant, and not every litre of incoming water completes the same route.",
+            "At the entrance, a monitoring device measures turbidity, the cloudiness caused by suspended particles. During an unusually intense storm, water whose turbidity exceeds the safety threshold is diverted into an emergency holding reservoir rather than sent straight through the machinery. This temporary storage prevents the treatment equipment from being overwhelmed. Water that meets the entry conditions continues through a rotating screen, which traps larger items such as leaves and scraps of plastic. Workers collect this coarse waste for disposal; it is not returned to the treatment line.",
+            "The partly cleaned water next enters a broad, slow-moving basin. Heavy particles settle to the bottom under gravity, where a scraper moves them into a collection pit. In contrast, floating residues from vehicle fuel are removed from the surface by skimmers. These two streams of waste must be handled separately, since mixing them would make subsequent disposal more difficult. Neither process removes the smallest plastic fibres.",
+            "To capture those fibres, pumps force the water through ceramic membranes with extremely fine openings. The membranes are effective but gradually become blocked. A pressure gauge detects when the resistance to flow becomes excessive; at that point, an automated cleaning cycle sends filtered water backwards through the membranes. The dirty backwash is returned to the original settling basin, not released to the harbour. This loop means some of the water passes through the earlier stages more than once.",
+            "Once the water has crossed the membranes, it passes beneath ultraviolet lamps. These reduce microbial contamination without adding a chemical disinfectant. The system's operators emphasise that this does not make the output suitable for drinking. The treated water is discharged to a reed bed beside the harbour, where vegetation slows its movement and provides a final opportunity for fine sediment to collect.",
+            "The installation has reduced visible litter in the harbour, but its long-term environmental value is still being evaluated. The power required for pumping and the cost of replacing damaged membranes have to be considered alongside the amount of pollution removed. Engineers are therefore testing whether a larger settling basin could reduce how frequently the membrane-cleaning cycle is needed."
+          ]
+        },
+        "items": [
+          {
+            "id": "IELTS-X3-C1-Q1",
+            "prompt": "Entrance check: runoff is diverted into temporary storage when its monitored ______ becomes too high.",
+            "answer": "turbidity",
+            "evidence": "measures turbidity, the cloudiness caused by suspended particles",
+            "reason": "The monitor measures turbidity before water enters the treatment equipment. The storage branch handles excessive cloudiness.",
+            "focus": "sequence, process logic, paraphrase and distractor resistance",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Technical term identified through an embedded definition and threshold."
+          },
+          {
+            "id": "IELTS-X3-C1-Q2",
+            "prompt": "Before water reaches the slow-moving basin, large rubbish is intercepted by a mechanical ______.",
+            "answer": "screen",
+            "evidence": "through a rotating screen, which traps larger items",
+            "reason": "The upstream screen removes coarse litter; the later membrane removes fine fibres.",
+            "focus": "sequence, process logic, paraphrase and distractor resistance",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Easy",
+            "difficulty_basis": "Identify the coarse barrier before the basin."
+          },
+          {
+            "id": "IELTS-X3-C1-Q3",
+            "prompt": "The basin allows dense particles to fall naturally under the influence of ______.",
+            "answer": "gravity",
+            "evidence": "settle to the bottom under gravity",
+            "reason": "The sedimentation step relies on gravity rather than an engineered filtering barrier.",
+            "focus": "sequence, process logic, paraphrase and distractor resistance",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Distinguish settling by natural force from machine stages."
+          },
+          {
+            "id": "IELTS-X3-C1-Q4",
+            "prompt": "Residues that remain on the surface are removed with specialised ______.",
+            "answer": "skimmers",
+            "evidence": "removed from the surface by skimmers",
+            "reason": "Surface skimmers remove floating oil, while the scraper operates on settled material.",
+            "focus": "sequence, process logic, paraphrase and distractor resistance",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Separate surface skimming from sediment scraping."
+          },
+          {
+            "id": "IELTS-X3-C1-Q5",
+            "prompt": "Tiny fibres left behind by the earlier stages are retained using fine-pored ______.",
+            "answer": "membranes",
+            "evidence": "ceramic membranes with extremely fine openings",
+            "reason": "The ceramic membranes, not the coarse rotating screen, capture fibres.",
+            "focus": "sequence, process logic, paraphrase and distractor resistance",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Identify fine-pore medium after coarse removal."
+          },
+          {
+            "id": "IELTS-X3-C1-Q6",
+            "prompt": "A cleaning cycle begins when ______ to the movement of water through the filters becomes excessive.",
+            "answer": "resistance",
+            "evidence": "A pressure gauge detects when the resistance to flow becomes excessive",
+            "reason": "The pressure gauge detects excessive resistance to flow; 'pressure' names the gauge, not the stated condition.",
+            "focus": "causal mechanism rather than measurement-device keyword; paraphrase",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Challenging",
+            "difficulty_basis": "Disambiguate a pressure gauge (instrument) from resistance (trigger)."
+          },
+          {
+            "id": "IELTS-X3-C1-Q7",
+            "prompt": "Instead of adding chemical disinfectant, the system uses ______ light to reduce microbes.",
+            "answer": "ultraviolet",
+            "evidence": "passes beneath ultraviolet lamps",
+            "reason": "Ultraviolet lamps reduce microbial contamination; this does not make the output drinking water.",
+            "focus": "sequence, process logic, paraphrase and distractor resistance",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Recognise the form of non-chemical disinfection."
+          },
+          {
+            "id": "IELTS-X3-C1-Q8",
+            "prompt": "After treatment, the runoff is slowed among plants in a ______ bed beside the harbour.",
+            "answer": "reed",
+            "evidence": "discharged to a reed bed beside the harbour",
+            "reason": "The final planted bed is made of reeds.",
+            "focus": "sequence, process logic, paraphrase and distractor resistance",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Easy",
+            "difficulty_basis": "Identify the planted final stage."
+          }
+        ],
+        "flow_chart": [
+          {
+            "kind": "stage",
+            "title": "ROAD RUNOFF",
+            "text": "Polluted water arrives from streets."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "ENTRANCE MONITOR",
+            "text": "Checks the level of (1) ______."
+          },
+          {
+            "kind": "branch",
+            "title": "Emergency diversion — if the monitored safety threshold is exceeded",
+            "text": "↘ EMERGENCY HOLDING RESERVOIR. Water is temporarily diverted out of the normal treatment route."
+          },
+          {
+            "kind": "arrow",
+            "text": "Within the safe threshold ↓ (normal route)"
+          },
+          {
+            "kind": "stage",
+            "title": "COARSE SCREENING",
+            "text": "A rotating (2) ______ intercepts large rubbish."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "SETTLING BASIN",
+            "text": "Dense particles settle under (3) ______. Surface residues are taken away by (4) ______."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "FINE FILTRATION",
+            "text": "Ceramic (5) ______ retain small plastic fibres."
+          },
+          {
+            "kind": "branch",
+            "title": "Backwash recycling loop — only when needed",
+            "text": "↶ If (6) ______ to flow becomes excessive, cleaning begins. Dirty backwash returns to the SETTLING BASIN; it does not discharge to the harbour."
+          },
+          {
+            "kind": "arrow",
+            "text": "Normal forward route ↓"
+          },
+          {
+            "kind": "stage",
+            "title": "DISINFECTION",
+            "text": "(7) ______ light reduces microbes without a chemical disinfectant."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "FINAL TREATMENT — (8) ______ BED BESIDE THE HARBOUR",
+            "text": "The treated water reaches a planted area where vegetation slows the flow."
+          }
+        ]
+      }
+    ],
+    "review": "Review item evidence plus whether the learner correctly distinguishes diversion, sequential filtration and backwash recycling. Record time, support and errors; not a calibrated band measure. Editorial correction: Q6 requires 'resistance' (not 'pressure'); wording now states the quantity becoming excessive, resolving the instrument-versus-condition ambiguity. Check all answers against the passage before distribution. v1.1.1 diagram ends at the reed bed beside the harbour; no onward discharge from the reed bed is asserted.",
+    "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty in real audio playback."
+  },
+  "delayed_followup": "In Lesson 18 (timed Academic Reading), check whether learners use location clues on visuals under time pressure. Record it as a later observation.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps.",
+    "v1.1.1 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
+  ],
+  "previous_approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-18",
+    "version": "1.0.0",
+    "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 331c9d8c4c3b0cfbe375081346f324069d6e63613846056c018f648863d4ed7e): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
+  }
 }

@@ -1,1032 +1,1034 @@
 {
- "schema": "bh-ielts-lesson-source/2",
- "code": "IELTS-X6",
- "number": 6,
- "extension": true,
- "placement": "optional, after Week 10 (Lesson 19)",
- "week": 10,
- "version": "1.0.0",
- "presentation_version": "1.0.0",
- "title": "Academic Writing Task 1: comparing maps",
- "status": "Owner approved v1.0.0 on 2026-10-18; teacher release to all eligible schools (optional extension lesson)",
- "duration": 60,
- "test_type": "Academic",
- "bibles": {
-  "diagnostic": "1.10.0",
-  "lessons": "1.1.0",
-  "visual": "1.1.0"
- },
- "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Places and maps are fictional, created for practice. Human editorial, model, mapping and originality review pending.",
- "audio": {
-  "required": false,
-  "statement": "No recording required.",
-  "recordings": []
- },
- "prerequisites": [
-  "Lesson 11 (Task 1 overviews) and Lesson 19 (Task 1 tables and accuracy).",
-  "Teacher has checked actual Writing Screener and review states privately.",
-  "Optional extension: use when learners need practice with map tasks."
- ],
- "objectives": [
-  {
-   "text": "Write a map overview that states the general direction of change and what stayed the same.",
-   "focus": [
-    "register/task fulfilment",
-    "discourse organization"
-   ]
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-X6",
+  "number": 6,
+  "extension": true,
+  "placement": "optional, after Week 10 (Lesson 19)",
+  "week": 10,
+  "version": "1.1.0",
+  "presentation_version": "1.1.0",
+  "title": "Academic Writing Task 1: comparing maps",
+  "status": "Private teacher-review revision DRAFT v1.1.0 (NOT approved or released; prior v1.0.0 approval is historical only).",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": {
+    "diagnostic": "2.0.0",
+    "lessons": "1.2.0",
+    "visual": "1.2.0"
   },
-  {
-   "text": "Describe changes accurately with passive verbs of change and precise location phrases.",
-   "focus": [
-    "grammatical control",
-    "lexical precision"
-   ]
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Places and maps are fictional, created for practice. Human editorial, model, mapping and originality review pending.",
+  "audio": {
+    "required": false,
+    "statement": "No recording required.",
+    "recordings": []
   },
-  {
-   "text": "Organise changes by area so the reader can follow the map.",
-   "focus": [
-    "cohesion"
-   ]
-  }
- ],
- "levels": {
-  "foundation": "Compass directions labelled first; overview frame and change bank allowed and recorded.",
-  "core": "Write an accurate overview and body paragraph in 15 minutes.",
-  "extension": "Use \"to make way for\" and a location phrase in every sentence.",
-  "high_band": "Describe change with at least three different structures."
- },
- "blocks": [
-  {
-   "id": "IELTS-X6-K1",
-   "kind": "contrast",
-   "title": "Which overview works for maps?",
-   "mode": "Teacher-led analysis; learners rank before the reveal",
-   "instructions": "Three learners wrote an overview for the Westhill maps. Rank them and explain the problems in the weaker two.",
-   "examples": [
-    {
-     "label": "Overview A",
-     "text": "Overall, the farmland was replaced by a housing estate, the shops were replaced by a supermarket and the school was extended.",
-     "comment": "A list of details, not a summary: it gives three changes without saying what they mean together."
-    },
-    {
-     "label": "Overview B",
-     "text": "Overall, Westhill has changed a lot and is now a better place to live.",
-     "comment": "Vague and opinion-based: the maps do not show whether the village is better."
-    },
-    {
-     "label": "Overview C",
-     "text": "Overall, Westhill has become considerably more developed, with much of its farmland and forest giving way to housing and leisure facilities, although the main road and the river remain unchanged.",
-     "comment": "Best: it states the general direction of change and what stayed the same, without listing details."
-    }
-   ]
-  },
-  {
-   "id": "IELTS-X6-I1",
-   "kind": "items",
-   "title": "Accurate or inaccurate?",
-   "mode": "Guided practice; answer alone, then check",
-   "instructions": "Look at the Westhill maps. Write Accurate or Inaccurate for each sentence. If it is inaccurate, correct it.",
-   "stimulus": {
-    "type": "figure"
-   },
-   "figure": {
-    "type": "maps",
-    "title": "Westhill village",
-    "note": "Fictional maps for practice.",
-    "alt": "Two maps of Westhill village. In 1995, farmland covered the north-west, a forest the north-east, a row of shops lay south of the main road in the west, a small school in the south-east, and a river ran along the southern edge. Today, the farmland has become a housing estate, part of the forest has been cleared for a sports centre, the shops have been replaced by a supermarket with a car park beside it, the school has been extended, and a new road crosses the river by a bridge.",
-    "plans": [
-     {
-      "title": "1995",
-      "roads": [
-       {
-        "points": [
-         [
-          0,
-          40
-         ],
-         [
-          100,
-          40
-         ]
-        ],
-        "label": "Main road",
-        "label_at": [
-         50,
-         42.8
-        ],
-        "width": 8
-       }
-      ],
-      "areas": [
-       {
-        "x": 6,
-        "y": 48,
-        "w": 44,
-        "h": 24,
-        "label": "Farmland",
-        "kind": "green"
-       },
-       {
-        "x": 58,
-        "y": 48,
-        "w": 36,
-        "h": 24,
-        "label": "Forest",
-        "kind": "green"
-       },
-       {
-        "x": 6,
-        "y": 20,
-        "w": 26,
-        "h": 12,
-        "label": "Shops"
-       },
-       {
-        "x": 62,
-        "y": 20,
-        "w": 16,
-        "h": 12,
-        "label": "School"
-       },
-       {
-        "x": 2,
-        "y": 1,
-        "w": 96,
-        "h": 7,
-        "label": "River",
-        "kind": "water"
-       }
-      ]
-     },
-     {
-      "title": "Today",
-      "roads": [
-       {
-        "points": [
-         [
-          0,
-          40
-         ],
-         [
-          100,
-          40
-         ]
-        ],
-        "label": "Main road",
-        "label_at": [
-         50,
-         42.8
-        ],
-        "width": 8
-       },
-       {
-        "points": [
-         [
-          52,
-          0
-         ],
-         [
-          52,
-          40
-         ]
-        ],
-        "label": "New road and bridge",
-        "label_at": [
-         56.5,
-         22
-        ],
-        "width": 6,
-        "rotate": 90
-       }
-      ],
-      "areas": [
-       {
-        "x": 6,
-        "y": 48,
-        "w": 44,
-        "h": 24,
-        "label": "Housing estate"
-       },
-       {
-        "x": 56,
-        "y": 52,
-        "w": 16,
-        "h": 16,
-        "label": "Sports centre"
-       },
-       {
-        "x": 76,
-        "y": 48,
-        "w": 18,
-        "h": 24,
-        "label": "Forest",
-        "kind": "green"
-       },
-       {
-        "x": 6,
-        "y": 20,
-        "w": 26,
-        "h": 12,
-        "label": "Supermarket"
-       },
-       {
-        "x": 34,
-        "y": 20,
-        "w": 12,
-        "h": 12,
-        "label": "Car park",
-        "kind": "parking"
-       },
-       {
-        "x": 62,
-        "y": 18,
-        "w": 30,
-        "h": 14,
-        "label": "School (extended)"
-       },
-       {
-        "x": 2,
-        "y": 1,
-        "w": 96,
-        "h": 7,
-        "label": "River",
-        "kind": "water"
-       }
-      ]
-     }
-    ]
-   },
-   "items": [
-    {
-     "id": "IELTS-X6-I1-Q1",
-     "prompt": "The farmland in the north-west has been converted into a housing estate.",
-     "answer": "Accurate",
-     "evidence": "Farmland (1995) / Housing estate (today), north-west",
-     "reason": "'Converted into' is a precise verb for a change of use.",
-     "focus": "lexical precision",
-     "type": "choice",
-     "options": [
-      "Accurate",
-      "Inaccurate"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X6-I1-Q2",
-     "prompt": "The whole forest was cleared to make way for a sports centre.",
-     "answer": "Inaccurate",
-     "evidence": "Today: Forest still in the north-east, smaller",
-     "reason": "Only part of the forest was cleared: 'part of the forest was cleared'.",
-     "focus": "detail discrimination",
-     "type": "choice",
-     "options": [
-      "Accurate",
-      "Inaccurate"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X6-I1-Q3",
-     "prompt": "The shops to the south of the main road have been replaced by a supermarket.",
-     "answer": "Accurate",
-     "evidence": "Shops (1995) / Supermarket (today)",
-     "reason": "'Replaced by' is followed by the new building.",
-     "focus": "lexical precision",
-     "type": "choice",
-     "options": [
-      "Accurate",
-      "Inaccurate"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X6-I1-Q4",
-     "prompt": "A car park has been built to the west of the supermarket.",
-     "answer": "Inaccurate",
-     "evidence": "Today: Car park is east of the supermarket",
-     "reason": "Check direction words against the map: the car park is to the east.",
-     "focus": "detail discrimination",
-     "type": "choice",
-     "options": [
-      "Accurate",
-      "Inaccurate"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X6-I1-Q5",
-     "prompt": "The school in the south-east has been extended.",
-     "answer": "Accurate",
-     "evidence": "School (extended)",
-     "reason": "Extended = made bigger.",
-     "focus": "explicit detail",
-     "type": "choice",
-     "options": [
-      "Accurate",
-      "Inaccurate"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X6-I1-Q6",
-     "prompt": "The river has been moved further south.",
-     "answer": "Inaccurate",
-     "evidence": "River in the same position on both maps",
-     "reason": "The river is unchanged; a new road now crosses it by a bridge.",
-     "focus": "detail discrimination",
-     "type": "choice",
-     "options": [
-      "Accurate",
-      "Inaccurate"
-     ],
-     "level": "core"
-    }
-   ],
-   "support": "Foundation: the class first labels north, south, east and west on both maps and lists every building that changed.",
-   "extension": "Rewrite each inaccurate sentence so that it is accurate and uses a passive verb."
-  },
-  {
-   "id": "IELTS-X6-W1",
-   "kind": "writing",
-   "task": "paragraph",
-   "title": "Your overview and one body paragraph",
-   "mode": "Independent classroom application after modelling; not a full Task 1 or Writing Screener",
-   "prompt": "The maps show the village of Westhill in 1995 and today. Write an overview and a body paragraph describing the changes to the north of the main road.",
-   "figure": {
-    "type": "maps",
-    "title": "Westhill village",
-    "note": "Fictional maps for practice.",
-    "alt": "Two maps of Westhill village. In 1995, farmland covered the north-west, a forest the north-east, a row of shops lay south of the main road in the west, a small school in the south-east, and a river ran along the southern edge. Today, the farmland has become a housing estate, part of the forest has been cleared for a sports centre, the shops have been replaced by a supermarket with a car park beside it, the school has been extended, and a new road crosses the river by a bridge.",
-    "plans": [
-     {
-      "title": "1995",
-      "roads": [
-       {
-        "points": [
-         [
-          0,
-          40
-         ],
-         [
-          100,
-          40
-         ]
-        ],
-        "label": "Main road",
-        "label_at": [
-         50,
-         42.8
-        ],
-        "width": 8
-       }
-      ],
-      "areas": [
-       {
-        "x": 6,
-        "y": 48,
-        "w": 44,
-        "h": 24,
-        "label": "Farmland",
-        "kind": "green"
-       },
-       {
-        "x": 58,
-        "y": 48,
-        "w": 36,
-        "h": 24,
-        "label": "Forest",
-        "kind": "green"
-       },
-       {
-        "x": 6,
-        "y": 20,
-        "w": 26,
-        "h": 12,
-        "label": "Shops"
-       },
-       {
-        "x": 62,
-        "y": 20,
-        "w": 16,
-        "h": 12,
-        "label": "School"
-       },
-       {
-        "x": 2,
-        "y": 1,
-        "w": 96,
-        "h": 7,
-        "label": "River",
-        "kind": "water"
-       }
-      ]
-     },
-     {
-      "title": "Today",
-      "roads": [
-       {
-        "points": [
-         [
-          0,
-          40
-         ],
-         [
-          100,
-          40
-         ]
-        ],
-        "label": "Main road",
-        "label_at": [
-         50,
-         42.8
-        ],
-        "width": 8
-       },
-       {
-        "points": [
-         [
-          52,
-          0
-         ],
-         [
-          52,
-          40
-         ]
-        ],
-        "label": "New road and bridge",
-        "label_at": [
-         56.5,
-         22
-        ],
-        "width": 6,
-        "rotate": 90
-       }
-      ],
-      "areas": [
-       {
-        "x": 6,
-        "y": 48,
-        "w": 44,
-        "h": 24,
-        "label": "Housing estate"
-       },
-       {
-        "x": 56,
-        "y": 52,
-        "w": 16,
-        "h": 16,
-        "label": "Sports centre"
-       },
-       {
-        "x": 76,
-        "y": 48,
-        "w": 18,
-        "h": 24,
-        "label": "Forest",
-        "kind": "green"
-       },
-       {
-        "x": 6,
-        "y": 20,
-        "w": 26,
-        "h": 12,
-        "label": "Supermarket"
-       },
-       {
-        "x": 34,
-        "y": 20,
-        "w": 12,
-        "h": 12,
-        "label": "Car park",
-        "kind": "parking"
-       },
-       {
-        "x": 62,
-        "y": 18,
-        "w": 30,
-        "h": 14,
-        "label": "School (extended)"
-       },
-       {
-        "x": 2,
-        "y": 1,
-        "w": 96,
-        "h": 7,
-        "label": "River",
-        "kind": "water"
-       }
-      ]
-     }
-    ]
-   },
-   "conditions": "15 minutes, independent. No model visible. Record any frame or phrase-bank use.",
-   "support": "Overview frame: Overall, Westhill has become ..., with ..., although ... remain(s) unchanged. Change bank: was replaced by / was converted into / was cleared to make way for / was extended / was constructed.",
-   "extension": "Use one \"to make way for\" and one location phrase in each sentence.",
-   "high_band": "Describe each change in a different structure (passive, noun phrase, \"where there used to be\").",
-   "model_label": "Illustrative classroom model for discussion only. Not a certified band answer.",
-   "model": "Overall, Westhill has become considerably more developed since 1995, with much of its farmland and forest giving way to housing and leisure facilities, although the main road and the river remain unchanged.\n\nThe most striking changes have taken place to the north of the main road. The farmland that occupied the north-west of the village has been converted into a large housing estate. To the east of this, part of the forest has been cleared to make way for a new sports centre, so that only a smaller area of woodland now remains in the north-east corner.",
-   "checklist": [
-    "Task Achievement: Is there an overview of the most important changes (and what stayed the same)? Are changes reported accurately?",
-    "Coherence and Cohesion: Are changes grouped logically, for example by area of the village, and linked clearly?",
-    "Lexical Resource: Is the vocabulary of change precise (was replaced by, was converted into, was cleared, was extended, was constructed)?",
-    "Grammatical Range and Accuracy: Are passive forms and the past simple / present perfect used accurately, with location phrases (to the north of, in the south-east)?"
-   ]
-  },
-  {
-   "id": "IELTS-X6-W2",
-   "kind": "writing",
-   "task": "task1",
-   "min_words": 150,
-   "homework": true,
-   "title": "Complete Task 1 under time",
-   "mode": "Timed homework under declared conditions; teacher feedback uses the four criteria. Not a Writing Screener.",
-   "prompt": "The maps below show the village of Westhill in 1995 and today. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
-   "figure": {
-    "type": "maps",
-    "title": "Westhill village",
-    "note": "Fictional maps for practice.",
-    "alt": "Two maps of Westhill village. In 1995, farmland covered the north-west, a forest the north-east, a row of shops lay south of the main road in the west, a small school in the south-east, and a river ran along the southern edge. Today, the farmland has become a housing estate, part of the forest has been cleared for a sports centre, the shops have been replaced by a supermarket with a car park beside it, the school has been extended, and a new road crosses the river by a bridge.",
-    "plans": [
-     {
-      "title": "1995",
-      "roads": [
-       {
-        "points": [
-         [
-          0,
-          40
-         ],
-         [
-          100,
-          40
-         ]
-        ],
-        "label": "Main road",
-        "label_at": [
-         50,
-         42.8
-        ],
-        "width": 8
-       }
-      ],
-      "areas": [
-       {
-        "x": 6,
-        "y": 48,
-        "w": 44,
-        "h": 24,
-        "label": "Farmland",
-        "kind": "green"
-       },
-       {
-        "x": 58,
-        "y": 48,
-        "w": 36,
-        "h": 24,
-        "label": "Forest",
-        "kind": "green"
-       },
-       {
-        "x": 6,
-        "y": 20,
-        "w": 26,
-        "h": 12,
-        "label": "Shops"
-       },
-       {
-        "x": 62,
-        "y": 20,
-        "w": 16,
-        "h": 12,
-        "label": "School"
-       },
-       {
-        "x": 2,
-        "y": 1,
-        "w": 96,
-        "h": 7,
-        "label": "River",
-        "kind": "water"
-       }
-      ]
-     },
-     {
-      "title": "Today",
-      "roads": [
-       {
-        "points": [
-         [
-          0,
-          40
-         ],
-         [
-          100,
-          40
-         ]
-        ],
-        "label": "Main road",
-        "label_at": [
-         50,
-         42.8
-        ],
-        "width": 8
-       },
-       {
-        "points": [
-         [
-          52,
-          0
-         ],
-         [
-          52,
-          40
-         ]
-        ],
-        "label": "New road and bridge",
-        "label_at": [
-         56.5,
-         22
-        ],
-        "width": 6,
-        "rotate": 90
-       }
-      ],
-      "areas": [
-       {
-        "x": 6,
-        "y": 48,
-        "w": 44,
-        "h": 24,
-        "label": "Housing estate"
-       },
-       {
-        "x": 56,
-        "y": 52,
-        "w": 16,
-        "h": 16,
-        "label": "Sports centre"
-       },
-       {
-        "x": 76,
-        "y": 48,
-        "w": 18,
-        "h": 24,
-        "label": "Forest",
-        "kind": "green"
-       },
-       {
-        "x": 6,
-        "y": 20,
-        "w": 26,
-        "h": 12,
-        "label": "Supermarket"
-       },
-       {
-        "x": 34,
-        "y": 20,
-        "w": 12,
-        "h": 12,
-        "label": "Car park",
-        "kind": "parking"
-       },
-       {
-        "x": 62,
-        "y": 18,
-        "w": 30,
-        "h": 14,
-        "label": "School (extended)"
-       },
-       {
-        "x": 2,
-        "y": 1,
-        "w": 96,
-        "h": 7,
-        "label": "River",
-        "kind": "water"
-       }
-      ]
-     }
-    ]
-   },
-   "conditions": "20 minutes, in one sitting, without a dictionary, translator, AI tool or model. Write the start and finish time.",
-   "support": "Plan: Introduction (paraphrase) / Overview (direction of change + what stayed the same) / Body 1 (north of the road) / Body 2 (south of the road and the river).",
-   "extension": "Include one sentence about what has not changed.",
-   "high_band": "Use at least three different structures to describe change.",
-   "model_label": "Illustrative model for teacher discussion after learners submit their own responses. Not a certified band answer.",
-   "model": "The maps compare the layout of the village of Westhill in 1995 with its appearance today.\n\nOverall, Westhill has become considerably more developed, with much of its farmland and forest giving way to housing and leisure facilities, although the main road and the river remain unchanged.\n\nThe most striking changes have taken place to the north of the main road. The farmland that occupied the north-west of the village has been converted into a large housing estate. To the east of this, part of the forest has been cleared to make way for a new sports centre, so that only a smaller area of woodland remains in the north-east corner.\n\nTo the south of the road, the row of shops has been replaced by a supermarket, and a car park has been built next to it on its eastern side. The school in the south-east has been extended, roughly doubling in size. Finally, a new road now runs south from the main road and crosses the river by a bridge, giving the village a second route in and out.",
-   "model_derived_numbers": [],
-   "checklist": [
-    "Task Achievement: Is there an overview of the most important changes (and what stayed the same)? Are changes reported accurately?",
-    "Coherence and Cohesion: Are changes grouped logically, for example by area of the village, and linked clearly?",
-    "Lexical Resource: Is the vocabulary of change precise (was replaced by, was converted into, was cleared, was extended, was constructed)?",
-    "Grammatical Range and Accuracy: Are passive forms and the past simple / present perfect used accurately, with location phrases (to the north of, in the south-east)?"
-   ]
-  }
- ],
- "stages": [
-  {
-   "start": 0,
-   "end": 6,
-   "title": "Opening challenge: which overview works?",
-   "show": [
-    {
-     "block": "IELTS-X6-K1",
-     "part": "questions"
-    },
-    {
-     "block": "IELTS-X6-K1",
-     "part": "answers"
-    }
-   ],
-   "student": "Rank the three overviews before the reveal.",
-   "teacher": "Reveal the comments. Write the map overview formula: general direction of change + what stayed the same.",
-   "say": "A map overview describes the big picture of change, not a list.",
-   "check": "Learners can name the two parts of a map overview."
-  },
-  {
-   "start": 6,
-   "end": 15,
-   "title": "Accurate or inaccurate?",
-   "show": [
-    {
-     "block": "IELTS-X6-I1",
-     "part": "questions"
-    }
-   ],
-   "student": "Check each sentence against the maps.",
-   "teacher": "Learners work alone for 6 minutes. Foundation learners first label compass directions.",
-   "say": "Check every location word against the map.",
-   "check": "Every learner has six answers."
-  },
-  {
-   "start": 15,
-   "end": 20,
-   "title": "Check and correct",
-   "show": [
-    {
-     "block": "IELTS-X6-I1",
-     "part": "answers"
-    }
-   ],
-   "student": "Check answers and correct the inaccurate sentences.",
-   "teacher": "Reveal. Build a change-verb bank on the board from the answers.",
-   "say": "Precise verbs of change make a map description clear.",
-   "check": "Learners can correct sentence 2."
-  },
-  {
-   "start": 20,
-   "end": 24,
-   "title": "Plan your paragraphs",
-   "show": [
-    {
-     "block": "IELTS-X6-W1",
-     "part": "prompt"
-    }
-   ],
-   "student": "Plan two body paragraphs by area: north and south of the main road.",
-   "teacher": "Show that grouping by area is clearer than going building by building in random order.",
-   "say": "Group changes by area.",
-   "check": "Each learner has a plan."
-  },
-  {
-   "start": 24,
-   "end": 39,
-   "title": "Write independently",
-   "show": [],
-   "student": "Write the overview and the north paragraph in 15 minutes.",
-   "teacher": "Time 15 minutes. Do not show the model. Record any support used.",
-   "say": "Use the present perfect passive for changes up to today.",
-   "check": "Every learner has written both paragraphs."
-  },
-  {
-   "start": 39,
-   "end": 49,
-   "title": "Compare with the model and the criteria",
-   "show": [
-    {
-     "block": "IELTS-X6-W1",
-     "part": "model"
-    }
-   ],
-   "student": "Compare your paragraphs with the model and tick the checklist.",
-   "teacher": "Show the model. Ask learners to find three different ways of describing change.",
-   "say": "The model is for discussion, not for memorising.",
-   "check": "Each learner has one specific improvement."
-  },
-  {
-   "start": 49,
-   "end": 55,
-   "title": "Full Task 1 at home",
-   "show": [
-    {
-     "block": "IELTS-X6-W2",
-     "part": "prompt"
-    }
-   ],
-   "student": "Note the homework conditions and the plan.",
-   "teacher": "Explain the 20-minute conditions.",
-   "say": "Homework under real conditions shows what you can do alone.",
-   "check": "Everyone knows the conditions."
-  },
-  {
-   "start": 55,
-   "end": 60,
-   "title": "Exit ticket",
-   "show": [],
-   "student": "Complete the exit ticket.",
-   "teacher": "Collect exit tickets. Record the fresh-check date.",
-   "say": "Next time: charts that combine pies and tables.",
-   "check": "Exit tickets collected."
-  }
- ],
- "exit_ticket": [
-  "The two parts of a map overview:",
-  "Three verbs for describing change:",
-  "My target for my next Task 1:"
- ],
- "homework": [
-  "Complete the full Task 1 (IELTS-X6-W2) under the stated conditions: 20 minutes, no help.",
-  "Draw a simple map of your own neighbourhood ten years ago and today, and write five sentences describing the changes.",
-  "Complete only the Brains Heist writing practice your teacher actually assigns."
- ],
- "followup": {
-  "id": "IELTS-X6-C1",
-  "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
-  "delivery": "About one teaching week after this lesson, after feedback on the homework. 20 minutes: overview and one body paragraph for new maps. No model, frame or phrase bank unless recorded as support. Classroom observation only.",
-  "blocks": [
-   {
-    "id": "IELTS-X6-C1",
-    "kind": "writing",
-    "task": "partial",
-    "title": "Seaview Park then and now",
-    "mode": "Withheld fresh check; independent, timed",
-    "prompt": "Look at the two plans of Seaview Park, from 2000 and the present day. Summarise the key developments in an overview and one detailed paragraph.",
-    "figure": {
-     "type": "maps",
-     "title": "Seaview Park",
-     "note": "Fictional maps for practice.",
-     "alt": "Two maps of Seaview Park. In 2000, there was a tennis court in the north-west, a pond in the north-east, a large lawn in the south and a single entrance in the west. Today, the tennis court has become a children's playground, the pond remains with a new café beside it, part of the lawn has been made into a car park, and a second entrance has been added in the east.",
-     "plans": [
-      {
-       "title": "2000",
-       "roads": [
-        {
-         "points": [
-          [
-           0,
-           40
-          ],
-          [
-           100,
-           40
-          ]
-         ],
-         "label": "Path",
-         "label_at": [
-          50,
-          42.6
-         ],
-         "width": 5
-        }
-       ],
-       "areas": [
-        {
-         "x": 8,
-         "y": 50,
-         "w": 30,
-         "h": 20,
-         "label": "Tennis court"
-        },
-        {
-         "x": 62,
-         "y": 50,
-         "w": 30,
-         "h": 20,
-         "label": "Pond",
-         "kind": "water"
-        },
-        {
-         "x": 8,
-         "y": 8,
-         "w": 84,
-         "h": 26,
-         "label": "Lawn",
-         "kind": "green"
-        },
-        {
-         "x": 0.5,
-         "y": 36,
-         "w": 6,
-         "h": 8,
-         "label": "Gate",
-         "kind": "parking"
-        }
-       ]
-      },
-      {
-       "title": "Today",
-       "roads": [
-        {
-         "points": [
-          [
-           0,
-           40
-          ],
-          [
-           100,
-           40
-          ]
-         ],
-         "label": "Path",
-         "label_at": [
-          50,
-          42.6
-         ],
-         "width": 5
-        }
-       ],
-       "areas": [
-        {
-         "x": 8,
-         "y": 50,
-         "w": 30,
-         "h": 20,
-         "label": "Playground"
-        },
-        {
-         "x": 62,
-         "y": 54,
-         "w": 30,
-         "h": 16,
-         "label": "Pond",
-         "kind": "water"
-        },
-        {
-         "x": 44,
-         "y": 52,
-         "w": 14,
-         "h": 12,
-         "label": "Café"
-        },
-        {
-         "x": 8,
-         "y": 8,
-         "w": 50,
-         "h": 26,
-         "label": "Lawn",
-         "kind": "green"
-        },
-        {
-         "x": 62,
-         "y": 8,
-         "w": 30,
-         "h": 26,
-         "label": "Car park",
-         "kind": "parking"
-        },
-        {
-         "x": 0.5,
-         "y": 36,
-         "w": 6,
-         "h": 8,
-         "label": "Gate",
-         "kind": "parking"
-        },
-        {
-         "x": 93.5,
-         "y": 36,
-         "w": 6,
-         "h": 8,
-         "label": "Gate",
-         "kind": "parking"
-        }
-       ]
-      }
-     ]
-    },
-    "conditions": "20 minutes, independent, no model or phrase bank. Record start and finish time and any support.",
-    "no_model": "Withheld fresh check: feedback uses the checklist only, so no model is shown or stored with the task.",
-    "checklist": [
-     "Task Achievement: Is there an overview of the most important changes (and what stayed the same)? Are changes reported accurately?",
-     "Coherence and Cohesion: Are changes grouped logically, for example by area of the village, and linked clearly?",
-     "Lexical Resource: Is the vocabulary of change precise (was replaced by, was converted into, was cleared, was extended, was constructed)?",
-     "Grammatical Range and Accuracy: Are passive forms and the past simple / present perfect used accurately, with location phrases (to the north of, in the south-east)?"
-    ]
-   }
+  "prerequisites": [
+    "Lesson 11 (Task 1 overviews) and Lesson 19 (Task 1 tables and accuracy).",
+    "Teacher has checked actual Writing Screener and review states privately.",
+    "Optional extension: use when learners need practice with map tasks."
   ],
-  "review": "Compare only the observed demands and conditions with this lesson. Record the result as a separate later observation; do not convert it to a band or merge it with screener evidence."
- },
- "delayed_followup": "In Lesson 22 or a later Writing review, check overview quality and change language in any Task 1 response. Record it as a later observation.",
- "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
- "release_blockers": [
-  "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
-  "Student task publication and platform evidence capture remain separate, governed steps."
- ],
- "approval_record": {
-  "approved_by": "Owner, Brains Heist LLC",
-  "date": "2026-10-18",
-  "version": "1.0.0",
-  "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
-  "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 612ab88fd5173b55c96364648fc8019b6c26f7837e5d51fb5aadb46dec6eef3d): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
- }
+  "objectives": [
+    {
+      "text": "Write a map overview that states the general direction of change and what stayed the same.",
+      "focus": [
+        "register/task fulfilment",
+        "discourse organization"
+      ]
+    },
+    {
+      "text": "Describe changes accurately with passive verbs of change and precise location phrases.",
+      "focus": [
+        "grammatical control",
+        "lexical precision"
+      ]
+    },
+    {
+      "text": "Organise changes by area so the reader can follow the map.",
+      "focus": [
+        "cohesion"
+      ]
+    }
+  ],
+  "levels": {
+    "foundation": "Compass directions labelled first; overview frame and change bank allowed and recorded.",
+    "core": "Write an accurate overview and body paragraph in 15 minutes.",
+    "extension": "Use \"to make way for\" and a location phrase in every sentence.",
+    "high_band": "Produce a new 150+-word comparative map report in 20 minutes without a model. Organise by meaningful spatial contrasts, distinguish preserved from replaced features, and avoid unsupported speculation or inaccurate directional language."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-X6-K1",
+      "kind": "contrast",
+      "title": "Which overview works for maps?",
+      "mode": "Teacher-led analysis; learners rank before the reveal",
+      "instructions": "Three learners wrote an overview for the Westhill maps. Rank them and explain the problems in the weaker two.",
+      "examples": [
+        {
+          "label": "Overview A",
+          "text": "Overall, the farmland was replaced by a housing estate, the shops were replaced by a supermarket and the school was extended.",
+          "comment": "A list of details, not a summary: it gives three changes without saying what they mean together."
+        },
+        {
+          "label": "Overview B",
+          "text": "Overall, Westhill has changed a lot and is now a better place to live.",
+          "comment": "Vague and opinion-based: the maps do not show whether the village is better."
+        },
+        {
+          "label": "Overview C",
+          "text": "Overall, Westhill has become considerably more developed, with much of its farmland and forest giving way to housing and leisure facilities, although the main road and the river remain unchanged.",
+          "comment": "Best: it states the general direction of change and what stayed the same, without listing details."
+        }
+      ]
+    },
+    {
+      "id": "IELTS-X6-I1",
+      "kind": "items",
+      "title": "Accurate or inaccurate?",
+      "mode": "Guided practice; answer alone, then check",
+      "instructions": "Look at the Westhill maps. Write Accurate or Inaccurate for each sentence. If it is inaccurate, correct it.",
+      "stimulus": {
+        "type": "figure"
+      },
+      "figure": {
+        "type": "maps",
+        "title": "Westhill village",
+        "note": "Fictional maps for practice.",
+        "alt": "Two maps of Westhill village. In 1995, farmland covered the north-west, a forest the north-east, a row of shops lay south of the main road in the west, a small school in the south-east, and a river ran along the southern edge. Today, the farmland has become a housing estate, part of the forest has been cleared for a sports centre, the shops have been replaced by a supermarket with a car park beside it, the school has been extended, and a new road crosses the river by a bridge.",
+        "plans": [
+          {
+            "title": "1995",
+            "roads": [
+              {
+                "points": [
+                  [
+                    0,
+                    40
+                  ],
+                  [
+                    100,
+                    40
+                  ]
+                ],
+                "label": "Main road",
+                "label_at": [
+                  50,
+                  42.8
+                ],
+                "width": 8
+              }
+            ],
+            "areas": [
+              {
+                "x": 6,
+                "y": 48,
+                "w": 44,
+                "h": 24,
+                "label": "Farmland",
+                "kind": "green"
+              },
+              {
+                "x": 58,
+                "y": 48,
+                "w": 36,
+                "h": 24,
+                "label": "Forest",
+                "kind": "green"
+              },
+              {
+                "x": 6,
+                "y": 20,
+                "w": 26,
+                "h": 12,
+                "label": "Shops"
+              },
+              {
+                "x": 62,
+                "y": 20,
+                "w": 16,
+                "h": 12,
+                "label": "School"
+              },
+              {
+                "x": 2,
+                "y": 1,
+                "w": 96,
+                "h": 7,
+                "label": "River",
+                "kind": "water"
+              }
+            ]
+          },
+          {
+            "title": "Today",
+            "roads": [
+              {
+                "points": [
+                  [
+                    0,
+                    40
+                  ],
+                  [
+                    100,
+                    40
+                  ]
+                ],
+                "label": "Main road",
+                "label_at": [
+                  50,
+                  42.8
+                ],
+                "width": 8
+              },
+              {
+                "points": [
+                  [
+                    52,
+                    0
+                  ],
+                  [
+                    52,
+                    40
+                  ]
+                ],
+                "label": "New road and bridge",
+                "label_at": [
+                  56.5,
+                  22
+                ],
+                "width": 6,
+                "rotate": 90
+              }
+            ],
+            "areas": [
+              {
+                "x": 6,
+                "y": 48,
+                "w": 44,
+                "h": 24,
+                "label": "Housing estate"
+              },
+              {
+                "x": 56,
+                "y": 52,
+                "w": 16,
+                "h": 16,
+                "label": "Sports centre"
+              },
+              {
+                "x": 76,
+                "y": 48,
+                "w": 18,
+                "h": 24,
+                "label": "Forest",
+                "kind": "green"
+              },
+              {
+                "x": 6,
+                "y": 20,
+                "w": 26,
+                "h": 12,
+                "label": "Supermarket"
+              },
+              {
+                "x": 34,
+                "y": 20,
+                "w": 12,
+                "h": 12,
+                "label": "Car park",
+                "kind": "parking"
+              },
+              {
+                "x": 62,
+                "y": 18,
+                "w": 30,
+                "h": 14,
+                "label": "School (extended)"
+              },
+              {
+                "x": 2,
+                "y": 1,
+                "w": 96,
+                "h": 7,
+                "label": "River",
+                "kind": "water"
+              }
+            ]
+          }
+        ]
+      },
+      "items": [
+        {
+          "id": "IELTS-X6-I1-Q1",
+          "prompt": "The farmland in the north-west has been converted into a housing estate.",
+          "answer": "Accurate",
+          "evidence": "Farmland (1995) / Housing estate (today), north-west",
+          "reason": "'Converted into' is a precise verb for a change of use.",
+          "focus": "lexical precision",
+          "type": "choice",
+          "options": [
+            "Accurate",
+            "Inaccurate"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X6-I1-Q2",
+          "prompt": "The whole forest was cleared to make way for a sports centre.",
+          "answer": "Inaccurate",
+          "evidence": "Today: Forest still in the north-east, smaller",
+          "reason": "Only part of the forest was cleared: 'part of the forest was cleared'.",
+          "focus": "detail discrimination",
+          "type": "choice",
+          "options": [
+            "Accurate",
+            "Inaccurate"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X6-I1-Q3",
+          "prompt": "The shops to the south of the main road have been replaced by a supermarket.",
+          "answer": "Accurate",
+          "evidence": "Shops (1995) / Supermarket (today)",
+          "reason": "'Replaced by' is followed by the new building.",
+          "focus": "lexical precision",
+          "type": "choice",
+          "options": [
+            "Accurate",
+            "Inaccurate"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X6-I1-Q4",
+          "prompt": "A car park has been built to the west of the supermarket.",
+          "answer": "Inaccurate",
+          "evidence": "Today: Car park is east of the supermarket",
+          "reason": "Check direction words against the map: the car park is to the east.",
+          "focus": "detail discrimination",
+          "type": "choice",
+          "options": [
+            "Accurate",
+            "Inaccurate"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X6-I1-Q5",
+          "prompt": "The school in the south-east has been extended.",
+          "answer": "Accurate",
+          "evidence": "School (extended)",
+          "reason": "Extended = made bigger.",
+          "focus": "explicit detail",
+          "type": "choice",
+          "options": [
+            "Accurate",
+            "Inaccurate"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X6-I1-Q6",
+          "prompt": "The river has been moved further south.",
+          "answer": "Inaccurate",
+          "evidence": "River in the same position on both maps",
+          "reason": "The river is unchanged; a new road now crosses it by a bridge.",
+          "focus": "detail discrimination",
+          "type": "choice",
+          "options": [
+            "Accurate",
+            "Inaccurate"
+          ],
+          "level": "core"
+        }
+      ],
+      "support": "Foundation: the class first labels north, south, east and west on both maps and lists every building that changed.",
+      "extension": "Rewrite each inaccurate sentence so that it is accurate and uses a passive verb."
+    },
+    {
+      "id": "IELTS-X6-W1",
+      "kind": "writing",
+      "task": "paragraph",
+      "title": "Your overview and one body paragraph",
+      "mode": "Independent classroom application after modelling; not a full Task 1 or Writing Screener",
+      "prompt": "The maps show the village of Westhill in 1995 and today. Write an overview and a body paragraph describing the changes to the north of the main road.",
+      "figure": {
+        "type": "maps",
+        "title": "Westhill village",
+        "note": "Fictional maps for practice.",
+        "alt": "Two maps of Westhill village. In 1995, farmland covered the north-west, a forest the north-east, a row of shops lay south of the main road in the west, a small school in the south-east, and a river ran along the southern edge. Today, the farmland has become a housing estate, part of the forest has been cleared for a sports centre, the shops have been replaced by a supermarket with a car park beside it, the school has been extended, and a new road crosses the river by a bridge.",
+        "plans": [
+          {
+            "title": "1995",
+            "roads": [
+              {
+                "points": [
+                  [
+                    0,
+                    40
+                  ],
+                  [
+                    100,
+                    40
+                  ]
+                ],
+                "label": "Main road",
+                "label_at": [
+                  50,
+                  42.8
+                ],
+                "width": 8
+              }
+            ],
+            "areas": [
+              {
+                "x": 6,
+                "y": 48,
+                "w": 44,
+                "h": 24,
+                "label": "Farmland",
+                "kind": "green"
+              },
+              {
+                "x": 58,
+                "y": 48,
+                "w": 36,
+                "h": 24,
+                "label": "Forest",
+                "kind": "green"
+              },
+              {
+                "x": 6,
+                "y": 20,
+                "w": 26,
+                "h": 12,
+                "label": "Shops"
+              },
+              {
+                "x": 62,
+                "y": 20,
+                "w": 16,
+                "h": 12,
+                "label": "School"
+              },
+              {
+                "x": 2,
+                "y": 1,
+                "w": 96,
+                "h": 7,
+                "label": "River",
+                "kind": "water"
+              }
+            ]
+          },
+          {
+            "title": "Today",
+            "roads": [
+              {
+                "points": [
+                  [
+                    0,
+                    40
+                  ],
+                  [
+                    100,
+                    40
+                  ]
+                ],
+                "label": "Main road",
+                "label_at": [
+                  50,
+                  42.8
+                ],
+                "width": 8
+              },
+              {
+                "points": [
+                  [
+                    52,
+                    0
+                  ],
+                  [
+                    52,
+                    40
+                  ]
+                ],
+                "label": "New road and bridge",
+                "label_at": [
+                  56.5,
+                  22
+                ],
+                "width": 6,
+                "rotate": 90
+              }
+            ],
+            "areas": [
+              {
+                "x": 6,
+                "y": 48,
+                "w": 44,
+                "h": 24,
+                "label": "Housing estate"
+              },
+              {
+                "x": 56,
+                "y": 52,
+                "w": 16,
+                "h": 16,
+                "label": "Sports centre"
+              },
+              {
+                "x": 76,
+                "y": 48,
+                "w": 18,
+                "h": 24,
+                "label": "Forest",
+                "kind": "green"
+              },
+              {
+                "x": 6,
+                "y": 20,
+                "w": 26,
+                "h": 12,
+                "label": "Supermarket"
+              },
+              {
+                "x": 34,
+                "y": 20,
+                "w": 12,
+                "h": 12,
+                "label": "Car park",
+                "kind": "parking"
+              },
+              {
+                "x": 62,
+                "y": 18,
+                "w": 30,
+                "h": 14,
+                "label": "School (extended)"
+              },
+              {
+                "x": 2,
+                "y": 1,
+                "w": 96,
+                "h": 7,
+                "label": "River",
+                "kind": "water"
+              }
+            ]
+          }
+        ]
+      },
+      "conditions": "15 minutes, independent. No model visible. Record any frame or phrase-bank use.",
+      "support": "Overview frame: Overall, Westhill has become ..., with ..., although ... remain(s) unchanged. Change bank: was replaced by / was converted into / was cleared to make way for / was extended / was constructed.",
+      "extension": "Use one \"to make way for\" and one location phrase in each sentence.",
+      "high_band": "Produce a new 150+-word comparative map report in 20 minutes without a model. Organise by meaningful spatial contrasts, distinguish preserved from replaced features, and avoid unsupported speculation or inaccurate directional language.",
+      "model_label": "Illustrative classroom model for discussion only. Not a certified band answer.",
+      "model": "Overall, Westhill has become considerably more developed since 1995, with much of its farmland and forest giving way to housing and leisure facilities, although the main road and the river remain unchanged.\n\nThe most striking changes have taken place to the north of the main road. The farmland that occupied the north-west of the village has been converted into a large housing estate. To the east of this, part of the forest has been cleared to make way for a new sports centre, so that only a smaller area of woodland now remains in the north-east corner.",
+      "checklist": [
+        "Task Achievement: Is there an overview of the most important changes (and what stayed the same)? Are changes reported accurately?",
+        "Coherence and Cohesion: Are changes grouped logically, for example by area of the village, and linked clearly?",
+        "Lexical Resource: Is the vocabulary of change precise (was replaced by, was converted into, was cleared, was extended, was constructed)?",
+        "Grammatical Range and Accuracy: Are passive forms and the past simple / present perfect used accurately, with location phrases (to the north of, in the south-east)?"
+      ]
+    },
+    {
+      "id": "IELTS-X6-W2",
+      "kind": "writing",
+      "task": "task1",
+      "min_words": 150,
+      "homework": true,
+      "title": "Complete Task 1 under time",
+      "mode": "Timed homework under declared conditions; teacher feedback uses the four criteria. Not a Writing Screener.",
+      "prompt": "The maps below show the village of Westhill in 1995 and today. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+      "figure": {
+        "type": "maps",
+        "title": "Westhill village",
+        "note": "Fictional maps for practice.",
+        "alt": "Two maps of Westhill village. In 1995, farmland covered the north-west, a forest the north-east, a row of shops lay south of the main road in the west, a small school in the south-east, and a river ran along the southern edge. Today, the farmland has become a housing estate, part of the forest has been cleared for a sports centre, the shops have been replaced by a supermarket with a car park beside it, the school has been extended, and a new road crosses the river by a bridge.",
+        "plans": [
+          {
+            "title": "1995",
+            "roads": [
+              {
+                "points": [
+                  [
+                    0,
+                    40
+                  ],
+                  [
+                    100,
+                    40
+                  ]
+                ],
+                "label": "Main road",
+                "label_at": [
+                  50,
+                  42.8
+                ],
+                "width": 8
+              }
+            ],
+            "areas": [
+              {
+                "x": 6,
+                "y": 48,
+                "w": 44,
+                "h": 24,
+                "label": "Farmland",
+                "kind": "green"
+              },
+              {
+                "x": 58,
+                "y": 48,
+                "w": 36,
+                "h": 24,
+                "label": "Forest",
+                "kind": "green"
+              },
+              {
+                "x": 6,
+                "y": 20,
+                "w": 26,
+                "h": 12,
+                "label": "Shops"
+              },
+              {
+                "x": 62,
+                "y": 20,
+                "w": 16,
+                "h": 12,
+                "label": "School"
+              },
+              {
+                "x": 2,
+                "y": 1,
+                "w": 96,
+                "h": 7,
+                "label": "River",
+                "kind": "water"
+              }
+            ]
+          },
+          {
+            "title": "Today",
+            "roads": [
+              {
+                "points": [
+                  [
+                    0,
+                    40
+                  ],
+                  [
+                    100,
+                    40
+                  ]
+                ],
+                "label": "Main road",
+                "label_at": [
+                  50,
+                  42.8
+                ],
+                "width": 8
+              },
+              {
+                "points": [
+                  [
+                    52,
+                    0
+                  ],
+                  [
+                    52,
+                    40
+                  ]
+                ],
+                "label": "New road and bridge",
+                "label_at": [
+                  56.5,
+                  22
+                ],
+                "width": 6,
+                "rotate": 90
+              }
+            ],
+            "areas": [
+              {
+                "x": 6,
+                "y": 48,
+                "w": 44,
+                "h": 24,
+                "label": "Housing estate"
+              },
+              {
+                "x": 56,
+                "y": 52,
+                "w": 16,
+                "h": 16,
+                "label": "Sports centre"
+              },
+              {
+                "x": 76,
+                "y": 48,
+                "w": 18,
+                "h": 24,
+                "label": "Forest",
+                "kind": "green"
+              },
+              {
+                "x": 6,
+                "y": 20,
+                "w": 26,
+                "h": 12,
+                "label": "Supermarket"
+              },
+              {
+                "x": 34,
+                "y": 20,
+                "w": 12,
+                "h": 12,
+                "label": "Car park",
+                "kind": "parking"
+              },
+              {
+                "x": 62,
+                "y": 18,
+                "w": 30,
+                "h": 14,
+                "label": "School (extended)"
+              },
+              {
+                "x": 2,
+                "y": 1,
+                "w": 96,
+                "h": 7,
+                "label": "River",
+                "kind": "water"
+              }
+            ]
+          }
+        ]
+      },
+      "conditions": "20 minutes, in one sitting, without a dictionary, translator, AI tool or model. Write the start and finish time. Advanced transfer: submit a second response to a genuinely unseen visual or prompt, with no model, scaffold or feedback before completion; log timing and support separately.",
+      "support": "Plan: Introduction (paraphrase) / Overview (direction of change + what stayed the same) / Body 1 (north of the road) / Body 2 (south of the road and the river).",
+      "extension": "Include one sentence about what has not changed.",
+      "high_band": "Produce a new 150+-word comparative map report in 20 minutes without a model. Organise by meaningful spatial contrasts, distinguish preserved from replaced features, and avoid unsupported speculation or inaccurate directional language.",
+      "model_label": "Illustrative model for teacher discussion after learners submit their own responses. Not a certified band answer.",
+      "model": "The maps compare the layout of the village of Westhill in 1995 with its appearance today.\n\nOverall, Westhill has become considerably more developed, with much of its farmland and forest giving way to housing and leisure facilities, although the main road and the river remain unchanged.\n\nThe most striking changes have taken place to the north of the main road. The farmland that occupied the north-west of the village has been converted into a large housing estate. To the east of this, part of the forest has been cleared to make way for a new sports centre, so that only a smaller area of woodland remains in the north-east corner.\n\nTo the south of the road, the row of shops has been replaced by a supermarket, and a car park has been built next to it on its eastern side. The school in the south-east has been extended, roughly doubling in size. Finally, a new road now runs south from the main road and crosses the river by a bridge, giving the village a second route in and out.",
+      "model_derived_numbers": [],
+      "checklist": [
+        "Task Achievement: Is there an overview of the most important changes (and what stayed the same)? Are changes reported accurately?",
+        "Coherence and Cohesion: Are changes grouped logically, for example by area of the village, and linked clearly?",
+        "Lexical Resource: Is the vocabulary of change precise (was replaced by, was converted into, was cleared, was extended, was constructed)?",
+        "Grammatical Range and Accuracy: Are passive forms and the past simple / present perfect used accurately, with location phrases (to the north of, in the south-east)?",
+        "Independent-transfer check: verify task coverage, accuracy of evidence or visual comparisons, quality of development, and unsupported claims; note conditions rather than inferring an IELTS band."
+      ]
+    }
+  ],
+  "stages": [
+    {
+      "start": 0,
+      "end": 6,
+      "title": "Opening challenge: which overview works?",
+      "show": [
+        {
+          "block": "IELTS-X6-K1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-X6-K1",
+          "part": "answers"
+        }
+      ],
+      "student": "Rank the three overviews before the reveal.",
+      "teacher": "Reveal the comments. Write the map overview formula: general direction of change + what stayed the same.",
+      "say": "A map overview describes the big picture of change, not a list.",
+      "check": "Learners can name the two parts of a map overview."
+    },
+    {
+      "start": 6,
+      "end": 15,
+      "title": "Accurate or inaccurate?",
+      "show": [
+        {
+          "block": "IELTS-X6-I1",
+          "part": "questions"
+        }
+      ],
+      "student": "Check each sentence against the maps.",
+      "teacher": "Learners work alone for 6 minutes. Foundation learners first label compass directions.",
+      "say": "Check every location word against the map.",
+      "check": "Every learner has six answers."
+    },
+    {
+      "start": 15,
+      "end": 20,
+      "title": "Check and correct",
+      "show": [
+        {
+          "block": "IELTS-X6-I1",
+          "part": "answers"
+        }
+      ],
+      "student": "Check answers and correct the inaccurate sentences.",
+      "teacher": "Reveal. Build a change-verb bank on the board from the answers.",
+      "say": "Precise verbs of change make a map description clear.",
+      "check": "Learners can correct sentence 2."
+    },
+    {
+      "start": 20,
+      "end": 24,
+      "title": "Plan your paragraphs",
+      "show": [
+        {
+          "block": "IELTS-X6-W1",
+          "part": "prompt"
+        }
+      ],
+      "student": "Plan two body paragraphs by area: north and south of the main road.",
+      "teacher": "Show that grouping by area is clearer than going building by building in random order.",
+      "say": "Group changes by area.",
+      "check": "Each learner has a plan."
+    },
+    {
+      "start": 24,
+      "end": 39,
+      "title": "Write independently",
+      "show": [],
+      "student": "Write the overview and the north paragraph in 15 minutes.",
+      "teacher": "Time 15 minutes. Do not show the model. Record any support used.",
+      "say": "Use the present perfect passive for changes up to today.",
+      "check": "Every learner has written both paragraphs."
+    },
+    {
+      "start": 39,
+      "end": 49,
+      "title": "Compare with the model and the criteria",
+      "show": [
+        {
+          "block": "IELTS-X6-W1",
+          "part": "model"
+        }
+      ],
+      "student": "Compare your paragraphs with the model and tick the checklist.",
+      "teacher": "Show the model. Ask learners to find three different ways of describing change.",
+      "say": "The model is for discussion, not for memorising.",
+      "check": "Each learner has one specific improvement."
+    },
+    {
+      "start": 49,
+      "end": 55,
+      "title": "Full Task 1 at home",
+      "show": [
+        {
+          "block": "IELTS-X6-W2",
+          "part": "prompt"
+        }
+      ],
+      "student": "Note the homework conditions and the plan.",
+      "teacher": "Explain the 20-minute conditions.",
+      "say": "Homework under real conditions shows what you can do alone.",
+      "check": "Everyone knows the conditions."
+    },
+    {
+      "start": 55,
+      "end": 60,
+      "title": "Exit ticket",
+      "show": [],
+      "student": "Complete the exit ticket.",
+      "teacher": "Collect exit tickets. Record the fresh-check date.",
+      "say": "Next time: charts that combine pies and tables.",
+      "check": "Exit tickets collected."
+    }
+  ],
+  "exit_ticket": [
+    "The two parts of a map overview:",
+    "Three verbs for describing change:",
+    "My target for my next Task 1:"
+  ],
+  "homework": [
+    "Complete the full Task 1 (IELTS-X6-W2) under the stated conditions: 20 minutes, no help.",
+    "Draw a simple map of your own neighbourhood ten years ago and today, and write five sentences describing the changes.",
+    "Complete only the Brains Heist writing practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-X6-C1",
+    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "delivery": "About one teaching week after this lesson, after feedback on the homework. 20 minutes: overview and one body paragraph for new maps. No model, frame or phrase bank unless recorded as support. Classroom observation only.",
+    "blocks": [
+      {
+        "id": "IELTS-X6-C1",
+        "kind": "writing",
+        "task": "partial",
+        "title": "Seaview Park then and now",
+        "mode": "Withheld fresh check; independent, timed",
+        "prompt": "Look at the two plans of Seaview Park, from 2000 and the present day. Summarise the key developments in an overview and one detailed paragraph.",
+        "figure": {
+          "type": "maps",
+          "title": "Seaview Park",
+          "note": "Fictional maps for practice.",
+          "alt": "Two maps of Seaview Park. In 2000, there was a tennis court in the north-west, a pond in the north-east, a large lawn in the south and a single entrance in the west. Today, the tennis court has become a children's playground, the pond remains with a new café beside it, part of the lawn has been made into a car park, and a second entrance has been added in the east.",
+          "plans": [
+            {
+              "title": "2000",
+              "roads": [
+                {
+                  "points": [
+                    [
+                      0,
+                      40
+                    ],
+                    [
+                      100,
+                      40
+                    ]
+                  ],
+                  "label": "Path",
+                  "label_at": [
+                    50,
+                    42.6
+                  ],
+                  "width": 5
+                }
+              ],
+              "areas": [
+                {
+                  "x": 8,
+                  "y": 50,
+                  "w": 30,
+                  "h": 20,
+                  "label": "Tennis court"
+                },
+                {
+                  "x": 62,
+                  "y": 50,
+                  "w": 30,
+                  "h": 20,
+                  "label": "Pond",
+                  "kind": "water"
+                },
+                {
+                  "x": 8,
+                  "y": 8,
+                  "w": 84,
+                  "h": 26,
+                  "label": "Lawn",
+                  "kind": "green"
+                },
+                {
+                  "x": 0.5,
+                  "y": 36,
+                  "w": 6,
+                  "h": 8,
+                  "label": "Gate",
+                  "kind": "parking"
+                }
+              ]
+            },
+            {
+              "title": "Today",
+              "roads": [
+                {
+                  "points": [
+                    [
+                      0,
+                      40
+                    ],
+                    [
+                      100,
+                      40
+                    ]
+                  ],
+                  "label": "Path",
+                  "label_at": [
+                    50,
+                    42.6
+                  ],
+                  "width": 5
+                }
+              ],
+              "areas": [
+                {
+                  "x": 8,
+                  "y": 50,
+                  "w": 30,
+                  "h": 20,
+                  "label": "Playground"
+                },
+                {
+                  "x": 62,
+                  "y": 54,
+                  "w": 30,
+                  "h": 16,
+                  "label": "Pond",
+                  "kind": "water"
+                },
+                {
+                  "x": 44,
+                  "y": 52,
+                  "w": 14,
+                  "h": 12,
+                  "label": "Café"
+                },
+                {
+                  "x": 8,
+                  "y": 8,
+                  "w": 50,
+                  "h": 26,
+                  "label": "Lawn",
+                  "kind": "green"
+                },
+                {
+                  "x": 62,
+                  "y": 8,
+                  "w": 30,
+                  "h": 26,
+                  "label": "Car park",
+                  "kind": "parking"
+                },
+                {
+                  "x": 0.5,
+                  "y": 36,
+                  "w": 6,
+                  "h": 8,
+                  "label": "Gate",
+                  "kind": "parking"
+                },
+                {
+                  "x": 93.5,
+                  "y": 36,
+                  "w": 6,
+                  "h": 8,
+                  "label": "Gate",
+                  "kind": "parking"
+                }
+              ]
+            }
+          ]
+        },
+        "conditions": "20 minutes, independent, no model or phrase bank. Record start and finish time and any support. No access to lesson models or worked examples during this independent check. Mark each IELTS writing criterion separately and document an actionable reason for revision; no automatic band inference.",
+        "no_model": "Withheld fresh check: feedback uses the checklist only, so no model is shown or stored with the task.",
+        "checklist": [
+          "Task Achievement: Is there an overview of the most important changes (and what stayed the same)? Are changes reported accurately?",
+          "Coherence and Cohesion: Are changes grouped logically, for example by area of the village, and linked clearly?",
+          "Lexical Resource: Is the vocabulary of change precise (was replaced by, was converted into, was cleared, was extended, was constructed)?",
+          "Grammatical Range and Accuracy: Are passive forms and the past simple / present perfect used accurately, with location phrases (to the north of, in the south-east)?"
+        ]
+      }
+    ],
+    "review": "Compare only the observed demands and conditions with this lesson. Record the result as a separate later observation; do not convert it to a band or merge it with screener evidence. Use a truly unseen form, one independent sitting, and log prior exposure, aid, time, item-level errors, and support. Do not convert this activity into a band estimate or combine it with mock scores."
+  },
+  "delayed_followup": "In Lesson 22 or a later Writing review, check overview quality and change language in any Task 1 response. Record it as a later observation.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps.",
+    "v1.1.0 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
+  ],
+  "previous_approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-18",
+    "version": "1.0.0",
+    "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 612ab88fd5173b55c96364648fc8019b6c26f7837e5d51fb5aadb46dec6eef3d): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
+  }
 }

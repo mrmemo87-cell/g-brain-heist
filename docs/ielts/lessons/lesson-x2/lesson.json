@@ -1,605 +1,720 @@
 {
- "schema": "bh-ielts-lesson-source/2",
- "code": "IELTS-X2",
- "number": 2,
- "extension": true,
- "placement": "optional, after Week 7 (Lesson 13)",
- "week": 7,
- "version": "1.0.0",
- "presentation_version": "1.0.0",
- "title": "Reading: matching features and short-answer questions",
- "status": "Owner approved v1.0.0 on 2026-10-18; teacher release to all eligible schools (optional extension lesson)",
- "duration": 60,
- "test_type": "Academic",
- "bibles": {
-  "diagnostic": "1.10.0",
-  "lessons": "1.1.0",
-  "visual": "1.1.0"
- },
- "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Researchers, planners and findings in the passages are fictional and created for practice. Human editorial, key, mapping, difficulty and originality review pending.",
- "audio": {
-  "required": false,
-  "statement": "No recording required.",
-  "recordings": []
- },
- "prerequisites": [
-  "Lesson 6 (reading for specific information) and Lesson 13 (TRUE/FALSE/NOT GIVEN and YES/NO/NOT GIVEN).",
-  "Teacher has checked actual Reading Screener and review states privately.",
-  "Optional extension: use when learners need practice matching statements to people and writing short answers within a word limit."
- ],
- "objectives": [
-  {
-   "text": "Match paraphrased statements with the people in a passage by locating names first and checking each idea against evidence.",
-   "focus": [
-    "paraphrase recognition",
-    "matching/reference tracking"
-   ]
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-X2",
+  "number": 2,
+  "extension": true,
+  "placement": "optional, after Week 7 (Lesson 13)",
+  "week": 7,
+  "version": "1.1.1",
+  "presentation_version": "1.1.1",
+  "title": "Reading: matching features and short-answer questions",
+  "status": "Private teacher-review revision DRAFT v1.1.1; not approved, merged, or released. Prior v1.0.0 approval is historical only.",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": {
+    "diagnostic": "2.0.0",
+    "lessons": "1.2.0",
+    "visual": "1.2.0"
   },
-  {
-   "text": "Answer short questions with words from the passage, respecting the word limit and the question word.",
-   "focus": [
-    "word-limit/task compliance",
-    "explicit detail"
-   ]
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Researchers, planners and findings in the passages are fictional and created for practice. Human editorial, key, mapping, difficulty and originality review pending.",
+  "audio": {
+    "required": false,
+    "statement": "No recording required.",
+    "recordings": []
   },
-  {
-   "text": "Reject number and wording traps by reading the question word precisely.",
-   "focus": [
-    "distractor resistance",
-    "numerical information"
-   ]
-  }
- ],
- "levels": {
-  "foundation": "Researcher names circled with the teacher first; a five-word summary for each person before matching.",
-  "core": "Complete all thirteen questions in the time given, quoting evidence for matching answers.",
-  "extension": "Name the question word and expected answer type for every short-answer question.",
-  "high_band": "Explain why the most tempting wrong researcher is wrong for two statements."
- },
- "blocks": [
-  {
-   "id": "IELTS-X2-K1",
-   "kind": "contrast",
-   "title": "Same name, different idea",
-   "mode": "Opening challenge; learners decide before the reveal",
-   "instructions": "Statement: 'Staff tried to block out distractions themselves.' Three learners matched it with Anna Kowal. Whose reason is best?",
-   "examples": [
-    {
-     "label": "Learner A",
-     "text": "The word 'distractions' is in her paragraph.",
-     "comment": "Weak: the word 'distractions' is not in the passage at all. Matching by repeated words is unreliable; statements are paraphrased."
-    },
-    {
-     "label": "Learner B",
-     "text": "Her name is the first one in the passage, and the statements usually start at the beginning.",
-     "comment": "Wrong strategy: matching-features statements are NOT in passage order. Each one must be checked against the whole passage."
-    },
-    {
-     "label": "Learner C",
-     "text": "'Large numbers of them began wearing headphones' means the workers blocked the noise themselves.",
-     "comment": "Best: the idea matches ('blocked out distractions' = 'wearing headphones' because of noise), and the learner can quote the evidence."
-    }
-   ]
-  },
-  {
-   "id": "IELTS-X2-G1",
-   "kind": "items",
-   "title": "Short answers: find, then copy",
-   "mode": "Guided practice; answer alone, then check with a partner",
-   "instructions": "Read the passage. Answer the questions. Choose NO MORE THAN THREE WORDS from the passage for each answer.",
-   "stimulus": {
-    "type": "passage",
-    "title": "What makes a good workplace?",
-    "labelled": false,
-    "paragraphs": [
-     "Few questions have attracted more attention from employers in recent years than what makes people happy at work. Large companies now spend considerable sums on redesigning offices, offering new benefits and measuring staff satisfaction. Yet researchers who study the workplace often disagree about which changes really make a difference.",
-     "Dr Anna Kowal spent several years studying open-plan offices, which were introduced partly to encourage conversation between colleagues. She found that the opposite often happened. Because of the constant noise, many employees found it harder to concentrate, and large numbers of them began wearing headphones for most of the day, which reduced conversation even further. Professor Lewis Grant, meanwhile, followed employees at three companies for two years after they were allowed to choose their own working hours. Their reported satisfaction rose steadily, even though none of them received any increase in pay.",
-     "Other researchers have looked at the physical environment. Dr Sofia Mendes measured the mood of office workers before and after their workplaces were improved with better lighting and indoor plants. Both changes produced small but measurable improvements. However, Mendes points out that these effects were far smaller than those promised by the companies that sell such products, and she warns employers not to expect dramatic results.",
-     "For Dr Tariq Hussain, the most important factor lies outside the office altogether. His surveys suggest that a long journey to work reduces satisfaction more than almost anything that happens inside it. In his data, even a substantial rise in salary did not make up for an extra hour of commuting each day. Those who suffered most were parents of young children, who often felt that they were missing important time at home.",
-     "Professor Ruth Okafor's work focuses on something simpler: recognition. In a series of experiments, she compared the effect of a sincere thank-you from a manager with that of cash bonuses of a similar cost to the company. Surprisingly, the thank-you had a stronger and longer-lasting effect on motivation. Okafor believes that many organisations underestimate how much employees value being noticed.",
-     "What these studies share is a warning against assuming that expensive solutions are always the best. Before investing in new furniture or technology, managers might be wise to ask their employees what would make the greatest difference to them."
-    ]
-   },
-   "items": [
-    {
-     "id": "IELTS-X2-G1-Q1",
-     "prompt": "What type of office did Anna Kowal study?",
-     "answer": "open-plan offices",
-     "evidence": "Dr Anna Kowal spent several years studying open-plan offices",
-     "reason": "The hyphenated word counts as one word; 'open-plan' alone is also accepted.",
-     "focus": "locating explicit evidence",
-     "type": "short",
-     "accept": [
-      "open-plan",
-      "open-plan office"
-     ],
-     "word_limit": 3,
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X2-G1-Q2",
-     "prompt": "What did many employees wear to deal with the noise?",
-     "answer": "headphones",
-     "evidence": "large numbers of them began wearing headphones",
-     "reason": "The question word 'what' asks for a thing; copy it exactly.",
-     "focus": "explicit detail",
-     "type": "short",
-     "word_limit": 3,
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X2-G1-Q3",
-     "prompt": "How long did Lewis Grant's study last?",
-     "answer": "two years",
-     "evidence": "followed employees at three companies for two years",
-     "reason": "'Three companies' is a number trap; the question asks how long.",
-     "focus": "numerical information; distractor resistance",
-     "type": "short",
-     "word_limit": 3,
-     "level": "core"
-    }
-   ],
-   "support": "Foundation: the teacher circles every researcher name in the passage with the class before learners start.",
-   "extension": "For each answer, write the question word (what, how long) and the type of answer it needs."
-  },
-  {
-   "id": "IELTS-X2-P1",
-   "kind": "items",
-   "title": "Matching features: researchers",
-   "mode": "Independent practice under time (8 minutes); then check",
-   "instructions": "Use the passage 'What makes a good workplace?'. Match each statement with the correct researcher, A-E. You may use any letter more than once. List of researchers: A Anna Kowal   B Lewis Grant   C Sofia Mendes   D Tariq Hussain   E Ruth Okafor.",
-   "stimulus": {
-    "type": "passage",
-    "title": "What makes a good workplace? (same passage)",
-    "labelled": false,
-    "paragraphs": [
-     "Few questions have attracted more attention from employers in recent years than what makes people happy at work. Large companies now spend considerable sums on redesigning offices, offering new benefits and measuring staff satisfaction. Yet researchers who study the workplace often disagree about which changes really make a difference.",
-     "Dr Anna Kowal spent several years studying open-plan offices, which were introduced partly to encourage conversation between colleagues. She found that the opposite often happened. Because of the constant noise, many employees found it harder to concentrate, and large numbers of them began wearing headphones for most of the day, which reduced conversation even further. Professor Lewis Grant, meanwhile, followed employees at three companies for two years after they were allowed to choose their own working hours. Their reported satisfaction rose steadily, even though none of them received any increase in pay.",
-     "Other researchers have looked at the physical environment. Dr Sofia Mendes measured the mood of office workers before and after their workplaces were improved with better lighting and indoor plants. Both changes produced small but measurable improvements. However, Mendes points out that these effects were far smaller than those promised by the companies that sell such products, and she warns employers not to expect dramatic results.",
-     "For Dr Tariq Hussain, the most important factor lies outside the office altogether. His surveys suggest that a long journey to work reduces satisfaction more than almost anything that happens inside it. In his data, even a substantial rise in salary did not make up for an extra hour of commuting each day. Those who suffered most were parents of young children, who often felt that they were missing important time at home.",
-     "Professor Ruth Okafor's work focuses on something simpler: recognition. In a series of experiments, she compared the effect of a sincere thank-you from a manager with that of cash bonuses of a similar cost to the company. Surprisingly, the thank-you had a stronger and longer-lasting effect on motivation. Okafor believes that many organisations underestimate how much employees value being noticed.",
-     "What these studies share is a warning against assuming that expensive solutions are always the best. Before investing in new furniture or technology, managers might be wise to ask their employees what would make the greatest difference to them."
-    ],
-    "workbook_reference": "Use the passage printed with Questions 1-3."
-   },
-   "items": [
-    {
-     "id": "IELTS-X2-P1-Q4",
-     "prompt": "A gesture that costs the company very little may motivate staff more than money.",
-     "answer": "E",
-     "evidence": "the thank-you had a stronger and longer-lasting effect on motivation",
-     "reason": "A thank-you is the low-cost gesture; bonuses are the money.",
-     "focus": "paraphrase recognition",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X2-P1-Q5",
-     "prompt": "Workers tried to block out distractions themselves.",
-     "answer": "A",
-     "evidence": "large numbers of them began wearing headphones for most of the day",
-     "reason": "Headphones are a self-chosen way to block noise.",
-     "focus": "paraphrase recognition",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X2-P1-Q6",
-     "prompt": "Sellers have exaggerated the benefits of a workplace improvement.",
-     "answer": "C",
-     "evidence": "these effects were far smaller than those promised by the companies that sell such products",
-     "reason": "'Exaggerated' paraphrases 'far smaller than those promised'.",
-     "focus": "writer stance/purpose",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X2-P1-Q7",
-     "prompt": "Freedom over the timing of work made staff more satisfied.",
-     "answer": "B",
-     "evidence": "allowed to choose their own working hours. Their reported satisfaction rose steadily",
-     "reason": "'Timing of work' paraphrases 'working hours'.",
-     "focus": "paraphrase recognition",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X2-P1-Q8",
-     "prompt": "Higher pay may not compensate for a long journey to work.",
-     "answer": "D",
-     "evidence": "even a substantial rise in salary did not make up for an extra hour of commuting each day",
-     "reason": "'Compensate for' paraphrases 'make up for'.",
-     "focus": "paraphrase recognition",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X2-P1-Q9",
-     "prompt": "Satisfaction improved although salaries stayed the same.",
-     "answer": "B",
-     "evidence": "even though none of them received any increase in pay",
-     "reason": "The same researcher can be the answer twice.",
-     "focus": "detail discrimination",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E"
-     ],
-     "level": "core"
-    }
-   ],
-   "support": "Foundation: learners first write each researcher's main finding in five words in the margin, then match.",
-   "high_band": "For two statements, explain why a second researcher might seem possible and why they are wrong."
-  },
-  {
-   "id": "IELTS-X2-P2",
-   "kind": "items",
-   "title": "Short answers under time",
-   "mode": "Independent practice under time (5 minutes); then check",
-   "instructions": "Use the passage 'What makes a good workplace?'. Answer the questions. Choose NO MORE THAN THREE WORDS from the passage for each answer.",
-   "stimulus": {
-    "type": "passage",
-    "title": "What makes a good workplace? (same passage)",
-    "labelled": false,
-    "paragraphs": [
-     "Few questions have attracted more attention from employers in recent years than what makes people happy at work. Large companies now spend considerable sums on redesigning offices, offering new benefits and measuring staff satisfaction. Yet researchers who study the workplace often disagree about which changes really make a difference.",
-     "Dr Anna Kowal spent several years studying open-plan offices, which were introduced partly to encourage conversation between colleagues. She found that the opposite often happened. Because of the constant noise, many employees found it harder to concentrate, and large numbers of them began wearing headphones for most of the day, which reduced conversation even further. Professor Lewis Grant, meanwhile, followed employees at three companies for two years after they were allowed to choose their own working hours. Their reported satisfaction rose steadily, even though none of them received any increase in pay.",
-     "Other researchers have looked at the physical environment. Dr Sofia Mendes measured the mood of office workers before and after their workplaces were improved with better lighting and indoor plants. Both changes produced small but measurable improvements. However, Mendes points out that these effects were far smaller than those promised by the companies that sell such products, and she warns employers not to expect dramatic results.",
-     "For Dr Tariq Hussain, the most important factor lies outside the office altogether. His surveys suggest that a long journey to work reduces satisfaction more than almost anything that happens inside it. In his data, even a substantial rise in salary did not make up for an extra hour of commuting each day. Those who suffered most were parents of young children, who often felt that they were missing important time at home.",
-     "Professor Ruth Okafor's work focuses on something simpler: recognition. In a series of experiments, she compared the effect of a sincere thank-you from a manager with that of cash bonuses of a similar cost to the company. Surprisingly, the thank-you had a stronger and longer-lasting effect on motivation. Okafor believes that many organisations underestimate how much employees value being noticed.",
-     "What these studies share is a warning against assuming that expensive solutions are always the best. Before investing in new furniture or technology, managers might be wise to ask their employees what would make the greatest difference to them."
-    ],
-    "workbook_reference": "Use the passage printed with Questions 1-3."
-   },
-   "items": [
-    {
-     "id": "IELTS-X2-P2-Q10",
-     "prompt": "Apart from better lighting, what did Sofia Mendes study in offices?",
-     "answer": "indoor plants",
-     "evidence": "improved with better lighting and indoor plants",
-     "reason": "'Apart from lighting' removes one of the two options.",
-     "focus": "detail discrimination",
-     "type": "short",
-     "accept": [
-      "plants"
-     ],
-     "word_limit": 3,
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X2-P2-Q11",
-     "prompt": "According to Tariq Hussain, which workers suffered most from long commutes?",
-     "answer": "parents of young children",
-     "evidence": "Those who suffered most were parents of young children",
-     "reason": "Four words break the limit; 'parents' alone answers the question.",
-     "focus": "word-limit/task compliance",
-     "type": "short",
-     "accept": [
-      "parents"
-     ],
-     "word_limit": 3,
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X2-P2-Q12",
-     "prompt": "What did Ruth Okafor compare a thank-you with?",
-     "answer": "cash bonuses",
-     "evidence": "she compared the effect of a sincere thank-you from a manager with that of cash bonuses",
-     "reason": "'Compare ... with' points to the second thing.",
-     "focus": "explicit detail",
-     "type": "short",
-     "accept": [
-      "bonuses"
-     ],
-     "word_limit": 3,
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X2-P2-Q13",
-     "prompt": "What does the passage suggest managers should do before buying new furniture?",
-     "answer": "ask their employees",
-     "evidence": "managers might be wise to ask their employees what would make the greatest difference",
-     "reason": "'Buying' paraphrases 'investing in'.",
-     "focus": "paraphrase recognition",
-     "type": "short",
-     "accept": [
-      "ask employees"
-     ],
-     "word_limit": 3,
-     "level": "core"
-    }
-   ],
-   "marking": "Mark answers over the word limit as wrong even if the meaning is right (for example, 'parents of young children' in Q11 has four words). Record word-limit errors separately.",
-   "extension": "Rewrite Q11 so that the four-word answer would be correct."
-  }
- ],
- "stages": [
-  {
-   "start": 0,
-   "end": 6,
-   "title": "Opening challenge: same name, different idea",
-   "show": [
-    {
-     "block": "IELTS-X2-K1",
-     "part": "questions"
-    },
-    {
-     "block": "IELTS-X2-K1",
-     "part": "answers"
-    }
-   ],
-   "student": "Decide whose reason is best before the reveal.",
-   "teacher": "Learners vote. Reveal the comments. Stress that statements are paraphrased and not in passage order.",
-   "say": "Match the idea, not the word, and always find the evidence.",
-   "check": "Learners can say why Learner B is wrong."
-  },
-  {
-   "start": 6,
-   "end": 10,
-   "title": "Strategy: names first",
-   "show": [],
-   "student": "Note the steps: circle every name; write each person's main idea in a few words; then read the statements.",
-   "teacher": "Model circling the five researcher names in the passage and writing a five-word summary for Kowal.",
-   "say": "In matching features, the people are easy to find; the ideas are what you need to understand.",
-   "check": "Learners have circled all five names."
-  },
-  {
-   "start": 10,
-   "end": 18,
-   "title": "Guided: short answers",
-   "show": [
-    {
-     "block": "IELTS-X2-G1",
-     "part": "questions"
-    }
-   ],
-   "student": "Read the passage and answer Questions 1-3.",
-   "teacher": "Allow 7 minutes, including reading time. Foundation learners use the circled names.",
-   "say": "Check the word limit before you write.",
-   "check": "Every learner has three answers."
-  },
-  {
-   "start": 18,
-   "end": 22,
-   "title": "Check short answers",
-   "show": [
-    {
-     "block": "IELTS-X2-G1",
-     "part": "answers"
-    }
-   ],
-   "student": "Check answers with a partner.",
-   "teacher": "Reveal. For Q3, show how the number trap works.",
-   "say": "Read the question word carefully: how long is not how many.",
-   "check": "Learners can explain the Q3 trap."
-  },
-  {
-   "start": 22,
-   "end": 32,
-   "title": "Matching features under time",
-   "show": [
-    {
-     "block": "IELTS-X2-P1",
-     "part": "questions"
-    }
-   ],
-   "student": "Complete Questions 4-9 in 8 minutes.",
-   "teacher": "Time 8 minutes. No dictionaries. Remind learners that letters may be used more than once.",
-   "say": "One researcher can be the answer more than once.",
-   "check": "Learners finish in time."
-  },
-  {
-   "start": 32,
-   "end": 39,
-   "title": "Check matching",
-   "show": [
-    {
-     "block": "IELTS-X2-P1",
-     "part": "answers"
-    }
-   ],
-   "student": "Check answers. For each mistake, copy the evidence sentence into your log.",
-   "teacher": "Reveal in pairs. Discuss Q4 and Q9 (paraphrase and repeated letters).",
-   "say": "If you cannot quote the evidence, you have not found the answer.",
-   "check": "Learners can quote the evidence for Q6."
-  },
-  {
-   "start": 39,
-   "end": 45,
-   "title": "Short answers under time",
-   "show": [
-    {
-     "block": "IELTS-X2-P2",
-     "part": "questions"
-    }
-   ],
-   "student": "Answer Questions 10-13 in 5 minutes.",
-   "teacher": "Time 5 minutes.",
-   "say": "No more than three words: count them.",
-   "check": "Learners finish in time."
-  },
-  {
-   "start": 45,
-   "end": 51,
-   "title": "Check short answers",
-   "show": [
-    {
-     "block": "IELTS-X2-P2",
-     "part": "answers"
-    }
-   ],
-   "student": "Check answers. Mark word-limit errors separately.",
-   "teacher": "Reveal. Use Q11 to show that a four-word answer is wrong even when the meaning is right.",
-   "say": "The word limit is part of the answer.",
-   "check": "Learners can explain Q11."
-  },
-  {
-   "start": 51,
-   "end": 56,
-   "title": "My reading log",
-   "show": [],
-   "student": "Record each wrong answer as: wrong person, wrong idea, word limit, or spelling.",
-   "teacher": "Note the error types learners actually record. No band conversion.",
-   "say": "Your log tells you what to practise next.",
-   "check": "Each learner has one target."
-  },
-  {
-   "start": 56,
-   "end": 60,
-   "title": "Exit ticket and homework",
-   "show": [],
-   "student": "Complete the exit ticket and take the homework.",
-   "teacher": "Collect exit tickets. Record the fresh-check date.",
-   "say": "Next time, circle the names first.",
-   "check": "Everyone knows the homework."
-  }
- ],
- "exit_ticket": [
-  "What I do first in a matching-features task:",
-  "How I check a short answer before I write it:",
-  "My target for the next reading task:"
- ],
- "homework": [
-  "Find a short article that quotes three or more people. Write three statements that paraphrase their views, and ask a classmate to match them.",
-  "Practise counting words in your answers: write five short answers of no more than three words about the article.",
-  "Complete only the Brains Heist reading practice your teacher actually assigns. Suggested time: about 25 minutes."
- ],
- "followup": {
-  "id": "IELTS-X2-C1",
-  "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
-  "delivery": "About one teaching week after this lesson. Five minutes, independent, no dictionary, no support. Log timing, support and prior exposure. Classroom observation only.",
-  "blocks": [
-   {
-    "id": "IELTS-X2-C1",
-    "kind": "items",
-    "title": "Spending on cycling",
-    "mode": "Withheld fresh check; independent, timed",
-    "instructions": "Match each statement with the correct planner: A Marta Lindqvist, B Daniel Osei, C Helen Park. You may use any letter more than once.",
-    "stimulus": {
-     "type": "passage",
-     "title": "Spending on cycling",
-     "labelled": false,
-     "paragraphs": [
-      "As more people take up cycling, city planners disagree about where money should be spent. Marta Lindqvist argues that nothing matters more than separating cyclists from traffic. In her experience, painted lines on the road do little to make new cyclists feel safe, whereas lanes protected by a kerb attract people who would never otherwise ride.",
-      "Daniel Osei believes that public bike-sharing schemes are the quickest way to change habits, because they allow people to try cycling without buying a bike. He admits, however, that many schemes have lost money.",
-      "Helen Park focuses on journeys that combine cycling with trains. She has found that commuters are far more willing to cycle to a station if they know there will be secure parking when they arrive, and she believes this is the cheapest improvement a city can make."
-     ]
-    },
-    "items": [
-     {
-      "id": "IELTS-X2-C1-Q1",
-      "prompt": "Some schemes have not been financially successful.",
-      "answer": "B",
-      "evidence": "many schemes have lost money",
-      "reason": "'Not financially successful' paraphrases 'lost money'.",
-      "focus": "paraphrase recognition",
-      "type": "matching",
-      "options": [
-       "A",
-       "B",
-       "C"
-      ],
-      "level": "core"
-     },
-     {
-      "id": "IELTS-X2-C1-Q2",
-      "prompt": "A low-cost change could persuade more people to cycle.",
-      "answer": "C",
-      "evidence": "she believes this is the cheapest improvement a city can make",
-      "reason": "'Low-cost' paraphrases 'cheapest'.",
-      "focus": "paraphrase recognition",
-      "type": "matching",
-      "options": [
-       "A",
-       "B",
-       "C"
-      ],
-      "level": "core"
-     },
-     {
-      "id": "IELTS-X2-C1-Q3",
-      "prompt": "Painted markings are not enough to reassure beginners.",
-      "answer": "A",
-      "evidence": "painted lines on the road do little to make new cyclists feel safe",
-      "reason": "'Beginners' paraphrases 'new cyclists'.",
-      "focus": "paraphrase recognition",
-      "type": "matching",
-      "options": [
-       "A",
-       "B",
-       "C"
-      ],
-      "level": "core"
-     },
-     {
-      "id": "IELTS-X2-C1-Q4",
-      "prompt": "People can try cycling before spending their own money.",
-      "answer": "B",
-      "evidence": "they allow people to try cycling without buying a bike",
-      "reason": "The same planner can be used twice.",
-      "focus": "detail discrimination",
-      "type": "matching",
-      "options": [
-       "A",
-       "B",
-       "C"
-      ],
-      "level": "core"
-     }
-    ]
-   }
+  "prerequisites": [
+    "Lesson 6 (reading for specific information) and Lesson 13 (TRUE/FALSE/NOT GIVEN and YES/NO/NOT GIVEN).",
+    "Teacher has checked actual Reading Screener and review states privately.",
+    "Optional extension: use when learners need practice matching statements to people and writing short answers within a word limit."
   ],
-  "review": "Compare only the observed demands and conditions with this lesson. Record the result as a separate later observation; do not convert it to a band or merge it with screener evidence."
- },
- "delayed_followup": "In Lesson 18 (timed Academic Reading), check whether learners circle names first and quote evidence when matching under time pressure. Record it as a later observation.",
- "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
- "release_blockers": [
-  "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
-  "Student task publication and platform evidence capture remain separate, governed steps."
- ],
- "approval_record": {
-  "approved_by": "Owner, Brains Heist LLC",
-  "date": "2026-10-18",
-  "version": "1.0.0",
-  "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
-  "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 2570f2211f5693af6b2f00a6289f53f98c351eec38d9a794657eba703f7ce7d5): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
- }
+  "objectives": [
+    {
+      "text": "Match paraphrased statements with the people in a passage by locating names first and checking each idea against evidence.",
+      "focus": [
+        "paraphrase recognition",
+        "matching/reference tracking"
+      ]
+    },
+    {
+      "text": "Answer short questions with words from the passage, respecting the word limit and the question word.",
+      "focus": [
+        "word-limit/task compliance",
+        "explicit detail"
+      ]
+    },
+    {
+      "text": "Reject number and wording traps by reading the question word precisely.",
+      "focus": [
+        "distractor resistance",
+        "numerical information"
+      ]
+    }
+  ],
+  "levels": {
+    "foundation": "Researcher names circled with the teacher first; a five-word summary for each person before matching.",
+    "core": "Complete all thirteen questions in the time given, quoting evidence for matching answers.",
+    "extension": "Name the question word and expected answer type for every short-answer question.",
+    "high_band": "On a new unseen text, separate the researcher's measured finding from the article author's interpretation; justify each rejected match with specific evidence, then answer short-answer items within the word limit without hints."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-X2-K1",
+      "kind": "contrast",
+      "title": "Same name, different idea",
+      "mode": "Opening challenge; learners decide before the reveal",
+      "instructions": "Statement: 'Staff tried to block out distractions themselves.' Three learners matched it with Anna Kowal. Whose reason is best?",
+      "examples": [
+        {
+          "label": "Learner A",
+          "text": "The word 'distractions' is in her paragraph.",
+          "comment": "Weak: the word 'distractions' is not in the passage at all. Matching by repeated words is unreliable; statements are paraphrased."
+        },
+        {
+          "label": "Learner B",
+          "text": "Her name is the first one in the passage, and the statements usually start at the beginning.",
+          "comment": "Wrong strategy: matching-features statements are NOT in passage order. Each one must be checked against the whole passage."
+        },
+        {
+          "label": "Learner C",
+          "text": "'Large numbers of them began wearing headphones' means the workers blocked the noise themselves.",
+          "comment": "Best: the idea matches ('blocked out distractions' = 'wearing headphones' because of noise), and the learner can quote the evidence."
+        }
+      ]
+    },
+    {
+      "id": "IELTS-X2-G1",
+      "kind": "items",
+      "title": "Short answers: find, then copy",
+      "mode": "Guided practice; answer alone, then check with a partner",
+      "instructions": "Read the passage. Answer the questions. Choose NO MORE THAN THREE WORDS from the passage for each answer.",
+      "stimulus": {
+        "type": "passage",
+        "title": "What makes a good workplace?",
+        "labelled": false,
+        "paragraphs": [
+          "Few questions have attracted more attention from employers in recent years than what makes people happy at work. Large companies now spend considerable sums on redesigning offices, offering new benefits and measuring staff satisfaction. Yet researchers who study the workplace often disagree about which changes really make a difference.",
+          "Dr Anna Kowal spent several years studying open-plan offices, which were introduced partly to encourage conversation between colleagues. She found that the opposite often happened. Because of the constant noise, many employees found it harder to concentrate, and large numbers of them began wearing headphones for most of the day, which reduced conversation even further. Professor Lewis Grant, meanwhile, followed employees at three companies for two years after they were allowed to choose their own working hours. Their reported satisfaction rose steadily, even though none of them received any increase in pay.",
+          "Other researchers have looked at the physical environment. Dr Sofia Mendes measured the mood of office workers before and after their workplaces were improved with better lighting and indoor plants. Both changes produced small but measurable improvements. However, Mendes points out that these effects were far smaller than those promised by the companies that sell such products, and she warns employers not to expect dramatic results.",
+          "For Dr Tariq Hussain, the most important factor lies outside the office altogether. His surveys suggest that a long journey to work reduces satisfaction more than almost anything that happens inside it. In his data, even a substantial rise in salary did not make up for an extra hour of commuting each day. Those who suffered most were parents of young children, who often felt that they were missing important time at home.",
+          "Professor Ruth Okafor's work focuses on something simpler: recognition. In a series of experiments, she compared the effect of a sincere thank-you from a manager with that of cash bonuses of a similar cost to the company. Surprisingly, the thank-you had a stronger and longer-lasting effect on motivation. Okafor believes that many organisations underestimate how much employees value being noticed.",
+          "What these studies share is a warning against assuming that expensive solutions are always the best. Before investing in new furniture or technology, managers might be wise to ask their employees what would make the greatest difference to them."
+        ]
+      },
+      "items": [
+        {
+          "id": "IELTS-X2-G1-Q1",
+          "prompt": "Which workplace layout was investigated by Anna Kowal?",
+          "answer": "open-plan offices",
+          "evidence": "Dr Anna Kowal spent several years studying open-plan offices",
+          "reason": "The hyphenated word counts as one word; 'open-plan' alone is also accepted.",
+          "focus": "locating explicit evidence",
+          "type": "short",
+          "accept": [
+            "open-plan",
+            "open-plan office"
+          ],
+          "word_limit": 3,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X2-G1-Q2",
+          "prompt": "What did many employees wear to deal with the noise?",
+          "answer": "headphones",
+          "evidence": "large numbers of them began wearing headphones",
+          "reason": "The question word 'what' asks for a thing; copy it exactly.",
+          "focus": "explicit detail",
+          "type": "short",
+          "word_limit": 3,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X2-G1-Q3",
+          "prompt": "How long did Lewis Grant's study last?",
+          "answer": "two years",
+          "evidence": "followed employees at three companies for two years",
+          "reason": "'Three companies' is a number trap; the question asks how long.",
+          "focus": "numerical information; distractor resistance",
+          "type": "short",
+          "word_limit": 3,
+          "level": "core"
+        }
+      ],
+      "support": "Foundation: the teacher circles every researcher name in the passage with the class before learners start.",
+      "extension": "For each answer, write the question word (what, how long) and the type of answer it needs. Advanced transfer: before revealing the key, require a cited justification of one correct response and one plausible incorrect response."
+    },
+    {
+      "id": "IELTS-X2-P1",
+      "kind": "items",
+      "title": "Matching features: researchers",
+      "mode": "Independent practice under time (8 minutes); then check",
+      "instructions": "Use the passage 'What makes a good workplace?'. Match each statement with the correct researcher, A-E. You may use any letter more than once. List of researchers: A Anna Kowal   B Lewis Grant   C Sofia Mendes   D Tariq Hussain   E Ruth Okafor.",
+      "stimulus": {
+        "type": "passage",
+        "title": "What makes a good workplace? (same passage)",
+        "labelled": false,
+        "paragraphs": [
+          "Few questions have attracted more attention from employers in recent years than what makes people happy at work. Large companies now spend considerable sums on redesigning offices, offering new benefits and measuring staff satisfaction. Yet researchers who study the workplace often disagree about which changes really make a difference.",
+          "Dr Anna Kowal spent several years studying open-plan offices, which were introduced partly to encourage conversation between colleagues. She found that the opposite often happened. Because of the constant noise, many employees found it harder to concentrate, and large numbers of them began wearing headphones for most of the day, which reduced conversation even further. Professor Lewis Grant, meanwhile, followed employees at three companies for two years after they were allowed to choose their own working hours. Their reported satisfaction rose steadily, even though none of them received any increase in pay.",
+          "Other researchers have looked at the physical environment. Dr Sofia Mendes measured the mood of office workers before and after their workplaces were improved with better lighting and indoor plants. Both changes produced small but measurable improvements. However, Mendes points out that these effects were far smaller than those promised by the companies that sell such products, and she warns employers not to expect dramatic results.",
+          "For Dr Tariq Hussain, the most important factor lies outside the office altogether. His surveys suggest that a long journey to work reduces satisfaction more than almost anything that happens inside it. In his data, even a substantial rise in salary did not make up for an extra hour of commuting each day. Those who suffered most were parents of young children, who often felt that they were missing important time at home.",
+          "Professor Ruth Okafor's work focuses on something simpler: recognition. In a series of experiments, she compared the effect of a sincere thank-you from a manager with that of cash bonuses of a similar cost to the company. Surprisingly, the thank-you had a stronger and longer-lasting effect on motivation. Okafor believes that many organisations underestimate how much employees value being noticed.",
+          "What these studies share is a warning against assuming that expensive solutions are always the best. Before investing in new furniture or technology, managers might be wise to ask their employees what would make the greatest difference to them."
+        ],
+        "workbook_reference": "Use the passage printed with Questions 1-3."
+      },
+      "items": [
+        {
+          "id": "IELTS-X2-P1-Q4",
+          "prompt": "A gesture that costs the company very little may motivate staff more than money.",
+          "answer": "E",
+          "evidence": "the thank-you had a stronger and longer-lasting effect on motivation",
+          "reason": "A thank-you is the low-cost gesture; bonuses are the money.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X2-P1-Q5",
+          "prompt": "Workers tried to block out distractions themselves.",
+          "answer": "A",
+          "evidence": "large numbers of them began wearing headphones for most of the day",
+          "reason": "Headphones are a self-chosen way to block noise.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X2-P1-Q6",
+          "prompt": "Sellers have exaggerated the benefits of a workplace improvement.",
+          "answer": "C",
+          "evidence": "these effects were far smaller than those promised by the companies that sell such products",
+          "reason": "'Exaggerated' paraphrases 'far smaller than those promised'.",
+          "focus": "writer stance/purpose",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X2-P1-Q7",
+          "prompt": "Freedom over the timing of work made staff more satisfied.",
+          "answer": "B",
+          "evidence": "allowed to choose their own working hours. Their reported satisfaction rose steadily",
+          "reason": "'Timing of work' paraphrases 'working hours'.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X2-P1-Q8",
+          "prompt": "Higher pay may not compensate for a long journey to work.",
+          "answer": "D",
+          "evidence": "even a substantial rise in salary did not make up for an extra hour of commuting each day",
+          "reason": "'Compensate for' paraphrases 'make up for'.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X2-P1-Q9",
+          "prompt": "Satisfaction improved although salaries stayed the same.",
+          "answer": "B",
+          "evidence": "even though none of them received any increase in pay",
+          "reason": "The same researcher can be the answer twice.",
+          "focus": "detail discrimination",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+          ],
+          "level": "core"
+        }
+      ],
+      "support": "Foundation: learners first write each researcher's main finding in five words in the margin, then match.",
+      "high_band": "For two statements, explain why a second researcher might seem possible and why they are wrong."
+    },
+    {
+      "id": "IELTS-X2-P2",
+      "kind": "items",
+      "title": "Short answers under time",
+      "mode": "Independent practice under time (5 minutes); then check",
+      "instructions": "Use the passage 'What makes a good workplace?'. Answer the questions. Choose NO MORE THAN THREE WORDS from the passage for each answer.",
+      "stimulus": {
+        "type": "passage",
+        "title": "What makes a good workplace? (same passage)",
+        "labelled": false,
+        "paragraphs": [
+          "Few questions have attracted more attention from employers in recent years than what makes people happy at work. Large companies now spend considerable sums on redesigning offices, offering new benefits and measuring staff satisfaction. Yet researchers who study the workplace often disagree about which changes really make a difference.",
+          "Dr Anna Kowal spent several years studying open-plan offices, which were introduced partly to encourage conversation between colleagues. She found that the opposite often happened. Because of the constant noise, many employees found it harder to concentrate, and large numbers of them began wearing headphones for most of the day, which reduced conversation even further. Professor Lewis Grant, meanwhile, followed employees at three companies for two years after they were allowed to choose their own working hours. Their reported satisfaction rose steadily, even though none of them received any increase in pay.",
+          "Other researchers have looked at the physical environment. Dr Sofia Mendes measured the mood of office workers before and after their workplaces were improved with better lighting and indoor plants. Both changes produced small but measurable improvements. However, Mendes points out that these effects were far smaller than those promised by the companies that sell such products, and she warns employers not to expect dramatic results.",
+          "For Dr Tariq Hussain, the most important factor lies outside the office altogether. His surveys suggest that a long journey to work reduces satisfaction more than almost anything that happens inside it. In his data, even a substantial rise in salary did not make up for an extra hour of commuting each day. Those who suffered most were parents of young children, who often felt that they were missing important time at home.",
+          "Professor Ruth Okafor's work focuses on something simpler: recognition. In a series of experiments, she compared the effect of a sincere thank-you from a manager with that of cash bonuses of a similar cost to the company. Surprisingly, the thank-you had a stronger and longer-lasting effect on motivation. Okafor believes that many organisations underestimate how much employees value being noticed.",
+          "What these studies share is a warning against assuming that expensive solutions are always the best. Before investing in new furniture or technology, managers might be wise to ask their employees what would make the greatest difference to them."
+        ],
+        "workbook_reference": "Use the passage printed with Questions 1-3."
+      },
+      "items": [
+        {
+          "id": "IELTS-X2-P2-Q10",
+          "prompt": "Apart from better lighting, what did Sofia Mendes study in offices?",
+          "answer": "indoor plants",
+          "evidence": "improved with better lighting and indoor plants",
+          "reason": "'Apart from lighting' removes one of the two options.",
+          "focus": "detail discrimination",
+          "type": "short",
+          "accept": [
+            "plants"
+          ],
+          "word_limit": 3,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X2-P2-Q11",
+          "prompt": "According to Tariq Hussain, which workers suffered most from long commutes?",
+          "answer": "parents of young children",
+          "evidence": "Those who suffered most were parents of young children",
+          "reason": "Four words break the limit; 'parents' alone answers the question.",
+          "focus": "word-limit/task compliance",
+          "type": "short",
+          "accept": [
+            "parents"
+          ],
+          "word_limit": 3,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X2-P2-Q12",
+          "prompt": "What did Ruth Okafor compare a thank-you with?",
+          "answer": "cash bonuses",
+          "evidence": "she compared the effect of a sincere thank-you from a manager with that of cash bonuses",
+          "reason": "'Compare ... with' points to the second thing.",
+          "focus": "explicit detail",
+          "type": "short",
+          "accept": [
+            "bonuses"
+          ],
+          "word_limit": 3,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X2-P2-Q13",
+          "prompt": "What does the passage suggest managers should do before buying new furniture?",
+          "answer": "ask their employees",
+          "evidence": "managers might be wise to ask their employees what would make the greatest difference",
+          "reason": "'Buying' paraphrases 'investing in'.",
+          "focus": "paraphrase recognition",
+          "type": "short",
+          "accept": [
+            "ask employees"
+          ],
+          "word_limit": 3,
+          "level": "core"
+        }
+      ],
+      "marking": "Mark answers over the word limit as wrong even if the meaning is right (for example, 'parents of young children' in Q11 has four words). Record word-limit errors separately.",
+      "extension": "Rewrite Q11 so that the four-word answer would be correct."
+    }
+  ],
+  "stages": [
+    {
+      "start": 0,
+      "end": 6,
+      "title": "Opening challenge: same name, different idea",
+      "show": [
+        {
+          "block": "IELTS-X2-K1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-X2-K1",
+          "part": "answers"
+        }
+      ],
+      "student": "Decide whose reason is best before the reveal.",
+      "teacher": "Learners vote. Reveal the comments. Stress that statements are paraphrased and not in passage order.",
+      "say": "Match the idea, not the word, and always find the evidence.",
+      "check": "Learners can say why Learner B is wrong."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "title": "Strategy: names first",
+      "show": [],
+      "student": "Note the steps: circle every name; write each person's main idea in a few words; then read the statements.",
+      "teacher": "Model circling the five researcher names in the passage and writing a five-word summary for Kowal.",
+      "say": "In matching features, the people are easy to find; the ideas are what you need to understand.",
+      "check": "Learners have circled all five names."
+    },
+    {
+      "start": 10,
+      "end": 18,
+      "title": "Guided: short answers",
+      "show": [
+        {
+          "block": "IELTS-X2-G1",
+          "part": "questions"
+        }
+      ],
+      "student": "Read the passage and answer Questions 1-3.",
+      "teacher": "Allow 7 minutes, including reading time. Foundation learners use the circled names.",
+      "say": "Check the word limit before you write.",
+      "check": "Every learner has three answers."
+    },
+    {
+      "start": 18,
+      "end": 22,
+      "title": "Check short answers",
+      "show": [
+        {
+          "block": "IELTS-X2-G1",
+          "part": "answers"
+        }
+      ],
+      "student": "Check answers with a partner.",
+      "teacher": "Reveal. For Q3, show how the number trap works.",
+      "say": "Read the question word carefully: how long is not how many.",
+      "check": "Learners can explain the Q3 trap."
+    },
+    {
+      "start": 22,
+      "end": 32,
+      "title": "Matching features under time",
+      "show": [
+        {
+          "block": "IELTS-X2-P1",
+          "part": "questions"
+        }
+      ],
+      "student": "Complete Questions 4-9 in 8 minutes.",
+      "teacher": "Time 8 minutes. No dictionaries. Remind learners that letters may be used more than once.",
+      "say": "One researcher can be the answer more than once.",
+      "check": "Learners finish in time."
+    },
+    {
+      "start": 32,
+      "end": 39,
+      "title": "Check matching",
+      "show": [
+        {
+          "block": "IELTS-X2-P1",
+          "part": "answers"
+        }
+      ],
+      "student": "Check answers. For each mistake, copy the evidence sentence into your log.",
+      "teacher": "Reveal in pairs. Discuss Q4 and Q9 (paraphrase and repeated letters).",
+      "say": "If you cannot quote the evidence, you have not found the answer.",
+      "check": "Learners can quote the evidence for Q6."
+    },
+    {
+      "start": 39,
+      "end": 45,
+      "title": "Short answers under time",
+      "show": [
+        {
+          "block": "IELTS-X2-P2",
+          "part": "questions"
+        }
+      ],
+      "student": "Answer Questions 10-13 in 5 minutes.",
+      "teacher": "Time 5 minutes.",
+      "say": "No more than three words: count them.",
+      "check": "Learners finish in time."
+    },
+    {
+      "start": 45,
+      "end": 51,
+      "title": "Check short answers",
+      "show": [
+        {
+          "block": "IELTS-X2-P2",
+          "part": "answers"
+        }
+      ],
+      "student": "Check answers. Mark word-limit errors separately.",
+      "teacher": "Reveal. Use Q11 to show that a four-word answer is wrong even when the meaning is right.",
+      "say": "The word limit is part of the answer.",
+      "check": "Learners can explain Q11."
+    },
+    {
+      "start": 51,
+      "end": 56,
+      "title": "My reading log",
+      "show": [],
+      "student": "Record each wrong answer as: wrong person, wrong idea, word limit, or spelling.",
+      "teacher": "Note the error types learners actually record. No band conversion.",
+      "say": "Your log tells you what to practise next.",
+      "check": "Each learner has one target."
+    },
+    {
+      "start": 56,
+      "end": 60,
+      "title": "Exit ticket and homework",
+      "show": [],
+      "student": "Complete the exit ticket and take the homework.",
+      "teacher": "Collect exit tickets. Record the fresh-check date.",
+      "say": "Next time, circle the names first.",
+      "check": "Everyone knows the homework."
+    }
+  ],
+  "exit_ticket": [
+    "What I do first in a matching-features task:",
+    "How I check a short answer before I write it:",
+    "My target for the next reading task:"
+  ],
+  "homework": [
+    "Find a short article that quotes three or more people. Write three statements that paraphrase their views, and ask a classmate to match them.",
+    "Practise counting words in your answers: write five short answers of no more than three words about the article.",
+    "Complete only the Brains Heist reading practice your teacher actually assigns. Suggested time: about 25 minutes."
+  ],
+  "followup": {
+    "id": "IELTS-X2-C1",
+    "status": "WITHHELD revision draft 1.1.0; editorial and comparability review required before use.",
+    "delivery": "About one teaching week later: 17 minutes, independent unseen passage with no dictionary, cues, models or teacher assistance. Record timing and exposure.",
+    "blocks": [
+      {
+        "id": "IELTS-X2-C1",
+        "kind": "items",
+        "title": "Four perspectives on street-tree programmes",
+        "mode": "Unseen independent transfer, timed; passage and keys withheld until completion",
+        "instructions": "Questions 1–8: match each claim to the researcher who made it. A Dr Mara Chen, B Professor Elias Okafor, C Dr Sofia Vale, D Daniel Reyes. Any letter may be used more than once. Each researcher discusses a different dimension of success; distinguish measured results from interpretations and recommendations. Questions 9–10: write ONE WORD ONLY from the passage.",
+        "stimulus": {
+          "type": "passage",
+          "title": "Four perspectives on street-tree programmes (fictional research scenario)",
+          "labelled": false,
+          "paragraphs": [
+            "An urban council commissioned four fictional researchers to evaluate a programme that planted trees along busy shopping streets. The council had counted each planted tree as a success. Several years later, however, the researchers disagreed about how success ought to be measured. Their reports suggest that visible planting and measurable public benefit are not necessarily the same thing.",
+            "Dr Mara Chen examined summer temperatures. On streets with mature canopies, shaded surfaces were substantially cooler at midday, but measurements taken after sunset showed a much smaller difference. Chen therefore argued that a city should not claim a uniform reduction in heat across an entire day. She also observed that the people most likely to benefit were those who walked or waited outdoors, whereas residents of well-insulated buildings gained relatively little. Her recommendation was to prioritise routes used by pedestrians rather than distribute trees evenly.",
+            "Professor Elias Okafor studied survival rates. The council's impressive planting totals concealed the fact that many saplings had died during their second summer. Expanding the programme without paying for irrigation, he argued, would simply repeat the failure. Okafor supported planting fewer trees initially and directing the remaining budget towards several years of care. Contrary to a popular proposal, he did not favour importing a supposedly drought-proof species: the local variety survived as well when planted in deeper soil.",
+            "Dr Sofia Vale investigated how shoppers used the streets. Businesses near newly planted areas reported that customers lingered longer, yet the evidence did not demonstrate that trees had increased spending. Some shops had also extended their opening hours. Vale warned that the two changes could not be separated by the available survey. Nonetheless, she found strong support for seating beneath the trees, particularly among older visitors. In her view, benches were not merely decorative additions but a necessary part of making shade usable.",
+            "Architect Daniel Reyes questioned whether trees were always the best intervention. On narrow streets, roots threatened underground pipes and dense canopies obstructed access for emergency vehicles. He proposed lightweight awnings in selected locations instead. Although these offered less wildlife habitat, they could be removed during street repairs. Reyes did not argue for abandoning the programme; he wanted planners to distinguish places where trees were practical from places where another form of shelter would work better.",
+            "When the committee met, it accepted that the four proposals could not simply be ranked by the number of trees they would add. The researchers had measured different outcomes and exposed different costs. The committee postponed setting a new planting target until it had agreed whether cooling, survival, accessibility or commercial activity would be its primary objective."
+          ]
+        },
+        "items": [
+          {
+            "id": "IELTS-X2-C1-Q1",
+            "prompt": "Which researcher warns that an apparent change in shopper behaviour could have another explanation?",
+            "answer": "C",
+            "evidence": "the two changes could not be separated by the available survey",
+            "reason": "Extended shop opening hours may partly explain how long customers stayed; there is no demonstrated rise in spending caused by trees.",
+            "focus": "matching research claims; qualification and inference",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Reject a causal conclusion because opening hours also changed."
+          },
+          {
+            "id": "IELTS-X2-C1-Q2",
+            "prompt": "Which researcher considers a headline activity count a poor indicator of whether the project will succeed?",
+            "answer": "B",
+            "evidence": "supported planting fewer trees initially and directing the remaining budget towards several years of care",
+            "reason": "Sheer planting totals obscure poor survival.",
+            "focus": "matching research claims; qualification and inference",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Distinguish planting totals from survival measures."
+          },
+          {
+            "id": "IELTS-X2-C1-Q3",
+            "prompt": "Which researcher accepts a loss of environmental benefits in exchange for more practical access during repairs?",
+            "answer": "D",
+            "evidence": "they could be removed during street repairs",
+            "reason": "Removability matters on difficult streets.",
+            "focus": "matching research claims; qualification and inference",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Interpret the practical trade-off of removable awnings."
+          },
+          {
+            "id": "IELTS-X2-C1-Q4",
+            "prompt": "Which researcher cautions against generalising an observed cooling effect to a different time of day?",
+            "answer": "A",
+            "evidence": "measurements taken after sunset showed a much smaller difference",
+            "reason": "Her finding limits a claim about all-day cooling.",
+            "focus": "matching research claims; qualification and inference",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Avoid generalising a time-specific temperature result."
+          },
+          {
+            "id": "IELTS-X2-C1-Q5",
+            "prompt": "Which researcher says a supporting facility is essential if people are to benefit fully from the main intervention?",
+            "answer": "C",
+            "evidence": "benches were not merely decorative additions but a necessary part of making shade usable",
+            "reason": "Comfort requires seating as well as shade.",
+            "focus": "matching research claims; qualification and inference",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Infer that seating is necessary to use shade."
+          },
+          {
+            "id": "IELTS-X2-C1-Q6",
+            "prompt": "Which researcher recommends allocating improvements according to patterns of public exposure rather than geographical equality?",
+            "answer": "A",
+            "evidence": "prioritise routes used by pedestrians rather than distribute trees evenly",
+            "reason": "Benefits depend on who uses the space.",
+            "focus": "matching research claims; qualification and inference",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Identify allocation by pedestrian exposure rather than equal distribution."
+          },
+          {
+            "id": "IELTS-X2-C1-Q7",
+            "prompt": "Which researcher believes the same intervention should not be imposed on every street, even though it may work well elsewhere?",
+            "answer": "D",
+            "evidence": "Although these offered less wildlife habitat",
+            "reason": "The speaker acknowledges a tradeoff.",
+            "focus": "matching research claims; qualification and inference",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Distinguish targeted alternative interventions from total rejection."
+          },
+          {
+            "id": "IELTS-X2-C1-Q8",
+            "prompt": "Which researcher rejects an imported solution because better local conditions could achieve a similar result?",
+            "answer": "B",
+            "evidence": "the local variety survived as well when planted in deeper soil",
+            "reason": "Soil improvement, not imported species, was recommended.",
+            "focus": "matching research claims; qualification and inference",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Interpret better soil as an alternative to importing species."
+          },
+          {
+            "id": "IELTS-X2-C1-Q9",
+            "prompt": "In which season did many young trees fail after their first year? Write ONE WORD ONLY.",
+            "answer": "summer",
+            "evidence": "many saplings had died during their second summer",
+            "reason": "Second-year losses undercut the headline total.",
+            "focus": "short-answer detail under paraphrase",
+            "type": "short",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Easy",
+            "difficulty_basis": "Find the season linked to second-year mortality."
+          },
+          {
+            "id": "IELTS-X2-C1-Q10",
+            "prompt": "Which underground infrastructure was vulnerable on confined streets? Write ONE WORD ONLY.",
+            "answer": "pipes",
+            "evidence": "roots threatened underground pipes",
+            "reason": "The question asks about buried utilities, not emergency access.",
+            "focus": "short-answer discrimination",
+            "type": "short",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Easy",
+            "difficulty_basis": "Find the named buried utility."
+          }
+        ]
+      }
+    ],
+    "review": "Score each answer independently; examine confusion between measured findings, proposed priorities and qualified claims. Check short answers for word limits and exact textual support. Record conditions; do not convert to IELTS band. Revised matching key must be C, B, D, A, C, A, D, B for Questions 1–8; each answer needs an explicit named-speaker evidence trace, not an assumed repeating sequence.",
+    "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty in real audio playback."
+  },
+  "delayed_followup": "In Lesson 18 (timed Academic Reading), check whether learners circle names first and quote evidence when matching under time pressure. Record it as a later observation.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps.",
+    "v1.1.1 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
+  ],
+  "previous_approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-18",
+    "version": "1.0.0",
+    "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 2570f2211f5693af6b2f00a6289f53f98c351eec38d9a794657eba703f7ce7d5): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
+  }
 }

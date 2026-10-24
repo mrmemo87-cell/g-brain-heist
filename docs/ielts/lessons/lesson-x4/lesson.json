@@ -1,629 +1,788 @@
 {
- "schema": "bh-ielts-lesson-source/2",
- "code": "IELTS-X4",
- "number": 4,
- "extension": true,
- "placement": "optional, after Week 7 (Lesson 14)",
- "week": 7,
- "version": "1.0.0",
- "presentation_version": "1.0.0",
- "title": "Listening: flow charts and 'choose TWO' questions",
- "status": "Owner approved v1.0.0 on 2026-10-18; teacher release to all eligible schools (optional extension lesson)",
- "duration": 60,
- "test_type": "Academic",
- "bibles": {
-  "diagnostic": "1.10.0",
-  "lessons": "1.1.0",
-  "visual": "1.1.0"
- },
- "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Speakers, places and organisations in the recordings are fictional. Human editorial, key, mapping, difficulty and originality review pending.",
- "audio": {
-  "required": true,
-  "statement": "Recordings v1 (IELTS-X4-L1, IELTS-X4-C1) approved by the owner with the pack on 2026-10-18; device and classroom playback acceptance pending.",
-  "recordings": [
-   {
-    "id": "IELTS-X4-L1",
-    "block": "IELTS-X4-L1",
-    "status": "Owner approved v1 with the pack on 2026-10-18; device/classroom playback acceptance pending",
-    "conditions": "Guided practice. First play once without pausing; optional teacher-controlled second play for review only.",
-    "voices": {
-     "instruction": "Tom (British, examiner style; steady model)",
-     "VOLUNTEER": "James (Australian, casual, conversational)"
-    },
-    "segments": [
-     {
-      "type": "speech",
-      "voice": "instruction",
-      "text": "This recording is copyright Brains Heist LLC. All rights reserved."
-     },
-     {
-      "type": "speech",
-      "voice": "instruction",
-      "text": "You will hear a volunteer talking to new helpers at a community bakery. First, you have thirty seconds to look at questions one to ten."
-     },
-     {
-      "type": "silence",
-      "seconds": 30
-     },
-     {
-      "type": "speech",
-      "voice": "instruction",
-      "text": "Now listen carefully and answer questions one to ten."
-     },
-     {
-      "type": "passage"
-     },
-     {
-      "type": "speech",
-      "voice": "instruction",
-      "text": "That is the end of the recording. You now have fifteen seconds to check your answers."
-     },
-     {
-      "type": "silence",
-      "seconds": 15
-     }
-    ],
-    "production_record": "docs/ielts/lessons/lesson-x4/AUDIO_PRODUCTION_v1.json",
-    "delivered_sha256": "349f208f48d20c00a36c8dd77ed6c7766cf0a882f682d05defb421bd39054592",
-    "duration_seconds": 216.528
-   },
-   {
-    "id": "IELTS-X4-C1",
-    "block": "IELTS-X4-C1",
-    "status": "Owner approved v1 with the pack on 2026-10-18; device/classroom playback acceptance pending",
-    "conditions": "Played once, no pausing, no transcript, no coaching. Record conditions.",
-    "voices": {
-     "instruction": "Tom (British, examiner style; steady model)",
-     "GUIDE": "Elias (North American, older, calm)"
-    },
-    "segments": [
-     {
-      "type": "speech",
-      "voice": "instruction",
-      "text": "This recording is copyright Brains Heist LLC. All rights reserved."
-     },
-     {
-      "type": "speech",
-      "voice": "instruction",
-      "text": "You will hear a guide talking to visitors at a community orchard. First, you have thirty seconds to look at questions one to six."
-     },
-     {
-      "type": "silence",
-      "seconds": 30
-     },
-     {
-      "type": "speech",
-      "voice": "instruction",
-      "text": "Now listen carefully and answer questions one to six."
-     },
-     {
-      "type": "passage"
-     },
-     {
-      "type": "speech",
-      "voice": "instruction",
-      "text": "That is the end of the recording. You now have fifteen seconds to check your answers."
-     },
-     {
-      "type": "silence",
-      "seconds": 15
-     }
-    ],
-    "production_record": "docs/ielts/lessons/lesson-x4/AUDIO_PRODUCTION_v1.json",
-    "delivered_sha256": "a9636195493468dc4cce7a7e8359309e7d243b87a51e29d1278620ae7504370f",
-    "duration_seconds": 133.896
-   }
-  ]
- },
- "prerequisites": [
-  "Lesson 5 (distractors and paraphrase) and Lesson 14 (longer discussions, delayed answers and matching).",
-  "Teacher has checked actual Listening Screener and review states privately.",
-  "Recording IELTS-X4-L1 with verified hash. Without it this lesson cannot be taught as a listening lesson."
- ],
- "objectives": [
-  {
-   "text": "Answer 'choose TWO' questions by tracking each option as it is mentioned, rejected or confirmed.",
-   "focus": [
-    "distractor resistance",
-    "paraphrase recognition"
-   ]
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-X4",
+  "number": 4,
+  "extension": true,
+  "placement": "optional, after Week 7 (Lesson 14)",
+  "week": 7,
+  "version": "1.1.1",
+  "presentation_version": "1.1.1",
+  "title": "Listening: flow charts and 'choose TWO' questions",
+  "status": "Private teacher-review revision DRAFT v1.1.1; not approved or released; prior v1.0.0 approval historical only.",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": {
+    "diagnostic": "2.0.0",
+    "lessons": "1.2.0",
+    "visual": "1.2.0"
   },
-  {
-   "text": "Follow a spoken process in order and complete a flow chart within the word limit.",
-   "focus": [
-    "discourse organization",
-    "word-limit/task compliance"
-   ]
-  },
-  {
-   "text": "Distinguish the current method from earlier or rejected methods and numbers.",
-   "focus": [
-    "distractor resistance",
-    "numerical information"
-   ]
-  }
- ],
- "levels": {
-  "foundation": "Answer-type predictions checked before listening; a teacher-controlled second play with pauses after each stage, recorded as support.",
-  "core": "Answer all ten questions after one play, with correct spelling and word limits.",
-  "extension": "Name the distractor the speaker mentions for Questions 6 and 9.",
-  "high_band": "Explain the whole process aloud in one minute from the flow chart alone."
- },
- "blocks": [
-  {
-   "id": "IELTS-X4-M1",
-   "kind": "items",
-   "title": "Which TWO?",
-   "mode": "Teacher-led mini-model; read aloud live from the slide",
-   "instructions": "Listen to your teacher read the short talk once. Which TWO things must visitors do?",
-   "stimulus": {
-    "type": "teacher_script",
-    "title": "Mini-model (teacher reads aloud)",
-    "paragraphs": [
-     "Visitors don't need to book in advance, although many people do. Please wear comfortable shoes, because the tour involves a lot of walking. Cameras are welcome, and you can take photos anywhere except in the laboratory. Finally, please switch off your phone before we go into the lecture hall."
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Speakers, places and organisations in the recordings are fictional. Human editorial, key, mapping, difficulty and originality review pending.",
+  "audio": {
+    "required": true,
+    "statement": "Existing IELTS-X4-L1 guided audio is unchanged. Revised IELTS-X4-C1 fresh check requires NEW recording, review, checksum, playback validation and owner approval. Do not substitute the old v1.0.0 recording.",
+    "recordings": [
+      {
+        "id": "IELTS-X4-L1",
+        "block": "IELTS-X4-L1",
+        "status": "Owner approved v1 with the pack on 2026-10-18; device/classroom playback acceptance pending",
+        "conditions": "Guided practice. First play once without pausing; optional teacher-controlled second play for review only.",
+        "voices": {
+          "instruction": "Tom (British, examiner style; steady model)",
+          "VOLUNTEER": "James (Australian, casual, conversational)"
+        },
+        "segments": [
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "This recording is copyright Brains Heist LLC. All rights reserved."
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "You will hear a volunteer talking to new helpers at a community bakery. First, you have thirty seconds to look at questions one to ten."
+          },
+          {
+            "type": "silence",
+            "seconds": 30
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "Now listen carefully and answer questions one to ten."
+          },
+          {
+            "type": "passage"
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "That is the end of the recording. You now have fifteen seconds to check your answers."
+          },
+          {
+            "type": "silence",
+            "seconds": 15
+          }
+        ],
+        "production_record": "docs/ielts/lessons/lesson-x4/AUDIO_PRODUCTION_v1.json",
+        "delivered_sha256": "349f208f48d20c00a36c8dd77ed6c7766cf0a882f682d05defb421bd39054592",
+        "duration_seconds": 216.528
+      },
+      {
+        "id": "IELTS-X4-C1",
+        "block": "IELTS-X4-C1",
+        "status": "Draft v1.1.1: NEW RECORDING REQUIRED; NOT APPROVED; old v1.0.0 audio incompatible with revised transcript",
+        "conditions": "Played once, no pausing, no transcript, no coaching. Record conditions.",
+        "voices": {
+          "instruction": "Tom (examiner-style)",
+          "ARCHIVIST": "Distinct adult speaker; natural academic-instruction delivery; voice casting pending"
+        },
+        "segments": [
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "This recording is copyright Brains Heist LLC. All rights reserved."
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "You will hear an archivist briefing volunteers about digitising historical weather records. First, you have thirty seconds to look at questions one to ten."
+          },
+          {
+            "type": "silence",
+            "seconds": 30
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "Now listen carefully and answer questions one to ten."
+          },
+          {
+            "type": "passage"
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "That is the end of the recording. You now have fifteen seconds to check your answers."
+          },
+          {
+            "type": "silence",
+            "seconds": 15
+          }
+        ]
+      }
     ]
-   },
-   "items": [
-    {
-     "id": "IELTS-X4-M1-Q1",
-     "prompt": "Which TWO things must visitors do? A book in advance / B wear comfortable shoes / C leave cameras outside / D switch off their phones / E avoid the laboratory",
-     "answer": "B and D",
-     "evidence": "please wear comfortable shoes",
-     "reason": "Booking is optional ('don't need to'), cameras are allowed, and the laboratory is only closed to photos. D: 'please switch off your phone'.",
-     "focus": "distractor resistance",
-     "type": "choice",
-     "accept": [
-      "D and B"
-     ],
-     "level": "core"
-    }
-   ]
   },
-  {
-   "id": "IELTS-X4-P1",
-   "kind": "items",
-   "title": "Predict the flow chart",
-   "mode": "Guided practice; no recording required",
-   "instructions": "Look at the flow chart for the bakery recording. What kind of answer does each gap need? Write N for a noun, V for a verb (past participle) or No for a number.",
-   "stimulus": {
-    "type": "none"
-   },
-   "items": [
-    {
-     "id": "IELTS-X4-P1-Q1",
-     "prompt": "Flour is kept in sealed bins to protect it from ______.",
-     "answer": "N",
-     "evidence": "'From' is followed by a noun: something that damages flour.",
-     "reason": "A preposition before the gap means a noun.",
-     "focus": "word-limit/task compliance",
-     "type": "matching",
-     "options": [
-      "N",
-      "V",
-      "No"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X4-P1-Q2",
-     "prompt": "The dough rests for about ______ hours.",
-     "answer": "No",
-     "evidence": "'About ... hours' needs a number.",
-     "reason": "Plural hours tells you the number is more than one.",
-     "focus": "numerical information",
-     "type": "matching",
-     "options": [
-      "N",
-      "V",
-      "No"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X4-P1-Q3",
-     "prompt": "Each loaf is ______ so they are all the same size.",
-     "answer": "V",
-     "evidence": "'Is ...' in a process needs a past participle (passive).",
-     "reason": "Process descriptions use the passive.",
-     "focus": "grammatical control",
-     "type": "matching",
-     "options": [
-      "N",
-      "V",
-      "No"
-     ],
-     "level": "core"
-    }
-   ],
-   "support": "Foundation: the teacher reads each box aloud and asks 'a thing, an action or a number?'"
-  },
-  {
-   "id": "IELTS-X4-L1",
-   "kind": "items",
-   "title": "A community bakery",
-   "mode": "Guided listening practice: one play under practice conditions, then teacher-controlled review",
-   "instructions": "Questions 1-2 and 3-4: choose TWO letters, A-E. Questions 5-10: complete the flow chart. Write ONE WORD AND/OR A NUMBER for each answer.",
-   "stimulus": {
-    "type": "transcript",
-    "title": "Recording IELTS-X4-L1 transcript (teacher-private)",
-    "paragraphs": [
-     "VOLUNTEER: Good morning, everyone, and welcome to Riverside Community Bakery. My name's Sam, and I'm one of the volunteers here. Before you start your first shift, I'll explain what we do and how the bread is made.",
-     "VOLUNTEER: We're a small bakery, but we produce around four hundred loaves a week. About half are sold to local cafés, and the profits pay for the rest, which go free of charge to the food bank and two shelters for homeless people. People often think we're funded by the council, but in fact we don't receive any grants at all. Everything comes from sales and from donations of flour from a local mill.",
-     "VOLUNTEER: Now, a couple of things about working here. Volunteers don't need any experience: we'll train you on the job. What we do ask is that you come for at least one shift a week, because it takes time to learn the routine. And for hygiene reasons, you must tie back long hair and remove any rings and watches before you start. You don't need to bring an apron; we provide those, and they're washed here.",
-     "VOLUNTEER: Right, the process. Everything starts in the store room, where the flour is kept in sealed bins to protect it from damp. Each morning we weigh out the flour and take it to the mixing table. There, it's combined with water, salt and yeast. We used to mix everything by hand, but now we use a large electric mixer, which saves a lot of time.",
-     "VOLUNTEER: After mixing, the dough needs to rest so that the yeast can do its work. We cover the bowls and leave them in the warmest room in the building, which is next to the oven, for about two hours. This stage is called proving. You'll know the dough is ready when it has doubled in size.",
-     "VOLUNTEER: Then comes shaping. This is still done by hand, because the machines we tried tore the dough. Each loaf is weighed so that they're all the same size, and then shaped and placed in a tin. The tins go into our wood-fired oven, which we heat to about two hundred and fifty degrees. The loaves take around forty minutes to bake.",
-     "VOLUNTEER: When they come out, the loaves have to cool completely before they can be wrapped, otherwise they become soft and damp. So we put them on metal racks by the back door, where there's a good flow of air. Finally, the bread is delivered. We used to use a van, but now most deliveries are made by bicycle, using cargo bikes that can carry up to forty loaves each.",
-     "VOLUNTEER: OK, any questions before we go into the kitchen?"
-    ]
-   },
-   "items": [
-    {
-     "id": "IELTS-X4-L1-Q1",
-     "prompt": "Questions 1-2. Which TWO statements about the bakery are correct?",
-     "answer": "B and C",
-     "evidence": "About half are sold to local cafés",
-     "reason": "B: half the loaves are sold to cafés. C: 'donations of flour from a local mill'. A is the trap: 'we don't receive any grants at all'. D and E are not mentioned.",
-     "focus": "distractor resistance",
-     "type": "choice",
-     "accept": [
-      "C and B"
-     ],
-     "options": [
-      "A  It receives money from the council.",
-      "B  Half of its bread is sold to cafés.",
-      "C  It is given flour by a mill.",
-      "D  It sells bread at a weekly market.",
-      "E  It was started by a homeless charity."
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X4-L1-Q3",
-     "prompt": "Questions 3-4. Which TWO things must volunteers do?",
-     "answer": "B and D",
-     "evidence": "you come for at least one shift a week",
-     "reason": "B: 'at least one shift a week'. D: 'remove any rings and watches'. Experience and aprons are explicitly not needed; no course is mentioned.",
-     "focus": "distractor resistance",
-     "type": "choice",
-     "accept": [
-      "D and B"
-     ],
-     "options": [
-      "A  have baking experience",
-      "B  work at least one shift a week",
-      "C  bring their own apron",
-      "D  remove jewellery",
-      "E  attend a hygiene course"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X4-L1-Q5",
-     "prompt": "Store room: flour kept in sealed bins to protect it from ______",
-     "answer": "damp",
-     "evidence": "to protect it from damp",
-     "reason": "The first stage of the process.",
-     "focus": "explicit detail",
-     "type": "completion",
-     "word_limit": 2,
-     "hint": "a noun",
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X4-L1-Q6",
-     "prompt": "Mixing: flour, water, salt and yeast combined in an electric ______",
-     "answer": "mixer",
-     "evidence": "now we use a large electric mixer",
-     "reason": "'By hand' was the old method: a distractor.",
-     "focus": "distractor resistance",
-     "type": "completion",
-     "word_limit": 2,
-     "hint": "a machine",
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X4-L1-Q7",
-     "prompt": "Proving: dough rests for about ______ hours",
-     "answer": "2",
-     "evidence": "for about two hours",
-     "reason": "Write the number; 'two' is also accepted.",
-     "focus": "numerical information",
-     "type": "completion",
-     "word_limit": 2,
-     "accept": [
-      "two"
-     ],
-     "hint": "a number",
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X4-L1-Q8",
-     "prompt": "Shaping: each loaf is ______ so they are the same size",
-     "answer": "weighed",
-     "evidence": "Each loaf is weighed so that they're all the same size",
-     "reason": "Past participle after is.",
-     "focus": "paraphrase recognition",
-     "type": "completion",
-     "word_limit": 2,
-     "hint": "a verb (past participle)",
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X4-L1-Q9",
-     "prompt": "Baking: about ______ minutes in a wood-fired oven",
-     "answer": "40",
-     "evidence": "The loaves take around forty minutes to bake",
-     "reason": "Two hundred and fifty is the temperature, not the time.",
-     "focus": "numerical information; distractor resistance",
-     "type": "completion",
-     "word_limit": 2,
-     "accept": [
-      "forty"
-     ],
-     "hint": "a number",
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X4-L1-Q10",
-     "prompt": "Cooling: loaves placed on metal ______ by the back door",
-     "answer": "racks",
-     "evidence": "we put them on metal racks by the back door",
-     "reason": "Plural noun after metal.",
-     "focus": "explicit detail",
-     "type": "completion",
-     "word_limit": 2,
-     "hint": "a plural noun",
-     "level": "core"
-    }
-   ],
-   "flow_note": "Questions 5-10 are a flow chart: store room -> mixing -> proving -> shaping -> baking -> cooling.",
-   "marking": "For each 'choose TWO' pair, give one mark for each correct letter, in either order.",
-   "support": "Foundation: a teacher-controlled second play with pauses after each stage of the process is allowed after the first attempt and recorded as support.",
-   "extension": "For Questions 6 and 9, write the distractor the speaker mentions.",
-   "high_band": "From your flow chart only, explain the whole process aloud in one minute."
-  }
- ],
- "stages": [
-  {
-   "start": 0,
-   "end": 6,
-   "title": "Opening challenge: which TWO?",
-   "show": [
-    {
-     "block": "IELTS-X4-M1",
-     "part": "questions"
-    },
-    {
-     "block": "IELTS-X4-M1",
-     "part": "answers"
-    }
-   ],
-   "student": "Listen to a short talk read aloud once and choose two letters.",
-   "teacher": "Read the mini-model once at natural speed. Reveal and show the three traps: optional, allowed, partly restricted.",
-   "say": "In 'choose TWO' questions, three options are usually mentioned but rejected or changed.",
-   "check": "Learners can say why A is wrong."
-  },
-  {
-   "start": 6,
-   "end": 12,
-   "title": "Choose TWO: strategy",
-   "show": [],
-   "student": "Note the steps: underline the key idea in each option; listen for words like 'don't need', 'except', 'used to'; tick and cross as you listen.",
-   "teacher": "Teach that the five options are usually heard in order but the two answers can come anywhere. Learners mark each option as they hear it.",
-   "say": "Cross out options as they are rejected; do not wait until the end.",
-   "check": "Learners can list three words that signal a rejected option."
-  },
-  {
-   "start": 12,
-   "end": 17,
-   "title": "Predict the flow chart",
-   "show": [
-    {
-     "block": "IELTS-X4-P1",
-     "part": "questions"
-    },
-    {
-     "block": "IELTS-X4-P1",
-     "part": "answers"
-    }
-   ],
-   "student": "Predict the type of answer for three boxes, then check.",
-   "teacher": "Reveal after learners commit. Point out that flow charts follow the order of the talk.",
-   "say": "Know what you are listening for before the recording starts.",
-   "check": "Learners can name the answer type for each box."
-  },
-  {
-   "start": 17,
-   "end": 21,
-   "title": "Prepare for the recording",
-   "show": [
-    {
-     "block": "IELTS-X4-L1",
-     "part": "questions"
-    }
-   ],
-   "student": "Read Questions 1-10. Underline key ideas in the options and predict the flow-chart answers.",
-   "teacher": "The recording gives 30 seconds; allow up to 2 more minutes for preparation.",
-   "say": "ONE WORD AND/OR A NUMBER for the flow chart.",
-   "check": "Each learner has predictions beside the boxes."
-  },
-  {
-   "start": 21,
-   "end": 29,
-   "title": "The recording: one play",
-   "show": [
-    {
-     "block": "IELTS-X4-L1",
-     "part": "questions"
-    }
-   ],
-   "student": "Listen once and answer.",
-   "teacher": "Play IELTS-X4-L1 once without pausing. If audio fails, stop and use another listening activity; never read the transcript as a substitute.",
-   "say": "Follow the process from box to box.",
-   "check": "All answers committed before the review."
-  },
-  {
-   "start": 29,
-   "end": 40,
-   "title": "Review: answers and distractors",
-   "show": [
-    {
-     "block": "IELTS-X4-L1",
-     "part": "answers"
-    }
-   ],
-   "student": "Check answers. Mark listening, spelling and word-limit errors separately.",
-   "teacher": "Reveal in pairs. Ask what was rejected for Q1-2 (council grants) and Q6 (mixing by hand). Optional teacher-controlled second play with pauses, recorded as support.",
-   "say": "Used to, but now: the answer is what happens now.",
-   "check": "Learners can explain the Q6 distractor."
-  },
-  {
-   "start": 40,
-   "end": 50,
-   "title": "Explain the process",
-   "show": [],
-   "student": "In pairs, explain how the bread is made using your flow chart and sequence words. Then swap.",
-   "teacher": "Model the first two stages. Listen for sequence words and passive forms.",
-   "say": "Your flow chart should let you rebuild the whole process.",
-   "check": "Each learner explains the process once."
-  },
-  {
-   "start": 50,
-   "end": 55,
-   "title": "My listening log",
-   "show": [],
-   "student": "Record each wrong answer as a listening, spelling or word-limit error, and set one target.",
-   "teacher": "Note the error types learners actually record. No band conversion.",
-   "say": "Choose TWO questions reward patience: wait for the final decision.",
-   "check": "Each learner has one target."
-  },
-  {
-   "start": 55,
-   "end": 60,
-   "title": "Exit ticket and homework",
-   "show": [],
-   "student": "Complete the exit ticket and take the homework.",
-   "teacher": "Collect exit tickets. Assign online practice only through the existing workflow. Record the fresh-check date.",
-   "say": "Next time, cross out options as you hear them rejected.",
-   "check": "Everyone knows the homework."
-  }
- ],
- "exit_ticket": [
-  "What I do with each option during a 'choose TWO' question:",
-  "One word that warns me an option is wrong:",
-  "My target for the next listening task:"
- ],
- "homework": [
-  "Watch a short video in English that explains how something is made (3-5 minutes). Draw a flow chart of the process with six boxes.",
-  "Write five sentences describing the process using the passive (is mixed, is baked).",
-  "Complete only the Brains Heist listening practice your teacher actually assigns. Suggested time: about 25 minutes."
- ],
- "followup": {
-  "id": "IELTS-X4-C1",
-  "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
-  "delivery": "About one teaching week after this lesson, once the recording is approved. Play once without pausing, no transcript, no coaching, after the recorded reading time. Log support, interruptions and prior exposure. Classroom observation only.",
-  "blocks": [
-   {
-    "id": "IELTS-X4-C1",
-    "kind": "items",
-    "title": "A community orchard",
-    "mode": "Withheld fresh check; one play, independent",
-    "instructions": "Questions 1-2: choose TWO letters, A-E. Questions 3-6: complete the flow chart. Write ONE WORD AND/OR A NUMBER for each answer.",
-    "stimulus": {
-     "type": "transcript",
-     "title": "Recording IELTS-X4-C1 transcript (teacher-private)",
-     "paragraphs": [
-      "GUIDE: Thanks for coming to the Hillside Orchard open day. I'm going to tell you a little about the orchard and then explain how we turn our apples into juice.",
-      "GUIDE: The orchard is looked after entirely by volunteers, and we don't use any chemical sprays. The juice is sold at the village shop, and the money pays for new trees. Visitors sometimes ask whether they can pick apples themselves. I'm afraid that isn't possible, for insurance reasons, but you're welcome to walk around.",
-      "GUIDE: The apples are picked in September and October and stored in a cool barn. First, they're washed in large tanks of cold water, and any damaged fruit is removed by hand. The clean apples are then crushed in a mill, which turns them into a rough pulp. The pulp is wrapped in cloths and placed in a press, which squeezes out the juice.",
-      "GUIDE: Before bottling, the juice is heated to seventy-five degrees to kill any bacteria, and then it's poured into glass bottles. Unopened, the bottles keep for about a year."
-     ]
-    },
-    "items": [
-     {
-      "id": "IELTS-X4-C1-Q1",
-      "prompt": "Questions 1-2. Which TWO statements about the orchard are correct?",
-      "answer": "A and C",
-      "evidence": "The orchard is looked after entirely by volunteers",
-      "reason": "A: 'entirely by volunteers'. C: sold at the village shop. B is negated; D is refused; E: the money pays for trees.",
-      "focus": "distractor resistance",
-      "type": "choice",
-      "accept": [
-       "C and A"
-      ],
-      "options": [
-       "A  Volunteers do all the work.",
-       "B  Chemical sprays are used occasionally.",
-       "C  The juice is sold in the village shop.",
-       "D  Visitors may pick apples.",
-       "E  The money pays for a new building."
-      ],
-      "level": "core"
-     },
-     {
-      "id": "IELTS-X4-C1-Q3",
-      "prompt": "Apples washed in tanks of cold ______",
-      "answer": "water",
-      "evidence": "washed in large tanks of cold water",
-      "reason": "Noun after cold.",
-      "focus": "explicit detail",
-      "type": "completion",
-      "word_limit": 2,
-      "level": "core"
-     },
-     {
-      "id": "IELTS-X4-C1-Q4",
-      "prompt": "Apples crushed in a ______",
-      "answer": "mill",
-      "evidence": "crushed in a mill",
-      "reason": "Noun after a.",
-      "focus": "explicit detail",
-      "type": "completion",
-      "word_limit": 2,
-      "level": "core"
-     },
-     {
-      "id": "IELTS-X4-C1-Q5",
-      "prompt": "Pulp wrapped in ______ and pressed",
-      "answer": "cloths",
-      "evidence": "The pulp is wrapped in cloths",
-      "reason": "Plural noun.",
-      "focus": "explicit detail",
-      "type": "completion",
-      "word_limit": 2,
-      "level": "core"
-     },
-     {
-      "id": "IELTS-X4-C1-Q6",
-      "prompt": "Juice heated to ______ degrees before bottling",
-      "answer": "75",
-      "evidence": "the juice is heated to seventy-five degrees",
-      "reason": "Number.",
-      "focus": "numerical information",
-      "type": "completion",
-      "word_limit": 2,
-      "accept": [
-       "seventy-five"
-      ],
-      "level": "core"
-     }
-    ]
-   }
+  "prerequisites": [
+    "Lesson 5 (distractors and paraphrase) and Lesson 14 (longer discussions, delayed answers and matching).",
+    "Teacher has checked actual Listening Screener and review states privately.",
+    "Recording IELTS-X4-L1 with verified hash. Without it this lesson cannot be taught as a listening lesson."
   ],
-  "review": "Compare only the observed demands and conditions with this lesson. Record the result as a separate later observation; do not convert it to a band or merge it with screener evidence."
- },
- "delayed_followup": "In Lesson 17 or 21 (timed Listening), check whether learners cross out rejected options and keep their place in a process. Record it as a later observation.",
- "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
- "release_blockers": [
-  "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
-  "Student task publication and platform evidence capture remain separate, governed steps."
- ],
- "approval_record": {
-  "approved_by": "Owner, Brains Heist LLC",
-  "date": "2026-10-18",
-  "version": "1.0.0",
-  "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
-  "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 c6881d492f1a9c8fd95e00502ed9e12586f75c75548f958e1ddbac322fd0f92e): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
- }
+  "objectives": [
+    {
+      "text": "Answer 'choose TWO' questions by tracking each option as it is mentioned, rejected or confirmed.",
+      "focus": [
+        "distractor resistance",
+        "paraphrase recognition"
+      ]
+    },
+    {
+      "text": "Follow a spoken process in order and complete a flow chart within the word limit.",
+      "focus": [
+        "discourse organization",
+        "word-limit/task compliance"
+      ]
+    },
+    {
+      "text": "Distinguish the current method from earlier or rejected methods and numbers.",
+      "focus": [
+        "distractor resistance",
+        "numerical information"
+      ]
+    }
+  ],
+  "levels": {
+    "foundation": "Answer-type predictions checked before listening; a teacher-controlled second play with pauses after each stage, recorded as support.",
+    "core": "Answer all ten questions after one play, with correct spelling and word limits.",
+    "extension": "Name the distractor the speaker mentions for Questions 6 and 9.",
+    "high_band": "One uninterrupted play of a fresh recording, no previewed transcript or replay; track rejected options and corrected details, complete the flow chart, then explain two distractor mechanisms accurately from memory."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-X4-M1",
+      "kind": "items",
+      "title": "Which TWO?",
+      "mode": "Teacher-led mini-model; read aloud live from the slide",
+      "instructions": "Listen to your teacher read the short talk once. Which TWO things must visitors do?",
+      "stimulus": {
+        "type": "teacher_script",
+        "title": "Mini-model (teacher reads aloud)",
+        "paragraphs": [
+          "Visitors don't need to book in advance, although many people do. Please wear comfortable shoes, because the tour involves a lot of walking. Cameras are welcome, and you can take photos anywhere except in the laboratory. Finally, please switch off your phone before we go into the lecture hall."
+        ]
+      },
+      "items": [
+        {
+          "id": "IELTS-X4-M1-Q1",
+          "prompt": "Which TWO things must visitors do? A book in advance / B wear comfortable shoes / C leave cameras outside / D switch off their phones / E avoid the laboratory",
+          "answer": "B and D",
+          "evidence": "please wear comfortable shoes",
+          "reason": "Booking is optional ('don't need to'), cameras are allowed, and the laboratory is only closed to photos. D: 'please switch off your phone'.",
+          "focus": "distractor resistance",
+          "type": "choice",
+          "accept": [
+            "D and B"
+          ],
+          "level": "core"
+        }
+      ],
+      "extension": " Advanced transfer: before revealing the key, require a cited justification of one correct response and one plausible incorrect response."
+    },
+    {
+      "id": "IELTS-X4-P1",
+      "kind": "items",
+      "title": "Predict the flow chart",
+      "mode": "Guided practice; no recording required",
+      "instructions": "Look at the flow chart for the bakery recording. What kind of answer does each gap need? Write N for a noun, V for a verb (past participle) or No for a number.",
+      "stimulus": {
+        "type": "none"
+      },
+      "items": [
+        {
+          "id": "IELTS-X4-P1-Q1",
+          "prompt": "Flour is kept in sealed bins to protect it from ______.",
+          "answer": "N",
+          "evidence": "'From' is followed by a noun: something that damages flour.",
+          "reason": "A preposition before the gap means a noun.",
+          "focus": "word-limit/task compliance",
+          "type": "matching",
+          "options": [
+            "N",
+            "V",
+            "No"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X4-P1-Q2",
+          "prompt": "The dough rests for about ______ hours.",
+          "answer": "No",
+          "evidence": "'About ... hours' needs a number.",
+          "reason": "Plural hours tells you the number is more than one.",
+          "focus": "numerical information",
+          "type": "matching",
+          "options": [
+            "N",
+            "V",
+            "No"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X4-P1-Q3",
+          "prompt": "Each loaf is ______ so they are all the same size.",
+          "answer": "V",
+          "evidence": "'Is ...' in a process needs a past participle (passive).",
+          "reason": "Process descriptions use the passive.",
+          "focus": "grammatical control",
+          "type": "matching",
+          "options": [
+            "N",
+            "V",
+            "No"
+          ],
+          "level": "core"
+        }
+      ],
+      "support": "Foundation: the teacher reads each box aloud and asks 'a thing, an action or a number?'"
+    },
+    {
+      "id": "IELTS-X4-L1",
+      "kind": "items",
+      "title": "A community bakery",
+      "mode": "Guided listening practice: one play under practice conditions, then teacher-controlled review",
+      "instructions": "Questions 1-2 and 3-4: choose TWO letters, A-E. Questions 5-10: complete the flow chart. Write ONE WORD AND/OR A NUMBER for each answer.",
+      "stimulus": {
+        "type": "transcript",
+        "title": "Recording IELTS-X4-L1 transcript (teacher-private)",
+        "paragraphs": [
+          "VOLUNTEER: Good morning, everyone, and welcome to Riverside Community Bakery. My name's Sam, and I'm one of the volunteers here. Before you start your first shift, I'll explain what we do and how the bread is made.",
+          "VOLUNTEER: We're a small bakery, but we produce around four hundred loaves a week. About half are sold to local cafés, and the profits pay for the rest, which go free of charge to the food bank and two shelters for homeless people. People often think we're funded by the council, but in fact we don't receive any grants at all. Everything comes from sales and from donations of flour from a local mill.",
+          "VOLUNTEER: Now, a couple of things about working here. Volunteers don't need any experience: we'll train you on the job. What we do ask is that you come for at least one shift a week, because it takes time to learn the routine. And for hygiene reasons, you must tie back long hair and remove any rings and watches before you start. You don't need to bring an apron; we provide those, and they're washed here.",
+          "VOLUNTEER: Right, the process. Everything starts in the store room, where the flour is kept in sealed bins to protect it from damp. Each morning we weigh out the flour and take it to the mixing table. There, it's combined with water, salt and yeast. We used to mix everything by hand, but now we use a large electric mixer, which saves a lot of time.",
+          "VOLUNTEER: After mixing, the dough needs to rest so that the yeast can do its work. We cover the bowls and leave them in the warmest room in the building, which is next to the oven, for about two hours. This stage is called proving. You'll know the dough is ready when it has doubled in size.",
+          "VOLUNTEER: Then comes shaping. This is still done by hand, because the machines we tried tore the dough. Each loaf is weighed so that they're all the same size, and then shaped and placed in a tin. The tins go into our wood-fired oven, which we heat to about two hundred and fifty degrees. The loaves take around forty minutes to bake.",
+          "VOLUNTEER: When they come out, the loaves have to cool completely before they can be wrapped, otherwise they become soft and damp. So we put them on metal racks by the back door, where there's a good flow of air. Finally, the bread is delivered. We used to use a van, but now most deliveries are made by bicycle, using cargo bikes that can carry up to forty loaves each.",
+          "VOLUNTEER: OK, any questions before we go into the kitchen?"
+        ]
+      },
+      "items": [
+        {
+          "id": "IELTS-X4-L1-Q1",
+          "prompt": "Questions 1-2. Which TWO statements about the bakery are correct?",
+          "answer": "B and C",
+          "evidence": "About half are sold to local cafés",
+          "reason": "B: half the loaves are sold to cafés. C: 'donations of flour from a local mill'. A is the trap: 'we don't receive any grants at all'. D and E are not mentioned.",
+          "focus": "distractor resistance",
+          "type": "choice",
+          "accept": [
+            "C and B"
+          ],
+          "options": [
+            "A  It receives money from the council.",
+            "B  Half of its bread is sold to cafés.",
+            "C  It is given flour by a mill.",
+            "D  It sells bread at a weekly market.",
+            "E  It was started by a homeless charity."
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X4-L1-Q3",
+          "prompt": "Questions 3-4. Which TWO things must volunteers do?",
+          "answer": "B and D",
+          "evidence": "you come for at least one shift a week",
+          "reason": "B: 'at least one shift a week'. D: 'remove any rings and watches'. Experience and aprons are explicitly not needed; no course is mentioned.",
+          "focus": "distractor resistance",
+          "type": "choice",
+          "accept": [
+            "D and B"
+          ],
+          "options": [
+            "A  have baking experience",
+            "B  work at least one shift a week",
+            "C  bring their own apron",
+            "D  remove jewellery",
+            "E  attend a hygiene course"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X4-L1-Q5",
+          "prompt": "Storage: sealed flour containers prevent damage caused by ______.",
+          "answer": "damp",
+          "evidence": "to protect it from damp",
+          "reason": "The first stage of the process.",
+          "focus": "explicit detail",
+          "type": "completion",
+          "word_limit": 2,
+          "hint": "a noun",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X4-L1-Q6",
+          "prompt": "Preparation: the former manual method has been replaced with an electric ______.",
+          "answer": "mixer",
+          "evidence": "now we use a large electric mixer",
+          "reason": "'By hand' was the old method: a distractor.",
+          "focus": "distractor resistance",
+          "type": "completion",
+          "word_limit": 2,
+          "hint": "a machine",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X4-L1-Q7",
+          "prompt": "Proving: dough rests for about ______ hours",
+          "answer": "2",
+          "evidence": "for about two hours",
+          "reason": "Write the number; 'two' is also accepted.",
+          "focus": "numerical information",
+          "type": "completion",
+          "word_limit": 2,
+          "accept": [
+            "two"
+          ],
+          "hint": "a number",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X4-L1-Q8",
+          "prompt": "Shaping: each loaf is ______ so they are the same size",
+          "answer": "weighed",
+          "evidence": "Each loaf is weighed so that they're all the same size",
+          "reason": "Past participle after is.",
+          "focus": "paraphrase recognition",
+          "type": "completion",
+          "word_limit": 2,
+          "hint": "a verb (past participle)",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X4-L1-Q9",
+          "prompt": "Baking: about ______ minutes in a wood-fired oven",
+          "answer": "40",
+          "evidence": "The loaves take around forty minutes to bake",
+          "reason": "Two hundred and fifty is the temperature, not the time.",
+          "focus": "numerical information; distractor resistance",
+          "type": "completion",
+          "word_limit": 2,
+          "accept": [
+            "forty"
+          ],
+          "hint": "a number",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X4-L1-Q10",
+          "prompt": "After baking, the loaves are left to lose heat on metal ______.",
+          "answer": "racks",
+          "evidence": "we put them on metal racks by the back door",
+          "reason": "Plural noun after metal.",
+          "focus": "explicit detail",
+          "type": "completion",
+          "word_limit": 2,
+          "hint": "a plural noun",
+          "level": "core"
+        }
+      ],
+      "flow_note": "Questions 5-10 are a flow chart: store room -> mixing -> proving -> shaping -> baking -> cooling.",
+      "marking": "For each 'choose TWO' pair, give one mark for each correct letter, in either order.",
+      "support": "Foundation: a teacher-controlled second play with pauses after each stage of the process is allowed after the first attempt and recorded as support.",
+      "extension": "For Questions 6 and 9, write the distractor the speaker mentions.",
+      "high_band": "From your flow chart only, explain the whole process aloud in one minute."
+    }
+  ],
+  "stages": [
+    {
+      "start": 0,
+      "end": 6,
+      "title": "Opening challenge: which TWO?",
+      "show": [
+        {
+          "block": "IELTS-X4-M1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-X4-M1",
+          "part": "answers"
+        }
+      ],
+      "student": "Listen to a short talk read aloud once and choose two letters.",
+      "teacher": "Read the mini-model once at natural speed. Reveal and show the three traps: optional, allowed, partly restricted.",
+      "say": "In 'choose TWO' questions, three options are usually mentioned but rejected or changed.",
+      "check": "Learners can say why A is wrong."
+    },
+    {
+      "start": 6,
+      "end": 12,
+      "title": "Choose TWO: strategy",
+      "show": [],
+      "student": "Note the steps: underline the key idea in each option; listen for words like 'don't need', 'except', 'used to'; tick and cross as you listen.",
+      "teacher": "Teach that the five options are usually heard in order but the two answers can come anywhere. Learners mark each option as they hear it.",
+      "say": "Cross out options as they are rejected; do not wait until the end.",
+      "check": "Learners can list three words that signal a rejected option."
+    },
+    {
+      "start": 12,
+      "end": 17,
+      "title": "Predict the flow chart",
+      "show": [
+        {
+          "block": "IELTS-X4-P1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-X4-P1",
+          "part": "answers"
+        }
+      ],
+      "student": "Predict the type of answer for three boxes, then check.",
+      "teacher": "Reveal after learners commit. Point out that flow charts follow the order of the talk.",
+      "say": "Know what you are listening for before the recording starts.",
+      "check": "Learners can name the answer type for each box."
+    },
+    {
+      "start": 17,
+      "end": 21,
+      "title": "Prepare for the recording",
+      "show": [
+        {
+          "block": "IELTS-X4-L1",
+          "part": "questions"
+        }
+      ],
+      "student": "Read Questions 1-10. Underline key ideas in the options and predict the flow-chart answers.",
+      "teacher": "The recording gives 30 seconds; allow up to 2 more minutes for preparation.",
+      "say": "ONE WORD AND/OR A NUMBER for the flow chart.",
+      "check": "Each learner has predictions beside the boxes."
+    },
+    {
+      "start": 21,
+      "end": 29,
+      "title": "The recording: one play",
+      "show": [
+        {
+          "block": "IELTS-X4-L1",
+          "part": "questions"
+        }
+      ],
+      "student": "Listen once and answer.",
+      "teacher": "Play IELTS-X4-L1 once without pausing. If audio fails, stop and use another listening activity; never read the transcript as a substitute.",
+      "say": "Follow the process from box to box.",
+      "check": "All answers committed before the review."
+    },
+    {
+      "start": 29,
+      "end": 40,
+      "title": "Review: answers and distractors",
+      "show": [
+        {
+          "block": "IELTS-X4-L1",
+          "part": "answers"
+        }
+      ],
+      "student": "Check answers. Mark listening, spelling and word-limit errors separately.",
+      "teacher": "Reveal in pairs. Ask what was rejected for Q1-2 (council grants) and Q6 (mixing by hand). Optional teacher-controlled second play with pauses, recorded as support.",
+      "say": "Used to, but now: the answer is what happens now.",
+      "check": "Learners can explain the Q6 distractor."
+    },
+    {
+      "start": 40,
+      "end": 50,
+      "title": "Explain the process",
+      "show": [],
+      "student": "In pairs, explain how the bread is made using your flow chart and sequence words. Then swap.",
+      "teacher": "Model the first two stages. Listen for sequence words and passive forms.",
+      "say": "Your flow chart should let you rebuild the whole process.",
+      "check": "Each learner explains the process once."
+    },
+    {
+      "start": 50,
+      "end": 55,
+      "title": "My listening log",
+      "show": [],
+      "student": "Record each wrong answer as a listening, spelling or word-limit error, and set one target.",
+      "teacher": "Note the error types learners actually record. No band conversion.",
+      "say": "Choose TWO questions reward patience: wait for the final decision.",
+      "check": "Each learner has one target."
+    },
+    {
+      "start": 55,
+      "end": 60,
+      "title": "Exit ticket and homework",
+      "show": [],
+      "student": "Complete the exit ticket and take the homework.",
+      "teacher": "Collect exit tickets. Assign online practice only through the existing workflow. Record the fresh-check date.",
+      "say": "Next time, cross out options as you hear them rejected.",
+      "check": "Everyone knows the homework."
+    }
+  ],
+  "exit_ticket": [
+    "What I do with each option during a 'choose TWO' question:",
+    "One word that warns me an option is wrong:",
+    "My target for the next listening task:"
+  ],
+  "homework": [
+    "Watch a short video in English that explains how something is made (3-5 minutes). Draw a flow chart of the process with six boxes.",
+    "Write five sentences describing the process using the passive (is mixed, is baked).",
+    "Complete only the Brains Heist listening practice your teacher actually assigns. Suggested time: about 25 minutes."
+  ],
+  "followup": {
+    "id": "IELTS-X4-C1",
+    "status": "WITHHELD v1.1.1 revised audio-script draft; NEW RECORDING REQUIRED and not yet approved.",
+    "delivery": "About one teaching week after the lesson only AFTER approval of a new matching IELTS-X4-C1 recording. Play once with 30 seconds reading time and 15 seconds checking. No pause, replay, transcript, help or coaching; log any deviation.",
+    "blocks": [
+      {
+        "id": "IELTS-X4-C1",
+        "kind": "items",
+        "title": "Digitising historical weather records",
+        "mode": "WITHHELD one-play listening check; requires NEW approved recording; no transcript available to students",
+        "instructions": "Questions 1–2 and 3–4: choose TWO letters A–E for each set. Questions 5–10: complete the process flow chart. Write ONE WORD AND/OR A NUMBER for each answer.",
+        "stimulus": {
+          "type": "transcript",
+          "title": "New IELTS-X4-C1 recording script (teacher-private, not yet recorded)",
+          "paragraphs": [
+            "ARCHIVIST: Welcome to the weather archive. Our goal is to turn sixty years of handwritten rainfall records into a searchable collection, but before I explain how, I should say what went wrong with the pilot. We recruited more volunteers than we expected, and the scanners themselves worked perfectly well. The major problem was physical: the edges of some early pages were so torn that dates had disappeared. We also discovered that the same measuring station had been recorded under different handwritten names over the years. One of our volunteers thought the boxes had been delivered in the wrong order, but in fact the storage inventory was correct.",
+            "ARCHIVIST: We originally planned to let volunteers enter readings directly from the paper sheets. That sounded quick. During the trial, though, pages were left on tables where drinks might spill, and the handwriting was much harder to interpret than we had imagined. So the paper will now remain in the archive, and everyone will work from digital images. We're keeping the original sheets, incidentally: producing a scan doesn't mean that the document has ceased to be valuable.",
+            "ARCHIVIST: Before I take you through the revised procedure, I should explain two additional safeguards we've introduced. Any uncertain reading must be checked by a second person, rather than simply being accepted, and a copy of the completed data will be stored in another building. I'll explain how these measures work as we go through the process.",
+            "ARCHIVIST: Here's the revised procedure. First, the sheets spend a night in a controlled room. We once thought that temperature was the main issue, but our conservator says that fluctuations in humidity cause more damage to this particular paper. Next, each fragile page is placed in a protective enclosure. We initially used plastic sleeves, but they trapped moisture, so we replaced them with acid-free folders. Please don't use the old sleeves: they're only here so you can see the difference.",
+            "ARCHIVIST: After that, the pages are scanned. The original plan specified three hundred dots per inch, which would have saved storage space. The test images, however, made small handwritten decimal points difficult to read. We're using six hundred now, even though that creates larger files. Don't worry about trying to memorise those settings; they are saved on each machine.",
+            "ARCHIVIST: Next comes the part that needs human judgement. Several companies offered software that could recognise the handwriting automatically. It worked reasonably well on printed headings, but it repeatedly confused a five with a six in the rainfall columns. So volunteers will carry out transcription by hand from the images. They shouldn't guess where a number is unclear; an uncertain reading receives a yellow flag in the database, and a second reader checks it against the image. That review can take longer than entering the figure in the first place, but a confidently wrong measurement is worse than an honest question mark.",
+            "ARCHIVIST: Before any record is made public, the software tests whether the sequence of dates contains gaps or duplicate entries. One missing date might simply mean that no observation was made that day; it must not be replaced automatically with zero. We then copy the database each evening to a backup system in a separate building. A cloud service was discussed, but for this pilot we chose the local second site because the internet connection is unreliable. A public catalogue will be released only after these checks are complete.",
+            "ARCHIVIST: Finally, two changes for volunteers: every doubtful number now goes to a second reader, and the finished data are stored in two separate buildings. We are not cutting the scan quality to save space, and nobody should throw away the original pages. After the first month we'll decide whether the extra quality checks are sustainable."
+          ]
+        },
+        "items": [
+          {
+            "id": "IELTS-X4-C1-Q1",
+            "prompt": "Questions 1–2. Which TWO difficulties affected the original archive pilot?",
+            "answer": "B and D",
+            "evidence": "the edges of some early pages were so torn that dates had disappeared",
+            "reason": "B: damaged page edges; D: changing labels across decades. A, C and E are explicitly or implicitly ruled out.",
+            "focus": "speaker corrections, qualification and distractor resistance",
+            "type": "choice",
+            "options": [
+              "A  There were not enough volunteers.",
+              "B  Parts of the original documents were physically damaged.",
+              "C  Boxes were stored in the wrong sequence.",
+              "D  The same location was identified in different ways.",
+              "E  The scanning machines frequently stopped."
+            ],
+            "accept": [
+              "D and B"
+            ],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Track two simultaneous pilot failures and reject explicitly negated alternatives.",
+            "difficulty_by_mark": {
+              "B": "Moderate",
+              "D": "Moderate"
+            }
+          },
+          {
+            "id": "IELTS-X4-C1-Q3",
+            "prompt": "Questions 3–4. Which TWO safeguards are now required?",
+            "answer": "A and E",
+            "evidence": "every doubtful number now goes to a second reader, and the finished data are stored in two separate buildings",
+            "reason": "A and E are newly adopted. B is false because manual transcription continues from digital images; C and D contradict the final plan.",
+            "focus": "speaker corrections, qualification and distractor resistance",
+            "type": "choice",
+            "options": [
+              "A  A second person checks readings that are uncertain.",
+              "B  Volunteers no longer transcribe rainfall readings manually.",
+              "C  Scanning quality is reduced to save memory.",
+              "D  Original documents are discarded after scanning.",
+              "E  Duplicate copies are kept at separate physical locations."
+            ],
+            "accept": [
+              "E and A"
+            ],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Track two adopted safeguards rather than proposals and rejected methods.",
+            "difficulty_by_mark": {
+              "A": "Moderate",
+              "E": "Moderate"
+            }
+          },
+          {
+            "id": "IELTS-X4-C1-Q5",
+            "prompt": "Preparation: protect the original pages against damaging variations in ______.",
+            "answer": "humidity",
+            "evidence": "fluctuations in humidity cause more damage",
+            "reason": "The conservator rejects temperature as the key risk.",
+            "focus": "spoken sequence and correction tracking",
+            "type": "completion",
+            "word_limit": 1,
+            "accept": [],
+            "level": "core",
+            "editorial_difficulty": "Challenging",
+            "difficulty_basis": "Retain the correction from temperature to humidity."
+          },
+          {
+            "id": "IELTS-X4-C1-Q6",
+            "prompt": "Protection: replace the original plastic sleeves with acid-free ______.",
+            "answer": "folders",
+            "evidence": "we replaced them with acid-free folders",
+            "reason": "The initially plausible sleeves were rejected.",
+            "focus": "spoken sequence and correction tracking",
+            "type": "completion",
+            "word_limit": 1,
+            "accept": [],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Retain correction from sleeves to folders."
+          },
+          {
+            "id": "IELTS-X4-C1-Q7",
+            "prompt": "Image capture: the agreed final scanning resolution is ______ dots per inch.",
+            "answer": "600",
+            "evidence": "We're using six hundred now",
+            "reason": "The original 300 dpi setting was rejected in favour of 600. Only the numeric form 600 is accepted under ONE WORD AND/OR A NUMBER.",
+            "focus": "spoken sequence and correction tracking",
+            "type": "completion",
+            "word_limit": 1,
+            "accept": [],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Discriminate the final 600 dpi setting from abandoned 300 dpi.",
+            "enforce_accept_word_limit": true
+          },
+          {
+            "id": "IELTS-X4-C1-Q8",
+            "prompt": "Data entry: readings are copied from images by manual ______ instead of automatic handwriting recognition.",
+            "answer": "transcription",
+            "evidence": "volunteers will carry out transcription by hand",
+            "reason": "The OCR suggestion is rejected.",
+            "focus": "spoken sequence and correction tracking",
+            "type": "completion",
+            "word_limit": 1,
+            "accept": [],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Understand manual transcription as replacement for OCR."
+          },
+          {
+            "id": "IELTS-X4-C1-Q9",
+            "prompt": "Verification: a questionable figure receives a coloured ______, rather than being guessed.",
+            "answer": "flag",
+            "evidence": "an uncertain reading receives a yellow flag in the database",
+            "reason": "They are flagged rather than guessed.",
+            "focus": "spoken sequence and correction tracking",
+            "type": "completion",
+            "word_limit": 1,
+            "accept": [],
+            "level": "core",
+            "editorial_difficulty": "Easy",
+            "difficulty_basis": "Recognise the flag used for uncertain numbers."
+          },
+          {
+            "id": "IELTS-X4-C1-Q10",
+            "prompt": "Storage: a remote building holds a nightly ______ copy of the archive's data.",
+            "answer": "backup",
+            "evidence": "copy the database each evening to a backup system in a separate building",
+            "reason": "The cloud alternative was discussed but not adopted.",
+            "focus": "spoken sequence and correction tracking",
+            "type": "completion",
+            "word_limit": 1,
+            "accept": [],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Distinguish a physical-site backup from a rejected cloud proposal."
+          }
+        ],
+        "flow_chart": [
+          {
+            "kind": "stage",
+            "title": "ORIGINAL PAPER RECORDS",
+            "text": "The archive preserves the physical documents."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "DOCUMENT PREPARATION",
+            "text": "Control variations in (5) ______."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "PROTECTIVE ENCLOSURE",
+            "text": "Replace the old plastic sleeves with acid-free (6) ______."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "DIGITAL SCANNING",
+            "text": "Use the final resolution of (7) ______ dots per inch."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "DATA ENTRY",
+            "text": "Copy values from images through manual (8) ______."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "QUALITY VERIFICATION",
+            "text": "An uncertain value receives a coloured (9) ______."
+          },
+          {
+            "kind": "branch",
+            "title": "Safeguard",
+            "text": "↘ An uncertain record follows the separate checking procedure."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "DATE AND DUPLICATE CHECKS",
+            "text": "Check gaps and repeated entries before publication."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "SECURE DATA STORAGE",
+            "text": "Maintain a nightly (10) ______ copy of the archive's data."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "PUBLIC CATALOGUE RELEASE",
+            "text": "Only after all checks are completed."
+          }
+        ]
+      }
+    ],
+    "review": "Mark each choose-TWO letter once, in either order; do not award more than 2 marks per pair. Completions have maximum ONE WORD AND/OR A NUMBER; Q7 accepts numeric 600 only. Check alignment with the approved final recording and record timing, support and exposure. No IELTS band conversion.",
+    "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty in real audio playback."
+  },
+  "delayed_followup": "In Lesson 17 or 21 (timed Listening), check whether learners cross out rejected options and keep their place in a process. Record it as a later observation.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps.",
+    "IELTS-X4-C1: new script needs generated, transcript-matched recording, verified duration and hash, owner review and classroom playback acceptance before any independent fresh check.",
+    "v1.1.1 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
+  ],
+  "previous_approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-18",
+    "version": "1.0.0",
+    "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 c6881d492f1a9c8fd95e00502ed9e12586f75c75548f958e1ddbac322fd0f92e): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
+  }
 }
