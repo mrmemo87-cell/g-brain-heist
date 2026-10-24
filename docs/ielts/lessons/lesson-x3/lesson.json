@@ -5,10 +5,10 @@
   "extension": true,
   "placement": "optional, after Week 3 (Lesson 6)",
   "week": 3,
-  "version": "1.1.0",
-  "presentation_version": "1.1.0",
+  "version": "1.1.1",
+  "presentation_version": "1.1.1",
   "title": "Reading: diagram labelling and flow-chart completion",
-  "status": "Private teacher-review revision DRAFT v1.1.0 (NOT approved or released; prior v1.0.0 approval is historical only).",
+  "status": "Private teacher-review revision DRAFT v1.1.1; not approved or released; prior v1.0.0 approval historical only.",
   "duration": 60,
   "test_type": "Academic",
   "bibles": {
@@ -602,14 +602,14 @@
         "title": "Treating polluted road runoff",
         "mode": "WITHHELD independent transfer; unseen technical passage, 16 minutes; no aids",
         "flow": true,
-        "instructions": "Complete the flow chart for the treatment route. Write ONE WORD ONLY from the passage for Questions 1–8. The passage contains a diversion route and a recycling loop: do not confuse them with the main treatment path.",
+        "instructions": "Complete the treatment flow chart. Choose ONE WORD ONLY from the passage for each answer. The emergency diversion and the backwash loop are separate from the main forward route.",
         "stimulus": {
           "type": "passage",
           "title": "Treating polluted road runoff (fictional system)",
           "labelled": false,
           "paragraphs": [
             "A fictional coastal town has introduced a treatment system for rainwater collected from roads. The water cannot simply be discharged into the harbour: as it runs over paved surfaces, it picks up fragments of packaging, residues from vehicles and fine particles of rubber. The new installation separates these materials in stages. Each stage is designed for a different kind of pollutant, and not every litre of incoming water completes the same route.",
-            "At the entrance, a monitoring device measures turbidity, the cloudiness caused by suspended particles. During an unusually intense storm, water that exceeds a safety threshold is diverted into an emergency holding reservoir rather than sent straight through the machinery. This temporary storage prevents the treatment equipment from being overwhelmed. Water that meets the entry conditions continues through a rotating screen, which traps larger items such as leaves and scraps of plastic. Workers collect this coarse waste for disposal; it is not returned to the treatment line.",
+            "At the entrance, a monitoring device measures turbidity, the cloudiness caused by suspended particles. During an unusually intense storm, water whose turbidity exceeds the safety threshold is diverted into an emergency holding reservoir rather than sent straight through the machinery. This temporary storage prevents the treatment equipment from being overwhelmed. Water that meets the entry conditions continues through a rotating screen, which traps larger items such as leaves and scraps of plastic. Workers collect this coarse waste for disposal; it is not returned to the treatment line.",
             "The partly cleaned water next enters a broad, slow-moving basin. Heavy particles settle to the bottom under gravity, where a scraper moves them into a collection pit. In contrast, floating residues from vehicle fuel are removed from the surface by skimmers. These two streams of waste must be handled separately, since mixing them would make subsequent disposal more difficult. Neither process removes the smallest plastic fibres.",
             "To capture those fibres, pumps force the water through ceramic membranes with extremely fine openings. The membranes are effective but gradually become blocked. A pressure gauge detects when the resistance to flow becomes excessive; at that point, an automated cleaning cycle sends filtered water backwards through the membranes. The dirty backwash is returned to the original settling basin, not released to the harbour. This loop means some of the water passes through the earlier stages more than once.",
             "Once the water has crossed the membranes, it passes beneath ultraviolet lamps. These reduce microbial contamination without adding a chemical disinfectant. The system's operators emphasise that this does not make the output suitable for drinking. The treated water is discharged to a reed bed beside the harbour, where vegetation slows its movement and provides a final opportunity for fine sediment to collect.",
@@ -721,10 +721,81 @@
             "editorial_difficulty": "Easy",
             "difficulty_basis": "Identify the planted final stage."
           }
+        ],
+        "flow_chart": [
+          {
+            "kind": "stage",
+            "title": "ROAD RUNOFF",
+            "text": "Polluted water arrives from streets."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "ENTRANCE MONITOR",
+            "text": "Checks the level of (1) ______."
+          },
+          {
+            "kind": "branch",
+            "title": "Emergency diversion — only above the turbidity threshold",
+            "text": "↘ EMERGENCY HOLDING RESERVOIR. Water is temporarily diverted out of the normal treatment route."
+          },
+          {
+            "kind": "arrow",
+            "text": "Within the safe threshold ↓ (normal route)"
+          },
+          {
+            "kind": "stage",
+            "title": "COARSE SCREENING",
+            "text": "A rotating (2) ______ intercepts large rubbish."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "SETTLING BASIN",
+            "text": "Dense particles settle under (3) ______. Surface residues are taken away by (4) ______."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "FINE FILTRATION",
+            "text": "Ceramic (5) ______ retain small plastic fibres."
+          },
+          {
+            "kind": "branch",
+            "title": "Backwash recycling loop — only when needed",
+            "text": "↶ If (6) ______ to flow becomes excessive, cleaning begins. Dirty backwash returns to the SETTLING BASIN; it does not discharge to the harbour."
+          },
+          {
+            "kind": "arrow",
+            "text": "Normal forward route ↓"
+          },
+          {
+            "kind": "stage",
+            "title": "DISINFECTION",
+            "text": "(7) ______ light reduces microbes without a chemical disinfectant."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "FINAL TREATMENT — REED BED BESIDE THE HARBOUR",
+            "text": "The treated water flows into a (8) ______ bed."
+          }
         ]
       }
     ],
-    "review": "Review item evidence plus whether the learner correctly distinguishes diversion, sequential filtration and backwash recycling. Record time, support and errors; not a calibrated band measure. Editorial correction: Q6 requires 'resistance' (not 'pressure'); wording now states the quantity becoming excessive, resolving the instrument-versus-condition ambiguity. Check all answers against the passage before distribution.",
+    "review": "Review item evidence plus whether the learner correctly distinguishes diversion, sequential filtration and backwash recycling. Record time, support and errors; not a calibrated band measure. Editorial correction: Q6 requires 'resistance' (not 'pressure'); wording now states the quantity becoming excessive, resolving the instrument-versus-condition ambiguity. Check all answers against the passage before distribution. v1.1.1 diagram ends at the reed bed beside the harbour; no onward discharge from the reed bed is asserted.",
     "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty in real audio playback."
   },
   "delayed_followup": "In Lesson 18 (timed Academic Reading), check whether learners use location clues on visuals under time pressure. Record it as a later observation.",
@@ -732,7 +803,7 @@
   "release_blockers": [
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
     "Student task publication and platform evidence capture remain separate, governed steps.",
-    "v1.1.0 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
+    "v1.1.1 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
   ],
   "previous_approval_record": {
     "approved_by": "Owner, Brains Heist LLC",
