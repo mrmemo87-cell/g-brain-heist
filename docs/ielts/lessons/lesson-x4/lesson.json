@@ -5,16 +5,16 @@
   "extension": true,
   "placement": "optional, after Week 7 (Lesson 14)",
   "week": 7,
-  "version": "1.0.0",
-  "presentation_version": "1.0.0",
+  "version": "1.1.0",
+  "presentation_version": "1.1.0",
   "title": "Listening: flow charts and 'choose TWO' questions",
-  "status": "Owner approved v1.0.0 on 2026-10-18; teacher release to all eligible schools (optional extension lesson)",
+  "status": "Private teacher-review revision DRAFT v1.1.0 (NOT approved or released; prior v1.0.0 approval is historical only).",
   "duration": 60,
   "test_type": "Academic",
   "bibles": {
-    "diagnostic": "1.10.0",
-    "lessons": "1.1.0",
-    "visual": "1.1.0"
+    "diagnostic": "2.0.0",
+    "lessons": "1.2.0",
+    "visual": "1.2.0"
   },
   "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Speakers, places and organisations in the recordings are fictional. Human editorial, key, mapping, difficulty and originality review pending.",
   "audio": {
@@ -666,9 +666,10 @@
   "release_blockers": [
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
     "Student task publication and platform evidence capture remain separate, governed steps.",
-    "IELTS-X4-C1: new script needs generated, transcript-matched recording, verified duration and hash, owner review and classroom playback acceptance before any independent fresh check."
+    "IELTS-X4-C1: new script needs generated, transcript-matched recording, verified duration and hash, owner review and classroom playback acceptance before any independent fresh check.",
+    "v1.1.0 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
   ],
-  "approval_record": {
+  "previous_approval_record": {
     "approved_by": "Owner, Brains Heist LLC",
     "date": "2026-10-18",
     "version": "1.0.0",
