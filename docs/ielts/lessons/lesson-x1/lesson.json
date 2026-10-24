@@ -5,10 +5,10 @@
   "extension": true,
   "placement": "optional, after Week 5 (Lesson 9)",
   "week": 5,
-  "version": "1.1.0",
-  "presentation_version": "1.1.0",
+  "version": "1.1.1",
+  "presentation_version": "1.1.1",
   "title": "Reading: summary completion and sentence endings",
-  "status": "Private teacher-review revision DRAFT v1.1.0 (NOT approved or released; prior v1.0.0 approval is historical only).",
+  "status": "Private teacher-review revision DRAFT v1.1.1; not approved, merged, or released. Prior v1.0.0 approval is historical only.",
   "duration": 60,
   "test_type": "Academic",
   "bibles": {
@@ -578,7 +578,7 @@
         "kind": "items",
         "title": "Restoring public clocks",
         "mode": "Withheld independent transfer; unseen passage; no hints or dictionary",
-        "instructions": "Complete Questions 1–6 with ONE WORD ONLY from the passage.",
+        "instructions": "Complete the connected summary below. Choose ONE WORD ONLY from the passage for each answer.",
         "stimulus": {
           "type": "passage",
           "title": "Restoring public clocks",
@@ -647,7 +647,7 @@
           },
           {
             "id": "IELTS-X1-C1-Q5",
-            "prompt": "The decision to conserve the working gears diverted public funding away from the local ______.",
+            "prompt": "Opponents warned that repairing the original mechanism would leave less funding for the nearby ______.",
             "answer": "library",
             "evidence": "reduce funding available to the nearby library",
             "reason": "Identify the alternative public service receiving less funding.",
@@ -671,20 +671,22 @@
             "editorial_difficulty": "Moderate",
             "difficulty_basis": "Understand 'obsolete' in the context of future component supply."
           }
-        ]
+        ],
+        "summary_title": "The changing role of public clocks",
+        "summary_text": "Before personal timepieces became widespread, variations in ambient (1) ______ could interfere with the accuracy of public clocks. By the 1970s, many historic clock towers were retained mainly because of their (2) ______ importance rather than their original practical purpose.\n\nToday, supporters believe that a public clock could be useful to someone whose phone has a flat (3) ______. However, restoring historic mechanisms can be expensive. In one coastal town, airborne (4) ______ had caused damage to the clock's gears. Opponents warned that repairing the original system would leave less funding available for the nearby (5) ______.\n\nAn alternative is to combine old mechanisms with modern electronic controls, although these components may become (6) ______ sooner than the traditional machinery."
       },
       {
         "id": "IELTS-X1-C2",
         "kind": "items",
         "title": "Supported sentence endings",
         "mode": "Withheld independent transfer continued; no scaffolds",
-        "instructions": "Using the preceding passage, complete Questions 7–10 with endings A–G. Three endings are not used.",
+        "instructions": "Complete Questions 7–10 with endings A–G, following the order of the passage. Three endings are not used.",
         "stimulus": {
           "type": "options_list",
           "title": "Endings",
           "paragraphs": [
             "A  because evidence showed that most local residents checked it frequently.",
-            "B  despite the loss of money that could otherwise support another municipal facility.",
+            "B  despite warnings that the decision could reduce funding for another local public service.",
             "C  because restoring it had been shown to increase tourism and retail spending.",
             "D  because the lifetime expense of the modern components has not yet been established.",
             "E  despite evidence that hardly anyone could remember actually consulting it.",
@@ -695,7 +697,28 @@
         "items": [
           {
             "id": "IELTS-X1-C2-Q7",
-            "prompt": "Residents expressed affection for a restored clock",
+            "prompt": "Many old clock towers were preserved for their appearance",
+            "answer": "G",
+            "evidence": "protected mainly for architectural reasons",
+            "reason": "Towers could survive as architectural landmarks even after practical timekeeping was no longer needed. C invents economic evidence.",
+            "focus": "inference and distractor resistance",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G"
+            ],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Recognise concession: architectural preservation outlasts utility."
+          },
+          {
+            "id": "IELTS-X1-C2-Q8",
+            "prompt": "Residents considered the public clock important to local identity",
             "answer": "E",
             "evidence": "few remembered checking it during the previous week",
             "reason": "Residents' stated attachment contrasts with a survey showing few had checked the time recently. A reverses the survey's finding.",
@@ -715,11 +738,11 @@
             "difficulty_basis": "Distinguish stated affection from reported behaviour in the survey."
           },
           {
-            "id": "IELTS-X1-C2-Q8",
+            "id": "IELTS-X1-C2-Q9",
             "prompt": "The heritage committee selected a costly traditional repair",
             "answer": "B",
             "evidence": "reduce funding available to the nearby library",
-            "reason": "The council's decision to preserve mechanical heritage reduced funds available for the library. F wrongly implies all maintenance ended.",
+            "reason": "The committee's choice prompted a warning of reduced funding for the public library; the loss was not already confirmed.",
             "focus": "inference and distractor resistance",
             "type": "matching",
             "options": [
@@ -736,7 +759,7 @@
             "difficulty_basis": "Integrate heritage choice with the displaced library budget."
           },
           {
-            "id": "IELTS-X1-C2-Q9",
+            "id": "IELTS-X1-C2-Q10",
             "prompt": "The financial case for hybrid clock repairs remains uncertain",
             "answer": "D",
             "evidence": "their lifetime costs remain uncertain",
@@ -755,32 +778,11 @@
             "level": "core",
             "editorial_difficulty": "Moderate",
             "difficulty_basis": "Distinguish possible savings from unknown whole-life costs."
-          },
-          {
-            "id": "IELTS-X1-C2-Q10",
-            "prompt": "Many old clock towers were preserved for their appearance",
-            "answer": "G",
-            "evidence": "protected mainly for architectural reasons",
-            "reason": "Towers could survive as architectural landmarks even after practical timekeeping was no longer needed. C invents economic evidence.",
-            "focus": "inference and distractor resistance",
-            "type": "matching",
-            "options": [
-              "A",
-              "B",
-              "C",
-              "D",
-              "E",
-              "F",
-              "G"
-            ],
-            "level": "core",
-            "editorial_difficulty": "Moderate",
-            "difficulty_basis": "Recognise concession: architectural preservation outlasts utility."
           }
         ]
       }
     ],
-    "review": "Record item-level results and evidence errors, including paraphrase, unsupported inference, spelling and word limits. Record time, aid and prior exposure. No band conversion or automatic readiness claims. Revision 1.1.0 key audit: sentence endings must be E, B, D, G respectively; verify that unsupported survey, economic and maintenance claims are rejected.",
+    "review": "Check 6 summary answers and 4 sentence endings against the passage, including conditional funding language. Sentence ending key Q7–Q10: G,E,B,D. Check item-level paraphrasing and evidence; log support and exposure. No IELTS band conversion.",
     "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty in real audio playback."
   },
   "delayed_followup": "In Lesson 18 (timed Academic Reading), check whether learners locate summary sections and respect word limits under time pressure. Record it as a later observation.",
@@ -788,7 +790,7 @@
   "release_blockers": [
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
     "Student task publication and platform evidence capture remain separate, governed steps.",
-    "v1.1.0 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
+    "v1.1.1 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
   ],
   "previous_approval_record": {
     "approved_by": "Owner, Brains Heist LLC",
