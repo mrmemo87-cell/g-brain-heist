@@ -560,7 +560,13 @@
             "accept": [
               "D and B"
             ],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Track two simultaneous pilot failures and reject explicitly negated alternatives.",
+            "difficulty_by_mark": {
+              "B": "Moderate",
+              "D": "Moderate"
+            }
           },
           {
             "id": "IELTS-X4-C1-Q3",
@@ -580,7 +586,13 @@
             "accept": [
               "E and A"
             ],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Track two adopted safeguards rather than proposals and rejected methods.",
+            "difficulty_by_mark": {
+              "A": "Moderate",
+              "E": "Moderate"
+            }
           },
           {
             "id": "IELTS-X4-C1-Q5",
@@ -592,7 +604,9 @@
             "type": "completion",
             "word_limit": 2,
             "accept": [],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Challenging",
+            "difficulty_basis": "Retain the correction from temperature to humidity."
           },
           {
             "id": "IELTS-X4-C1-Q6",
@@ -604,7 +618,9 @@
             "type": "completion",
             "word_limit": 2,
             "accept": [],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Retain correction from sleeves to folders."
           },
           {
             "id": "IELTS-X4-C1-Q7",
@@ -618,7 +634,9 @@
             "accept": [
               "six hundred"
             ],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Discriminate the final 600 dpi setting from abandoned 300 dpi."
           },
           {
             "id": "IELTS-X4-C1-Q8",
@@ -630,7 +648,9 @@
             "type": "completion",
             "word_limit": 2,
             "accept": [],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Understand manual transcription as replacement for OCR."
           },
           {
             "id": "IELTS-X4-C1-Q9",
@@ -642,7 +662,9 @@
             "type": "completion",
             "word_limit": 2,
             "accept": [],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Easy",
+            "difficulty_basis": "Recognise the flag used for uncertain numbers."
           },
           {
             "id": "IELTS-X4-C1-Q10",
@@ -654,12 +676,15 @@
             "type": "completion",
             "word_limit": 2,
             "accept": [],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Distinguish a physical-site backup from a rejected cloud proposal."
           }
         ]
       }
     ],
-    "review": "Ten marks, each correct choose-TWO letter worth one mark. Review exact distractor corrections, sequence errors, numbers and spelling. Record recording hash, audio conditions, time and prior exposure. No IELTS band conversion."
+    "review": "Ten marks, each correct choose-TWO letter worth one mark. Review exact distractor corrections, sequence errors, numbers and spelling. Record recording hash, audio conditions, time and prior exposure. No IELTS band conversion.",
+    "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty in real audio playback."
   },
   "delayed_followup": "In Lesson 17 or 21 (timed Listening), check whether learners cross out rejected options and keep their place in a process. Record it as a later observation.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
