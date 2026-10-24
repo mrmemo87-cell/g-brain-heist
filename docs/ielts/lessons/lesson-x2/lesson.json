@@ -5,10 +5,10 @@
   "extension": true,
   "placement": "optional, after Week 7 (Lesson 13)",
   "week": 7,
-  "version": "1.1.0",
-  "presentation_version": "1.1.0",
+  "version": "1.1.1",
+  "presentation_version": "1.1.1",
   "title": "Reading: matching features and short-answer questions",
-  "status": "Private teacher-review revision DRAFT v1.1.0 (NOT approved or released; prior v1.0.0 approval is historical only).",
+  "status": "Private teacher-review revision DRAFT v1.1.1; not approved, merged, or released. Prior v1.0.0 approval is historical only.",
   "duration": 60,
   "test_type": "Academic",
   "bibles": {
@@ -529,10 +529,10 @@
         "items": [
           {
             "id": "IELTS-X2-C1-Q1",
-            "prompt": "Which researcher warns that an apparently positive commercial outcome could have another explanation?",
+            "prompt": "Which researcher warns that an apparent change in shopper behaviour could have another explanation?",
             "answer": "C",
             "evidence": "the two changes could not be separated by the available survey",
-            "reason": "Opening-hour changes create a confound.",
+            "reason": "Extended shop opening hours may partly explain how long customers stayed; there is no demonstrated rise in spending caused by trees.",
             "focus": "matching research claims; qualification and inference",
             "type": "matching",
             "options": [
@@ -708,7 +708,7 @@
   "release_blockers": [
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
     "Student task publication and platform evidence capture remain separate, governed steps.",
-    "v1.1.0 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
+    "v1.1.1 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
   ],
   "previous_approval_record": {
     "approved_by": "Owner, Brains Heist LLC",
