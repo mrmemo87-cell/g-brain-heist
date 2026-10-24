@@ -504,90 +504,183 @@
   ],
   "followup": {
     "id": "IELTS-X2-C1",
-    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
-    "delivery": "About one teaching week after this lesson. Five minutes, independent, no dictionary, no support. Log timing, support and prior exposure. Classroom observation only.",
+    "status": "WITHHELD revision draft 1.1.0; editorial and comparability review required before use.",
+    "delivery": "About one teaching week later: 17 minutes, independent unseen passage with no dictionary, cues, models or teacher assistance. Record timing and exposure.",
     "blocks": [
       {
         "id": "IELTS-X2-C1",
         "kind": "items",
-        "title": "Spending on cycling",
-        "mode": "Withheld fresh check; independent, timed",
-        "instructions": "Match each statement with the correct planner: A Marta Lindqvist, B Daniel Osei, C Helen Park. You may use any letter more than once.",
+        "title": "Four perspectives on street-tree programmes",
+        "mode": "Unseen independent transfer, timed; passage and keys withheld until completion",
+        "instructions": "Questions 1–8: match the statements to the researchers: A Dr Mara Chen, B Professor Elias Okafor, C Dr Sofia Vale, D Daniel Reyes. Letters may be used more than once. Questions 9–10: write ONE WORD ONLY from the passage.",
         "stimulus": {
           "type": "passage",
-          "title": "Spending on cycling",
+          "title": "Four perspectives on street-tree programmes (fictional research scenario)",
           "labelled": false,
           "paragraphs": [
-            "As more people take up cycling, city planners disagree about where money should be spent. Marta Lindqvist argues that nothing matters more than separating cyclists from traffic. In her experience, painted lines on the road do little to make new cyclists feel safe, whereas lanes protected by a kerb attract people who would never otherwise ride.",
-            "Daniel Osei believes that public bike-sharing schemes are the quickest way to change habits, because they allow people to try cycling without buying a bike. He admits, however, that many schemes have lost money.",
-            "Helen Park focuses on journeys that combine cycling with trains. She has found that commuters are far more willing to cycle to a station if they know there will be secure parking when they arrive, and she believes this is the cheapest improvement a city can make."
+            "An urban council commissioned four fictional researchers to evaluate a programme that planted trees along busy shopping streets. The council had counted each planted tree as a success. Several years later, however, the researchers disagreed about how success ought to be measured. Their reports suggest that visible planting and measurable public benefit are not necessarily the same thing.",
+            "Dr Mara Chen examined summer temperatures. On streets with mature canopies, shaded surfaces were substantially cooler at midday, but measurements taken after sunset showed a much smaller difference. Chen therefore argued that a city should not claim a uniform reduction in heat across an entire day. She also observed that the people most likely to benefit were those who walked or waited outdoors, whereas residents of well-insulated buildings gained relatively little. Her recommendation was to prioritise routes used by pedestrians rather than distribute trees evenly.",
+            "Professor Elias Okafor studied survival rates. The council's impressive planting totals concealed the fact that many saplings had died during their second summer. Expanding the programme without paying for irrigation, he argued, would simply repeat the failure. Okafor supported planting fewer trees initially and directing the remaining budget towards several years of care. Contrary to a popular proposal, he did not favour importing a supposedly drought-proof species: the local variety survived as well when planted in deeper soil.",
+            "Dr Sofia Vale investigated how shoppers used the streets. Businesses near newly planted areas reported that customers lingered longer, yet the evidence did not demonstrate that trees had increased spending. Some shops had also extended their opening hours. Vale warned that the two changes could not be separated by the available survey. Nonetheless, she found strong support for seating beneath the trees, particularly among older visitors. In her view, benches were not merely decorative additions but a necessary part of making shade usable.",
+            "Architect Daniel Reyes questioned whether trees were always the best intervention. On narrow streets, roots threatened underground pipes and dense canopies obstructed access for emergency vehicles. He proposed lightweight awnings in selected locations instead. Although these offered less wildlife habitat, they could be removed during street repairs. Reyes did not argue for abandoning the programme; he wanted planners to distinguish places where trees were practical from places where another form of shelter would work better.",
+            "When the committee met, it accepted that the four proposals could not simply be ranked by the number of trees they would add. The researchers had measured different outcomes and exposed different costs. The committee postponed setting a new planting target until it had agreed whether cooling, survival, accessibility or commercial activity would be its primary objective."
           ]
         },
         "items": [
           {
             "id": "IELTS-X2-C1-Q1",
-            "prompt": "Some schemes have not been financially successful.",
-            "answer": "B",
-            "evidence": "many schemes have lost money",
-            "reason": "'Not financially successful' paraphrases 'lost money'.",
-            "focus": "paraphrase recognition",
+            "prompt": "Measurements made at one point in the day should not be treated as representative of every hour.",
+            "answer": "A",
+            "evidence": "measurements taken after sunset showed a much smaller difference",
+            "reason": "Her finding limits a claim about all-day cooling.",
+            "focus": "matching research claims; qualification and inference",
             "type": "matching",
             "options": [
               "A",
               "B",
-              "C"
+              "C",
+              "D"
             ],
             "level": "core"
           },
           {
             "id": "IELTS-X2-C1-Q2",
-            "prompt": "A low-cost change could persuade more people to cycle.",
-            "answer": "C",
-            "evidence": "she believes this is the cheapest improvement a city can make",
-            "reason": "'Low-cost' paraphrases 'cheapest'.",
-            "focus": "paraphrase recognition",
+            "prompt": "Keeping existing plantings alive matters more than maximising new planting figures.",
+            "answer": "B",
+            "evidence": "supported planting fewer trees initially and directing the remaining budget towards several years of care",
+            "reason": "Sheer planting totals obscure poor survival.",
+            "focus": "matching research claims; qualification and inference",
             "type": "matching",
             "options": [
               "A",
               "B",
-              "C"
+              "C",
+              "D"
             ],
             "level": "core"
           },
           {
             "id": "IELTS-X2-C1-Q3",
-            "prompt": "Painted markings are not enough to reassure beginners.",
-            "answer": "A",
-            "evidence": "painted lines on the road do little to make new cyclists feel safe",
-            "reason": "'Beginners' paraphrases 'new cyclists'.",
-            "focus": "paraphrase recognition",
+            "prompt": "An apparent economic benefit cannot confidently be attributed to the trees.",
+            "answer": "C",
+            "evidence": "the two changes could not be separated by the available survey",
+            "reason": "Opening-hour changes create a confound.",
+            "focus": "matching research claims; qualification and inference",
             "type": "matching",
             "options": [
               "A",
               "B",
-              "C"
+              "C",
+              "D"
             ],
             "level": "core"
           },
           {
             "id": "IELTS-X2-C1-Q4",
-            "prompt": "People can try cycling before spending their own money.",
-            "answer": "B",
-            "evidence": "they allow people to try cycling without buying a bike",
-            "reason": "The same planner can be used twice.",
-            "focus": "detail discrimination",
+            "prompt": "A substitute for trees may be preferable where maintenance access is constrained.",
+            "answer": "D",
+            "evidence": "they could be removed during street repairs",
+            "reason": "Removability matters on difficult streets.",
+            "focus": "matching research claims; qualification and inference",
             "type": "matching",
             "options": [
               "A",
               "B",
-              "C"
+              "C",
+              "D"
             ],
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X2-C1-Q5",
+            "prompt": "The location of pedestrian activity should influence where the programme is concentrated.",
+            "answer": "A",
+            "evidence": "prioritise routes used by pedestrians rather than distribute trees evenly",
+            "reason": "Benefits depend on who uses the space.",
+            "focus": "matching research claims; qualification and inference",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X2-C1-Q6",
+            "prompt": "A local variety may perform adequately if the planting conditions are improved.",
+            "answer": "B",
+            "evidence": "the local variety survived as well when planted in deeper soil",
+            "reason": "Soil improvement, not imported species, was recommended.",
+            "focus": "matching research claims; qualification and inference",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X2-C1-Q7",
+            "prompt": "Additional street furniture can be essential for people to make use of environmental improvements.",
+            "answer": "C",
+            "evidence": "benches were not merely decorative additions but a necessary part of making shade usable",
+            "reason": "Comfort requires seating as well as shade.",
+            "focus": "matching research claims; qualification and inference",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X2-C1-Q8",
+            "prompt": "The proposed alternative delivers less habitat, despite practical advantages.",
+            "answer": "D",
+            "evidence": "Although these offered less wildlife habitat",
+            "reason": "The speaker acknowledges a tradeoff.",
+            "focus": "matching research claims; qualification and inference",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X2-C1-Q9",
+            "prompt": "In which season did many young trees fail after their first year? Write ONE WORD ONLY.",
+            "answer": "summer",
+            "evidence": "many saplings had died during their second summer",
+            "reason": "Second-year losses undercut the headline total.",
+            "focus": "short-answer detail under paraphrase",
+            "type": "short",
+            "word_limit": 1,
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X2-C1-Q10",
+            "prompt": "Which underground infrastructure was vulnerable on confined streets? Write ONE WORD ONLY.",
+            "answer": "pipes",
+            "evidence": "roots threatened underground pipes",
+            "reason": "The question asks about buried utilities, not emergency access.",
+            "focus": "short-answer discrimination",
+            "type": "short",
+            "word_limit": 1,
             "level": "core"
           }
         ]
       }
     ],
-    "review": "Compare only the observed demands and conditions with this lesson. Record the result as a separate later observation; do not convert it to a band or merge it with screener evidence. Use a truly unseen form, one independent sitting, and log prior exposure, aid, time, item-level errors, and support. Do not convert this activity into a band estimate or combine it with mock scores."
+    "review": "Score each answer independently; examine confusion between measured findings, proposed priorities and qualified claims. Check short answers for word limits and exact textual support. Record conditions; do not convert to IELTS band."
   },
   "delayed_followup": "In Lesson 18 (timed Academic Reading), check whether learners circle names first and quote evidence when matching under time pressure. Record it as a later observation.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
