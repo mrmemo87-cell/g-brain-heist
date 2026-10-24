@@ -689,18 +689,18 @@
             "B  despite warnings that the decision could reduce funding for another local public service.",
             "C  because restoring it had been shown to increase tourism and retail spending.",
             "D  because the lifetime expense of the modern components has not yet been established.",
-            "E  despite evidence that hardly anyone could remember actually consulting it.",
+            "E  although few residents remembered checking it during the previous week.",
             "F  because specialist engineers would no longer be needed to maintain its mechanical parts.",
-            "G  even after their original use as public timekeeping devices had faded."
+            "G  even after its original use as a public timekeeping device had faded."
           ]
         },
         "items": [
           {
             "id": "IELTS-X1-C2-Q7",
-            "prompt": "Many old clock towers were preserved for their appearance",
+            "prompt": "An old clock tower could be preserved for its appearance",
             "answer": "G",
             "evidence": "protected mainly for architectural reasons",
-            "reason": "Towers could survive as architectural landmarks even after practical timekeeping was no longer needed. C invents economic evidence.",
+            "reason": "An individual tower could remain architecturally important after its original timekeeping purpose faded; singular pronouns alone no longer single out the correct ending.",
             "focus": "inference and distractor resistance",
             "type": "matching",
             "options": [
@@ -721,7 +721,7 @@
             "prompt": "Residents considered the public clock important to local identity",
             "answer": "E",
             "evidence": "few remembered checking it during the previous week",
-            "reason": "Residents' stated attachment contrasts with a survey showing few had checked the time recently. A reverses the survey's finding.",
+            "reason": "The survey found that few residents recalled consulting the clock during the previous week, despite its importance to local identity. A reverses the evidence.",
             "focus": "inference and distractor resistance",
             "type": "matching",
             "options": [
@@ -782,7 +782,7 @@
         ]
       }
     ],
-    "review": "Check 6 summary answers and 4 sentence endings against the passage, including conditional funding language. Sentence ending key Q7–Q10: G,E,B,D. Check item-level paraphrasing and evidence; log support and exposure. No IELTS band conversion.",
+    "review": "Editorial copy v1.1.1 final wording checked: Q7 singular tower, ending G singular original use; ending E retains 'few residents' and one-week timeframe. Answers Q7–Q10 remain G,E,B,D. Teacher-only review draft, not approved for release. Check 6 summary answers and 4 sentence endings against the passage, including conditional funding language. Sentence ending key Q7–Q10: G,E,B,D. Check item-level paraphrasing and evidence; log support and exposure. No IELTS band conversion.",
     "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty in real audio playback."
   },
   "delayed_followup": "In Lesson 18 (timed Academic Reading), check whether learners locate summary sections and respect word limits under time pressure. Record it as a later observation.",
