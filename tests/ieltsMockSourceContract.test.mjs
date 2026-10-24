@@ -84,7 +84,7 @@ test('drafts must use the current Bibles; approved sources keep the earlier vers
 test('revised extensions have substantive independent checks and honest audio status', () => {
   const extensions = lessonSourcePaths().map(load).filter((l) => /^IELTS-X[1-8]$/.test(l.code));
   for (const lesson of extensions) {
-    assert.equal(lesson.version, '1.1.0');
+    assert.equal(lesson.version, /^IELTS-X[1-4]$/.test(lesson.code) ? '1.1.1' : '1.1.0');
     assert.match(lesson.status, /draft/i);
     assert.equal(lesson.approval_record, undefined);
     assert.deepEqual(lesson.bibles, currentBibleVersions());
@@ -114,7 +114,7 @@ test('revised IELTS X1-X4 keys, answer distributions and difficulty metadata are
   const ext = lessonSourcePaths().map(load).filter((l) => /^IELTS-X[1-4]$/.test(l.code));
   const all = ext.map((l) => l.followup.blocks.flatMap((b) => b.items ?? []));
   const answers = all.map((items) => items.map((item) => item.answer));
-  assert.deepEqual(answers[0], ['temperature', 'architectural', 'battery', 'salt', 'library', 'obsolete', 'E', 'B', 'D', 'G']);
+  assert.deepEqual(answers[0], ['temperature', 'architectural', 'battery', 'salt', 'library', 'obsolete', 'G', 'E', 'B', 'D']);
   assert.deepEqual(answers[1], ['C', 'B', 'D', 'A', 'C', 'A', 'D', 'B', 'summer', 'pipes']);
   assert.deepEqual(answers[2], ['turbidity', 'screen', 'gravity', 'skimmers', 'membranes', 'resistance', 'ultraviolet', 'reed']);
   assert.deepEqual(answers[3], ['B and D', 'A and E', 'humidity', 'folders', '600', 'transcription', 'flag', 'backup']);
@@ -134,4 +134,42 @@ test('revised IELTS X1-X4 keys, answer distributions and difficulty metadata are
   for (const lesson of ext) {
     assert.match(lesson.followup.difficulty_calibration, /not.*IELTS band/i);
   }
+});
+
+test('v1.1.1 summary, process branches and numeric-only audio keys meet the source contract', () => {
+  const ext = lessonSourcePaths().map(load).filter((l) => /^IELTS-X[1-4]$/.test(l.code));
+  for (const lesson of ext) assert.deepEqual(validateLessonSource(lesson), [], lesson.code);
+  const [x1, x2, x3, x4] = ext;
+  const summary = x1.followup.blocks[0];
+  assert.match(summary.summary_text, /\\(1\\) _+/);
+  assert.match(summary.summary_text, /\\(6\\) _+/);
+  assert.equal(summary.items.length, 6);
+  assert.deepEqual(x1.followup.blocks[1].items.map((i) => i.answer), ['G', 'E', 'B', 'D']);
+  assert.match(x1.followup.blocks[1].items[1].prompt, /public clock important to local identity/i);
+  assert.match(x2.followup.blocks[0].items[0].prompt, /shopper behaviour/i);
+
+  const flow3 = x3.followup.blocks[0].flow_chart;
+  assert.ok(flow3.some((e) => e.kind === 'branch' && /emergency holding reservoir/i.test(e.text)));
+  assert.ok(flow3.some((e) => e.kind === 'branch' && /returns to the settling basin/i.test(e.text)));
+  assert.match(flow3.at(-1).title, /reed bed beside the harbour/i);
+  assert.ok(!flow3.some((e) => e.kind === 'stage' && /^harbour$/i.test(e.title)));
+  assert.match(x3.followup.blocks[0].stimulus.paragraphs[1], /turbidity exceeds the safety threshold/);
+
+  const check4 = x4.followup.blocks[0];
+  const qa = check4.items.find((i) => i.id === 'IELTS-X4-C1-Q7');
+  assert.equal(qa.answer, '600');
+  assert.deepEqual(qa.accept, []);
+  assert.equal(qa.word_limit, 1);
+  assert.match(check4.items[1].options[1], /no longer transcribe rainfall readings manually/i);
+  assert.ok(check4.flow_chart?.length > 10);
+  assert.match(check4.stimulus.paragraphs[2], /two additional safeguards/i);
+  assert.match(check4.stimulus.paragraphs[3], /protective enclosure/i);
+  for (const p of [check4.items[0], check4.items[1]]) {
+    assert.ok(p.accept.includes(p.answer.split(' and ').reverse().join(' and ')), 'choose TWO should accept either order');
+    assert.equal(new Set(p.answer.split(' and ')).size, 2);
+  }
+
+  const mutated = structuredClone(x4);
+  mutated.followup.blocks[0].items.find((i) => i.id === 'IELTS-X4-C1-Q7').accept = ['six hundred'];
+  assert.ok(has(validateLessonSource(mutated), 'exceeds 1-word limit'));
 });
