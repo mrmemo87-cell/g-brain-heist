@@ -108,3 +108,30 @@ test('revised extensions have substantive independent checks and honest audio st
   assert.equal(recording.delivered_sha256, undefined);
   assert.ok(listening.release_blockers.some((b) => b.includes('IELTS-X4-C1')));
 });
+
+
+test('revised IELTS X1-X4 keys, answer distributions and difficulty metadata are internally consistent', () => {
+  const ext = lessonSourcePaths().map(load).filter((l) => /^IELTS-X[1-4]$/.test(l.code));
+  const all = ext.map((l) => l.followup.blocks.flatMap((b) => b.items ?? []));
+  const answers = all.map((items) => items.map((item) => item.answer));
+  assert.deepEqual(answers[0], ['temperature', 'architectural', 'battery', 'salt', 'library', 'obsolete', 'E', 'B', 'D', 'G']);
+  assert.deepEqual(answers[1], ['C', 'B', 'D', 'A', 'C', 'A', 'D', 'B', 'summer', 'pipes']);
+  assert.deepEqual(answers[2], ['turbidity', 'screen', 'gravity', 'skimmers', 'membranes', 'resistance', 'ultraviolet', 'reed']);
+  assert.deepEqual(answers[3], ['B and D', 'A and E', 'humidity', 'folders', '600', 'transcription', 'flag', 'backup']);
+  const x2Keys = answers[1].slice(0, 8);
+  assert.notDeepEqual(x2Keys.slice(0, 4), ['A', 'B', 'C', 'D']);
+  assert.notDeepEqual(x2Keys.slice(0, 4), x2Keys.slice(4, 8));
+  assert.deepEqual([...new Set(x2Keys)].sort(), ['A', 'B', 'C', 'D']);
+  const x3Items = all[2];
+  assert.match(x3Items[5].prompt, /resistance|movement of water/i);
+  assert.doesNotMatch(x3Items[5].prompt, /increase in pressure/i);
+  for (const items of all) {
+    for (const item of items) {
+      assert.match(item.editorial_difficulty, /^(Easy|Moderate|Challenging)$/);
+      assert.ok(item.difficulty_basis?.length > 15);
+    }
+  }
+  for (const lesson of ext) {
+    assert.match(lesson.followup.difficulty_calibration, /not.*IELTS band/i);
+  }
+});
