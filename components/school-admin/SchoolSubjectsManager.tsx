@@ -121,6 +121,7 @@ const SchoolSubjectsManager: React.FC = () => {
 
   const activeClasses = useMemo(() => classes.filter((item: any) => item.is_active !== false), [classes]);
   const schoolGrades = useMemo(() => Array.from(new Set([
+    ...Array.from({ length: 12 }, (_, index) => index + 1),
     ...activeClasses.map((item: any) => Number(item.grade_level)),
     ...students.map((item: any) => Number(item.grade)),
     ...(catalog?.subjects || []).flatMap((subject) => subject.offerings.map((offering) => Number(offering.gradeLevel))),
@@ -228,9 +229,7 @@ const SchoolSubjectsManager: React.FC = () => {
     const existingNamedSubject = !editingSubjectId
       ? catalog?.subjects.find((subject) => subject.isActive && subject.name.trim().toLowerCase() === normalizedName) || null
       : null;
-    const subjectForSave = existingNamedSubject
-      || (editingSubjectId ? catalog?.subjects.find((subject) => subject.id === editingSubjectId) || null : null);
-    const academicSubjectIdForSave = subjectForSave?.academicSubjectId || academicSubjectId || null;
+    const academicSubjectIdForSave = existingNamedSubject?.academicSubjectId || academicSubjectId || null;
     const academicChoiceForSave = academicSubjectIdForSave
       ? academicChoices.find((item) => item.id === academicSubjectIdForSave) || null
       : null;
@@ -260,7 +259,7 @@ const SchoolSubjectsManager: React.FC = () => {
         existingNamedSubject && gradeLevel
           ? `${gradeLabel(gradeLevel)} added to ${subjectLabel}.`
           : academicSubjectIdForSave
-            ? `${subjectLabel} saved as an independent school subject.`
+            ? `${subjectLabel} saved${gradeLevel ? ` for ${gradeLabel(gradeLevel)}` : ' without a grade offering'}. Academic resources: ${academicChoiceForSave?.name || 'mapped'}.`
             : `${subjectLabel} saved. Academic mapping attention has been requested automatically.`,
         'success',
       );
@@ -485,7 +484,7 @@ const SchoolSubjectsManager: React.FC = () => {
                 </section>
 
                 <section className="border-t border-slate-200 pt-6">
-                  <div className="mb-4 flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-950 text-xs font-bold text-white">2</span><div><h4 className="text-sm font-bold text-slate-950">Academic resources</h4><p className="text-xs text-slate-500">Optional. Mapping shares curriculum/questions; it never merges the subject.</p></div></div>
+                  <div className="mb-4 flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-950 text-xs font-bold text-white">2</span><div><h4 className="text-sm font-bold text-slate-950">Academic resources</h4><p className="text-xs text-slate-500">Optional. Mapping shares curriculum/questions; it never merges the subject. A local subject name or exam code does not select this mapping.</p></div></div>
                   <label className="block"><span className="text-xs font-bold text-slate-700">Map to Brains Heist academic subject</span><select value={academicSubjectId} onChange={(event) => setAcademicSubjectId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm font-semibold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"><option value="">No academic mapping yet</option>{academicChoices.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
                   {academicSubjectId ? (
                     <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4"><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-600 text-xs font-bold text-white">✓</span><div><p className="text-sm font-semibold text-emerald-950">{name.trim() || 'This subject'} will use {selectedAcademic?.name} academic resources.</p><p className="mt-1 text-xs leading-5 text-emerald-800">Assignments, grades and student membership remain attached to <strong>{name.trim() || 'the school subject'}</strong>, not to {selectedAcademic?.name}.</p></div></div></div>
@@ -495,12 +494,12 @@ const SchoolSubjectsManager: React.FC = () => {
                 </section>
 
                 <section className="border-t border-slate-200 pt-6">
-                  <div className="mb-4 flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-950 text-xs font-bold text-white">3</span><div><h4 className="text-sm font-bold text-slate-950">Grade &amp; student access</h4><p className="text-xs text-slate-500">Optional now; you can add or change an offering later.</p></div></div>
+                  <div className="mb-4 flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-950 text-xs font-bold text-white">3</span><div><h4 className="text-sm font-bold text-slate-950">Grade &amp; student access</h4><p className="text-xs text-slate-500">Choose a grade to make this subject available for teaching. You can set this up before adding classes or students.</p></div></div>
                   <label className="block"><span className="text-xs font-bold text-slate-700">Grade</span><select value={gradeLevel} onChange={(event) => selectGrade(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm font-semibold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"><option value="">No grade offering yet</option>{schoolGrades.map((grade) => <option key={grade} value={String(grade)}>{gradeLabel(grade)}</option>)}</select></label>
 
                   {gradeLevel ? (
                     <div className="mt-4 space-y-4">
-                      {academicSubjectId && !selectedScope ? <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800"><strong>{selectedAcademic?.name}</strong> is mapped at subject level, but no governed curriculum scope is currently available for {gradeLabel(gradeLevel)}. The school subject can still be saved; grade-specific question-bank resources will remain unavailable until curriculum coverage is added.</div> : null}
+                      {academicSubjectId && !selectedScope ? <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800"><strong>{selectedAcademic?.name}</strong> is mapped at subject level, but no governed curriculum scope is currently available for {gradeLabel(gradeLevel)}. The school subject can still be saved; registry question resources may still be available for this subject and grade. Curriculum-framework coverage is separate.</div> : null}
                       <div className="grid gap-3 sm:grid-cols-2">
                         <button type="button" onClick={() => setAccessMode('all_grade')} className={`rounded-2xl border p-4 text-left transition ${accessMode === 'all_grade' ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-100' : 'border-slate-200 hover:border-slate-300'}`}><span className="text-sm font-bold text-slate-950">Everyone in {gradeLabel(gradeLevel)}</span><p className="mt-1 text-xs text-slate-500">Automatically available to the whole grade.</p></button>
                         <button type="button" onClick={() => setAccessMode('selected')} className={`rounded-2xl border p-4 text-left transition ${accessMode === 'selected' ? 'border-violet-500 bg-violet-50 ring-2 ring-violet-100' : 'border-slate-200 hover:border-slate-300'}`}><span className="text-sm font-bold text-slate-950">Selected students</span><p className="mt-1 text-xs text-slate-500">Use for ESL, electives, clubs or interventions. Students keep their normal registration class.</p></button>

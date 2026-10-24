@@ -478,7 +478,7 @@ const AcademicSetupPanel: React.FC = () => {
         return <article key={subject.academicSubjectId} className={`subject-choice-card ${mappedSubjects.length ? 'is-selected' : ''}`}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '.75rem' }}>
             <span aria-hidden="true" style={{ width: '1.15rem', height: '1.15rem', marginTop: '.1rem', borderRadius: '999px', background: mappedSubjects.length ? '#2563eb' : '#e2e8f0', boxShadow: mappedSubjects.length ? 'inset 0 0 0 4px #dbeafe' : 'none' }} />
-            <span><strong>{subject.name}</strong><small>{scope?.approvedQuestionCount ?? 0} approved questions · {scope?.objectiveCount ?? 0} objectives</small></span>
+            <span><strong>{subject.name}</strong><small>{scope?.approvedQuestionCount ?? 0} approved questions · {scope?.objectiveCount ?? 0} curriculum objectives{scope?.evidenceFocusCount ? ` · ${scope.evidenceFocusCount} Evidence Focus targets` : ''}</small></span>
           </div>
           <div className="subject-requirement"><span>{mappedSubjects.length ? 'Used by school subjects' : 'Academic resource'}</span><strong>{mappedSubjects.length ? mappedSubjects.map((item) => item.name).join(' · ') : 'Available to map from School Subjects'}</strong></div>
         </article>;
