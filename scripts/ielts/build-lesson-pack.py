@@ -315,7 +315,7 @@ class Pack:
         if b.get('summary_text'):
             # A true connected IELTS summary: each numbered blank is part of the same prose.
             out.append(self.p(b.get('summary_title', 'Summary'), 'H'))
-            for paragraph in b['summary_text'].split('\\n\\n'):
+            for paragraph in b['summary_text'].split('\n\n'):
                 out.append(self.p(paragraph, 'B'))
             return out
         if b.get('flow_chart'):
