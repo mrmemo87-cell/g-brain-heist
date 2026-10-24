@@ -541,7 +541,9 @@
               "C",
               "D"
             ],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Reject a causal conclusion because opening hours also changed."
           },
           {
             "id": "IELTS-X2-C1-Q2",
@@ -557,7 +559,9 @@
               "C",
               "D"
             ],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Distinguish planting totals from survival measures."
           },
           {
             "id": "IELTS-X2-C1-Q3",
@@ -573,7 +577,9 @@
               "C",
               "D"
             ],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Interpret the practical trade-off of removable awnings."
           },
           {
             "id": "IELTS-X2-C1-Q4",
@@ -589,7 +595,9 @@
               "C",
               "D"
             ],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Avoid generalising a time-specific temperature result."
           },
           {
             "id": "IELTS-X2-C1-Q5",
@@ -605,7 +613,9 @@
               "C",
               "D"
             ],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Infer that seating is necessary to use shade."
           },
           {
             "id": "IELTS-X2-C1-Q6",
@@ -621,7 +631,9 @@
               "C",
               "D"
             ],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Identify allocation by pedestrian exposure rather than equal distribution."
           },
           {
             "id": "IELTS-X2-C1-Q7",
@@ -637,7 +649,9 @@
               "C",
               "D"
             ],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Distinguish targeted alternative interventions from total rejection."
           },
           {
             "id": "IELTS-X2-C1-Q8",
@@ -653,7 +667,9 @@
               "C",
               "D"
             ],
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Interpret better soil as an alternative to importing species."
           },
           {
             "id": "IELTS-X2-C1-Q9",
@@ -664,7 +680,9 @@
             "focus": "short-answer detail under paraphrase",
             "type": "short",
             "word_limit": 1,
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Easy",
+            "difficulty_basis": "Find the season linked to second-year mortality."
           },
           {
             "id": "IELTS-X2-C1-Q10",
@@ -675,12 +693,15 @@
             "focus": "short-answer discrimination",
             "type": "short",
             "word_limit": 1,
-            "level": "core"
+            "level": "core",
+            "editorial_difficulty": "Easy",
+            "difficulty_basis": "Find the named buried utility."
           }
         ]
       }
     ],
-    "review": "Score each answer independently; examine confusion between measured findings, proposed priorities and qualified claims. Check short answers for word limits and exact textual support. Record conditions; do not convert to IELTS band. Revised matching key must be C, B, D, A, C, A, D, B for Questions 1–8; each answer needs an explicit named-speaker evidence trace, not an assumed repeating sequence."
+    "review": "Score each answer independently; examine confusion between measured findings, proposed priorities and qualified claims. Check short answers for word limits and exact textual support. Record conditions; do not convert to IELTS band. Revised matching key must be C, B, D, A, C, A, D, B for Questions 1–8; each answer needs an explicit named-speaker evidence trace, not an assumed repeating sequence.",
+    "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty in real audio playback."
   },
   "delayed_followup": "In Lesson 18 (timed Academic Reading), check whether learners circle names first and quote evidence when matching under time pressure. Record it as a later observation.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
