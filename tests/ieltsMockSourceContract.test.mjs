@@ -151,7 +151,9 @@ test('v1.1.1 summary, process branches and numeric-only audio keys meet the sour
   const flow3 = x3.followup.blocks[0].flow_chart;
   assert.ok(flow3.some((e) => e.kind === 'branch' && /emergency holding reservoir/i.test(e.text)));
   assert.ok(flow3.some((e) => e.kind === 'branch' && /returns to the settling basin/i.test(e.text)));
-  assert.match(flow3.at(-1).title, /reed bed beside the harbour/i);
+  assert.match(flow3.at(-1).title, /final treatment.*beside the harbour/i);
+  assert.match(flow3.at(-1).title, /\(8\) _+/);
+  assert.ok(!flow3.some((e) => /turbidity threshold/i.test(e.title ?? '')), 'question 1 answer must not be displayed in a heading');
   assert.ok(!flow3.some((e) => e.kind === 'stage' && /^harbour$/i.test(e.title)));
   assert.match(x3.followup.blocks[0].stimulus.paragraphs[1], /turbidity exceeds the safety threshold/);
 
@@ -162,6 +164,7 @@ test('v1.1.1 summary, process branches and numeric-only audio keys meet the sour
   assert.equal(qa.word_limit, 1);
   assert.match(check4.items[1].options[1], /no longer transcribe rainfall readings manually/i);
   assert.ok(check4.flow_chart?.length > 10);
+  assert.ok(!check4.flow_chart.some((e) => /second reader|another building/i.test(e.text)), 'diagram must not give away the earlier choose-TWO answers');
   assert.match(check4.stimulus.paragraphs[2], /two additional safeguards/i);
   assert.match(check4.stimulus.paragraphs[3], /protective enclosure/i);
   for (const p of [check4.items[0], check4.items[1]]) {
