@@ -635,7 +635,8 @@
             "accept": [],
             "level": "core",
             "editorial_difficulty": "Moderate",
-            "difficulty_basis": "Discriminate the final 600 dpi setting from abandoned 300 dpi."
+            "difficulty_basis": "Discriminate the final 600 dpi setting from abandoned 300 dpi.",
+            "enforce_accept_word_limit": true
           },
           {
             "id": "IELTS-X4-C1-Q8",
