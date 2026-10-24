@@ -5054,12 +5054,13 @@ export interface TeacherAcademicSkillRegistryResult {
 
 export const get_teacher_academic_skill_registry = async (
     subject: string,
-    gradeLevel: number
+    gradeLevel: number,
+    phase: 'primary' | 'lower_secondary' | 'upper_secondary' | null = null,
 ): Promise<TeacherAcademicSkillRegistryResult> => {
     const { data, error } = await supabase.rpc('rpc_academic_skill_registry_for_generation', {
         p_subject_key: subject,
         p_grade_level: gradeLevel,
-        p_phase: null,
+        p_phase: phase,
     });
     if (error) throw error;
     const result = (data || {}) as TeacherAcademicSkillRegistryResult;
@@ -5081,11 +5082,13 @@ export const get_teacher_academic_evidence_focuses = async (
     subject: string,
     gradeLevel: number,
     atomicSubskillCode: string,
+    phase?: 'primary' | 'lower_secondary' | 'upper_secondary' | null,
 ): Promise<TeacherAcademicEvidenceFocus[]> => {
     const { data, error } = await supabase.rpc('rpc_academic_evidence_focuses_for_subskill', {
         p_subject_key: subject,
         p_grade_level: gradeLevel,
         p_atomic_subskill_code: atomicSubskillCode,
+        ...(phase ? { p_phase: phase } : {}),
     });
     if (error) throw error;
     const result = (data || {}) as { focuses?: TeacherAcademicEvidenceFocus[] };

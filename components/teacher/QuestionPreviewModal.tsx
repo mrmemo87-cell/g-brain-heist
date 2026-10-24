@@ -1,6 +1,7 @@
 import React from 'react';
 import type { TeacherQuestion } from '../../types';
 import { questionPurposeLabel } from '../../services/economicsQuestionPurpose';
+import { physicsObjectiveComponentLabels } from './questionAssessment';
 import './QuestionPreviewModal.css';
 
 interface QuestionPreviewModalProps {
@@ -94,6 +95,18 @@ export default function QuestionPreviewModal({ question, onClose, onEdit, option
         {question.tags?.some(isDisplayTag) ? <div className="question-preview__tags">{question.tags.filter(isDisplayTag).map((tag) => <span key={tag}>{tag}</span>)}</div> : null}
         <section className="question-preview__section question-preview__tracking">
           <h3>What this question assesses</h3>
+          {question.assessment_profiles?.map((profile) => (
+            <div className="question-preview__mapping" key={`${profile.programmeCode}-${profile.sourceVersion}`}>
+              <dl>
+                <div><dt>Cambridge programme</dt><dd>{profile.programmeCode} · {profile.sourceVersion}</dd></div>
+                {profile.syllabusReference ? <div><dt>Syllabus reference</dt><dd>{profile.syllabusReference}</dd></div> : null}
+                {profile.syllabusTier ? <div><dt>Content tier</dt><dd>{profile.syllabusTier === 'core' ? 'Core (also used in Extended)' : 'Supplement (Extended)'}</dd></div> : null}
+                <div><dt>External assessment objective</dt><dd>{profile.assessmentObjectives.join(', ')}</dd></div>
+              </dl>
+              {profile.objectiveComponents?.length ? <p>{profile.objectiveComponents.map((code) => physicsObjectiveComponentLabels[code] || code).join(' · ')}</p> : null}
+              {profile.programmeCode === '0654' ? <p>Physics component of Co-ordinated Sciences. This MCQ contributes to AO1/AO2 evidence; it does not assess practical performance (AO3). AO breakdown labels are Brains Heist interpretations of the syllabus.</p> : null}
+            </div>
+          ))}
           {question.registry_mappings?.length ? question.registry_mappings.map((mapping, index) => (
             <div className="question-preview__mapping" key={`${mapping.registryCode}-${mapping.subskill}-${mapping.evidenceFocus}-${index}`}>
               <dl>

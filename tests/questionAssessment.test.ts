@@ -17,3 +17,12 @@ test('teacher search includes secondary governed mappings and evidence statement
 test('unmapped questions do not acquire invented assessment labels', () => {
   assert.equal(questionAssessmentSearchText({ tags: ['economics', 'macro'] } as TeacherQuestion), '');
 });
+
+test('Physics search includes governed external programme, tier and AO focus', () => {
+  const text = questionAssessmentSearchText({assessment_profiles: [{
+    programmeCode: '0654', sourceVersion: '2025-2027', paperComponent: 'paper_2',
+    primaryAssessmentObjective: 'AO2', assessmentObjectives: ['AO2'], syllabusTier: 'supplement',
+    syllabusReference: 'P5.2.4.1', objectiveComponents: ['BH-CIE0654-AO2-problem-solving'],
+  }]} as TeacherQuestion);
+  for (const phrase of ['0654', '2025-2027', 'supplement', 'AO2', 'P5.2.4.1', 'Solving quantitative problems']) assert.ok(text.includes(phrase));
+});

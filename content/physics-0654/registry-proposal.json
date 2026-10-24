@@ -1,0 +1,889 @@
+{
+  "status": "pending_human_review",
+  "registryVersion": "bh-science-core-v1",
+  "nodes": [
+    {
+      "code": "science.physics.nuclear.atomic-structure",
+      "parent": "science.physics.nuclear",
+      "type": "subskill",
+      "name": "Nuclear composition and isotopes"
+    },
+    {
+      "code": "science.physics.nuclear.nuclear-reactions",
+      "parent": "science.physics.nuclear",
+      "type": "subskill",
+      "name": "Nuclear fission and fusion"
+    },
+    {
+      "code": "science.physics.space",
+      "parent": "science.physics",
+      "type": "skill",
+      "name": "Space physics"
+    },
+    {
+      "code": "science.physics.space.solar-system",
+      "parent": "science.physics.space",
+      "type": "subskill",
+      "name": "Solar System relationships and astronomical scales"
+    },
+    {
+      "code": "science.physics.space.stars",
+      "parent": "science.physics.space",
+      "type": "subskill",
+      "name": "Stellar composition and evolution"
+    },
+    {
+      "code": "science.physics.space.cosmology",
+      "parent": "science.physics.space",
+      "type": "subskill",
+      "name": "Galaxies and the expanding Universe"
+    }
+  ],
+  "evidenceFocuses": [
+    {
+      "code": "science.physics.thermal.temperature-particle.focus.liquid-particles",
+      "subskillCode": "science.physics.thermal.temperature-particle",
+      "name": "Describe liquid particle arrangement and motion",
+      "description": "Evidence that the learner can describe liquid particle arrangement and motion.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.temperature-particle.focus.gas-volume",
+      "subskillCode": "science.physics.thermal.temperature-particle",
+      "name": "Distinguish gas and liquid volume properties",
+      "description": "Evidence that the learner can distinguish gas and liquid volume properties.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.temperature-particle.focus.brownian-motion",
+      "subskillCode": "science.physics.thermal.temperature-particle",
+      "name": "Explain Brownian motion using molecular collisions",
+      "description": "Evidence that the learner can explain Brownian motion using molecular collisions.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.temperature-particle.focus.absolute-zero",
+      "subskillCode": "science.physics.thermal.temperature-particle",
+      "name": "Recognise absolute zero",
+      "description": "Evidence that the learner can recognise absolute zero.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.temperature-particle.focus.kelvin-conversion",
+      "subskillCode": "science.physics.thermal.temperature-particle",
+      "name": "Convert Celsius temperatures to kelvin",
+      "description": "Evidence that the learner can convert Celsius temperatures to kelvin.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.gases.focus.constant-volume-heating",
+      "subskillCode": "science.physics.thermal.gases",
+      "name": "Explain gas pressure increase at constant volume",
+      "description": "Evidence that the learner can explain gas pressure increase at constant volume.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.gases.focus.gas-wall-collisions",
+      "subskillCode": "science.physics.thermal.gases",
+      "name": "Explain gas pressure using wall collisions",
+      "description": "Evidence that the learner can explain gas pressure using wall collisions.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.gases.focus.boyles-law-calculation",
+      "subskillCode": "science.physics.thermal.gases",
+      "name": "Calculate pressure using inverse pressure-volume relationships",
+      "description": "Evidence that the learner can calculate pressure using inverse pressure-volume relationships.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.gases.focus.pressure-volume-prediction",
+      "subskillCode": "science.physics.thermal.gases",
+      "name": "Predict pressure change at constant temperature",
+      "description": "Evidence that the learner can predict pressure change at constant temperature.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.temperature-particle.focus.compare-expansion",
+      "subskillCode": "science.physics.thermal.temperature-particle",
+      "name": "Compare thermal expansion of states of matter",
+      "description": "Evidence that the learner can compare thermal expansion of states of matter.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.temperature-particle.focus.expansion-applications",
+      "subskillCode": "science.physics.thermal.temperature-particle",
+      "name": "Explain expansion gaps in structures",
+      "description": "Evidence that the learner can explain expansion gaps in structures.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.temperature-particle.focus.expansion-particles",
+      "subskillCode": "science.physics.thermal.temperature-particle",
+      "name": "Explain expansion using mean particle separation",
+      "description": "Evidence that the learner can explain expansion using mean particle separation.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.temperature-particle.focus.specific-heat-definition",
+      "subskillCode": "science.physics.thermal.temperature-particle",
+      "name": "Define specific heat capacity",
+      "description": "Evidence that the learner can define specific heat capacity.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.temperature-particle.focus.heating-energy",
+      "subskillCode": "science.physics.thermal.temperature-particle",
+      "name": "Calculate energy using specific heat capacity",
+      "description": "Evidence that the learner can calculate energy using specific heat capacity.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.temperature-particle.focus.specific-heat-calculation",
+      "subskillCode": "science.physics.thermal.temperature-particle",
+      "name": "Calculate specific heat capacity from heating data",
+      "description": "Evidence that the learner can calculate specific heat capacity from heating data.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.temperature-particle.focus.melting-energy",
+      "subskillCode": "science.physics.thermal.temperature-particle",
+      "name": "Explain constant temperature during melting",
+      "description": "Evidence that the learner can explain constant temperature during melting.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.temperature-particle.focus.evaporation-cooling",
+      "subskillCode": "science.physics.thermal.temperature-particle",
+      "name": "Explain evaporative cooling through particle energies",
+      "description": "Evidence that the learner can explain evaporative cooling through particle energies.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.temperature-particle.focus.boiling-evaporation",
+      "subskillCode": "science.physics.thermal.temperature-particle",
+      "name": "Distinguish boiling and evaporation",
+      "description": "Evidence that the learner can distinguish boiling and evaporation.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.heat-transfer.focus.lattice-conduction",
+      "subskillCode": "science.physics.thermal.heat-transfer",
+      "name": "Explain conduction through particle vibrations",
+      "description": "Evidence that the learner can explain conduction through particle vibrations.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.heat-transfer.focus.convection-medium",
+      "subskillCode": "science.physics.thermal.heat-transfer",
+      "name": "Identify why convection requires a flowing medium",
+      "description": "Evidence that the learner can identify why convection requires a flowing medium.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.heat-transfer.focus.convection-density",
+      "subskillCode": "science.physics.thermal.heat-transfer",
+      "name": "Explain convection through density changes",
+      "description": "Evidence that the learner can explain convection through density changes.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.heat-transfer.focus.radiation-vacuum",
+      "subskillCode": "science.physics.thermal.heat-transfer",
+      "name": "Identify radiation as energy transfer through vacuum",
+      "description": "Evidence that the learner can identify radiation as energy transfer through vacuum.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.heat-transfer.focus.surface-emission",
+      "subskillCode": "science.physics.thermal.heat-transfer",
+      "name": "Compare thermal emission from different surfaces",
+      "description": "Evidence that the learner can compare thermal emission from different surfaces.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.heat-transfer.focus.emission-area",
+      "subskillCode": "science.physics.thermal.heat-transfer",
+      "name": "Relate emitting surface area to infrared power",
+      "description": "Evidence that the learner can relate emitting surface area to infrared power.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.heat-transfer.focus.radiative-equilibrium",
+      "subskillCode": "science.physics.thermal.heat-transfer",
+      "name": "Explain temperature stability using radiation balance",
+      "description": "Evidence that the learner can explain temperature stability using radiation balance.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.thermal.heat-transfer.focus.vacuum-insulation",
+      "subskillCode": "science.physics.thermal.heat-transfer",
+      "name": "Explain vacuum insulation against conduction and convection",
+      "description": "Evidence that the learner can explain vacuum insulation against conduction and convection.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.atomic-structure.focus.nuclear-composition",
+      "subskillCode": "science.physics.nuclear.atomic-structure",
+      "name": "Identify nuclear constituents",
+      "description": "Evidence that the learner can identify nuclear constituents.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.atomic-structure.focus.nuclide-numbers",
+      "subskillCode": "science.physics.nuclear.atomic-structure",
+      "name": "Calculate proton and neutron numbers from nuclide notation",
+      "description": "Evidence that the learner can calculate proton and neutron numbers from nuclide notation.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.atomic-structure.focus.isotopes",
+      "subskillCode": "science.physics.nuclear.atomic-structure",
+      "name": "Distinguish isotopes using proton and neutron numbers",
+      "description": "Evidence that the learner can distinguish isotopes using proton and neutron numbers.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.atomic-structure.focus.scattering-empty-space",
+      "subskillCode": "science.physics.nuclear.atomic-structure",
+      "name": "Infer empty space from alpha scattering",
+      "description": "Evidence that the learner can infer empty space from alpha scattering.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.atomic-structure.focus.scattering-nucleus",
+      "subskillCode": "science.physics.nuclear.atomic-structure",
+      "name": "Infer nuclear size and charge from alpha scattering",
+      "description": "Evidence that the learner can infer nuclear size and charge from alpha scattering.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.nuclear-reactions.focus.fission",
+      "subskillCode": "science.physics.nuclear.nuclear-reactions",
+      "name": "Distinguish nuclear fission from fusion",
+      "description": "Evidence that the learner can distinguish nuclear fission from fusion.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.nuclear-reactions.focus.fusion",
+      "subskillCode": "science.physics.nuclear.nuclear-reactions",
+      "name": "Distinguish nuclear fusion from fission",
+      "description": "Evidence that the learner can distinguish nuclear fusion from fission.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.background-sources",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Identify sources of ionising background radiation",
+      "description": "Evidence that the learner can identify sources of ionising background radiation.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.background-correction",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Correct measured count rate for background radiation",
+      "description": "Evidence that the learner can correct measured count rate for background radiation.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.alpha-nature",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Identify alpha particle composition",
+      "description": "Evidence that the learner can identify alpha particle composition.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.beta-nature",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Identify beta-minus particles",
+      "description": "Evidence that the learner can identify beta-minus particles.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.gamma-nature",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Identify gamma as electromagnetic radiation",
+      "description": "Evidence that the learner can identify gamma as electromagnetic radiation.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.ionisation",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Compare ionising effects of nuclear emissions",
+      "description": "Evidence that the learner can compare ionising effects of nuclear emissions.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.penetration",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Identify emissions using absorber evidence",
+      "description": "Evidence that the learner can identify emissions using absorber evidence.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.field-deflection",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Predict deflection from radiation charge",
+      "description": "Evidence that the learner can predict deflection from radiation charge.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.field-deflection-comparison",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Compare alpha and beta electric deflection",
+      "description": "Evidence that the learner can compare alpha and beta electric deflection.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.alpha-decay",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Determine daughter nuclides after alpha decay",
+      "description": "Evidence that the learner can determine daughter nuclides after alpha decay.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.beta-decay-nuclide",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Determine daughter nuclides after beta-minus decay",
+      "description": "Evidence that the learner can determine daughter nuclides after beta-minus decay.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.beta-decay-process",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Describe nuclear change in beta-minus emission",
+      "description": "Evidence that the learner can describe nuclear change in beta-minus emission.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.gamma-decay",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Determine nucleon and proton changes in gamma emission",
+      "description": "Evidence that the learner can determine nucleon and proton changes in gamma emission.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.random-decay",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Explain random and spontaneous radioactive decay",
+      "description": "Evidence that the learner can explain random and spontaneous radioactive decay.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.half-life-definition",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Define radioactive half-life",
+      "description": "Evidence that the learner can define radioactive half-life.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.half-life-remaining",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Calculate undecayed quantity after whole half-lives",
+      "description": "Evidence that the learner can calculate undecayed quantity after whole half-lives.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.half-life-from-data",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Determine half-life from decay data",
+      "description": "Evidence that the learner can determine half-life from decay data.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.half-life-background",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Calculate half-life after background subtraction",
+      "description": "Evidence that the learner can calculate half-life after background subtraction.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.smoke-detectors",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Explain alpha radiation use in smoke detectors",
+      "description": "Evidence that the learner can explain alpha radiation use in smoke detectors.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.thickness-monitoring",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Select radiation for thickness monitoring",
+      "description": "Evidence that the learner can select radiation for thickness monitoring.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.nuclear.radioactivity.focus.radiation-safety",
+      "subskillCode": "science.physics.nuclear.radioactivity",
+      "name": "Select effective exposure-reduction precautions",
+      "description": "Evidence that the learner can select effective exposure-reduction precautions.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.solar-system.focus.rotation-day-night",
+      "subskillCode": "science.physics.space.solar-system",
+      "name": "Explain day and night using rotation",
+      "description": "Evidence that the learner can explain day and night using rotation.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.solar-system.focus.axial-tilt-seasons",
+      "subskillCode": "science.physics.space.solar-system",
+      "name": "Explain seasons using axial tilt and orbit",
+      "description": "Evidence that the learner can explain seasons using axial tilt and orbit.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.solar-system.focus.lunar-phases",
+      "subskillCode": "science.physics.space.solar-system",
+      "name": "Explain lunar phases using viewing geometry",
+      "description": "Evidence that the learner can explain lunar phases using viewing geometry.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.solar-system.focus.lunar-period",
+      "subskillCode": "science.physics.space.solar-system",
+      "name": "Recall the Moon's orbital period",
+      "description": "Evidence that the learner can recall the Moon's orbital period.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.solar-system.focus.earth-period",
+      "subskillCode": "science.physics.space.solar-system",
+      "name": "Recall Earth's orbital period",
+      "description": "Evidence that the learner can recall Earth's orbital period.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.solar-system.focus.planet-order",
+      "subskillCode": "science.physics.space.solar-system",
+      "name": "Recall planet order from the Sun",
+      "description": "Evidence that the learner can recall planet order from the Sun.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.solar-system.focus.system-formation",
+      "subskillCode": "science.physics.space.solar-system",
+      "name": "Describe Solar System formation through accretion",
+      "description": "Evidence that the learner can describe Solar System formation through accretion.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.solar-system.focus.planet-composition",
+      "subskillCode": "science.physics.space.solar-system",
+      "name": "Explain differences in planetary composition",
+      "description": "Evidence that the learner can explain differences in planetary composition.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.fields.gravity.focus.surface-gravity",
+      "subskillCode": "science.physics.fields.gravity",
+      "name": "Relate surface gravitational field to mass and radius",
+      "description": "Evidence that the learner can relate surface gravitational field to mass and radius.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.solar-system.focus.orbital-speed-distance",
+      "subskillCode": "science.physics.space.solar-system",
+      "name": "Predict orbital speed with distance from the Sun",
+      "description": "Evidence that the learner can predict orbital speed with distance from the Sun.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.solar-system.focus.orbital-speed-calculation",
+      "subskillCode": "science.physics.space.solar-system",
+      "name": "Calculate orbital speed from radius and period",
+      "description": "Evidence that the learner can calculate orbital speed from radius and period.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.solar-system.focus.light-travel-time",
+      "subskillCode": "science.physics.space.solar-system",
+      "name": "Calculate light travel time across astronomical distances",
+      "description": "Evidence that the learner can calculate light travel time across astronomical distances.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.solar-system.focus.elliptical-orbits",
+      "subskillCode": "science.physics.space.solar-system",
+      "name": "Predict speed around elliptical orbits",
+      "description": "Evidence that the learner can predict speed around elliptical orbits.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.stars.focus.stellar-composition",
+      "subskillCode": "science.physics.space.stars",
+      "name": "Describe the Sun's composition and size",
+      "description": "Evidence that the learner can describe the Sun's composition and size.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.stars.focus.solar-spectrum",
+      "subskillCode": "science.physics.space.stars",
+      "name": "Identify the main regions of solar radiation",
+      "description": "Evidence that the learner can identify the main regions of solar radiation.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.stars.focus.stellar-fusion",
+      "subskillCode": "science.physics.space.stars",
+      "name": "Identify hydrogen fusion as stable-star energy source",
+      "description": "Evidence that the learner can identify hydrogen fusion as stable-star energy source.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.cosmology.focus.galaxy-structure",
+      "subskillCode": "science.physics.space.cosmology",
+      "name": "Describe galaxies as collections of stars",
+      "description": "Evidence that the learner can describe galaxies as collections of stars.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.solar-system.focus.light-year-definition",
+      "subskillCode": "science.physics.space.solar-system",
+      "name": "Identify light-year as a distance unit",
+      "description": "Evidence that the learner can identify light-year as a distance unit.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.solar-system.focus.light-year-conversion",
+      "subskillCode": "science.physics.space.solar-system",
+      "name": "Convert astronomical distances using a supplied light-year value",
+      "description": "Evidence that the learner can convert astronomical distances using a supplied light-year value.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.stars.focus.protostar-formation",
+      "subskillCode": "science.physics.space.stars",
+      "name": "Describe gravitational protostar formation",
+      "description": "Evidence that the learner can describe gravitational protostar formation.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.stars.focus.stellar-equilibrium",
+      "subskillCode": "science.physics.space.stars",
+      "name": "Explain hydrostatic balance in a stable star",
+      "description": "Evidence that the learner can explain hydrostatic balance in a stable star.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.stars.focus.low-mass-evolution",
+      "subskillCode": "science.physics.space.stars",
+      "name": "Identify red-giant evolution of a Sun-like star",
+      "description": "Evidence that the learner can identify red-giant evolution of a Sun-like star.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.stars.focus.low-mass-remnant",
+      "subskillCode": "science.physics.space.stars",
+      "name": "Identify the white-dwarf remnant of a Sun-like star",
+      "description": "Evidence that the learner can identify the white-dwarf remnant of a Sun-like star.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.stars.focus.massive-star-evolution",
+      "subskillCode": "science.physics.space.stars",
+      "name": "Sequence the evolution of massive stars",
+      "description": "Evidence that the learner can sequence the evolution of massive stars.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.stars.focus.stellar-recycling",
+      "subskillCode": "science.physics.space.stars",
+      "name": "Describe star and planet formation from supernova remnants",
+      "description": "Evidence that the learner can describe star and planet formation from supernova remnants.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.cosmology.focus.redshift",
+      "subskillCode": "science.physics.space.cosmology",
+      "name": "Interpret redshift as increased observed wavelength",
+      "description": "Evidence that the learner can interpret redshift as increased observed wavelength.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.cosmology.focus.expansion-evidence",
+      "subskillCode": "science.physics.space.cosmology",
+      "name": "Interpret distance-redshift evidence for expansion",
+      "description": "Evidence that the learner can interpret distance-redshift evidence for expansion.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.cosmology.focus.microwave-background",
+      "subskillCode": "science.physics.space.cosmology",
+      "name": "Describe the cosmic microwave background",
+      "description": "Evidence that the learner can describe the cosmic microwave background.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.cosmology.focus.hubble-distance",
+      "subskillCode": "science.physics.space.cosmology",
+      "name": "Calculate galaxy distance using Hubble's law",
+      "description": "Evidence that the learner can calculate galaxy distance using Hubble's law.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    },
+    {
+      "code": "science.physics.space.cosmology.focus.hubble-age",
+      "subskillCode": "science.physics.space.cosmology",
+      "name": "Estimate cosmic age using inverse Hubble constant",
+      "description": "Evidence that the learner can estimate cosmic age using inverse Hubble constant.",
+      "applicablePhases": [
+        "upper_secondary"
+      ],
+      "reviewStatus": "pending_human_review"
+    }
+  ],
+  "programmeChange": {
+    "alias": "physics",
+    "addProgrammeCode": "0654"
+  },
+  "policy": "Additive proposals only. No existing meaning, phase or historic taxonomy is rewritten. Extension-only focuses need not be activated for the aligned release."
+}

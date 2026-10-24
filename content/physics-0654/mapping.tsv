@@ -1,0 +1,91 @@
+id	leaf	focus	label	reference	tier	process
+1	thermal.temperature-particle	liquid-particles	Describe liquid particle arrangement and motion	P2.1.2.1	core	understand
+2	thermal.temperature-particle	gas-volume	Distinguish gas and liquid volume properties	P2.1.1.1	core	understand
+3	thermal.temperature-particle	brownian-motion	Explain Brownian motion using molecular collisions	P2.1.2.5	supplement	understand
+4	thermal.temperature-particle	absolute-zero	Recognise absolute zero	-	extension	remember
+5	thermal.temperature-particle	kelvin-conversion	Convert Celsius temperatures to kelvin	-	extension	apply
+6	thermal.gases	constant-volume-heating	Explain gas pressure increase at constant volume	P2.1.3.1	supplement	understand
+7	thermal.gases	gas-wall-collisions	Explain gas pressure using wall collisions	P2.1.2.6	supplement	understand
+8	thermal.gases	boyles-law-calculation	Calculate pressure using inverse pressure-volume relationships	-	extension	apply
+9	thermal.gases	pressure-volume-prediction	Predict pressure change at constant temperature	P2.1.3.1	supplement	apply
+10	thermal.temperature-particle	temperature-kinetic-energy	Relate temperature to average particle kinetic energy	P2.1.2.2	core	understand
+11	thermal.temperature-particle	compare-expansion	Compare thermal expansion of states of matter	P2.2.1.1	core	understand
+12	thermal.temperature-particle	expansion-applications	Explain expansion gaps in structures	P2.2.1.2	supplement	understand
+13	thermal.temperature-particle	expansion-particles	Explain expansion using mean particle separation	P2.1.2.4	supplement	understand
+14	thermal.temperature-particle	specific-heat-definition	Define specific heat capacity	-	extension	remember
+15	thermal.temperature-particle	heating-energy	Calculate energy using specific heat capacity	-	extension	apply
+16	thermal.temperature-particle	specific-heat-calculation	Calculate specific heat capacity from heating data	-	extension	apply
+17	thermal.temperature-particle	temperature-kinetic-energy	Relate temperature to average particle kinetic energy	P2.1.2.2	core	understand
+18	thermal.temperature-particle	melting-energy	Explain constant temperature during melting	P2.2.2.5	core	understand
+19	thermal.temperature-particle	evaporation-cooling	Explain evaporative cooling through particle energies	P2.2.2.3	core	understand
+20	thermal.temperature-particle	boiling-evaporation	Distinguish boiling and evaporation	P2.2.2.6	supplement	understand
+21	thermal.heat-transfer	metal-conduction	Explain thermal conduction using mobile electrons	P2.3.1.2	supplement	understand
+22	thermal.heat-transfer	lattice-conduction	Explain conduction through particle vibrations	P2.3.1.2	supplement	understand
+23	thermal.heat-transfer	convection-medium	Identify why convection requires a flowing medium	P2.3.2.1	core	understand
+24	thermal.heat-transfer	convection-density	Explain convection through density changes	P2.3.2.3	supplement	understand
+25	thermal.heat-transfer	radiation-vacuum	Identify radiation as energy transfer through vacuum	P2.3.3.1	core	understand
+26	thermal.heat-transfer	surface-emission	Compare thermal emission from different surfaces	P2.3.3.2	core	apply
+27	thermal.heat-transfer	surface-emission	Compare thermal emission from different surfaces	P2.3.3.2	core	apply
+28	thermal.heat-transfer	emission-area	Relate emitting surface area to infrared power	-	extension	apply
+29	thermal.heat-transfer	radiative-equilibrium	Explain temperature stability using radiation balance	P2.3.3.3	supplement	understand
+30	thermal.heat-transfer	vacuum-insulation	Explain vacuum insulation against conduction and convection	P2.3.4.1	core	understand
+31	nuclear.atomic-structure	nuclear-composition	Identify nuclear constituents	P5.1.1	core	remember
+32	nuclear.atomic-structure	nuclide-numbers	Calculate proton and neutron numbers from nuclide notation	P5.1.3	core	apply
+33	nuclear.atomic-structure	isotopes	Distinguish isotopes using proton and neutron numbers	P5.1.5	core	understand
+34	nuclear.atomic-structure	scattering-empty-space	Infer empty space from alpha scattering	-	extension	analyze
+35	nuclear.atomic-structure	scattering-nucleus	Infer nuclear size and charge from alpha scattering	-	extension	analyze
+36	nuclear.nuclear-reactions	fission	Distinguish nuclear fission from fusion	P5.1.7	supplement	understand
+37	nuclear.nuclear-reactions	fusion	Distinguish nuclear fusion from fission	P5.1.7	supplement	understand
+38	nuclear.radioactivity	background-sources	Identify sources of ionising background radiation	P5.2.1.2	core	remember
+39	nuclear.radioactivity	background-correction	Correct measured count rate for background radiation	-	extension	apply
+40	nuclear.radioactivity	alpha-nature	Identify alpha particle composition	P5.2.2.1	core	remember
+41	nuclear.radioactivity	beta-nature	Identify beta-minus particles	P5.2.2.1	core	remember
+42	nuclear.radioactivity	gamma-nature	Identify gamma as electromagnetic radiation	P5.2.2.1	core	remember
+43	nuclear.radioactivity	ionisation	Compare ionising effects of nuclear emissions	P5.2.2.1	core	understand
+44	nuclear.radioactivity	penetration	Identify emissions using absorber evidence	P5.2.2.1	core	apply
+45	nuclear.radioactivity	penetration	Compare penetration of nuclear emissions	P5.2.2.1	core	understand
+46	nuclear.radioactivity	field-deflection	Predict deflection from radiation charge	-	extension	apply
+47	nuclear.radioactivity	field-deflection-comparison	Compare alpha and beta electric deflection	-	extension	understand
+48	nuclear.radioactivity	alpha-decay	Determine daughter nuclides after alpha decay	P5.2.3.4	supplement	apply
+49	nuclear.radioactivity	beta-decay-nuclide	Determine daughter nuclides after beta-minus decay	P5.2.3.4	supplement	apply
+50	nuclear.radioactivity	beta-decay-process	Describe nuclear change in beta-minus emission	P5.2.3.3	core	understand
+51	nuclear.radioactivity	gamma-decay	Determine nucleon and proton changes in gamma emission	P5.2.3.4	supplement	understand
+52	nuclear.radioactivity	random-decay	Explain random and spontaneous radioactive decay	P5.2.3.1	core	understand
+53	nuclear.radioactivity	half-life-definition	Define radioactive half-life	P5.2.4.1	core	remember
+54	nuclear.radioactivity	half-life-remaining	Calculate undecayed quantity after whole half-lives	P5.2.4.1	core	apply
+55	nuclear.radioactivity	half-life-from-data	Determine half-life from decay data	P5.2.4.1	core	apply
+56	nuclear.radioactivity	half-life-background	Calculate half-life after background subtraction	-	extension	apply
+57	nuclear.radioactivity	half-life-remaining	Calculate undecayed fraction after whole half-lives	P5.2.4.1	core	apply
+58	nuclear.radioactivity	smoke-detectors	Explain alpha radiation use in smoke detectors	P5.2.5.1	core	understand
+59	nuclear.radioactivity	thickness-monitoring	Select radiation for thickness monitoring	P5.2.5.1	core	apply
+60	nuclear.radioactivity	radiation-safety	Select effective exposure-reduction precautions	P5.2.5.3	core	understand
+61	space.solar-system	rotation-day-night	Explain day and night using rotation	-	foundation	understand
+62	space.solar-system	axial-tilt-seasons	Explain seasons using axial tilt and orbit	-	foundation	understand
+63	space.solar-system	lunar-phases	Explain lunar phases using viewing geometry	-	foundation	understand
+64	space.solar-system	lunar-period	Recall the Moon's orbital period	-	foundation	remember
+65	space.solar-system	earth-period	Recall Earth's orbital period	-	foundation	remember
+66	space.solar-system	planet-order	Recall planet order from the Sun	P6.1.1	core	remember
+67	space.solar-system	system-formation	Describe Solar System formation through accretion	-	extension	understand
+68	space.solar-system	planet-composition	Explain differences in planetary composition	-	extension	understand
+69	fields.gravity	surface-gravity	Relate surface gravitational field to mass and radius	-	extension	understand
+70	space.solar-system	orbital-speed-distance	Predict orbital speed with distance from the Sun	P6.2.1.7	supplement	apply
+71	space.solar-system	orbital-speed-calculation	Calculate orbital speed from radius and period	P6.2.1.6	supplement	apply
+72	space.solar-system	light-travel-time	Calculate light travel time across astronomical distances	P6.2.1.2	core	apply
+73	space.solar-system	elliptical-orbits	Predict speed around elliptical orbits	-	extension	apply
+74	space.stars	stellar-composition	Describe the Sun's composition and size	P6.2.1.5	core	remember
+75	space.stars	solar-spectrum	Identify the main regions of solar radiation	P6.2.1.5	core	remember
+76	space.stars	stellar-fusion	Identify hydrogen fusion as stable-star energy source	P6.2.1.8	supplement	remember
+77	space.cosmology	galaxy-structure	Describe galaxies as collections of stars	P6.2.3.1	core	remember
+78	space.solar-system	light-year-definition	Identify light-year as a distance unit	P6.2.1.1	core	remember
+79	space.solar-system	light-year-conversion	Convert astronomical distances using a supplied light-year value	P6.2.1.1	core	apply
+80	space.stars	protostar-formation	Describe gravitational protostar formation	P6.2.2.1	core	understand
+81	space.stars	stellar-equilibrium	Explain hydrostatic balance in a stable star	-	extension	understand
+82	space.stars	low-mass-evolution	Identify red-giant evolution of a Sun-like star	P6.2.2.2	core	understand
+83	space.stars	low-mass-remnant	Identify the white-dwarf remnant of a Sun-like star	P6.2.2.2	core	understand
+84	space.stars	massive-star-evolution	Sequence the evolution of massive stars	P6.2.2.2	core	understand
+85	space.stars	stellar-recycling	Describe star and planet formation from supernova remnants	P6.2.2.3	supplement	understand
+86	space.cosmology	redshift	Interpret redshift as increased observed wavelength	-	extension	understand
+87	space.cosmology	expansion-evidence	Interpret distance-redshift evidence for expansion	-	extension	analyze
+88	space.cosmology	microwave-background	Describe the cosmic microwave background	-	extension	understand
+89	space.cosmology	hubble-distance	Calculate galaxy distance using Hubble's law	-	extension	apply
+90	space.cosmology	hubble-age	Estimate cosmic age using inverse Hubble constant	-	extension	apply
