@@ -278,6 +278,22 @@ class Pack:
             out.append(self.p('Figure description: ' + b['figure']['alt'], 'S'))
         return out
 
+    def assessment_flow_chart(self, entries):
+        """Render a real staged flow with visually separate side branches; never imply unsupported onward steps."""
+        out = []
+        for entry in entries:
+            kind = entry['kind']
+            if kind == 'arrow':
+                out.append(self.p(entry.get('text', '↓'), 'Arrow'))
+                continue
+            title = entry['title']
+            body = entry['text']
+            if kind == 'branch':
+                title = 'SIDE ROUTE / LOOP — ' + title
+            rows = [[title], [body]]
+            out.extend(self.table(rows, [450 if kind == 'stage' else 425]))
+        return out
+
     # ---------- content renderers ----------
     def student_items(self, b, number_from=None, show_hints=True):
         out = [self.p(b['title'], 'H'), self.p(b['instructions'])]
@@ -296,15 +312,32 @@ class Pack:
         out += self.figure_flow(b, with_table=b['figure'].get('show_table', False) if b.get('figure') else False)
         if b.get('form_title'):
             out.append(self.p(b['form_title'], 'H'))
+        if b.get('summary_text'):
+            # A true connected IELTS summary: each numbered blank is part of the same prose.
+            out.append(self.p(b.get('summary_title', 'Summary'), 'H'))
+            for paragraph in b['summary_text'].split('\\n\\n'):
+                out.append(self.p(paragraph, 'B'))
+            return out
+        if b.get('flow_chart'):
+            # Choose-TWO instructions/options precede the process diagram; gap items appear only in the boxes.
+            for it in b['items']:
+                if it['type'] not in ('choice', 'mcq'):
+                    continue
+                num = it['id'].rsplit('-Q', 1)[-1]
+                out.append(self.p(f"{num}.  {it['prompt']}"))
+                for option in it.get('options', []):
+                    out.append(self.p(option, 'O'))
+            out.extend(self.assessment_flow_chart(b['flow_chart']))
+            return out
         if b.get('flow'):
-            # Flow-chart completion: each stage in a box, joined by arrows (as in the test).
+            # Legacy linear flow chart remains available for the original taught exercises.
             chart = []
             for i, it in enumerate(b['items']):
                 num = it['id'].rsplit('-Q', 1)[-1]
                 if i:
                     chart.append(self.p('↓', 'Arrow'))
                 chart += self.table([[f"{num}.  {it['prompt']}"]], [380])[:1]
-            return [KeepTogether(out + chart)]
+            return out + chart
         for i, it in enumerate(b['items']):
             num = it['id'].rsplit('-Q', 1)[-1]
             body = [self.p(f"{num}.  {it['prompt']}")]
@@ -333,7 +366,7 @@ class Pack:
     def student_block(self, b):
         flow = self._student_block(b)
         st = b.get('stimulus') or {}
-        if b['kind'] == 'items' and st.get('type') != 'passage' and not b.get('figure') and len(b['items']) <= 8:
+        if b['kind'] == 'items' and st.get('type') != 'passage' and not b.get('figure') and not b.get('flow_chart') and len(b['items']) <= 8:
             def flat(fl):
                 out = []
                 for f in fl:
