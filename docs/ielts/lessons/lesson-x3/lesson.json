@@ -739,7 +739,7 @@
           },
           {
             "kind": "branch",
-            "title": "Emergency diversion — only above the turbidity threshold",
+            "title": "Emergency diversion — if the monitored safety threshold is exceeded",
             "text": "↘ EMERGENCY HOLDING RESERVOIR. Water is temporarily diverted out of the normal treatment route."
           },
           {
@@ -789,8 +789,8 @@
           },
           {
             "kind": "stage",
-            "title": "FINAL TREATMENT — REED BED BESIDE THE HARBOUR",
-            "text": "The treated water flows into a (8) ______ bed."
+            "title": "FINAL TREATMENT — (8) ______ BED BESIDE THE HARBOUR",
+            "text": "The treated water reaches a planted area where vegetation slows the flow."
           }
         ]
       }
