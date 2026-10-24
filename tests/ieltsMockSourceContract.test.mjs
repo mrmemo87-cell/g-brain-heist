@@ -79,3 +79,32 @@ test('drafts must use the current Bibles; approved sources keep the earlier vers
   assert.ok(bibleVersionErrors({ approval_record: {}, bibles: { ...current, diagnostic: 'latest' } }, current).length > 0);
   assert.deepEqual(bibleVersionErrors({ bibles: current }, current), []);
 });
+
+
+test('revised extensions have substantive independent checks and honest audio status', () => {
+  const extensions = lessonSourcePaths().map(load).filter((l) => /^IELTS-X[1-8]$/.test(l.code));
+  for (const lesson of extensions) {
+    assert.equal(lesson.version, '1.1.0');
+    assert.match(lesson.status, /draft/i);
+    assert.equal(lesson.approval_record, undefined);
+    assert.deepEqual(lesson.bibles, currentBibleVersions());
+    assert.equal(lesson.previous_approval_record?.version, '1.0.0');
+  }
+  for (const lesson of extensions.slice(0, 3)) {
+    const blocks = lesson.followup.blocks;
+    const passage = blocks.find((b) => b.stimulus?.type === 'passage');
+    assert.ok(passage, lesson.code + ': missing passage');
+    assert.ok(passage.stimulus.paragraphs.join(' ').split(/\s+/).length >= 350, lesson.code + ': short passage');
+    assert.ok(blocks.reduce((total, b) => total + (b.items?.length ?? 0), 0) >= 8);
+    assert.match(lesson.followup.status, /withheld/i);
+  }
+  const listening = extensions.find((l) => l.code === 'IELTS-X4');
+  const check = listening.followup.blocks.find((b) => b.id === 'IELTS-X4-C1');
+  assert.ok(check.stimulus.paragraphs.join(' ').split(/\s+/).length >= 500);
+  assert.equal(check.items.length, 8); // two choose-TWO pairs plus six completions, ten marks
+  assert.equal(check.items.filter((i) => i.type === 'choice').length, 2);
+  const recording = listening.audio.recordings.find((r) => r.block === check.id);
+  assert.match(recording.status, /new recording required/i);
+  assert.equal(recording.delivered_sha256, undefined);
+  assert.ok(listening.release_blockers.some((b) => b.includes('IELTS-X4-C1')));
+});
