@@ -5,16 +5,16 @@
   "extension": true,
   "placement": "optional, after Week 5 (Lesson 9)",
   "week": 5,
-  "version": "1.0.0",
-  "presentation_version": "1.0.0",
+  "version": "1.1.0",
+  "presentation_version": "1.1.0",
   "title": "Reading: summary completion and sentence endings",
-  "status": "Owner approved v1.0.0 on 2026-10-18; teacher release to all eligible schools (optional extension lesson)",
+  "status": "Private teacher-review revision DRAFT v1.1.0 (NOT approved or released; prior v1.0.0 approval is historical only).",
   "duration": 60,
   "test_type": "Academic",
   "bibles": {
-    "diagnostic": "1.10.0",
-    "lessons": "1.1.0",
-    "visual": "1.1.0"
+    "diagnostic": "2.0.0",
+    "lessons": "1.2.0",
+    "visual": "1.2.0"
   },
   "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Passages are original and describe general, widely reported trends without citing specific studies, operators or figures. Human editorial, factual, key, mapping, difficulty and originality review pending.",
   "audio": {
@@ -766,9 +766,10 @@
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
   "release_blockers": [
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
-    "Student task publication and platform evidence capture remain separate, governed steps."
+    "Student task publication and platform evidence capture remain separate, governed steps.",
+    "v1.1.0 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
   ],
-  "approval_record": {
+  "previous_approval_record": {
     "approved_by": "Owner, Brains Heist LLC",
     "date": "2026-10-18",
     "version": "1.0.0",
