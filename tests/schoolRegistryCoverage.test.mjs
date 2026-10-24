@@ -73,7 +73,7 @@ test('coverage excludes stale hashes, retired registry targets, drafts and priva
  await db.exec("select set_config('test.actor','',false)");await assert.rejects(scopes(db),/school_administrator_access_required/);
  }finally{await db.close();}
 });
-async function renderEditor(){
+async function renderEditor(values={}){
  const bundle=await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import Manager from './components/school-admin/SchoolSubjectsManager';createRoot(document.getElementById('root')).render(<Manager/>);`,loader:'tsx',resolveDir:process.cwd()},bundle:true,write:false,format:'iife',logLevel:'silent',plugins:[{name:'fixtures',setup(b){
  b.onLoad({filter:/schoolSubjectCatalogService\.ts$/},()=>({contents:`export const fetchSchoolSubjectCatalog=async()=>window.catalog; export const saveSchoolSubject=async input=>{window.saved=input;return {success:true,name:input.name}};export const deleteSchoolSubject=async()=>({success:true});`}));
  b.onLoad({filter:/schoolAcademicSetupService\.ts$/},()=>({contents:`export const fetchSchoolAcademicSetup=async()=>window.setup;`}));
@@ -83,6 +83,7 @@ async function renderEditor(){
  const dom=new JSDOM('<div id="root"></div>',{runScripts:'outside-only',pretendToBeVisual:true});
  dom.window.catalog={subjects:[{id:'local',name:'Physics-0654',code:'PHYSICS-0654',isActive:true,academicSubjectId:'old-map',academicSubjectName:'Old mapping',mappingStatus:'mapped',offerings:[]}],academicYearName:'2026/2027'};
  dom.window.setup={years:[{id:'year',status:'current'}],frameworks:[{subjects:[{academicSubjectId:'physics',name:'Physics',code:'physics',scopes:[{scopeId:'scope10',gradeLevel:10}]}]}]};
+ Object.assign(dom.window,values);
  dom.window.eval(bundle.outputFiles[0].text);
  return dom;
 }
@@ -97,4 +98,14 @@ test('empty schools can select Grade 10 and persist an explicitly changed academ
  grade.value='10';grade.dispatchEvent(new dom.window.Event('change',{bubbles:true}));await new Promise(r=>setTimeout(r,20));button('Save changes').click();
  const saved=await until(()=>dom.window.saved);assert.equal(saved.academicSubjectId,'physics');assert.equal(saved.gradeLevel,'10');assert.equal(saved.curriculumScopeId,'scope10');assert.equal(saved.teacherUserId,null);assert.equal(saved.replaceTeacherAllocations,false);
  }finally{dom.window.close();}
+});
+
+test('standard class teaching hides optional group setup; existing custom teaching stays visible',async()=>{
+ for(const mode of ['by_class','custom_groups']) {
+ const dom=await renderEditor({catalog:{subjects:[{id:'local',name:'Physics-0654',code:'PHYSICS-0654',isActive:true,academicSubjectId:'physics',academicSubjectName:'Physics',mappingStatus:'mapped',offerings:[{id:'offering',academicYearId:'year',gradeLevel:'10',status:'active',deliveryMode:mode,accessMode:'all_grade',selectedStudentIds:[]}]}]}});
+ try {const doc=dom.window.document;(await until(()=>[...doc.querySelectorAll('button')].find(b=>b.textContent.trim()==='Edit'))).click();await until(()=>doc.querySelector('details'));
+ assert.equal(doc.querySelector('details').open,mode!=='by_class');
+ assert.match(doc.body.textContent,/School classes link automatically/);
+ }finally{dom.window.close();}
+ }
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { fetchSchoolAcademicSetup, type SchoolAcademicSetup } from '../../../services/schoolAcademicSetupService';
+import { useSchoolSubjectOfferings } from '../hooks/useSchoolSubjectOfferings';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 
 const DashboardTab: React.FC = () => {
@@ -11,15 +11,7 @@ const DashboardTab: React.FC = () => {
   const teacherAllocations = Array.isArray(context.teacherAllocations) ? context.teacherAllocations : [];
   const studentAssignments = context.studentAssignments ?? {};
   const { setActiveTab, school } = context;
-  const [academicSetup, setAcademicSetup] = React.useState<SchoolAcademicSetup | null>(null);
-
-  React.useEffect(() => {
-    let active = true;
-    void fetchSchoolAcademicSetup(school.id)
-      .then((value) => { if (active) setAcademicSetup(value); })
-      .catch(() => { if (active) setAcademicSetup(null); });
-    return () => { active = false; };
-  }, [school.id]);
+  const { offerings: currentOfferings } = useSchoolSubjectOfferings(school.id);
 
   const activeClasses = classes.filter((item: any) => item.is_active !== false);
   const activeClassIds = new Set(activeClasses.map((item: any) => item.id));
@@ -30,9 +22,7 @@ const DashboardTab: React.FC = () => {
   const activeAllocations = teacherAllocations.filter((item: any) => item.active !== false && activeClassIds.has(item.class_id) && teachingStaffIds.has(item.teacher_user_id));
   const allocatedTeacherIds = new Set(activeAllocations.map((item: any) => item.teacher_user_id));
   const coveredClassIds = new Set(activeAllocations.map((item: any) => item.class_id));
-  const currentYear = academicSetup?.years.find((year) => year.status === 'current') || academicSetup?.years[0];
-  const currentOfferings = (academicSetup?.offerings || []).filter((offering) => !currentYear || offering.academicYearId === currentYear.id);
-  const curriculumSubjects = new Set(currentOfferings.map((offering) => offering.academicSubjectId));
+  const curriculumSubjects = new Set(currentOfferings.map((offering) => offering.schoolSubjectId));
   const configuredGrades = new Set(currentOfferings.map((offering) => offering.gradeLevel));
   const placedStudents = students.filter((student: any) => activeClassIds.has(studentAssignments[student.user_id]));
 

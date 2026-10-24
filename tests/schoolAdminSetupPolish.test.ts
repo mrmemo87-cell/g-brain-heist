@@ -38,10 +38,11 @@ test('academic setup guides year and curriculum coverage without duplicating cla
   assert.match(academicSetup, /Nothing on this screen changes student access or teacher allocation/);
 });
 
-test('class and placement UX follows the academic plan and hides repair tooling by default', () => {
-  assert.match(classes, /fetchSchoolAcademicSetup/);
+test('class creation works before subject setup and hides repair tooling by default', () => {
+  assert.match(classes, /useSchoolSubjectOfferings/);
   assert.match(classes, /class-creation-wizard/);
-  assert.match(classes, /Only grade levels configured/);
+  assert.match(classes, /create a class before adding subjects or students/);
+  assert.doesNotMatch(classes, /Only grade levels configured|No configured grade levels/);
   assert.match(classes, /Ready for enrolment/);
   assert.match(organisation, /1\. Class setup/);
   assert.match(organisation, /2\. Student placement/);

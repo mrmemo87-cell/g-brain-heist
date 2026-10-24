@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const dashboard = readFileSync('components/school-admin/tabs/DashboardTab.tsx', 'utf8');
+const subjectOfferings = readFileSync('components/school-admin/hooks/useSchoolSubjectOfferings.ts', 'utf8');
 const members = readFileSync('components/school-admin/tabs/MembersTab.tsx', 'utf8');
 const portal = readFileSync('components/SchoolAdminPortal.tsx', 'utf8');
 const service = readFileSync('services/schoolAdminService.ts', 'utf8');
@@ -11,7 +12,7 @@ test('school admin overview guards every asynchronously loaded collection', () =
   for (const collection of ['classes', 'students', 'teacherAllocations', 'teachers']) {
     assert.match(dashboard, new RegExp(`Array\\.isArray\\(context\\.${collection}\\)`));
   }
-  assert.match(dashboard, /academicSetup\?\.offerings \|\| \[\]/);
+  assert.match(subjectOfferings, /catalog\?\.subjects \|\| \[\]/);
 });
 
 test('school community remains render-safe while member collections load', () => {
