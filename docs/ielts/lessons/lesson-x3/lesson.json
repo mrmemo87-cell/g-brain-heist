@@ -593,78 +593,114 @@
   ],
   "followup": {
     "id": "IELTS-X3-C1",
-    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
-    "delivery": "About one teaching week after this lesson. Five minutes, independent, no dictionary, no support. Log timing, support and prior exposure. Classroom observation only.",
+    "status": "WITHHELD revision draft 1.1.0; human editorial, key and difficulty checks pending.",
+    "delivery": "About one teaching week after the lesson: 16 minutes independently on this unseen text and flow chart. No teacher hints, dictionary or model; log prior exposure and support.",
     "blocks": [
       {
         "id": "IELTS-X3-C1",
         "kind": "items",
-        "title": "Making compost at home",
-        "mode": "Withheld fresh check; independent, timed",
+        "title": "Treating polluted road runoff",
+        "mode": "WITHHELD independent transfer; unseen technical passage, 16 minutes; no aids",
         "flow": true,
-        "instructions": "Complete the flow chart. Choose ONE WORD ONLY from the passage for each answer.",
+        "instructions": "Complete the flow chart for the treatment route. Write ONE WORD ONLY from the passage for Questions 1–8. The passage contains a diversion route and a recycling loop: do not confuse them with the main treatment path.",
         "stimulus": {
           "type": "passage",
-          "title": "Making compost at home",
+          "title": "Treating polluted road runoff (fictional system)",
           "labelled": false,
           "paragraphs": [
-            "Home composting turns kitchen and garden waste into a rich material that improves soil. The process starts with collecting suitable waste: vegetable peelings, fruit, coffee grounds and grass cuttings are all useful, but meat and dairy products should be avoided because they attract rats.",
-            "The waste is placed in a bin with an open base, so that worms can enter from the soil below. It is important to mix green waste, such as grass, with brown waste, such as cardboard or dry leaves, because too much green material makes the heap wet and smelly.",
-            "Every few weeks, the heap should be turned with a fork to let in air, which speeds up the work of the bacteria that break the waste down. After six to twelve months, the compost at the bottom of the bin is dark and crumbly and ready to use."
+            "A fictional coastal town has introduced a treatment system for rainwater collected from roads. The water cannot simply be discharged into the harbour: as it runs over paved surfaces, it picks up fragments of packaging, residues from vehicles and fine particles of rubber. The new installation separates these materials in stages. Each stage is designed for a different kind of pollutant, and not every litre of incoming water completes the same route.",
+            "At the entrance, a monitoring device measures turbidity, the cloudiness caused by suspended particles. During an unusually intense storm, water that exceeds a safety threshold is diverted into an emergency holding reservoir rather than sent straight through the machinery. This temporary storage prevents the treatment equipment from being overwhelmed. Water that meets the entry conditions continues through a rotating screen, which traps larger items such as leaves and scraps of plastic. Workers collect this coarse waste for disposal; it is not returned to the treatment line.",
+            "The partly cleaned water next enters a broad, slow-moving basin. Heavy particles settle to the bottom under gravity, where a scraper moves them into a collection pit. In contrast, floating residues from vehicle fuel are removed from the surface by skimmers. These two streams of waste must be handled separately, since mixing them would make subsequent disposal more difficult. Neither process removes the smallest plastic fibres.",
+            "To capture those fibres, pumps force the water through ceramic membranes with extremely fine openings. The membranes are effective but gradually become blocked. A pressure gauge detects when the resistance to flow becomes excessive; at that point, an automated cleaning cycle sends filtered water backwards through the membranes. The dirty backwash is returned to the original settling basin, not released to the harbour. This loop means some of the water passes through the earlier stages more than once.",
+            "Once the water has crossed the membranes, it passes beneath ultraviolet lamps. These reduce microbial contamination without adding a chemical disinfectant. The system's operators emphasise that this does not make the output suitable for drinking. The treated water is discharged to a reed bed beside the harbour, where vegetation slows its movement and provides a final opportunity for fine sediment to collect.",
+            "The installation has reduced visible litter in the harbour, but its long-term environmental value is still being evaluated. The power required for pumping and the cost of replacing damaged membranes have to be considered alongside the amount of pollution removed. Engineers are therefore testing whether a larger settling basin could reduce how frequently the membrane-cleaning cycle is needed."
           ]
         },
         "items": [
           {
             "id": "IELTS-X3-C1-Q1",
-            "prompt": "Collect waste, but avoid meat and dairy, which attract ______.",
-            "answer": "rats",
-            "evidence": "they attract rats",
-            "reason": "Plural noun.",
-            "focus": "explicit detail",
+            "prompt": "Initial screening: water with excessively high ______ is temporarily stored rather than treated immediately.",
+            "answer": "turbidity",
+            "evidence": "measures turbidity, the cloudiness caused by suspended particles",
+            "reason": "The safety threshold concerns cloudiness, not simply the volume of rainfall.",
+            "focus": "sequence, process logic, paraphrase and distractor resistance",
             "type": "completion",
             "word_limit": 1,
             "level": "core"
           },
           {
             "id": "IELTS-X3-C1-Q2",
-            "prompt": "Use a bin with an open ______ so that worms can enter.",
-            "answer": "base",
-            "evidence": "a bin with an open base",
-            "reason": "The noun after open.",
-            "focus": "locating explicit evidence",
+            "prompt": "Mechanical stage: a rotating ______ holds back larger litter before it reaches the basin.",
+            "answer": "screen",
+            "evidence": "through a rotating screen, which traps larger items",
+            "reason": "Distinguish this physical barrier from the downstream fine membrane.",
+            "focus": "sequence, process logic, paraphrase and distractor resistance",
             "type": "completion",
             "word_limit": 1,
             "level": "core"
           },
           {
             "id": "IELTS-X3-C1-Q3",
-            "prompt": "Mix green waste with brown waste such as cardboard or dry ______.",
-            "answer": "leaves",
-            "evidence": "such as cardboard or dry leaves",
-            "reason": "Plural noun.",
-            "focus": "explicit detail",
+            "prompt": "Settling stage: dense material sinks because of ______.",
+            "answer": "gravity",
+            "evidence": "settle to the bottom under gravity",
+            "reason": "The cause is not pumping or chemical treatment.",
+            "focus": "sequence, process logic, paraphrase and distractor resistance",
             "type": "completion",
             "word_limit": 1,
             "level": "core"
           },
           {
             "id": "IELTS-X3-C1-Q4",
-            "prompt": "Turn the heap every few weeks to let in ______.",
-            "answer": "air",
-            "evidence": "turned with a fork to let in air",
-            "reason": "Uncountable noun.",
-            "focus": "explicit detail",
+            "prompt": "Surface collection: floating fuel residues are taken off by ______.",
+            "answer": "skimmers",
+            "evidence": "removed from the surface by skimmers",
+            "reason": "The separate waste stream remains above the water.",
+            "focus": "sequence, process logic, paraphrase and distractor resistance",
             "type": "completion",
             "word_limit": 1,
             "level": "core"
           },
           {
             "id": "IELTS-X3-C1-Q5",
-            "prompt": "The compost is ready when it is dark and ______.",
-            "answer": "crumbly",
-            "evidence": "is dark and crumbly and ready to use",
-            "reason": "Adjective joined by and.",
-            "focus": "locating explicit evidence",
+            "prompt": "Fine-filtration stage: ceramic ______ retain very small plastic fibres.",
+            "answer": "membranes",
+            "evidence": "ceramic membranes with extremely fine openings",
+            "reason": "The membrane, not the earlier screen, catches fine fibres.",
+            "focus": "sequence, process logic, paraphrase and distractor resistance",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X3-C1-Q6",
+            "prompt": "Cleaning trigger: an increase in ______ signals that the filter needs backwashing.",
+            "answer": "pressure",
+            "evidence": "A pressure gauge detects when the resistance to flow becomes excessive",
+            "reason": "A gauge indicates rising resistance rather than a timed interval.",
+            "focus": "sequence, process logic, paraphrase and distractor resistance",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X3-C1-Q7",
+            "prompt": "Disinfection stage: ______ lamps lower microbial contamination without dosing chemicals.",
+            "answer": "ultraviolet",
+            "evidence": "passes beneath ultraviolet lamps",
+            "reason": "The treatment is not certification for drinking.",
+            "focus": "sequence, process logic, paraphrase and distractor resistance",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X3-C1-Q8",
+            "prompt": "Final release: treated water flows into a planted ______ bed before reaching the harbour.",
+            "answer": "reed",
+            "evidence": "discharged to a reed bed beside the harbour",
+            "reason": "The planted area slows the flow.",
+            "focus": "sequence, process logic, paraphrase and distractor resistance",
             "type": "completion",
             "word_limit": 1,
             "level": "core"
@@ -672,7 +708,7 @@
         ]
       }
     ],
-    "review": "Compare only the observed demands and conditions with this lesson. Record the result as a separate later observation; do not convert it to a band or merge it with screener evidence. Use a truly unseen form, one independent sitting, and log prior exposure, aid, time, item-level errors, and support. Do not convert this activity into a band estimate or combine it with mock scores."
+    "review": "Review item evidence plus whether the learner correctly distinguishes diversion, sequential filtration and backwash recycling. Record time, support and errors; not a calibrated band measure."
   },
   "delayed_followup": "In Lesson 18 (timed Academic Reading), check whether learners use location clues on visuals under time pressure. Record it as a later observation.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
