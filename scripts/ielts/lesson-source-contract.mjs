@@ -103,7 +103,7 @@ function checkItem(item, block, errors, where) {
       const limit = Number(item.word_limit);
       if (!limit) errors.push(`${label}: completion item needs word_limit`);
       for (const candidate of [answer, ...(item.accept ?? [])]) {
-        if (limit && candidate === answer && wordCount(candidate) > limit) errors.push(`${label}: answer "${candidate}" exceeds ${limit}-word limit`);
+        if (limit && wordCount(candidate) > limit) errors.push(`${label}: accepted answer "${candidate}" exceeds ${limit}-word limit`);
       }
       if (block.stimulus?.type === 'passage') {
         // Reading completion answers must be taken from the passage verbatim.
@@ -201,6 +201,27 @@ function checkBlock(block, code, errors, where, seenIds) {
   if (!block.mode) errors.push(`${label}: missing mode (practice/assessment conditions)`);
   if (block.kind === 'items') {
     if (!block.instructions) errors.push(`${label}: missing instructions`);
+    if (block.summary_text) {
+      for (const item of block.items ?? []) {
+        const number = item.id?.split('-Q').pop();
+        const count = (block.summary_text.match(new RegExp('\\\\(' + number + '\\\\)\\\\s*_+', 'g')) ?? []).length;
+        if (count !== 1) errors.push(`${label}: summary item ${item.id} needs exactly one numbered gap in connected summary`);
+      }
+    }
+    if (block.flow_chart) {
+      const kinds = new Set(['stage', 'arrow', 'branch']);
+      for (const entry of block.flow_chart) {
+        if (!kinds.has(entry.kind) || !entry.text) errors.push(`${label}: invalid flow chart entry`);
+        if (entry.kind !== 'arrow' && !entry.title) errors.push(`${label}: flow chart stage or branch missing title`);
+      }
+      const display = block.flow_chart.map((entry) => entry.text).join(' ');
+      for (const item of block.items ?? []) {
+        if (item.type !== 'completion') continue;
+        const number = item.id?.split('-Q').pop();
+        const count = (display.match(new RegExp('\\\\(' + number + '\\\\)\\\\s*_+', 'g')) ?? []).length;
+        if (count !== 1) errors.push(`${label}: completion item ${item.id} needs exactly one gap in flow chart`);
+      }
+    }
     if (!Array.isArray(block.items) || block.items.length === 0) errors.push(`${label}: no items`);
     for (const item of block.items ?? []) {
       if (seenIds.has(item.id)) errors.push(`${label}: duplicate item id ${item.id}`);
