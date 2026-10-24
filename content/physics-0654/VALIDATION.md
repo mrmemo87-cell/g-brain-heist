@@ -73,3 +73,9 @@ The default pilot account is not enrolled in Physics, and the existing Physics
 groups have no active teacher/student allocations. Those permissions were not
 invented or bypassed. A real teacher/student submission pilot is still unperformed.
 School-specific exam-version mappings remain unset. See `release-authorization.json`.
+
+The release follow-up also aligns the Physics report with the existing canonical
+`private.subject_group_roster` helper, rather than assuming all class/whole-grade
+members have explicit custom-group membership rows. The standard active teaching
+role and operational academic-year checks are retained. SQL tests cover custom
+and derived class rosters, stale academic-year rejection and revoked teaching role.

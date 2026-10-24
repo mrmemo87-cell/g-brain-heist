@@ -4,13 +4,15 @@ returns jsonb language plpgsql security definer set search_path='' as $function$
 declare v_result jsonb; v_phase text;
 begin
   if auth.uid() is null or not exists(select 1 from public.school_members sm
-    where sm.school_id=p_school_id and sm.user_id=auth.uid() and sm.status='active') or not exists (
+    where sm.school_id=p_school_id and sm.user_id=auth.uid() and sm.status='active'
+      and (sm.can_teach or sm.role_in_school='teacher')) or not exists (
     select 1 from public.school_subject_group_teachers t
     join public.school_subject_groups g on g.id=t.group_id and g.school_id=t.school_id and g.status='active'
     join public.school_subject_offerings o on o.id=g.school_subject_offering_id and o.school_id=g.school_id and o.status='active'
     join public.school_subjects ss on ss.id=o.school_subject_id and ss.school_id=o.school_id and ss.is_active
     join public.academic_subjects s on s.id=ss.academic_subject_id and s.code='physics' and s.is_active
     where t.school_id=p_school_id and t.group_id=p_group_id and t.teacher_user_id=auth.uid() and t.active
+      and o.academic_year_id=public.academic_resolve_operational_year_id(p_school_id,now())
   ) then raise exception using errcode='42501',message='physics_teaching_group_access_required'; end if;
 
   select m.registry_phase into v_phase from public.physics_programme_offering_mappings m
@@ -25,8 +27,8 @@ begin
     join public.assignments a on a.id=e.assignment_id and a.school_id=e.school_id and a.subject_group_id=p_group_id
     join public.academic_subjects s on s.id=e.academic_subject_id and s.code='physics'
     where e.school_id=p_school_id and exists (
-      select 1 from public.school_subject_group_students gs where gs.school_id=e.school_id and gs.group_id=p_group_id
-        and gs.student_id=e.student_id and gs.status='active'
+      select 1 from private.subject_group_roster(p_group_id) roster
+      where roster.student_id=e.student_id
     )
   ), profiles as (
     select distinct i.answer_id,i.question_id,i.assignment_id,i.student_id,i.is_correct,i.independent_fresh,p.value profile
