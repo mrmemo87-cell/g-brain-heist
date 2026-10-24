@@ -18,6 +18,7 @@ export interface AcademicScopeSetup {
   gradeLevel: number;
   objectiveCount: number;
   approvedQuestionCount: number;
+  evidenceFocusCount?: number;
 }
 
 export interface AcademicFrameworkSubjectSetup {
