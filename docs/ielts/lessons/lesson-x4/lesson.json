@@ -628,13 +628,11 @@
             "prompt": "Image capture: the agreed final scanning resolution is ______ dots per inch.",
             "answer": "600",
             "evidence": "We're using six hundred now",
-            "reason": "Three hundred was the superseded plan.",
+            "reason": "The original 300 dpi setting was rejected in favour of 600. Only the numeric form 600 is accepted under ONE WORD AND/OR A NUMBER.",
             "focus": "spoken sequence and correction tracking",
             "type": "completion",
             "word_limit": 1,
-            "accept": [
-              "six hundred"
-            ],
+            "accept": [],
             "level": "core",
             "editorial_difficulty": "Moderate",
             "difficulty_basis": "Discriminate the final 600 dpi setting from abandoned 300 dpi."
