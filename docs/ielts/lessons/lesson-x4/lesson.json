@@ -734,7 +734,7 @@
           {
             "kind": "branch",
             "title": "Safeguard",
-            "text": "↘ A second reader checks uncertain values."
+            "text": "↘ An uncertain record follows the separate checking procedure."
           },
           {
             "kind": "arrow",
@@ -752,7 +752,7 @@
           {
             "kind": "stage",
             "title": "SECURE DATA STORAGE",
-            "text": "Keep a nightly (10) ______ copy in another building."
+            "text": "Maintain a nightly (10) ______ copy of the archive's data."
           },
           {
             "kind": "arrow",
