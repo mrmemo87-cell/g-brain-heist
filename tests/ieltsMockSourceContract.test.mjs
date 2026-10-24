@@ -141,8 +141,8 @@ test('v1.1.1 summary, process branches and numeric-only audio keys meet the sour
   for (const lesson of ext) assert.deepEqual(validateLessonSource(lesson), [], lesson.code);
   const [x1, x2, x3, x4] = ext;
   const summary = x1.followup.blocks[0];
-  assert.match(summary.summary_text, /\\(1\\) _+/);
-  assert.match(summary.summary_text, /\\(6\\) _+/);
+  assert.ok(summary.summary_text.includes('(1) ______'));
+  assert.ok(summary.summary_text.includes('(6) ______'));
   assert.equal(summary.items.length, 6);
   assert.deepEqual(x1.followup.blocks[1].items.map((i) => i.answer), ['G', 'E', 'B', 'D']);
   assert.match(x1.followup.blocks[1].items[1].prompt, /public clock important to local identity/i);
@@ -162,6 +162,7 @@ test('v1.1.1 summary, process branches and numeric-only audio keys meet the sour
   assert.equal(qa.answer, '600');
   assert.deepEqual(qa.accept, []);
   assert.equal(qa.word_limit, 1);
+  assert.equal(qa.enforce_accept_word_limit, true);
   assert.match(check4.items[1].options[1], /no longer transcribe rainfall readings manually/i);
   assert.ok(check4.flow_chart?.length > 10);
   assert.ok(!check4.flow_chart.some((e) => /second reader|another building/i.test(e.text)), 'diagram must not give away the earlier choose-TWO answers');
