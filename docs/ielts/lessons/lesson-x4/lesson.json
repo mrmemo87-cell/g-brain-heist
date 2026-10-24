@@ -19,7 +19,7 @@
   "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Speakers, places and organisations in the recordings are fictional. Human editorial, key, mapping, difficulty and originality review pending.",
   "audio": {
     "required": true,
-    "statement": "Recordings v1 (IELTS-X4-L1, IELTS-X4-C1) approved by the owner with the pack on 2026-10-18; device and classroom playback acceptance pending.",
+    "statement": "Original guided-practice recording IELTS-X4-L1 remains unchanged. Revised withheld fresh-check IELTS-X4-C1 requires new audio; never play the old v1.0.0 orchard recording against the new questions.",
     "recordings": [
       {
         "id": "IELTS-X4-L1",
@@ -70,11 +70,11 @@
       {
         "id": "IELTS-X4-C1",
         "block": "IELTS-X4-C1",
-        "status": "Owner approved v1 with the pack on 2026-10-18; device/classroom playback acceptance pending",
+        "status": "Draft v1.1.0: NEW RECORDING REQUIRED; NOT APPROVED; old v1.0.0 audio is incompatible with this script",
         "conditions": "Played once, no pausing, no transcript, no coaching. Record conditions.",
         "voices": {
-          "instruction": "Tom (British, examiner style; steady model)",
-          "GUIDE": "Elias (North American, older, calm)"
+          "instruction": "Tom (examiner-style)",
+          "ARCHIVIST": "Distinct adult speaker; natural academic-instruction delivery; voice casting pending"
         },
         "segments": [
           {
@@ -85,7 +85,7 @@
           {
             "type": "speech",
             "voice": "instruction",
-            "text": "You will hear a guide talking to visitors at a community orchard. First, you have thirty seconds to look at questions one to six."
+            "text": "You will hear an archivist briefing volunteers about digitising historical weather records. First, you have thirty seconds to look at questions one to ten."
           },
           {
             "type": "silence",
@@ -94,7 +94,7 @@
           {
             "type": "speech",
             "voice": "instruction",
-            "text": "Now listen carefully and answer questions one to six."
+            "text": "Now listen carefully and answer questions one to ten."
           },
           {
             "type": "passage"
@@ -108,10 +108,7 @@
             "type": "silence",
             "seconds": 15
           }
-        ],
-        "production_record": "docs/ielts/lessons/lesson-x4/AUDIO_PRODUCTION_v1.json",
-        "delivered_sha256": "a9636195493468dc4cce7a7e8359309e7d243b87a51e29d1278620ae7504370f",
-        "duration_seconds": 133.896
+        ]
       }
     ]
   },
@@ -522,103 +519,154 @@
   ],
   "followup": {
     "id": "IELTS-X4-C1",
-    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
-    "delivery": "About one teaching week after this lesson, once the recording is approved. Play once without pausing, no transcript, no coaching, after the recorded reading time. Log support, interruptions and prior exposure. Classroom observation only.",
+    "status": "WITHHELD v1.1.0 new-script editorial draft; NOT DELIVERABLE until matching audio is recorded, reviewed, and approved.",
+    "delivery": "About one teaching week after the lesson only AFTER approval of a new matching IELTS-X4-C1 recording. Play once with 30 seconds reading time and 15 seconds checking. No pause, replay, transcript, help or coaching; log any deviation.",
     "blocks": [
       {
         "id": "IELTS-X4-C1",
         "kind": "items",
-        "title": "A community orchard",
-        "mode": "Withheld fresh check; one play, independent",
-        "instructions": "Questions 1-2: choose TWO letters, A-E. Questions 3-6: complete the flow chart. Write ONE WORD AND/OR A NUMBER for each answer.",
+        "title": "Digitising historical weather records",
+        "mode": "WITHHELD one-play listening check; requires NEW approved recording; no transcript available to students",
+        "instructions": "Questions 1–2 and 3–4: choose TWO letters A–E for each set. Questions 5–10: complete the processing flow chart. Write ONE WORD AND/OR A NUMBER for each gap.",
         "stimulus": {
           "type": "transcript",
-          "title": "Recording IELTS-X4-C1 transcript (teacher-private)",
+          "title": "New IELTS-X4-C1 recording script (teacher-private, not yet recorded)",
           "paragraphs": [
-            "GUIDE: Thanks for coming to the Hillside Orchard open day. I'm going to tell you a little about the orchard and then explain how we turn our apples into juice.",
-            "GUIDE: The orchard is looked after entirely by volunteers, and we don't use any chemical sprays. The juice is sold at the village shop, and the money pays for new trees. Visitors sometimes ask whether they can pick apples themselves. I'm afraid that isn't possible, for insurance reasons, but you're welcome to walk around.",
-            "GUIDE: The apples are picked in September and October and stored in a cool barn. First, they're washed in large tanks of cold water, and any damaged fruit is removed by hand. The clean apples are then crushed in a mill, which turns them into a rough pulp. The pulp is wrapped in cloths and placed in a press, which squeezes out the juice.",
-            "GUIDE: Before bottling, the juice is heated to seventy-five degrees to kill any bacteria, and then it's poured into glass bottles. Unopened, the bottles keep for about a year."
+            "ARCHIVIST: Welcome to the weather archive. Our goal is to turn sixty years of handwritten rainfall records into a searchable collection, but before I explain how, I should say what went wrong with the pilot. We recruited more volunteers than we expected, and the scanners themselves worked perfectly well. The major problem was physical: the edges of some early pages were so torn that dates had disappeared. We also discovered that the same measuring station had been recorded under different handwritten names over the years. One of our volunteers thought the boxes had been delivered in the wrong order, but in fact the storage inventory was correct.",
+            "ARCHIVIST: We originally planned to let volunteers enter readings directly from the paper sheets. That sounded quick. During the trial, though, pages were left on tables where drinks might spill, and the handwriting was much harder to interpret than we had imagined. So the paper will now remain in the archive, and everyone will work from digital images. We're keeping the original sheets, incidentally: producing a scan doesn't mean that the document has ceased to be valuable.",
+            "ARCHIVIST: Here's the revised procedure. First, the sheets spend a night in a controlled room. We once thought that temperature was the main issue, but our conservator says that fluctuations in humidity cause more damage to this particular paper. Next, each fragile page is placed between two layers of a transparent protective material. We used plastic sleeves for the first dozen sheets, but they trapped moisture, so we changed to acid-free folders. Please don't use the old sleeves: they're only here so you can see the difference.",
+            "ARCHIVIST: After that, the pages are scanned. The original plan specified three hundred dots per inch, which would have saved storage space. The test images, however, made small handwritten decimal points difficult to read. We're using six hundred now, even though that creates larger files. Don't worry about trying to memorise those settings; they are saved on each machine.",
+            "ARCHIVIST: Next comes the part that needs human judgement. Several companies offered software that could recognise the handwriting automatically. It worked reasonably well on printed headings, but it repeatedly confused a five with a six in the rainfall columns. So volunteers will carry out transcription by hand from the images. They shouldn't guess where a number is unclear; an uncertain reading receives a yellow flag in the database, and a second reader checks it against the image. That review can take longer than entering the figure in the first place, but a confidently wrong measurement is worse than an honest question mark.",
+            "ARCHIVIST: Before any record is made public, the software tests whether the sequence of dates contains gaps or duplicate entries. One missing date might simply mean that no observation was made that day; it must not be replaced automatically with zero. We then copy the database each evening to a backup system in a separate building. A cloud service was discussed, but for this pilot we chose the local second site because the internet connection is unreliable. A public catalogue will be released only after these checks are complete.",
+            "ARCHIVIST: Finally, two changes for volunteers: every doubtful number now goes to a second reader, and the finished data are stored in two separate buildings. We are not cutting the scan quality to save space, and nobody should throw away the original pages. After the first month we'll decide whether the extra quality checks are sustainable."
           ]
         },
         "items": [
           {
             "id": "IELTS-X4-C1-Q1",
-            "prompt": "Questions 1-2. Which TWO statements about the orchard are correct?",
-            "answer": "A and C",
-            "evidence": "The orchard is looked after entirely by volunteers",
-            "reason": "A: 'entirely by volunteers'. C: sold at the village shop. B is negated; D is refused; E: the money pays for trees.",
-            "focus": "distractor resistance",
+            "prompt": "Questions 1–2. Which TWO difficulties affected the original archive pilot?",
+            "answer": "B and D",
+            "evidence": "the edges of some early pages were so torn that dates had disappeared",
+            "reason": "B: damaged page edges; D: changing labels across decades. A, C and E are explicitly or implicitly ruled out.",
+            "focus": "speaker corrections, qualification and distractor resistance",
             "type": "choice",
-            "accept": [
-              "C and A"
-            ],
             "options": [
-              "A  Volunteers do all the work.",
-              "B  Chemical sprays are used occasionally.",
-              "C  The juice is sold in the village shop.",
-              "D  Visitors may pick apples.",
-              "E  The money pays for a new building."
+              "A  There were not enough volunteers.",
+              "B  Parts of the original documents were physically damaged.",
+              "C  Boxes were stored in the wrong sequence.",
+              "D  The same location was identified in different ways.",
+              "E  The scanning machines frequently stopped."
+            ],
+            "accept": [
+              "D and B"
             ],
             "level": "core"
           },
           {
             "id": "IELTS-X4-C1-Q3",
-            "prompt": "Apples washed in tanks of cold ______",
-            "answer": "water",
-            "evidence": "washed in large tanks of cold water",
-            "reason": "Noun after cold.",
-            "focus": "explicit detail",
-            "type": "completion",
-            "word_limit": 2,
-            "level": "core"
-          },
-          {
-            "id": "IELTS-X4-C1-Q4",
-            "prompt": "Apples crushed in a ______",
-            "answer": "mill",
-            "evidence": "crushed in a mill",
-            "reason": "Noun after a.",
-            "focus": "explicit detail",
-            "type": "completion",
-            "word_limit": 2,
+            "prompt": "Questions 3–4. Which TWO safeguards are now required?",
+            "answer": "A and E",
+            "evidence": "every doubtful number now goes to a second reader, and the finished data are stored in two separate buildings",
+            "reason": "A and E are newly adopted. B, C and D contradict the final plan.",
+            "focus": "speaker corrections, qualification and distractor resistance",
+            "type": "choice",
+            "options": [
+              "A  A second person checks readings that are uncertain.",
+              "B  Volunteers stop entering handwritten readings.",
+              "C  Scanning quality is reduced to save memory.",
+              "D  Original documents are discarded after scanning.",
+              "E  Duplicate copies are kept at separate physical locations."
+            ],
+            "accept": [
+              "E and A"
+            ],
             "level": "core"
           },
           {
             "id": "IELTS-X4-C1-Q5",
-            "prompt": "Pulp wrapped in ______ and pressed",
-            "answer": "cloths",
-            "evidence": "The pulp is wrapped in cloths",
-            "reason": "Plural noun.",
-            "focus": "explicit detail",
+            "prompt": "Preparation: manage fluctuations in air ______ before documents are handled.",
+            "answer": "humidity",
+            "evidence": "fluctuations in humidity cause more damage",
+            "reason": "The conservator rejects temperature as the key risk.",
+            "focus": "spoken sequence and correction tracking",
             "type": "completion",
             "word_limit": 2,
+            "accept": [],
             "level": "core"
           },
           {
             "id": "IELTS-X4-C1-Q6",
-            "prompt": "Juice heated to ______ degrees before bottling",
-            "answer": "75",
-            "evidence": "the juice is heated to seventy-five degrees",
-            "reason": "Number.",
-            "focus": "numerical information",
+            "prompt": "Protection: replace the original plastic sleeves with acid-free ______.",
+            "answer": "folders",
+            "evidence": "we changed to acid-free folders",
+            "reason": "The initially plausible sleeves were rejected.",
+            "focus": "spoken sequence and correction tracking",
+            "type": "completion",
+            "word_limit": 2,
+            "accept": [],
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X4-C1-Q7",
+            "prompt": "Image capture: the new scan setting is ______ dots per inch.",
+            "answer": "600",
+            "evidence": "We're using six hundred now",
+            "reason": "Three hundred was the superseded plan.",
+            "focus": "spoken sequence and correction tracking",
             "type": "completion",
             "word_limit": 2,
             "accept": [
-              "seventy-five"
+              "six hundred"
             ],
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X4-C1-Q8",
+            "prompt": "Data entry: figures are entered by human ______ instead of handwriting-recognition software.",
+            "answer": "transcription",
+            "evidence": "volunteers will carry out transcription by hand",
+            "reason": "The OCR suggestion is rejected.",
+            "focus": "spoken sequence and correction tracking",
+            "type": "completion",
+            "word_limit": 2,
+            "accept": [],
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X4-C1-Q9",
+            "prompt": "Verification: uncertain values receive a yellow ______ so they can be checked again.",
+            "answer": "flag",
+            "evidence": "an uncertain reading receives a yellow flag in the database",
+            "reason": "They are flagged rather than guessed.",
+            "focus": "spoken sequence and correction tracking",
+            "type": "completion",
+            "word_limit": 2,
+            "accept": [],
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X4-C1-Q10",
+            "prompt": "Storage: a separate building holds the nightly ______ of the database.",
+            "answer": "backup",
+            "evidence": "copy the database each evening to a backup system in a separate building",
+            "reason": "The cloud alternative was discussed but not adopted.",
+            "focus": "spoken sequence and correction tracking",
+            "type": "completion",
+            "word_limit": 2,
+            "accept": [],
             "level": "core"
           }
         ]
       }
     ],
-    "review": "Compare only the observed demands and conditions with this lesson. Record the result as a separate later observation; do not convert it to a band or merge it with screener evidence. Use a truly unseen form, one independent sitting, and log prior exposure, aid, time, item-level errors, and support. Do not convert this activity into a band estimate or combine it with mock scores."
+    "review": "Ten marks, each correct choose-TWO letter worth one mark. Review exact distractor corrections, sequence errors, numbers and spelling. Record recording hash, audio conditions, time and prior exposure. No IELTS band conversion."
   },
   "delayed_followup": "In Lesson 17 or 21 (timed Listening), check whether learners cross out rejected options and keep their place in a process. Record it as a later observation.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
   "release_blockers": [
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
-    "Student task publication and platform evidence capture remain separate, governed steps."
+    "Student task publication and platform evidence capture remain separate, governed steps.",
+    "IELTS-X4-C1: new script needs generated, transcript-matched recording, verified duration and hash, owner review and classroom playback acceptance before any independent fresh check."
   ],
   "approval_record": {
     "approved_by": "Owner, Brains Heist LLC",
