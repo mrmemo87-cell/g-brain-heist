@@ -570,85 +570,197 @@
   ],
   "followup": {
     "id": "IELTS-X1-C1",
-    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
-    "delivery": "About one teaching week after this lesson. Six minutes, independent, no dictionary, no support. Log timing, support and prior exposure. Classroom observation only.",
+    "status": "WITHHELD editorial revision draft 1.1.0; independent check awaiting human editorial/key/difficulty review.",
+    "delivery": "One teaching week later: 17 minutes total (12 minutes for passage and gaps; 5 minutes for endings); unseen, no dictionary, hints, model, or assistance.",
     "blocks": [
       {
         "id": "IELTS-X1-C1",
         "kind": "items",
-        "title": "The return of the drinking fountain",
-        "mode": "Withheld fresh check; independent, timed",
-        "instructions": "Complete the summary. Choose ONE WORD ONLY from the passage for each answer.",
+        "title": "Restoring public clocks",
+        "mode": "Withheld independent transfer; unseen passage; no hints or dictionary",
+        "instructions": "Complete Questions 1–6 with ONE WORD ONLY from the passage.",
         "stimulus": {
           "type": "passage",
-          "title": "The return of the drinking fountain",
+          "title": "Restoring public clocks",
           "labelled": false,
           "paragraphs": [
-            "In many cities, public drinking fountains almost disappeared during the second half of the twentieth century. Bottled water became cheap and widely available, and councils saw little reason to repair fountains that were often broken or dirty.",
-            "Recently, however, a number of cities have begun installing new ones. The main motivation is the problem of plastic waste: every bottle that is refilled from a fountain is one fewer that may end up in a river or the sea. Modern fountains are also designed differently. Many have a separate tap for filling bottles, and some include a low bowl so that dogs can drink as well.",
-            "Maintenance remains the greatest challenge. A fountain that is not cleaned regularly quickly loses the public's trust, and once people stop using it, it is unlikely to be repaired. For this reason, some councils now ask local businesses to sponsor individual fountains and pay for their upkeep."
+            "Before accurate wristwatches became common, municipal clocks helped people coordinate factory shifts, railway departures and meetings. Their value was practical rather than merely decorative. Yet their mechanisms were difficult to keep synchronised. Temperature changes affected the movement of metal parts, and maintenance was occasionally postponed when councils reduced spending. Public timekeeping depended as much on sustained investment as on machinery.",
+            "During the twentieth century, cheaper personal timepieces reduced the need for a town clock. Some authorities removed damaged mechanisms while preserving their elaborate faces. Others disconnected the hands rather than let them display an increasingly inaccurate time. By the 1970s, many towers were protected mainly for architectural reasons, although the service they once provided was no longer essential.",
+            "Recently, a few councils have proposed making the clocks operational again. Advocates say a public clock helps someone whose phone battery is empty and offers a shared reference point in busy streets. However, the social benefit is difficult to measure. In one survey, most residents described the clock as important to local identity, yet few remembered checking it during the previous week. The researchers cautioned against interpreting expressed affection as proof of frequent use.",
+            "Restoration is rarely as straightforward as replacing a battery. In a coastal town, salt carried inland by sea air had corroded the metal gears. An electronic movement would have been cheaper to install. The heritage committee nevertheless approved repairs to the original mechanical system, arguing that the moving mechanism was part of the monument's historical value. Opponents warned that the decision would reduce funding available to the nearby library. The dispute was therefore not about conservation alone, but also about which public service should take priority.",
+            "Another approach combines old and new systems. The original gears remain, while an unobtrusive controller makes occasional adjustments to their timing. This can reduce visits from specialist engineers, but the electronic components may become obsolete far sooner than the traditional mechanism. With most installations only a few years old, their lifetime costs remain uncertain. A seemingly inexpensive repair may eventually require replacement parts that nobody still manufactures.",
+            "The broader lesson concerns what preservation is intended to achieve. Restoring a historical object does not necessarily revive its original function or the habits of its former users. Equally, incorporating new technology does not automatically destroy authenticity. Councils need to explain not only what has been saved, but what compromises have been made."
           ]
         },
         "items": [
           {
             "id": "IELTS-X1-C1-Q1",
-            "prompt": "Fountains declined when bottled water became cheap and widely ______.",
-            "answer": "available",
-            "evidence": "Bottled water became cheap and widely available",
-            "reason": "Adjective after an adverb.",
-            "focus": "locating explicit evidence",
+            "prompt": "Variations in ______ made early public clocks less reliable.",
+            "answer": "temperature",
+            "evidence": "Temperature changes affected the movement of metal parts",
+            "reason": "The cause is the environmental variation, not repair delays.",
+            "focus": "paraphrase recognition and evidence discrimination",
             "type": "completion",
             "word_limit": 1,
             "level": "core"
           },
           {
             "id": "IELTS-X1-C1-Q2",
-            "prompt": "Councils did not repair fountains that were broken or ______.",
-            "answer": "dirty",
-            "evidence": "fountains that were often broken or dirty",
-            "reason": "Adjective joined by \"or\".",
-            "focus": "explicit detail",
+            "prompt": "By the 1970s, towers were retained chiefly because of their ______ significance.",
+            "answer": "architectural",
+            "evidence": "protected mainly for architectural reasons",
+            "reason": "Historical buildings were retained even without their former public service.",
+            "focus": "paraphrase recognition and evidence discrimination",
             "type": "completion",
             "word_limit": 1,
             "level": "core"
           },
           {
             "id": "IELTS-X1-C1-Q3",
-            "prompt": "New fountains are mainly intended to reduce plastic ______.",
-            "answer": "waste",
-            "evidence": "The main motivation is the problem of plastic waste",
-            "reason": "'Mainly intended' paraphrases 'the main motivation'.",
-            "focus": "paraphrase recognition",
+            "prompt": "A public clock may assist someone with an exhausted phone ______.",
+            "answer": "battery",
+            "evidence": "whose phone battery is empty",
+            "reason": "The question paraphrases empty as exhausted.",
+            "focus": "paraphrase recognition and evidence discrimination",
             "type": "completion",
             "word_limit": 1,
             "level": "core"
           },
           {
             "id": "IELTS-X1-C1-Q4",
-            "prompt": "Some fountains include a low bowl for ______.",
-            "answer": "dogs",
-            "evidence": "some include a low bowl so that dogs can drink as well",
-            "reason": "Plural noun.",
-            "focus": "explicit detail",
+            "prompt": "At one coastal site, sea-borne ______ had harmed the internal metal components.",
+            "answer": "salt",
+            "evidence": "salt carried inland by sea air had corroded the metal gears",
+            "reason": "The relevant material is not sea water as a whole.",
+            "focus": "paraphrase recognition and evidence discrimination",
             "type": "completion",
             "word_limit": 1,
             "level": "core"
           },
           {
             "id": "IELTS-X1-C1-Q5",
-            "prompt": "Some councils ask local ______ to pay for upkeep.",
-            "answer": "businesses",
-            "evidence": "some councils now ask local businesses to sponsor individual fountains",
-            "reason": "Check the spelling of the plural.",
-            "focus": "spelling/orthographic accuracy",
+            "prompt": "Choosing the traditional mechanism meant less investment in the town's ______.",
+            "answer": "library",
+            "evidence": "reduce funding available to the nearby library",
+            "reason": "Identify the alternative public service receiving less funding.",
+            "focus": "paraphrase recognition and evidence discrimination",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X1-C1-Q6",
+            "prompt": "Replacement electronic parts may eventually become ______.",
+            "answer": "obsolete",
+            "evidence": "components may become obsolete",
+            "reason": "The statement is a possibility, not a certainty.",
+            "focus": "paraphrase recognition and evidence discrimination",
             "type": "completion",
             "word_limit": 1,
             "level": "core"
           }
         ]
+      },
+      {
+        "id": "IELTS-X1-C2",
+        "kind": "items",
+        "title": "Supported sentence endings",
+        "mode": "Withheld independent transfer continued; no scaffolds",
+        "instructions": "Using the preceding passage, complete Questions 7–10 with endings A–G. Three endings are not used.",
+        "stimulus": {
+          "type": "options_list",
+          "title": "Endings",
+          "paragraphs": [
+            "A  although there is little evidence that residents frequently consulted it.",
+            "B  because repairs to the tower would increase railway punctuality.",
+            "C  despite the resulting reduction in funding for a different public service.",
+            "D  because the long-term cost advantage has not yet been demonstrated.",
+            "E  even though its original timekeeping function had lost importance.",
+            "F  since any electronic addition necessarily destroys the object's historical identity.",
+            "G  provided the council replaces all the original parts."
+          ]
+        },
+        "items": [
+          {
+            "id": "IELTS-X1-C2-Q7",
+            "prompt": "Residents expressed affection for a restored clock",
+            "answer": "A",
+            "evidence": "few remembered checking it during the previous week",
+            "reason": "Approval is not the same as actual use.",
+            "focus": "inference and distractor resistance",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G"
+            ],
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X1-C2-Q8",
+            "prompt": "The heritage committee selected a costly traditional repair",
+            "answer": "C",
+            "evidence": "reduce funding available to the nearby library",
+            "reason": "The choice has an opportunity cost.",
+            "focus": "inference and distractor resistance",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G"
+            ],
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X1-C2-Q9",
+            "prompt": "The financial case for hybrid clock repairs remains uncertain",
+            "answer": "D",
+            "evidence": "their lifetime costs remain uncertain",
+            "reason": "Early savings do not prove whole-life savings.",
+            "focus": "inference and distractor resistance",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G"
+            ],
+            "level": "core"
+          },
+          {
+            "id": "IELTS-X1-C2-Q10",
+            "prompt": "Many old clock towers were preserved for their appearance",
+            "answer": "E",
+            "evidence": "protected mainly for architectural reasons",
+            "reason": "Architectural conservation outlasted the old service.",
+            "focus": "inference and distractor resistance",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G"
+            ],
+            "level": "core"
+          }
+        ]
       }
     ],
-    "review": "Compare only the observed demands and conditions with this lesson. Record the result as a separate later observation; do not convert it to a band or merge it with screener evidence. Use a truly unseen form, one independent sitting, and log prior exposure, aid, time, item-level errors, and support. Do not convert this activity into a band estimate or combine it with mock scores."
+    "review": "Record item-level results and evidence errors, including paraphrase, unsupported inference, spelling and word limits. Record time, aid and prior exposure. No band conversion or automatic readiness claims."
   },
   "delayed_followup": "In Lesson 18 (timed Academic Reading), check whether learners locate summary sections and respect word limits under time pressure. Record it as a later observation.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
