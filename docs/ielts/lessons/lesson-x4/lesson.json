@@ -5,10 +5,10 @@
   "extension": true,
   "placement": "optional, after Week 7 (Lesson 14)",
   "week": 7,
-  "version": "1.1.0",
-  "presentation_version": "1.1.0",
+  "version": "1.1.1",
+  "presentation_version": "1.1.1",
   "title": "Listening: flow charts and 'choose TWO' questions",
-  "status": "Private teacher-review revision DRAFT v1.1.0 (NOT approved or released; prior v1.0.0 approval is historical only).",
+  "status": "Private teacher-review revision DRAFT v1.1.1; not approved or released; prior v1.0.0 approval historical only.",
   "duration": 60,
   "test_type": "Academic",
   "bibles": {
@@ -19,7 +19,7 @@
   "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Speakers, places and organisations in the recordings are fictional. Human editorial, key, mapping, difficulty and originality review pending.",
   "audio": {
     "required": true,
-    "statement": "Original guided-practice recording IELTS-X4-L1 remains unchanged. Revised withheld fresh-check IELTS-X4-C1 requires new audio; never play the old v1.0.0 orchard recording against the new questions.",
+    "statement": "Existing IELTS-X4-L1 guided audio is unchanged. Revised IELTS-X4-C1 fresh check requires NEW recording, review, checksum, playback validation and owner approval. Do not substitute the old v1.0.0 recording.",
     "recordings": [
       {
         "id": "IELTS-X4-L1",
@@ -70,7 +70,7 @@
       {
         "id": "IELTS-X4-C1",
         "block": "IELTS-X4-C1",
-        "status": "Draft v1.1.0: NEW RECORDING REQUIRED; NOT APPROVED; old v1.0.0 audio is incompatible with this script",
+        "status": "Draft v1.1.1: NEW RECORDING REQUIRED; NOT APPROVED; old v1.0.0 audio incompatible with revised transcript",
         "conditions": "Played once, no pausing, no transcript, no coaching. Record conditions.",
         "voices": {
           "instruction": "Tom (examiner-style)",
@@ -519,7 +519,7 @@
   ],
   "followup": {
     "id": "IELTS-X4-C1",
-    "status": "WITHHELD v1.1.0 new-script editorial draft; NOT DELIVERABLE until matching audio is recorded, reviewed, and approved.",
+    "status": "WITHHELD v1.1.1 revised audio-script draft; NEW RECORDING REQUIRED and not yet approved.",
     "delivery": "About one teaching week after the lesson only AFTER approval of a new matching IELTS-X4-C1 recording. Play once with 30 seconds reading time and 15 seconds checking. No pause, replay, transcript, help or coaching; log any deviation.",
     "blocks": [
       {
@@ -527,14 +527,15 @@
         "kind": "items",
         "title": "Digitising historical weather records",
         "mode": "WITHHELD one-play listening check; requires NEW approved recording; no transcript available to students",
-        "instructions": "Questions 1–2 and 3–4: choose TWO letters A–E for each set. Questions 5–10: complete the processing flow chart. Write ONE WORD AND/OR A NUMBER for each gap.",
+        "instructions": "Questions 1–2 and 3–4: choose TWO letters A–E for each set. Questions 5–10: complete the process flow chart. Write ONE WORD AND/OR A NUMBER for each answer.",
         "stimulus": {
           "type": "transcript",
           "title": "New IELTS-X4-C1 recording script (teacher-private, not yet recorded)",
           "paragraphs": [
             "ARCHIVIST: Welcome to the weather archive. Our goal is to turn sixty years of handwritten rainfall records into a searchable collection, but before I explain how, I should say what went wrong with the pilot. We recruited more volunteers than we expected, and the scanners themselves worked perfectly well. The major problem was physical: the edges of some early pages were so torn that dates had disappeared. We also discovered that the same measuring station had been recorded under different handwritten names over the years. One of our volunteers thought the boxes had been delivered in the wrong order, but in fact the storage inventory was correct.",
             "ARCHIVIST: We originally planned to let volunteers enter readings directly from the paper sheets. That sounded quick. During the trial, though, pages were left on tables where drinks might spill, and the handwriting was much harder to interpret than we had imagined. So the paper will now remain in the archive, and everyone will work from digital images. We're keeping the original sheets, incidentally: producing a scan doesn't mean that the document has ceased to be valuable.",
-            "ARCHIVIST: Here's the revised procedure. First, the sheets spend a night in a controlled room. We once thought that temperature was the main issue, but our conservator says that fluctuations in humidity cause more damage to this particular paper. Next, each fragile page is placed between two layers of a transparent protective material. We used plastic sleeves for the first dozen sheets, but they trapped moisture, so we changed to acid-free folders. Please don't use the old sleeves: they're only here so you can see the difference.",
+            "ARCHIVIST: Before I take you through the revised procedure, I should explain two additional safeguards we've introduced. Any uncertain reading must be checked by a second person, rather than simply being accepted, and a copy of the completed data will be stored in another building. I'll explain how these measures work as we go through the process.",
+            "ARCHIVIST: Here's the revised procedure. First, the sheets spend a night in a controlled room. We once thought that temperature was the main issue, but our conservator says that fluctuations in humidity cause more damage to this particular paper. Next, each fragile page is placed in a protective enclosure. We initially used plastic sleeves, but they trapped moisture, so we replaced them with acid-free folders. Please don't use the old sleeves: they're only here so you can see the difference.",
             "ARCHIVIST: After that, the pages are scanned. The original plan specified three hundred dots per inch, which would have saved storage space. The test images, however, made small handwritten decimal points difficult to read. We're using six hundred now, even though that creates larger files. Don't worry about trying to memorise those settings; they are saved on each machine.",
             "ARCHIVIST: Next comes the part that needs human judgement. Several companies offered software that could recognise the handwriting automatically. It worked reasonably well on printed headings, but it repeatedly confused a five with a six in the rainfall columns. So volunteers will carry out transcription by hand from the images. They shouldn't guess where a number is unclear; an uncertain reading receives a yellow flag in the database, and a second reader checks it against the image. That review can take longer than entering the figure in the first place, but a confidently wrong measurement is worse than an honest question mark.",
             "ARCHIVIST: Before any record is made public, the software tests whether the sequence of dates contains gaps or duplicate entries. One missing date might simply mean that no observation was made that day; it must not be replaced automatically with zero. We then copy the database each evening to a backup system in a separate building. A cloud service was discussed, but for this pilot we chose the local second site because the internet connection is unreliable. A public catalogue will be released only after these checks are complete.",
@@ -573,12 +574,12 @@
             "prompt": "Questions 3–4. Which TWO safeguards are now required?",
             "answer": "A and E",
             "evidence": "every doubtful number now goes to a second reader, and the finished data are stored in two separate buildings",
-            "reason": "A and E are newly adopted. B, C and D contradict the final plan.",
+            "reason": "A and E are newly adopted. B is false because manual transcription continues from digital images; C and D contradict the final plan.",
             "focus": "speaker corrections, qualification and distractor resistance",
             "type": "choice",
             "options": [
               "A  A second person checks readings that are uncertain.",
-              "B  Volunteers stop entering handwritten readings.",
+              "B  Volunteers no longer transcribe rainfall readings manually.",
               "C  Scanning quality is reduced to save memory.",
               "D  Original documents are discarded after scanning.",
               "E  Duplicate copies are kept at separate physical locations."
@@ -602,7 +603,7 @@
             "reason": "The conservator rejects temperature as the key risk.",
             "focus": "spoken sequence and correction tracking",
             "type": "completion",
-            "word_limit": 2,
+            "word_limit": 1,
             "accept": [],
             "level": "core",
             "editorial_difficulty": "Challenging",
@@ -616,7 +617,7 @@
             "reason": "The initially plausible sleeves were rejected.",
             "focus": "spoken sequence and correction tracking",
             "type": "completion",
-            "word_limit": 2,
+            "word_limit": 1,
             "accept": [],
             "level": "core",
             "editorial_difficulty": "Moderate",
@@ -630,7 +631,7 @@
             "reason": "Three hundred was the superseded plan.",
             "focus": "spoken sequence and correction tracking",
             "type": "completion",
-            "word_limit": 2,
+            "word_limit": 1,
             "accept": [
               "six hundred"
             ],
@@ -646,7 +647,7 @@
             "reason": "The OCR suggestion is rejected.",
             "focus": "spoken sequence and correction tracking",
             "type": "completion",
-            "word_limit": 2,
+            "word_limit": 1,
             "accept": [],
             "level": "core",
             "editorial_difficulty": "Moderate",
@@ -660,7 +661,7 @@
             "reason": "They are flagged rather than guessed.",
             "focus": "spoken sequence and correction tracking",
             "type": "completion",
-            "word_limit": 2,
+            "word_limit": 1,
             "accept": [],
             "level": "core",
             "editorial_difficulty": "Easy",
@@ -674,16 +675,100 @@
             "reason": "The cloud alternative was discussed but not adopted.",
             "focus": "spoken sequence and correction tracking",
             "type": "completion",
-            "word_limit": 2,
+            "word_limit": 1,
             "accept": [],
             "level": "core",
             "editorial_difficulty": "Moderate",
             "difficulty_basis": "Distinguish a physical-site backup from a rejected cloud proposal."
           }
+        ],
+        "flow_chart": [
+          {
+            "kind": "stage",
+            "title": "ORIGINAL PAPER RECORDS",
+            "text": "The archive preserves the physical documents."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "DOCUMENT PREPARATION",
+            "text": "Control variations in (5) ______."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "PROTECTIVE ENCLOSURE",
+            "text": "Replace the old plastic sleeves with acid-free (6) ______."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "DIGITAL SCANNING",
+            "text": "Use the final resolution of (7) ______ dots per inch."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "DATA ENTRY",
+            "text": "Copy values from images through manual (8) ______."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "QUALITY VERIFICATION",
+            "text": "An uncertain value receives a coloured (9) ______."
+          },
+          {
+            "kind": "branch",
+            "title": "Safeguard",
+            "text": "↘ A second reader checks uncertain values."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "DATE AND DUPLICATE CHECKS",
+            "text": "Check gaps and repeated entries before publication."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "SECURE DATA STORAGE",
+            "text": "Keep a nightly (10) ______ copy in another building."
+          },
+          {
+            "kind": "arrow",
+            "text": "↓"
+          },
+          {
+            "kind": "stage",
+            "title": "PUBLIC CATALOGUE RELEASE",
+            "text": "Only after all checks are completed."
+          }
         ]
       }
     ],
-    "review": "Ten marks, each correct choose-TWO letter worth one mark. Review exact distractor corrections, sequence errors, numbers and spelling. Record recording hash, audio conditions, time and prior exposure. No IELTS band conversion.",
+    "review": "Mark each choose-TWO letter once, in either order; do not award more than 2 marks per pair. Completions have maximum ONE WORD AND/OR A NUMBER; Q7 accepts numeric 600 only. Check alignment with the approved final recording and record timing, support and exposure. No IELTS band conversion.",
     "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty in real audio playback."
   },
   "delayed_followup": "In Lesson 17 or 21 (timed Listening), check whether learners cross out rejected options and keep their place in a process. Record it as a later observation.",
@@ -692,7 +777,7 @@
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
     "Student task publication and platform evidence capture remain separate, governed steps.",
     "IELTS-X4-C1: new script needs generated, transcript-matched recording, verified duration and hash, owner review and classroom playback acceptance before any independent fresh check.",
-    "v1.1.0 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
+    "v1.1.1 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
   ],
   "previous_approval_record": {
     "approved_by": "Owner, Brains Heist LLC",
