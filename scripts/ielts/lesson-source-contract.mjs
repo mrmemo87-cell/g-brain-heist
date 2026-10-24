@@ -214,7 +214,7 @@ function checkBlock(block, code, errors, where, seenIds) {
         if (!kinds.has(entry.kind) || !entry.text) errors.push(`${label}: invalid flow chart entry`);
         if (entry.kind !== 'arrow' && !entry.title) errors.push(`${label}: flow chart stage or branch missing title`);
       }
-      const display = block.flow_chart.map((entry) => entry.text).join(' ');
+      const display = block.flow_chart.map((entry) => [entry.title ?? '', entry.text].join(' ')).join(' ');
       for (const item of block.items ?? []) {
         if (item.type !== 'completion') continue;
         const number = item.id?.split('-Q').pop();
