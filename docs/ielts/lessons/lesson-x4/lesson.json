@@ -613,7 +613,7 @@
             "id": "IELTS-X4-C1-Q6",
             "prompt": "Protection: replace the original plastic sleeves with acid-free ______.",
             "answer": "folders",
-            "evidence": "we changed to acid-free folders",
+            "evidence": "we replaced them with acid-free folders",
             "reason": "The initially plausible sleeves were rejected.",
             "focus": "spoken sequence and correction tracking",
             "type": "completion",
