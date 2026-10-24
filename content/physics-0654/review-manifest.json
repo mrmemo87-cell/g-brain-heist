@@ -5,12 +5,12 @@
   "sourceUrl": "https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf",
   "syllabusVersion": "2025-2027, version 1",
   "sha256": {
-    "source.csv": "00becfc54582aeeb072385dfcdb3be2d6d0a8f8434ec7972f9e0094f256ad7e9",
+    "source.csv": "96b92baf308fcefec65f9cb082d90b36e703b40ca593db7717907f15a40eba94",
     "mapping.tsv": "a519947b3ed6cd4661841aedbd0e31a6ef0bb59eac2d9fff3a7161a3c948b9aa",
     "candidate-package.json": "a284b75655f62cef97a2b4abc46beec8875800dc322ca4bcfd7f926812bda037",
     "held-questions.json": "7e696b2e4709bab46d4c8efc8f81886a3a4fd0a901859e94b7c844e1abb8f07d",
     "registry-proposal.json": "b707879fdfd2997f205bc1c96434e47c14830c39f01c2d2b121b6d320282dda0",
-    "review.csv": "2121447e2a489afc53342c9fc3bb8164d4ddc82b1ff6ad481e720a89fe5ff96b",
+    "review.csv": "3330d93081289e9eb70eed3cca093084315a70a7a1399cb71d79244597b085e8",
     "corrections.json": "7ee8027f860e20bc8986c70e25912364708c48729942222b5149fb67175218e6"
   }
 }

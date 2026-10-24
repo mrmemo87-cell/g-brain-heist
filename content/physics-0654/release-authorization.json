@@ -1,0 +1,24 @@
+{
+  "status": "published",
+  "approvalBasis": "Explicit platform-owner instruction in this conversation: Deploy and merge and go live",
+  "authorizedBy": "Platform owner",
+  "recordedBy": "ChatGPT",
+  "recordedAt": "2026-10-24T05:14:45.968067+00:00",
+  "independentPhysicsSpecialistReviewClaimed": false,
+  "manifestSha256": "32f28a2e1912ff2d67770dc9f24de27a5592fb11a5e09f230276cff776d8dc32",
+  "technicalMergeCommit": "05618ffeca4206f7b830ee603d5e177bcd99ad86",
+  "releaseId": "e8b9d47e-e739-49c6-8447-6f65d0994096",
+  "packageHash": "7e9594b6431313780a759120ef82e5c70bf1f37894d41c234468ca7034e8f56f",
+  "publishedQuestionCount": 62,
+  "heldQuestionCount": 28,
+  "syllabusVersion": "0654 2025-2027",
+  "schoolExamYearMappingActivated": false,
+  "pilotStatus": "Default named pilot account lacks active Physics enrolment; no entitlement or enrolment bypass and no real student results written",
+  "verification": [
+    "Live database validation-only dry run passed",
+    "Full live database publication rehearsal with rollback passed",
+    "Committed publication returned 62 questions, 62 taxonomies and 62 assessment profiles",
+    "8 targeted SQL/DOM tests passed",
+    "Technical production deployment READY"
+  ]
+}

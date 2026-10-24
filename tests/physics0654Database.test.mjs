@@ -25,7 +25,7 @@ async function setup() {
     create function private.question_content_hash(uuid,text,jsonb,text,text,text,text) returns text language sql immutable as $$select md5(concat($1,$2,$3,$4,$5,$6,$7))$$;
     create function private.physics_test_hash() returns trigger language plpgsql as $$begin new.current_content_hash=private.question_content_hash(new.id,new.question_text,new.options,new.correct_answer,new.explanation,new.image_url,new.question_type);return new;end$$;
     create trigger fixture_hash before insert on questions for each row execute function private.physics_test_hash();
-    create unique index on academic_skill_registry_nodes(registry_version_id,code);
+    create unique index on academic_skill_registry_nodes(code);
     create unique index on academic_skill_evidence_focuses(code);
     create unique index on verified_question_assessment_profiles(question_id,question_content_hash,provider_name,programme_code,source_version) where status='active';
     create table academic_skill_framework_crosswalks(id uuid default gen_random_uuid(),registry_version_id uuid,node_id uuid,provider_name text,programme_code text,programme_name text,phase text,external_strand text,external_reference_code text,alignment_level text,alignment_note text,source_url text,source_version text,status text);
@@ -45,14 +45,14 @@ async function setup() {
       await db.query(`insert into academic_skill_registry_nodes(registry_version_id,parent_id,code,name,node_type,applicable_phases)
         select v.id,p.id,$1,$1,$3,array['upper_secondary'] from academic_skill_registry_versions v
         join academic_skill_registry_nodes p on p.registry_version_id=v.id and p.code=$2
-        on conflict(registry_version_id,code) do nothing`, [code,parent,type]);
+        on conflict(code) do nothing`, [code,parent,type]);
     }
     if (!proposal.evidenceFocuses.some((f) => f.code === tax.evidenceFocusCode)) {
       await db.query(`insert into academic_skill_evidence_focuses(registry_version_id,atomic_subskill_node_id,code,name)
         select registry_version_id,id,$1,$1 from academic_skill_registry_nodes where code=$2 on conflict(code) do nothing`, [tax.evidenceFocusCode,tax.atomicSubskillCode]);
     }
   }
-  await db.exec('create table school_subject_offerings(id uuid primary key,school_id uuid,school_subject_id uuid,status text)');
+  await db.exec("create table school_subject_offerings(id uuid primary key,school_id uuid,school_subject_id uuid,status text,academic_year_id uuid default '00000000-0000-0000-0000-000000000001')");
   await db.exec(migration);
   await db.exec(`
     create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('test.actor',true),'')::uuid$$;
@@ -65,13 +65,17 @@ async function setup() {
     create table assignment_questions(assignment_id uuid,question_id uuid,analytics_eligible_snapshot boolean,pool_scope_snapshot text,verification_status_snapshot text,owner_school_id_snapshot uuid,question_content_hash text);
     create table student_learning_intervention_practice_assignments(assignment_id uuid,student_id uuid);
     create table student_learning_registry_item_evidence(id uuid default gen_random_uuid(),school_id uuid,student_id uuid,assignment_id uuid,answer_id uuid,question_id uuid,academic_year_id uuid,academic_term_id uuid,academic_subject_id uuid,registry_version_id uuid,primary_skill_node_id uuid,atomic_subskill_node_id uuid,evidence_focus_id uuid,registry_taxonomy_id uuid,grade_level text,question_content_hash text,is_correct boolean,is_independent_assessment boolean,answered_at timestamptz,evidence_authority text,taxonomy_snapshot jsonb,taxonomy_snapshot_hash text,unique(answer_id,registry_taxonomy_id));
-    create table school_members(school_id uuid,user_id uuid,status text);
+    create table school_members(school_id uuid,user_id uuid,status text,can_teach boolean default true,role_in_school text default 'teacher');
     create table school_subject_group_teachers(school_id uuid,group_id uuid,teacher_user_id uuid,active boolean);
     create table school_subject_groups(id uuid,school_id uuid,school_subject_offering_id uuid,status text);
     create table school_subjects(id uuid,school_id uuid,academic_subject_id uuid,is_active boolean);
     create table school_subject_group_students(school_id uuid,group_id uuid,student_id uuid,status text);
+    create table fixture_class_roster(group_id uuid,student_id uuid);
+    create function private.subject_group_roster(uuid) returns table(student_id uuid) language sql stable as $$select student_id from public.school_subject_group_students where group_id=$1 and status='active' union select student_id from public.fixture_class_roster where group_id=$1$$;
+    create function public.academic_resolve_operational_year_id(uuid,timestamptz) returns uuid language sql stable as $$select $1$$;
     create function private.registry_question_answer_is_fresh(uuid,uuid,uuid,timestamptz) returns boolean language sql stable as $$select not exists(select 1 from public.student_learning_registry_item_evidence where student_id=$1 and question_id=$3 and answered_at<$4)$$;
   `);
+  await db.exec(readFileSync(dir + 'assessment-breakdown.sql', 'utf8'));
   return db;
 }
 async function reviewedRegistry(db) {
@@ -83,6 +87,13 @@ async function validate(db, profile, subject = 'Physics', mcq = true) {
   return db.query('select private.validate_external_question_assessment_profile($1,$2::jsonb,$3)', [subject,JSON.stringify(profile),mcq]);
 }
 const profile = pkg.questions[0].assessmentProfile;
+
+test('release manifest verifies the exact Git-stored files, including CSV line endings', () => {
+  const manifest=JSON.parse(readFileSync(dir+'review-manifest.json','utf8'));
+  for(const [name,expected] of Object.entries(manifest.sha256)) {
+    assert.equal(createHash('sha256').update(readFileSync(dir+name)).digest('hex'),expected,name);
+  }
+});
 
 test('0654 accepts Core and Supplement MCQ profiles; rejects AO3, wrong tier, wrong version, subject and missing fields', async () => {
   const db = await setup();
@@ -165,9 +176,9 @@ test('real materializer snapshots Physics AO evidence; teacher report enforces a
     const {rows:[question]}=await db.query("select * from questions where verified_external_id like '%-001'");
     await db.exec(`
       insert into users values('${student}','${school}');
-      insert into school_members values('${school}','${teacher}','active');
+      insert into school_members(school_id,user_id,status) values('${school}','${teacher}','active');
       insert into school_subject_groups values('${group}','${school}','${group}','active');
-      insert into school_subject_offerings values('${group}','${school}','${group}','active');
+      insert into school_subject_offerings(id,school_id,school_subject_id,status) values('${group}','${school}','${group}','active');
       insert into school_subjects values('${group}','${school}','${question.academic_subject_id}',true);
       insert into school_subject_group_teachers values('${school}','${group}','${teacher}',true);
       insert into school_subject_group_students values('${school}','${group}','${student}','active');
@@ -192,6 +203,9 @@ test('real materializer snapshots Physics AO evidence; teacher report enforces a
       assert.equal((await db.query('select private.materialize_verified_assignment_registry_evidence($1,$2) n',[a,student])).rows[0].n,1);
       assert.equal((await db.query('select private.materialize_verified_assignment_registry_evidence($1,$2) n',[a,student])).rows[0].n,0);
     }
+    assert.equal((await report()).rows[0].result.components[0].itemCount,2,'custom group roster is supported');
+    await db.query('insert into fixture_class_roster values($1,$2)',[group,student]);
+    await db.exec('delete from school_subject_group_students');
     const [row]=(await report()).rows[0].result.components;
     assert.equal(row.itemCount,2); assert.equal(row.independentFreshCount,1);
     assert.equal(row.practiceOrRepeatedCount,1); assert.equal(row.independentFreshCorrectCount,1);
@@ -199,6 +213,12 @@ test('real materializer snapshots Physics AO evidence; teacher report enforces a
     assert.equal(evidence.taxonomy_snapshot.externalAssessmentProfiles[0].programmeCode,'0654');
     await db.exec("update verified_question_assessment_profiles set status='retired'");
     assert.equal((await report()).rows[0].result.components[0].itemCount,2,'historical report uses immutable evidence snapshots');
+    await db.exec('update school_subject_offerings set academic_year_id=gen_random_uuid()');
+    await assert.rejects(report(),/physics_teaching_group_access_required/);
+    await db.query('update school_subject_offerings set academic_year_id=$1',[school]);
+    await db.exec("update school_members set can_teach=false,role_in_school='student'");
+    await assert.rejects(report(),/physics_teaching_group_access_required/);
+    await db.exec("update school_members set can_teach=true,role_in_school='teacher'");
     await db.exec('update school_subject_group_teachers set active=false');
     await assert.rejects(report(),/physics_teaching_group_access_required/);
   } finally { await db.close(); }

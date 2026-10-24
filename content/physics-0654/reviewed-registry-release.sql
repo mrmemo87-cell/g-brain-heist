@@ -2,7 +2,7 @@
 -- Run in a transaction; rollback for rehearsal. This file never imports questions.
 do $review$ begin
   if coalesce(current_setting('brains_heist.physics_review_authority',true),'')=''
-     or current_setting('brains_heist.physics_review_manifest_sha256',true) is distinct from '56f65c4493bdc29650b08c5b46f099c0c01a6cb6d2d8ba5922c1c9bbb61fc387' then
+     or current_setting('brains_heist.physics_review_manifest_sha256',true) is distinct from '32f28a2e1912ff2d67770dc9f24de27a5592fb11a5e09f230276cff776d8dc32' then
     raise exception 'physics_0654_human_taxonomy_review_required';
   end if;
 end $review$;
@@ -78,42 +78,42 @@ select v.id,p.id,'subskill','science.physics.nuclear.atomic-structure','Nuclear 
 'Transferable Physics capability: Nuclear composition and isotopes.',array['upper_secondary'],'active'
 from public.academic_skill_registry_versions v join public.academic_skill_registry_nodes p on p.registry_version_id=v.id and p.code='science.physics.nuclear'
 where v.code='bh-science-core-v1' and v.status='published' and p.status='active'
-on conflict(registry_version_id,code) do nothing;
+on conflict(code) do nothing;
 
 insert into public.academic_skill_registry_nodes(registry_version_id,parent_id,node_type,code,name,description,applicable_phases,status)
 select v.id,p.id,'subskill','science.physics.nuclear.nuclear-reactions','Nuclear fission and fusion',
 'Transferable Physics capability: Nuclear fission and fusion.',array['upper_secondary'],'active'
 from public.academic_skill_registry_versions v join public.academic_skill_registry_nodes p on p.registry_version_id=v.id and p.code='science.physics.nuclear'
 where v.code='bh-science-core-v1' and v.status='published' and p.status='active'
-on conflict(registry_version_id,code) do nothing;
+on conflict(code) do nothing;
 
 insert into public.academic_skill_registry_nodes(registry_version_id,parent_id,node_type,code,name,description,applicable_phases,status)
 select v.id,p.id,'skill','science.physics.space','Space physics',
 'Transferable Physics capability: Space physics.',array['upper_secondary'],'active'
 from public.academic_skill_registry_versions v join public.academic_skill_registry_nodes p on p.registry_version_id=v.id and p.code='science.physics'
 where v.code='bh-science-core-v1' and v.status='published' and p.status='active'
-on conflict(registry_version_id,code) do nothing;
+on conflict(code) do nothing;
 
 insert into public.academic_skill_registry_nodes(registry_version_id,parent_id,node_type,code,name,description,applicable_phases,status)
 select v.id,p.id,'subskill','science.physics.space.solar-system','Solar System relationships and astronomical scales',
 'Transferable Physics capability: Solar System relationships and astronomical scales.',array['upper_secondary'],'active'
 from public.academic_skill_registry_versions v join public.academic_skill_registry_nodes p on p.registry_version_id=v.id and p.code='science.physics.space'
 where v.code='bh-science-core-v1' and v.status='published' and p.status='active'
-on conflict(registry_version_id,code) do nothing;
+on conflict(code) do nothing;
 
 insert into public.academic_skill_registry_nodes(registry_version_id,parent_id,node_type,code,name,description,applicable_phases,status)
 select v.id,p.id,'subskill','science.physics.space.stars','Stellar composition and evolution',
 'Transferable Physics capability: Stellar composition and evolution.',array['upper_secondary'],'active'
 from public.academic_skill_registry_versions v join public.academic_skill_registry_nodes p on p.registry_version_id=v.id and p.code='science.physics.space'
 where v.code='bh-science-core-v1' and v.status='published' and p.status='active'
-on conflict(registry_version_id,code) do nothing;
+on conflict(code) do nothing;
 
 insert into public.academic_skill_registry_nodes(registry_version_id,parent_id,node_type,code,name,description,applicable_phases,status)
 select v.id,p.id,'subskill','science.physics.space.cosmology','Galaxies and the expanding Universe',
 'Transferable Physics capability: Galaxies and the expanding Universe.',array['upper_secondary'],'active'
 from public.academic_skill_registry_versions v join public.academic_skill_registry_nodes p on p.registry_version_id=v.id and p.code='science.physics.space'
 where v.code='bh-science-core-v1' and v.status='published' and p.status='active'
-on conflict(registry_version_id,code) do nothing;
+on conflict(code) do nothing;
 
 insert into public.academic_skill_evidence_focuses(registry_version_id,atomic_subskill_node_id,code,name,description,applicable_phases,source_method,source_fingerprint,status)
 select v.id,n.id,'science.physics.thermal.temperature-particle.focus.liquid-particles','Describe liquid particle arrangement and motion','Evidence that the learner can describe liquid particle arrangement and motion.',

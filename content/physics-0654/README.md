@@ -1,6 +1,11 @@
 # 0654 Physics reviewed-bank proposal
 
-Status: **pending human content and taxonomy review; not published**.
+Status: **62 questions published under explicit owner release authorization.**
+
+See `release-authorization.json` for the exact manifest, database release and
+validation evidence. Independent Physics specialist sign-off is not claimed.
+The original unsigned review manifest remains an audit artifact; future changed
+content must pass the review/release process below. No school exam year was inferred.
 
 The 90-item uploaded bank has been checked against Cambridge IGCSE Co-ordinated
 Sciences (Double Award) 0654, **2025–2027, version 1**:
@@ -8,7 +13,7 @@ https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf
 
 ## Deliverables
 
-- `source.csv`: unchanged uploaded source.
+- `source.csv`: uploaded question content, with Git-canonical LF line endings.
 - `corrected-source.csv`: all 90 questions, with corrections to 26 questions.
 - `corrections.json`: exact before/after changes. Answer letters are preserved.
 - `review.csv`: one reviewable row per original ID, with syllabus reference,
