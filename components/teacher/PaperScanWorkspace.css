@@ -806,6 +806,18 @@
 .psc-batch .psc-link[aria-pressed="true"] { background: #edf3ff; border-radius: 8px; }
 @media (max-width: 600px) {
   .psc-batch { padding: 16px; }
-  .psc-batch-item { flex-wrap: wrap; }
+  .psc-batch-item {
+    display: grid;
+    grid-template-columns: 32px repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+  .psc-batch-item > div { grid-column: 2 / -1; }
+  .psc-batch-item > .psc-link {
+    grid-column: 3;
+    min-width: 0;
+    min-height: 44px;
+    white-space: normal;
+  }
+  .psc-batch-item > .psc-link:first-of-type { grid-column: 2; }
   .psc-batch-actions .paw-button { flex: 1; justify-content: center; }
 }
