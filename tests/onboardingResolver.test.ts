@@ -97,7 +97,7 @@ test('legacy settled learners that already completed the tutorial are treated as
   assert.equal(resolution.featureRevealLevel, 'normal_dashboard');
 });
 
-test('eligible learners with incomplete legacy tutorial enter Phase 1A FTUE', () => {
+test('registered learners enter the dashboard without the optional introduction', () => {
   const resolution = resolve({
     profile: {
       id: 'new-learner',
@@ -110,10 +110,10 @@ test('eligible learners with incomplete legacy tutorial enter Phase 1A FTUE', ()
   });
 
   assert.equal(resolution.eligible, true);
-  assert.equal(resolution.isComplete, false);
+  assert.equal(resolution.isComplete, true);
   assert.equal(resolution.segment, 'solo_learner');
-  assert.equal(resolution.nextStep, 'intent');
-  assert.equal(resolution.featureRevealLevel, 'ftue_active');
+  assert.equal(resolution.nextStep, 'complete');
+  assert.equal(resolution.featureRevealLevel, 'normal_dashboard');
 });
 
 test('teacher legacy completion remains rollback-safe', () => {
@@ -133,7 +133,7 @@ test('teacher legacy completion remains rollback-safe', () => {
   assert.equal(resolution.nextStep, 'complete');
 });
 
-test('student setup seed enters active learner FTUE', () => {
+test('old incomplete introduction state cannot intercept a registered student', () => {
   const resolution = resolve({
     profile: {
       id: 'student-seeded',
@@ -158,9 +158,9 @@ test('student setup seed enters active learner FTUE', () => {
   });
 
   assert.equal(resolution.eligible, true);
-  assert.equal(resolution.isComplete, false);
+  assert.equal(resolution.isComplete, true);
   assert.equal(resolution.segment, 'solo_learner');
-  assert.equal(resolution.nextStep, 'intent');
+  assert.equal(resolution.nextStep, 'complete');
 });
 
 test('teacher setup bypasses learner FTUE while teacher Phase 1A flag is disabled', () => {

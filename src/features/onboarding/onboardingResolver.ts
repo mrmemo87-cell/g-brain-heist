@@ -1,4 +1,4 @@
-import type { UserRole } from '../../../types';
+import type { Profile, UserRole } from '../../../types';
 import type {
   FeatureRevealLevel,
   OnboardingContextType,
@@ -13,6 +13,11 @@ const STUDENT_GATES: OnboardingFeatureKey[] = ['pvp', 'clans', 'shop', 'inventor
 const SOLO_GATES: OnboardingFeatureKey[] = ['pvp', 'clans', 'leaderboard', 'upgrade_prompts'];
 const TEACHER_GATES: OnboardingFeatureKey[] = ['pvp', 'clans', 'shop', 'inventory', 'leaderboard', 'upgrade_prompts'];
 const ADMIN_GATES: OnboardingFeatureKey[] = ['pvp', 'clans', 'shop', 'inventory', 'leaderboard'];
+
+// Registration owns the required identity, school and class details. Once it
+// finishes, optional introductions must not block entry or resume on refresh.
+export const hasCompletedStudentSetup = (profile?: Partial<Profile> | null): boolean =>
+  profile?.role === 'student' && profile.needs_setup === false;
 
 const isMissingSchoolPlacement = (profile: OnboardingResolverInput['profile']) => {
   if (!profile || profile.role !== 'student' || !profile.school_id) return false;
@@ -201,7 +206,7 @@ export const resolveOnboarding = (input: OnboardingResolverInput): OnboardingRes
   }
 
   const segmentResult = resolveSegment(input);
-  const complete = hasCompletedState(input) || hasLegacyCompletion(input);
+  const complete = hasCompletedStudentSetup(input.profile) || hasCompletedState(input) || hasLegacyCompletion(input);
   const nextStep = complete ? 'complete' : deriveNextStep(input, segmentResult.segment);
   const revealLevel: FeatureRevealLevel = complete
     ? 'normal_dashboard'
