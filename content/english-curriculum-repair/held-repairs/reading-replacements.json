@@ -1,0 +1,657 @@
+{
+  "schemaVersion": 1,
+  "packageId": "english-reading-context-repair-20261026",
+  "packageVersion": "0.1.0-draft",
+  "contentVersion": "english-reading-context-repair-v0.1",
+  "registryVersion": "bh-english-core-v1",
+  "subjectCode": "english",
+  "authority": "Editorial candidate — not approved for publication",
+  "editorialReview": {
+    "status": "draft",
+    "reviewedBy": null,
+    "approvedBy": null
+  },
+  "releaseNotes": "Twelve NEW, self-contained replacement candidates. Original IDs, hashes, attempts and historic results must remain unchanged. Dry-run validation is not content approval.",
+  "passages": {
+    "smallpox": {
+      "title": "A Long Campaign",
+      "text": "In 1796, Edward Jenner tested whether material from cowpox could protect a person against smallpox. His work helped establish vaccination. Much later, the World Health Organization (WHO) led a worldwide effort against smallpox. WHO intensified its eradication programme in 1967. Teams used vaccination and surveillance: they protected people and looked for new cases. The last known naturally occurring case was recorded in Somalia in 1977. In 1980, WHO declared that smallpox had been eradicated. This means that the disease was no longer spreading naturally anywhere in the world. The result depended on coordinated work across countries, rather than on one scientist working alone.",
+      "sources": [
+        "https://www.who.int/health-topics/smallpox",
+        "https://www.who.int/news-room/spotlight/history-of-vaccination/history-of-smallpox-vaccination"
+      ]
+    },
+    "colour": {
+      "title": "More Than Three Colours",
+      "text": "Light-sensitive cells called cones help eyes detect colour. Typical human colour vision uses three cone types, which are sensitive to different ranges of light wavelengths. These ranges are commonly associated with red, green and blue. The visual system compares the signals from the cone types; a cone is not simply a tiny pot of coloured paint. A system using three cone types is called trichromatic. A system using four is called tetrachromatic. Hummingbirds have four cone types. Experiments have shown that they can distinguish colour combinations that humans cannot normally tell apart. In this text, 'tetra' refers to four types of colour-sensitive cone, not four colours in the whole world.",
+      "sources": [
+        "https://www.nei.nih.gov/research-and-training/research-news/nei-scientists-use-retinal-connectomics-study-color-vision-circuitry-relevant-mood-myopia",
+        "https://www.princeton.edu/news/2020/06/15/wild-hummingbirds-see-broad-range-colors-humans-can-only-imagine",
+        "https://doi.org/10.1073/pnas.1919377117"
+      ]
+    },
+    "flu": {
+      "title": "Reading a Historical Estimate",
+      "text": "A CDC history describes how the influenza pandemic spread worldwide during 1918-1919. It estimates that about 500 million people became infected, roughly one-third of the world's population at the time. The same account gives an estimate of at least 50 million deaths worldwide. These are historical estimates, rather than an exact count of every person. The passage identifies 1918-1919 as the period of worldwide spread. It does not give an exact percentage of the world's population who died.",
+      "sources": [
+        "https://archive.cdc.gov/www_cdc_gov/flu/pandemic-resources/1918-commemoration/1918-pandemic-history.htm"
+      ]
+    },
+    "guide": {
+      "title": "The Old Map",
+      "text": "The guide pointed towards a narrow track and said that it would take us straight to the village. I nodded, but I did not put away my old map. At the first turning, I stopped to compare his directions with the lines on the paper. When he pointed left again, I checked the map a second time before following. The others were already chatting about lunch. I stayed quiet and kept the map open in my hands.",
+      "sources": []
+    }
+  },
+  "questions": [
+    {
+      "externalId": "english-reading-context-repair-20261026-01",
+      "sourceQuestionId": "07b5fae1-0377-44bf-8c9b-8d579f7b4c17",
+      "sourceQuestionHash": "01f32e8b0bfd44b4821a7dc371f9f08125bc63bf52832105db89477ed7ae4d6c",
+      "topic": "Reading: locating specific information",
+      "questionText": "Read the passage.\n\nA Long Campaign\nIn 1796, Edward Jenner tested whether material from cowpox could protect a person against smallpox. His work helped establish vaccination. Much later, the World Health Organization (WHO) led a worldwide effort against smallpox. WHO intensified its eradication programme in 1967. Teams used vaccination and surveillance: they protected people and looked for new cases. The last known naturally occurring case was recorded in Somalia in 1977. In 1980, WHO declared that smallpox had been eradicated. This means that the disease was no longer spreading naturally anywhere in the world. The result depended on coordinated work across countries, rather than on one scientist working alone.\n\nWhich organisation led the worldwide effort described in the passage?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The World Health Organization (WHO)",
+        "A local school",
+        "One village council",
+        "A travel company"
+      ],
+      "correctAnswer": "The World Health Organization (WHO)",
+      "explanation": "The supplied passage supports this answer: the World Health Organization (WHO) led a worldwide effort against smallpox",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 180,
+      "language": "en",
+      "eligibleGrades": [
+        7,
+        8
+      ],
+      "hints": [],
+      "tags": [
+        "reading",
+        "self-contained passage",
+        "editorial repair candidate"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "eng.reading.explicit-information",
+          "atomicSubskillCode": "eng.reading.explicit-information.locate-detail",
+          "evidenceFocusCode": "eng.reading.explicit-information.locate-detail.focus.esl-short-text-detail",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "Retrieves an explicitly stated detail from the self-contained passage."
+        }
+      ],
+      "readingContext": {
+        "passageId": "smallpox",
+        "passageText": "In 1796, Edward Jenner tested whether material from cowpox could protect a person against smallpox. His work helped establish vaccination. Much later, the World Health Organization (WHO) led a worldwide effort against smallpox. WHO intensified its eradication programme in 1967. Teams used vaccination and surveillance: they protected people and looked for new cases. The last known naturally occurring case was recorded in Somalia in 1977. In 1980, WHO declared that smallpox had been eradicated. This means that the disease was no longer spreading naturally anywhere in the world. The result depended on coordinated work across countries, rather than on one scientist working alone.",
+        "stem": "Which organisation led the worldwide effort described in the passage?",
+        "evidenceQuote": "the World Health Organization (WHO) led a worldwide effort against smallpox",
+        "questionMode": "explicit_retrieval",
+        "factualSources": [
+          "https://www.who.int/health-topics/smallpox",
+          "https://www.who.int/news-room/spotlight/history-of-vaccination/history-of-smallpox-vaccination"
+        ]
+      }
+    },
+    {
+      "externalId": "english-reading-context-repair-20261026-02",
+      "sourceQuestionId": "1c992a07-371b-4553-9c9e-f59c2940c072",
+      "sourceQuestionHash": "2a6aae9b470db4cb3924594d23837c5908fc53ec18d25a037b5aabda1e0ea658",
+      "topic": "Reading: locating specific information",
+      "questionText": "Read the passage.\n\nA Long Campaign\nIn 1796, Edward Jenner tested whether material from cowpox could protect a person against smallpox. His work helped establish vaccination. Much later, the World Health Organization (WHO) led a worldwide effort against smallpox. WHO intensified its eradication programme in 1967. Teams used vaccination and surveillance: they protected people and looked for new cases. The last known naturally occurring case was recorded in Somalia in 1977. In 1980, WHO declared that smallpox had been eradicated. This means that the disease was no longer spreading naturally anywhere in the world. The result depended on coordinated work across countries, rather than on one scientist working alone.\n\nAccording to the passage, in which year did Jenner test protection against smallpox?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1853",
+        "1796",
+        "1967",
+        "1980"
+      ],
+      "correctAnswer": "1796",
+      "explanation": "The supplied passage supports this answer: In 1796, Edward Jenner tested whether material from cowpox could protect a person against smallpox.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 180,
+      "language": "en",
+      "eligibleGrades": [
+        7,
+        8
+      ],
+      "hints": [],
+      "tags": [
+        "reading",
+        "self-contained passage",
+        "editorial repair candidate"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "eng.reading.explicit-information",
+          "atomicSubskillCode": "eng.reading.explicit-information.locate-detail",
+          "evidenceFocusCode": "eng.reading.explicit-information.locate-detail.focus.esl-short-text-detail",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "Retrieves an explicitly stated detail from the self-contained passage."
+        }
+      ],
+      "readingContext": {
+        "passageId": "smallpox",
+        "passageText": "In 1796, Edward Jenner tested whether material from cowpox could protect a person against smallpox. His work helped establish vaccination. Much later, the World Health Organization (WHO) led a worldwide effort against smallpox. WHO intensified its eradication programme in 1967. Teams used vaccination and surveillance: they protected people and looked for new cases. The last known naturally occurring case was recorded in Somalia in 1977. In 1980, WHO declared that smallpox had been eradicated. This means that the disease was no longer spreading naturally anywhere in the world. The result depended on coordinated work across countries, rather than on one scientist working alone.",
+        "stem": "According to the passage, in which year did Jenner test protection against smallpox?",
+        "evidenceQuote": "In 1796, Edward Jenner tested whether material from cowpox could protect a person against smallpox.",
+        "questionMode": "explicit_retrieval",
+        "factualSources": [
+          "https://www.who.int/health-topics/smallpox",
+          "https://www.who.int/news-room/spotlight/history-of-vaccination/history-of-smallpox-vaccination"
+        ]
+      }
+    },
+    {
+      "externalId": "english-reading-context-repair-20261026-03",
+      "sourceQuestionId": "72a66fbc-0fe9-41b6-98ef-29b21af57fee",
+      "sourceQuestionHash": "de8b35250e064845fccab2e6965a26548bc3930ac854cd238346af3c8185f219",
+      "topic": "Reading: locating specific information",
+      "questionText": "Read the passage.\n\nA Long Campaign\nIn 1796, Edward Jenner tested whether material from cowpox could protect a person against smallpox. His work helped establish vaccination. Much later, the World Health Organization (WHO) led a worldwide effort against smallpox. WHO intensified its eradication programme in 1967. Teams used vaccination and surveillance: they protected people and looked for new cases. The last known naturally occurring case was recorded in Somalia in 1977. In 1980, WHO declared that smallpox had been eradicated. This means that the disease was no longer spreading naturally anywhere in the world. The result depended on coordinated work across countries, rather than on one scientist working alone.\n\nWhat did Jenner test, according to the passage?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Whether antibiotics could cure all diseases",
+        "Whether maps could identify new cases",
+        "Whether material from cowpox could protect against smallpox",
+        "Whether every disease disappeared in 1796"
+      ],
+      "correctAnswer": "Whether material from cowpox could protect against smallpox",
+      "explanation": "The supplied passage supports this answer: Edward Jenner tested whether material from cowpox could protect a person against smallpox.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 180,
+      "language": "en",
+      "eligibleGrades": [
+        8
+      ],
+      "hints": [],
+      "tags": [
+        "reading",
+        "self-contained passage",
+        "editorial repair candidate"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "eng.reading.explicit-information",
+          "atomicSubskillCode": "eng.reading.explicit-information.locate-detail",
+          "evidenceFocusCode": "eng.reading.explicit-information.locate-detail.focus.esl-short-text-detail",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "Retrieves an explicitly stated detail from the self-contained passage."
+        }
+      ],
+      "readingContext": {
+        "passageId": "smallpox",
+        "passageText": "In 1796, Edward Jenner tested whether material from cowpox could protect a person against smallpox. His work helped establish vaccination. Much later, the World Health Organization (WHO) led a worldwide effort against smallpox. WHO intensified its eradication programme in 1967. Teams used vaccination and surveillance: they protected people and looked for new cases. The last known naturally occurring case was recorded in Somalia in 1977. In 1980, WHO declared that smallpox had been eradicated. This means that the disease was no longer spreading naturally anywhere in the world. The result depended on coordinated work across countries, rather than on one scientist working alone.",
+        "stem": "What did Jenner test, according to the passage?",
+        "evidenceQuote": "Edward Jenner tested whether material from cowpox could protect a person against smallpox.",
+        "questionMode": "explicit_retrieval",
+        "factualSources": [
+          "https://www.who.int/health-topics/smallpox",
+          "https://www.who.int/news-room/spotlight/history-of-vaccination/history-of-smallpox-vaccination"
+        ]
+      }
+    },
+    {
+      "externalId": "english-reading-context-repair-20261026-04",
+      "sourceQuestionId": "8b283d5f-79b5-486d-ab6e-ea13e15da001",
+      "sourceQuestionHash": "a56e30c68c05fe5b889d852b73dd71e18833c615cd9b2930f4ea0a87e3a6d258",
+      "topic": "Reading: locating specific information",
+      "questionText": "Read the passage.\n\nA Long Campaign\nIn 1796, Edward Jenner tested whether material from cowpox could protect a person against smallpox. His work helped establish vaccination. Much later, the World Health Organization (WHO) led a worldwide effort against smallpox. WHO intensified its eradication programme in 1967. Teams used vaccination and surveillance: they protected people and looked for new cases. The last known naturally occurring case was recorded in Somalia in 1977. In 1980, WHO declared that smallpox had been eradicated. This means that the disease was no longer spreading naturally anywhere in the world. The result depended on coordinated work across countries, rather than on one scientist working alone.\n\nWhen did WHO intensify its eradication programme?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1796",
+        "1977",
+        "1980",
+        "1967"
+      ],
+      "correctAnswer": "1967",
+      "explanation": "The supplied passage supports this answer: WHO intensified its eradication programme in 1967.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 180,
+      "language": "en",
+      "eligibleGrades": [
+        7,
+        8
+      ],
+      "hints": [],
+      "tags": [
+        "reading",
+        "self-contained passage",
+        "editorial repair candidate"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "eng.reading.explicit-information",
+          "atomicSubskillCode": "eng.reading.explicit-information.locate-detail",
+          "evidenceFocusCode": "eng.reading.explicit-information.locate-detail.focus.esl-short-text-detail",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "Retrieves an explicitly stated detail from the self-contained passage."
+        }
+      ],
+      "readingContext": {
+        "passageId": "smallpox",
+        "passageText": "In 1796, Edward Jenner tested whether material from cowpox could protect a person against smallpox. His work helped establish vaccination. Much later, the World Health Organization (WHO) led a worldwide effort against smallpox. WHO intensified its eradication programme in 1967. Teams used vaccination and surveillance: they protected people and looked for new cases. The last known naturally occurring case was recorded in Somalia in 1977. In 1980, WHO declared that smallpox had been eradicated. This means that the disease was no longer spreading naturally anywhere in the world. The result depended on coordinated work across countries, rather than on one scientist working alone.",
+        "stem": "When did WHO intensify its eradication programme?",
+        "evidenceQuote": "WHO intensified its eradication programme in 1967.",
+        "questionMode": "explicit_retrieval",
+        "factualSources": [
+          "https://www.who.int/health-topics/smallpox",
+          "https://www.who.int/news-room/spotlight/history-of-vaccination/history-of-smallpox-vaccination"
+        ]
+      }
+    },
+    {
+      "externalId": "english-reading-context-repair-20261026-05",
+      "sourceQuestionId": "b52a0610-ab69-4832-a0ad-bcde76dc3136",
+      "sourceQuestionHash": "47af22c6d191e471369c9733a254ef5831954fec3e2f2e11247679923f488ca6",
+      "topic": "Reading: locating specific information",
+      "questionText": "Read the passage.\n\nA Long Campaign\nIn 1796, Edward Jenner tested whether material from cowpox could protect a person against smallpox. His work helped establish vaccination. Much later, the World Health Organization (WHO) led a worldwide effort against smallpox. WHO intensified its eradication programme in 1967. Teams used vaccination and surveillance: they protected people and looked for new cases. The last known naturally occurring case was recorded in Somalia in 1977. In 1980, WHO declared that smallpox had been eradicated. This means that the disease was no longer spreading naturally anywhere in the world. The result depended on coordinated work across countries, rather than on one scientist working alone.\n\nWhere was the last known naturally occurring case recorded?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Somalia",
+        "Britain",
+        "Canada",
+        "Japan"
+      ],
+      "correctAnswer": "Somalia",
+      "explanation": "The supplied passage supports this answer: The last known naturally occurring case was recorded in Somalia in 1977.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 180,
+      "language": "en",
+      "eligibleGrades": [
+        7,
+        8
+      ],
+      "hints": [],
+      "tags": [
+        "reading",
+        "self-contained passage",
+        "editorial repair candidate"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "eng.reading.explicit-information",
+          "atomicSubskillCode": "eng.reading.explicit-information.locate-detail",
+          "evidenceFocusCode": "eng.reading.explicit-information.locate-detail.focus.esl-short-text-detail",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "Retrieves an explicitly stated detail from the self-contained passage."
+        }
+      ],
+      "readingContext": {
+        "passageId": "smallpox",
+        "passageText": "In 1796, Edward Jenner tested whether material from cowpox could protect a person against smallpox. His work helped establish vaccination. Much later, the World Health Organization (WHO) led a worldwide effort against smallpox. WHO intensified its eradication programme in 1967. Teams used vaccination and surveillance: they protected people and looked for new cases. The last known naturally occurring case was recorded in Somalia in 1977. In 1980, WHO declared that smallpox had been eradicated. This means that the disease was no longer spreading naturally anywhere in the world. The result depended on coordinated work across countries, rather than on one scientist working alone.",
+        "stem": "Where was the last known naturally occurring case recorded?",
+        "evidenceQuote": "The last known naturally occurring case was recorded in Somalia in 1977.",
+        "questionMode": "explicit_retrieval",
+        "factualSources": [
+          "https://www.who.int/health-topics/smallpox",
+          "https://www.who.int/news-room/spotlight/history-of-vaccination/history-of-smallpox-vaccination"
+        ]
+      }
+    },
+    {
+      "externalId": "english-reading-context-repair-20261026-06",
+      "sourceQuestionId": "09b01a9b-46ce-4b14-a47c-55a7c9367a47",
+      "sourceQuestionHash": "6826bae7146f873c444db72f068402b2aed843b3236fbfe2a733319c0430db24",
+      "topic": "Reading: locating specific information",
+      "questionText": "Read the passage.\n\nMore Than Three Colours\nLight-sensitive cells called cones help eyes detect colour. Typical human colour vision uses three cone types, which are sensitive to different ranges of light wavelengths. These ranges are commonly associated with red, green and blue. The visual system compares the signals from the cone types; a cone is not simply a tiny pot of coloured paint. A system using three cone types is called trichromatic. A system using four is called tetrachromatic. Hummingbirds have four cone types. Experiments have shown that they can distinguish colour combinations that humans cannot normally tell apart. In this text, 'tetra' refers to four types of colour-sensitive cone, not four colours in the whole world.\n\nHow many cone types do hummingbirds have, according to the passage?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Two",
+        "Four",
+        "Three",
+        "Six"
+      ],
+      "correctAnswer": "Four",
+      "explanation": "The supplied passage supports this answer: Hummingbirds have four cone types.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 180,
+      "language": "en",
+      "eligibleGrades": [
+        7,
+        8
+      ],
+      "hints": [],
+      "tags": [
+        "reading",
+        "self-contained passage",
+        "editorial repair candidate"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "eng.reading.explicit-information",
+          "atomicSubskillCode": "eng.reading.explicit-information.locate-detail",
+          "evidenceFocusCode": "eng.reading.explicit-information.locate-detail.focus.esl-short-text-detail",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "Retrieves an explicitly stated detail from the self-contained passage."
+        }
+      ],
+      "readingContext": {
+        "passageId": "colour",
+        "passageText": "Light-sensitive cells called cones help eyes detect colour. Typical human colour vision uses three cone types, which are sensitive to different ranges of light wavelengths. These ranges are commonly associated with red, green and blue. The visual system compares the signals from the cone types; a cone is not simply a tiny pot of coloured paint. A system using three cone types is called trichromatic. A system using four is called tetrachromatic. Hummingbirds have four cone types. Experiments have shown that they can distinguish colour combinations that humans cannot normally tell apart. In this text, 'tetra' refers to four types of colour-sensitive cone, not four colours in the whole world.",
+        "stem": "How many cone types do hummingbirds have, according to the passage?",
+        "evidenceQuote": "Hummingbirds have four cone types.",
+        "questionMode": "explicit_retrieval",
+        "factualSources": [
+          "https://www.nei.nih.gov/research-and-training/research-news/nei-scientists-use-retinal-connectomics-study-color-vision-circuitry-relevant-mood-myopia",
+          "https://www.princeton.edu/news/2020/06/15/wild-hummingbirds-see-broad-range-colors-humans-can-only-imagine",
+          "https://doi.org/10.1073/pnas.1919377117"
+        ]
+      }
+    },
+    {
+      "externalId": "english-reading-context-repair-20261026-07",
+      "sourceQuestionId": "0d7edc31-e842-4c7c-bd2c-dad7da64b47d",
+      "sourceQuestionHash": "a80c2bf986030029bca9799f033a04d3ae9b11ea527b228a8f254170817cb54e",
+      "topic": "Reading: locating specific information",
+      "questionText": "Read the passage.\n\nMore Than Three Colours\nLight-sensitive cells called cones help eyes detect colour. Typical human colour vision uses three cone types, which are sensitive to different ranges of light wavelengths. These ranges are commonly associated with red, green and blue. The visual system compares the signals from the cone types; a cone is not simply a tiny pot of coloured paint. A system using three cone types is called trichromatic. A system using four is called tetrachromatic. Hummingbirds have four cone types. Experiments have shown that they can distinguish colour combinations that humans cannot normally tell apart. In this text, 'tetra' refers to four types of colour-sensitive cone, not four colours in the whole world.\n\nThe three human cone types are sensitive to different ranges of what?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Sound frequencies",
+        "Air pressure",
+        "Light wavelengths",
+        "Body temperature"
+      ],
+      "correctAnswer": "Light wavelengths",
+      "explanation": "The supplied passage supports this answer: three cone types, which are sensitive to different ranges of light wavelengths",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 180,
+      "language": "en",
+      "eligibleGrades": [
+        7,
+        8
+      ],
+      "hints": [],
+      "tags": [
+        "reading",
+        "self-contained passage",
+        "editorial repair candidate"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "eng.reading.explicit-information",
+          "atomicSubskillCode": "eng.reading.explicit-information.locate-detail",
+          "evidenceFocusCode": "eng.reading.explicit-information.locate-detail.focus.esl-short-text-detail",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "Retrieves an explicitly stated detail from the self-contained passage."
+        }
+      ],
+      "readingContext": {
+        "passageId": "colour",
+        "passageText": "Light-sensitive cells called cones help eyes detect colour. Typical human colour vision uses three cone types, which are sensitive to different ranges of light wavelengths. These ranges are commonly associated with red, green and blue. The visual system compares the signals from the cone types; a cone is not simply a tiny pot of coloured paint. A system using three cone types is called trichromatic. A system using four is called tetrachromatic. Hummingbirds have four cone types. Experiments have shown that they can distinguish colour combinations that humans cannot normally tell apart. In this text, 'tetra' refers to four types of colour-sensitive cone, not four colours in the whole world.",
+        "stem": "The three human cone types are sensitive to different ranges of what?",
+        "evidenceQuote": "three cone types, which are sensitive to different ranges of light wavelengths",
+        "questionMode": "explicit_retrieval",
+        "factualSources": [
+          "https://www.nei.nih.gov/research-and-training/research-news/nei-scientists-use-retinal-connectomics-study-color-vision-circuitry-relevant-mood-myopia",
+          "https://www.princeton.edu/news/2020/06/15/wild-hummingbirds-see-broad-range-colors-humans-can-only-imagine",
+          "https://doi.org/10.1073/pnas.1919377117"
+        ]
+      }
+    },
+    {
+      "externalId": "english-reading-context-repair-20261026-08",
+      "sourceQuestionId": "35e1a648-a9ca-4385-8185-9a55bbc859f7",
+      "sourceQuestionHash": "93602571e2a1093662af376baa6aa09f7cf4556fb44405694610a47b13055e44",
+      "topic": "Reading: locating specific information",
+      "questionText": "Read the passage.\n\nMore Than Three Colours\nLight-sensitive cells called cones help eyes detect colour. Typical human colour vision uses three cone types, which are sensitive to different ranges of light wavelengths. These ranges are commonly associated with red, green and blue. The visual system compares the signals from the cone types; a cone is not simply a tiny pot of coloured paint. A system using three cone types is called trichromatic. A system using four is called tetrachromatic. Hummingbirds have four cone types. Experiments have shown that they can distinguish colour combinations that humans cannot normally tell apart. In this text, 'tetra' refers to four types of colour-sensitive cone, not four colours in the whole world.\n\nWhich colours are commonly associated with the three human cone ranges in the passage?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Black, white and grey",
+        "Orange, purple and brown",
+        "Yellow, black and white",
+        "Red, green and blue"
+      ],
+      "correctAnswer": "Red, green and blue",
+      "explanation": "The supplied passage supports this answer: These ranges are commonly associated with red, green and blue.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 180,
+      "language": "en",
+      "eligibleGrades": [
+        7,
+        8
+      ],
+      "hints": [],
+      "tags": [
+        "reading",
+        "self-contained passage",
+        "editorial repair candidate"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "eng.reading.explicit-information",
+          "atomicSubskillCode": "eng.reading.explicit-information.locate-detail",
+          "evidenceFocusCode": "eng.reading.explicit-information.locate-detail.focus.esl-short-text-detail",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "Retrieves an explicitly stated detail from the self-contained passage."
+        }
+      ],
+      "readingContext": {
+        "passageId": "colour",
+        "passageText": "Light-sensitive cells called cones help eyes detect colour. Typical human colour vision uses three cone types, which are sensitive to different ranges of light wavelengths. These ranges are commonly associated with red, green and blue. The visual system compares the signals from the cone types; a cone is not simply a tiny pot of coloured paint. A system using three cone types is called trichromatic. A system using four is called tetrachromatic. Hummingbirds have four cone types. Experiments have shown that they can distinguish colour combinations that humans cannot normally tell apart. In this text, 'tetra' refers to four types of colour-sensitive cone, not four colours in the whole world.",
+        "stem": "Which colours are commonly associated with the three human cone ranges in the passage?",
+        "evidenceQuote": "These ranges are commonly associated with red, green and blue.",
+        "questionMode": "explicit_retrieval",
+        "factualSources": [
+          "https://www.nei.nih.gov/research-and-training/research-news/nei-scientists-use-retinal-connectomics-study-color-vision-circuitry-relevant-mood-myopia",
+          "https://www.princeton.edu/news/2020/06/15/wild-hummingbirds-see-broad-range-colors-humans-can-only-imagine",
+          "https://doi.org/10.1073/pnas.1919377117"
+        ]
+      }
+    },
+    {
+      "externalId": "english-reading-context-repair-20261026-09",
+      "sourceQuestionId": "78f32906-bec1-42ec-8acf-4dafaf6d1ba4",
+      "sourceQuestionHash": "d8f8ac25de3f096fc5d2d96463ca68e621ee0ae4e7c121575472cd29082cecce",
+      "topic": "Reading: locating specific information",
+      "questionText": "Read the passage.\n\nMore Than Three Colours\nLight-sensitive cells called cones help eyes detect colour. Typical human colour vision uses three cone types, which are sensitive to different ranges of light wavelengths. These ranges are commonly associated with red, green and blue. The visual system compares the signals from the cone types; a cone is not simply a tiny pot of coloured paint. A system using three cone types is called trichromatic. A system using four is called tetrachromatic. Hummingbirds have four cone types. Experiments have shown that they can distinguish colour combinations that humans cannot normally tell apart. In this text, 'tetra' refers to four types of colour-sensitive cone, not four colours in the whole world.\n\nWhat does tetrachromatic mean in this passage?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Using four types of colour-sensitive cone",
+        "Seeing exactly four colours",
+        "Having no cone cells",
+        "Using only red and green signals"
+      ],
+      "correctAnswer": "Using four types of colour-sensitive cone",
+      "explanation": "The supplied passage supports this answer: A system using four is called tetrachromatic.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 180,
+      "language": "en",
+      "eligibleGrades": [
+        8
+      ],
+      "hints": [],
+      "tags": [
+        "reading",
+        "self-contained passage",
+        "editorial repair candidate"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "eng.reading.explicit-information",
+          "atomicSubskillCode": "eng.reading.explicit-information.locate-detail",
+          "evidenceFocusCode": "eng.reading.explicit-information.locate-detail.focus.esl-short-text-detail",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "Retrieves an explicitly stated detail from the self-contained passage."
+        }
+      ],
+      "readingContext": {
+        "passageId": "colour",
+        "passageText": "Light-sensitive cells called cones help eyes detect colour. Typical human colour vision uses three cone types, which are sensitive to different ranges of light wavelengths. These ranges are commonly associated with red, green and blue. The visual system compares the signals from the cone types; a cone is not simply a tiny pot of coloured paint. A system using three cone types is called trichromatic. A system using four is called tetrachromatic. Hummingbirds have four cone types. Experiments have shown that they can distinguish colour combinations that humans cannot normally tell apart. In this text, 'tetra' refers to four types of colour-sensitive cone, not four colours in the whole world.",
+        "stem": "What does tetrachromatic mean in this passage?",
+        "evidenceQuote": "A system using four is called tetrachromatic.",
+        "questionMode": "explicit_retrieval",
+        "factualSources": [
+          "https://www.nei.nih.gov/research-and-training/research-news/nei-scientists-use-retinal-connectomics-study-color-vision-circuitry-relevant-mood-myopia",
+          "https://www.princeton.edu/news/2020/06/15/wild-hummingbirds-see-broad-range-colors-humans-can-only-imagine",
+          "https://doi.org/10.1073/pnas.1919377117"
+        ]
+      }
+    },
+    {
+      "externalId": "english-reading-context-repair-20261026-10",
+      "sourceQuestionId": "b9de96ce-88da-44bf-9050-bc9c4ec33846",
+      "sourceQuestionHash": "af172f3fd4e99efed964cf83ab3baccfa303b8af2b17dacec65dfff94d5b206e",
+      "topic": "Reading: locating specific information",
+      "questionText": "Read the passage.\n\nMore Than Three Colours\nLight-sensitive cells called cones help eyes detect colour. Typical human colour vision uses three cone types, which are sensitive to different ranges of light wavelengths. These ranges are commonly associated with red, green and blue. The visual system compares the signals from the cone types; a cone is not simply a tiny pot of coloured paint. A system using three cone types is called trichromatic. A system using four is called tetrachromatic. Hummingbirds have four cone types. Experiments have shown that they can distinguish colour combinations that humans cannot normally tell apart. In this text, 'tetra' refers to four types of colour-sensitive cone, not four colours in the whole world.\n\nWhat does trichromatic mean in this passage?",
+      "questionType": "multiple_choice",
+      "options": [
+        "Seeing only three objects",
+        "Using three cone types",
+        "Having three eyes",
+        "Using four cone types"
+      ],
+      "correctAnswer": "Using three cone types",
+      "explanation": "The supplied passage supports this answer: A system using three cone types is called trichromatic.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 180,
+      "language": "en",
+      "eligibleGrades": [
+        7,
+        8
+      ],
+      "hints": [],
+      "tags": [
+        "reading",
+        "self-contained passage",
+        "editorial repair candidate"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "eng.reading.explicit-information",
+          "atomicSubskillCode": "eng.reading.explicit-information.locate-detail",
+          "evidenceFocusCode": "eng.reading.explicit-information.locate-detail.focus.esl-short-text-detail",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "Retrieves an explicitly stated detail from the self-contained passage."
+        }
+      ],
+      "readingContext": {
+        "passageId": "colour",
+        "passageText": "Light-sensitive cells called cones help eyes detect colour. Typical human colour vision uses three cone types, which are sensitive to different ranges of light wavelengths. These ranges are commonly associated with red, green and blue. The visual system compares the signals from the cone types; a cone is not simply a tiny pot of coloured paint. A system using three cone types is called trichromatic. A system using four is called tetrachromatic. Hummingbirds have four cone types. Experiments have shown that they can distinguish colour combinations that humans cannot normally tell apart. In this text, 'tetra' refers to four types of colour-sensitive cone, not four colours in the whole world.",
+        "stem": "What does trichromatic mean in this passage?",
+        "evidenceQuote": "A system using three cone types is called trichromatic.",
+        "questionMode": "explicit_retrieval",
+        "factualSources": [
+          "https://www.nei.nih.gov/research-and-training/research-news/nei-scientists-use-retinal-connectomics-study-color-vision-circuitry-relevant-mood-myopia",
+          "https://www.princeton.edu/news/2020/06/15/wild-hummingbirds-see-broad-range-colors-humans-can-only-imagine",
+          "https://doi.org/10.1073/pnas.1919377117"
+        ]
+      }
+    },
+    {
+      "externalId": "english-reading-context-repair-20261026-11",
+      "sourceQuestionId": "ffa53133-92dc-4f14-947f-7b4d75301cdf",
+      "sourceQuestionHash": "825b62a5672eae5457b4a43b126c081044d54d7c5af65a96f0090fe1e4bfa183",
+      "topic": "Reading: locating specific information",
+      "questionText": "Read the passage.\n\nReading a Historical Estimate\nA CDC history describes how the influenza pandemic spread worldwide during 1918-1919. It estimates that about 500 million people became infected, roughly one-third of the world's population at the time. The same account gives an estimate of at least 50 million deaths worldwide. These are historical estimates, rather than an exact count of every person. The passage identifies 1918-1919 as the period of worldwide spread. It does not give an exact percentage of the world's population who died.\n\nWhich period does the passage identify for the pandemic’s worldwide spread?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1796-1798",
+        "1853-1855",
+        "1918-1919",
+        "1967-1977"
+      ],
+      "correctAnswer": "1918-1919",
+      "explanation": "The supplied passage supports this answer: the influenza pandemic spread worldwide during 1918-1919",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 180,
+      "language": "en",
+      "eligibleGrades": [
+        8
+      ],
+      "hints": [],
+      "tags": [
+        "reading",
+        "self-contained passage",
+        "editorial repair candidate"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "eng.reading.explicit-information",
+          "atomicSubskillCode": "eng.reading.explicit-information.locate-detail",
+          "evidenceFocusCode": "eng.reading.explicit-information.locate-detail.focus.esl-short-text-detail",
+          "assessmentProcessCode": "BH-AO1",
+          "cognitiveProcess": "understand",
+          "evidenceStatement": "Retrieves an explicitly stated detail from the self-contained passage."
+        }
+      ],
+      "readingContext": {
+        "passageId": "flu",
+        "passageText": "A CDC history describes how the influenza pandemic spread worldwide during 1918-1919. It estimates that about 500 million people became infected, roughly one-third of the world's population at the time. The same account gives an estimate of at least 50 million deaths worldwide. These are historical estimates, rather than an exact count of every person. The passage identifies 1918-1919 as the period of worldwide spread. It does not give an exact percentage of the world's population who died.",
+        "stem": "Which period does the passage identify for the pandemic’s worldwide spread?",
+        "evidenceQuote": "the influenza pandemic spread worldwide during 1918-1919",
+        "questionMode": "explicit_retrieval",
+        "factualSources": [
+          "https://archive.cdc.gov/www_cdc_gov/flu/pandemic-resources/1918-commemoration/1918-pandemic-history.htm"
+        ]
+      }
+    },
+    {
+      "externalId": "english-reading-context-repair-20261026-12",
+      "sourceQuestionId": "59275387-f365-e73c-4fd8-eb29a9b5d130",
+      "sourceQuestionHash": "bb9fcb6e20bc2cb5fc83b95ca3e9e4d4d42db117a067a6b2f109fff5087a1a06",
+      "topic": "Reading: evidence for an inference",
+      "questionText": "Read the passage.\n\nThe Old Map\nThe guide pointed towards a narrow track and said that it would take us straight to the village. I nodded, but I did not put away my old map. At the first turning, I stopped to compare his directions with the lines on the paper. When he pointed left again, I checked the map a second time before following. The others were already chatting about lunch. I stayed quiet and kept the map open in my hands.\n\nWhich detail best supports the inference that the narrator doubts the guide’s directions?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The guide points towards a narrow track",
+        "The others talk about lunch",
+        "The narrator is walking towards a village",
+        "The narrator repeatedly checks the directions against an old map"
+      ],
+      "correctAnswer": "The narrator repeatedly checks the directions against an old map",
+      "explanation": "The supplied passage supports this answer: When he pointed left again, I checked the map a second time before following.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 180,
+      "language": "en",
+      "eligibleGrades": [
+        7
+      ],
+      "hints": [],
+      "tags": [
+        "reading",
+        "self-contained passage",
+        "editorial repair candidate"
+      ],
+      "taxonomies": [
+        {
+          "primarySkillCode": "eng.reading.inference",
+          "atomicSubskillCode": "eng.reading.inference.attitude-feeling",
+          "evidenceFocusCode": "eng.reading.inference.attitude-feeling.focus.select-evidence-that-establishes-narrator-distrust-130ba7e575",
+          "assessmentProcessCode": "BH-AO3",
+          "cognitiveProcess": "analyze",
+          "evidenceStatement": "Selects an explicitly supplied action as evidence of narrator distrust."
+        }
+      ],
+      "readingContext": {
+        "passageId": "guide",
+        "passageText": "The guide pointed towards a narrow track and said that it would take us straight to the village. I nodded, but I did not put away my old map. At the first turning, I stopped to compare his directions with the lines on the paper. When he pointed left again, I checked the map a second time before following. The others were already chatting about lunch. I stayed quiet and kept the map open in my hands.",
+        "stem": "Which detail best supports the inference that the narrator doubts the guide’s directions?",
+        "evidenceQuote": "When he pointed left again, I checked the map a second time before following.",
+        "questionMode": "inference",
+        "factualSources": []
+      }
+    }
+  ]
+}

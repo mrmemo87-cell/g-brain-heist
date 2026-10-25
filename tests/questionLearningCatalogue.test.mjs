@@ -39,6 +39,10 @@ await db.exec(`insert into curriculum_assessment_items(id,source_type,source_rec
 insert into curriculum_item_objective_mappings(id,assessment_item_id,curriculum_scope_id,framework_version_id,academic_subject_id,status,mapping_role,item_content_hash,curriculum_version_content_hash) values('${id(41)}','${id(40)}','${id(31)}','${id(30)}','${id(10)}','approved','primary','hash','versionhash');`);
 await db.exec(`update questions set is_active=false where id='${id(209)}'`);
 await db.exec(migration);
+await db.exec(`create table public.assignments(id uuid primary key,publish_status text);create table public.assignment_questions(assignment_id uuid,question_id uuid);`);
+const holdMigration=readFileSync('supabase/migrations/'+readdirSync('supabase/migrations').find(p=>p.endsWith('_hold_context_incomplete_question_selection.sql')),'utf8');
+// Source-specific seed is exercised in a live rollback; local fixtures use synthetic content hashes.
+await db.exec(holdMigration.replace(/do \$seed\$[\s\S]*?end;\$seed\$;/,''));
 const actor=n=>db.query("select set_config('test.actor',$1,false)",[n?id(n):'']);
 const page=async(filters={})=>(await db.query('select rpc_teacher_question_browser($1) result',[{metadata:false,...filters}])).rows[0].result;
 const facets=async()=>(await db.query('select rpc_teacher_question_facets(null,null) result')).rows[0].result;
@@ -122,3 +126,27 @@ test('English repair preparation is global, partial, draft-only and idempotent; 
  assert.deepEqual((await db.query('select * from public.curriculum_item_objective_mappings order by id')).rows,mappings);
 });
 test.after(async()=>db.close());
+
+
+test('content-bound holds gate all authoring reads and new assignments while grandfathering published work',async()=>{
+ const q=id(201),hash='a'.repeat(64);
+ await db.query('update questions set current_content_hash=$1,verified_content_hash=$1 where id=$2',[hash,q]);
+ await db.query('update verified_question_registry_taxonomy set question_content_hash=$1 where question_id=$2',[hash,q]);
+ await refresh();await actor(1);
+ const before=ids(await page());assert.ok(before.includes(q));
+ await db.query(`insert into private.question_selection_holds(question_id,question_content_hash,reason,source_reference,created_by_authority) values($1,$2,'missing_reading_context','test','test')`,[q,hash]);
+ for(const n of [1,2]){
+  await actor(n);assert.ok(!ids(await page()).includes(q));
+  assert.ok(!(await db.query('select id from get_all_active_questions()')).rows.some(r=>r.id===q));
+  assert.equal((await db.query('select id from rpc_teacher_questions_by_ids($1)',[[q]])).rows.length,0);
+ }
+ await actor(1);assert.deepEqual(ids(await page()),before.filter(i=>i!==q));
+ const heldFacets=await facets();
+ await db.query('update private.question_selection_holds set released_at=now() where question_id=$1',[q]);
+ assert.deepEqual(ids(await page()),before);assert.notDeepEqual(await facets(),heldFacets);
+ await db.query('update private.question_selection_holds set released_at=null where question_id=$1',[q]);
+ await db.query("insert into public.assignments values($1,'published')",[id(901)]);
+ await db.query('insert into public.assignment_questions values($1,$2)',[id(901),id(202)]);
+ await db.query('update questions set current_content_hash=$1 where id=$2',['b'.repeat(64),id(202)]);
+ await db.exec('begin;'+readFileSync('scripts/test-question-selection-holds.sql','utf8')+'rollback;');
+});

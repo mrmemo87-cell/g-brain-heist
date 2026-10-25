@@ -1,0 +1,1963 @@
+{
+  "status": "proposals_not_activated",
+  "summary": {
+    "precise_focus_governance_proposal": 105,
+    "new_self_contained_reading_replacement": 12,
+    "new_connective_wording_replacement": 4,
+    "subject_scope_review": 7,
+    "existing_focus_mapping_proposal": 1
+  },
+  "focusProposals": [
+    {
+      "key": "relative-fronting",
+      "name": "Select or identify a fronted preposition before which or whom in a formal relative clause",
+      "existingParentSubskillCode": "eng.use-of-english.clauses-subordination.relative",
+      "boundary": "Recognition of the relative-clause construction and the required preposition. A supplied whom is not evidence of independently choosing whom.",
+      "status": "proposal_not_canonical",
+      "canonicalCode": null,
+      "canonicalId": null
+    },
+    {
+      "key": "wh-fronting",
+      "name": "Select or identify a fronted preposition in a formal wh-question",
+      "existingParentSubskillCode": "eng.use-of-english.questions-negation.questions",
+      "boundary": "Recognition of a formal fronted-preposition question. Does not establish independent question production.",
+      "status": "proposal_not_canonical",
+      "canonicalCode": null,
+      "canonicalId": null
+    },
+    {
+      "key": "conditional-pattern",
+      "name": "Select a past-form hypothetical condition with a would-result clause",
+      "existingParentSubskillCode": "eng.use-of-english.conditionals.unreal",
+      "boundary": "Recognition of paired second-conditional forms, including could in the condition. Does not establish independent conditional writing.",
+      "status": "proposal_not_canonical",
+      "canonicalCode": null,
+      "canonicalId": null
+    },
+    {
+      "key": "container-partitive",
+      "name": "Select conventional container and partitive noun combinations",
+      "existingParentSubskillCode": "eng.use-of-english.lexical-patterns.collocation",
+      "boundary": "Selection among the supplied noun combinations; the task does not establish productive collocation use.",
+      "status": "proposal_not_canonical",
+      "canonicalCode": null,
+      "canonicalId": null
+    },
+    {
+      "key": "technical-words-definition",
+      "name": "Recognise technical vocabulary from verbal definitions",
+      "existingParentSkillCode": "eng.use-of-english.lexical-patterns",
+      "proposedSubskillName": "Technical vocabulary recognition",
+      "requiresSubskillGovernance": true,
+      "boundary": "Recognising the English term given a concept definition. Does not establish independent writing or mathematical mastery.",
+      "status": "proposal_not_canonical",
+      "canonicalCode": null,
+      "canonicalId": null
+    },
+    {
+      "key": "technical-words-visual",
+      "name": "Match technical vocabulary to a pictured object or labelled part",
+      "existingParentSkillCode": "eng.use-of-english.lexical-patterns",
+      "proposedSubskillName": "Technical vocabulary recognition",
+      "requiresSubskillGovernance": true,
+      "boundary": "Matching the English term to an accessible diagram. Does not establish independent writing or geometric reasoning.",
+      "status": "proposal_not_canonical",
+      "canonicalCode": null,
+      "canonicalId": null
+    },
+    {
+      "key": "topic-frame",
+      "name": "Select regarding to introduce the topic of a statement",
+      "existingParentSkillCode": "eng.use-of-english.connectives",
+      "requiresSubskillGovernance": true,
+      "boundary": "Topic framing is distinct from addition, sequence, contrast or causal inference. The atomic parent requires review.",
+      "status": "proposal_not_canonical",
+      "canonicalCode": null,
+      "canonicalId": null
+    },
+    {
+      "key": "reinforcement",
+      "name": "Select indeed or in fact to reinforce a preceding statement",
+      "existingParentSubskillCode": "eng.use-of-english.connectives.addition-sequence",
+      "requiresParentReview": true,
+      "boundary": "Recognition of a confirming discourse marker; does not demonstrate composing a coherent argument.",
+      "status": "proposal_not_canonical",
+      "canonicalCode": null,
+      "canonicalId": null
+    },
+    {
+      "key": "inference-marker",
+      "name": "Select a phrase introducing an inference from supplied evidence",
+      "existingParentSubskillCode": "eng.use-of-english.connectives.cause-effect",
+      "requiresParentReview": true,
+      "boundary": "A cautious inference must be supported by the stated evidence. Absence of evidence alone is not evidence that a hypothesis is false.",
+      "status": "proposal_not_canonical",
+      "canonicalCode": null,
+      "canonicalId": null
+    },
+    {
+      "key": "restatement-marker",
+      "name": "Select in other words to introduce a restatement",
+      "existingParentSubskillCode": "eng.use-of-english.connectives.exemplification",
+      "boundary": "Recognition of paraphrase/restatement, not contrast or an unrelated additional event.",
+      "status": "proposal_not_canonical",
+      "canonicalCode": null,
+      "canonicalId": null
+    },
+    {
+      "key": "past-no-necessity",
+      "name": "Interpret did not need to as lack of necessity without determining whether the action occurred",
+      "existingParentSubskillCode": "eng.use-of-english.modality.obligation-prohibition",
+      "boundary": "The uncontextualised sentence alone does not establish whether the action occurred. Preserve the already correct answer key.",
+      "status": "proposal_not_canonical",
+      "canonicalCode": null,
+      "canonicalId": null
+    },
+    {
+      "key": "reported-polite-request",
+      "name": "Select asked plus object plus to-infinitive to report a polite request",
+      "existingParentSubskillCode": "eng.use-of-english.reported-speech.questions-commands",
+      "boundary": "Reporting a request is distinct from backshifting a declarative statement. Preserve the already correct answer key.",
+      "status": "proposal_not_canonical",
+      "canonicalCode": null,
+      "canonicalId": null
+    }
+  ],
+  "decisions": [
+    {
+      "sourceQuestionId": "010c5c6e-8ac0-c8db-698f-f35fe5e54633",
+      "sourceContentHash": "5af7d0c57b6f74d38dca41fbb6341e02bb9145e6cc5da67e559dc2372a31669c",
+      "sourceTaxonomyIds": [
+        "13341b93-4b98-486c-92e2-40d6920f04a0"
+      ],
+      "reviewIndex": 1,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "011b90af-00dd-fc0f-26cc-98bd0e71f363",
+      "sourceContentHash": "dbbb46808affe5383e124391a73b6d9b3b561ee4ef31dcc9f2f119ad555658cd",
+      "sourceTaxonomyIds": [
+        "04b7ce5c-77b6-473d-86f0-90c6b72db47d",
+        "4f35a2d1-4b17-4508-89ab-bab37ff871ff"
+      ],
+      "reviewIndex": 2,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "02aab970-7eda-fe6f-0320-a9552c33af36",
+      "sourceContentHash": "a0ce3261bef3233ef5c489ef2fa4a4a89d68922bc4194d0791ddcf0f5003fdae",
+      "sourceTaxonomyIds": [
+        "967622ec-055c-42af-b231-1740359fe1dd"
+      ],
+      "reviewIndex": 3,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "03d51c95-d799-139d-ef5e-72c15f07c313",
+      "sourceContentHash": "1bd255c85f8405a6ab9eecb86910a5c50f21e3d62c7ac6fa847b53ebe040a554",
+      "sourceTaxonomyIds": [
+        "38c08124-6b16-4c7e-b197-f6fde8b09ecb",
+        "4af1e9c5-7367-4f3d-9a9c-a2a3543800f2",
+        "96895cc6-aae1-4dae-b381-92a2fdd49ccf"
+      ],
+      "reviewIndex": 4,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "03f028c1-884d-2eed-0d60-339d6434ad0c",
+      "sourceContentHash": "773e28f67165e969614f18c3cbcbed300b9f4425016cba8f3c219eb606b8e2b5",
+      "sourceTaxonomyIds": [
+        "25ba3712-ffbb-4ca7-b89a-1bfd0f3a4c2b",
+        "64e05a16-29ee-44f8-87ff-8b7e380578ec"
+      ],
+      "reviewIndex": 5,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "07b5fae1-0377-44bf-8c9b-8d579f7b4c17",
+      "sourceContentHash": "01f32e8b0bfd44b4821a7dc371f9f08125bc63bf52832105db89477ed7ae4d6c",
+      "sourceTaxonomyIds": [
+        "350e6bec-0fec-4e0b-b3d2-dbb3072349b1"
+      ],
+      "reviewIndex": 6,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_self_contained_reading_replacement",
+      "replacementExternalId": "english-reading-context-repair-20261026-01",
+      "reason": "The original lacks its referenced passage. A new external ID and a complete original passage preserve the old item history."
+    },
+    {
+      "sourceQuestionId": "08c3f3fb-1b00-ecef-d61c-062e1f65e47a",
+      "sourceContentHash": "dbd24be08a9829bc49a9092dfb328dbec403ad0e56e17f3df8373a4acac670b9",
+      "sourceTaxonomyIds": [
+        "a14c7dd6-3ffe-4e5f-9184-755027afcfd2"
+      ],
+      "reviewIndex": 7,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "09b01a9b-46ce-4b14-a47c-55a7c9367a47",
+      "sourceContentHash": "6826bae7146f873c444db72f068402b2aed843b3236fbfe2a733319c0430db24",
+      "sourceTaxonomyIds": [
+        "6ca44eff-97a9-4958-acae-a05c06cf424a"
+      ],
+      "reviewIndex": 8,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_self_contained_reading_replacement",
+      "replacementExternalId": "english-reading-context-repair-20261026-06",
+      "reason": "The original lacks its referenced passage. A new external ID and a complete original passage preserve the old item history."
+    },
+    {
+      "sourceQuestionId": "0d7edc31-e842-4c7c-bd2c-dad7da64b47d",
+      "sourceContentHash": "a80c2bf986030029bca9799f033a04d3ae9b11ea527b228a8f254170817cb54e",
+      "sourceTaxonomyIds": [
+        "4f30830c-ea0f-4fcc-a8b9-1c10868e51ee"
+      ],
+      "reviewIndex": 9,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_self_contained_reading_replacement",
+      "replacementExternalId": "english-reading-context-repair-20261026-07",
+      "reason": "The original lacks its referenced passage. A new external ID and a complete original passage preserve the old item history."
+    },
+    {
+      "sourceQuestionId": "0f4cfc46-80f5-a425-cc6d-bf1f1d2b139e",
+      "sourceContentHash": "d3a9a5dcb723deb067367a406bebbebeca2cbc5eb993d738e6af760c84e7a06d",
+      "sourceTaxonomyIds": [
+        "193e6091-ec7a-4587-9aef-4d83493dca08",
+        "27c7c2ee-1a5e-4178-9b46-8eca86e27997"
+      ],
+      "reviewIndex": 10,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "110ef743-aa0d-fb13-bc2c-cf9f37b6c0fe",
+      "sourceContentHash": "3476ded34b9ca07f285b632193783d610c7917fdc10c64af3fb1ccbe8f741823",
+      "sourceTaxonomyIds": [
+        "33b5ad01-173b-428e-999c-38b25ce495f1"
+      ],
+      "reviewIndex": 11,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "12b0b8c1-e211-5e14-ab9a-b65c442abe4a",
+      "sourceContentHash": "b49f047e1e927b626f3361fedce13dc781b19a5c446be346aeb86819912a985d",
+      "sourceTaxonomyIds": [
+        "6ce9ec86-d1ca-4a7a-9886-b22d18d8cd3f",
+        "d016ae15-e451-40ab-9ee1-dc08f5d3a8d1"
+      ],
+      "reviewIndex": 12,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "1483b22a-437d-c346-2437-f350397c98e9",
+      "sourceContentHash": "240088a253e1fe7ae2cd7cdacb39537f1b3b7fee86e713c1b24c36195bb0bf54",
+      "sourceTaxonomyIds": [
+        "5128c7a8-c93d-476e-8394-55ce5ff4db77"
+      ],
+      "reviewIndex": 13,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "17c54058-793e-4d66-8bf2-4300d277ce65",
+      "sourceContentHash": "e86430312aa118928bf028f32792721a4a182f624da00fc9cb2caa17b0b38a63",
+      "sourceTaxonomyIds": [
+        "24839b9f-39ff-4521-991d-08406fa44570"
+      ],
+      "reviewIndex": 14,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "topic-frame",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "19991d46-d8c9-402e-da91-cb149a98a6f3",
+      "sourceContentHash": "151f292b6d5a7b086de320a08866114ada74c902ef50a8c0d086db1e7b656014",
+      "sourceTaxonomyIds": [
+        "3e79f1f7-bb03-40e2-8451-32d654a82b31"
+      ],
+      "reviewIndex": 15,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "1ad64066-bad9-0ce7-4fc7-1f6a2fede9f2",
+      "sourceContentHash": "800514e8dea40aba59eb6d83e811696f619d035723961314bcf70470e96ae91f",
+      "sourceTaxonomyIds": [
+        "c562bfc5-36f4-4c32-aa9b-c2744ac836d7",
+        "92c6aac4-de20-45f0-a5f1-7308a2d5a98d"
+      ],
+      "reviewIndex": 16,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "1c4894b7-6c44-a98b-7919-729ee7050fca",
+      "sourceContentHash": "1a6187c76162e6bc92fd1eefb3c79b915830d47c391e749463c0b02f21719fdf",
+      "sourceTaxonomyIds": [
+        "5cfafc1f-ee3c-493d-a548-ce7a92c294c9",
+        "da290665-eaf6-41a7-b3c9-bfee5a812bad"
+      ],
+      "reviewIndex": 17,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "1c992a07-371b-4553-9c9e-f59c2940c072",
+      "sourceContentHash": "2a6aae9b470db4cb3924594d23837c5908fc53ec18d25a037b5aabda1e0ea658",
+      "sourceTaxonomyIds": [
+        "f3e1d573-7b74-45e3-b3d5-e21afa3c1d18"
+      ],
+      "reviewIndex": 18,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_self_contained_reading_replacement",
+      "replacementExternalId": "english-reading-context-repair-20261026-02",
+      "reason": "The original lacks its referenced passage. A new external ID and a complete original passage preserve the old item history."
+    },
+    {
+      "sourceQuestionId": "1d720836-2470-ced5-04ec-ac93dc88f82d",
+      "sourceContentHash": "8eaabf6437b2040c58879774488e446c186501229dbfcd33d27b8f66f75e4509",
+      "sourceTaxonomyIds": [
+        "a0b4992d-1959-47a7-961a-d8c9fa895bc3"
+      ],
+      "reviewIndex": 19,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "1e5d45e9-35e7-6043-0e3f-8b6deea5bfc0",
+      "sourceContentHash": "3e02675a1d9d8fcf048f8b0226cdce2c4d1c63f82b8cddb9ad2519b7163a6947",
+      "sourceTaxonomyIds": [
+        "ceb47fa8-d231-486e-a273-fc29ded858dc",
+        "07efc73f-57b9-49f4-8aca-926a9dde0fee"
+      ],
+      "reviewIndex": 20,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "1f2342d3-82f0-d644-229e-19d0d0690285",
+      "sourceContentHash": "b2097f5ec3fac3067fcfe84f3ead0bf25f34d01bcd5048398629b9956f0246e0",
+      "sourceTaxonomyIds": [
+        "afd350c7-d544-40b8-82da-174b251def40"
+      ],
+      "reviewIndex": 21,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "1f9aec97-fc01-5b63-e1d6-fa1537a2b0a4",
+      "sourceContentHash": "a140c354e9fe9de3cd8874af38e4a7e92167e8a4f79c8b8ce62aafc5e891f96b",
+      "sourceTaxonomyIds": [
+        "94f3ac0b-a943-4894-8b98-99329e8ef990"
+      ],
+      "reviewIndex": 22,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "238b41af-c76e-37d4-3784-2f0d2e1d8984",
+      "sourceContentHash": "af34f4583ea666d4af8fabba927b8d9882b78bb9f8102b57f943b845f6d85fc5",
+      "sourceTaxonomyIds": [
+        "c239d833-f8af-49ff-af41-b8858358909b"
+      ],
+      "reviewIndex": 23,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "29371ed7-94b9-0032-2abf-4f043fae2a6e",
+      "sourceContentHash": "fc85627cc9638a274e723bea8a58b7b64be39edf3a536fddfff5c9f6d0b353ad",
+      "sourceTaxonomyIds": [
+        "960b6e28-e28d-4b25-b598-47fae14515fa"
+      ],
+      "reviewIndex": 24,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "2da635fe-202a-a05e-a5c6-568d1b0a1b91",
+      "sourceContentHash": "09dfecb3414f9c714e921e991c696d348a62179625f5ea8a82806a41490e198c",
+      "sourceTaxonomyIds": [
+        "a605f758-30e4-494a-abde-5471d53092d3"
+      ],
+      "reviewIndex": 25,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "3123a768-a29e-d845-0117-2e54a303ef1c",
+      "sourceContentHash": "5871be2343b784bbdb43912bbf8e75548fbf8ee9c2c79f345b38bc5b17e1af12",
+      "sourceTaxonomyIds": [
+        "571e635d-2e29-496b-ab84-e6f20d90511b"
+      ],
+      "reviewIndex": 26,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "33958d81-c24d-6e19-90ae-2f2fb37d6253",
+      "sourceContentHash": "44c1ce9b02659f9ccd68abfab11fe06e7a59af5c9ff3749db5bdfba90cdf594c",
+      "sourceTaxonomyIds": [
+        "b743ef85-fc7f-4183-9de3-7e78d1376165"
+      ],
+      "reviewIndex": 27,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "33d84ed9-297b-cdc8-5cf8-fa0242bc931d",
+      "sourceContentHash": "59296f54213cd49b845f9471c63e13d18094f62f2050c51c467cf76ca8e191d0",
+      "sourceTaxonomyIds": [
+        "219119d9-a6fc-483e-ae9a-03032e878338",
+        "af135aea-35be-4e04-946b-eaad0fc6f9e6",
+        "393e8d45-ccdd-4f60-9da2-d492678287ee"
+      ],
+      "reviewIndex": 28,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "35e1a648-a9ca-4385-8185-9a55bbc859f7",
+      "sourceContentHash": "93602571e2a1093662af376baa6aa09f7cf4556fb44405694610a47b13055e44",
+      "sourceTaxonomyIds": [
+        "a8462066-cb79-4683-b1a8-57492f494bfb"
+      ],
+      "reviewIndex": 29,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_self_contained_reading_replacement",
+      "replacementExternalId": "english-reading-context-repair-20261026-08",
+      "reason": "The original lacks its referenced passage. A new external ID and a complete original passage preserve the old item history."
+    },
+    {
+      "sourceQuestionId": "3774515a-4faf-8e5d-85c0-5116746de274",
+      "sourceContentHash": "e6ef9cdfdfa4e1bb99f68da68adfeb6db304e4452700e0fbe255c4e7b7fa7455",
+      "sourceTaxonomyIds": [
+        "2a03318c-bbe7-4c68-bfde-c61105e4c1fc"
+      ],
+      "reviewIndex": 30,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "39b9a9e4-fec5-44fc-8ce1-77fc961b882e",
+      "sourceContentHash": "75b61fa0bff5a7b26cc410e4be9240a85277e5c44e16bd5de80a133eebc61bd2",
+      "sourceTaxonomyIds": [
+        "6ed125ef-6cbe-4e6f-bfe4-9043c40e119f"
+      ],
+      "reviewIndex": 31,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_connective_wording_replacement",
+      "targetProposalKey": "reinforcement",
+      "reason": "Replace the untraceable Author (2019) attribution with a self-contained classroom context."
+    },
+    {
+      "sourceQuestionId": "3ea8457b-6b96-6feb-ab6c-1bb03286c3a1",
+      "sourceContentHash": "08671708a2b6274bd5fb483401fae05af53d6159fa34cfe59e9df5d78984a1e4",
+      "sourceTaxonomyIds": [
+        "3285828a-43ff-4861-a31b-5ca2eea1beee"
+      ],
+      "reviewIndex": 32,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "conditional-pattern",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "40059c16-9e50-5ab4-adde-c625b61bc0dd",
+      "sourceContentHash": "6c3d8f9a511b9461ff2e65a5ed9281d4a6e1beb55278dbf8e4466bc3b0a670ad",
+      "sourceTaxonomyIds": [
+        "87ce5d55-e70d-4ecb-98ea-e7d3fea46b5f"
+      ],
+      "reviewIndex": 33,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "past-no-necessity",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "42a8fb13-54e9-4056-85ac-41d1facdabd6",
+      "sourceContentHash": "7e2ee472f748e8b01eda3753d0e6ef064ed3d299be66ef74ee40f80523c93029",
+      "sourceTaxonomyIds": [
+        "fdd336df-230f-4d2f-9ff4-5bdf8f59441f"
+      ],
+      "reviewIndex": 34,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "reported-polite-request",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "43cce84c-57a0-1d3a-9097-b7b70cb9ebce",
+      "sourceContentHash": "59941b2be6fbae589e2403587b54d2f4588aa4773a2ed527e7cca0b43bf46f23",
+      "sourceTaxonomyIds": [
+        "500dc163-1e8c-417e-9679-75ac8417fb4c"
+      ],
+      "reviewIndex": 35,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "subject_scope_review",
+      "reason": "This item requires reasoning about solid properties, nets or transformations. Confirm whether it belongs in an English vocabulary course or mathematics before attributing English diagnostic evidence."
+    },
+    {
+      "sourceQuestionId": "4400818b-62b4-faa7-0fd6-eff4602f0276",
+      "sourceContentHash": "1a4b325332fe9f0dc132470392e30738dcd07b527c84129f87239e27c64efdea",
+      "sourceTaxonomyIds": [
+        "f76cb4ff-81f1-4e96-a523-28909503c195"
+      ],
+      "reviewIndex": 36,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "46db33f2-19e9-c6c9-26c8-fdeac72c2d29",
+      "sourceContentHash": "170b8aa46ff0158f3b3d9c23d990cda09fa7a77f2a6392106bb6c9fd871092c9",
+      "sourceTaxonomyIds": [
+        "48238dd0-06f6-4d3e-bb9c-c2dbb80495d1"
+      ],
+      "reviewIndex": 37,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "477edb73-5f59-faa7-4e86-7f8da006ad73",
+      "sourceContentHash": "7dabc4ec929ec464aa7167a150942c81a9c911d7a415ffa881a926fb0b6eac75",
+      "sourceTaxonomyIds": [
+        "23c00627-aa60-474c-adc6-2d2489224628",
+        "810b0060-3276-4240-ac59-14746d844f83"
+      ],
+      "reviewIndex": 38,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "4dc522e6-00d4-b930-b205-e0d123e43278",
+      "sourceContentHash": "d71a1c5734ee6192da4d006a0ffacd65c5685938fa03e348e7526acd91bb012e",
+      "sourceTaxonomyIds": [
+        "8a1fe11b-465e-4476-82a0-90881efa20b9"
+      ],
+      "reviewIndex": 39,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "53389874-f4c6-88e9-50f0-fb85a2bd55c4",
+      "sourceContentHash": "e27d4f6d374242b63c1757ef90343f1827acf79735b2c3a9e0042e52a2147c87",
+      "sourceTaxonomyIds": [
+        "ff2c33ce-f27c-46f3-9b43-4eac966e2f27"
+      ],
+      "reviewIndex": 40,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "54c9a057-fe04-9baa-3be8-d3df3e39c3fb",
+      "sourceContentHash": "f8e6e6d1255e8fba30888c1ffb9baf411d166a1e878e27fd678b509d80a5b9d9",
+      "sourceTaxonomyIds": [
+        "4d6abfa8-a414-4ad6-8bef-3081c1e0f01d"
+      ],
+      "reviewIndex": 41,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "5728951a-b3f7-ef1d-a7d7-f6ba9e058e2c",
+      "sourceContentHash": "a7a6e41e5cbe3931ee37d591d38b725d215454b4989faa93af23d77765fcb74a",
+      "sourceTaxonomyIds": [
+        "83d4d104-419d-45be-b520-491eb0753009"
+      ],
+      "reviewIndex": 42,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "584432c6-a49e-e355-b994-53c011351d50",
+      "sourceContentHash": "dd7487cd8b16b2b4a7c50f969acba998c1404ee2b4fedf2559d13030ce975219",
+      "sourceTaxonomyIds": [
+        "4082aa77-3b77-4590-b2fd-d0f40189cf5c",
+        "303b6e90-43fc-49d3-8e9e-d7614ea51343"
+      ],
+      "reviewIndex": 43,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "59275387-f365-e73c-4fd8-eb29a9b5d130",
+      "sourceContentHash": "bb9fcb6e20bc2cb5fc83b95ca3e9e4d4d42db117a067a6b2f109fff5087a1a06",
+      "sourceTaxonomyIds": [
+        "5c34e0ee-b613-4ceb-95c1-bb1dd46789cc"
+      ],
+      "reviewIndex": 44,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_self_contained_reading_replacement",
+      "replacementExternalId": "english-reading-context-repair-20261026-12",
+      "reason": "The original lacks its referenced passage. A new external ID and a complete original passage preserve the old item history."
+    },
+    {
+      "sourceQuestionId": "5d5e3c3f-6276-a834-689b-55051037c3aa",
+      "sourceContentHash": "68812dc399b0b8a04d79e510b2dbdc78200d20aad09a1f3923ec0c661fd0b778",
+      "sourceTaxonomyIds": [
+        "9d07a0c0-96ae-4df3-8bc2-2d554cc0c4b1"
+      ],
+      "reviewIndex": 45,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "5d8a5644-4836-b1bc-b1ba-f89957cbdf8c",
+      "sourceContentHash": "97684f342d965beadeb65ab8049578317aaaa67133c8e622af25ba5b343d5cd5",
+      "sourceTaxonomyIds": [
+        "be47ab69-12a4-4300-b6f1-f8f680f6e0bb"
+      ],
+      "reviewIndex": 46,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "5eb42896-688f-e740-e818-0ca40e92e829",
+      "sourceContentHash": "914ae97dcba86428e1e4096ff25112e4251f3213c1973272c6c2476f27d0bbb5",
+      "sourceTaxonomyIds": [
+        "92baf048-bd94-49c3-9b0c-6d612c032bbb"
+      ],
+      "reviewIndex": 47,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "6305a4fa-a585-5997-9b74-a67d34ebe36b",
+      "sourceContentHash": "1463ba21c0bdda3fdfdfe9bfd186953755a7b3408b78613716913fdafe59766f",
+      "sourceTaxonomyIds": [
+        "40dede00-57b6-440d-9566-f3410d6e1139"
+      ],
+      "reviewIndex": 48,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_connective_wording_replacement",
+      "targetProposalKey": "inference-marker",
+      "reason": "Contradictory results support an inference; merely weak evidence does not establish that a hypothesis is wrong."
+    },
+    {
+      "sourceQuestionId": "63e4c100-3fcd-b14f-5448-e40ff6a8bec0",
+      "sourceContentHash": "cbb2570ef4db4da0e4c47be5198fffd4f7768cc9726f645f24102d35f56b54cc",
+      "sourceTaxonomyIds": [
+        "c3555112-4a68-445f-8f14-a76ec67bba53"
+      ],
+      "reviewIndex": 49,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "64e58a4e-c91e-080b-c31e-37434d77880a",
+      "sourceContentHash": "5ac6d3a147cfd02d9d9b29e740e2a8f203cc21dc8a0936442cea411913e7d27a",
+      "sourceTaxonomyIds": [
+        "c45e6856-52e6-421f-a7ee-0f23fc356fdc"
+      ],
+      "reviewIndex": 50,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "6a05d16f-650a-fdcb-f07b-c72b3e96f01b",
+      "sourceContentHash": "60decaf5a124f8d89634fb93f96763c58afd27030e930f35bdf1b222c289079d",
+      "sourceTaxonomyIds": [
+        "412e6790-e49f-4ca7-8452-db36d05f9297"
+      ],
+      "reviewIndex": 51,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "6cd66245-fd90-0ac1-43c8-7c6b9ab8198f",
+      "sourceContentHash": "7c7e44a8569fe7339108ca251f9fd4116c3e6e8cf882b98524a314f171793e86",
+      "sourceTaxonomyIds": [
+        "140ebc78-ad38-41da-b851-cea73b3487cf",
+        "26fa29ab-86b0-451b-8264-58701f8c6349"
+      ],
+      "reviewIndex": 52,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "6ec551c6-ed06-fc00-a866-bf53bc9e92d3",
+      "sourceContentHash": "d766f4b5a058c3229de0c58fc56841e9574791cae77b90a072e3e30dfd1fd7e2",
+      "sourceTaxonomyIds": [
+        "919c17f0-ec4a-4c11-b6bb-19b9da109546"
+      ],
+      "reviewIndex": 53,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "72a66fbc-0fe9-41b6-98ef-29b21af57fee",
+      "sourceContentHash": "de8b35250e064845fccab2e6965a26548bc3930ac854cd238346af3c8185f219",
+      "sourceTaxonomyIds": [
+        "6587ec13-bc31-4264-aada-d14f0e81e47f"
+      ],
+      "reviewIndex": 54,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_self_contained_reading_replacement",
+      "replacementExternalId": "english-reading-context-repair-20261026-03",
+      "reason": "The original lacks its referenced passage. A new external ID and a complete original passage preserve the old item history."
+    },
+    {
+      "sourceQuestionId": "78f32906-bec1-42ec-8acf-4dafaf6d1ba4",
+      "sourceContentHash": "d8f8ac25de3f096fc5d2d96463ca68e621ee0ae4e7c121575472cd29082cecce",
+      "sourceTaxonomyIds": [
+        "5ea7e8a7-a640-441d-895c-d54102b88bdb"
+      ],
+      "reviewIndex": 55,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_self_contained_reading_replacement",
+      "replacementExternalId": "english-reading-context-repair-20261026-09",
+      "reason": "The original lacks its referenced passage. A new external ID and a complete original passage preserve the old item history."
+    },
+    {
+      "sourceQuestionId": "7a05c51e-777c-0313-9afd-9dc4dd98d2fa",
+      "sourceContentHash": "446cf04f5e15fd6d20ffe76302a5867be5e1ec26c4b1cfe3d475f598bc511cf1",
+      "sourceTaxonomyIds": [
+        "f9c9f576-28b5-42c6-803b-98f48f31a4c6"
+      ],
+      "reviewIndex": 56,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "7b6962f7-fb4e-ad5b-6244-e1fec3003b96",
+      "sourceContentHash": "655dd0510c64756a610b985714aabaf4e9a8ac94a7e618f26f72303fb1e9dac1",
+      "sourceTaxonomyIds": [
+        "cbe1cd89-95eb-4790-9785-952f6e884be4"
+      ],
+      "reviewIndex": 57,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "7b6b4c30-99f8-8f4a-6e33-2a4a6de82df6",
+      "sourceContentHash": "a6ebe1caa329dc4c492e7ec4da302fb474c089761e8f0bec7c87d16fc23a79ec",
+      "sourceTaxonomyIds": [
+        "2671c84a-0313-4bc6-82d2-331f7ffbf8a5"
+      ],
+      "reviewIndex": 58,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "7d0ea438-8580-654c-c0cf-72847cdf3260",
+      "sourceContentHash": "459db10e0a61bd7d4b8c7b1b6b164f9a429eece6e9cad0351cfc3b0a38946dc4",
+      "sourceTaxonomyIds": [
+        "a498aba6-046f-4769-a987-837c0cca1810"
+      ],
+      "reviewIndex": 59,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "7ed845fe-327b-00cc-da64-ad3d0b120631",
+      "sourceContentHash": "fdd652c6116e2d13f6cb053f977b6f4974bc44027743d38b0218b017d390ff94",
+      "sourceTaxonomyIds": [
+        "eb3c7d4a-1e92-475b-90ed-4e6b649be2fc"
+      ],
+      "reviewIndex": 60,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "7effc6a6-9401-93d2-5ca8-b620b128823f",
+      "sourceContentHash": "29240cb14ed6ed9f95ff2348042e21f348417fbb780032377d122deb1d753aa7",
+      "sourceTaxonomyIds": [
+        "dcb2e929-08d1-4be8-ad35-97b8ec874b88"
+      ],
+      "reviewIndex": 61,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "83101a2e-5cb6-26f8-a786-8ea068f5ae64",
+      "sourceContentHash": "06ca90dbbcdd75292eeb03b1309af4b3d4c8afa18098ce19e8430be38df6560e",
+      "sourceTaxonomyIds": [
+        "1dfd88f1-ca01-4432-b847-1c4b22f206dd"
+      ],
+      "reviewIndex": 62,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "84b89be7-721e-bcbf-a8d0-ba2c203bc62a",
+      "sourceContentHash": "94e2faf28f7ed0d26cb865b141d92ca084e76ce19ac2c4ef3e2f5c95c4f7cfd5",
+      "sourceTaxonomyIds": [
+        "bedff8d6-3c77-4cfd-b43a-6e6de181117c"
+      ],
+      "reviewIndex": 63,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "853442e9-bcb7-f6c9-ecd3-97ac8c55e7e3",
+      "sourceContentHash": "c8846264bd2c477d813efd46710d313e47faaa61bac64b4c12b9d1acd4d58000",
+      "sourceTaxonomyIds": [
+        "374881e9-8b11-422b-aa19-9e60c4ae2818"
+      ],
+      "reviewIndex": 64,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "8745a445-870f-1a0b-920f-0e0c248c4609",
+      "sourceContentHash": "5a04612d20af5e657626232b5560b5f99275aacb5a98786970a0259cc917c3b4",
+      "sourceTaxonomyIds": [
+        "4a61ad1e-ab33-4108-9ff7-4d889605ef4d"
+      ],
+      "reviewIndex": 65,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "89ab1fef-4f13-7336-f5b2-29571770d30c",
+      "sourceContentHash": "858b944fa8721ee47b3693f5aecdc4b67558fe65585658afd70ac18ee8497912",
+      "sourceTaxonomyIds": [
+        "62cdbeca-f1f9-4a44-94dc-1694f84ad75e"
+      ],
+      "reviewIndex": 66,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "8b283d5f-79b5-486d-ab6e-ea13e15da001",
+      "sourceContentHash": "a56e30c68c05fe5b889d852b73dd71e18833c615cd9b2930f4ea0a87e3a6d258",
+      "sourceTaxonomyIds": [
+        "c4695b35-ca6a-4d1e-be47-8d4044273c7c"
+      ],
+      "reviewIndex": 67,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_self_contained_reading_replacement",
+      "replacementExternalId": "english-reading-context-repair-20261026-04",
+      "reason": "The original lacks its referenced passage. A new external ID and a complete original passage preserve the old item history."
+    },
+    {
+      "sourceQuestionId": "8bcff714-21ca-4ba2-d762-0f2a73ed098e",
+      "sourceContentHash": "6d38af5cb4f17db11167a7e932e838809c955ea844b55881700ccfdffe6077d2",
+      "sourceTaxonomyIds": [
+        "b745d562-7b0c-415b-a49f-8d834ecee1ef",
+        "27787ff1-50bc-488d-bb0b-4912578b2d9a"
+      ],
+      "reviewIndex": 68,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "8d8d09b7-5799-00cd-fcc0-b3266acb6898",
+      "sourceContentHash": "dbdb90694cc423af4532a824be6ac1741f9f2e4fdc22f6a77cab45d272e2ef4e",
+      "sourceTaxonomyIds": [
+        "63b44a11-0c2a-4259-99db-7efa01975c47",
+        "18fdc021-4dbe-43fd-8875-1be13076a720"
+      ],
+      "reviewIndex": 69,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "8e76b4b6-0196-75cd-61e2-6a3cac8c210b",
+      "sourceContentHash": "bda0b0ad1c4f4c3a22b93e8516e75a11aa1fe39cf3705695a47572d7f9918db0",
+      "sourceTaxonomyIds": [
+        "414b2f5f-57cc-464a-bfd2-400e78519000"
+      ],
+      "reviewIndex": 70,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "915be0b2-7a15-b77c-70f6-1b060052fbbc",
+      "sourceContentHash": "3e46702b8d9c09568a92a350edc7907e8af335b002a73646717c98693969ba3d",
+      "sourceTaxonomyIds": [
+        "2fb7db99-1273-4084-947f-03674f7478d6",
+        "b5397062-5225-4670-977a-83902997f0e5"
+      ],
+      "reviewIndex": 71,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "91751c40-efcb-8a96-e9b6-94101717adbb",
+      "sourceContentHash": "800616f1cf7386204b9baa47a5409f0491e41996efdbd252d84b2d0d8bc9f1d0",
+      "sourceTaxonomyIds": [
+        "2591cf40-f8c9-463e-8438-92e6b217c8a7"
+      ],
+      "reviewIndex": 72,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "9671aeec-4c40-b691-4e45-2b7f457548c1",
+      "sourceContentHash": "dd5f6e9c07b2342581e132d9591c3d6a7ee510c64bd0d80d7f8c3a5988bb3c44",
+      "sourceTaxonomyIds": [
+        "d6462ae4-ac6c-48b0-bde2-907ab84b56a0"
+      ],
+      "reviewIndex": 73,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "967c62e6-3c3c-5263-2f0d-da493097024b",
+      "sourceContentHash": "c30c947e95eec021d962f3cafd3e60fa063c4bbaad29fafa4e4bf793b3e9f502",
+      "sourceTaxonomyIds": [
+        "4170f504-cf8a-473d-87a8-35bfb071d9f0"
+      ],
+      "reviewIndex": 74,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "98f818c0-90bc-92a4-6fd8-c13b0a2ce47c",
+      "sourceContentHash": "7cd9de649d2125042806dfbafd53d5fb53bb30fe82f047ded5cce5875f5fe441",
+      "sourceTaxonomyIds": [
+        "34d832d5-5ba6-4825-bade-3b630eb328ca"
+      ],
+      "reviewIndex": 75,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "9af7e78a-2bba-eac2-0b51-69f1803bf9c8",
+      "sourceContentHash": "7f485a39a850b993c94c1140400833f17760b7be6542451a9e7911886da6b74d",
+      "sourceTaxonomyIds": [
+        "c1c83f41-894a-4a82-ab2d-aa780c55a412",
+        "f448b25a-0aac-4eb6-8fba-43d3ab820958"
+      ],
+      "reviewIndex": 76,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "9b4f8d7d-435f-64a6-4548-5bc17e4a1980",
+      "sourceContentHash": "a33aa2dff74e129e892a6fdff3f6aa76ac02bcb208f26a760dae39005b4c70a9",
+      "sourceTaxonomyIds": [
+        "7e90285f-4295-423e-b4e2-992a5c912e21",
+        "d3369613-c4c7-4f5b-9fb2-ccfbd7398f8e"
+      ],
+      "reviewIndex": 77,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "9c84d04e-2a61-0bcc-eb66-a8c037eea2bd",
+      "sourceContentHash": "8fde5e8a2ad957d9e3a07ae08a790b64e8d91046aff17d7e8c89456ef8e3bd24",
+      "sourceTaxonomyIds": [
+        "80ab73e4-5669-4bde-b327-8c0c790afb1f"
+      ],
+      "reviewIndex": 78,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "subject_scope_review",
+      "reason": "This item requires reasoning about solid properties, nets or transformations. Confirm whether it belongs in an English vocabulary course or mathematics before attributing English diagnostic evidence."
+    },
+    {
+      "sourceQuestionId": "9cd7a09d-81d1-5157-cbfb-09a4b7374400",
+      "sourceContentHash": "0d82e6c6d1345d225a6b81f3de20e8e7d9a576d6df32a7416cca6fe66828acbf",
+      "sourceTaxonomyIds": [
+        "a6fa65bb-b7b0-4e1a-ac58-38b0e6ab785a"
+      ],
+      "reviewIndex": 79,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "9d754cd5-7d63-d48f-2d8e-2db3b8ec3d96",
+      "sourceContentHash": "db663a5b609c6aaa1a6beaa8cb9a4d4605bb2e037a74f982cb5ff37947dfe344",
+      "sourceTaxonomyIds": [
+        "7619cac6-4d8f-4d37-9643-f6aac82fb5c9"
+      ],
+      "reviewIndex": 80,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "9fc338b3-4505-986b-be6a-2c84cc9b7af5",
+      "sourceContentHash": "7d541cd64a02b19f260dd1f0761cac4972bf2d396a1f6d306fa27dd1fb07605b",
+      "sourceTaxonomyIds": [
+        "0adabfc1-683d-43f7-9dc6-14deb4db55fe",
+        "a42dc6e6-29e0-4180-a3cc-697e3036db1c"
+      ],
+      "reviewIndex": 81,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "a3802b2d-2d95-6cd1-c377-a618839aa487",
+      "sourceContentHash": "edaa894bdfc3f1a847bd62f07af5565a41680d1e47996e902f24888f70326be6",
+      "sourceTaxonomyIds": [
+        "58e9bcb9-0f44-4ed2-b79e-73fbf1b5b336"
+      ],
+      "reviewIndex": 82,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "a538df31-0877-c7bc-46d6-2733c938b7d8",
+      "sourceContentHash": "0a6418ab83fc6ab9f05c2ff50744227d030a14cc1ad64c68a37035181035b03c",
+      "sourceTaxonomyIds": [
+        "bdc82509-6c0a-40ba-b5b1-e19533aa539f"
+      ],
+      "reviewIndex": 83,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "subject_scope_review",
+      "reason": "This item requires reasoning about solid properties, nets or transformations. Confirm whether it belongs in an English vocabulary course or mathematics before attributing English diagnostic evidence."
+    },
+    {
+      "sourceQuestionId": "a5f5f2f2-3251-e529-f86a-564003b9bf98",
+      "sourceContentHash": "d712612502fa0eda702b4317ae8278028b7c01e984cde87f94fee604a8ec13e7",
+      "sourceTaxonomyIds": [
+        "45fa737a-a564-42ea-8eca-1910524116e2"
+      ],
+      "reviewIndex": 84,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "a729abca-bf93-6a19-b8ea-cc474f2c736a",
+      "sourceContentHash": "e133043815b4fd5e0a87a60aabc9f02bc02b534c0b6347d574bd09e0a223e233",
+      "sourceTaxonomyIds": [
+        "bf4e23b9-bf33-4c1d-bb68-fefed1f0553c"
+      ],
+      "reviewIndex": 85,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "a9c36a72-7bcd-57ed-c575-b692c749d94e",
+      "sourceContentHash": "92cedf682121482b7d6e15666b6bf75fd6874aa59cc5eac347c2341b130a7124",
+      "sourceTaxonomyIds": [
+        "95efbab1-65cb-4512-98cf-68ab4bf318cd",
+        "7a2445bf-0a44-4eb1-9862-d52ccf3383a8"
+      ],
+      "reviewIndex": 86,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "ac514399-020b-d0b6-6cce-3b5991840ef1",
+      "sourceContentHash": "cf666cc3d30dc52919c25a1cb6e172fa7f43d552e909cec2d374767637599ec9",
+      "sourceTaxonomyIds": [
+        "a0c383e8-3642-4439-931e-8275343bb18d"
+      ],
+      "reviewIndex": 87,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "ad4d9fee-5517-1a3f-c17f-045b15743206",
+      "sourceContentHash": "a8bcf9386ae7c324c8cbae40164a6c5961072fc5f6d6910cf6f89b8a94602049",
+      "sourceTaxonomyIds": [
+        "e66403d7-bb26-4675-ae43-d519c0563c30"
+      ],
+      "reviewIndex": 88,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "aee8ad97-3852-62df-6878-1fdc83b776a5",
+      "sourceContentHash": "e17a45d226798fb14a399c288e50819671f0c31c883042b87fe98be569aac3cc",
+      "sourceTaxonomyIds": [
+        "7c2f2280-0ff0-4988-a991-10072b5dde2e",
+        "e799caac-97aa-4d23-b774-d71b9155be4a"
+      ],
+      "reviewIndex": 89,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "b258adff-1f39-296e-ab07-18e7c5ee2fa3",
+      "sourceContentHash": "05636f6eefa365d6236f1397266980f4d01c0eda2ea03c9827223fe9c9be4be6",
+      "sourceTaxonomyIds": [
+        "3758ae7a-7e0a-49a4-a8d9-7b30b6372419"
+      ],
+      "reviewIndex": 90,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "subject_scope_review",
+      "reason": "This item requires reasoning about solid properties, nets or transformations. Confirm whether it belongs in an English vocabulary course or mathematics before attributing English diagnostic evidence."
+    },
+    {
+      "sourceQuestionId": "b52a0610-ab69-4832-a0ad-bcde76dc3136",
+      "sourceContentHash": "47af22c6d191e471369c9733a254ef5831954fec3e2f2e11247679923f488ca6",
+      "sourceTaxonomyIds": [
+        "531bd052-8d7a-41fc-922b-7ba85011f22a"
+      ],
+      "reviewIndex": 91,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_self_contained_reading_replacement",
+      "replacementExternalId": "english-reading-context-repair-20261026-05",
+      "reason": "The original lacks its referenced passage. A new external ID and a complete original passage preserve the old item history."
+    },
+    {
+      "sourceQuestionId": "b89e656b-ef00-723b-a4c1-202a7c5d50f6",
+      "sourceContentHash": "60ebe9e231cc95bedefa5cd4fef89faa0d0c8314459fc224f296f93640ee2a50",
+      "sourceTaxonomyIds": [
+        "3abceb8b-ff74-4493-94b2-18a1b9786f72",
+        "62abc02d-2b70-46c1-9b3c-dadea63bb3a2"
+      ],
+      "reviewIndex": 92,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "b91b01e1-cf9e-6267-b02d-ea110e5ae432",
+      "sourceContentHash": "2c7de928a986fc7edd66db4a544541d68bd125adea2e3b5d4a3d8981377a803e",
+      "sourceTaxonomyIds": [
+        "46f48bc6-040b-4060-866f-4486f5a1d418",
+        "10772a35-84da-4003-a98b-d16fc5bb7aac"
+      ],
+      "reviewIndex": 93,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "b9842301-40b7-1f2a-1153-cc07b47040ae",
+      "sourceContentHash": "bcb6078ec0ab69818ee7db013d15174838db2c675dcd034e5bbda62d0348bab2",
+      "sourceTaxonomyIds": [
+        "4895d630-05ae-4dd3-ae07-b36c94cd5c58"
+      ],
+      "reviewIndex": 94,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "b9de96ce-88da-44bf-9050-bc9c4ec33846",
+      "sourceContentHash": "af172f3fd4e99efed964cf83ab3baccfa303b8af2b17dacec65dfff94d5b206e",
+      "sourceTaxonomyIds": [
+        "581b0b2b-60ac-4f53-9ede-8e46684aa87f"
+      ],
+      "reviewIndex": 95,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_self_contained_reading_replacement",
+      "replacementExternalId": "english-reading-context-repair-20261026-10",
+      "reason": "The original lacks its referenced passage. A new external ID and a complete original passage preserve the old item history."
+    },
+    {
+      "sourceQuestionId": "be946d26-a1d5-b403-95db-b6608bbaf726",
+      "sourceContentHash": "b65c2f647170e43406ddc376a9a29118ee4565b580d529843e1d60056973a83a",
+      "sourceTaxonomyIds": [
+        "5c2d7d01-1532-4cce-9846-8d41aa435bd7"
+      ],
+      "reviewIndex": 96,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "c0357fa0-3be8-de04-cc57-86003440eeb4",
+      "sourceContentHash": "0355b27f534809d6d62d318ea63eb362eb83f86c23d7b51c3c0ba71c5c73d519",
+      "sourceTaxonomyIds": [
+        "1df34bed-0f5e-4704-9e10-a614936d02b3"
+      ],
+      "reviewIndex": 97,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "c18b3cd3-a96f-b71d-634c-3b406c501a83",
+      "sourceContentHash": "4662dd78a27f1a40c21e5d595210fede0b87073f02319fe497721050b8901f7d",
+      "sourceTaxonomyIds": [
+        "730da3e3-870f-4892-8aa3-254e41074b3c",
+        "966f0ee1-e7ca-4c19-8172-5dc3068f007b"
+      ],
+      "reviewIndex": 98,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "c214e358-185d-ceaa-e496-904d9c95a166",
+      "sourceContentHash": "114f545d59ba762929a11e40d7c41322ad22f3d9a2d8fcabb0738381a2e2f224",
+      "sourceTaxonomyIds": [
+        "2f08f674-68ab-4112-a435-de7c33cf8017",
+        "bc5bee48-76da-4164-bcab-76e0cf08354d"
+      ],
+      "reviewIndex": 99,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "c31e6fb2-0a71-69a5-403b-80bd3893107a",
+      "sourceContentHash": "60f7da839f9a702329fa85c80a183d4d7e72e3e282a28f6500c17b721cf724b3",
+      "sourceTaxonomyIds": [
+        "66ce2963-f51e-496c-b86c-3ad7f0fdb8a8",
+        "0e769ce0-49d5-4a7c-b754-d05b2219022d"
+      ],
+      "reviewIndex": 100,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "conditional-pattern",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "c5daa3d6-3d8a-1580-2fe4-c78655c47592",
+      "sourceContentHash": "749a9a895327197015ffe5b6a84479c1e1d41fac4df36638a75b9a7283501826",
+      "sourceTaxonomyIds": [
+        "6e5d4838-9ad7-4923-a3bc-7d583de3caef"
+      ],
+      "reviewIndex": 101,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "ca3ea7b8-3b6c-a492-684a-69cd04820728",
+      "sourceContentHash": "706e9ea003811b351d41e88e6f44254655b20208a1e81f90492da650a33394d3",
+      "sourceTaxonomyIds": [
+        "0ada3796-f4c4-4e27-8193-7f0898a38624"
+      ],
+      "reviewIndex": 102,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "subject_scope_review",
+      "reason": "This item requires reasoning about solid properties, nets or transformations. Confirm whether it belongs in an English vocabulary course or mathematics before attributing English diagnostic evidence."
+    },
+    {
+      "sourceQuestionId": "cb11825f-f70f-8a78-80a7-556b44cc86c9",
+      "sourceContentHash": "dc58fea969e4ea25618b98e8f857767ee80c2905188411e34bcbc7c223975244",
+      "sourceTaxonomyIds": [
+        "3f0da1a7-ff7e-415a-a037-7c3b5e920f4d"
+      ],
+      "reviewIndex": 103,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "cdf16df0-e508-fbc1-8df9-f1adbf85052b",
+      "sourceContentHash": "b356e65595090787740686e3f21d0231f48eb5cdda7fdd168cc500e3bec25e2e",
+      "sourceTaxonomyIds": [
+        "d99b17d4-be05-478e-a088-ad489d322e96",
+        "6d920ac8-d822-43b0-8f26-65e8522370d7"
+      ],
+      "reviewIndex": 104,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "cdfb5ebd-d5cf-0f49-ce9f-326174034beb",
+      "sourceContentHash": "6b27ce694b069109d34708c1f0d540b5bc02a9ee400c6c3d43e7d1bf699e7264",
+      "sourceTaxonomyIds": [
+        "16c3564f-bac6-418b-a82b-8b0093753e65"
+      ],
+      "reviewIndex": 105,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "cec1b2fb-73b6-6421-3d7e-4583670f3841",
+      "sourceContentHash": "636541aacc7396abdc5c300bd29f34ee60e7410b42eb5a807f6d5674d9aaa0a8",
+      "sourceTaxonomyIds": [
+        "712f5134-4042-40f7-86ec-c0448b9f9b0f"
+      ],
+      "reviewIndex": 106,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "d2a76df5-e7d2-e015-ebe8-d74f0b056649",
+      "sourceContentHash": "55e6700e010ad3634f86388d883149c4b017d9d3cfe23dcbc43a28b4f406f7f4",
+      "sourceTaxonomyIds": [
+        "3db8be4d-dc0a-4c27-a2a2-d299e9f1517d"
+      ],
+      "reviewIndex": 107,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "d2d8ca65-ca02-437f-81bc-3117a8b07acc",
+      "sourceContentHash": "5354bd422d7c42e329a17248307f26f3d9546e9eac97a9632b34e1967072d7f0",
+      "sourceTaxonomyIds": [
+        "0a74737c-234b-4cfc-88f5-cec88b3dbb8f"
+      ],
+      "reviewIndex": 108,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_connective_wording_replacement",
+      "targetProposalKey": "restatement-marker",
+      "reason": "Use the natural explicit restatement marker in other words instead of the less natural in other terms."
+    },
+    {
+      "sourceQuestionId": "d484843b-0fd8-992b-d67e-d8a28aa1d70f",
+      "sourceContentHash": "06753e5633410350dd93cc16c1d626b672d1e6ee722f8d3441e9cc3d69e8cc36",
+      "sourceTaxonomyIds": [
+        "48bc3276-a12a-4de3-8205-58378cac597b"
+      ],
+      "reviewIndex": 109,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "d80bdb9d-1db0-e001-838f-15e4b1636580",
+      "sourceContentHash": "3656a21668b46d2caf8816731c31473ade9b934a74560f692483161eae73a068",
+      "sourceTaxonomyIds": [
+        "05ae7334-85de-4b1c-821d-74bb8057301f",
+        "60ee27f8-53b0-4271-8d28-d36e50f76f06"
+      ],
+      "reviewIndex": 110,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "db8f788f-8487-0cba-64be-e8566201f7bc",
+      "sourceContentHash": "764f856f69b2547945aa00f20f9ad4752312484b9f24da476498616fd8a374f3",
+      "sourceTaxonomyIds": [
+        "d182edef-8ac2-464c-a474-33f62249b15e"
+      ],
+      "reviewIndex": 111,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "subject_scope_review",
+      "reason": "This item requires reasoning about solid properties, nets or transformations. Confirm whether it belongs in an English vocabulary course or mathematics before attributing English diagnostic evidence."
+    },
+    {
+      "sourceQuestionId": "de631435-13ed-a17d-82fb-3568c851d0f3",
+      "sourceContentHash": "c46b8d9577af8ef585c89cda4b8aa33d7839b5bed0ed0e6d4dbd2cf6443f24e3",
+      "sourceTaxonomyIds": [
+        "f60a2743-2d31-4b2c-adbe-dbb1b2687ccb"
+      ],
+      "reviewIndex": 112,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-definition",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "e3cac9b2-49d0-7024-3c77-16491d92a92e",
+      "sourceContentHash": "a7c7decfe68badab4e3b3de3971c89bbc04f3e2ce8916f9d22ccfef4f2c6d4f6",
+      "sourceTaxonomyIds": [
+        "e8d5c77b-0747-433c-9869-1418ee448fd3"
+      ],
+      "reviewIndex": 113,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "e5ac5907-f6af-868d-4f8e-5cff85c9ff34",
+      "sourceContentHash": "ae12bc3c18b761a3d62ede7022e222fd3ba361b02596da5ac69e3bfe177c696b",
+      "sourceTaxonomyIds": [
+        "551929f0-3153-4600-8637-40e29f59a79d"
+      ],
+      "reviewIndex": 114,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "subject_scope_review",
+      "reason": "This item requires reasoning about solid properties, nets or transformations. Confirm whether it belongs in an English vocabulary course or mathematics before attributing English diagnostic evidence."
+    },
+    {
+      "sourceQuestionId": "e92774bb-f49c-2dd1-4326-1bbacad1016c",
+      "sourceContentHash": "10905e2c03ecac5bb521e8348bde17317c391b5a8defd2715b7f15edb94341a4",
+      "sourceTaxonomyIds": [
+        "615de41d-bff6-4eff-bc4e-a9a939d401ab"
+      ],
+      "reviewIndex": 115,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "e9b24c9e-023b-8212-69c2-ccb6448b92be",
+      "sourceContentHash": "f2ddace3cf0fe3a97c1a3a3294bbbb55da8176bab6208528293c72f44db6c2d6",
+      "sourceTaxonomyIds": [
+        "39a40be6-91cf-4738-b501-a27640f98674"
+      ],
+      "reviewIndex": 116,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "ea0689ae-3994-4ef4-a687-855c91bd9ddd",
+      "sourceContentHash": "daff67f82857cc8209d1ece11e8ac7aeff0667f12a21b024f08d544f6490cc42",
+      "sourceTaxonomyIds": [
+        "e87b60ec-7c33-4a6b-a053-4d63768d2d1d"
+      ],
+      "reviewIndex": 117,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_connective_wording_replacement",
+      "targetProposalKey": "reinforcement",
+      "reason": "The second clause confirms inefficiency; rather misleadingly suggests correction or an alternative."
+    },
+    {
+      "sourceQuestionId": "ecf86d87-9634-f212-fe8d-d17b70ad172b",
+      "sourceContentHash": "732a32853f8215ed880a70ff579f00a8ed8ae2499a66be2928b1c635a8acc6ae",
+      "sourceTaxonomyIds": [
+        "9ebac749-c007-4f5c-83f0-d160498e49df",
+        "d06d09b4-f0f3-4364-b3a0-c37ef3ab69db"
+      ],
+      "reviewIndex": 118,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "ee08822a-8824-3ae0-b99f-154270443234",
+      "sourceContentHash": "f108c5d1702e7f218af5081c3df348090fd27d671811799c1c192cff402ab4f4",
+      "sourceTaxonomyIds": [
+        "51971fce-ef17-4f57-9b50-2e46f699a348"
+      ],
+      "reviewIndex": 119,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "existing_focus_mapping_proposal",
+      "targetFocusId": "6bb96761-cc66-4b15-8ee6-7f433ce06d28",
+      "targetFocusCode": "eng.use-of-english.noun-phrase.countability-number.focus.beginner-irregular-plurals",
+      "reason": "The alternatives discriminate the irregular plural loaves, rather than selection between different container nouns."
+    },
+    {
+      "sourceQuestionId": "ef588073-addd-2a74-6e04-dc7083d1d23c",
+      "sourceContentHash": "cfa996ba9c3947db5d3693da1a386d67bd301dde49a06ae28b01f7330d112ae0",
+      "sourceTaxonomyIds": [
+        "e8a74af9-0db4-4efd-81f6-91cbd7f3f906",
+        "6d4786c8-4d39-422a-a54d-63aa22965f33"
+      ],
+      "reviewIndex": 120,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "ef804ce0-9e82-5f55-de5a-5c5f6825c364",
+      "sourceContentHash": "6099c4bc228c4b65f50cc994cef3780b4de9575346d51d25a668723ed20b4735",
+      "sourceTaxonomyIds": [
+        "51cbd275-a3b9-4878-924b-5db16f5470ca",
+        "51f4133f-eb21-45b0-87d4-08854db3b585"
+      ],
+      "reviewIndex": 121,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "f2d9fc10-9b8d-7c62-1e84-b8ae4edc02c5",
+      "sourceContentHash": "2308bd2fc4cd3450b5edba26ea1bbeebd566308c82c4659b06a59435fcd56ba3",
+      "sourceTaxonomyIds": [
+        "388d2e3e-2a5a-466c-882f-42678ef6c941"
+      ],
+      "reviewIndex": 122,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "f49280c2-d702-c584-1d3f-181d54c3e454",
+      "sourceContentHash": "2b4e058e9b3b6652addd0268dc2e55f77dab303e8f4f774da132ffbef3607c83",
+      "sourceTaxonomyIds": [
+        "1065beed-31ee-4356-bfdf-b4f76a8bd12a",
+        "7df27d27-2a21-4790-848b-e7ddb1243de2"
+      ],
+      "reviewIndex": 123,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "relative-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "f6cff91b-c9a3-cda2-88f3-132f18ac1886",
+      "sourceContentHash": "f364d97e0f1a7534c906f67383b8425c76cc5ee6fc693e0d478b67847387ed18",
+      "sourceTaxonomyIds": [
+        "be57dd81-b28f-45a2-98ef-a4b7ced6b989"
+      ],
+      "reviewIndex": 124,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "conditional-pattern",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "f983ff6f-2f0b-9e76-68e2-61212f011998",
+      "sourceContentHash": "4f39eb2d366fbdc66b8bad6b27c3dffbbdd3bd83c1cf695f8eab4cef67696960",
+      "sourceTaxonomyIds": [
+        "9bd2d475-adc7-408f-9ce6-27b7d26157a1"
+      ],
+      "reviewIndex": 125,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "container-partitive",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "fa2f75ea-30ab-a238-24a8-3a469b5203e0",
+      "sourceContentHash": "4520d3b89cb8cc0d7c0be305023f276360bf630a9202313f35a3bf1bf2b80060",
+      "sourceTaxonomyIds": [
+        "41b14690-fc3f-4c8b-af23-a5894e0aa08a"
+      ],
+      "reviewIndex": 126,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "fd4dcc57-fddd-e5d5-7f42-8f79917ef408",
+      "sourceContentHash": "55fc9ce66bef60dbb3ae37163d23c35fc64c20b572123402b84b5aa1cfc6a5f4",
+      "sourceTaxonomyIds": [
+        "a9943250-2501-4b13-be8b-9ecf06f5d634",
+        "acfa846f-dec2-4688-bdee-7576a7e6fded"
+      ],
+      "reviewIndex": 127,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "wh-fronting",
+      "reason": "Select the precise primary task target after review; retain justified supporting mappings separately. A supplied word is not proof that the student selected it."
+    },
+    {
+      "sourceQuestionId": "fdac816d-6d11-df97-22da-c259d2fda292",
+      "sourceContentHash": "13ba3fba3fb088bc993c5449aa52c8d745974560df9b04b0f0084f6ec72f87dd",
+      "sourceTaxonomyIds": [
+        "16220214-ff0f-4ad1-b0fe-2469d8acd6af"
+      ],
+      "reviewIndex": 128,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": false,
+      "action": "precise_focus_governance_proposal",
+      "targetProposalKey": "technical-words-visual",
+      "reason": "Replace a broad or misleading diagnostic focus with a bounded recognition target through append-only governance."
+    },
+    {
+      "sourceQuestionId": "ffa53133-92dc-4f14-947f-7b4d75301cdf",
+      "sourceContentHash": "825b62a5672eae5457b4a43b126c081044d54d7c5af65a96f0090fe1e4bfa183",
+      "sourceTaxonomyIds": [
+        "a0cfb441-871f-4822-a3b9-0bb22ee83c7b"
+      ],
+      "reviewIndex": 129,
+      "status": "proposal_requires_governed_review",
+      "historicalPolicy": "Retain source questions, approved taxonomy history, assignments, scores and learner evidence.",
+      "contentChange": true,
+      "action": "new_self_contained_reading_replacement",
+      "replacementExternalId": "english-reading-context-repair-20261026-11",
+      "reason": "The original lacks its referenced passage. A new external ID and a complete original passage preserve the old item history."
+    }
+  ]
+}
