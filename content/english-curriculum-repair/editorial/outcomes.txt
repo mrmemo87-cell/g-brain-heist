@@ -1,0 +1,232 @@
+adjective-position|1-3|Select natural adjective positions and adjective order in noun phrases.
+adjective-role|4|Select an adjective that fits the meaning and grammatical role of a sentence.
+comparison-structure|5,8|Select the comparison structure required by the sentence context.
+comparison-spelling|6-7|Select the correct spelling of comparative and superlative adjectives.
+short-adjective-comparisons|9-10,16|Select -er and the plus -est forms of short adjectives.
+long-adjective-comparisons|11-12|Select more and most comparison forms for longer adjectives.
+adverb-comparisons|13|Select comparative and superlative adverb forms in context.
+adjective-comparisons|14|Select the comparative or superlative adjective form required by context.
+irregular-comparisons|15|Select irregular comparative and superlative forms in context.
+compound-adjective-form|17-18,22,24|Identify correctly formed compound adjectives in context.
+number-compounds|19|Select a number-based compound adjective with a singular noun component.
+compound-hyphenation|20,23,25|Select appropriate hyphenation for compound adjectives before nouns.
+ly-modifier-hyphenation|21|Identify that an -ly adverb and participle normally remain unhyphenated.
+participle-feeling-source|26,30|Select an -ing adjective to describe the cause of a feeling.
+participle-form-context|27|Select a participial adjective that fits its grammatical context.
+participle-feeling-experiencer|28-29|Select an -ed adjective to describe the experiencer of a feeling or resulting state.
+clear-pronoun-reference|31|Identify a revision that makes a pronoun's reference clear.
+object-pronouns|32|Select object pronouns appropriate to their sentence roles.
+subject-pronouns|33|Select subject pronouns appropriate to their sentence roles.
+relative-pronoun-functions|34|Select relative pronouns according to possession and clause function.
+relative-that|35|Select that to introduce a defining relative clause.
+relative-time|36|Select when to introduce a relative clause referring to time.
+relative-place|37|Select where to introduce a relative clause referring to place.
+relative-things|38|Select which to refer to a thing in a relative clause.
+relative-person-subject|39-40|Select who for a person functioning as the subject of a relative clause.
+relative-person-object|41|Select whom for a person functioning as the object of a relative clause.
+relative-possession|42|Select whose to express possession in a relative clause.
+agreement-error|43|Identify an error in agreement between a plural subject and its verb.
+agreement-head-of-phrase|44,46|Select a verb that agrees with the head noun before an of-phrase.
+agreement-either-or|45|Select verb agreement with the nearer subject in an either-or construction.
+agreement-relative-antecedent|47|Select a relative-clause verb that agrees with its antecedent.
+agreement-third-person|48,52|Select the third-person singular present-simple verb form.
+agreement-singular-subject-name|49|Select singular verb agreement with a singular subject name such as mathematics.
+agreement-indefinite-pronouns|50-51|Select singular verb agreement with each and everyone.
+agreement-there|53-54|Select is or are in existential there constructions according to noun number.
+agreement-unit-amount|55|Select singular verb agreement when an amount is treated as one unit.
+agreement-plural-present|56|Select the base present-simple verb form with a plural subject.
+evidence-support|57|Identify how a cited detail supports a central idea.
+evidence-conclusion|58|Select a conclusion that synthesises evidence and a recommendation.
+quantitative-evidence|59|Select numerical evidence relevant to a stated claim.
+absolute-claim-reliability|60|Identify the need for credible supporting evidence when evaluating an absolute claim.
+time-after|61-63|Select after to express the order of two events.
+time-before|64-65|Select before to express the order of two events.
+time-when|66|Select when to connect an event to its time or triggering event.
+time-while|67-68|Select while to connect simultaneous or ongoing events.
+time-while-interruption|69|Select while to connect an ongoing background action with an interrupting event.
+third-conditional-structure|71-72|Identify the correct third-conditional structure for an unreal past situation.
+third-conditional-negative|73|Select would not have plus a past participle for a negative third-conditional result.
+third-conditional-if|74-76|Select past perfect in a third-conditional if-clause.
+third-conditional-result|77-79|Select would have plus a past participle in a third-conditional result clause.
+conditional-likely-unreal|81|Distinguish likely future conditions from imaginary or unlikely conditions in context.
+second-conditional-negative|82|Select negative conditions and results in second-conditional sentences.
+second-conditional-if|83|Select past simple in a second-conditional if-clause.
+second-conditional-result|84|Select would plus a base verb in a second-conditional result clause.
+second-conditional-meaning|85|Interpret imaginary or unlikely situations expressed by the second conditional.
+hypothetical-were|86|Select hypothetical were and If I were you for formal hypothetical advice.
+first-conditional|87|Select present simple and will plus a base verb in first-conditional sentences.
+connective-addition|88,95,98|Select connectives that add supporting information.
+connective-sequence|90,96-97|Select first, then, finally and other connectives that order steps or ideas.
+connective-conclusion|91|Select a connective that signals a conclusion or synthesis.
+connective-alternative|92|Select a connective that signals an alternative or conditional outcome.
+connective-similarity|93|Select a connective that signals comparison or similarity.
+connective-reversed-perspective|94|Select conversely to signal a reversed perspective.
+connective-cause-result|99-102|Select connectives that express cause, result or consequence.
+connective-contrast|103-106|Select connectives that contrast ideas.
+connective-example|107|Select a connective that introduces an example.
+retrieve-stated-detail|111|Locate an explicitly stated factual or numerical detail in a text.
+consistent-tense|115|Identify a revision that maintains consistent verb tense.
+infer-feelings|116|Infer a character's feelings from described behaviour.
+feeling-evidence|117|Select textual evidence that supports an inferred feeling.
+infer-uncertainty|119|Infer uncertainty from a described sequence of actions.
+adverbial-participial-link|120|Select a linker or participial form appropriate to an adverbial clause.
+passive-infinitive|121-124,126|Select to be plus a past participle in passive-infinitive constructions.
+passive-necessity|125|Select have to be plus a past participle to express passive necessity.
+figurative-effect|127,130|Identify the image or emotional effect of figurative description.
+metaphor-identification|128|Identify a metaphor as a direct figurative comparison.
+personification-identification|129|Identify personification in a clause.
+symbolic-theme|131|Infer a theme from recurring symbolic contrasts.
+can-ability|134|Select can or cannot to express ability.
+modal-perfect-participle|135|Identify that a modal followed by have requires a past participle.
+neednt-have-meaning|136-137|Interpret need not have plus a past participle as an unnecessary action that occurred.
+cant-have-deduction|138|Interpret cannot have plus a past participle as a deduction that a past event was impossible.
+could-have-unrealised|139|Interpret could have plus a past participle as an unrealised past possibility.
+must-have-deduction|140-141|Select must have plus a past participle for a strong deduction about the past.
+should-have-regret|142|Interpret should have and should not have plus a past participle as criticism or regret.
+mustnt-base-form|143|Identify that must not is followed directly by a base verb.
+obligation-prohibition-meaning|144,150|Distinguish obligation, prohibition and lack of necessity in context.
+have-to-question|145|Select do plus subject plus have to in a present-tense question.
+external-obligation|146,151|Select have to or has to for an external requirement or obligation.
+strong-obligation|147,152|Select must to express a strong obligation or firm rule.
+optional-action|149|Interpret do not have to and does not have to as absence of necessity.
+prohibited-action|153|Select must not to express prohibition.
+uncertain-past-possibility|154-156|Select may have or might have plus a past participle for an uncertain past possibility.
+uncertain-negative-past|157-158|Select might not have plus a past participle for an uncertain negative past possibility.
+visual-inference|159|Infer an event from visible clues in a supplied image.
+zero-article-general|160,165,168|Select zero article for general references and uncountable nouns where appropriate.
+a-an-sound|161,163|Select a or an according to initial sound.
+article-basic-reference|162,167|Select a, an or the according to sound and reference in context.
+article-first-subsequent|164,166|Select an indefinite article for a first non-specific reference and the for a subsequent specific reference.
+article-mountain-range|169|Select the definite article with a mountain-range name.
+article-unique-specific|170-171|Select the definite article for a unique or contextually specific reference.
+article-language-meals|172-173|Select zero article with language names and routine meal names where appropriate.
+regular-plural|174-175|Select regular plural noun forms with -s or -es.
+uncountable-homework|176|Select a quantifier appropriate to an uncountable noun such as homework.
+irregular-plural|177|Select common irregular plural noun forms.
+attributive-noun|178|Identify a noun used before another noun to classify or describe it.
+possessive-adjective|179|Select possessive adjectives appropriate to the reference.
+possessive-apostrophe|180|Select apostrophe-s to express possession by one owner.
+comparative-quantifiers|181-182|Select comparative or superlative quantifiers according to countability and meaning.
+much-many|183|Select much or many according to noun countability.
+some-any|184|Select some or any in basic sentence contexts.
+transition-consequence|185|Select a transition that signals consequence.
+prepositions-place|187|Select basic prepositions of place in context.
+prepositions-time|188|Select in, on or at for basic time expressions.
+dependent-preposition-sets|189-194,197-198,200-204,206-207,209|Select the preposition required by a verb-dependent pattern in context.
+compare-with|195|Select compare with when comparing one thing with another.
+die-of|196|Select die of to identify a disease or internal cause of death.
+save-from|199|Select save plus an object plus from to express protection from harm.
+depend-on|205|Select on in the verb-dependent pattern depend on.
+specialise-in|208|Select in in the verb-dependent pattern specialise in.
+multilingual-audience-choice|210|Select an adaptation of information suitable for a multilingual audience.
+formal-report-opening|211|Select an appropriately formal opening for a report.
+campaign-audience|212|Identify the intended audience of a campaign.
+emphatic-base-form|213-214|Identify that emphatic do, does or did requires the base form of the main verb.
+emphatic-present|215,217-218|Select do or does plus a base verb for affirmative present emphasis.
+emphatic-past|216|Select did plus a base verb for affirmative past emphasis.
+be-negation|219|Select present-simple negative forms of be.
+do-negation|220-221|Select do not or does not plus a base verb in present-simple negatives.
+wh-questions-do|223|Select word order and do or does in basic wh-questions.
+yes-no-do-does|224-225|Select do or does in present-simple yes/no questions.
+yes-no-be|226|Select am, is or are in yes/no questions with be.
+reported-time|227,241|Select reported time expressions appropriate to a later reporting context.
+reported-present-past|228|Select past-tense forms when backshifting present-tense statements.
+reported-continuous|229|Select was or were plus -ing when backshifting present-continuous speech.
+reported-can|230|Select could or could not when backshifting can or cannot.
+reported-perfect-continuous|231|Select had been plus -ing when backshifting present-perfect-continuous speech.
+reported-will|232|Select would when backshifting will in reported speech.
+reported-pronouns|233|Select pronoun changes appropriate to the speaker and reporting context.
+reported-past-perfect|235|Select past perfect when the reporting context requires backshift.
+reported-question-order|236,238|Select statement word order in a reported wh-question.
+reported-past-question|237|Select statement word order and past perfect when reporting a past-simple question with backshift.
+reported-yes-no-question|239|Select if or whether and statement word order in reported yes/no questions.
+reported-command|240|Select told plus an object plus to-infinitive to report a command.
+say-tell|242|Distinguish say from tell plus an object in reported statements.
+reported-negative-command|243|Select told plus an object plus not to-infinitive to report a negative command.
+reported-place|244|Select a reported place expression appropriate to a changed reporting context.
+reported-still-true|245|Identify when a universal or still-true fact can remain unbackshifted.
+reported-warning|246|Select warned plus an object plus not to-infinitive to report a warning.
+compound-sentence|247|Identify a compound sentence containing two coordinated independent clauses.
+past-action-consistency|248|Identify an inconsistent or inappropriate tense construction in coordinated past actions.
+present-aspect-contrast|249|Distinguish present-simple and present-continuous meanings in context.
+past-continuous-negative|250,252|Select was not or were not plus -ing in past-continuous negatives.
+past-continuous-question|251|Select was or were before the subject in past-continuous questions.
+past-continuous-form|253-254|Select was or were plus -ing in past-continuous constructions.
+present-continuous-form|255|Select am, is or are plus -ing in present-continuous constructions.
+past-continuous-time|256,261|Select past continuous for an action in progress at a stated past time.
+past-background-interruption|257-260|Distinguish an ongoing past background action from a shorter completed event.
+future-continuous-error|262|Identify an error in the will be plus -ing future-continuous structure.
+future-aspect-contrast|263|Distinguish a simple future event from an action in progress at a stated future time.
+going-to-question|264|Select be going to word order in a question about a plan.
+future-continuous-question|265|Select will plus subject plus be plus -ing in a future-continuous question.
+will-negative|266|Select will not plus a base verb in a future negative statement.
+future-continuous-negative-question|267|Select will not plus subject plus be plus -ing in a negative future-continuous question.
+future-continuous-form-meaning|268-269,271,275|Select will be plus -ing for an action in progress at a stated future time.
+future-continuous-negative|270|Select will not be plus -ing in future-continuous negatives.
+going-to-intention|272,274|Select be going to for a plan or intention decided before speaking.
+going-to-evidence|273|Select be going to for a prediction supported by present evidence.
+present-continuous-arrangement|276-277|Select present continuous for a fixed future arrangement.
+present-simple-timetable|278-280|Select present simple for an official timetable or scheduled event.
+will-prediction|281|Select will plus a base verb for a general future prediction.
+will-spontaneous-decision|282|Select will for an offer or decision made at the moment of speaking.
+base-after-did|283|Select the base form of a verb after did.
+was-were|284|Select was or were according to the subject and past-time context.
+past-simple-present-perfect|285|Distinguish past-simple and present-perfect meanings in context.
+perfect-continuous-duration-question|286-287|Select present-perfect-continuous How long questions for an activity continuing to the present.
+past-perfect-question|288|Select had plus subject plus a past participle in a past-perfect question.
+present-perfect-question|289-290|Select have or has plus subject plus a past participle in a present-perfect question.
+perfect-continuous-question|291-292|Select have or has plus subject plus been plus -ing in a present-perfect-continuous question.
+perfect-continuous-negative|293|Select have not or has not been plus -ing in present-perfect-continuous negatives.
+past-perfect-form|294|Select had plus a past participle in past-perfect constructions.
+present-perfect-form|295|Select have or has plus a past participle in present-perfect constructions.
+perfect-continuous-meaning|296-297|Select present perfect continuous for an ongoing or repeated activity relevant to the present.
+regular-past-final-c|298|Select final -ck- before -ed in regular past forms of verbs ending in c.
+regular-past-y|299-300|Select -ied for regular past forms ending in consonant plus y.
+past-simple-participle|301|Distinguish past-simple and past-participle verb forms.
+regular-past-doubling|302-303|Select final consonant doubling before -ed where stress and spelling require it.
+regular-participle-final-e|304|Select -d for a regular past participle of a verb ending in e.
+regular-past-form|305-306|Select regular past-simple forms with the appropriate -ed ending.
+irregular-past-form|307,309-310|Select common irregular past-simple verb forms.
+irregular-participle|308|Select irregular past-participle forms.
+epidemic-pandemic-context|311|Distinguish epidemic and pandemic by geographical extent in the supplied context.
+force-connotation|312|Select a verb according to the strength of its connotation.
+passive-participle|314|Select the past participle required in a passive construction.
+past-passive-singular|315|Select was plus a past participle for a singular past-passive construction.
+causative-error|316|Identify an error in have plus an object plus a past participle.
+causative-past|317,320|Select had plus an object plus a past participle for an arranged past service.
+causative-continuous|318-319|Select be having plus an object plus a past participle for a service in progress.
+causative-present|321-322|Select have or has plus an object plus a past participle for an arranged service.
+causative-future|323|Select will have plus an object plus a past participle for a future arranged service.
+past-perfect-passive-active|324|Identify an equivalent past-perfect active sentence for a passive sentence.
+present-simple-active-passive|325|Identify an equivalent present-simple passive sentence for an active sentence.
+future-passive-negative|326|Select will not be plus a past participle in future-passive negatives.
+passive-question-general|327|Select the appropriate auxiliary order and past participle in a passive question.
+past-perfect-passive-question|328|Select had plus subject plus been plus a past participle in a past-perfect-passive question.
+present-perfect-passive-question|329-330|Select have or has plus subject plus been plus a past participle in a present-perfect-passive question.
+present-simple-passive-question|331|Select is or are plus subject plus a past participle in a present-simple-passive question.
+future-passive|332|Select will be plus a past participle in future-passive constructions.
+present-perfect-passive-negative|333|Select have not or has not been plus a past participle in present-perfect-passive negatives.
+past-perfect-passive|334-335|Select had been plus a past participle in past-perfect-passive constructions.
+past-passive-plural|336|Select were plus a past participle for a plural past-passive construction.
+past-passive-form|337|Select was or were plus a past participle in past-passive constructions.
+present-perfect-passive|338-339,343|Select have or has been plus a past participle in present-perfect-passive constructions.
+present-simple-passive|340-341|Select am, is or are plus a past participle in present-simple-passive constructions.
+passive-basic-structure|342,350|Identify be plus a past participle as the basic passive structure.
+present-perfect-voice-equivalence|344|Identify equivalent active and passive present-perfect constructions.
+simple-passive-context|345|Select a present- or past-simple passive construction appropriate to context.
+past-simple-active-passive|346-347|Identify an equivalent past-simple passive sentence for an active sentence.
+active-passive-context|348|Identify a passive transformation that preserves the source sentence's tense and meaning.
+future-active-passive|349|Identify an equivalent will be plus past participle construction for a future active sentence.
+word-class-noun|351-352,359,364|Identify a noun by its function in a sentence.
+word-class-adjective|353,355,365|Identify an adjective by its function in a sentence.
+word-class-adverb|354,356|Identify an adverb by its function in a sentence.
+word-class-conjunction|357|Identify a conjunction by its function in a sentence.
+word-class-interjection|358|Identify an interjection by its function in a sentence.
+word-class-preposition|360|Identify a preposition by its function in a sentence.
+word-class-pronoun|361|Identify a pronoun by its function in a sentence.
+word-class-verb|362|Identify a verb by its function in a sentence.
+word-class-context|363|Identify the word class of a word from its sentence context.
+question-mark|366|Select a question mark to end a direct question.
+semicolon-clauses|367|Select a semicolon to join independent clauses.
+list-commas|368|Select commas to separate items in a list.
+nonessential-relative-punctuation|369|Select punctuation that marks a non-essential relative clause.
