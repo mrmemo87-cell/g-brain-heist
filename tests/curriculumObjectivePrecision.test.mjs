@@ -54,4 +54,28 @@ test('new releases cannot opt out of precision policy and private guards are not
  await assert.rejects(db.exec(`update public.curriculum_framework_versions set precision_policy='legacy' where id='${id(20)}'`),/precision_policy_is_immutable/);
  for(const name of ['guard_curriculum_precision_publication','guard_curriculum_objective_precision_mapping']) assert.equal((await db.query(`select has_function_privilege('authenticated','private.${name}()','execute') allowed`)).rows[0].allowed,false);
 });
+test('consolidated objectives require reviewed exact-focus allowlists and freeze approved links',async()=>{
+ await db.exec(`create table public.users(id uuid primary key);insert into public.users values('${id(99)}');
+ alter table public.curriculum_objectives add unique(id,framework_version_id);
+ create function private.curriculum_version_content_is_locked(uuid) returns boolean language sql stable as $$select coalesce((select status in ('approved','published','retired') from public.curriculum_framework_versions where id=$1),true)$$;`);
+ const migration=readFileSync('supabase/migrations/'+readdirSync('supabase/migrations').find(p=>p.endsWith('_curriculum_objective_focus_review.sql')),'utf8');await db.exec(migration);
+ await db.exec(`insert into public.curriculum_framework_versions(id,status) values('${id(50)}','draft');
+ insert into public.curriculum_scopes(id,framework_version_id,academic_subject_id,coverage_status) values('${id(51)}','${id(50)}','${id(1)}','partial');
+ insert into public.curriculum_objectives(id,framework_version_id,curriculum_scope_id,statement,is_assessable,assessment_boundary) values('${id(52)}','${id(50)}','${id(51)}','Select do or does in present-simple questions.',true,'Recognition in multiple-choice questions only; no independent production claim.');
+ insert into private.curriculum_objective_focus_links(objective_id,framework_version_id,evidence_focus_id,rationale) values('${id(52)}','${id(50)}','${id(3)}','First exact-focus proposal requiring review.'),('${id(52)}','${id(50)}','${id(4)}','Second exact-focus proposal requiring review.');`);
+ const approve=`update public.curriculum_framework_versions set status='approved' where id='${id(50)}'`;
+ await assert.rejects(db.exec(approve),/focus_links_require_review/);
+ const mapping=`insert into public.curriculum_item_objective_mappings values('${id(60)}','${id(52)}','${id(30)}','hash','approved')`;
+ await assert.rejects(db.exec(mapping),/evidence_focus_does_not_match/);
+ await assert.rejects(db.exec(`update private.curriculum_objective_focus_links set review_status='approved'`),/check constraint/);
+ await db.exec(`update private.curriculum_objective_focus_links set review_status='approved',reviewed_by='${id(99)}',reviewed_at=now() where evidence_focus_id='${id(3)}'`);
+ await assert.rejects(db.exec(approve),/focus_links_require_review/);
+ await db.exec(`update private.curriculum_objective_focus_links set review_status='approved',reviewed_by='${id(99)}',reviewed_at=now() where evidence_focus_id='${id(4)}'`);
+ await db.exec(`update public.curriculum_objectives set is_assessable=true where id='${id(22)}'`);
+ await db.exec(mapping);
+ await assert.rejects(db.exec(`update private.curriculum_objective_focus_links set rationale='Rewrite an approved reviewed contract.'`),/approved_curriculum_focus_link_is_immutable/);
+ await db.exec(approve);
+ await assert.rejects(db.exec('delete from private.curriculum_objective_focus_links'),/curriculum_version_content_locked/);
+ for(const role of ['anon','authenticated','service_role'])assert.equal((await db.query("select has_table_privilege($1,'private.curriculum_objective_focus_links','SELECT') allowed",[role])).rows[0].allowed,false);
+});
 test.after(async()=>db.close());

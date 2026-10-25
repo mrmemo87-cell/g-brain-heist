@@ -98,3 +98,17 @@ Security-advisor comparison added no warnings/errors; two informational notices
 reflect intentionally inaccessible private RLS tables with no client policies. These are database timings, not browser/network or
 classroom concurrency guarantees. Existing pagination was already implemented and
 was retained rather than rebuilt.
+
+## Consolidated editorial proposal
+
+The next-stage audit is in [editorial/REVIEW.md](editorial/REVIEW.md). It consolidates
+the raw 604 candidates into 399 grade-specific recognition objectives (200 Grade 7,
+199 Grade 8), retaining an explicit source-focus allowlist rather than merging
+registry identities. It holds 129 distinct questions, including all 32 with
+multiple current diagnostic focuses, from the proposed mapping package.
+
+`npm run curriculum:english:editorial` reproduces the package and draft SQL from
+its source manifest and curated outcomes. The SQL aborts on question/hash/taxonomy
+or focus-definition drift. It creates only draft objectives and proposed focus
+links. Editorial approval, mapping approval, school adoption and historical
+correction remain distinct operations. The live draft is `2026-editorial-2`.
