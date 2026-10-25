@@ -4,6 +4,7 @@ import QuestionBank from '../components/teacher/QuestionBank';
 import { QuestionSelectionModal } from '../src/features/clanTerritory/components/QuestionSelectionModal';
 import { supabase } from '../services/supabaseClient';
 import '../src/index.css';
+import '../src/styles/light-mode.css';
 const dataset = Array.from({ length: 125 }, (_, index) => ({
   id: `00000000-0000-0000-0000-${String(index).padStart(12,'0')}`,
   subject: 'English', topic: index < 80 ? 'Alpha' : 'Beta', topic_name: index < 80 ? 'Alpha' : 'Beta',
