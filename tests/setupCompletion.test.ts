@@ -41,7 +41,7 @@ test('student selection seeds incomplete learner onboarding', () => {
   assert.equal(seed?.completed_steps?.includes('complete'), false);
 });
 
-test('student setup completion routes to learner FTUE', () => {
+test('student setup completion routes straight to the dashboard', () => {
   const seed = buildSetupCompletionOnboardingSeed({
     role: 'student',
     path: 'individual',
@@ -73,9 +73,9 @@ test('student setup completion routes to learner FTUE', () => {
 
   assert.equal(resolution.segment, 'solo_learner');
   assert.equal(resolution.eligible, true);
-  assert.equal(resolution.isComplete, false);
-  assert.equal(resolution.nextStep, 'intent');
-  assert.equal(isActiveLearnerFtue(resolution), true);
+  assert.equal(resolution.isComplete, true);
+  assert.equal(resolution.nextStep, 'complete');
+  assert.equal(isActiveLearnerFtue(resolution), false);
 });
 
 test('teacher selection bypasses learner FTUE', () => {
@@ -144,4 +144,20 @@ test('profile refresh temporarily null after student setup still routes to learn
   assert.equal(resolution.isComplete, false);
   assert.equal(resolution.nextStep, 'intent');
   assert.equal(isActiveLearnerFtue(resolution), true);
+});
+
+
+test('saved student setup fallback also enters the dashboard while the profile refresh is pending', () => {
+  const seed = buildSetupCompletionOnboardingSeed({ role: 'student', path: 'school', schoolId: 'school-1' });
+  const state = {
+    user_id: 'student-pending', segment: seed!.segment!, context_type: seed!.context_type!,
+    context_id: seed!.context_id!, current_step: seed!.current_step!,
+    completed_steps: [], core_completed_at: null, first_value_started_at: null,
+    first_value_completed_at: null, metadata: seed!.metadata!,
+  };
+  const resolution = resolveOnboarding({ flags, onboardingState: state, profile: buildSetupProfileFallback({
+    userId: state.user_id, selectedRole: 'student', onboardingState: state,
+  }) });
+  assert.equal(resolution.isComplete, true);
+  assert.equal(isActiveLearnerFtue(resolution), false);
 });

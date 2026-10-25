@@ -1,6 +1,7 @@
 import type { Profile } from '../../../types';
 import type { OnboardingState } from './onboardingTypes';
 import { isLearnerSegment } from './ftueTakeover.js';
+import { hasCompletedStudentSetup } from './onboardingResolver.js';
 
 export type DashboardTourStatus = 'not_started' | 'active' | 'completed' | 'skipped';
 
@@ -85,6 +86,7 @@ export const shouldShowDashboardTour = ({
   state?: OnboardingState | null;
   ftueEnabled: boolean;
 }): boolean => {
+  if (hasCompletedStudentSetup(profile)) return false;
   if (!ftueEnabled) return false;
   if (!profile || (profile.role && profile.role !== 'student')) return false;
   if (!state || !isLearnerSegment(state.segment ?? undefined)) return false;
