@@ -13,7 +13,7 @@
     "guard:school-admin-portal": "node scripts/check-school-admin-portal-integrity.mjs",
     "test:clean": "rm -rf dist-tests",
     "test:build": "tsc --project tsconfig.tests.json && node scripts/fix-test-esm-imports.mjs",
-    "test": "node scripts/materialize_commander_elixirs.mjs && python3 scripts/materialize_assignment_edit_feature.py && npm run test:clean && npm run test:build && NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/*.js && npm run test:ielts:programme && npm run test:language:dom && npm run test:classroom:db && npm run test:teacher-assignment-cards && npm run test:teacher-sidebar && npm run test:student-assignments && npm run test:retention && npm run test:ielts:teacher-packs && node --test tests/eventLoadReduction.test.mjs && npm run test:physics && npm run test:school-coverage",
+    "test": "node scripts/materialize_commander_elixirs.mjs && python3 scripts/materialize_assignment_edit_feature.py && npm run test:clean && npm run test:build && NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/*.js && npm run test:ielts:programme && npm run test:language:dom && npm run test:classroom:db && npm run test:teacher-assignment-cards && npm run test:teacher-sidebar && npm run test:student-assignments && npm run test:retention && npm run test:ielts:teacher-packs && node --test tests/eventLoadReduction.test.mjs && npm run test:physics && npm run test:school-coverage && npm run test:curriculum-catalogue",
     "load:leaderboard": "k6 run load-tests/leaderboard.js",
     "load:shop": "k6 run load-tests/shop.js",
     "load:pvp": "k6 run load-tests/pvp.js",
@@ -41,7 +41,8 @@
     "test:retention": "node --test tests/echo3dRenderer.test.mjs tests/retentionTrialDatabase.test.mjs tests/retentionTrialDom.test.mjs tests/retentionTrialModel.test.mjs tests/retentionSound.test.mjs tests/retentionArtwork.test.mjs tests/retentionCompanionDatabase.test.mjs tests/retentionCompanionDom.test.mjs tests/echoModel.test.mjs tests/echoAvatarDom.test.mjs tests/studentMascotRollout.test.mjs",
     "test:ielts:teacher-packs": "node --test --test-concurrency=1 tests/ieltsApprovedTeacherPacksDatabase.test.mjs tests/ieltsApprovedTeacherPacksDom.test.mjs tests/ieltsApprovedTeacherPacksService.test.mjs tests/ieltsGlobalTeacherPacksDatabase.test.mjs tests/ieltsPackBranding.test.mjs tests/ieltsReviewDraftPacksDatabase.test.mjs tests/ieltsReviewDraftPacksService.test.mjs tests/ieltsReviewDraftPacksDom.test.mjs",
     "test:physics": "node --test tests/physics0654Database.test.mjs tests/physics0654Dom.test.mjs",
-    "test:school-coverage": "node --test tests/schoolRegistryCoverage.test.mjs tests/schoolClassSetupDom.test.mjs"
+    "test:school-coverage": "node --test tests/schoolRegistryCoverage.test.mjs tests/schoolClassSetupDom.test.mjs",
+    "test:curriculum-catalogue": "node --test tests/questionLearningCatalogue.test.mjs tests/curriculumObjectivePrecision.test.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

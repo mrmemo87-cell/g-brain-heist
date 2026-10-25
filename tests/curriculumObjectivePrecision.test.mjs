@@ -1,0 +1,57 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync,readdirSync} from 'node:fs';
+import {PGlite} from '@electric-sql/pglite';
+const sql=readFileSync('supabase/migrations/'+readdirSync('supabase/migrations').find(p=>p.endsWith('_curriculum_objective_precision_governance.sql')),'utf8');
+const id=n=>'80000000-0000-0000-0000-'+String(n).padStart(12,'0');
+const db=new PGlite();
+await db.exec(`create schema private;create role anon;create role authenticated;create role service_role;
+create table public.curriculum_framework_versions(id uuid primary key,status text);
+create table public.curriculum_scopes(id uuid primary key,framework_version_id uuid,academic_subject_id uuid);
+create table public.curriculum_objectives(id uuid primary key,framework_version_id uuid,curriculum_scope_id uuid,statement text,is_assessable boolean);
+create table public.academic_subjects(id uuid primary key,name text);
+create table public.academic_skill_registry_versions(id uuid primary key,status text);
+create table public.academic_skill_evidence_focuses(id uuid primary key,registry_version_id uuid,status text);
+create table public.verified_question_registry_taxonomy(question_id uuid,question_content_hash text,review_status text,human_review_required boolean,evidence_focus_id uuid,registry_version_id uuid);
+create table public.curriculum_assessment_items(id uuid primary key,source_type text,source_record_id text);
+create table public.curriculum_item_objective_mappings(id uuid primary key,curriculum_objective_id uuid,assessment_item_id uuid,item_content_hash text,status text);
+create function private.academic_registry_subject_matches(uuid,text) returns boolean language sql stable as $$select $2='English'$$;
+insert into public.academic_subjects values('${id(1)}','English');
+insert into public.academic_skill_registry_versions values('${id(2)}','published');
+insert into public.academic_skill_evidence_focuses values('${id(3)}','${id(2)}','active'),('${id(4)}','${id(2)}','active');
+insert into public.curriculum_framework_versions values('${id(10)}','published');
+insert into public.curriculum_scopes values('${id(11)}','${id(10)}','${id(1)}');
+insert into public.curriculum_objectives values('${id(12)}','${id(10)}','${id(11)}','Apply understanding of language use accurately in a contextual learning task.',true);
+insert into public.curriculum_item_objective_mappings values('${id(13)}','${id(12)}',null,'hash','approved');`);
+await db.exec(sql);
+test('legacy published objectives and historical approvals are retained; new vague approvals are blocked',async()=>{
+ assert.equal((await db.query(`select precision_policy from public.curriculum_framework_versions where id='${id(10)}'`)).rows[0].precision_policy,'legacy');
+ assert.equal((await db.query('select count(*)::int n from public.curriculum_item_objective_mappings')).rows[0].n,1);
+ await assert.rejects(db.exec(`insert into public.curriculum_item_objective_mappings values('${id(14)}','${id(12)}',null,'hash','approved')`),/mapping_requires_specific_objective/);
+ await db.exec(`update public.curriculum_item_objective_mappings set status='superseded' where id='${id(13)}'`);
+});
+test('new editions cannot publish with vague objectives, missing assessment boundaries or empty/unconfigured scopes',async()=>{
+ await db.exec(`insert into public.curriculum_framework_versions(id,status) values('${id(20)}','draft');insert into public.curriculum_scopes(id,framework_version_id,academic_subject_id) values('${id(21)}','${id(20)}','${id(1)}');`);
+ await assert.rejects(db.exec(`update public.curriculum_framework_versions set status='approved' where id='${id(20)}'`),/no_assessable_objectives/);
+ await db.exec(`insert into public.curriculum_objectives(id,framework_version_id,curriculum_scope_id,statement,is_assessable) values('${id(22)}','${id(20)}','${id(21)}','Form present-simple questions using do and does.',true)`);
+ await assert.rejects(db.exec(`update public.curriculum_framework_versions set status='approved' where id='${id(20)}'`),/specific_outcomes_and_boundaries/);
+ await db.exec(`update public.curriculum_objectives set assessment_boundary='Checks auxiliary selection in present-simple yes/no questions only.' where id='${id(22)}'`);
+ await assert.rejects(db.exec(`update public.curriculum_framework_versions set status='approved' where id='${id(20)}'`),/explicit_coverage_and_objectives/);
+ await db.exec(`update public.curriculum_scopes set coverage_status='partial' where id='${id(21)}';update public.curriculum_objectives set registry_evidence_focus_id='${id(3)}' where id='${id(22)}';update public.curriculum_framework_versions set status='approved' where id='${id(20)}'`);
+});
+test('a precise objective accepts only the reviewed exact question focus and hash; headings cannot receive assessment approvals',async()=>{
+ await db.exec(`insert into public.curriculum_assessment_items values('${id(30)}','question_bank','${id(31)}');insert into public.verified_question_registry_taxonomy values('${id(31)}','hash','approved',false,'${id(4)}','${id(2)}');`);
+ const insert=`insert into public.curriculum_item_objective_mappings values('${id(32)}','${id(22)}','${id(30)}','hash','approved')`;
+ await assert.rejects(db.exec(insert),/evidence_focus_does_not_match/);
+ await db.exec(`update public.verified_question_registry_taxonomy set evidence_focus_id='${id(3)}',question_content_hash='stale'`);await assert.rejects(db.exec(insert),/evidence_focus_does_not_match/);
+ await db.exec("update public.verified_question_registry_taxonomy set question_content_hash='hash',human_review_required=true");await assert.rejects(db.exec(insert),/evidence_focus_does_not_match/);
+ await db.exec('update public.verified_question_registry_taxonomy set human_review_required=false');await db.exec(insert);
+ await db.exec(`update public.curriculum_objectives set is_assessable=false where id='${id(22)}'`);
+ await assert.rejects(db.exec(`insert into public.curriculum_item_objective_mappings values('${id(33)}','${id(22)}','${id(30)}','hash','approved')`),/assessable_objective/);
+});
+test('new releases cannot opt out of precision policy and private guards are not client callable',async()=>{
+ await assert.rejects(db.exec(`insert into public.curriculum_framework_versions(id,status,precision_policy) values('${id(40)}','draft','legacy')`),/specific_precision_policy/);
+ await assert.rejects(db.exec(`update public.curriculum_framework_versions set precision_policy='legacy' where id='${id(20)}'`),/precision_policy_is_immutable/);
+ for(const name of ['guard_curriculum_precision_publication','guard_curriculum_objective_precision_mapping']) assert.equal((await db.query(`select has_function_privilege('authenticated','private.${name}()','execute') allowed`)).rows[0].allowed,false);
+});
+test.after(async()=>db.close());
