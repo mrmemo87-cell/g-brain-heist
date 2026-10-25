@@ -112,3 +112,18 @@ its source manifest and curated outcomes. The SQL aborts on question/hash/taxono
 or focus-definition drift. It creates only draft objectives and proposed focus
 links. Editorial approval, mapping approval, school adoption and historical
 correction remain distinct operations. The live draft is `2026-editorial-2`.
+
+## Held-item repair decisions
+
+[held-repairs/REPAIR_REVIEW.md](held-repairs/REPAIR_REVIEW.md) gives an individual,
+hash-bound disposition for all 129 held questions. It includes 12 self-contained
+reading replacement candidates and four clearer connective wording candidates.
+No canonical code or reviewer approval is invented for proposed focus changes.
+
+Run `npm run curriculum:english:held-repairs` to rebuild and validate the candidates.
+The supplied SQL calls the normal registry importer in **dry-run mode only**.
+Publication, canonical taxonomy approval, per-school adoption and historical
+correction are separate governed actions. See `held-repairs/VALIDATION.md` for
+actual production/deployment checks and the importer's dry-run result.
+
+The next repair stage also adds a private, reversible selection hold for the 12 reading questions missing their source passages. Existing published assignment references are grandfathered; new assignment selection and publication reject held current content. See `held-repairs/VALIDATION.md` for production checks and the release procedure.

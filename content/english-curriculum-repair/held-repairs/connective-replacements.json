@@ -1,0 +1,66 @@
+[
+  {
+    "sourceQuestionId": "39b9a9e4-fec5-44fc-8ce1-77fc961b882e",
+    "sourceContentHash": "75b61fa0bff5a7b26cc410e4be9240a85277e5c44e16bd5de80a133eebc61bd2",
+    "newExternalId": "english-connective-repair-20261026-31",
+    "questionText": "Choose a connective that reinforces the first statement: The new instructions improved motivation; ____ , students completed more practice tasks after the instructions were introduced.",
+    "options": [
+      "however",
+      "indeed",
+      "meanwhile",
+      "otherwise"
+    ],
+    "correctAnswer": "indeed",
+    "targetProposalKey": "reinforcement",
+    "status": "editorial_draft_not_publishable",
+    "reason": "Replace the untraceable Author (2019) attribution with a self-contained classroom context."
+  },
+  {
+    "sourceQuestionId": "6305a4fa-a585-5997-9b74-a67d34ebe36b",
+    "sourceContentHash": "1463ba21c0bdda3fdfdfe9bfd186953755a7b3408b78613716913fdafe59766f",
+    "newExternalId": "english-connective-repair-20261026-48",
+    "questionText": "Choose a phrase that introduces a cautious inference: Across repeated trials, the measured results contradicted the prediction; ____ the proposed explanation may be wrong.",
+    "options": [
+      "regarding",
+      "in the meantime",
+      "this suggests that",
+      "nevertheless"
+    ],
+    "correctAnswer": "this suggests that",
+    "targetProposalKey": "inference-marker",
+    "status": "editorial_draft_not_publishable",
+    "reason": "Contradictory results support an inference; merely weak evidence does not establish that a hypothesis is wrong."
+  },
+  {
+    "sourceQuestionId": "d2d8ca65-ca02-437f-81bc-3117a8b07acc",
+    "sourceContentHash": "5354bd422d7c42e329a17248307f26f3d9546e9eac97a9632b34e1967072d7f0",
+    "newExternalId": "english-connective-repair-20261026-108",
+    "questionText": "Choose a connective that restates the first idea: The system is unaffordable for most students; ____ , it costs more than they can pay.",
+    "options": [
+      "nevertheless",
+      "meanwhile",
+      "otherwise",
+      "in other words"
+    ],
+    "correctAnswer": "in other words",
+    "targetProposalKey": "restatement-marker",
+    "status": "editorial_draft_not_publishable",
+    "reason": "Use the natural explicit restatement marker in other words instead of the less natural in other terms."
+  },
+  {
+    "sourceQuestionId": "ea0689ae-3994-4ef4-a687-855c91bd9ddd",
+    "sourceContentHash": "daff67f82857cc8209d1ece11e8ac7aeff0667f12a21b024f08d544f6490cc42",
+    "newExternalId": "english-connective-repair-20261026-117",
+    "questionText": "Choose a connective that adds a confirming detail: The plan is inefficient; ____ , it repeats every check three times.",
+    "options": [
+      "in fact",
+      "however",
+      "meanwhile",
+      "otherwise"
+    ],
+    "correctAnswer": "in fact",
+    "targetProposalKey": "reinforcement",
+    "status": "editorial_draft_not_publishable",
+    "reason": "The second clause confirms inefficiency; rather misleadingly suggests correction or an alternative."
+  }
+]

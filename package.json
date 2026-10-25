@@ -42,8 +42,9 @@
     "test:ielts:teacher-packs": "node --test --test-concurrency=1 tests/ieltsApprovedTeacherPacksDatabase.test.mjs tests/ieltsApprovedTeacherPacksDom.test.mjs tests/ieltsApprovedTeacherPacksService.test.mjs tests/ieltsGlobalTeacherPacksDatabase.test.mjs tests/ieltsPackBranding.test.mjs tests/ieltsReviewDraftPacksDatabase.test.mjs tests/ieltsReviewDraftPacksService.test.mjs tests/ieltsReviewDraftPacksDom.test.mjs",
     "test:physics": "node --test tests/physics0654Database.test.mjs tests/physics0654Dom.test.mjs",
     "test:school-coverage": "node --test tests/schoolRegistryCoverage.test.mjs tests/schoolClassSetupDom.test.mjs",
-    "test:curriculum-catalogue": "node --test tests/questionLearningCatalogue.test.mjs tests/curriculumObjectivePrecision.test.mjs tests/englishCurriculumEditorial.test.mjs",
-    "curriculum:english:editorial": "node scripts/build-english-curriculum-editorial.mjs"
+    "test:curriculum-catalogue": "node --test tests/questionLearningCatalogue.test.mjs tests/curriculumObjectivePrecision.test.mjs tests/englishCurriculumEditorial.test.mjs tests/englishHeldRepairs.test.mjs",
+    "curriculum:english:editorial": "node scripts/build-english-curriculum-editorial.mjs",
+    "curriculum:english:held-repairs": "python3 scripts/build-english-reading-replacements.py && node scripts/build-english-held-repair-decisions.mjs && node scripts/validate-english-held-repairs.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
