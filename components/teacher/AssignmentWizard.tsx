@@ -356,7 +356,11 @@ export default function AssignmentWizard({
     });
   }, [assignmentSubject, questions]);
 
-  const assignmentResourceSubject = selectedTeachingGroup?.academicSubjectName || assignmentSubject;
+  // Class assignments use batches and intentionally have no selectedTeachingGroup.
+  // Resolve resources from the allocated school subject in both audience modes.
+  const assignmentResourceSubject = selectedTeachingGroup?.academicSubjectName
+    || subjectTeachingGroups.find((group) => group.academicSubjectName)?.academicSubjectName
+    || assignmentSubject;
   const subjectQuestions = useMemo(
     () => uniqueQuestions.filter((question) => {
       const normalized = normalizeSubject(question.subject);

@@ -41,7 +41,7 @@ test('assignment wizard uses school subject plus teaching group while resources 
   assert.match(portal, /fetchTeacherTeachingGroups/);
   assert.match(portal, /assignmentGroupId/);
   assert.match(wizard, /Choose the teaching group this assignment belongs to/);
-  assert.match(wizard, /selectedTeachingGroup\?\.academicSubjectName \|\| assignmentSubject/);
+  assert.match(wizard, /selectedTeachingGroup\?\.academicSubjectName\s*\|\| subjectTeachingGroups\.find\([\s\S]*?\?\.academicSubjectName\s*\|\| assignmentSubject/);
   assert.match(portal, /school_subject_id: selectedTeachingGroup\?\.schoolSubjectId/);
   assert.match(portal, /subject_group_id: selectedTeachingGroup\?\.id/);
 });
