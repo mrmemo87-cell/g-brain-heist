@@ -51,3 +51,6 @@
   .qb-modal__questions{padding:14px}
   .qb-modal__questions>article{padding:14px;gap:10px}
 }
+
+/* Performance mode normally forces body overflow visible; modal scroll stays local. */
+body.light-mode:has(.qb-modal, .question-preview){overflow:hidden!important}

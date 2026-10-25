@@ -16,12 +16,23 @@ let log='';server.stdout.on('data',d=>log+=d);server.stderr.on('data',d=>log+=d)
   await page.locator('.qb-topic-card').first().waitFor();
   assert.equal(await page.locator('.qb-topic-card').count(),2);
   assert.equal((await page.evaluate(()=>window.__requests)).filter(r=>r.name.includes('question_browser')).length,0);
+  await page.evaluate(() => document.body.classList.add('light-mode'));
   await page.locator('.qb-topic-card').filter({hasText:'Alpha'}).click();
   await page.getByText('Question 60: choose the correct answer',{exact:true}).waitFor();
   assert.equal(await page.locator('.qb-modal__questions h3').count(),60);
   const topic = page.getByRole('dialog', {name:'Alpha',exact:true});
   assert.equal(await topic.evaluate(el => el.parentElement === document.body), true, 'dialog escapes clipped/transformed portal panel');
   assert.equal(await page.evaluate(() => document.body.style.overflow), 'hidden');
+  const surfaces = async () => topic.evaluate(el => {
+    const color = selector => getComputedStyle(el.querySelector(selector)).backgroundColor;
+    return {card:color('.qb-modal__card'),list:color('.qb-modal__questions'),actions:color('.qb-modal__header-actions'),close:color('.qb-modal__close')};
+  });
+  const expectedSurfaces = {card:'rgb(255, 255, 255)',list:'rgb(248, 250, 252)',actions:'rgb(255, 255, 255)',close:'rgb(255, 255, 255)'};
+  assert.deepEqual(await surfaces(), expectedSurfaces, 'performance mode preserves semantic dialog surfaces');
+  assert.equal(await page.evaluate(() => getComputedStyle(document.body).overflow), 'hidden', 'performance mode respects modal scroll lock');
+  await page.evaluate(() => document.body.classList.remove('light-mode'));
+  assert.deepEqual(await surfaces(), expectedSurfaces, 'full mode uses the same surfaces');
+  await page.evaluate(() => document.body.classList.add('light-mode'));
   const details = topic.locator('details').first();
   assert.equal(await details.evaluate(el => el.open), false);
   await details.locator('summary').click();
@@ -54,6 +65,7 @@ let log='';server.stdout.on('data',d=>log+=d);server.stderr.on('data',d=>log+=d)
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('.qb-modal').count(),0);
   assert.equal(await page.evaluate(() => document.body.style.overflow),'');
+  assert.equal(await page.evaluate(() => getComputedStyle(document.body).overflow),'visible', 'performance mode scrolling restored');
   assert.equal(await page.locator('.qb-topic-card').filter({hasText:'Alpha'}).evaluate(el => el === document.activeElement),true);
   await page.getByRole('button',{name:'Open battle picker',exact:true}).click();
   const dialog=page.getByRole('dialog',{name:'Select battle questions',exact:true});

@@ -51,9 +51,9 @@ body.light-mode [data-animation]
   display: none !important;
 }
 
-/* Simplify legacy overlay wrappers, preserving semantic dialog surfaces. */
-body.light-mode [class*="modal"]:not([role="dialog"]):not([role="alertdialog"]),
-body.light-mode [class*="dialog"]:not([role="dialog"]):not([role="alertdialog"]) {
+/* Simplify legacy overlay wrappers. Keep the question-bank dialog’s descendant surfaces intact. */
+body.light-mode [class*="modal"]:not([role="dialog"]):not([role="alertdialog"]):not(.qb-modal *),
+body.light-mode [class*="dialog"]:not([role="dialog"]):not([role="alertdialog"]):not(.qb-modal *) {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   background-color: rgba(15, 23, 42, 0.9) !important;
