@@ -183,4 +183,3 @@ D. The narrator repeatedly checks the directions against an old map
 **Key: D — The narrator repeatedly checks the directions against an old map**
 
 Supporting text: When he pointed left again, I checked the map a second time before following.
-

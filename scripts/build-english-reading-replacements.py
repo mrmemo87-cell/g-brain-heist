@@ -42,5 +42,5 @@ for k,p in passages.items():
   lines += ['### '+q['externalId'],'',q['readingContext']['stem'],'']
   lines += [chr(65+j)+'. '+opt for j,opt in enumerate(q['options'])]
   lines += ['', '**Key: '+chr(65+q['options'].index(q['correctAnswer']))+' — '+q['correctAnswer']+'**','', 'Supporting text: '+q['readingContext']['evidenceQuote'],'']
-(root/'READING_REPLACEMENTS.md').write_text('\n'.join(lines)+'\n')
+(root/'READING_REPLACEMENTS.md').write_text('\n'.join(lines).rstrip()+'\n')
 print('Prepared',len(questions),'replacement candidates')
