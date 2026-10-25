@@ -19,6 +19,24 @@ let log='';server.stdout.on('data',d=>log+=d);server.stderr.on('data',d=>log+=d)
   await page.locator('.qb-topic-card').filter({hasText:'Alpha'}).click();
   await page.getByText('Question 60: choose the correct answer',{exact:true}).waitFor();
   assert.equal(await page.locator('.qb-modal__questions h3').count(),60);
+  const topic = page.getByRole('dialog', {name:'Alpha',exact:true});
+  assert.equal(await topic.evaluate(el => el.parentElement === document.body), true, 'dialog escapes clipped/transformed portal panel');
+  assert.equal(await page.evaluate(() => document.body.style.overflow), 'hidden');
+  const details = topic.locator('details').first();
+  assert.equal(await details.evaluate(el => el.open), false);
+  await details.locator('summary').click();
+  await details.getByText('Canonical mapping unavailable', {exact:true}).waitFor();
+  await topic.getByRole('button', {name:'Preview',exact:true}).first().click();
+  await page.getByRole('dialog', {name:'Alpha',exact:true}).last().getByText('Correct answer', {exact:true}).waitFor();
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.question-preview').count(), 0);
+  assert.equal(await topic.getByRole('button', {name:'Preview',exact:true}).first().evaluate(el => el === document.activeElement), true);
+  if (process.env.QUESTION_BANK_DESKTOP_SCREENSHOT) await page.screenshot({path:process.env.QUESTION_BANK_DESKTOP_SCREENSHOT});
+  await page.setViewportSize({width:390,height:844});
+  assert.ok(await topic.evaluate(el => el.scrollWidth <= el.clientWidth), 'topic has no mobile overflow');
+  assert.ok(await topic.getByRole('button', {name:'Close topic',exact:true}).isVisible());
+  if (process.env.QUESTION_BANK_SCREENSHOT) await page.screenshot({path:process.env.QUESTION_BANK_SCREENSHOT});
+  await page.setViewportSize({width:1280,height:900});
   await page.getByRole('button',{name:'Load more questions',exact:true}).click();
   await page.getByText('Question 80: choose the correct answer',{exact:true}).waitFor();
   assert.equal(await page.locator('.qb-modal__questions h3').count(),80);
@@ -29,7 +47,14 @@ let log='';server.stdout.on('data',d=>log+=d);server.stderr.on('data',d=>log+=d)
   await popup.getByText('80. Question 80: choose the correct answer',{exact:true}).waitFor();
   assert.equal(await popup.locator('.document-card>strong').filter({hasText:/^\d+\./}).count(),80);
   await popup.close();
-  await page.getByRole('button',{name:'Close topic',exact:true}).click();
+  await topic.getByRole('button',{name:'Print paper',exact:true}).focus();
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Tab');
+  assert.equal(await topic.getByRole('button',{name:'Print paper',exact:true}).evaluate(el => el === document.activeElement), true);
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.qb-modal').count(),0);
+  assert.equal(await page.evaluate(() => document.body.style.overflow),'');
+  assert.equal(await page.locator('.qb-topic-card').filter({hasText:'Alpha'}).evaluate(el => el === document.activeElement),true);
   await page.getByRole('button',{name:'Open battle picker',exact:true}).click();
   const dialog=page.getByRole('dialog',{name:'Select battle questions',exact:true});
   await dialog.getByText('Question 60: choose the correct answer',{exact:true}).waitFor();
@@ -47,7 +72,7 @@ let log='';server.stdout.on('data',d=>log+=d);server.stderr.on('data',d=>log+=d)
   if (process.env.QUESTION_BROWSER_SCREENSHOT) await page.screenshot({path:process.env.QUESTION_BROWSER_SCREENSHOT,fullPage:true});
   assert.deepEqual(errors,[]);assert.equal(await page.locator('vite-error-overlay').count(),0);
   const requests=await page.evaluate(()=>window.__requests);assert.ok(requests.filter(r=>r.name.includes('question_browser')).every(r=>r.args.p_filters.limit<=100));
-  console.log('PASS: first-page loading, pagination, complete set/print, selection across filters, mobile layout, no browser exceptions.');
+  console.log('PASS: dialog portal isolation, expandable details, preview/Escape focus return, focus containment, scroll lock/restore, pagination, complete set/print, battle selection, mobile layout, no browser exceptions.');
  } catch(error){console.log(log.slice(-2000));throw error;}
  finally {await browser?.close();server.kill();}
 })();

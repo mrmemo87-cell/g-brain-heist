@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Subject, Teacher, TeacherQuestion } from '../../types';
 import QuestionPreviewModal from './QuestionPreviewModal';
 import { questionAssessmentSearchText } from './questionAssessment';
@@ -71,6 +72,49 @@ export default function QuestionBank({
   const [subjectFilter, setSubjectFilter] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<TopicGroup | null>(null);
   const [previewQuestion, setPreviewQuestion] = useState<TeacherQuestion | null>(null);
+  const topicOpen = !!selectedTopic;
+  useEffect(() => {
+    if (!topicOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus?.isConnected) previousFocus.focus();
+    };
+  }, [topicOpen]);
+  useEffect(() => {
+    if (!topicOpen && !previewQuestion) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const dialog = document.querySelector<HTMLElement>(previewQuestion ? '.question-preview' : '.qb-modal');
+    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>(
+      'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, [tabindex="0"]',
+    ) || []).filter((element) => element.getClientRects().length > 0);
+    if (!dialog?.contains(document.activeElement)) {
+      (focusable()[0] || dialog?.querySelector<HTMLElement>('article'))?.focus();
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault(); event.stopPropagation();
+        if (previewQuestion) setPreviewQuestion(null);
+        else { ++topicRequest.current; setActionLoading(false); setSelectedTopic(null); }
+      }
+      if (event.key === 'Tab') {
+        const items = focusable(), first = items[0], last = items[items.length - 1];
+        if (!first) { event.preventDefault(); return; }
+        if (event.shiftKey && (document.activeElement === first || !dialog?.contains(document.activeElement))) {
+          event.preventDefault(); last.focus();
+        } else if (!event.shiftKey && (document.activeElement === last || !dialog?.contains(document.activeElement))) {
+          event.preventDefault(); first.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown, true);
+      if (previewQuestion && previousFocus?.isConnected) previousFocus.focus();
+    };
+  }, [topicOpen, previewQuestion]);
   const [renaming, setRenaming] = useState(false);
   const [topicName, setTopicName] = useState('');
   const initialPoolResolvedRef = useRef(false);
@@ -307,9 +351,9 @@ export default function QuestionBank({
         <div className="qb-empty"><h3>{activePool === 'mine' ? 'Create your first question' : 'No questions match these filters'}</h3><p>{activePool === 'mine' ? 'Add one question manually or upload a PDF to build a reviewed batch.' : 'Try another subject or a broader search.'}</p>{activePool === 'mine' ? <div className="flex flex-wrap justify-center gap-2">{onCreateQuestion ? <button type="button" onClick={() => onCreateQuestion()}>Add Question</button> : null}{onCreateQuestionBatch ? <button type="button" onClick={() => onCreateQuestionBatch()}>Add Question Batch</button> : null}</div> : null}</div>
       )}
 
-      {selectedTopic ? (
+      {selectedTopic ? createPortal(
         <div className="qb-modal" role="dialog" aria-modal="true" aria-labelledby="qb-topic-title" onMouseDown={(event) => event.target === event.currentTarget && setSelectedTopic(null)}>
-          <article className="qb-modal__card">
+          <article className="qb-modal__card" tabIndex={-1}>
             <header>
               <div><span>{selectedTopic.subject} · {selectedPoolTitle}</span><h2 id="qb-topic-title">{selectedTopic.topic}</h2><p>{selectedTopic.count ?? selectedTopic.questions.length} question{selectedTopic.questions.length === 1 ? '' : 's'}</p></div>
               <div className="qb-modal__header-actions">
@@ -328,7 +372,24 @@ export default function QuestionBank({
               {shownTopic!.questions.map((question, index) => (
                 <article key={question.id}>
                   <span>{index + 1}</span>
-                  <div>{questionPurposeLabel(question) ? <small>{questionPurposeLabel(question)}</small> : null}<h3>{question.question_text}</h3><p>{formatQuestionType(question.question_type)} · {question.difficulty} · {question.points || 0} points</p>{isOfficialPool ? <>{question.registry_mappings?.length ? <><p><strong>{activePool === 'school' ? 'School Verified' : 'Verified'}: {question.registry_mappings[0].skill}</strong>{` · ${question.registry_mappings[0].subskill}`}{question.eligible_grade_levels?.length ? ` · Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p><small>Evidence focus: {question.registry_mappings[0].evidenceFocus}</small></> : <p><strong>Canonical mapping unavailable</strong>{question.eligible_grade_levels?.length ? ` · Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p>}{question.curriculum_objective ? <small>Curriculum objective: {question.curriculum_objective}</small> : null}</> : <><p><strong>{question.verification_status === 'in_review' ? 'Awaiting platform review' : 'Classroom only'}</strong>{question.eligible_grade_levels?.length ? ` · Suggested Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p><small>{question.verification_status === 'in_review' ? 'The submitted snapshot is locked while governance checks the content and proposed mapping.' : 'Excluded from official Academic Profile analytics'}</small></>}</div>
+                  <div className="qb-question__content">
+                    {questionPurposeLabel(question) ? <small>{questionPurposeLabel(question)}</small> : null}
+                    <h3>{question.question_text}</h3>
+                    <p>{formatQuestionType(question.question_type)} · {question.difficulty} · {question.points || 0} points</p>
+                    <details className="qb-question__assessment">
+                      <summary>Assessment details</summary>
+                      {isOfficialPool ? <>
+                        {question.registry_mappings?.length ? <>
+                          <p><strong>{activePool === 'school' ? 'School Verified' : 'Verified'}: {question.registry_mappings[0].skill}</strong>{` · ${question.registry_mappings[0].subskill}`}{question.eligible_grade_levels?.length ? ` · Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p>
+                          <small>Evidence focus: {question.registry_mappings[0].evidenceFocus}</small>
+                        </> : <p><strong>Canonical mapping unavailable</strong>{question.eligible_grade_levels?.length ? ` · Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p>}
+                        {question.curriculum_objective ? <small>Curriculum objective: {question.curriculum_objective}</small> : null}
+                      </> : <>
+                        <p><strong>{question.verification_status === 'in_review' ? 'Awaiting platform review' : 'Classroom only'}</strong>{question.eligible_grade_levels?.length ? ` · Suggested Grades ${question.eligible_grade_levels.join(', ')}` : ''}</p>
+                        <small>{question.verification_status === 'in_review' ? 'The submitted snapshot is locked while governance checks the content and proposed mapping.' : 'Excluded from official Academic Profile analytics'}</small>
+                      </>}
+                    </details>
+                  </div>
                   <div><button type="button" onClick={() => setPreviewQuestion(question)}>Preview</button>{activePool === 'mine' && question.verification_status !== 'in_review' && onEditQuestion ? <button type="button" onClick={() => onEditQuestion(question)}>Edit</button> : null}{activePool === 'mine' && question.verification_status !== 'in_review' && onDeleteQuestion ? <button type="button" className="is-danger" onClick={() => onDeleteQuestion(question.id)}>Delete</button> : null}</div>
                 </article>
               ))}
@@ -341,9 +402,9 @@ export default function QuestionBank({
               {activePool === 'mine' && !selectedTopicHasSubmittedQuestions && onDeleteTopic ? <button type="button" className="is-danger" onClick={() => void completeTopic(selectedTopic, (group) => onDeleteTopic(group.questions))}>Delete topic</button> : null}
             </footer>
           </article>
-        </div>
+        </div>, document.body
       ) : null}
-      {previewQuestion ? <QuestionPreviewModal question={previewQuestion} onClose={() => setPreviewQuestion(null)} onEdit={activePool === 'mine' && previewQuestion.verification_status !== 'in_review' && onEditQuestion ? () => onEditQuestion(previewQuestion) : undefined} /> : null}
+      {previewQuestion ? createPortal(<QuestionPreviewModal question={previewQuestion} onClose={() => setPreviewQuestion(null)} onEdit={activePool === 'mine' && previewQuestion.verification_status !== 'in_review' && onEditQuestion ? () => onEditQuestion(previewQuestion) : undefined} />, document.body) : null}
     </section>
   );
 }

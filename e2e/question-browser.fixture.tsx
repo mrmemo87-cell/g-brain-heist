@@ -37,7 +37,7 @@ function App() {
   const [battle,setBattle]=useState(false), [questions,setQuestions]=useState<any[]>([]), [result,setResult]=useState('');
   const merge=useCallback((rows:any[])=>setQuestions((current)=>[...new Map([...current,...rows].map((q)=>[q.id,q])).values()]),[]);
   return <><button onClick={()=>setBattle(true)}>Open battle picker</button><p id="result">{result}</p>
-    <QuestionBank remote questions={questions} teacher={{id:'fixture'} as any} onQuestionsLoaded={merge} onUseSet={(ids)=>setResult(`Used ${ids.length} questions`)} />
+    <div className="teacher-panel teacher-portal-light" style={{ transform: 'translateZ(0)' }}><QuestionBank remote questions={questions} teacher={{id:'fixture'} as any} onQuestionsLoaded={merge} onUseSet={(ids)=>setResult(`Used ${ids.length} questions`)} /></div>
     {battle?<QuestionSelectionModal onCancel={()=>setBattle(false)} onConfirm={(rows)=>{setResult(`Battle ${rows.length} questions`);setBattle(false);}}/>:null}</>;
 }
 createRoot(document.getElementById('root')!).render(<App/>);

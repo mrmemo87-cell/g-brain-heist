@@ -64,7 +64,8 @@ test('verified question list displays canonical registry mapping rather than leg
 
   const officialBlockStart = bank.indexOf('{isOfficialPool ?');
   assert.ok(officialBlockStart >= 0);
-  const officialBlockEnd = bank.indexOf(': <><p><strong>{question.verification_status', officialBlockStart);
+  const privateBlock = /:\s*<>\s*<p><strong>\{question\.verification_status/.exec(bank.slice(officialBlockStart));
+  const officialBlockEnd = privateBlock ? officialBlockStart + privateBlock.index : -1;
   assert.ok(officialBlockEnd > officialBlockStart);
   const officialBlock = bank.slice(officialBlockStart, officialBlockEnd);
 
