@@ -74,6 +74,7 @@ create table public.ielts_speaking_attempts(user_id uuid,task_id bigint);
 create function private.ielts_learning_immutable() returns trigger language plpgsql as $$begin raise exception 'immutable';end;$$;`);
 await db.exec(readFileSync('supabase/migrations/20261010014023_ielts_material_originality_gate.sql','utf8'));
 await db.exec(readFileSync('supabase/migrations/20261010015030_ielts_material_originality_payloads.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261026140346_ielts_teacher_material_usage_limit_200.sql','utf8').replace(/^revoke[^\n]*\n|^grant[^\n]*\n/gm,''));
 
 
 const actor=id=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);
@@ -121,7 +122,8 @@ test('students, cross-school requests, banned actors, bad recipient scope and pu
  await assert.rejects(usage([{type:'targeted',id:'exact-task'}],{classId:uuid(999)}),/not_authorized/);
  await assert.rejects(usage([{type:'targeted',id:'exact-task'}],{student,classId:cls}),/recipient_scope_required/);
  await assert.rejects(history({offset:-1}),/invalid_filter/);
- await assert.rejects(usage(Array.from({length:51},()=>({type:'targeted',id:'exact-task'}))),/recipient_scope_required/);
+ await assert.rejects(usage(Array.from({length:201},()=>({type:'targeted',id:'exact-task'}))),/recipient_scope_required/);
+ assert.ok(Array.isArray(await usage(Array.from({length:60},()=>({type:'targeted',id:'exact-task'})))),'a student with more than 50 available sets can still be checked');
  await db.exec(`update users set is_banned=true where id='${teacher}'`);await assert.rejects(history(),/not_authorized/);
  const p=(await db.query("select has_function_privilege('anon','public.rpc_ielts_teacher_practice_history(uuid,text,text,text,text,integer)','execute') anon,has_function_privilege('authenticated','private.ielts_teacher_practice_rows(uuid,uuid,uuid,jsonb)','execute') helper")).rows[0];assert.equal(p.anon,false);assert.equal(p.helper,false);
 });
