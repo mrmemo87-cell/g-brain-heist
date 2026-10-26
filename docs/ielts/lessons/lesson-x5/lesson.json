@@ -1,473 +1,481 @@
 {
- "schema": "bh-ielts-lesson-source/2",
- "code": "IELTS-X5",
- "number": 5,
- "extension": true,
- "placement": "optional, after Week 6 (Lesson 11)",
- "week": 6,
- "version": "1.0.0",
- "presentation_version": "1.0.0",
- "title": "Academic Writing Task 1: describing a process",
- "status": "Owner approved v1.0.0 on 2026-10-18; teacher release to all eligible schools (optional extension lesson)",
- "duration": 60,
- "test_type": "Academic",
- "bibles": {
-  "diagnostic": "1.10.0",
-  "lessons": "1.1.0",
-  "visual": "1.1.0"
- },
- "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Process diagrams are simplified and illustrative, created for practice. Human editorial, model, mapping and originality review pending.",
- "audio": {
-  "required": false,
-  "statement": "No recording required.",
-  "recordings": []
- },
- "prerequisites": [
-  "Lesson 11 (Task 1 overviews and accurate comparisons).",
-  "Teacher has checked actual Writing Screener and review states privately.",
-  "Optional extension: use when learners need practice with process diagrams."
- ],
- "objectives": [
-  {
-   "text": "Write a process overview that gives the number of stages, the start and the end, and any by-product.",
-   "focus": [
-    "register/task fulfilment",
-    "discourse organization"
-   ]
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-X5",
+  "number": 5,
+  "extension": true,
+  "placement": "optional, after Week 6 (Lesson 11)",
+  "week": 6,
+  "version": "1.1.0",
+  "presentation_version": "1.1.0",
+  "title": "Academic Writing Task 1: describing a process",
+  "status": "Owner approved v1.1.0 on 2026-10-26; teacher release to all eligible schools (optional extension lesson)",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": {
+    "diagnostic": "2.0.0",
+    "lessons": "1.2.0",
+    "visual": "1.2.0"
   },
-  {
-   "text": "Describe each stage in order using the present simple passive and a range of sequence devices.",
-   "focus": [
-    "grammatical control",
-    "cohesion"
-   ]
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Process diagrams are simplified and illustrative, created for practice. Human editorial, model, mapping and originality review pending.",
+  "audio": {
+    "required": false,
+    "statement": "No recording required.",
+    "recordings": []
   },
-  {
-   "text": "Paraphrase diagram labels instead of copying them.",
-   "focus": [
-    "lexical precision/range"
-   ]
-  }
- ],
- "levels": {
-  "foundation": "Overview frame and sequence bank allowed and recorded; teacher reads each stage aloud before the language task.",
-  "core": "Write an accurate overview and body paragraph in 15 minutes with correct passives.",
-  "extension": "Use a \"once\" clause and an \"after which\" clause accurately.",
-  "high_band": "Paraphrase every stage; no wording copied from the diagram."
- },
- "blocks": [
-  {
-   "id": "IELTS-X5-K1",
-   "kind": "contrast",
-   "title": "Which overview works for a process?",
-   "mode": "Teacher-led analysis; learners rank before the reveal",
-   "instructions": "Three learners wrote an overview for the honey diagram. Rank them, then say what is wrong with the weaker two.",
-   "examples": [
-    {
-     "label": "Overview A",
-     "text": "Overall, honey is a very healthy food that many people enjoy, and beekeeping is an important industry.",
-     "comment": "Off task: opinion and general knowledge are not in the diagram. An overview summarises what the diagram shows."
-    },
-    {
-     "label": "Overview B",
-     "text": "Overall, first the hives are placed near flowers, then the bees collect nectar, and then the frames are removed.",
-     "comment": "Too detailed: this is the beginning of a body paragraph, not a summary of the whole process."
-    },
-    {
-     "label": "Overview C",
-     "text": "Overall, there are eight stages in the process, beginning with the placing of hives near flowers and ending with the delivery of bottled honey to shops, with wax produced as a by-product.",
-     "comment": "Best: it gives the number of stages, the start and end points, and one notable feature, without detail."
-    }
-   ]
-  },
-  {
-   "id": "IELTS-X5-I1",
-   "kind": "items",
-   "title": "Process language",
-   "mode": "Guided practice; answer alone, then check",
-   "instructions": "Look at the honey diagram. Choose the correct option, A, B or C, to complete each sentence about the process.",
-   "stimulus": {
-    "type": "figure"
-   },
-   "figure": {
-    "type": "process",
-    "title": "How honey is produced for sale",
-    "per_row": 4,
-    "steps": [
-     "Hives are placed near flowering plants",
-     "Bees collect nectar and store it as honey",
-     "Frames full of honey are removed from the hive",
-     "Wax caps are cut off the frames",
-     "Honey is extracted by spinning the frames",
-     "Honey is filtered",
-     "Honey is stored in large tanks",
-     "Honey is bottled, labelled and sent to shops"
-    ],
-    "branch": {
-     "from": 3,
-     "label": "wax is made into candles"
-    },
-    "note": "Simplified, illustrative process diagram for practice.",
-    "alt": "A process diagram with eight numbered stages. 1 Hives are placed near flowering plants. 2 Bees collect nectar and store it as honey. 3 Frames full of honey are removed from the hive. 4 Wax caps are cut off the frames; a side arrow shows the wax being made into candles. 5 Honey is extracted by spinning the frames. 6 Honey is filtered. 7 Honey is stored in large tanks. 8 Honey is bottled, labelled and sent to shops."
-   },
-   "items": [
-    {
-     "id": "IELTS-X5-I1-Q1",
-     "prompt": "In the first stage, hives ______ near flowering plants.",
-     "answer": "B",
-     "evidence": "Stage 1: Hives are placed near flowering plants",
-     "reason": "People place the hives, so the passive is needed: are placed.",
-     "focus": "grammatical control",
-     "type": "mcq",
-     "options": [
-      "A  place",
-      "B  are placed",
-      "C  were placed"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X5-I1-Q2",
-     "prompt": "______ the bees have stored enough honey, the frames are removed.",
-     "answer": "C",
-     "evidence": "Stages 2 and 3",
-     "reason": "'Once' links the end of one stage with the start of the next.",
-     "focus": "cohesion",
-     "type": "mcq",
-     "options": [
-      "A  Despite",
-      "B  During",
-      "C  Once"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X5-I1-Q3",
-     "prompt": "The wax caps are cut off, and the wax ______ to make candles.",
-     "answer": "A",
-     "evidence": "Side arrow from stage 4: wax is made into candles",
-     "reason": "The side arrow is a by-product: it leaves the main process.",
-     "focus": "grammatical control",
-     "type": "mcq",
-     "options": [
-      "A  is used",
-      "B  uses",
-      "C  is using"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X5-I1-Q4",
-     "prompt": "The honey is then extracted ______ the frames.",
-     "answer": "B",
-     "evidence": "Stage 5: Honey is extracted by spinning the frames",
-     "reason": "'By + -ing' explains the method.",
-     "focus": "lexical precision",
-     "type": "mcq",
-     "options": [
-      "A  to spin",
-      "B  by spinning",
-      "C  for spin"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X5-I1-Q5",
-     "prompt": "After being filtered, the honey ______ in large tanks.",
-     "answer": "C",
-     "evidence": "Stages 6 and 7",
-     "reason": "'After being filtered' is a reduced clause; the main verb is passive.",
-     "focus": "grammatical range",
-     "type": "mcq",
-     "options": [
-      "A  stores",
-      "B  storing",
-      "C  is stored"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X5-I1-Q6",
-     "prompt": "______, the honey is bottled, labelled and sent to shops.",
-     "answer": "A",
-     "evidence": "Stage 8: the last stage",
-     "reason": "The last stage needs an ending signpost.",
-     "focus": "cohesion",
-     "type": "mcq",
-     "options": [
-      "A  Finally",
-      "B  Firstly",
-      "C  Meanwhile"
-     ],
-     "level": "core"
-    }
-   ],
-   "support": "Foundation: the teacher reads each stage aloud and asks \"Who does the action? Is it important?\" before learners choose.",
-   "extension": "Rewrite stages 6 and 7 as one sentence using \"after which\"."
-  },
-  {
-   "id": "IELTS-X5-W1",
-   "kind": "writing",
-   "task": "paragraph",
-   "title": "Your overview and first body paragraph",
-   "mode": "Independent classroom application after modelling; not a full Task 1 or Writing Screener",
-   "prompt": "The diagram shows how honey is produced for sale. Write an overview and a body paragraph describing stages 1-4.",
-   "figure": {
-    "type": "process",
-    "title": "How honey is produced for sale",
-    "per_row": 4,
-    "steps": [
-     "Hives are placed near flowering plants",
-     "Bees collect nectar and store it as honey",
-     "Frames full of honey are removed from the hive",
-     "Wax caps are cut off the frames",
-     "Honey is extracted by spinning the frames",
-     "Honey is filtered",
-     "Honey is stored in large tanks",
-     "Honey is bottled, labelled and sent to shops"
-    ],
-    "branch": {
-     "from": 3,
-     "label": "wax is made into candles"
-    },
-    "note": "Simplified, illustrative process diagram for practice.",
-    "alt": "A process diagram with eight numbered stages. 1 Hives are placed near flowering plants. 2 Bees collect nectar and store it as honey. 3 Frames full of honey are removed from the hive. 4 Wax caps are cut off the frames; a side arrow shows the wax being made into candles. 5 Honey is extracted by spinning the frames. 6 Honey is filtered. 7 Honey is stored in large tanks. 8 Honey is bottled, labelled and sent to shops."
-   },
-   "conditions": "15 minutes, independent. No model visible. Record any frame or phrase-bank use.",
-   "support": "Overview frame: Overall, there are ... stages in the process, beginning with ... and ending with ... Sequence bank: first / once / after this / at this point / meanwhile.",
-   "extension": "Use one \"once\" clause and one \"after which\" clause.",
-   "high_band": "Vary the verbs so that no stage is copied word for word from the diagram.",
-   "model_label": "Illustrative classroom model for discussion only. Not a certified band answer.",
-   "model": "Overall, there are eight main stages in the production of honey, beginning with the placing of hives near flowering plants and ending with the delivery of bottled honey to shops. Wax is produced as a by-product of the process.\n\nAt the start of the process, beehives are positioned close to plants in flower, so that the bees can collect nectar, which they then store in the hive as honey. Once the frames inside the hive are full, they are taken out by the beekeeper. At this point, the wax caps covering the honey are cut off the frames, and this wax is used separately to make candles.",
-   "checklist": [
-    "Task Achievement: Is there an overview that gives the number of stages and the start and end of the process? Is every stage included, in order?",
-    "Coherence and Cohesion: Are stages grouped into logical paragraphs and linked with a range of sequence words (first, once, after this, finally)?",
-    "Lexical Resource: Are the stage verbs accurate, and is wording varied rather than copied from the diagram?",
-    "Grammatical Range and Accuracy: Is the present simple passive used accurately (is placed, are removed), with some complex sentences (after which, once ...)?"
-   ]
-  },
-  {
-   "id": "IELTS-X5-W2",
-   "kind": "writing",
-   "task": "task1",
-   "min_words": 150,
-   "homework": true,
-   "title": "Complete Task 1 under time",
-   "mode": "Timed homework under declared conditions; teacher feedback uses the four criteria. Not a Writing Screener.",
-   "prompt": "The diagram below shows how honey is produced for sale. Summarise the information by selecting and reporting the main features. Write at least 150 words.",
-   "figure": {
-    "type": "process",
-    "title": "How honey is produced for sale",
-    "per_row": 4,
-    "steps": [
-     "Hives are placed near flowering plants",
-     "Bees collect nectar and store it as honey",
-     "Frames full of honey are removed from the hive",
-     "Wax caps are cut off the frames",
-     "Honey is extracted by spinning the frames",
-     "Honey is filtered",
-     "Honey is stored in large tanks",
-     "Honey is bottled, labelled and sent to shops"
-    ],
-    "branch": {
-     "from": 3,
-     "label": "wax is made into candles"
-    },
-    "note": "Simplified, illustrative process diagram for practice.",
-    "alt": "A process diagram with eight numbered stages. 1 Hives are placed near flowering plants. 2 Bees collect nectar and store it as honey. 3 Frames full of honey are removed from the hive. 4 Wax caps are cut off the frames; a side arrow shows the wax being made into candles. 5 Honey is extracted by spinning the frames. 6 Honey is filtered. 7 Honey is stored in large tanks. 8 Honey is bottled, labelled and sent to shops."
-   },
-   "conditions": "20 minutes, in one sitting, without a dictionary, translator, AI tool or model. Write the start and finish time.",
-   "support": "Plan: Introduction (paraphrase) / Overview (number of stages, start, end) / Body 1 (stages 1-4 and the wax) / Body 2 (stages 5-8).",
-   "extension": "End with a sentence that links the two products of the process.",
-   "high_band": "Check that every sentence uses an accurate verb form; underline each passive.",
-   "model_label": "Illustrative model for teacher discussion after learners submit their own responses. Not a certified band answer.",
-   "model": "The diagram illustrates the stages involved in producing honey for sale.\n\nOverall, there are eight main stages in the process, beginning with the placing of hives near flowering plants and ending with the delivery of bottled honey to shops. Wax is also produced as a by-product.\n\nAt the start of the process, beehives are positioned close to plants in flower, so that the bees can collect nectar, which they then store in the hive as honey. Once the frames inside the hive are full, they are taken out by the beekeeper. At this point, the wax caps covering the honey are cut off, and this wax is used separately to make candles.\n\nAfter the caps have been removed, the honey is extracted by spinning the frames, which forces the liquid out. It is then filtered to remove any remaining wax or other particles, after which it is stored in large tanks. In the final stage, the honey is put into bottles, labelled and sent to shops for sale.",
-   "checklist": [
-    "Task Achievement: Is there an overview that gives the number of stages and the start and end of the process? Is every stage included, in order?",
-    "Coherence and Cohesion: Are stages grouped into logical paragraphs and linked with a range of sequence words (first, once, after this, finally)?",
-    "Lexical Resource: Are the stage verbs accurate, and is wording varied rather than copied from the diagram?",
-    "Grammatical Range and Accuracy: Is the present simple passive used accurately (is placed, are removed), with some complex sentences (after which, once ...)?"
-   ]
-  }
- ],
- "stages": [
-  {
-   "start": 0,
-   "end": 6,
-   "title": "Opening challenge: which overview works?",
-   "show": [
-    {
-     "block": "IELTS-X5-K1",
-     "part": "questions"
-    },
-    {
-     "block": "IELTS-X5-K1",
-     "part": "answers"
-    }
-   ],
-   "student": "Rank the three overviews before the reveal.",
-   "teacher": "Learners rank alone, then compare. Reveal the comments. Write the overview formula on the board: number of stages + start + end (+ one notable feature).",
-   "say": "A process overview tells the reader the shape of the whole process.",
-   "check": "Learners can name the three parts of a process overview."
-  },
-  {
-   "start": 6,
-   "end": 15,
-   "title": "Process language",
-   "show": [
-    {
-     "block": "IELTS-X5-I1",
-     "part": "questions"
-    }
-   ],
-   "student": "Complete the six sentences alone.",
-   "teacher": "Teach why the passive is normal in processes: the action matters more than who does it. Learners answer alone in 6 minutes.",
-   "say": "In a man-made process, use the present simple passive.",
-   "check": "Every learner has six answers."
-  },
-  {
-   "start": 15,
-   "end": 20,
-   "title": "Check process language",
-   "show": [
-    {
-     "block": "IELTS-X5-I1",
-     "part": "answers"
-    }
-   ],
-   "student": "Check answers with a partner.",
-   "teacher": "Reveal. Collect sequence words on the board: first, once, after this, at this point, after which, finally.",
-   "say": "Sequence words and passives carry the reader through the process.",
-   "check": "Learners can use two sequence words in one sentence."
-  },
-  {
-   "start": 20,
-   "end": 24,
-   "title": "Plan your paragraphs",
-   "show": [
-    {
-     "block": "IELTS-X5-W1",
-     "part": "prompt"
-    }
-   ],
-   "student": "Divide the process into two groups of stages and plan your overview.",
-   "teacher": "Show how to split eight stages into two body paragraphs (stages 1-4 with the by-product; stages 5-8). Learners plan in note form.",
-   "say": "Two balanced body paragraphs make a process easy to follow.",
-   "check": "Each learner has a two-paragraph plan."
-  },
-  {
-   "start": 24,
-   "end": 39,
-   "title": "Write independently",
-   "show": [],
-   "student": "Write the overview and the first body paragraph in 15 minutes.",
-   "teacher": "Time 15 minutes. Do not show the model. Record any support used.",
-   "say": "Change the diagram wording: do not copy each box.",
-   "check": "Every learner has written both paragraphs."
-  },
-  {
-   "start": 39,
-   "end": 49,
-   "title": "Compare with the model and the criteria",
-   "show": [
-    {
-     "block": "IELTS-X5-W1",
-     "part": "model"
-    }
-   ],
-   "student": "Compare your paragraphs with the model. Tick the checklist and underline your passives.",
-   "teacher": "Show the model. Ask learners to find three sequence devices and two verbs that are not copied from the diagram.",
-   "say": "The model is for discussion, not for memorising.",
-   "check": "Each learner has one specific improvement."
-  },
-  {
-   "start": 49,
-   "end": 55,
-   "title": "Full Task 1 at home",
-   "show": [
-    {
-     "block": "IELTS-X5-W2",
-     "part": "prompt"
-    }
-   ],
-   "student": "Note the homework conditions and the plan.",
-   "teacher": "Explain the 20-minute conditions. Learners write the start and finish times on their homework.",
-   "say": "Homework under real conditions shows what you can do alone.",
-   "check": "Everyone knows the conditions."
-  },
-  {
-   "start": 55,
-   "end": 60,
-   "title": "Exit ticket",
-   "show": [],
-   "student": "Complete the exit ticket.",
-   "teacher": "Collect exit tickets. Record the fresh-check date.",
-   "say": "Next time: maps and changes over time.",
-   "check": "Exit tickets collected."
-  }
- ],
- "exit_ticket": [
-  "The three things a process overview must include:",
-  "Two sequence words I used today:",
-  "My target for my next Task 1:"
- ],
- "homework": [
-  "Complete the full Task 1 (IELTS-X5-W2) under the stated conditions: 20 minutes, no help.",
-  "Find a simple diagram of a process online and write five passive sentences describing it.",
-  "Complete only the Brains Heist writing practice your teacher actually assigns."
- ],
- "followup": {
-  "id": "IELTS-X5-C1",
-  "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
-  "delivery": "About one teaching week after this lesson, after feedback on the homework. 20 minutes: overview and one body paragraph for a new process. No model, frame or phrase bank unless recorded as support. Classroom observation only.",
-  "blocks": [
-   {
-    "id": "IELTS-X5-C1",
-    "kind": "writing",
-    "task": "partial",
-    "title": "From bottles to bags",
-    "mode": "Withheld fresh check; independent, timed",
-    "prompt": "The diagram shows how shopping bags are made from used plastic bottles. Write an overview and one body paragraph describing the stages.",
-    "figure": {
-     "type": "process",
-     "title": "Making shopping bags from plastic bottles",
-     "per_row": 4,
-     "steps": [
-      "Used bottles are collected",
-      "Bottles are washed",
-      "Bottles are shredded into flakes",
-      "Flakes are melted",
-      "Melted plastic is stretched into fibres",
-      "Fibres are woven into fabric",
-      "Fabric is cut and sewn into bags",
-      "Bags are sold in supermarkets"
-     ],
-     "note": "Simplified, illustrative process diagram for practice.",
-     "alt": "A process diagram with eight numbered stages: used bottles are collected, washed, shredded into flakes and melted; the melted plastic is stretched into fibres, which are woven into fabric; the fabric is cut and sewn into bags, which are sold in supermarkets."
-    },
-    "conditions": "20 minutes, independent, no model or phrase bank. Record start and finish time and any support.",
-    "no_model": "Withheld fresh check: feedback uses the checklist only, so no model is shown or stored with the task.",
-    "checklist": [
-     "Task Achievement: Is there an overview that gives the number of stages and the start and end of the process? Is every stage included, in order?",
-     "Coherence and Cohesion: Are stages grouped into logical paragraphs and linked with a range of sequence words (first, once, after this, finally)?",
-     "Lexical Resource: Are the stage verbs accurate, and is wording varied rather than copied from the diagram?",
-     "Grammatical Range and Accuracy: Is the present simple passive used accurately (is placed, are removed), with some complex sentences (after which, once ...)?"
-    ]
-   }
+  "prerequisites": [
+    "Lesson 11 (Task 1 overviews and accurate comparisons).",
+    "Teacher has checked actual Writing Screener and review states privately.",
+    "Optional extension: use when learners need practice with process diagrams."
   ],
-  "review": "Compare only the observed demands and conditions with this lesson. Record the result as a separate later observation; do not convert it to a band or merge it with screener evidence."
- },
- "delayed_followup": "In Lesson 19 (Writing revision clinic), check overview quality and passive accuracy in any Task 1 response. Record it as a later observation.",
- "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
- "release_blockers": [
-  "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
-  "Student task publication and platform evidence capture remain separate, governed steps."
- ],
- "approval_record": {
-  "approved_by": "Owner, Brains Heist LLC",
-  "date": "2026-10-18",
-  "version": "1.0.0",
-  "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
-  "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 3d6f8c1e3465b9f0bde721e016b99ea2ad89cdcb4249c1c1b5af95bc22e897af): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
- }
+  "objectives": [
+    {
+      "text": "Write a process overview that gives the number of stages, the start and the end, and any by-product.",
+      "focus": [
+        "register/task fulfilment",
+        "discourse organization"
+      ]
+    },
+    {
+      "text": "Describe each stage in order using the present simple passive and a range of sequence devices.",
+      "focus": [
+        "grammatical control",
+        "cohesion"
+      ]
+    },
+    {
+      "text": "Paraphrase diagram labels instead of copying them.",
+      "focus": [
+        "lexical precision/range"
+      ]
+    }
+  ],
+  "levels": {
+    "foundation": "Overview frame and sequence bank allowed and recorded; teacher reads each stage aloud before the language task.",
+    "core": "Write an accurate overview and body paragraph in 15 minutes with correct passives.",
+    "extension": "Use a \"once\" clause and an \"after which\" clause accurately.",
+    "high_band": "Produce a complete new 150+-word process report in 20 minutes without model, phrase bank or teacher support. Include a meaningful overview grouping stages, distinguish key transformations from minor operations, and avoid introducing unshown causes, quantities or opinions."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-X5-K1",
+      "kind": "contrast",
+      "title": "Which overview works for a process?",
+      "mode": "Teacher-led analysis; learners rank before the reveal",
+      "instructions": "Three learners wrote an overview for the honey diagram. Rank them, then say what is wrong with the weaker two.",
+      "examples": [
+        {
+          "label": "Overview A",
+          "text": "Overall, honey is a very healthy food that many people enjoy, and beekeeping is an important industry.",
+          "comment": "Off task: opinion and general knowledge are not in the diagram. An overview summarises what the diagram shows."
+        },
+        {
+          "label": "Overview B",
+          "text": "Overall, first the hives are placed near flowers, then the bees collect nectar, and then the frames are removed.",
+          "comment": "Too detailed: this is the beginning of a body paragraph, not a summary of the whole process."
+        },
+        {
+          "label": "Overview C",
+          "text": "Overall, there are eight stages in the process, beginning with the placing of hives near flowers and ending with the delivery of bottled honey to shops, with wax produced as a by-product.",
+          "comment": "Best: it gives the number of stages, the start and end points, and one notable feature, without detail."
+        }
+      ]
+    },
+    {
+      "id": "IELTS-X5-I1",
+      "kind": "items",
+      "title": "Process language",
+      "mode": "Guided practice; answer alone, then check",
+      "instructions": "Look at the honey diagram. Choose the correct option, A, B or C, to complete each sentence about the process.",
+      "stimulus": {
+        "type": "figure"
+      },
+      "figure": {
+        "type": "process",
+        "title": "How honey is produced for sale",
+        "per_row": 4,
+        "steps": [
+          "Hives are placed near flowering plants",
+          "Bees collect nectar and store it as honey",
+          "Frames full of honey are removed from the hive",
+          "Wax caps are cut off the frames",
+          "Honey is extracted by spinning the frames",
+          "Honey is filtered",
+          "Honey is stored in large tanks",
+          "Honey is bottled, labelled and sent to shops"
+        ],
+        "branch": {
+          "from": 3,
+          "label": "wax is made into candles"
+        },
+        "note": "Simplified, illustrative process diagram for practice.",
+        "alt": "A process diagram with eight numbered stages. 1 Hives are placed near flowering plants. 2 Bees collect nectar and store it as honey. 3 Frames full of honey are removed from the hive. 4 Wax caps are cut off the frames; a side arrow shows the wax being made into candles. 5 Honey is extracted by spinning the frames. 6 Honey is filtered. 7 Honey is stored in large tanks. 8 Honey is bottled, labelled and sent to shops."
+      },
+      "items": [
+        {
+          "id": "IELTS-X5-I1-Q1",
+          "prompt": "In the first stage, hives ______ near flowering plants.",
+          "answer": "B",
+          "evidence": "Stage 1: Hives are placed near flowering plants",
+          "reason": "People place the hives, so the passive is needed: are placed.",
+          "focus": "grammatical control",
+          "type": "mcq",
+          "options": [
+            "A  place",
+            "B  are placed",
+            "C  were placed"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X5-I1-Q2",
+          "prompt": "______ the bees have stored enough honey, the frames are removed.",
+          "answer": "C",
+          "evidence": "Stages 2 and 3",
+          "reason": "'Once' links the end of one stage with the start of the next.",
+          "focus": "cohesion",
+          "type": "mcq",
+          "options": [
+            "A  Despite",
+            "B  During",
+            "C  Once"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X5-I1-Q3",
+          "prompt": "The wax caps are cut off, and the wax ______ to make candles.",
+          "answer": "A",
+          "evidence": "Side arrow from stage 4: wax is made into candles",
+          "reason": "The side arrow is a by-product: it leaves the main process.",
+          "focus": "grammatical control",
+          "type": "mcq",
+          "options": [
+            "A  is used",
+            "B  uses",
+            "C  is using"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X5-I1-Q4",
+          "prompt": "The honey is then extracted ______ the frames.",
+          "answer": "B",
+          "evidence": "Stage 5: Honey is extracted by spinning the frames",
+          "reason": "'By + -ing' explains the method.",
+          "focus": "lexical precision",
+          "type": "mcq",
+          "options": [
+            "A  to spin",
+            "B  by spinning",
+            "C  for spin"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X5-I1-Q5",
+          "prompt": "After being filtered, the honey ______ in large tanks.",
+          "answer": "C",
+          "evidence": "Stages 6 and 7",
+          "reason": "'After being filtered' is a reduced clause; the main verb is passive.",
+          "focus": "grammatical range",
+          "type": "mcq",
+          "options": [
+            "A  stores",
+            "B  storing",
+            "C  is stored"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X5-I1-Q6",
+          "prompt": "______, the honey is bottled, labelled and sent to shops.",
+          "answer": "A",
+          "evidence": "Stage 8: the last stage",
+          "reason": "The last stage needs an ending signpost.",
+          "focus": "cohesion",
+          "type": "mcq",
+          "options": [
+            "A  Finally",
+            "B  Firstly",
+            "C  Meanwhile"
+          ],
+          "level": "core"
+        }
+      ],
+      "support": "Foundation: the teacher reads each stage aloud and asks \"Who does the action? Is it important?\" before learners choose.",
+      "extension": "Rewrite stages 6 and 7 as one sentence using \"after which\"."
+    },
+    {
+      "id": "IELTS-X5-W1",
+      "kind": "writing",
+      "task": "paragraph",
+      "title": "Your overview and first body paragraph",
+      "mode": "Independent classroom application after modelling; not a full Task 1 or Writing Screener",
+      "prompt": "The diagram shows how honey is produced for sale. Write an overview and a body paragraph describing stages 1-4.",
+      "figure": {
+        "type": "process",
+        "title": "How honey is produced for sale",
+        "per_row": 4,
+        "steps": [
+          "Hives are placed near flowering plants",
+          "Bees collect nectar and store it as honey",
+          "Frames full of honey are removed from the hive",
+          "Wax caps are cut off the frames",
+          "Honey is extracted by spinning the frames",
+          "Honey is filtered",
+          "Honey is stored in large tanks",
+          "Honey is bottled, labelled and sent to shops"
+        ],
+        "branch": {
+          "from": 3,
+          "label": "wax is made into candles"
+        },
+        "note": "Simplified, illustrative process diagram for practice.",
+        "alt": "A process diagram with eight numbered stages. 1 Hives are placed near flowering plants. 2 Bees collect nectar and store it as honey. 3 Frames full of honey are removed from the hive. 4 Wax caps are cut off the frames; a side arrow shows the wax being made into candles. 5 Honey is extracted by spinning the frames. 6 Honey is filtered. 7 Honey is stored in large tanks. 8 Honey is bottled, labelled and sent to shops."
+      },
+      "conditions": "15 minutes, independent. No model visible. Record any frame or phrase-bank use.",
+      "support": "Overview frame: Overall, there are ... stages in the process, beginning with ... and ending with ... Sequence bank: first / once / after this / at this point / meanwhile.",
+      "extension": "Use one \"once\" clause and one \"after which\" clause.",
+      "high_band": "Produce a complete new 150+-word process report in 20 minutes without model, phrase bank or teacher support. Include a meaningful overview grouping stages, distinguish key transformations from minor operations, and avoid introducing unshown causes, quantities or opinions.",
+      "model_label": "Illustrative classroom model for discussion only. Not a certified band answer.",
+      "model": "Overall, there are eight main stages in the production of honey, beginning with the placing of hives near flowering plants and ending with the delivery of bottled honey to shops. Wax is produced as a by-product of the process.\n\nAt the start of the process, beehives are positioned close to plants in flower, so that the bees can collect nectar, which they then store in the hive as honey. Once the frames inside the hive are full, they are taken out by the beekeeper. At this point, the wax caps covering the honey are cut off the frames, and this wax is used separately to make candles.",
+      "checklist": [
+        "Task Achievement: Is there an overview that gives the number of stages and the start and end of the process? Is every stage included, in order?",
+        "Coherence and Cohesion: Are stages grouped into logical paragraphs and linked with a range of sequence words (first, once, after this, finally)?",
+        "Lexical Resource: Are the stage verbs accurate, and is wording varied rather than copied from the diagram?",
+        "Grammatical Range and Accuracy: Is the present simple passive used accurately (is placed, are removed), with some complex sentences (after which, once ...)?"
+      ]
+    },
+    {
+      "id": "IELTS-X5-W2",
+      "kind": "writing",
+      "task": "task1",
+      "min_words": 150,
+      "homework": true,
+      "title": "Complete Task 1 under time",
+      "mode": "Timed homework under declared conditions; teacher feedback uses the four criteria. Not a Writing Screener.",
+      "prompt": "The diagram below shows how honey is produced for sale. Summarise the information by selecting and reporting the main features. Write at least 150 words.",
+      "figure": {
+        "type": "process",
+        "title": "How honey is produced for sale",
+        "per_row": 4,
+        "steps": [
+          "Hives are placed near flowering plants",
+          "Bees collect nectar and store it as honey",
+          "Frames full of honey are removed from the hive",
+          "Wax caps are cut off the frames",
+          "Honey is extracted by spinning the frames",
+          "Honey is filtered",
+          "Honey is stored in large tanks",
+          "Honey is bottled, labelled and sent to shops"
+        ],
+        "branch": {
+          "from": 3,
+          "label": "wax is made into candles"
+        },
+        "note": "Simplified, illustrative process diagram for practice.",
+        "alt": "A process diagram with eight numbered stages. 1 Hives are placed near flowering plants. 2 Bees collect nectar and store it as honey. 3 Frames full of honey are removed from the hive. 4 Wax caps are cut off the frames; a side arrow shows the wax being made into candles. 5 Honey is extracted by spinning the frames. 6 Honey is filtered. 7 Honey is stored in large tanks. 8 Honey is bottled, labelled and sent to shops."
+      },
+      "conditions": "20 minutes, in one sitting, without a dictionary, translator, AI tool or model. Write the start and finish time. Advanced transfer: submit a second response to a genuinely unseen visual or prompt, with no model, scaffold or feedback before completion; log timing and support separately.",
+      "support": "Plan: Introduction (paraphrase) / Overview (number of stages, start, end) / Body 1 (stages 1-4 and the wax) / Body 2 (stages 5-8).",
+      "extension": "End with a sentence that links the two products of the process.",
+      "high_band": "Produce a complete new 150+-word process report in 20 minutes without model, phrase bank or teacher support. Include a meaningful overview grouping stages, distinguish key transformations from minor operations, and avoid introducing unshown causes, quantities or opinions.",
+      "model_label": "Illustrative model for teacher discussion after learners submit their own responses. Not a certified band answer.",
+      "model": "The diagram illustrates the stages involved in producing honey for sale.\n\nOverall, there are eight main stages in the process, beginning with the placing of hives near flowering plants and ending with the delivery of bottled honey to shops. Wax is also produced as a by-product.\n\nAt the start of the process, beehives are positioned close to plants in flower, so that the bees can collect nectar, which they then store in the hive as honey. Once the frames inside the hive are full, they are taken out by the beekeeper. At this point, the wax caps covering the honey are cut off, and this wax is used separately to make candles.\n\nAfter the caps have been removed, the honey is extracted by spinning the frames, which forces the liquid out. It is then filtered to remove any remaining wax or other particles, after which it is stored in large tanks. In the final stage, the honey is put into bottles, labelled and sent to shops for sale.",
+      "checklist": [
+        "Task Achievement: Is there an overview that gives the number of stages and the start and end of the process? Is every stage included, in order?",
+        "Coherence and Cohesion: Are stages grouped into logical paragraphs and linked with a range of sequence words (first, once, after this, finally)?",
+        "Lexical Resource: Are the stage verbs accurate, and is wording varied rather than copied from the diagram?",
+        "Grammatical Range and Accuracy: Is the present simple passive used accurately (is placed, are removed), with some complex sentences (after which, once ...)?",
+        "Independent-transfer check: verify task coverage, accuracy of evidence or visual comparisons, quality of development, and unsupported claims; note conditions rather than inferring an IELTS band."
+      ]
+    }
+  ],
+  "stages": [
+    {
+      "start": 0,
+      "end": 6,
+      "title": "Opening challenge: which overview works?",
+      "show": [
+        {
+          "block": "IELTS-X5-K1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-X5-K1",
+          "part": "answers"
+        }
+      ],
+      "student": "Rank the three overviews before the reveal.",
+      "teacher": "Learners rank alone, then compare. Reveal the comments. Write the overview formula on the board: number of stages + start + end (+ one notable feature).",
+      "say": "A process overview tells the reader the shape of the whole process.",
+      "check": "Learners can name the three parts of a process overview."
+    },
+    {
+      "start": 6,
+      "end": 15,
+      "title": "Process language",
+      "show": [
+        {
+          "block": "IELTS-X5-I1",
+          "part": "questions"
+        }
+      ],
+      "student": "Complete the six sentences alone.",
+      "teacher": "Teach why the passive is normal in processes: the action matters more than who does it. Learners answer alone in 6 minutes.",
+      "say": "In a man-made process, use the present simple passive.",
+      "check": "Every learner has six answers."
+    },
+    {
+      "start": 15,
+      "end": 20,
+      "title": "Check process language",
+      "show": [
+        {
+          "block": "IELTS-X5-I1",
+          "part": "answers"
+        }
+      ],
+      "student": "Check answers with a partner.",
+      "teacher": "Reveal. Collect sequence words on the board: first, once, after this, at this point, after which, finally.",
+      "say": "Sequence words and passives carry the reader through the process.",
+      "check": "Learners can use two sequence words in one sentence."
+    },
+    {
+      "start": 20,
+      "end": 24,
+      "title": "Plan your paragraphs",
+      "show": [
+        {
+          "block": "IELTS-X5-W1",
+          "part": "prompt"
+        }
+      ],
+      "student": "Divide the process into two groups of stages and plan your overview.",
+      "teacher": "Show how to split eight stages into two body paragraphs (stages 1-4 with the by-product; stages 5-8). Learners plan in note form.",
+      "say": "Two balanced body paragraphs make a process easy to follow.",
+      "check": "Each learner has a two-paragraph plan."
+    },
+    {
+      "start": 24,
+      "end": 39,
+      "title": "Write independently",
+      "show": [],
+      "student": "Write the overview and the first body paragraph in 15 minutes.",
+      "teacher": "Time 15 minutes. Do not show the model. Record any support used.",
+      "say": "Change the diagram wording: do not copy each box.",
+      "check": "Every learner has written both paragraphs."
+    },
+    {
+      "start": 39,
+      "end": 49,
+      "title": "Compare with the model and the criteria",
+      "show": [
+        {
+          "block": "IELTS-X5-W1",
+          "part": "model"
+        }
+      ],
+      "student": "Compare your paragraphs with the model. Tick the checklist and underline your passives.",
+      "teacher": "Show the model. Ask learners to find three sequence devices and two verbs that are not copied from the diagram.",
+      "say": "The model is for discussion, not for memorising.",
+      "check": "Each learner has one specific improvement."
+    },
+    {
+      "start": 49,
+      "end": 55,
+      "title": "Full Task 1 at home",
+      "show": [
+        {
+          "block": "IELTS-X5-W2",
+          "part": "prompt"
+        }
+      ],
+      "student": "Note the homework conditions and the plan.",
+      "teacher": "Explain the 20-minute conditions. Learners write the start and finish times on their homework.",
+      "say": "Homework under real conditions shows what you can do alone.",
+      "check": "Everyone knows the conditions."
+    },
+    {
+      "start": 55,
+      "end": 60,
+      "title": "Exit ticket",
+      "show": [],
+      "student": "Complete the exit ticket.",
+      "teacher": "Collect exit tickets. Record the fresh-check date.",
+      "say": "Next time: maps and changes over time.",
+      "check": "Exit tickets collected."
+    }
+  ],
+  "exit_ticket": [
+    "The three things a process overview must include:",
+    "Two sequence words I used today:",
+    "My target for my next Task 1:"
+  ],
+  "homework": [
+    "Complete the full Task 1 (IELTS-X5-W2) under the stated conditions: 20 minutes, no help.",
+    "Find a simple diagram of a process online and write five passive sentences describing it.",
+    "Complete only the Brains Heist writing practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-X5-C1",
+    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.1.0 on 2026-10-26. Keep private until use.",
+    "delivery": "About one teaching week after this lesson, after feedback on the homework. 20 minutes: overview and one body paragraph for a new process. No model, frame or phrase bank unless recorded as support. Classroom observation only.",
+    "blocks": [
+      {
+        "id": "IELTS-X5-C1",
+        "kind": "writing",
+        "task": "partial",
+        "title": "From bottles to bags",
+        "mode": "Withheld fresh check; independent, timed",
+        "prompt": "The diagram shows how shopping bags are made from used plastic bottles. Write an overview and one body paragraph describing the stages.",
+        "figure": {
+          "type": "process",
+          "title": "Making shopping bags from plastic bottles",
+          "per_row": 4,
+          "steps": [
+            "Used bottles are collected",
+            "Bottles are washed",
+            "Bottles are shredded into flakes",
+            "Flakes are melted",
+            "Melted plastic is stretched into fibres",
+            "Fibres are woven into fabric",
+            "Fabric is cut and sewn into bags",
+            "Bags are sold in supermarkets"
+          ],
+          "note": "Simplified, illustrative process diagram for practice.",
+          "alt": "A process diagram with eight numbered stages: used bottles are collected, washed, shredded into flakes and melted; the melted plastic is stretched into fibres, which are woven into fabric; the fabric is cut and sewn into bags, which are sold in supermarkets."
+        },
+        "conditions": "20 minutes, independent, no model or phrase bank. Record start and finish time and any support. No access to lesson models or worked examples during this independent check. Mark each IELTS writing criterion separately and document an actionable reason for revision; no automatic band inference.",
+        "no_model": "Withheld fresh check: feedback uses the checklist only, so no model is shown or stored with the task.",
+        "checklist": [
+          "Task Achievement: Is there an overview that gives the number of stages and the start and end of the process? Is every stage included, in order?",
+          "Coherence and Cohesion: Are stages grouped into logical paragraphs and linked with a range of sequence words (first, once, after this, finally)?",
+          "Lexical Resource: Are the stage verbs accurate, and is wording varied rather than copied from the diagram?",
+          "Grammatical Range and Accuracy: Is the present simple passive used accurately (is placed, are removed), with some complex sentences (after which, once ...)?"
+        ]
+      }
+    ],
+    "review": "Compare only the observed demands and conditions with this lesson. Record the result as a separate later observation; do not convert it to a band or merge it with screener evidence. Use a truly unseen form, one independent sitting, and log prior exposure, aid, time, item-level errors, and support. Do not convert this activity into a band estimate or combine it with mock scores."
+  },
+  "delayed_followup": "In Lesson 19 (Writing revision clinic), check overview quality and passive accuracy in any Task 1 response. Record it as a later observation.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
+  ],
+  "previous_approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-18",
+    "version": "1.0.0",
+    "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 3d6f8c1e3465b9f0bde721e016b99ea2ad89cdcb4249c1c1b5af95bc22e897af): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
+  },
+  "approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-26",
+    "version": "1.1.0",
+    "scope": "Extension lesson content, keys, models and figures for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 06:18 Asia/Bishkek, after Claude's review of PR #1711 and the follow-up fixes (footer, flow-chart page breaks, choose-TWO numbering): 'I need them approved for teaching and normally ready to use in the IELTS course.' Content and keys are as reviewed in PR #1711. Not recorded as an in-platform decision; no school-scoped review-draft pack was opened before approval."
+  }
 }

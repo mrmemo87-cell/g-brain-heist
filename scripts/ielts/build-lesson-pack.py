@@ -152,7 +152,8 @@ class Pack:
                 c.drawImage(ImageReader(str(self.logo)), w - 80, h - 66, 38, 40, preserveAspectRatio=True, mask='auto')
             c.setStrokeColor(colors.HexColor(LINE)); c.line(42, 37, w - 42, 37)
             c.setFont('BHRegular', 8)
-            c.drawString(42, 24, f"{self.code} v{self.d['version']} | {'Approved for teaching' if self.d.get('approval_record') else self.d['status']} | No official IELTS result")
+            # Keep the footer to one short line; the full status text appears in the guide and review record.
+            c.drawString(42, 24, f"{self.code} v{self.d['version']} | {'Approved for teaching' if self.d.get('approval_record') else 'Review draft, not approved for teaching'} | No official IELTS result")
             c.drawRightString(w - 42, 24, str(doc.page))
             c.restoreState()
 
@@ -278,6 +279,22 @@ class Pack:
             out.append(self.p('Figure description: ' + b['figure']['alt'], 'S'))
         return out
 
+    def assessment_flow_chart(self, entries):
+        """Render a real staged flow with visually separate side branches; never imply unsupported onward steps."""
+        out = []
+        for entry in entries:
+            kind = entry['kind']
+            if kind == 'arrow':
+                out.append(self.p(entry.get('text', '↓'), 'Arrow'))
+                continue
+            title = entry['title']
+            body = entry['text']
+            if kind == 'branch':
+                title = 'SIDE ROUTE / LOOP — ' + title
+            rows = [[title], [body]]
+            out.extend(self.table(rows, [450 if kind == 'stage' else 425]))
+        return out
+
     # ---------- content renderers ----------
     def student_items(self, b, number_from=None, show_hints=True):
         out = [self.p(b['title'], 'H'), self.p(b['instructions'])]
@@ -296,15 +313,35 @@ class Pack:
         out += self.figure_flow(b, with_table=b['figure'].get('show_table', False) if b.get('figure') else False)
         if b.get('form_title'):
             out.append(self.p(b['form_title'], 'H'))
+        if b.get('summary_text'):
+            # A true connected IELTS summary: each numbered blank is part of the same prose.
+            out.append(self.p(b.get('summary_title', 'Summary'), 'H'))
+            for paragraph in b['summary_text'].split('\n\n'):
+                out.append(self.p(paragraph, 'B'))
+            return out
+        if b.get('flow_chart'):
+            # Choose-TWO instructions/options precede the process diagram; gap items appear only in the boxes.
+            for it in b['items']:
+                if it['type'] not in ('choice', 'mcq'):
+                    continue
+                num = it['id'].rsplit('-Q', 1)[-1]
+                # Choose-TWO prompts already carry their range ("Questions 1–2. ..."); do not number them twice.
+                prompt = it['prompt'] if re.match(r'Questions?\s+\d', it['prompt']) else f"{num}.  {it['prompt']}"
+                out.append(self.p(prompt))
+                for option in it.get('options', []):
+                    out.append(self.p(option, 'O'))
+            # As in the test, the whole diagram stays on one page.
+            out.append(KeepTogether(self.assessment_flow_chart(b['flow_chart'])))
+            return out
         if b.get('flow'):
-            # Flow-chart completion: each stage in a box, joined by arrows (as in the test).
+            # Legacy linear flow chart remains available for the original taught exercises.
             chart = []
             for i, it in enumerate(b['items']):
                 num = it['id'].rsplit('-Q', 1)[-1]
                 if i:
                     chart.append(self.p('↓', 'Arrow'))
                 chart += self.table([[f"{num}.  {it['prompt']}"]], [380])[:1]
-            return [KeepTogether(out + chart)]
+            return out + [KeepTogether(chart)]
         for i, it in enumerate(b['items']):
             num = it['id'].rsplit('-Q', 1)[-1]
             body = [self.p(f"{num}.  {it['prompt']}")]
@@ -333,7 +370,7 @@ class Pack:
     def student_block(self, b):
         flow = self._student_block(b)
         st = b.get('stimulus') or {}
-        if b['kind'] == 'items' and st.get('type') != 'passage' and not b.get('figure') and len(b['items']) <= 8:
+        if b['kind'] == 'items' and st.get('type') != 'passage' and not b.get('figure') and not b.get('flow_chart') and len(b['items']) <= 8:
             def flat(fl):
                 out = []
                 for f in fl:
@@ -440,10 +477,10 @@ class Pack:
     def copy_audio(self):
         audio_dir = Path(self.args.audio_dir) if getattr(self.args, 'audio_dir', None) else None
         for r in self.d['audio'].get('recordings', []):
-            src = audio_dir / f"{r['id']}_v1.mp3" if audio_dir else None
+            src = audio_dir / f"{r['id']}_{r.get('file_version', 'v1')}.mp3" if audio_dir else None
             if src and src.is_file():
                 # Recordings travel inside the private pack; status text says whether they are approved.
-                rel = f"Teacher-private/Audio/{r['id']}_v1.mp3"
+                rel = f"Teacher-private/Audio/{r['id']}_{r.get('file_version', 'v1')}.mp3"
                 (self.out / 'Teacher-private/Audio').mkdir(exist_ok=True)
                 shutil.copyfile(src, self.out / rel)
                 self.files.append({'file': rel, 'audience': 'teacher', 'recording': r['id'], 'status': r['status'], 'sha256_source': sha256(src)})
@@ -453,7 +490,7 @@ class Pack:
         rec = next((r for r in self.d['audio'].get('recordings', []) if r['block'] == b['id']), None)
         if not rec or b['id'] not in self.blocks:
             return None
-        rel = f"Audio/{rec['id']}_v1.mp3"
+        rel = f"Audio/{rec['id']}_{rec.get('file_version', 'v1')}.mp3"
         have = (self.out / 'Teacher-private' / rel).exists()
         return {'id': rec['id'], 'src': rel if have else None, 'status': rec['status']}
 
@@ -884,7 +921,7 @@ class Pack:
         d, n = self.d, self.n
         items = []
         for r in d['audio']['recordings']:
-            rel = f"Teacher-private/Audio/{r['id']}_v1.mp3"
+            rel = f"Teacher-private/Audio/{r['id']}_{r.get('file_version', 'v1')}.mp3"
             if (self.out / rel).exists():
                 items.append(f"<li><a href=\"{E(rel)}\">{E(r['id'])}</a>: {E(r['status'])}</li>")
             else:
@@ -977,7 +1014,7 @@ def main():
     ap.add_argument('--logo')
     ap.add_argument('--review-date')
     ap.add_argument('--template', action='store_true', help='School-neutral template for per-school branding at download time')
-    ap.add_argument('--audio-dir', help='Folder with produced <recording id>_v1.mp3 files to include for teacher review')
+    ap.add_argument('--audio-dir', help='Folder with produced <recording id>_<file_version, default v1>.mp3 files to include for teacher review')
     args = ap.parse_args()
     check = subprocess.run(['node', str(ROOT / 'scripts/ielts/lesson-source-contract.mjs'), args.source], capture_output=True, text=True)
     if check.returncode:

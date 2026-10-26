@@ -1,413 +1,421 @@
 {
- "schema": "bh-ielts-lesson-source/2",
- "code": "IELTS-X8",
- "number": 8,
- "extension": true,
- "placement": "optional, after Week 8 (Lesson 15)",
- "week": 8,
- "version": "1.0.0",
- "presentation_version": "1.0.0",
- "title": "Writing Task 2: problem-solution and two-part questions",
- "status": "Owner approved v1.0.0 on 2026-10-18; teacher release to all eligible schools (optional extension lesson)",
- "duration": 60,
- "test_type": "Academic",
- "bibles": {
-  "diagnostic": "1.10.0",
-  "lessons": "1.1.0",
-  "visual": "1.1.0"
- },
- "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Essay questions and models are original; examples are general and make no specific factual claims. Human editorial, model, mapping and originality review pending.",
- "audio": {
-  "required": false,
-  "statement": "No recording required.",
-  "recordings": []
- },
- "prerequisites": [
-  "Lesson 7 (positions and developed arguments) and Lesson 15 (planning and writing a complete response under time).",
-  "Teacher has checked actual Writing Screener and review states privately.",
-  "Optional extension: use when learners need practice with problem-solution and two-part questions."
- ],
- "objectives": [
-  {
-   "text": "Identify the Task 2 question type and plan one body paragraph for each part of the question.",
-   "focus": [
-    "register/task fulfilment",
-    "discourse organization"
-   ]
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-X8",
+  "number": 8,
+  "extension": true,
+  "placement": "optional, after Week 8 (Lesson 15)",
+  "week": 8,
+  "version": "1.1.0",
+  "presentation_version": "1.1.0",
+  "title": "Writing Task 2: problem-solution and two-part questions",
+  "status": "Owner approved v1.1.0 on 2026-10-26; teacher release to all eligible schools (optional extension lesson)",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": {
+    "diagnostic": "2.0.0",
+    "lessons": "1.2.0",
+    "visual": "1.2.0"
   },
-  {
-   "text": "Write a thesis statement that answers every part of a two-part or problem-solution question.",
-   "focus": [
-    "thesis/position clarity"
-   ]
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Essay questions and models are original; examples are general and make no specific factual claims. Human editorial, model, mapping and originality review pending.",
+  "audio": {
+    "required": false,
+    "statement": "No recording required.",
+    "recordings": []
   },
-  {
-   "text": "Develop each cause, problem or solution with an explanation and an example.",
-   "focus": [
-    "idea development",
-    "evidence/example relevance"
-   ]
-  }
- ],
- "levels": {
-  "foundation": "Question marks and instruction verbs underlined first; paragraph frame and phrase bank allowed and recorded.",
-  "core": "Write an introduction and a developed body paragraph in 15 minutes that answer the right question.",
-  "extension": "Link each cause to a consequence and add a solution sentence in the conclusion.",
-  "high_band": "Use a concessive structure and varied linking for each main idea."
- },
- "blocks": [
-  {
-   "id": "IELTS-X8-K1",
-   "kind": "contrast",
-   "title": "Does the thesis answer the question?",
-   "mode": "Teacher-led analysis; learners rank before the reveal",
-   "instructions": "Question: 'Many young people leave their home towns to live in big cities. Why is this happening? What problems does it cause for the places they leave?' Rank the three thesis statements.",
-   "examples": [
-    {
-     "label": "Thesis A",
-     "text": "In my opinion, living in a big city is better for young people because there are more opportunities.",
-     "comment": "Wrong task: the question does not ask for an opinion, and the second question (problems for home towns) is ignored."
-    },
-    {
-     "label": "Thesis B",
-     "text": "This essay will discuss why young people move and what problems this causes.",
-     "comment": "Answers nothing: it repeats the question without giving any reasons or problems."
-    },
-    {
-     "label": "Thesis C",
-     "text": "Young people move mainly to find better jobs and education, and their departure leaves smaller towns with ageing populations and struggling local services.",
-     "comment": "Best: it answers both questions directly and previews the two body paragraphs."
-    }
-   ]
-  },
-  {
-   "id": "IELTS-X8-I1",
-   "kind": "items",
-   "title": "What type of question is it?",
-   "mode": "Guided practice; answer alone, then check",
-   "instructions": "Read each Task 2 question. Choose the question type, A-E.",
-   "stimulus": {
-    "type": "options_list",
-    "title": "Question types",
-    "paragraphs": [
-     "A  opinion (agree or disagree)",
-     "B  discuss both views and give your opinion",
-     "C  advantages and disadvantages",
-     "D  problem (or causes) and solutions",
-     "E  two-part question"
-    ]
-   },
-   "items": [
-    {
-     "id": "IELTS-X8-I1-Q1",
-     "prompt": "In many cities, there are not enough affordable homes. What are the causes of this problem, and what can be done to solve it?",
-     "answer": "D",
-     "evidence": "causes of this problem ... what can be done to solve it",
-     "reason": "Causes plus solutions: a problem-solution essay with two parts.",
-     "focus": "register/task fulfilment",
-     "type": "mcq",
-     "options": [
-      "A  opinion (agree or disagree)",
-      "B  discuss both views and give your opinion",
-      "C  advantages and disadvantages",
-      "D  problem (or causes) and solutions",
-      "E  two-part question"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X8-I1-Q2",
-     "prompt": "Some people think that all university education should be free. To what extent do you agree or disagree?",
-     "answer": "A",
-     "evidence": "To what extent do you agree or disagree?",
-     "reason": "A single opinion question.",
-     "focus": "register/task fulfilment",
-     "type": "mcq",
-     "options": [
-      "A  opinion (agree or disagree)",
-      "B  discuss both views and give your opinion",
-      "C  advantages and disadvantages",
-      "D  problem (or causes) and solutions",
-      "E  two-part question"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X8-I1-Q3",
-     "prompt": "More people are choosing to work from home. Why is this happening? Is it a positive or negative development?",
-     "answer": "E",
-     "evidence": "Why is this happening? Is it a positive or negative development?",
-     "reason": "Two direct questions: each needs its own answer.",
-     "focus": "register/task fulfilment",
-     "type": "mcq",
-     "options": [
-      "A  opinion (agree or disagree)",
-      "B  discuss both views and give your opinion",
-      "C  advantages and disadvantages",
-      "D  problem (or causes) and solutions",
-      "E  two-part question"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X8-I1-Q4",
-     "prompt": "Some people believe children should start school at four; others think seven is better. Discuss both views and give your own opinion.",
-     "answer": "B",
-     "evidence": "Discuss both views and give your own opinion.",
-     "reason": "Both views must be explained before your opinion.",
-     "focus": "register/task fulfilment",
-     "type": "mcq",
-     "options": [
-      "A  opinion (agree or disagree)",
-      "B  discuss both views and give your opinion",
-      "C  advantages and disadvantages",
-      "D  problem (or causes) and solutions",
-      "E  two-part question"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X8-I1-Q5",
-     "prompt": "Many shops now use self-service checkouts. Do the advantages of this development outweigh the disadvantages?",
-     "answer": "C",
-     "evidence": "Do the advantages of this development outweigh the disadvantages?",
-     "reason": "Weigh advantages against disadvantages and say which is greater.",
-     "focus": "register/task fulfilment",
-     "type": "mcq",
-     "options": [
-      "A  opinion (agree or disagree)",
-      "B  discuss both views and give your opinion",
-      "C  advantages and disadvantages",
-      "D  problem (or causes) and solutions",
-      "E  two-part question"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X8-I1-Q6",
-     "prompt": "Obesity among children is increasing in many countries. What problems does this cause, and what measures could governments take?",
-     "answer": "D",
-     "evidence": "What problems does this cause, and what measures could governments take?",
-     "reason": "Problems plus measures: a problem-solution essay.",
-     "focus": "register/task fulfilment",
-     "type": "mcq",
-     "options": [
-      "A  opinion (agree or disagree)",
-      "B  discuss both views and give your opinion",
-      "C  advantages and disadvantages",
-      "D  problem (or causes) and solutions",
-      "E  two-part question"
-     ],
-     "level": "core"
-    }
-   ],
-   "support": "Foundation: underline every question mark and every instruction verb (discuss, agree, explain) before choosing.",
-   "extension": "For Questions 1, 3 and 6, write a one-sentence thesis that answers every part."
-  },
-  {
-   "id": "IELTS-X8-W1",
-   "kind": "writing",
-   "task": "paragraph",
-   "title": "Introduction and one body paragraph",
-   "mode": "Independent classroom application after modelling; not a full Task 2 or Writing Screener",
-   "prompt": "In many cities, there are not enough affordable homes. What are the causes of this problem, and what can be done to solve it? Write an introduction and the body paragraph about causes.",
-   "conditions": "15 minutes, independent. No model visible. Record any frame or phrase-bank use.",
-   "support": "Frame: Introduction = paraphrase + thesis answering both parts. Body = topic sentence (main causes) + cause 1 + explanation/example + cause 2 + explanation. Bank: is largely due to / results from / leads to / as a result.",
-   "extension": "Link each cause to a consequence with \"which means that\".",
-   "high_band": "Use one concessive structure (although, while) in the body paragraph.",
-   "model_label": "Illustrative classroom model for discussion only. Not a certified band answer.",
-   "model": "In many large cities, ordinary workers find it increasingly difficult to rent or buy a home at a price they can afford. In my view, this situation is caused mainly by rapid population growth and a shortage of new building, and it can be eased if governments build more public housing and make better use of empty properties.\n\nThe most important cause is that demand for housing has grown far faster than supply. As young people move to cities for work and study, the number of households rises every year, yet planning restrictions and high land prices mean that relatively few new homes are built. This imbalance pushes up both rents and purchase prices. A second factor is that many properties are bought as investments rather than as homes. Although this may benefit owners, it means that some flats remain empty or are rented to tourists for short stays, which further reduces the number of homes available to local residents.",
-   "checklist": [
-    "Task Response: Is EVERY part of the question answered fully, with a clear position or answer for each part?",
-    "Coherence and Cohesion: Does each body paragraph deal with one part of the question, with a clear topic sentence?",
-    "Lexical Resource: Is vocabulary on the topic precise, with cause and solution language (lead to, result from, tackle, address)?",
-    "Grammatical Range and Accuracy: Are complex sentences, modals for solutions (could, should) and conditionals controlled?"
-   ]
-  },
-  {
-   "id": "IELTS-X8-W2",
-   "kind": "writing",
-   "task": "task2",
-   "min_words": 250,
-   "homework": true,
-   "title": "Complete a two-part essay under time",
-   "mode": "Timed homework under declared conditions; teacher feedback uses the four criteria. Not a Writing Screener.",
-   "prompt": "Many young people now leave their home towns to work in big cities. Why is this happening? What problems does it cause for the places they leave? Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words.",
-   "conditions": "40 minutes, in one sitting, without a dictionary, translator, AI tool or model. Write the start and finish time.",
-   "support": "Plan: Introduction (paraphrase + thesis answering both questions) / Body 1 (why: two reasons with examples) / Body 2 (problems for home towns: two problems with examples) / Conclusion (summary of both answers).",
-   "extension": "Add a short sentence in the conclusion suggesting one way to reduce the problems.",
-   "high_band": "Use a different linking structure to introduce each of the four main ideas.",
-   "model_label": "Illustrative model for teacher discussion after learners submit their own responses. Not a certified band answer.",
-   "model": "In many countries, smaller towns are watching their young people leave for the opportunities of large cities. This movement is driven mainly by the search for better jobs and education, and it leaves the towns behind with ageing populations, weaker local economies and declining public services.\n\nThe most obvious reason for this trend is employment. Large cities concentrate well-paid jobs in fields such as technology, finance and the media, while smaller towns often depend on a narrow range of industries that offer few chances of promotion. A graduate in computer science, for example, may find dozens of suitable vacancies in a capital city and almost none at home. Education is a second factor. Universities and specialist colleges are usually located in cities, and students who move to study frequently stay after graduating, having built friendships and professional networks there.\n\nThe consequences for the places they leave can be serious. As young adults move away, the average age of the remaining population rises, which means fewer people of working age to support older residents and to fill local jobs. Businesses may then struggle to find staff and eventually close, reducing opportunities still further and encouraging even more people to leave. Public services also suffer: when the number of children falls, schools may be merged or shut, and towns can lose bus routes, banks and health clinics, making them less attractive to new families.\n\nIn conclusion, young people are drawn to cities mainly by jobs and education, and their departure creates a cycle of ageing, economic decline and reduced services in their home towns. Unless smaller communities can offer new opportunities, this pattern is likely to continue.",
-   "checklist": [
-    "Task Response: Is EVERY part of the question answered fully, with a clear position or answer for each part?",
-    "Coherence and Cohesion: Does each body paragraph deal with one part of the question, with a clear topic sentence?",
-    "Lexical Resource: Is vocabulary on the topic precise, with cause and solution language (lead to, result from, tackle, address)?",
-    "Grammatical Range and Accuracy: Are complex sentences, modals for solutions (could, should) and conditionals controlled?"
-   ]
-  }
- ],
- "stages": [
-  {
-   "start": 0,
-   "end": 7,
-   "title": "Opening challenge: does the thesis answer the question?",
-   "show": [
-    {
-     "block": "IELTS-X8-K1",
-     "part": "questions"
-    },
-    {
-     "block": "IELTS-X8-K1",
-     "part": "answers"
-    }
-   ],
-   "student": "Rank the three thesis statements before the reveal.",
-   "teacher": "Reveal the comments. Stress that a two-part question needs two answers, and that \"This essay will discuss\" answers nothing.",
-   "say": "Count the questions; your thesis needs an answer for each.",
-   "check": "Learners can say why Thesis A loses marks."
-  },
-  {
-   "start": 7,
-   "end": 16,
-   "title": "What type of question is it?",
-   "show": [
-    {
-     "block": "IELTS-X8-I1",
-     "part": "questions"
-    }
-   ],
-   "student": "Identify the type of each of the six questions.",
-   "teacher": "Learners work alone for 6 minutes. Foundation learners underline question marks and instruction verbs first.",
-   "say": "The question type decides your paragraph plan.",
-   "check": "Every learner has six answers."
-  },
-  {
-   "start": 16,
-   "end": 21,
-   "title": "Check and plan",
-   "show": [
-    {
-     "block": "IELTS-X8-I1",
-     "part": "answers"
-    }
-   ],
-   "student": "Check answers. Note the paragraph plan for problem-solution and two-part essays.",
-   "teacher": "Reveal. Show the two plans: causes / solutions; part one / part two. Each body paragraph answers one part.",
-   "say": "One body paragraph for each part of the question.",
-   "check": "Learners can draw both plans."
-  },
-  {
-   "start": 21,
-   "end": 25,
-   "title": "Plan your paragraphs",
-   "show": [
-    {
-     "block": "IELTS-X8-W1",
-     "part": "prompt"
-    }
-   ],
-   "student": "Write a thesis that answers both parts, then note two causes.",
-   "teacher": "Circulate and check every thesis mentions causes AND solutions.",
-   "say": "Plan before you write: two minutes of planning saves ten minutes of repair.",
-   "check": "Each learner has a thesis and two causes."
-  },
-  {
-   "start": 25,
-   "end": 40,
-   "title": "Write independently",
-   "show": [],
-   "student": "Write the introduction and the causes paragraph in 15 minutes.",
-   "teacher": "Time 15 minutes. Do not show the model. Record any support used.",
-   "say": "Explain each cause; do not just list it.",
-   "check": "Every learner has written both paragraphs."
-  },
-  {
-   "start": 40,
-   "end": 50,
-   "title": "Compare with the model and the criteria",
-   "show": [
-    {
-     "block": "IELTS-X8-W1",
-     "part": "model"
-    }
-   ],
-   "student": "Compare your paragraphs with the model and tick the checklist.",
-   "teacher": "Show the model. Ask learners to find the thesis, the topic sentence and the explanation of each cause.",
-   "say": "The model is for discussion, not for memorising.",
-   "check": "Each learner has one specific improvement."
-  },
-  {
-   "start": 50,
-   "end": 55,
-   "title": "Two-part essay at home",
-   "show": [
-    {
-     "block": "IELTS-X8-W2",
-     "part": "prompt"
-    }
-   ],
-   "student": "Note the homework conditions and the plan.",
-   "teacher": "Explain the 40-minute conditions. Learners identify the two questions in the prompt before leaving.",
-   "say": "Answer both questions, fully.",
-   "check": "Everyone can name both questions."
-  },
-  {
-   "start": 55,
-   "end": 60,
-   "title": "Exit ticket",
-   "show": [],
-   "student": "Complete the exit ticket.",
-   "teacher": "Collect exit tickets. Record the fresh-check date.",
-   "say": "Next time: complete responses under time.",
-   "check": "Exit tickets collected."
-  }
- ],
- "exit_ticket": [
-  "How I check that my thesis answers every part:",
-  "The paragraph plan for a two-part question:",
-  "My target for my next essay:"
- ],
- "homework": [
-  "Complete the two-part essay (IELTS-X8-W2) under the stated conditions: 40 minutes, no help.",
-  "Write thesis statements for three new questions your teacher gives you, one of each type.",
-  "Complete only the Brains Heist writing practice your teacher actually assigns."
- ],
- "followup": {
-  "id": "IELTS-X8-C1",
-  "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
-  "delivery": "About one teaching week after this lesson, after feedback on the homework. 20 minutes: introduction and one body paragraph for a new problem-solution question. No model, frame or phrase bank unless recorded as support. Classroom observation only.",
-  "blocks": [
-   {
-    "id": "IELTS-X8-C1",
-    "kind": "writing",
-    "task": "partial",
-    "title": "Food waste",
-    "mode": "Withheld fresh check; independent, timed",
-    "prompt": "Food waste is increasing in many countries. Explain the reasons, and suggest measures that might reduce it. For this check, write only an introduction and one main paragraph.",
-    "conditions": "20 minutes, independent, no model or phrase bank. Record start and finish time and any support.",
-    "no_model": "Withheld fresh check: feedback uses the checklist only, so no model is shown or stored with the task.",
-    "checklist": [
-     "Task Response: Is EVERY part of the question answered fully, with a clear position or answer for each part?",
-     "Coherence and Cohesion: Does each body paragraph deal with one part of the question, with a clear topic sentence?",
-     "Lexical Resource: Is vocabulary on the topic precise, with cause and solution language (lead to, result from, tackle, address)?",
-     "Grammatical Range and Accuracy: Are complex sentences, modals for solutions (could, should) and conditionals controlled?"
-    ]
-   }
+  "prerequisites": [
+    "Lesson 7 (positions and developed arguments) and Lesson 15 (planning and writing a complete response under time).",
+    "Teacher has checked actual Writing Screener and review states privately.",
+    "Optional extension: use when learners need practice with problem-solution and two-part questions."
   ],
-  "review": "Compare only the observed demands and conditions with this lesson. Record the result as a separate later observation; do not convert it to a band or merge it with screener evidence."
- },
- "delayed_followup": "In Lesson 22 (fresh productive-skill evidence), check whether every part of the question is answered. Record it as a later observation.",
- "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
- "release_blockers": [
-  "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
-  "Student task publication and platform evidence capture remain separate, governed steps."
- ],
- "approval_record": {
-  "approved_by": "Owner, Brains Heist LLC",
-  "date": "2026-10-18",
-  "version": "1.0.0",
-  "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
-  "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 59575719be0366975a3fd34ab8e700dbcd19da4bf8ed7f2200579a1a3afbfc26): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
- }
+  "objectives": [
+    {
+      "text": "Identify the Task 2 question type and plan one body paragraph for each part of the question.",
+      "focus": [
+        "register/task fulfilment",
+        "discourse organization"
+      ]
+    },
+    {
+      "text": "Write a thesis statement that answers every part of a two-part or problem-solution question.",
+      "focus": [
+        "thesis/position clarity"
+      ]
+    },
+    {
+      "text": "Develop each cause, problem or solution with an explanation and an example.",
+      "focus": [
+        "idea development",
+        "evidence/example relevance"
+      ]
+    }
+  ],
+  "levels": {
+    "foundation": "Question marks and instruction verbs underlined first; paragraph frame and phrase bank allowed and recorded.",
+    "core": "Write an introduction and a developed body paragraph in 15 minutes that answer the right question.",
+    "extension": "Link each cause to a consequence and add a solution sentence in the conclusion.",
+    "high_band": "Write a new 250+-word two-part or problem-solution essay in 40 minutes, unaided. Answer every part with sustained, qualified reasoning, develop specific examples, test a possible counterargument, and maintain clear progression without memorised template filler."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-X8-K1",
+      "kind": "contrast",
+      "title": "Does the thesis answer the question?",
+      "mode": "Teacher-led analysis; learners rank before the reveal",
+      "instructions": "Question: 'Many young people leave their home towns to live in big cities. Why is this happening? What problems does it cause for the places they leave?' Rank the three thesis statements.",
+      "examples": [
+        {
+          "label": "Thesis A",
+          "text": "In my opinion, living in a big city is better for young people because there are more opportunities.",
+          "comment": "Wrong task: the question does not ask for an opinion, and the second question (problems for home towns) is ignored."
+        },
+        {
+          "label": "Thesis B",
+          "text": "This essay will discuss why young people move and what problems this causes.",
+          "comment": "Answers nothing: it repeats the question without giving any reasons or problems."
+        },
+        {
+          "label": "Thesis C",
+          "text": "Young people move mainly to find better jobs and education, and their departure leaves smaller towns with ageing populations and struggling local services.",
+          "comment": "Best: it answers both questions directly and previews the two body paragraphs."
+        }
+      ]
+    },
+    {
+      "id": "IELTS-X8-I1",
+      "kind": "items",
+      "title": "What type of question is it?",
+      "mode": "Guided practice; answer alone, then check",
+      "instructions": "Read each Task 2 question. Choose the question type, A-E.",
+      "stimulus": {
+        "type": "options_list",
+        "title": "Question types",
+        "paragraphs": [
+          "A  opinion (agree or disagree)",
+          "B  discuss both views and give your opinion",
+          "C  advantages and disadvantages",
+          "D  problem (or causes) and solutions",
+          "E  two-part question"
+        ]
+      },
+      "items": [
+        {
+          "id": "IELTS-X8-I1-Q1",
+          "prompt": "In many cities, there are not enough affordable homes. What are the causes of this problem, and what can be done to solve it?",
+          "answer": "D",
+          "evidence": "causes of this problem ... what can be done to solve it",
+          "reason": "Causes plus solutions: a problem-solution essay with two parts.",
+          "focus": "register/task fulfilment",
+          "type": "mcq",
+          "options": [
+            "A  opinion (agree or disagree)",
+            "B  discuss both views and give your opinion",
+            "C  advantages and disadvantages",
+            "D  problem (or causes) and solutions",
+            "E  two-part question"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X8-I1-Q2",
+          "prompt": "Some people think that all university education should be free. To what extent do you agree or disagree?",
+          "answer": "A",
+          "evidence": "To what extent do you agree or disagree?",
+          "reason": "A single opinion question.",
+          "focus": "register/task fulfilment",
+          "type": "mcq",
+          "options": [
+            "A  opinion (agree or disagree)",
+            "B  discuss both views and give your opinion",
+            "C  advantages and disadvantages",
+            "D  problem (or causes) and solutions",
+            "E  two-part question"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X8-I1-Q3",
+          "prompt": "More people are choosing to work from home. Why is this happening? Is it a positive or negative development?",
+          "answer": "E",
+          "evidence": "Why is this happening? Is it a positive or negative development?",
+          "reason": "Two direct questions: each needs its own answer.",
+          "focus": "register/task fulfilment",
+          "type": "mcq",
+          "options": [
+            "A  opinion (agree or disagree)",
+            "B  discuss both views and give your opinion",
+            "C  advantages and disadvantages",
+            "D  problem (or causes) and solutions",
+            "E  two-part question"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X8-I1-Q4",
+          "prompt": "Some people believe children should start school at four; others think seven is better. Discuss both views and give your own opinion.",
+          "answer": "B",
+          "evidence": "Discuss both views and give your own opinion.",
+          "reason": "Both views must be explained before your opinion.",
+          "focus": "register/task fulfilment",
+          "type": "mcq",
+          "options": [
+            "A  opinion (agree or disagree)",
+            "B  discuss both views and give your opinion",
+            "C  advantages and disadvantages",
+            "D  problem (or causes) and solutions",
+            "E  two-part question"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X8-I1-Q5",
+          "prompt": "Many shops now use self-service checkouts. Do the advantages of this development outweigh the disadvantages?",
+          "answer": "C",
+          "evidence": "Do the advantages of this development outweigh the disadvantages?",
+          "reason": "Weigh advantages against disadvantages and say which is greater.",
+          "focus": "register/task fulfilment",
+          "type": "mcq",
+          "options": [
+            "A  opinion (agree or disagree)",
+            "B  discuss both views and give your opinion",
+            "C  advantages and disadvantages",
+            "D  problem (or causes) and solutions",
+            "E  two-part question"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X8-I1-Q6",
+          "prompt": "Obesity among children is increasing in many countries. What problems does this cause, and what measures could governments take?",
+          "answer": "D",
+          "evidence": "What problems does this cause, and what measures could governments take?",
+          "reason": "Problems plus measures: a problem-solution essay.",
+          "focus": "register/task fulfilment",
+          "type": "mcq",
+          "options": [
+            "A  opinion (agree or disagree)",
+            "B  discuss both views and give your opinion",
+            "C  advantages and disadvantages",
+            "D  problem (or causes) and solutions",
+            "E  two-part question"
+          ],
+          "level": "core"
+        }
+      ],
+      "support": "Foundation: underline every question mark and every instruction verb (discuss, agree, explain) before choosing.",
+      "extension": "For Questions 1, 3 and 6, write a one-sentence thesis that answers every part."
+    },
+    {
+      "id": "IELTS-X8-W1",
+      "kind": "writing",
+      "task": "paragraph",
+      "title": "Introduction and one body paragraph",
+      "mode": "Independent classroom application after modelling; not a full Task 2 or Writing Screener",
+      "prompt": "In many cities, there are not enough affordable homes. What are the causes of this problem, and what can be done to solve it? Write an introduction and the body paragraph about causes.",
+      "conditions": "15 minutes, independent. No model visible. Record any frame or phrase-bank use.",
+      "support": "Frame: Introduction = paraphrase + thesis answering both parts. Body = topic sentence (main causes) + cause 1 + explanation/example + cause 2 + explanation. Bank: is largely due to / results from / leads to / as a result.",
+      "extension": "Link each cause to a consequence with \"which means that\".",
+      "high_band": "Write a new 250+-word two-part or problem-solution essay in 40 minutes, unaided. Answer every part with sustained, qualified reasoning, develop specific examples, test a possible counterargument, and maintain clear progression without memorised template filler.",
+      "model_label": "Illustrative classroom model for discussion only. Not a certified band answer.",
+      "model": "In many large cities, ordinary workers find it increasingly difficult to rent or buy a home at a price they can afford. In my view, this situation is caused mainly by rapid population growth and a shortage of new building, and it can be eased if governments build more public housing and make better use of empty properties.\n\nThe most important cause is that demand for housing has grown far faster than supply. As young people move to cities for work and study, the number of households rises every year, yet planning restrictions and high land prices mean that relatively few new homes are built. This imbalance pushes up both rents and purchase prices. A second factor is that many properties are bought as investments rather than as homes. Although this may benefit owners, it means that some flats remain empty or are rented to tourists for short stays, which further reduces the number of homes available to local residents.",
+      "checklist": [
+        "Task Response: Is EVERY part of the question answered fully, with a clear position or answer for each part?",
+        "Coherence and Cohesion: Does each body paragraph deal with one part of the question, with a clear topic sentence?",
+        "Lexical Resource: Is vocabulary on the topic precise, with cause and solution language (lead to, result from, tackle, address)?",
+        "Grammatical Range and Accuracy: Are complex sentences, modals for solutions (could, should) and conditionals controlled?"
+      ]
+    },
+    {
+      "id": "IELTS-X8-W2",
+      "kind": "writing",
+      "task": "task2",
+      "min_words": 250,
+      "homework": true,
+      "title": "Complete a two-part essay under time",
+      "mode": "Timed homework under declared conditions; teacher feedback uses the four criteria. Not a Writing Screener.",
+      "prompt": "Many young people now leave their home towns to work in big cities. Why is this happening? What problems does it cause for the places they leave? Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words.",
+      "conditions": "40 minutes, in one sitting, without a dictionary, translator, AI tool or model. Write the start and finish time. Advanced transfer: submit a second response to a genuinely unseen visual or prompt, with no model, scaffold or feedback before completion; log timing and support separately.",
+      "support": "Plan: Introduction (paraphrase + thesis answering both questions) / Body 1 (why: two reasons with examples) / Body 2 (problems for home towns: two problems with examples) / Conclusion (summary of both answers).",
+      "extension": "Add a short sentence in the conclusion suggesting one way to reduce the problems.",
+      "high_band": "Write a new 250+-word two-part or problem-solution essay in 40 minutes, unaided. Answer every part with sustained, qualified reasoning, develop specific examples, test a possible counterargument, and maintain clear progression without memorised template filler.",
+      "model_label": "Illustrative model for teacher discussion after learners submit their own responses. Not a certified band answer.",
+      "model": "In many countries, smaller towns are watching their young people leave for the opportunities of large cities. This movement is driven mainly by the search for better jobs and education, and it leaves the towns behind with ageing populations, weaker local economies and declining public services.\n\nThe most obvious reason for this trend is employment. Large cities concentrate well-paid jobs in fields such as technology, finance and the media, while smaller towns often depend on a narrow range of industries that offer few chances of promotion. A graduate in computer science, for example, may find dozens of suitable vacancies in a capital city and almost none at home. Education is a second factor. Universities and specialist colleges are usually located in cities, and students who move to study frequently stay after graduating, having built friendships and professional networks there.\n\nThe consequences for the places they leave can be serious. As young adults move away, the average age of the remaining population rises, which means fewer people of working age to support older residents and to fill local jobs. Businesses may then struggle to find staff and eventually close, reducing opportunities still further and encouraging even more people to leave. Public services also suffer: when the number of children falls, schools may be merged or shut, and towns can lose bus routes, banks and health clinics, making them less attractive to new families.\n\nIn conclusion, young people are drawn to cities mainly by jobs and education, and their departure creates a cycle of ageing, economic decline and reduced services in their home towns. Unless smaller communities can offer new opportunities, this pattern is likely to continue.",
+      "checklist": [
+        "Task Response: Is EVERY part of the question answered fully, with a clear position or answer for each part?",
+        "Coherence and Cohesion: Does each body paragraph deal with one part of the question, with a clear topic sentence?",
+        "Lexical Resource: Is vocabulary on the topic precise, with cause and solution language (lead to, result from, tackle, address)?",
+        "Grammatical Range and Accuracy: Are complex sentences, modals for solutions (could, should) and conditionals controlled?",
+        "Independent-transfer check: verify task coverage, accuracy of evidence or visual comparisons, quality of development, and unsupported claims; note conditions rather than inferring an IELTS band."
+      ]
+    }
+  ],
+  "stages": [
+    {
+      "start": 0,
+      "end": 7,
+      "title": "Opening challenge: does the thesis answer the question?",
+      "show": [
+        {
+          "block": "IELTS-X8-K1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-X8-K1",
+          "part": "answers"
+        }
+      ],
+      "student": "Rank the three thesis statements before the reveal.",
+      "teacher": "Reveal the comments. Stress that a two-part question needs two answers, and that \"This essay will discuss\" answers nothing.",
+      "say": "Count the questions; your thesis needs an answer for each.",
+      "check": "Learners can say why Thesis A loses marks."
+    },
+    {
+      "start": 7,
+      "end": 16,
+      "title": "What type of question is it?",
+      "show": [
+        {
+          "block": "IELTS-X8-I1",
+          "part": "questions"
+        }
+      ],
+      "student": "Identify the type of each of the six questions.",
+      "teacher": "Learners work alone for 6 minutes. Foundation learners underline question marks and instruction verbs first.",
+      "say": "The question type decides your paragraph plan.",
+      "check": "Every learner has six answers."
+    },
+    {
+      "start": 16,
+      "end": 21,
+      "title": "Check and plan",
+      "show": [
+        {
+          "block": "IELTS-X8-I1",
+          "part": "answers"
+        }
+      ],
+      "student": "Check answers. Note the paragraph plan for problem-solution and two-part essays.",
+      "teacher": "Reveal. Show the two plans: causes / solutions; part one / part two. Each body paragraph answers one part.",
+      "say": "One body paragraph for each part of the question.",
+      "check": "Learners can draw both plans."
+    },
+    {
+      "start": 21,
+      "end": 25,
+      "title": "Plan your paragraphs",
+      "show": [
+        {
+          "block": "IELTS-X8-W1",
+          "part": "prompt"
+        }
+      ],
+      "student": "Write a thesis that answers both parts, then note two causes.",
+      "teacher": "Circulate and check every thesis mentions causes AND solutions.",
+      "say": "Plan before you write: two minutes of planning saves ten minutes of repair.",
+      "check": "Each learner has a thesis and two causes."
+    },
+    {
+      "start": 25,
+      "end": 40,
+      "title": "Write independently",
+      "show": [],
+      "student": "Write the introduction and the causes paragraph in 15 minutes.",
+      "teacher": "Time 15 minutes. Do not show the model. Record any support used.",
+      "say": "Explain each cause; do not just list it.",
+      "check": "Every learner has written both paragraphs."
+    },
+    {
+      "start": 40,
+      "end": 50,
+      "title": "Compare with the model and the criteria",
+      "show": [
+        {
+          "block": "IELTS-X8-W1",
+          "part": "model"
+        }
+      ],
+      "student": "Compare your paragraphs with the model and tick the checklist.",
+      "teacher": "Show the model. Ask learners to find the thesis, the topic sentence and the explanation of each cause.",
+      "say": "The model is for discussion, not for memorising.",
+      "check": "Each learner has one specific improvement."
+    },
+    {
+      "start": 50,
+      "end": 55,
+      "title": "Two-part essay at home",
+      "show": [
+        {
+          "block": "IELTS-X8-W2",
+          "part": "prompt"
+        }
+      ],
+      "student": "Note the homework conditions and the plan.",
+      "teacher": "Explain the 40-minute conditions. Learners identify the two questions in the prompt before leaving.",
+      "say": "Answer both questions, fully.",
+      "check": "Everyone can name both questions."
+    },
+    {
+      "start": 55,
+      "end": 60,
+      "title": "Exit ticket",
+      "show": [],
+      "student": "Complete the exit ticket.",
+      "teacher": "Collect exit tickets. Record the fresh-check date.",
+      "say": "Next time: complete responses under time.",
+      "check": "Exit tickets collected."
+    }
+  ],
+  "exit_ticket": [
+    "How I check that my thesis answers every part:",
+    "The paragraph plan for a two-part question:",
+    "My target for my next essay:"
+  ],
+  "homework": [
+    "Complete the two-part essay (IELTS-X8-W2) under the stated conditions: 40 minutes, no help.",
+    "Write thesis statements for three new questions your teacher gives you, one of each type.",
+    "Complete only the Brains Heist writing practice your teacher actually assigns."
+  ],
+  "followup": {
+    "id": "IELTS-X8-C1",
+    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.1.0 on 2026-10-26. Keep private until use.",
+    "delivery": "About one teaching week after this lesson, after feedback on the homework. 20 minutes: introduction and one body paragraph for a new problem-solution question. No model, frame or phrase bank unless recorded as support. Classroom observation only.",
+    "blocks": [
+      {
+        "id": "IELTS-X8-C1",
+        "kind": "writing",
+        "task": "partial",
+        "title": "Food waste",
+        "mode": "Withheld fresh check; independent, timed",
+        "prompt": "Food waste is increasing in many countries. Explain the reasons, and suggest measures that might reduce it. For this check, write only an introduction and one main paragraph.",
+        "conditions": "20 minutes, independent, no model or phrase bank. Record start and finish time and any support. No access to lesson models or worked examples during this independent check. Mark each IELTS writing criterion separately and document an actionable reason for revision; no automatic band inference.",
+        "no_model": "Withheld fresh check: feedback uses the checklist only, so no model is shown or stored with the task.",
+        "checklist": [
+          "Task Response: Is EVERY part of the question answered fully, with a clear position or answer for each part?",
+          "Coherence and Cohesion: Does each body paragraph deal with one part of the question, with a clear topic sentence?",
+          "Lexical Resource: Is vocabulary on the topic precise, with cause and solution language (lead to, result from, tackle, address)?",
+          "Grammatical Range and Accuracy: Are complex sentences, modals for solutions (could, should) and conditionals controlled?"
+        ]
+      }
+    ],
+    "review": "Compare only the observed demands and conditions with this lesson. Record the result as a separate later observation; do not convert it to a band or merge it with screener evidence. Use a truly unseen form, one independent sitting, and log prior exposure, aid, time, item-level errors, and support. Do not convert this activity into a band estimate or combine it with mock scores."
+  },
+  "delayed_followup": "In Lesson 22 (fresh productive-skill evidence), check whether every part of the question is answered. Record it as a later observation.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
+  ],
+  "previous_approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-18",
+    "version": "1.0.0",
+    "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 59575719be0366975a3fd34ab8e700dbcd19da4bf8ed7f2200579a1a3afbfc26): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
+  },
+  "approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-26",
+    "version": "1.1.0",
+    "scope": "Extension lesson content, keys, models and figures for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 06:18 Asia/Bishkek, after Claude's review of PR #1711 and the follow-up fixes (footer, flow-chart page breaks, choose-TWO numbering): 'I need them approved for teaching and normally ready to use in the IELTS course.' Content and keys are as reviewed in PR #1711. Not recorded as an in-platform decision; no school-scoped review-draft pack was opened before approval."
+  }
 }

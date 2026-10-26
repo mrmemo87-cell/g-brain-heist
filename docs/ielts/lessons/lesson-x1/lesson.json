@@ -1,666 +1,808 @@
 {
- "schema": "bh-ielts-lesson-source/2",
- "code": "IELTS-X1",
- "number": 1,
- "extension": true,
- "placement": "optional, after Week 5 (Lesson 9)",
- "week": 5,
- "version": "1.0.0",
- "presentation_version": "1.0.0",
- "title": "Reading: summary completion and sentence endings",
- "status": "Owner approved v1.0.0 on 2026-10-18; teacher release to all eligible schools (optional extension lesson)",
- "duration": 60,
- "test_type": "Academic",
- "bibles": {
-  "diagnostic": "1.10.0",
-  "lessons": "1.1.0",
-  "visual": "1.1.0"
- },
- "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Passages are original and describe general, widely reported trends without citing specific studies, operators or figures. Human editorial, factual, key, mapping, difficulty and originality review pending.",
- "audio": {
-  "required": false,
-  "statement": "No recording required.",
-  "recordings": []
- },
- "prerequisites": [
-  "Lesson 6 (reading for specific information) and Lesson 9 (headings and the writer's argument).",
-  "Teacher has checked actual Reading Screener and review states privately.",
-  "Optional extension: use when learners need more practice with summary and sentence-ending tasks."
- ],
- "objectives": [
-  {
-   "text": "Locate the part of a passage that a summary covers and use the order of information to find each answer.",
-   "focus": [
-    "locating explicit evidence",
-    "paraphrase recognition"
-   ]
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-X1",
+  "number": 1,
+  "extension": true,
+  "placement": "optional, after Week 5 (Lesson 9)",
+  "week": 5,
+  "version": "1.1.1",
+  "presentation_version": "1.1.1",
+  "title": "Reading: summary completion and sentence endings",
+  "status": "Owner approved v1.1.1 on 2026-10-26; teacher release to all eligible schools (optional extension lesson)",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": {
+    "diagnostic": "2.0.0",
+    "lessons": "1.2.0",
+    "visual": "1.2.0"
   },
-  {
-   "text": "Choose words that fit both the grammar and the meaning of a summary gap, copying passage words exactly and respecting the word limit.",
-   "focus": [
-    "word-limit/task compliance",
-    "spelling/orthographic accuracy"
-   ]
+  "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Passages are original and describe general, widely reported trends without citing specific studies, operators or figures. Human editorial, factual, key, mapping, difficulty and originality review pending.",
+  "audio": {
+    "required": false,
+    "statement": "No recording required.",
+    "recordings": []
   },
-  {
-   "text": "Match sentence beginnings with endings that are true according to the passage, rejecting endings that are true only in general.",
-   "focus": [
-    "paraphrase recognition",
-    "distractor resistance"
-   ]
-  }
- ],
- "levels": {
-  "foundation": "Word-type hints beside each gap; the teacher marks where each summary starts; sort box words by word type before choosing.",
-  "core": "Complete all fifteen questions in the time given, with correct spelling and word limits.",
-  "extension": "Underline the summary words that paraphrase the passage and name the distractor for each box question.",
-  "high_band": "Explain in writing why each unused box word and ending is wrong, using evidence from the passage."
- },
- "blocks": [
-  {
-   "id": "IELTS-X1-K1",
-   "kind": "contrast",
-   "title": "Grammar fit or meaning fit?",
-   "mode": "Opening challenge; learners choose before the reveal",
-   "instructions": "Gap: 'Many sleeper routes closed because cheap ______ made them unprofitable.' Three learners chose different words. Which answer is right, and what went wrong in the other two?",
-   "examples": [
-    {
-     "label": "Answer A",
-     "text": "cheap expensive",
-     "comment": "Grammar fails: after the adjective 'cheap' the gap needs a noun. Always say the whole sentence with your word in it."
-    },
-    {
-     "label": "Answer B",
-     "text": "cheap airlines",
-     "comment": "Grammar fits, but 'airlines' is not in the passage. In a 'words from the passage' summary, the answer must be copied from the text."
-    },
-    {
-     "label": "Answer C",
-     "text": "cheap flights",
-     "comment": "Correct: a noun, taken from the passage ('Cheap flights could carry passengers'), and it makes the meaning of the summary true."
-    }
-   ]
-  },
-  {
-   "id": "IELTS-X1-G1",
-   "kind": "items",
-   "title": "Summary completion: words from the passage",
-   "mode": "Guided practice; answer alone, then check with a partner",
-   "instructions": "Read the passage. Complete the summary of paragraphs 1-3. Choose ONE WORD ONLY from the passage for each answer.",
-   "stimulus": {
-    "type": "passage",
-    "title": "The quiet return of the night train",
-    "labelled": false,
-    "paragraphs": [
-     "For much of the late twentieth century, the overnight sleeper train seemed to belong to the past. Cheap flights could carry passengers between distant cities in a couple of hours, and many rail companies decided that the cost of running trains with beds, staff and restaurant cars could no longer be justified. Across Europe, one route after another was withdrawn, and the carriages were sold or left to rust in sidings.",
-     "In recent years, however, the night train has made an unexpected return. Several operators have reopened routes that had been closed for decades, and some have ordered new carriages for the first time in a generation. The main reason is a change in how travellers think about flying. A growing number of people, particularly younger travellers, are looking for ways to reduce the carbon emissions from their journeys, and a train that leaves in the evening and arrives the next morning offers a practical alternative for distances of up to about fifteen hundred kilometres.",
-     "Supporters also point to a hidden advantage: time. A flight may last only two hours, but once the journey to the airport, security checks and waiting are included, the total can easily reach six or seven. A night train, by contrast, departs from the city centre and arrives in another city centre, and the hours spent travelling are hours that would otherwise be spent asleep in a hotel. For business travellers in particular, this can mean a full working day at the destination without the cost of an extra night's accommodation.",
-     "The revival has not been easy. Sleeper carriages are expensive to build and can make only one journey every twenty-four hours, so each one earns far less than a daytime train. Tickets, especially for private compartments, are often more expensive than flights on the same route. Operators have also struggled with the practical problems of crossing borders, where differences in electrical systems, signalling and safety rules may require a change of locomotive or even of staff.",
-     "Whether night trains can grow beyond a small, enthusiastic market will depend largely on decisions by governments. Some have offered support in the form of reduced track charges or direct subsidies, arguing that the environmental benefits justify public money. Others remain unconvinced, pointing out that the same funds could improve daytime services used by far more people. For now, the night train is no longer a relic, but nor is it yet a serious rival to the aeroplane."
-    ]
-   },
-   "form_title": "Summary: why night trains declined and returned",
-   "items": [
-    {
-     "id": "IELTS-X1-G1-Q1",
-     "prompt": "In the late twentieth century, many sleeper routes closed because cheap ______ took their passengers.",
-     "answer": "flights",
-     "evidence": "Cheap flights could carry passengers between distant cities",
-     "reason": "'Cheap' before the gap tells you a noun is needed; the passage gives 'flights'.",
-     "focus": "paraphrase recognition",
-     "type": "completion",
-     "word_limit": 1,
-     "hint": "a plural noun",
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X1-G1-Q2",
-     "prompt": "Old carriages were sold or left to rust in ______.",
-     "answer": "sidings",
-     "evidence": "the carriages were sold or left to rust in sidings",
-     "reason": "The summary keeps the passage's own words; copy the spelling exactly.",
-     "focus": "locating explicit evidence",
-     "type": "completion",
-     "word_limit": 1,
-     "hint": "a place (plural noun)",
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X1-G1-Q3",
-     "prompt": "Many travellers now want to cut the carbon ______ produced by their journeys.",
-     "answer": "emissions",
-     "evidence": "reduce the carbon emissions from their journeys",
-     "reason": "'Cut' paraphrases 'reduce'; the noun after 'carbon' is the answer.",
-     "focus": "paraphrase recognition",
-     "type": "completion",
-     "word_limit": 1,
-     "hint": "a plural noun",
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X1-G1-Q4",
-     "prompt": "A night train leaves from one city ______ and arrives in another.",
-     "answer": "centre",
-     "evidence": "departs from the city centre and arrives in another city centre",
-     "reason": "'Leaves from' paraphrases 'departs from'. One word only: not 'city centre'.",
-     "focus": "word-limit/task compliance",
-     "type": "completion",
-     "word_limit": 1,
-     "hint": "a singular noun",
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X1-G1-Q5",
-     "prompt": "Business travellers can avoid paying for an extra night's ______.",
-     "answer": "accommodation",
-     "evidence": "without the cost of an extra night's accommodation",
-     "reason": "'Avoid paying for' paraphrases 'without the cost of'. Check the double 'c' and double 'm'.",
-     "focus": "spelling/orthographic accuracy",
-     "type": "completion",
-     "word_limit": 1,
-     "hint": "an uncountable noun",
-     "level": "core"
-    }
-   ],
-   "support": "Foundation: word-type hints are printed beside each gap; the teacher shows where paragraph 1 ends before learners start.",
-   "extension": "For each answer, underline the words in the summary that paraphrase the passage."
-  },
-  {
-   "id": "IELTS-X1-P1",
-   "kind": "items",
-   "title": "Summary completion: choosing from a box",
-   "mode": "Independent practice under time (6 minutes); then check",
-   "instructions": "Complete the summary of paragraphs 4-5 using the list of words, A-H, below. Write the correct letter. Three words are not used.",
-   "stimulus": {
-    "type": "options_list",
-    "title": "Words: The quiet return of the night train",
-    "paragraphs": [
-     "A  cheaper",
-     "B  government",
-     "C  slowly",
-     "D  borders",
-     "E  expensive",
-     "F  passengers",
-     "G  profitable",
-     "H  weather"
-    ]
-   },
-   "form_title": "Summary: problems and the future",
-   "items": [
-    {
-     "id": "IELTS-X1-P1-Q6",
-     "prompt": "Sleeper carriages are costly to build, and each one is less ______ than a daytime train.",
-     "answer": "G",
-     "evidence": "each one earns far less than a daytime train",
-     "reason": "'Earns far less' means it is less profitable. Box words are often paraphrases, not copies.",
-     "focus": "paraphrase recognition",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E",
-      "F",
-      "G",
-      "H"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X1-P1-Q7",
-     "prompt": "Tickets for private compartments are frequently more ______ than air travel.",
-     "answer": "E",
-     "evidence": "are often more expensive than flights on the same route",
-     "reason": "'Cheaper' is the opposite trap: the passage says tickets cost more.",
-     "focus": "distractor resistance",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E",
-      "F",
-      "G",
-      "H"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X1-P1-Q8",
-     "prompt": "Crossing ______ causes technical and staffing problems.",
-     "answer": "D",
-     "evidence": "the practical problems of crossing borders",
-     "reason": "Electrical systems, signalling and staff change at borders.",
-     "focus": "explicit detail",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E",
-      "F",
-      "G",
-      "H"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X1-P1-Q9",
-     "prompt": "The future of night trains depends mostly on ______ decisions.",
-     "answer": "B",
-     "evidence": "will depend largely on decisions by governments",
-     "reason": "'Mostly' paraphrases 'largely'; 'decisions by governments' becomes 'government decisions'.",
-     "focus": "paraphrase recognition",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E",
-      "F",
-      "G",
-      "H"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X1-P1-Q10",
-     "prompt": "Critics say the money would help more ______ if it were spent on daytime services.",
-     "answer": "F",
-     "evidence": "daytime services used by far more people",
-     "reason": "'People' who use trains are passengers; the box gives the paraphrase.",
-     "focus": "paraphrase recognition",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E",
-      "F",
-      "G",
-      "H"
-     ],
-     "level": "core"
-    }
-   ],
-   "support": "Foundation: before reading, sort the eight box words into nouns and adjectives; each gap then has fewer candidates.",
-   "high_band": "Explain in one sentence why A (cheaper) and C (slowly) are attractive wrong answers."
-  },
-  {
-   "id": "IELTS-X1-P2",
-   "kind": "items",
-   "title": "Sentence endings",
-   "mode": "Independent practice under time (6 minutes); then check",
-   "instructions": "Use the passage 'The quiet return of the night train'. Complete each sentence with the correct ending, A-H, below. Three endings are not used.",
-   "stimulus": {
-    "type": "options_list",
-    "title": "Endings",
-    "paragraphs": [
-     "A  because operators could not justify the running costs.",
-     "B  because the price of flights has risen sharply.",
-     "C  because each carriage can only be used once a day.",
-     "D  because they want to lower the environmental impact of their travel.",
-     "E  because trains are faster than planes.",
-     "F  because the money could benefit more people elsewhere.",
-     "G  because they leave from and arrive in city centres.",
-     "H  because rail staff refused to work at night."
-    ]
-   },
-   "items": [
-    {
-     "id": "IELTS-X1-P2-Q11",
-     "prompt": "Younger travellers are increasingly choosing night trains",
-     "answer": "D",
-     "evidence": "are looking for ways to reduce the carbon emissions from their journeys",
-     "reason": "Paragraph 2: 'environmental impact' paraphrases 'carbon emissions'.",
-     "focus": "paraphrase recognition",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E",
-      "F",
-      "G",
-      "H"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X1-P2-Q12",
-     "prompt": "Each sleeper carriage earns less than a daytime train",
-     "answer": "C",
-     "evidence": "can make only one journey every twenty-four hours",
-     "reason": "'Once a day' paraphrases 'every twenty-four hours'.",
-     "focus": "paraphrase recognition",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E",
-      "F",
-      "G",
-      "H"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X1-P2-Q13",
-     "prompt": "Night trains can save business travellers time",
-     "answer": "G",
-     "evidence": "departs from the city centre and arrives in another city centre",
-     "reason": "There is no journey to and from an airport.",
-     "focus": "explicit detail",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E",
-      "F",
-      "G",
-      "H"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X1-P2-Q14",
-     "prompt": "Some governments are unwilling to subsidise night trains",
-     "answer": "F",
-     "evidence": "the same funds could improve daytime services used by far more people",
-     "reason": "'Unwilling' paraphrases 'remain unconvinced'.",
-     "focus": "writer stance/purpose",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E",
-      "F",
-      "G",
-      "H"
-     ],
-     "level": "core"
-    },
-    {
-     "id": "IELTS-X1-P2-Q15",
-     "prompt": "Many sleeper routes were withdrawn in the past",
-     "answer": "A",
-     "evidence": "the cost of running trains with beds, staff and restaurant cars could no longer be justified",
-     "reason": "Paragraph 1 gives the reason for the closures.",
-     "focus": "explicit detail",
-     "type": "matching",
-     "options": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E",
-      "F",
-      "G",
-      "H"
-     ],
-     "level": "core"
-    }
-   ],
-   "support": "Foundation: the teacher crosses out one wrong ending with the class first (E: the passage says flights are faster).",
-   "extension": "Check every ending for grammar too: each must complete the sentence correctly as well as truthfully."
-  }
- ],
- "stages": [
-  {
-   "start": 0,
-   "end": 6,
-   "title": "Opening challenge: grammar fit or meaning fit?",
-   "show": [
-    {
-     "block": "IELTS-X1-K1",
-     "part": "questions"
-    },
-    {
-     "block": "IELTS-X1-K1",
-     "part": "answers"
-    }
-   ],
-   "student": "Choose the best answer for the gap, then say what is wrong with the other two.",
-   "teacher": "Learners vote. Reveal the comments one at a time. Write two rules on the board: the word must fit the grammar; the word must make the summary true.",
-   "say": "A summary answer has to pass two tests: grammar and meaning.",
-   "check": "Learners can name both tests."
-  },
-  {
-   "start": 6,
-   "end": 10,
-   "title": "How summaries work",
-   "show": [],
-   "student": "Note the four steps: find where the summary starts in the passage; predict the word type; read around the paraphrase; copy the word exactly.",
-   "teacher": "Explain that summaries usually follow the order of the passage and often cover only some paragraphs. Show that the title of the summary helps locate it.",
-   "say": "Summaries usually follow the passage order, so one answer helps you find the next.",
-   "check": "Learners can say where the G1 summary starts in the passage."
-  },
-  {
-   "start": 10,
-   "end": 20,
-   "title": "Guided: words from the passage",
-   "show": [
-    {
-     "block": "IELTS-X1-G1",
-     "part": "questions"
-    }
-   ],
-   "student": "Read the passage and complete Questions 1-5 alone.",
-   "teacher": "Allow 8 minutes. Foundation learners use the word-type hints. Circulate and ask \"Is that word in the passage?\"",
-   "say": "If your word is not in the passage, it cannot be the answer.",
-   "check": "Every learner has written five answers."
-  },
-  {
-   "start": 20,
-   "end": 25,
-   "title": "Check and explain",
-   "show": [
-    {
-     "block": "IELTS-X1-G1",
-     "part": "answers"
-    }
-   ],
-   "student": "Check answers with a partner, then with the class. Mark spelling errors separately.",
-   "teacher": "Reveal one answer at a time. For Q4, show why 'city centre' breaks the word limit.",
-   "say": "One word only means one word only.",
-   "check": "Learners can explain Q4."
-  },
-  {
-   "start": 25,
-   "end": 33,
-   "title": "Choosing from a box",
-   "show": [
-    {
-     "block": "IELTS-X1-P1",
-     "part": "questions"
-    }
-   ],
-   "student": "Complete Questions 6-10 in 6 minutes.",
-   "teacher": "Model the first step: sort the box words by word type. Then time 6 minutes. No dictionaries.",
-   "say": "Box words are usually paraphrases. Look for the meaning, not the same word.",
-   "check": "Learners finish in time."
-  },
-  {
-   "start": 33,
-   "end": 38,
-   "title": "Check the box summary",
-   "show": [
-    {
-     "block": "IELTS-X1-P1",
-     "part": "answers"
-    }
-   ],
-   "student": "Check answers and note which wrong option tempted you.",
-   "teacher": "Reveal. Discuss Q7: why \"cheaper\" is a trap.",
-   "say": "Opposites are common distractors in word boxes.",
-   "check": "Learners can explain the Q7 trap."
-  },
-  {
-   "start": 38,
-   "end": 46,
-   "title": "Sentence endings",
-   "show": [
-    {
-     "block": "IELTS-X1-P2",
-     "part": "questions"
-    }
-   ],
-   "student": "Complete Questions 11-15 in 6 minutes.",
-   "teacher": "Teach: find the sentence beginning in the passage first, then choose the ending that matches both meaning and grammar.",
-   "say": "Find the beginning first; the ending must be true for that beginning.",
-   "check": "Learners finish in time."
-  },
-  {
-   "start": 46,
-   "end": 52,
-   "title": "Check endings",
-   "show": [
-    {
-     "block": "IELTS-X1-P2",
-     "part": "answers"
-    }
-   ],
-   "student": "Check answers. For each wrong answer, find the sentence in the passage that proves the right ending.",
-   "teacher": "Reveal. Ask why E and B are wrong (the passage says the opposite or says nothing).",
-   "say": "An ending can be true in the world but not in the passage.",
-   "check": "Learners can locate the evidence for two answers."
-  },
-  {
-   "start": 52,
-   "end": 56,
-   "title": "My reading log",
-   "show": [],
-   "student": "Record each wrong answer as: wrong place, wrong word type, wrong meaning, or spelling.",
-   "teacher": "Note the error types learners actually record. No band conversion.",
-   "say": "Knowing why you were wrong is the fastest way to improve.",
-   "check": "Each learner has one target."
-  },
-  {
-   "start": 56,
-   "end": 60,
-   "title": "Exit ticket and homework",
-   "show": [],
-   "student": "Complete the exit ticket and take the homework.",
-   "teacher": "Collect exit tickets. Record the fresh-check date.",
-   "say": "Next time, use the four steps without the teacher.",
-   "check": "Everyone knows the homework."
-  }
- ],
- "exit_ticket": [
-  "The two tests every summary answer must pass:",
-  "What I do first in a sentence-endings task:",
-  "My target for the next reading task:"
- ],
- "homework": [
-  "Choose a short news article in English. Write a four-sentence summary of it with four gaps, and give it to a classmate to complete.",
-  "Record five words you misspelled in this lesson and practise them.",
-  "Complete only the Brains Heist reading practice your teacher actually assigns. Suggested time: about 25 minutes."
- ],
- "followup": {
-  "id": "IELTS-X1-C1",
-  "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
-  "delivery": "About one teaching week after this lesson. Six minutes, independent, no dictionary, no support. Log timing, support and prior exposure. Classroom observation only.",
-  "blocks": [
-   {
-    "id": "IELTS-X1-C1",
-    "kind": "items",
-    "title": "The return of the drinking fountain",
-    "mode": "Withheld fresh check; independent, timed",
-    "instructions": "Complete the summary. Choose ONE WORD ONLY from the passage for each answer.",
-    "stimulus": {
-     "type": "passage",
-     "title": "The return of the drinking fountain",
-     "labelled": false,
-     "paragraphs": [
-      "In many cities, public drinking fountains almost disappeared during the second half of the twentieth century. Bottled water became cheap and widely available, and councils saw little reason to repair fountains that were often broken or dirty.",
-      "Recently, however, a number of cities have begun installing new ones. The main motivation is the problem of plastic waste: every bottle that is refilled from a fountain is one fewer that may end up in a river or the sea. Modern fountains are also designed differently. Many have a separate tap for filling bottles, and some include a low bowl so that dogs can drink as well.",
-      "Maintenance remains the greatest challenge. A fountain that is not cleaned regularly quickly loses the public's trust, and once people stop using it, it is unlikely to be repaired. For this reason, some councils now ask local businesses to sponsor individual fountains and pay for their upkeep."
-     ]
-    },
-    "items": [
-     {
-      "id": "IELTS-X1-C1-Q1",
-      "prompt": "Fountains declined when bottled water became cheap and widely ______.",
-      "answer": "available",
-      "evidence": "Bottled water became cheap and widely available",
-      "reason": "Adjective after an adverb.",
-      "focus": "locating explicit evidence",
-      "type": "completion",
-      "word_limit": 1,
-      "level": "core"
-     },
-     {
-      "id": "IELTS-X1-C1-Q2",
-      "prompt": "Councils did not repair fountains that were broken or ______.",
-      "answer": "dirty",
-      "evidence": "fountains that were often broken or dirty",
-      "reason": "Adjective joined by \"or\".",
-      "focus": "explicit detail",
-      "type": "completion",
-      "word_limit": 1,
-      "level": "core"
-     },
-     {
-      "id": "IELTS-X1-C1-Q3",
-      "prompt": "New fountains are mainly intended to reduce plastic ______.",
-      "answer": "waste",
-      "evidence": "The main motivation is the problem of plastic waste",
-      "reason": "'Mainly intended' paraphrases 'the main motivation'.",
-      "focus": "paraphrase recognition",
-      "type": "completion",
-      "word_limit": 1,
-      "level": "core"
-     },
-     {
-      "id": "IELTS-X1-C1-Q4",
-      "prompt": "Some fountains include a low bowl for ______.",
-      "answer": "dogs",
-      "evidence": "some include a low bowl so that dogs can drink as well",
-      "reason": "Plural noun.",
-      "focus": "explicit detail",
-      "type": "completion",
-      "word_limit": 1,
-      "level": "core"
-     },
-     {
-      "id": "IELTS-X1-C1-Q5",
-      "prompt": "Some councils ask local ______ to pay for upkeep.",
-      "answer": "businesses",
-      "evidence": "some councils now ask local businesses to sponsor individual fountains",
-      "reason": "Check the spelling of the plural.",
-      "focus": "spelling/orthographic accuracy",
-      "type": "completion",
-      "word_limit": 1,
-      "level": "core"
-     }
-    ]
-   }
+  "prerequisites": [
+    "Lesson 6 (reading for specific information) and Lesson 9 (headings and the writer's argument).",
+    "Teacher has checked actual Reading Screener and review states privately.",
+    "Optional extension: use when learners need more practice with summary and sentence-ending tasks."
   ],
-  "review": "Compare only the observed demands and conditions with this lesson. Record the result as a separate later observation; do not convert it to a band or merge it with screener evidence."
- },
- "delayed_followup": "In Lesson 18 (timed Academic Reading), check whether learners locate summary sections and respect word limits under time pressure. Record it as a later observation.",
- "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
- "release_blockers": [
-  "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
-  "Student task publication and platform evidence capture remain separate, governed steps."
- ],
- "approval_record": {
-  "approved_by": "Owner, Brains Heist LLC",
-  "date": "2026-10-18",
-  "version": "1.0.0",
-  "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
-  "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 181ac793722f92e3fcb7405769cccaa5d69bbb22b9485ffcd11d0f80e90e4026): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
- }
+  "objectives": [
+    {
+      "text": "Locate the part of a passage that a summary covers and use the order of information to find each answer.",
+      "focus": [
+        "locating explicit evidence",
+        "paraphrase recognition"
+      ]
+    },
+    {
+      "text": "Choose words that fit both the grammar and the meaning of a summary gap, copying passage words exactly and respecting the word limit.",
+      "focus": [
+        "word-limit/task compliance",
+        "spelling/orthographic accuracy"
+      ]
+    },
+    {
+      "text": "Match sentence beginnings with endings that are true according to the passage, rejecting endings that are true only in general.",
+      "focus": [
+        "paraphrase recognition",
+        "distractor resistance"
+      ]
+    }
+  ],
+  "levels": {
+    "foundation": "Word-type hints beside each gap; the teacher marks where each summary starts; sort box words by word type before choosing.",
+    "core": "Complete all fifteen questions in the time given, with correct spelling and word limits.",
+    "extension": "Underline the summary words that paraphrase the passage and name the distractor for each box question.",
+    "high_band": "Independently complete a fresh unfamiliar passage under a strict timer. For every incorrect option, cite a specific contradiction, unsupported assumption, or grammar mismatch; explain the writer's qualified position without relying on copied wording."
+  },
+  "blocks": [
+    {
+      "id": "IELTS-X1-K1",
+      "kind": "contrast",
+      "title": "Grammar fit or meaning fit?",
+      "mode": "Opening challenge; learners choose before the reveal",
+      "instructions": "Gap: 'Many sleeper routes closed because cheap ______ made them unprofitable.' Three learners chose different words. Which answer is right, and what went wrong in the other two?",
+      "examples": [
+        {
+          "label": "Answer A",
+          "text": "cheap expensive",
+          "comment": "Grammar fails: after the adjective 'cheap' the gap needs a noun. Always say the whole sentence with your word in it."
+        },
+        {
+          "label": "Answer B",
+          "text": "cheap airlines",
+          "comment": "Grammar fits, but 'airlines' is not in the passage. In a 'words from the passage' summary, the answer must be copied from the text."
+        },
+        {
+          "label": "Answer C",
+          "text": "cheap flights",
+          "comment": "Correct: a noun, taken from the passage ('Cheap flights could carry passengers'), and it makes the meaning of the summary true."
+        }
+      ]
+    },
+    {
+      "id": "IELTS-X1-G1",
+      "kind": "items",
+      "title": "Summary completion: words from the passage",
+      "mode": "Guided practice; answer alone, then check with a partner",
+      "instructions": "Read the passage. Complete the summary of paragraphs 1-3. Choose ONE WORD ONLY from the passage for each answer.",
+      "stimulus": {
+        "type": "passage",
+        "title": "The quiet return of the night train",
+        "labelled": false,
+        "paragraphs": [
+          "For much of the late twentieth century, the overnight sleeper train seemed to belong to the past. Cheap flights could carry passengers between distant cities in a couple of hours, and many rail companies decided that the cost of running trains with beds, staff and restaurant cars could no longer be justified. Across Europe, one route after another was withdrawn, and the carriages were sold or left to rust in sidings.",
+          "In recent years, however, the night train has made an unexpected return. Several operators have reopened routes that had been closed for decades, and some have ordered new carriages for the first time in a generation. The main reason is a change in how travellers think about flying. A growing number of people, particularly younger travellers, are looking for ways to reduce the carbon emissions from their journeys, and a train that leaves in the evening and arrives the next morning offers a practical alternative for distances of up to about fifteen hundred kilometres.",
+          "Supporters also point to a hidden advantage: time. A flight may last only two hours, but once the journey to the airport, security checks and waiting are included, the total can easily reach six or seven. A night train, by contrast, departs from the city centre and arrives in another city centre, and the hours spent travelling are hours that would otherwise be spent asleep in a hotel. For business travellers in particular, this can mean a full working day at the destination without the cost of an extra night's accommodation.",
+          "The revival has not been easy. Sleeper carriages are expensive to build and can make only one journey every twenty-four hours, so each one earns far less than a daytime train. Tickets, especially for private compartments, are often more expensive than flights on the same route. Operators have also struggled with the practical problems of crossing borders, where differences in electrical systems, signalling and safety rules may require a change of locomotive or even of staff.",
+          "Whether night trains can grow beyond a small, enthusiastic market will depend largely on decisions by governments. Some have offered support in the form of reduced track charges or direct subsidies, arguing that the environmental benefits justify public money. Others remain unconvinced, pointing out that the same funds could improve daytime services used by far more people. For now, the night train is no longer a relic, but nor is it yet a serious rival to the aeroplane."
+        ]
+      },
+      "form_title": "Summary: why night trains declined and returned",
+      "items": [
+        {
+          "id": "IELTS-X1-G1-Q1",
+          "prompt": "An important factor behind the withdrawal of sleeper services was competition from low-cost ______.",
+          "answer": "flights",
+          "evidence": "Cheap flights could carry passengers between distant cities",
+          "reason": "'Cheap' before the gap tells you a noun is needed; the passage gives 'flights'.",
+          "focus": "paraphrase recognition",
+          "type": "completion",
+          "word_limit": 1,
+          "hint": "a plural noun",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X1-G1-Q2",
+          "prompt": "Old carriages were sold or left to rust in ______.",
+          "answer": "sidings",
+          "evidence": "the carriages were sold or left to rust in sidings",
+          "reason": "The summary keeps the passage's own words; copy the spelling exactly.",
+          "focus": "locating explicit evidence",
+          "type": "completion",
+          "word_limit": 1,
+          "hint": "a place (plural noun)",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X1-G1-Q3",
+          "prompt": "Many travellers now want to cut the carbon ______ produced by their journeys.",
+          "answer": "emissions",
+          "evidence": "reduce the carbon emissions from their journeys",
+          "reason": "'Cut' paraphrases 'reduce'; the noun after 'carbon' is the answer.",
+          "focus": "paraphrase recognition",
+          "type": "completion",
+          "word_limit": 1,
+          "hint": "a plural noun",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X1-G1-Q4",
+          "prompt": "Unlike airports, both ends of a sleeper journey can be in the urban ______.",
+          "answer": "centre",
+          "evidence": "departs from the city centre and arrives in another city centre",
+          "reason": "'Leaves from' paraphrases 'departs from'. One word only: not 'city centre'.",
+          "focus": "word-limit/task compliance",
+          "type": "completion",
+          "word_limit": 1,
+          "hint": "a singular noun",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X1-G1-Q5",
+          "prompt": "Business travellers can avoid paying for an extra night's ______.",
+          "answer": "accommodation",
+          "evidence": "without the cost of an extra night's accommodation",
+          "reason": "'Avoid paying for' paraphrases 'without the cost of'. Check the double 'c' and double 'm'.",
+          "focus": "spelling/orthographic accuracy",
+          "type": "completion",
+          "word_limit": 1,
+          "hint": "an uncountable noun",
+          "level": "core"
+        }
+      ],
+      "support": "Foundation: word-type hints are printed beside each gap; the teacher shows where paragraph 1 ends before learners start.",
+      "extension": "For each answer, underline the words in the summary that paraphrase the passage. Advanced transfer: before revealing the key, require a cited justification of one correct response and one plausible incorrect response."
+    },
+    {
+      "id": "IELTS-X1-P1",
+      "kind": "items",
+      "title": "Summary completion: choosing from a box",
+      "mode": "Independent practice under time (6 minutes); then check",
+      "instructions": "Complete the summary of paragraphs 4-5 using the list of words, A-H, below. Write the correct letter. Three words are not used.",
+      "stimulus": {
+        "type": "options_list",
+        "title": "Words: The quiet return of the night train",
+        "paragraphs": [
+          "A  cheaper",
+          "B  government",
+          "C  slowly",
+          "D  borders",
+          "E  expensive",
+          "F  passengers",
+          "G  profitable",
+          "H  weather"
+        ]
+      },
+      "form_title": "Summary: problems and the future",
+      "items": [
+        {
+          "id": "IELTS-X1-P1-Q6",
+          "prompt": "The limitation on daily journeys makes each sleeper carriage relatively less ______.",
+          "answer": "G",
+          "evidence": "each one earns far less than a daytime train",
+          "reason": "'Earns far less' means it is less profitable. Box words are often paraphrases, not copies.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X1-P1-Q7",
+          "prompt": "Tickets for private compartments are frequently more ______ than air travel.",
+          "answer": "E",
+          "evidence": "are often more expensive than flights on the same route",
+          "reason": "'Cheaper' is the opposite trap: the passage says tickets cost more.",
+          "focus": "distractor resistance",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X1-P1-Q8",
+          "prompt": "Crossing ______ causes technical and staffing problems.",
+          "answer": "D",
+          "evidence": "the practical problems of crossing borders",
+          "reason": "Electrical systems, signalling and staff change at borders.",
+          "focus": "explicit detail",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X1-P1-Q9",
+          "prompt": "The future of night trains depends mostly on ______ decisions.",
+          "answer": "B",
+          "evidence": "will depend largely on decisions by governments",
+          "reason": "'Mostly' paraphrases 'largely'; 'decisions by governments' becomes 'government decisions'.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X1-P1-Q10",
+          "prompt": "Critics say the money would help more ______ if it were spent on daytime services.",
+          "answer": "F",
+          "evidence": "daytime services used by far more people",
+          "reason": "'People' who use trains are passengers; the box gives the paraphrase.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "level": "core"
+        }
+      ],
+      "support": "Foundation: before reading, sort the eight box words into nouns and adjectives; each gap then has fewer candidates.",
+      "high_band": "Explain in one sentence why A (cheaper) and C (slowly) are attractive wrong answers."
+    },
+    {
+      "id": "IELTS-X1-P2",
+      "kind": "items",
+      "title": "Sentence endings",
+      "mode": "Independent practice under time (6 minutes); then check",
+      "instructions": "Use the passage 'The quiet return of the night train'. Complete each sentence with the correct ending, A-H, below. Three endings are not used.",
+      "stimulus": {
+        "type": "options_list",
+        "title": "Endings",
+        "paragraphs": [
+          "A  because operators could not justify the running costs.",
+          "B  because the price of flights has risen sharply.",
+          "C  because each carriage can only be used once a day.",
+          "D  because they want to lower the environmental impact of their travel.",
+          "E  because trains are faster than planes.",
+          "F  because the money could benefit more people elsewhere.",
+          "G  because they leave from and arrive in city centres.",
+          "H  because rail staff refused to work at night."
+        ]
+      },
+      "items": [
+        {
+          "id": "IELTS-X1-P2-Q11",
+          "prompt": "Younger travellers are increasingly choosing night trains",
+          "answer": "D",
+          "evidence": "are looking for ways to reduce the carbon emissions from their journeys",
+          "reason": "Paragraph 2: 'environmental impact' paraphrases 'carbon emissions'.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X1-P2-Q12",
+          "prompt": "Each sleeper carriage earns less than a daytime train",
+          "answer": "C",
+          "evidence": "can make only one journey every twenty-four hours",
+          "reason": "'Once a day' paraphrases 'every twenty-four hours'.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X1-P2-Q13",
+          "prompt": "Night trains can save business travellers time",
+          "answer": "G",
+          "evidence": "departs from the city centre and arrives in another city centre",
+          "reason": "There is no journey to and from an airport.",
+          "focus": "explicit detail",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X1-P2-Q14",
+          "prompt": "Some governments question public investment in sleeper services",
+          "answer": "F",
+          "evidence": "the same funds could improve daytime services used by far more people",
+          "reason": "'Unwilling' paraphrases 'remain unconvinced'.",
+          "focus": "writer stance/purpose",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "level": "core"
+        },
+        {
+          "id": "IELTS-X1-P2-Q15",
+          "prompt": "Many sleeper routes were withdrawn in the past",
+          "answer": "A",
+          "evidence": "the cost of running trains with beds, staff and restaurant cars could no longer be justified",
+          "reason": "Paragraph 1 gives the reason for the closures.",
+          "focus": "explicit detail",
+          "type": "matching",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "level": "core"
+        }
+      ],
+      "support": "Foundation: the teacher crosses out one wrong ending with the class first (E: the passage says flights are faster).",
+      "extension": "Check every ending for grammar too: each must complete the sentence correctly as well as truthfully."
+    }
+  ],
+  "stages": [
+    {
+      "start": 0,
+      "end": 6,
+      "title": "Opening challenge: grammar fit or meaning fit?",
+      "show": [
+        {
+          "block": "IELTS-X1-K1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-X1-K1",
+          "part": "answers"
+        }
+      ],
+      "student": "Choose the best answer for the gap, then say what is wrong with the other two.",
+      "teacher": "Learners vote. Reveal the comments one at a time. Write two rules on the board: the word must fit the grammar; the word must make the summary true.",
+      "say": "A summary answer has to pass two tests: grammar and meaning.",
+      "check": "Learners can name both tests."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "title": "How summaries work",
+      "show": [],
+      "student": "Note the four steps: find where the summary starts in the passage; predict the word type; read around the paraphrase; copy the word exactly.",
+      "teacher": "Explain that summaries usually follow the order of the passage and often cover only some paragraphs. Show that the title of the summary helps locate it.",
+      "say": "Summaries usually follow the passage order, so one answer helps you find the next.",
+      "check": "Learners can say where the G1 summary starts in the passage."
+    },
+    {
+      "start": 10,
+      "end": 20,
+      "title": "Guided: words from the passage",
+      "show": [
+        {
+          "block": "IELTS-X1-G1",
+          "part": "questions"
+        }
+      ],
+      "student": "Read the passage and complete Questions 1-5 alone.",
+      "teacher": "Allow 8 minutes. Foundation learners use the word-type hints. Circulate and ask \"Is that word in the passage?\"",
+      "say": "If your word is not in the passage, it cannot be the answer.",
+      "check": "Every learner has written five answers."
+    },
+    {
+      "start": 20,
+      "end": 25,
+      "title": "Check and explain",
+      "show": [
+        {
+          "block": "IELTS-X1-G1",
+          "part": "answers"
+        }
+      ],
+      "student": "Check answers with a partner, then with the class. Mark spelling errors separately.",
+      "teacher": "Reveal one answer at a time. For Q4, show why 'city centre' breaks the word limit.",
+      "say": "One word only means one word only.",
+      "check": "Learners can explain Q4."
+    },
+    {
+      "start": 25,
+      "end": 33,
+      "title": "Choosing from a box",
+      "show": [
+        {
+          "block": "IELTS-X1-P1",
+          "part": "questions"
+        }
+      ],
+      "student": "Complete Questions 6-10 in 6 minutes.",
+      "teacher": "Model the first step: sort the box words by word type. Then time 6 minutes. No dictionaries.",
+      "say": "Box words are usually paraphrases. Look for the meaning, not the same word.",
+      "check": "Learners finish in time."
+    },
+    {
+      "start": 33,
+      "end": 38,
+      "title": "Check the box summary",
+      "show": [
+        {
+          "block": "IELTS-X1-P1",
+          "part": "answers"
+        }
+      ],
+      "student": "Check answers and note which wrong option tempted you.",
+      "teacher": "Reveal. Discuss Q7: why \"cheaper\" is a trap.",
+      "say": "Opposites are common distractors in word boxes.",
+      "check": "Learners can explain the Q7 trap."
+    },
+    {
+      "start": 38,
+      "end": 46,
+      "title": "Sentence endings",
+      "show": [
+        {
+          "block": "IELTS-X1-P2",
+          "part": "questions"
+        }
+      ],
+      "student": "Complete Questions 11-15 in 6 minutes.",
+      "teacher": "Teach: find the sentence beginning in the passage first, then choose the ending that matches both meaning and grammar.",
+      "say": "Find the beginning first; the ending must be true for that beginning.",
+      "check": "Learners finish in time."
+    },
+    {
+      "start": 46,
+      "end": 52,
+      "title": "Check endings",
+      "show": [
+        {
+          "block": "IELTS-X1-P2",
+          "part": "answers"
+        }
+      ],
+      "student": "Check answers. For each wrong answer, find the sentence in the passage that proves the right ending.",
+      "teacher": "Reveal. Ask why E and B are wrong (the passage says the opposite or says nothing).",
+      "say": "An ending can be true in the world but not in the passage.",
+      "check": "Learners can locate the evidence for two answers."
+    },
+    {
+      "start": 52,
+      "end": 56,
+      "title": "My reading log",
+      "show": [],
+      "student": "Record each wrong answer as: wrong place, wrong word type, wrong meaning, or spelling.",
+      "teacher": "Note the error types learners actually record. No band conversion.",
+      "say": "Knowing why you were wrong is the fastest way to improve.",
+      "check": "Each learner has one target."
+    },
+    {
+      "start": 56,
+      "end": 60,
+      "title": "Exit ticket and homework",
+      "show": [],
+      "student": "Complete the exit ticket and take the homework.",
+      "teacher": "Collect exit tickets. Record the fresh-check date.",
+      "say": "Next time, use the four steps without the teacher.",
+      "check": "Everyone knows the homework."
+    }
+  ],
+  "exit_ticket": [
+    "The two tests every summary answer must pass:",
+    "What I do first in a sentence-endings task:",
+    "My target for the next reading task:"
+  ],
+  "homework": [
+    "Choose a short news article in English. Write a four-sentence summary of it with four gaps, and give it to a classmate to complete.",
+    "Record five words you misspelled in this lesson and practise them.",
+    "Complete only the Brains Heist reading practice your teacher actually assigns. Suggested time: about 25 minutes."
+  ],
+  "followup": {
+    "id": "IELTS-X1-C1",
+    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.1.1 on 2026-10-26. Keep private until use.",
+    "delivery": "One teaching week later: 17 minutes total (12 minutes for passage and gaps; 5 minutes for endings); unseen, no dictionary, hints, model, or assistance.",
+    "blocks": [
+      {
+        "id": "IELTS-X1-C1",
+        "kind": "items",
+        "title": "Restoring public clocks",
+        "mode": "Withheld independent transfer; unseen passage; no hints or dictionary",
+        "instructions": "Complete the connected summary below. Choose ONE WORD ONLY from the passage for each answer.",
+        "stimulus": {
+          "type": "passage",
+          "title": "Restoring public clocks",
+          "labelled": false,
+          "paragraphs": [
+            "Before accurate wristwatches became common, municipal clocks helped people coordinate factory shifts, railway departures and meetings. Their value was practical rather than merely decorative. Yet their mechanisms were difficult to keep synchronised. Temperature changes affected the movement of metal parts, and maintenance was occasionally postponed when councils reduced spending. Public timekeeping depended as much on sustained investment as on machinery.",
+            "During the twentieth century, cheaper personal timepieces reduced the need for a town clock. Some authorities removed damaged mechanisms while preserving their elaborate faces. Others disconnected the hands rather than let them display an increasingly inaccurate time. By the 1970s, many towers were protected mainly for architectural reasons, although the service they once provided was no longer essential.",
+            "Recently, a few councils have proposed making the clocks operational again. Advocates say a public clock helps someone whose phone battery is empty and offers a shared reference point in busy streets. However, the social benefit is difficult to measure. In one survey, most residents described the clock as important to local identity, yet few remembered checking it during the previous week. The researchers cautioned against interpreting expressed affection as proof of frequent use.",
+            "Restoration is rarely as straightforward as replacing a battery. In a coastal town, salt carried inland by sea air had corroded the metal gears. An electronic movement would have been cheaper to install. The heritage committee nevertheless approved repairs to the original mechanical system, arguing that the moving mechanism was part of the monument's historical value. Opponents warned that the decision would reduce funding available to the nearby library. The dispute was therefore not about conservation alone, but also about which public service should take priority.",
+            "Another approach combines old and new systems. The original gears remain, while an unobtrusive controller makes occasional adjustments to their timing. This can reduce visits from specialist engineers, but the electronic components may become obsolete far sooner than the traditional mechanism. With most installations only a few years old, their lifetime costs remain uncertain. A seemingly inexpensive repair may eventually require replacement parts that nobody still manufactures.",
+            "The broader lesson concerns what preservation is intended to achieve. Restoring a historical object does not necessarily revive its original function or the habits of its former users. Equally, incorporating new technology does not automatically destroy authenticity. Councils need to explain not only what has been saved, but what compromises have been made."
+          ]
+        },
+        "items": [
+          {
+            "id": "IELTS-X1-C1-Q1",
+            "prompt": "Shifts in ambient ______ interfered with the precision of early clock mechanisms.",
+            "answer": "temperature",
+            "evidence": "Temperature changes affected the movement of metal parts",
+            "reason": "The cause is the environmental variation, not repair delays.",
+            "focus": "paraphrase recognition and evidence discrimination",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Easy",
+            "difficulty_basis": "Scan for the effect of ambient variation on mechanical accuracy."
+          },
+          {
+            "id": "IELTS-X1-C1-Q2",
+            "prompt": "By the 1970s, many towers survived because of their ______ importance rather than their practical usefulness.",
+            "answer": "architectural",
+            "evidence": "protected mainly for architectural reasons",
+            "reason": "Historical buildings were retained even without their former public service.",
+            "focus": "paraphrase recognition and evidence discrimination",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Paraphrase of the reason for architectural preservation."
+          },
+          {
+            "id": "IELTS-X1-C1-Q3",
+            "prompt": "A civic time display might benefit a passer-by whose phone has a flat ______.",
+            "answer": "battery",
+            "evidence": "whose phone battery is empty",
+            "reason": "The question paraphrases empty as exhausted.",
+            "focus": "paraphrase recognition and evidence discrimination",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Easy",
+            "difficulty_basis": "Understand flat battery as loss of charge."
+          },
+          {
+            "id": "IELTS-X1-C1-Q4",
+            "prompt": "In one seaside location, airborne ______ had caused deterioration inside the original clockwork.",
+            "answer": "salt",
+            "evidence": "salt carried inland by sea air had corroded the metal gears",
+            "reason": "The relevant material is not sea water as a whole.",
+            "focus": "paraphrase recognition and evidence discrimination",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Connect marine air, corrosion and the material responsible."
+          },
+          {
+            "id": "IELTS-X1-C1-Q5",
+            "prompt": "Opponents warned that repairing the original mechanism would leave less funding for the nearby ______.",
+            "answer": "library",
+            "evidence": "reduce funding available to the nearby library",
+            "reason": "Identify the alternative public service receiving less funding.",
+            "focus": "paraphrase recognition and evidence discrimination",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Trace opportunity costs across preservation and library budgets."
+          },
+          {
+            "id": "IELTS-X1-C1-Q6",
+            "prompt": "The modern controls in a hybrid restoration may become ______ long before the traditional gears wear out.",
+            "answer": "obsolete",
+            "evidence": "components may become obsolete",
+            "reason": "The statement is a possibility, not a certainty.",
+            "focus": "paraphrase recognition and evidence discrimination",
+            "type": "completion",
+            "word_limit": 1,
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Understand 'obsolete' in the context of future component supply."
+          }
+        ],
+        "summary_title": "The changing role of public clocks",
+        "summary_text": "Before personal timepieces became widespread, variations in ambient (1) ______ could interfere with the accuracy of public clocks. By the 1970s, many historic clock towers were retained mainly because of their (2) ______ importance rather than their original practical purpose.\n\nToday, supporters believe that a public clock could be useful to someone whose phone has a flat (3) ______. However, restoring historic mechanisms can be expensive. In one coastal town, airborne (4) ______ had caused damage to the clock's gears. Opponents warned that repairing the original system would leave less funding available for the nearby (5) ______.\n\nAn alternative is to combine old mechanisms with modern electronic controls, although these components may become (6) ______ sooner than the traditional machinery."
+      },
+      {
+        "id": "IELTS-X1-C2",
+        "kind": "items",
+        "title": "Supported sentence endings",
+        "mode": "Withheld independent transfer continued; no scaffolds",
+        "instructions": "Complete Questions 7–10 with endings A–G, following the order of the passage. Three endings are not used.",
+        "stimulus": {
+          "type": "options_list",
+          "title": "Endings",
+          "paragraphs": [
+            "A  because evidence showed that most local residents checked it frequently.",
+            "B  despite warnings that the decision could reduce funding for another local public service.",
+            "C  because restoring it had been shown to increase tourism and retail spending.",
+            "D  because the lifetime expense of the modern components has not yet been established.",
+            "E  although few residents remembered checking it during the previous week.",
+            "F  because specialist engineers would no longer be needed to maintain its mechanical parts.",
+            "G  even after its original use as a public timekeeping device had faded."
+          ]
+        },
+        "items": [
+          {
+            "id": "IELTS-X1-C2-Q7",
+            "prompt": "An old clock tower could be preserved for its appearance",
+            "answer": "G",
+            "evidence": "protected mainly for architectural reasons",
+            "reason": "An individual tower could remain architecturally important after its original timekeeping purpose faded; singular pronouns alone no longer single out the correct ending.",
+            "focus": "inference and distractor resistance",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G"
+            ],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Recognise concession: architectural preservation outlasts utility."
+          },
+          {
+            "id": "IELTS-X1-C2-Q8",
+            "prompt": "Residents considered the public clock important to local identity",
+            "answer": "E",
+            "evidence": "few remembered checking it during the previous week",
+            "reason": "The survey found that few residents recalled consulting the clock during the previous week, despite its importance to local identity. A reverses the evidence.",
+            "focus": "inference and distractor resistance",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G"
+            ],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Distinguish stated affection from reported behaviour in the survey."
+          },
+          {
+            "id": "IELTS-X1-C2-Q9",
+            "prompt": "The heritage committee selected a costly traditional repair",
+            "answer": "B",
+            "evidence": "reduce funding available to the nearby library",
+            "reason": "The committee's choice prompted a warning of reduced funding for the public library; the loss was not already confirmed.",
+            "focus": "inference and distractor resistance",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G"
+            ],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Integrate heritage choice with the displaced library budget."
+          },
+          {
+            "id": "IELTS-X1-C2-Q10",
+            "prompt": "The financial case for hybrid clock repairs remains uncertain",
+            "answer": "D",
+            "evidence": "their lifetime costs remain uncertain",
+            "reason": "Electronic controllers may reduce immediate maintenance but whole-life costs remain unproven; D preserves that uncertainty.",
+            "focus": "inference and distractor resistance",
+            "type": "matching",
+            "options": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G"
+            ],
+            "level": "core",
+            "editorial_difficulty": "Moderate",
+            "difficulty_basis": "Distinguish possible savings from unknown whole-life costs."
+          }
+        ]
+      }
+    ],
+    "review": "Editorial copy v1.1.1 final wording checked: Q7 singular tower, ending G singular original use; ending E retains 'few residents' and one-week timeframe. Answers Q7–Q10 remain G,E,B,D. Teacher-only review draft, not approved for release. Check 6 summary answers and 4 sentence endings against the passage, including conditional funding language. Sentence ending key Q7–Q10: G,E,B,D. Check item-level paraphrasing and evidence; log support and exposure. No IELTS band conversion.",
+    "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty in real audio playback."
+  },
+  "delayed_followup": "In Lesson 18 (timed Academic Reading), check whether learners locate summary sections and respect word limits under time pressure. Record it as a later observation.",
+  "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
+  ],
+  "previous_approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-18",
+    "version": "1.0.0",
+    "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 181ac793722f92e3fcb7405769cccaa5d69bbb22b9485ffcd11d0f80e90e4026): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
+  },
+  "approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-26",
+    "version": "1.1.1",
+    "scope": "Extension lesson content, keys, models and figures for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 06:18 Asia/Bishkek, after Claude's review of PR #1711 and the follow-up fixes (footer, flow-chart page breaks, choose-TWO numbering): 'I need them approved for teaching and normally ready to use in the IELTS course.' Content and keys are as reviewed in PR #1711. Not recorded as an in-platform decision; no school-scoped review-draft pack was opened before approval."
+  }
 }

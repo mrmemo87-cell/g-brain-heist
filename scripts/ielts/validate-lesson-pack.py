@@ -84,7 +84,14 @@ def main(out):
                 if present(ex['comment'], student):
                     errors.append(f"student PDF contains teaching comment in {b['id']}")
     for b in d['followup'].get('blocks', []):
-        texts = [i['prompt'] for i in b.get('items', [])] + b.get('prompts', []) + ([b['prompt']] if b.get('prompt') else []) + (b.get('stimulus') or {}).get('paragraphs', [])
+        # A connected summary or staged flow chart shows its numbered gaps in place of the completion prompts.
+        shown_elsewhere = b.get('summary_text') or b.get('flow_chart')
+        items = [i for i in b.get('items', []) if not (shown_elsewhere and i['type'] == 'completion')]
+        texts = [i['prompt'] for i in items] + b.get('prompts', []) + ([b['prompt']] if b.get('prompt') else []) + (b.get('stimulus') or {}).get('paragraphs', [])
+        if b.get('summary_text'):
+            texts += [p for p in b['summary_text'].split('\n\n') if p.strip()]
+        for e in b.get('flow_chart', []):
+            texts += [t for t in (e.get('title'), e['text'] if e['kind'] != 'arrow' else None) if t]
         for t in texts:
             if len(t.split()) >= 4 and present(t, non_fresh):
                 errors.append(f"withheld fresh-check text appears outside the withheld file: {t[:40]}")
