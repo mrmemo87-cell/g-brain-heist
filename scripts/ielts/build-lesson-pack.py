@@ -152,7 +152,8 @@ class Pack:
                 c.drawImage(ImageReader(str(self.logo)), w - 80, h - 66, 38, 40, preserveAspectRatio=True, mask='auto')
             c.setStrokeColor(colors.HexColor(LINE)); c.line(42, 37, w - 42, 37)
             c.setFont('BHRegular', 8)
-            c.drawString(42, 24, f"{self.code} v{self.d['version']} | {'Approved for teaching' if self.d.get('approval_record') else self.d['status']} | No official IELTS result")
+            # Keep the footer to one short line; the full status text appears in the guide and review record.
+            c.drawString(42, 24, f"{self.code} v{self.d['version']} | {'Approved for teaching' if self.d.get('approval_record') else 'Review draft, not approved for teaching'} | No official IELTS result")
             c.drawRightString(w - 42, 24, str(doc.page))
             c.restoreState()
 
@@ -324,10 +325,13 @@ class Pack:
                 if it['type'] not in ('choice', 'mcq'):
                     continue
                 num = it['id'].rsplit('-Q', 1)[-1]
-                out.append(self.p(f"{num}.  {it['prompt']}"))
+                # Choose-TWO prompts already carry their range ("Questions 1–2. ..."); do not number them twice.
+                prompt = it['prompt'] if re.match(r'Questions?\s+\d', it['prompt']) else f"{num}.  {it['prompt']}"
+                out.append(self.p(prompt))
                 for option in it.get('options', []):
                     out.append(self.p(option, 'O'))
-            out.extend(self.assessment_flow_chart(b['flow_chart']))
+            # As in the test, the whole diagram stays on one page.
+            out.append(KeepTogether(self.assessment_flow_chart(b['flow_chart'])))
             return out
         if b.get('flow'):
             # Legacy linear flow chart remains available for the original taught exercises.
@@ -337,7 +341,7 @@ class Pack:
                 if i:
                     chart.append(self.p('↓', 'Arrow'))
                 chart += self.table([[f"{num}.  {it['prompt']}"]], [380])[:1]
-            return out + chart
+            return out + [KeepTogether(chart)]
         for i, it in enumerate(b['items']):
             num = it['id'].rsplit('-Q', 1)[-1]
             body = [self.p(f"{num}.  {it['prompt']}")]

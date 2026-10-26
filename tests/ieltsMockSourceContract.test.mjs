@@ -89,6 +89,7 @@ test('revised extensions have substantive independent checks and honest audio st
     assert.equal(lesson.approval_record, undefined);
     assert.deepEqual(lesson.bibles, currentBibleVersions());
     assert.equal(lesson.previous_approval_record?.version, '1.0.0');
+    assert.doesNotMatch(lesson.status, /merged/i, lesson.code + ': status must stay true after the PR is merged');
   }
   for (const lesson of extensions.slice(0, 3)) {
     const blocks = lesson.followup.blocks;

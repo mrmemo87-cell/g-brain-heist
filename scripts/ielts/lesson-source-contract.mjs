@@ -211,7 +211,7 @@ function checkBlock(block, code, errors, where, seenIds) {
     if (block.flow_chart) {
       const kinds = new Set(['stage', 'arrow', 'branch']);
       for (const entry of block.flow_chart) {
-        if (!kinds.has(entry.kind) || !entry.text) errors.push(`${label}: invalid flow chart entry`);
+        if (!kinds.has(entry.kind) || (entry.kind !== 'arrow' && !entry.text)) errors.push(`${label}: invalid flow chart entry`);
         if (entry.kind !== 'arrow' && !entry.title) errors.push(`${label}: flow chart stage or branch missing title`);
       }
       const display = block.flow_chart.map((entry) => [entry.title ?? '', entry.text].join(' ')).join(' ');
