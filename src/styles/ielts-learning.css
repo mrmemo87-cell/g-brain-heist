@@ -208,3 +208,81 @@
 .il-alloc .il-history-badge { margin: 6px 0 10px; }
 .il-alloc--done .il-history-badge { background: #ecfdf5; border-color: #a7f3d0; color: var(--bh-ielts-success); }
 .il-summary { margin-top: 1rem; padding: 1rem 1.25rem; border-left: 3px solid var(--bh-ielts-accent); background: var(--bh-ielts-surface-muted); border-radius: var(--bh-ielts-radius-sm); }
+
+/* Targeted practice, student view: one step at a time (2026-10-26). */
+.il-step { position: relative; padding-top: 1.4rem; }
+.il-step h2 { margin: .2rem 0 1rem; font-size: clamp(1.35rem, 3vw, 1.75rem); line-height: 1.2; }
+.il-step h2:focus { outline: none; }
+.il-step-progress { height: 6px; border-radius: 999px; background: var(--bh-ielts-secondary); overflow: hidden; }
+.il-step-progress span { display: block; height: 100%; background: var(--bh-ielts-primary); border-radius: inherit; transition: width .25s ease; }
+@media (prefers-reduced-motion: reduce) { .il-step-progress span { transition: none; } }
+.il-step-count { margin: .6rem 0 0; color: var(--bh-ielts-foreground-muted); font-size: .85rem; font-weight: 600; }
+.il-step-kicker { margin: 0 0 .35rem; font-size: .76rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--bh-ielts-primary); }
+.il-step-body { min-height: 9rem; }
+.il-step-body p { margin: .55rem 0; }
+.il-step-goal { padding: 1rem 1.15rem; border-radius: var(--bh-ielts-radius-md); background: var(--bh-ielts-secondary); border-left: 4px solid var(--bh-ielts-primary); }
+.il-step-goal p:last-child { margin: 0; font-size: 1.05rem; }
+.il-step-note { color: var(--bh-ielts-foreground); }
+.il-step-plan { margin: 1rem 0; padding: 0; list-style: none; counter-reset: plan; display: grid; gap: .5rem; }
+.il-step-plan li { counter-increment: plan; display: flex; gap: .7rem; align-items: center; }
+.il-step-plan li::before { content: counter(plan); flex: 0 0 1.8rem; height: 1.8rem; border-radius: 50%; display: grid; place-items: center; background: var(--bh-ielts-primary); color: #fff; font-weight: 800; font-size: .85rem; }
+.il-step-learn h3 { margin: 0 0 .8rem; font-size: 1.2rem; }
+.il-step-block { margin: .9rem 0; }
+.il-step-example { margin: 1.1rem 0; padding: 1rem 1.15rem; border-radius: var(--bh-ielts-radius-md); background: #f2fbf6; border: 1px solid #b7e4cb; }
+.il-step-example .il-step-kicker { color: var(--bh-ielts-success); }
+.il-step-list { margin: .5rem 0; padding-left: 1.4rem; display: grid; gap: .45rem; }
+.il-step-defs { margin: .6rem 0; display: grid; gap: .45rem; }
+.il-step-defs div { display: grid; grid-template-columns: 2rem 1fr; gap: .6rem; align-items: start; }
+.il-step-defs dt { width: 2rem; height: 2rem; border-radius: 8px; display: grid; place-items: center; background: var(--bh-ielts-primary); color: #fff; font-weight: 800; }
+.il-step-defs dd { margin: .2rem 0 0; }
+.il-step-answer span, .il-step-why span { display: inline-block; margin-right: .4rem; padding: .1rem .55rem; border-radius: 999px; background: var(--bh-ielts-success); color: #fff; font-size: .78rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.il-step-article { margin: .5rem 0; line-height: 1.8; color: #182139; max-width: 72ch; }
+.il-step-article h3 { margin: 0 0 .7rem; font-size: 1.15rem; }
+.il-step-para { display: grid; grid-template-columns: 1.9rem 1fr; gap: .7rem; margin: 0 0 1rem; }
+.il-step-letter { width: 1.9rem; height: 1.9rem; margin-top: .2rem; border-radius: 8px; display: grid; place-items: center; background: var(--bh-ielts-secondary); color: var(--bh-ielts-primary); font-weight: 800; border: 1px solid var(--bh-ielts-border); }
+.il-step-prompt { font-size: clamp(1.08rem, 2.6vw, 1.25rem); font-weight: 650; line-height: 1.5; margin: 0 0 1.1rem; }
+.il-step-options { display: grid; gap: .65rem; margin: .5rem 0 1rem; }
+.il-shell button.il-step-option { display: block; width: 100%; min-height: 54px; text-align: left; padding: .85rem 1rem; border: 2px solid var(--bh-ielts-border); background: var(--bh-ielts-surface); color: var(--bh-ielts-foreground); font-weight: 600; border-radius: var(--bh-ielts-radius-md); }
+.il-shell button.il-step-option:hover:not(:disabled) { border-color: var(--bh-ielts-primary); }
+.il-shell button.il-step-option.is-chosen { border-color: var(--bh-ielts-primary); background: var(--bh-ielts-secondary); color: var(--bh-ielts-primary); box-shadow: inset 4px 0 0 var(--bh-ielts-primary); }
+.il-step-peek { margin: .8rem 0 0; }
+.il-step-nav { display: flex; justify-content: space-between; gap: .75rem; margin-top: 1.4rem; padding-top: 1rem; border-top: 1px solid var(--bh-ielts-border); }
+.il-step-nav button:last-child { margin-left: auto; }
+.il-shell button.il-step-secondary { background: var(--bh-ielts-surface); color: var(--bh-ielts-primary); }
+.il-step-audio { margin: .9rem 0; padding: .8rem 1rem; border-radius: var(--bh-ielts-radius-md); background: var(--bh-ielts-surface-muted); border: 1px solid var(--bh-ielts-border); }
+.il-step-audio p { margin: .4rem 0; }
+.il-step-review { list-style: none; padding: 0; margin: .8rem 0; display: grid; gap: .5rem; }
+.il-shell button.il-step-jump { width: 100%; display: grid; grid-template-columns: 2rem 1fr auto; gap: .7rem; align-items: center; text-align: left; background: var(--bh-ielts-surface); color: var(--bh-ielts-foreground); border: 1px solid var(--bh-ielts-border); font-weight: 500; }
+.il-shell button.il-step-jump:hover { border-color: var(--bh-ielts-primary); }
+.il-step-qn { width: 2rem; height: 2rem; border-radius: 50%; display: inline-grid; place-items: center; background: var(--bh-ielts-secondary); color: var(--bh-ielts-primary); font-weight: 800; flex: 0 0 2rem; }
+.il-step-qtext { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.il-step-missing { color: var(--bh-ielts-warning); }
+.il-step-results { list-style: none; padding: 0; margin: 1rem 0; display: grid; gap: .8rem; }
+.il-step-results li { padding: .9rem 1rem; border-radius: var(--bh-ielts-radius-md); border: 1px solid var(--bh-ielts-border); border-left-width: 5px; }
+.il-step-results li.is-correct { border-left-color: var(--bh-ielts-success); }
+.il-step-results li.is-wrong { border-left-color: var(--bh-ielts-warning); background: #fffaf0; }
+.il-step-results p { margin: .4rem 0; }
+.il-step-qline { display: flex; gap: .6rem; align-items: flex-start; font-weight: 650; }
+.il-step-badge { display: inline-block; margin-right: .4rem; padding: .1rem .55rem; border-radius: 999px; font-size: .8rem; font-weight: 800; }
+.il-step-badge.ok { background: #ecfdf5; color: var(--bh-ielts-success); border: 1px solid #a7f3d0; }
+.il-step-badge.no { background: #fff4db; color: var(--bh-ielts-warning); border: 1px solid #f5d27a; }
+.il-step-why { padding: .6rem .8rem; border-radius: var(--bh-ielts-radius-sm); background: var(--bh-ielts-surface-muted); }
+@media (max-width: 520px) {
+  .il-step-nav button { flex: 1; }
+  .il-shell button.il-step-jump { grid-template-columns: 2rem 1fr; }
+  .il-shell button.il-step-jump strong { grid-column: 2; }
+}
+/* Step player polish: letter badges, compact peek panels, quiet source link. */
+.il-shell button.il-step-option { display: flex; align-items: center; gap: .8rem; }
+.il-step-option-letter { flex: none; display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 999px; background: var(--bh-ielts-surface-muted); color: var(--bh-ielts-primary); font-weight: 800; }
+.il-shell button.il-step-option.is-chosen .il-step-option-letter { background: var(--bh-ielts-primary); color: #fff; }
+.il-step-option-text { flex: 1; line-height: 1.35; }
+.il-shell button.il-step-option:hover:not(:disabled) { border-color: var(--bh-ielts-border); }
+@media (hover: hover) { .il-shell button.il-step-option:hover:not(:disabled) { border-color: var(--bh-ielts-primary); } }
+.il-shell button.il-step-option:focus:not(:focus-visible) { outline: none; }
+.il-preview.il-step-peek { padding: 0 1rem; margin: .6rem 0; }
+.il-preview.il-step-peek summary { display: flex; align-items: center; min-height: 48px; color: var(--bh-ielts-primary); }
+.il-preview.il-step-peek[open] { padding-bottom: 1rem; }
+.il-step-source { margin: 1rem .25rem; font-size: .9rem; }
+.il-shell .il-step-source button.il-inline-link { color: var(--bh-ielts-muted, #475569); font-weight: 500; }
+.il-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

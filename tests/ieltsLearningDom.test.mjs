@@ -26,21 +26,31 @@ async function mount({server=base,local=null,failSave=false,failAi=false,failRev
  const wait=async(fn)=>{for(let i=0;i<120;i++){if(fn())return;await new Promise(r=>setTimeout(r,15));}throw Error('UI did not settle: '+w.document.body.textContent+' '+errors.join(','));};
  const button=label=>[...w.document.querySelectorAll('button')].find(b=>b.textContent===label);
  const change=(input,value)=>{const proto=input.tagName==='TEXTAREA'?w.HTMLTextAreaElement.prototype:input.tagName==='SELECT'?w.HTMLSelectElement.prototype:w.HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(input,value);input.dispatchEvent(new w.Event(input.tagName==='SELECT'?'change':'input',{bubbles:true}));};
- await wait(()=>server.skill && server.skill!=="listening" ? w.document.body.textContent.includes(server.content?.prompt??"The passage") : button('Play recording')&&!button('Play recording').disabled);return{dom,w,wait,button,change,calls,errors,plays:()=>plays};
+ const heading=()=>w.document.querySelector('.il-step h2')?.textContent??'';
+ const next=async()=>{const before=w.document.querySelector('.il-step-count').textContent;for(let t=0;t<10;t++){[...w.document.querySelectorAll('.il-step-nav button')].at(-1).dispatchEvent(new w.MouseEvent('click',{bubbles:true}));for(let i=0;i<20;i++){if(w.document.querySelector('.il-step-count').textContent!==before)return;await new Promise(r=>setTimeout(r,15));}}throw Error('Step did not advance from '+before);};
+ const goTo=async title=>{for(let i=0;i<40&&heading()!==title;i++)await next();assert.equal(heading(),title);};
+ const radio=value=>w.document.querySelector(`.il-step-option[data-value="${value}"]`);
+ const student=!server.manager&&!server.result;
+ if(student)await wait(()=>heading()!=='');
+ else await wait(()=>server.skill && server.skill!=="listening" ? w.document.body.textContent.includes(server.content?.prompt??"The passage") : button('Play recording')&&!button('Play recording').disabled);
+ return{dom,w,wait,button,change,calls,errors,plays:()=>plays,heading,next,goTo,radio};
 }
 const teacherBundle=await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import {RouterProvider,createBrowserRouter} from './src/lib/router';import Page from './src/pages/ielts/IeltsLearningTeacher';createRoot(document.getElementById('root')).render(<RouterProvider router={createBrowserRouter([{path:'/',element:<Page schoolId="school-fixture"/>}])}/>);`,loader:'tsx',resolveDir:process.cwd()},bundle:true,format:'iife',write:false,loader:{'.css':'empty'},define:{'import.meta':JSON.stringify({env:{VITE_SUPABASE_URL:'https://test.supabase.co',VITE_SUPABASE_ANON_KEY:'test-key'}})},logLevel:'silent'});
-test('task loads without autoplay or keys; explicit play, save and submit reveal server result',async()=>{
- const m=await mount();assert.match(m.w.document.body.textContent,/L-001 · Photography workshop/);assert.equal(m.plays(),0);assert.doesNotMatch(m.w.document.body.textContent,/Accepted:|Sunday/);
- m.button('Play recording').click();await m.wait(()=>m.plays()===1);
- m.change(m.w.document.querySelector('input'),'Sunday');await m.wait(()=>m.w.document.querySelector('input').value==='Sunday');
+test('task loads without autoplay or keys; steps one at a time, explicit play, save and submit reveal server result',async()=>{
+ const m=await mount();assert.match(m.w.document.body.textContent,/L-001 · Photography workshop/);assert.equal(m.heading(),'Guided practice');assert.equal(m.plays(),0);assert.doesNotMatch(m.w.document.body.textContent,/Accepted|Sunday/);
+ assert.equal(m.button('Submit for review'),undefined,'submit only on the final step');
+ await m.goTo('Listen');m.button('Play recording').click();await m.wait(()=>m.plays()===1);
+ await m.goTo('Question 1 of 6');assert.equal(m.w.document.querySelectorAll('.il-step-body input').length,1,'one question per step');
+ m.change(m.w.document.querySelector('.il-step-body input'),'Sunday');await m.wait(()=>m.w.document.querySelector('.il-step-body input').value==='Sunday');
+ await m.next();assert.equal(m.heading(),'Question 2 of 6');await m.goTo('Check your answers');assert.match(m.w.document.body.textContent,/1 of 6 answered/);
  m.button('Submit for review').click();await m.wait(()=>m.w.document.body.textContent.includes('Task result: 1 / 6'));
- assert.match(m.w.document.body.textContent,/L-001 · Photography workshop/);assert.equal(m.calls.filter(c=>c.fn==='rpc_ielts_learning_save').length,1);assert.equal(m.calls.filter(c=>c.fn==='rpc_ielts_learning_submit').length,1);assert.match(m.w.document.body.textContent,/Accepted: Sunday/);assert.deepEqual(m.errors,[]);m.dom.window.close();
+ assert.match(m.w.document.body.textContent,/L-001 · Photography workshop/);assert.equal(m.calls.filter(c=>c.fn==='rpc_ielts_learning_save').length,1);assert.equal(m.calls.filter(c=>c.fn==='rpc_ielts_learning_submit').length,1);assert.match(m.w.document.body.textContent,/Accepted:\s*Sunday/);assert.deepEqual(m.errors,[]);m.dom.window.close();
 });
 test('pending device answers require explicit recovery; failed saving never submits or erases edits',async()=>{
- const m=await mount({local:{q1:'Sunday'},failSave:true});assert.equal(m.button('Submit for review').disabled,true);
- m.button('Use my device answers').click();await m.wait(()=>m.w.document.querySelector('input').value==='Sunday');m.button('Submit for review').click();
+ const m=await mount({local:{q1:'Sunday'},failSave:true});await m.goTo('Check your answers');assert.equal(m.button('Submit for review').disabled,true);
+ m.button('Use my device answers').click();await m.wait(()=>m.w.document.querySelector('.il-step-review').textContent.includes('Sunday'));m.button('Submit for review').click();
  await m.wait(()=>m.w.document.body.textContent.includes('We could not confirm this step'));
- assert.equal(m.calls.filter(c=>c.fn==='rpc_ielts_learning_submit').length,0);assert.equal(m.w.document.querySelector('input').value,'Sunday');assert.match(m.w.localStorage.getItem(`bh_learning_${base.student_id}_${base.id}`),/Sunday/);assert.deepEqual(m.errors,[]);m.dom.window.close();
+ assert.equal(m.calls.filter(c=>c.fn==='rpc_ielts_learning_submit').length,0);assert.match(m.w.document.querySelector('.il-step-review').textContent,/Sunday/);assert.match(m.w.localStorage.getItem(`bh_learning_${base.student_id}_${base.id}`),/Sunday/);assert.deepEqual(m.errors,[]);m.dom.window.close();
 });
 test('teacher feedback requires all four fields and is explicitly attributed after sharing',async()=>{
  const server={...base,manager:true,status:'submitted',result:{score:1,total:6,outcomes:base.questions.map(q=>({id:q.id,correct:true,accepted_answers:['Sunday']}))}};
@@ -51,12 +61,17 @@ test('teacher feedback requires all four fields and is explicitly attributed aft
 });
 
 test('Reading presents the passage and choices without requesting Listening audio; explanations save with answers',async()=>{
- const server={...base,skill:'reading',content:{passage:'The library opened a quiet room for six weeks.'},recordings:[]};const m=await mount({server});assert.equal(m.calls.some(c=>c.fn.includes('sign')),false);assert.equal(m.w.document.querySelectorAll('select').length,6);
- m.change(m.w.document.querySelector('select'),'TRUE');m.change(m.w.document.querySelector('textarea'),'The passage says six weeks.');await m.wait(()=>m.w.document.querySelector('select').value==='TRUE');m.button('Submit for review').click();await m.wait(()=>m.calls.some(c=>c.fn==='rpc_ielts_learning_submit'));
+ const server={...base,skill:'reading',content:{passage:'The library opened a quiet room for six weeks.'},recordings:[]};const m=await mount({server});assert.equal(m.calls.some(c=>c.fn.includes('sign')),false);
+ await m.goTo('Read the passage');assert.match(m.w.document.body.textContent,/quiet room for six weeks/);
+ await m.goTo('Question 1 of 6');assert.deepEqual([...m.w.document.querySelectorAll('.il-step-option')].map(b=>b.dataset.value),['TRUE','FALSE','NOT GIVEN']);
+ m.radio('TRUE').click();m.change(m.w.document.querySelector('.il-step-body textarea'),'The passage says six weeks.');await m.wait(()=>m.radio('TRUE').getAttribute('aria-checked')==='true');
+ await m.goTo('Check your answers');m.button('Submit for review').click();await m.wait(()=>m.calls.some(c=>c.fn==='rpc_ielts_learning_submit'));
  const saved=m.calls.find(c=>c.fn==='rpc_ielts_learning_save');assert.equal(saved.args.p_answers.q1,'TRUE');assert.equal(saved.args.p_answers.e1,'The passage says six weeks.');assert.deepEqual(m.errors,[]);m.dom.window.close();
 });
 test('Writing preserves device recovery and shows a saved response without a fabricated score',async()=>{
- const server={...base,skill:'writing',content:{prompt:'Explain one useful life skill.'},questions:[{id:'response',prompt:'Your paragraph'}],recordings:[]};const m=await mount({server,local:{response:'Students can learn budgeting by planning a weekly food budget.'}});assert.equal(m.button('Submit for review').disabled,true);m.button('Use my device answers').click();await m.wait(()=>m.w.document.querySelector('textarea').value.includes('budgeting'));m.button('Submit for review').click();await m.wait(()=>m.w.document.body.textContent.includes('Your response is saved'));assert.doesNotMatch(m.w.document.body.textContent,/Task result:|null \/ null/);assert.deepEqual(m.errors,[]);m.dom.window.close();
+ const server={...base,skill:'writing',content:{prompt:'Explain one useful life skill.'},questions:[{id:'response',prompt:'Your paragraph'}],recordings:[]};const m=await mount({server,local:{response:'Students can learn budgeting by planning a weekly food budget.'}});
+ await m.goTo('Your task');assert.match(m.w.document.body.textContent,/Explain one useful life skill/);await m.goTo('Check your answers');assert.equal(m.button('Submit for review').disabled,true);
+ m.button('Use my device answers').click();await m.wait(()=>m.w.document.body.textContent.includes('Your response is ready.'));m.button('Submit for review').click();await m.wait(()=>m.w.document.body.textContent.includes('Your response is saved'));assert.doesNotMatch(m.w.document.body.textContent,/Task result:|null \/ null/);assert.deepEqual(m.errors,[]);m.dom.window.close();
 });
 test('Speaking review requires four criterion comments and explicit audio confirmation',async()=>{
  const server={...base,skill:'speaking',manager:true,content:{prompt:'Describe a place you study.'},questions:[{id:'response',prompt:'Notes'}],recordings:[],result:{score:null,total:null,outcomes:[]}};const m=await mount({server});const inputs=[...m.w.document.querySelectorAll('textarea')].filter(e=>!e.disabled);assert.equal(inputs.length,8);for(const input of inputs)m.change(input,'Add a clear detail that supports your reason.');await m.wait(()=>inputs.every(e=>e.value.length>5));assert.equal(m.button('Confirm and share feedback').disabled,true);m.w.document.querySelector('input[type=checkbox]').click();await m.wait(()=>!m.button('Confirm and share feedback').disabled);m.button('Confirm and share feedback').click();await m.wait(()=>m.w.document.body.textContent.includes('Shared by Test teacher'));assert.equal(m.calls.find(c=>c.fn==='rpc_ielts_learning_review').args.p_feedback.audio_checked,true);assert.deepEqual(m.errors,[]);m.dom.window.close();
@@ -109,18 +124,21 @@ test('Reading headings use the task options and typed answers use a text box, wi
  const heads=[{value:'i',label:'i  First heading'},{value:'ii',label:'ii  Second heading'}];
  const questions=[{id:'q1',prompt:'Paragraph A',options:heads},{id:'q2',prompt:'Paragraph B',options:heads},{id:'q3',prompt:'Residents could receive a ______.',answer_format:'text'},{id:'q4',prompt:'Gap 4',answer_format:'text'},{id:'q5',prompt:'Gap 5',answer_format:'text'},{id:'q6',prompt:'Gap 6',answer_format:'text'}];
  const server={...base,skill:'reading',questions,content:{passage:'A. One.\n\nB. Two.',summary:'Residents could receive a (1) ______.'},recordings:[]};const m=await mount({server});
- const selects=[...m.w.document.querySelectorAll('select')];assert.equal(selects.length,2);assert.deepEqual([...selects[0].options].map(o=>o.value),['','i','ii']);assert.match(selects[0].textContent,/First heading/);assert.doesNotMatch(selects[0].textContent,/NOT GIVEN/);
- assert.doesNotMatch(m.w.document.body.textContent,/Your evidence or the missing fact/,'no TFNG explanation boxes');assert.match(m.w.document.body.textContent,/Summary\s*Residents could receive/);
- m.change(selects[0],'ii');const inputs=[...m.w.document.querySelectorAll('.il-answer input')];assert.equal(inputs.length,4);m.change(inputs[0],'grant');
- await m.wait(()=>m.w.document.querySelector('select').value==='ii');m.button('Submit for review').click();await m.wait(()=>m.calls.some(c=>c.fn==='rpc_ielts_learning_submit'));
+ await m.goTo('Read the passage');assert.match(m.w.document.body.textContent,/Summary\s*Residents could receive/);
+ await m.goTo('Question 1 of 6');const opts=[...m.w.document.querySelectorAll('.il-step-option')];assert.deepEqual(opts.map(b=>b.dataset.value),['i','ii']);assert.match(opts[0].textContent,/First heading/);assert.doesNotMatch(m.w.document.querySelector('.il-step-options').textContent,/NOT GIVEN/);
+ m.radio('ii').click();await m.wait(()=>m.radio('ii').getAttribute('aria-checked')==='true');
+ await m.goTo('Question 3 of 6');const input=m.w.document.querySelector('.il-step-body .il-answer input');assert.ok(input);m.change(input,'grant');await m.wait(()=>m.w.document.querySelector('.il-step-body .il-answer input').value==='grant');
+ for(let i=0;i<8;i++){assert.doesNotMatch(m.w.document.body.textContent,/Your evidence or the missing fact/,'no TFNG explanation boxes');if(m.heading()==='Check your answers')break;await m.next();}
+ m.button('Submit for review').click();await m.wait(()=>m.calls.some(c=>c.fn==='rpc_ielts_learning_submit'));
  const saved=m.calls.filter(c=>c.fn==='rpc_ielts_learning_save').at(-1);assert.equal(saved.args.p_answers.q1,'ii');assert.equal(saved.args.p_answers.q3,'grant');assert.deepEqual(m.errors,[]);m.dom.window.close();
 });
 test('Listening multiple choice uses the task letters; listening gap items stay text boxes',async()=>{
  const opts=[{value:'A',label:'A  It went well.'},{value:'B',label:'B  It was disappointing.'},{value:'C',label:'C  It was too crowded.'}];
  const questions=[{id:'q1',prompt:"What is Peter's overall view?",options:opts},...Array.from({length:5},(_,i)=>({id:'q'+(i+2),prompt:'Detail '+(i+2)}))];
  const m=await mount({server:{...base,questions}});
- const selects=[...m.w.document.querySelectorAll('select')];assert.equal(selects.length,1);assert.deepEqual([...selects[0].options].map(o=>o.value),['','A','B','C']);
- assert.doesNotMatch(selects[0].textContent,/NOT GIVEN/);assert.equal(m.w.document.querySelectorAll('.il-answer input').length,5);
- assert.doesNotMatch(m.w.document.body.textContent,/Your evidence or the missing fact/);
- try{m.change(selects[0],'A');await m.wait(()=>selects[0].value==='A');m.button('Save now').click();await m.wait(()=>m.calls.some(c=>c.fn==='rpc_ielts_learning_save'&&c.args.p_answers.q1==='A'));assert.deepEqual(m.errors,[]);}finally{m.dom.window.close();}
+ try{await m.goTo('Question 1 of 6');assert.deepEqual([...m.w.document.querySelectorAll('.il-step-option')].map(b=>b.dataset.value),['A','B','C']);assert.equal(m.w.document.querySelector('.il-step-option-letter').textContent,'A');
+ assert.doesNotMatch(m.w.document.querySelector('.il-step-options').textContent,/NOT GIVEN/);
+ m.radio('A').click();await m.wait(()=>m.radio('A').getAttribute('aria-checked')==='true');
+ for(let n=2;n<=6;n++){await m.next();assert.equal(m.heading(),`Question ${n} of 6`);assert.equal(m.w.document.querySelectorAll('.il-step-body .il-answer input').length,1);assert.doesNotMatch(m.w.document.body.textContent,/Your evidence or the missing fact/);}
+ await m.goTo('Check your answers');m.button('Save now').click();await m.wait(()=>m.calls.some(c=>c.fn==='rpc_ielts_learning_save'&&c.args.p_answers.q1==='A'));assert.deepEqual(m.errors,[]);}finally{m.dom.window.close();}
 });
