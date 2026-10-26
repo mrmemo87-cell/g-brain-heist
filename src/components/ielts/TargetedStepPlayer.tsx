@@ -53,7 +53,7 @@ function Lines({ block }: { block: string }) {
   let defs: [string, string][] = [];
   const flush = () => {
     if (list.length) items.push(<ol className="il-step-list" key={"ol" + items.length}>{list.map((l, i) => <li key={i}>{l}</li>)}</ol>);
-    if (defs.length) items.push(<dl className="il-step-defs" key={"dl" + items.length}>{defs.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>);
+    if (defs.length) items.push(<dl className="il-step-defs" key={"dl" + items.length}>{defs.map(([k, v], i) => <div key={k} style={hue(k, i)}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>);
     list = []; defs = [];
   };
   for (const line of lines) {
@@ -110,6 +110,32 @@ export function ArticleView({ title, text }: { title?: string; text: string }) {
   );
 }
 
+/** Each kind of step has its own colour and icon so students always know what they are doing. */
+const KIND: Record<string, { icon: string; label: string }> = {
+  start: { icon: "🎯", label: "Your mission" },
+  learn: { icon: "💡", label: "Learn first" },
+  listen: { icon: "🎧", label: "Listen" },
+  passage: { icon: "📖", label: "Read" },
+  task: { icon: "📝", label: "Your task" },
+  question: { icon: "❓", label: "Question" },
+  response: { icon: "✍️", label: "Your turn" },
+  review: { icon: "✅", label: "Check" },
+};
+
+const HUES = ["#1746B0", "#0E7490", "#B45309", "#6D28D9", "#087F5B", "#BE185D", "#4338CA", "#9A3412"];
+/** The same colour for the same letter everywhere (A is always blue, C always amber), so kinds stick in memory. */
+export function hueFor(value: string, index: number) {
+  const letter = /^[A-H]$/.exec(value);
+  return HUES[letter ? value.charCodeAt(0) - 65 : index % HUES.length];
+}
+const hue = (value: string, index: number) => ({ ["--hue" as string]: hueFor(value, index) }) as React.CSSProperties;
+
+/** Wrap quoted phrases in a highlight so students see exactly which words to match. */
+export function highlightQuotes(text: string): React.ReactNode {
+  const parts = text.split(/("[^"]+")/g);
+  return parts.length === 1 ? text : parts.map((part, i) => (/^"[^"]+"$/.test(part) ? <mark className="il-step-hl" key={i}>{part}</mark> : part));
+}
+
 type Step =
   | { kind: "start" }
   | { kind: "learn" }
@@ -141,9 +167,10 @@ const optionsFor = (skill: string, q: LearningQuestion) =>
   q.options ?? (skill === "reading" && q.answer_format !== "text" ? TFNG : undefined);
 
 /** Split "A an account" into a letter badge and its text; options without a leading letter show their label only. */
-function optionParts(value: string, label: string) {
+function optionParts(value: string, label: string, chosen = false) {
   const lead = value.length <= 2 && label.startsWith(value + " ") ? label.slice(value.length + 1).trimStart() : null;
-  return lead === null ? <span className="il-step-option-text">{label}</span> : (<><span className="il-step-option-letter" aria-hidden="true">{value}</span><span className="il-step-option-text"><span className="il-sr-only">{value} </span>{lead}</span></>);
+  const tick = <span className={"il-step-tick" + (chosen ? " is-on" : "")} aria-hidden="true">✓</span>;
+  return lead === null ? <><span className="il-step-option-text">{label}</span>{tick}</> : (<><span className="il-step-option-letter" aria-hidden="true">{value}</span><span className="il-step-option-text"><span className="il-sr-only">{value} </span>{lead}</span>{tick}</>);
 }
 
 export default function TargetedStepPlayer(p: TargetedStepPlayerProps) {
@@ -175,7 +202,8 @@ export default function TargetedStepPlayer(p: TargetedStepPlayerProps) {
   }, [index]);
   const step = steps[Math.min(index, steps.length - 1)];
   const questionSteps = steps.filter((s) => s.kind === "question").length;
-  const go = (n: number) => setIndex(Math.max(0, Math.min(steps.length - 1, n)));
+  const [dir, setDir] = useState(1);
+  const go = (n: number) => { setDir(n >= index ? 1 : -1); setIndex(Math.max(0, Math.min(steps.length - 1, n))); };
   const set = (key: string, value: string) => p.update({ ...p.draft(), [key]: value });
   const answered = detail.questions.filter((q) => (answers[q.id] ?? "").trim()).length;
   const progress = Math.round((index / Math.max(1, steps.length - 1)) * 100);
@@ -239,15 +267,15 @@ export default function TargetedStepPlayer(p: TargetedStepPlayerProps) {
       title = `Question ${i + 1} of ${questionSteps}`;
       body = (
         <>
-          <p className="il-step-prompt">{q.prompt}</p>
+          <p className="il-step-prompt">{highlightQuotes(q.prompt)}</p>
           {options ? (
             <div className="il-step-options" role="radiogroup" aria-label={`Answer for question ${i + 1}`}>
-              {options.map((o) => {
+              {options.map((o, oi) => {
                 const chosen = answers[q.id] === o.value;
                 return (
-                  <button key={o.value} type="button" role="radio" aria-checked={chosen} data-value={o.value} className={"il-step-option" + (chosen ? " is-chosen" : "")}
+                  <button key={o.value} type="button" role="radio" aria-checked={chosen} data-value={o.value} style={hue(o.value, oi)} className={"il-step-option" + (chosen ? " is-chosen" : "")}
                     disabled={p.disabled} onClick={() => set(q.id, chosen ? "" : o.value)}>
-                    {optionParts(o.value, o.label)}
+                    {optionParts(o.value, o.label, chosen)}
                   </button>
                 );
               })}
@@ -298,15 +326,20 @@ export default function TargetedStepPlayer(p: TargetedStepPlayerProps) {
       title = "Check your answers";
       body = (
         <>
-          {objective && <p>{answered} of {detail.questions.length} answered. Tap a question to change it.</p>}
+          {objective && (
+            <div className="il-step-tally">
+              <span className="il-step-ring" style={{ ["--p" as string]: Math.round((answered / Math.max(1, detail.questions.length)) * 100) } as React.CSSProperties} aria-hidden="true"><b>{answered}/{detail.questions.length}</b></span>
+              <p>{answered} of {detail.questions.length} answered. {answered === detail.questions.length ? "All done — check them once, then submit." : "Tap a question to change it."}</p>
+            </div>
+          )}
           {objective && (
             <ol className="il-step-review">
               {detail.questions.map((q, i) => {
                 const v = answers[q.id] ?? "";
                 const at = steps.findIndex((s) => s.kind === "question" && s.i === i);
                 return (
-                  <li key={q.id}>
-                    <button type="button" className="il-step-jump" onClick={() => go(at)}>
+                  <li key={q.id} style={{ ["--i" as string]: i } as React.CSSProperties}>
+                    <button type="button" className={"il-step-jump" + (v ? " is-done" : " is-missing")} onClick={() => go(at)}>
                       <span className="il-step-qn">{i + 1}</span>
                       <span className="il-step-qtext">{q.prompt}</span>
                       <strong className={v ? "" : "il-step-missing"}>{v ? labelOf(q, v) : "No answer yet"}</strong>
@@ -324,7 +357,7 @@ export default function TargetedStepPlayer(p: TargetedStepPlayerProps) {
             </label>
           )}
           <div className="il-actions">
-            <button disabled={!p.canSubmit} onClick={p.onSubmit}>{p.working ? "Submitting…" : "Submit for review"}</button>
+            <button className="il-step-submit" disabled={!p.canSubmit} onClick={p.onSubmit}>{p.working ? "Submitting…" : "Submit for review"}</button>
             <button className="il-step-secondary" disabled={p.working || p.blocked} onClick={p.onSave}>Save now</button>
           </div>
         </>
@@ -332,21 +365,28 @@ export default function TargetedStepPlayer(p: TargetedStepPlayerProps) {
       break;
   }
 
+  const kind = KIND[step.kind];
+  const ready = step.kind === "question" ? Boolean((answers[step.q.id] ?? "").trim()) : step.kind !== "start";
   return (
-    <section className="il-card il-step" aria-label="Task steps">
+    <section className="il-card il-step" data-kind={step.kind} aria-label="Task steps">
       <div className="il-step-progress" role="progressbar" aria-label="Progress through this task" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
-        <span style={{ width: progress + "%" }} />
+        <span style={{ width: Math.max(progress, 4) + "%" }} />
       </div>
-      <p className="il-step-count">Step {index + 1} of {steps.length}</p>
+      <div className="il-step-top">
+        <span className="il-step-chip"><span aria-hidden="true">{kind.icon}</span> {kind.label}</span>
+        <p className="il-step-count">Step {index + 1} of {steps.length}</p>
+      </div>
       {p.pendingNotice}
       {skill === "listening" && index > 0 && <div className="il-step-audio">{p.audioBar}</div>}
-      <h2 ref={heading} tabIndex={-1}>{title}</h2>
-      <div className="il-step-body">{body}</div>
+      <div key={index} className={"il-step-stage " + (dir > 0 ? "is-forward" : "is-back")}>
+        <h2 ref={heading} tabIndex={-1}>{title}</h2>
+        <div className="il-step-body">{body}</div>
+      </div>
       <nav className="il-step-nav" aria-label="Move between steps">
         <button type="button" className="il-step-secondary" disabled={index === 0} onClick={() => go(index - 1)}>← Back</button>
         {step.kind !== "review" && (
-          <button type="button" onClick={() => go(index + 1)}>
-            {step.kind === "start" ? "Start →" : step.kind === "learn" ? "I've got it →" : steps[index + 1]?.kind === "review" ? "Check answers →" : "Next →"}
+          <button type="button" className={"il-step-next" + (ready && step.kind === "question" ? " is-ready" : "")} onClick={() => go(index + 1)}>
+            {step.kind === "start" ? "Let’s go →" : step.kind === "learn" ? "I've got it →" : steps[index + 1]?.kind === "review" ? "Check answers →" : "Next →"}
           </button>
         )}
       </nav>
@@ -366,6 +406,13 @@ export function TargetedResultSteps({ detail }: { detail: LearningDetail }) {
     <section className="il-card il-step" aria-label="Your result">
       <p className="il-step-kicker">Submitted</p>
       <h2>{result.total === null ? "Your response is saved" : `Task result: ${result.score} / ${result.total}`}</h2>
+      {result.total !== null && result.score !== null && (
+        <div className={"il-step-score" + (result.score === result.total ? " is-perfect" : result.score / Math.max(1, result.total) >= 0.66 ? " is-strong" : " is-start")}>
+          <span className="il-step-ring is-big" style={{ ["--p" as string]: Math.round((result.score / Math.max(1, result.total)) * 100) } as React.CSSProperties} aria-hidden="true"><b>{result.score}/{result.total}</b></span>
+          <p className="il-step-cheer">{result.score === result.total ? "🏆 Perfect — you avoided every trap!" : result.score / Math.max(1, result.total) >= 0.66 ? "💪 Strong work — now read why the others went wrong." : "🔍 Good start — each explanation below shows the trap."}</p>
+          {result.score === result.total && <div className="il-step-confetti" aria-hidden="true">{Array.from({ length: 14 }, (_, i) => <i key={i} style={{ ["--i" as string]: i } as React.CSSProperties} />)}</div>}
+        </div>
+      )}
       <p>{detail.review ? "Your teacher’s feedback is ready below." : "Read each explanation, then find the proof in the passage yourself. Your teacher will choose the next step."}</p>
       {detail.conditions_need_review && <p className="il-muted">Delivery conditions need teacher review. This is not a judgement about your ability.</p>}
       {(skill === "listening" || skill === "reading") && (
@@ -377,9 +424,9 @@ export function TargetedResultSteps({ detail }: { detail: LearningDetail }) {
             const shown = (v: string) => options?.find((x) => x.value === v)?.label ?? v;
             const why = explanationFor(notes, i);
             return (
-              <li key={q.id} className={o?.correct ? "is-correct" : "is-wrong"}>
-                <p className="il-step-qline"><span className="il-step-qn">{i + 1}</span> {q.prompt}</p>
-                <p><span className={"il-step-badge" + (o?.correct ? " ok" : " no")}>{o?.correct ? "Correct" : "Review this answer"}</span> Your answer: <strong>{raw ? shown(raw) : "No answer"}</strong></p>
+              <li key={q.id} className={o?.correct ? "is-correct" : "is-wrong"} style={{ ["--i" as string]: i } as React.CSSProperties}>
+                <p className="il-step-qline"><span className="il-step-qn">{i + 1}</span> <span>{highlightQuotes(q.prompt)}</span></p>
+                <p><span className={"il-step-badge" + (o?.correct ? " ok" : " no")}>{o?.correct ? "✓ Correct" : "↺ Review this answer"}</span> Your answer: <strong>{raw ? shown(raw) : "No answer"}</strong></p>
                 {!o?.correct && <p>Accepted: <strong>{(o?.accepted_answers ?? []).map(shown).join(" / ")}</strong></p>}
                 {why && <p className="il-step-why"><span>Why</span> {why}</p>}
               </li>
