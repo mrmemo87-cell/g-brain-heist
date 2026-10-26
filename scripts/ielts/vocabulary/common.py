@@ -6,13 +6,20 @@ Run: python3 scripts/ielts/vocabulary/generate.py  (writes docs/ielts/lessons/le
 """
 
 BIBLES = {"diagnostic": "2.0.0", "lessons": "1.2.0", "visual": "1.2.0"}
-VERSION = "1.0.0"
+VERSION = "1.1.0"
+PREVIOUS_APPROVAL = {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-26",
+    "version": "1.0.0",
+    "scope": "Vocabulary lesson content, keys and models for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek ('Make the needed adjustments and improvements now ... you have all my permissions'). Superseded by v1.1.0 after an external review judged v1.0.0 too easy for Band 6.5+ preparation.",
+}
 APPROVAL = {
     "approved_by": "Owner, Brains Heist LLC",
     "date": "2026-10-26",
     "version": VERSION,
     "scope": "Vocabulary lesson content, keys and models for teacher-only release to all eligible schools. Student task publication remains separate.",
-    "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek: 'there should also some Vocabulary lessons that really fit the IELTS in a very practical way for the students to benefit from. Make the needed adjustments and improvements now ... you have all my permissions, don't ask for any.' Not recorded as an in-platform decision; no review-draft pack was opened before approval.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 15:42 Asia/Bishkek, after sharing an external review of V6 v1.0.0 (difficulty 3.5/10; distractors too easy; reading answers copied; Part 3 not interactive; no writing): 'yes, but this time be very accurate', in reply to the proposal to rebuild V1-V6 at Band 6.5-7.5 level and re-release them. Not recorded as an in-platform decision; no review-draft pack was opened before approval.",
 }
 RIGHTS = ("Original Brains Heist LLC instructional material, AI-assisted. Passages, people and data are fictional and created for practice. "
           "Not official IELTS material. Human editorial and classroom review recommended.")
@@ -66,6 +73,7 @@ def build(spec):
             "difficulty_calibration": CALIBRATION,
             "blocks": spec["followup_blocks"],
         },
+        "previous_approval_record": PREVIOUS_APPROVAL,
         "approval_record": APPROVAL,
     }
     return lesson

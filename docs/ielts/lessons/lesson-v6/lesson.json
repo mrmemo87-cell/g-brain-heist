@@ -5,10 +5,10 @@
   "vocabulary": true,
   "placement": "optional, after Week 8 (Lesson 15 or 16)",
   "week": 8,
-  "version": "1.0.0",
-  "presentation_version": "1.0.0",
+  "version": "1.1.0",
+  "presentation_version": "1.1.0",
   "title": "Vocabulary: topic collocations for common IELTS themes",
-  "status": "Owner approved v1.0.0 on 2026-10-26; teacher release to all eligible schools (optional vocabulary lesson)",
+  "status": "Owner approved v1.1.0 on 2026-10-26; teacher release to all eligible schools (optional vocabulary lesson)",
   "duration": 60,
   "test_type": "Academic",
   "bibles": {
@@ -24,127 +24,128 @@
   },
   "prerequisites": [
     "Lesson 15 (Task 2 under time) or Lesson 16 (Speaking Part 3).",
-    "Learners have written at least one Task 2 essay.",
-    "Optional vocabulary lesson: use when learners have ideas about common topics but lack the precise phrases to express them."
+    "Learners have written at least one Task 2 essay and taken part in a Part 3 discussion.",
+    "Pitched at learners aiming for Band 6.5-7.5; use V1 first with learners who still struggle with paraphrase."
   ],
   "objectives": [
     {
-      "text": "Use 18 high-value collocations for six frequent IELTS topics: environment, health, education, work, technology and cities.",
+      "text": "Use 14 precise collocations for frequent IELTS themes (environment, health, education, work, technology, cities) with the correct verb, preposition and grammar.",
       "focus": [
-        "lexical resource"
+        "lexical resource",
+        "grammatical range and accuracy"
       ]
     },
     {
-      "text": "Recognise the same collocations when they are paraphrased in Reading and Listening.",
+      "text": "Recognise the same ideas when an IELTS passage expresses them in different words.",
       "focus": [
         "paraphrase recognition"
       ]
     },
     {
-      "text": "Use topic collocations accurately in Speaking Part 3 and Writing Task 2 without forcing them.",
+      "text": "Develop Part 3 answers with reasons, examples and qualifications, using topic vocabulary only where it fits naturally.",
       "focus": [
-        "lexical resource",
-        "task response"
+        "fluency and coherence",
+        "lexical resource"
       ]
     }
   ],
   "levels": {
-    "foundation": "Learn three collocations per topic for two topics of your choice.",
-    "core": "Complete all tasks; use six collocations from three different topics in the discussion.",
-    "extension": "Use each collocation in both a spoken and a written sentence.",
-    "high_band": "In the discussion, combine two collocations in one developed answer with a reason and an example."
+    "foundation": "Use the word bank during the multiple-choice task; in the discussion, answer with a reason and one example.",
+    "core": "Complete all tasks with the word bank closed after the first stage; extend each Part 3 answer after a follow-up question.",
+    "extension": "In the discussion, qualify at least one claim (for example 'in most cases', 'not necessarily') and explain the exception.",
+    "high_band": "In the homework paragraph, concede one counter-argument and rebut it, with every collocation used accurately and naturally."
   },
   "word_bank": [
     {
-      "item": "reduce carbon emissions / renewable energy",
-      "meaning": "cut the gases that cause warming / energy from wind, sun, water",
-      "example": "Switching to renewable energy would reduce carbon emissions.",
+      "item": "curb / cut carbon emissions",
+      "meaning": "reduce the gases that cause global warming",
+      "example": "Low-traffic zones are one way to curb carbon emissions.",
       "skill": "Environment"
     },
     {
-      "item": "endangered species / natural habitat",
-      "meaning": "animals at risk of extinction / where they naturally live",
-      "example": "Deforestation destroys the natural habitat of endangered species.",
+      "item": "habitat loss / an endangered species",
+      "meaning": "destruction of the places where wild animals live / a species at risk of extinction",
+      "example": "Habitat loss is the main threat to many endangered species.",
       "skill": "Environment"
     },
     {
       "item": "a sedentary lifestyle",
       "meaning": "a way of life with little physical activity",
-      "example": "Office work often leads to a sedentary lifestyle.",
+      "example": "Office work can lead to a sedentary lifestyle.",
       "skill": "Health"
     },
     {
-      "item": "a balanced diet / boost the immune system",
-      "meaning": "food with the right variety / make the body better at fighting illness",
-      "example": "A balanced diet can boost the immune system.",
+      "item": "place / put a strain on (health services)",
+      "meaning": "create pressure that is difficult to manage",
+      "example": "An ageing population places a strain on hospitals.",
       "skill": "Health"
     },
     {
-      "item": "acquire practical skills / lifelong learning",
-      "meaning": "gain useful abilities / learning throughout life",
-      "example": "Apprenticeships help young people acquire practical skills.",
+      "item": "acquire transferable skills",
+      "meaning": "gain abilities that are useful in many jobs",
+      "example": "Volunteering helps students acquire transferable skills.",
       "skill": "Education"
     },
     {
-      "item": "academic performance / a well-rounded education",
-      "meaning": "results at school / education that develops many abilities",
-      "example": "Sport contributes to a well-rounded education.",
+      "item": "foster critical thinking",
+      "meaning": "encourage the ability to question and evaluate",
+      "example": "Debate clubs foster critical thinking.",
       "skill": "Education"
     },
     {
-      "item": "job security / work-life balance",
-      "meaning": "confidence you will not lose your job / time for both work and private life",
-      "example": "Remote work can improve work-life balance.",
+      "item": "precarious employment",
+      "meaning": "work with no security (short contracts, no guaranteed hours)",
+      "example": "Precarious employment makes it hard to plan for the future.",
       "skill": "Work"
     },
     {
-      "item": "a competitive salary / career prospects",
-      "meaning": "pay as good as other employers / chances of progress",
-      "example": "Graduates look for career prospects as well as a competitive salary.",
+      "item": "strike a balance between A and B",
+      "meaning": "give the right amount of attention to two things",
+      "example": "Remote work can help people strike a balance between career and family.",
       "skill": "Work"
-    },
-    {
-      "item": "cutting-edge technology / become obsolete",
-      "meaning": "the most advanced technology / no longer be used",
-      "example": "Many devices become obsolete within a few years.",
-      "skill": "Technology"
     },
     {
       "item": "raise privacy concerns",
-      "meaning": "cause worry about personal information",
+      "meaning": "make people worried about personal information",
       "example": "Facial recognition raises privacy concerns.",
       "skill": "Technology"
     },
     {
-      "item": "traffic congestion / public transport network",
-      "meaning": "too many vehicles on roads / buses, trains and trams",
-      "example": "Expanding the public transport network can ease traffic congestion.",
+      "item": "render something obsolete",
+      "meaning": "make something no longer useful",
+      "example": "Streaming has rendered DVDs largely obsolete.",
+      "skill": "Technology"
+    },
+    {
+      "item": "alleviate traffic congestion",
+      "meaning": "make heavy traffic less severe",
+      "example": "Better bus services could alleviate traffic congestion.",
       "skill": "Cities"
     },
     {
-      "item": "affordable housing / urban sprawl",
-      "meaning": "homes people can pay for / uncontrolled spread of a city",
+      "item": "urban sprawl / affordable housing",
+      "meaning": "uncontrolled spread of a city / homes ordinary people can pay for",
       "example": "Urban sprawl increases commuting times.",
       "skill": "Cities"
     },
     {
-      "item": "ease / alleviate (a problem)",
-      "meaning": "make a problem less serious",
-      "example": "New cycle lanes could ease congestion.",
+      "item": "exacerbate / mitigate (a problem)",
+      "meaning": "make a problem worse / make its effects less serious",
+      "example": "Heatwaves exacerbate air pollution; trees can mitigate it.",
       "skill": "All topics"
     },
     {
-      "item": "have a profound impact on",
-      "meaning": "affect very strongly",
-      "example": "The internet has had a profound impact on education.",
+      "item": "have far-reaching consequences for",
+      "meaning": "affect many people or areas strongly",
+      "example": "Planning decisions have far-reaching consequences for health.",
       "skill": "All topics"
     }
   ],
   "stages": [
     {
       "start": 0,
-      "end": 6,
-      "title": "Opening challenge: which word goes with which?",
+      "end": 5,
+      "title": "Opening challenge: accurate, wrong or forced?",
       "show": [
         {
           "block": "IELTS-V6-K1",
@@ -155,25 +156,25 @@
           "part": "answers"
         }
       ],
-      "student": "Decide which sentence uses natural English.",
-      "teacher": "Learners vote; reveal comments. Introduce 'collocation'.",
-      "say": "Some words simply belong together. Learn them as pairs.",
-      "check": "Learners say why 'make a balanced diet' is unnatural."
+      "student": "Decide which answer an examiner would reward most, and why the others lose credit.",
+      "teacher": "Learners vote. Reveal the comments. Stress that forced vocabulary is penalised as much as wrong vocabulary.",
+      "say": "Use a collocation when it says exactly what you mean, not to show that you know it.",
+      "check": "Learners can name one problem with Answer A and one with Answer C."
     },
     {
-      "start": 6,
-      "end": 15,
-      "title": "Word bank: six topics",
+      "start": 5,
+      "end": 11,
+      "title": "Word bank: collocations in context",
       "show": [],
-      "student": "In pairs, take one topic each and teach your partner its collocations with an example.",
-      "teacher": "Monitor pronunciation of sedentary, habitat, obsolete, congestion.",
-      "say": "Collocation + example = memory.",
-      "check": "Learners can give the partner word for ten collocations."
+      "student": "With a partner, cover the meaning column and explain each item in your own words; then check.",
+      "teacher": "Drill stress: SED-en-ta-ry, pre-CAR-i-ous, ex-AC-er-bate, al-LE-vi-ate. Point out the grammar: place a strain ON, strike a balance BETWEEN, render something obsolete.",
+      "say": "Learn the verb, the noun and the preposition together.",
+      "check": "Each pair explains ten items without the meaning column."
     },
     {
-      "start": 15,
-      "end": 23,
-      "title": "Complete the collocations",
+      "start": 11,
+      "end": 18,
+      "title": "Which word fits exactly?",
       "show": [
         {
           "block": "IELTS-V6-P1",
@@ -184,15 +185,15 @@
           "part": "answers"
         }
       ],
-      "student": "Choose the word that completes each collocation.",
-      "teacher": "Five minutes; reveal and drill the full phrase.",
-      "say": "Say the whole phrase when you check.",
-      "check": "Six of eight correct."
+      "student": "Choose the one option that is natural and correct. All the options are real English words.",
+      "teacher": "Six minutes, word bank closed for core and above. During the reveal, ask why each wrong option fails: meaning, grammar or collocation.",
+      "say": "Every option is a real word. Check meaning, grammar and the word it goes with.",
+      "check": "Learners explain the reason a distractor fails for at least four questions."
     },
     {
-      "start": 23,
-      "end": 35,
-      "title": "Collocations in a reading summary",
+      "start": 18,
+      "end": 32,
+      "title": "Reading: the fifteen-minute city",
       "show": [
         {
           "block": "IELTS-V6-P2",
@@ -203,15 +204,15 @@
           "part": "answers"
         }
       ],
-      "student": "Complete the summary using words from the box. The summary paraphrases the passage.",
-      "teacher": "Ten minutes timed. During the reveal, show the paraphrase for each gap.",
-      "say": "The summary uses different words from the passage; match the meaning.",
-      "check": "Learners show evidence for each answer."
+      "student": "Answer the ten questions in twelve minutes. Underline the words in the passage that express the same idea as each question.",
+      "teacher": "Twelve minutes, then a two-minute reveal. For each answer, ask learners to read out the paraphrase that decided it.",
+      "say": "The questions use different words from the passage; match the idea, then check every detail.",
+      "check": "Learners quote evidence for each answer, including why Question 3 is NOT GIVEN."
     },
     {
-      "start": 35,
-      "end": 48,
-      "title": "Part 3 discussion",
+      "start": 32,
+      "end": 46,
+      "title": "Speaking Part 3: interactive discussion",
       "show": [
         {
           "block": "IELTS-V6-S1",
@@ -222,25 +223,25 @@
           "part": "routine"
         }
       ],
-      "student": "Discuss two questions in pairs; use at least four collocations naturally.",
-      "teacher": "Pairs, four minutes per question set. Listen live for natural use and forced use.",
-      "say": "Use a collocation only when it says exactly what you mean.",
-      "check": "Each learner uses four collocations accurately."
+      "student": "Take turns as examiner and candidate. The examiner asks a question and then follows up; the candidate develops each answer.",
+      "teacher": "About six minutes per role, then swap. Circulate and note one well-developed answer and one place where a precise collocation would have helped.",
+      "say": "Answer, explain, give an example, then qualify. Topic words should help you say more, not replace thinking.",
+      "check": "Each candidate gives at least two answers extended by a follow-up."
     },
     {
-      "start": 48,
+      "start": 46,
       "end": 54,
-      "title": "Compare with the model",
+      "title": "Compare with the model discussion",
       "show": [
         {
           "block": "IELTS-V6-S1",
           "part": "model"
         }
       ],
-      "student": "Read the model answer; underline each collocation and its reason or example.",
-      "teacher": "Highlight how the model develops each collocation with a reason.",
-      "say": "The model is illustrative, not a target band.",
-      "check": "Learners find six collocations in the model."
+      "student": "Read the model exchange. Mark where the candidate gives a reason, an example and a qualification.",
+      "teacher": "Read the model aloud with a learner. Point out that the collocations appear only where they are needed.",
+      "say": "The model is illustrative, not a target band or a script to memorise.",
+      "check": "Learners identify the qualification in the second answer."
     },
     {
       "start": 54,
@@ -250,164 +251,176 @@
         {
           "block": "IELTS-V6-H1",
           "part": "questions"
+        },
+        {
+          "block": "IELTS-V6-W2",
+          "part": "prompt"
         }
       ],
-      "student": "Complete the exit ticket and note the homework.",
-      "teacher": "Collect exit tickets.",
-      "say": "Add three collocations to your notebook every week.",
-      "check": "Every learner writes collocations for two topics from memory."
+      "student": "Complete the exit ticket and note the two homework tasks.",
+      "teacher": "Collect the exit tickets. Explain that the paragraph will be checked against the four criteria.",
+      "say": "Use the paragraph to show control, not quantity.",
+      "check": "Every learner writes two accurate collocations from memory."
     }
   ],
   "blocks": [
     {
       "id": "IELTS-V6-K1",
       "kind": "contrast",
-      "title": "Which word goes with which?",
+      "title": "Accurate, wrong or forced?",
       "mode": "Opening challenge; learners decide before the reveal",
-      "instructions": "Three learners wrote about healthy living. Which sentence sounds most natural?",
+      "instructions": "Examiner (Part 3): 'Why do you think so many people today do not get enough exercise?' Three candidates began their answers like this. Which opening would an examiner reward most?",
       "examples": [
         {
-          "label": "Learner A",
-          "text": "People should make a balanced diet and do a healthy life.",
-          "comment": "Unnatural: we 'eat' or 'have' a balanced diet and 'lead' a healthy life."
+          "label": "Answer A",
+          "text": "Because many people do a sitting life and make too much screen time.",
+          "comment": "Inaccurate: the collocations are 'lead a sedentary lifestyle' and 'spend too much time on screens'. The idea is fine; the vocabulary hides it."
         },
         {
-          "label": "Learner B",
-          "text": "People who lead a sedentary lifestyle should try to eat a balanced diet and exercise regularly.",
-          "comment": "Best: three natural collocations used accurately."
+          "label": "Answer B",
+          "text": "I think it's largely because so many jobs are desk-based now, so people end up with a fairly sedentary lifestyle unless they make a real effort to exercise.",
+          "comment": "Best: one precise collocation, a clear cause and a natural qualification ('largely', 'unless')."
         },
         {
-          "label": "Learner C",
-          "text": "People with a sitting lifestyle need an equal food.",
-          "comment": "Wrong words: the collocations are 'sedentary lifestyle' and 'balanced diet'."
+          "label": "Answer C",
+          "text": "A sedentary lifestyle exacerbates and mitigates far-reaching consequences, placing a strain on endangered species.",
+          "comment": "Forced: the phrases are real but do not belong together, and 'exacerbates and mitigates' contradicts itself. Examiners penalise vocabulary that is used without control."
         }
       ]
     },
     {
       "id": "IELTS-V6-P1",
       "kind": "items",
-      "title": "Complete the collocations",
+      "title": "Which word fits exactly?",
       "mode": "Controlled practice; word bank closed for core and above",
-      "instructions": "Choose the word, A, B or C, that completes each collocation.",
+      "instructions": "Choose the correct option, A, B, C or D, to complete each sentence. All the options are real English words; only one is natural and grammatically correct in this sentence.",
       "items": [
         {
           "id": "IELTS-V6-P1-Q1",
-          "prompt": "to ______ carbon emissions",
-          "answer": "B",
-          "evidence": "reduce carbon emissions",
-          "reason": "Natural verb.",
-          "focus": "lexical resource",
+          "prompt": "Many governments have introduced low-traffic zones in an attempt to ______ carbon emissions.",
+          "answer": "C",
+          "evidence": "curb carbon emissions (transitive verb + object)",
+          "reason": "Fall, decline and descend cannot take an object: emissions fall, but you cannot 'fall emissions'.",
+          "focus": "grammatical range and accuracy",
           "type": "mcq",
           "level": "core",
           "options": [
-            "A  lower down",
-            "B  reduce",
-            "C  small"
+            "A  fall",
+            "B  decline",
+            "C  curb",
+            "D  descend"
           ]
         },
         {
           "id": "IELTS-V6-P1-Q2",
-          "prompt": "a ______ lifestyle (little exercise)",
-          "answer": "C",
-          "evidence": "sedentary lifestyle",
-          "reason": "Fixed collocation.",
+          "prompt": "Long hours at a desk and little exercise often lead to a ______ lifestyle.",
+          "answer": "A",
+          "evidence": "a sedentary lifestyle = a way of life with little physical activity",
+          "reason": "'Motionless' means not moving at a particular moment; a 'settled' lifestyle means living in one place or a calm routine; a 'stagnant' life is one that is not developing. None of them means 'inactive'.",
           "focus": "lexical resource",
           "type": "mcq",
           "level": "core",
           "options": [
-            "A  sitting",
-            "B  lazy-ly",
-            "C  sedentary"
+            "A  sedentary",
+            "B  motionless",
+            "C  settled",
+            "D  stagnant"
           ]
         },
         {
           "id": "IELTS-V6-P1-Q3",
-          "prompt": "to ______ practical skills",
-          "answer": "A",
-          "evidence": "acquire practical skills",
-          "reason": "Formal and natural.",
+          "prompt": "The rapid growth in the number of elderly patients is ______ a strain on hospitals.",
+          "answer": "D",
+          "evidence": "place / put a strain on",
+          "reason": "'Make', 'do' and 'give' do not collocate with 'a strain on'.",
           "focus": "lexical resource",
           "type": "mcq",
           "level": "core",
           "options": [
-            "A  acquire",
-            "B  make",
-            "C  do"
+            "A  making",
+            "B  doing",
+            "C  giving",
+            "D  placing"
           ]
         },
         {
           "id": "IELTS-V6-P1-Q4",
-          "prompt": "work-life ______",
+          "prompt": "Part-time jobs allow students to ______ transferable skills such as teamwork and time management.",
           "answer": "B",
-          "evidence": "work-life balance",
-          "reason": "Fixed phrase.",
+          "evidence": "acquire skills",
+          "reason": "You do not 'win', 'earn' or 'perform' a skill; 'perform' takes a task, not a skill.",
           "focus": "lexical resource",
           "type": "mcq",
           "level": "core",
           "options": [
-            "A  equal",
-            "B  balance",
-            "C  mix"
+            "A  win",
+            "B  acquire",
+            "C  perform",
+            "D  earn"
           ]
         },
         {
           "id": "IELTS-V6-P1-Q5",
-          "prompt": "______ technology (the most advanced)",
-          "answer": "C",
-          "evidence": "cutting-edge technology",
-          "reason": "Fixed adjective.",
+          "prompt": "Many young graduates face ______ employment, with short contracts and no guaranteed hours.",
+          "answer": "A",
+          "evidence": "precarious employment = insecure work",
+          "reason": "'Dangerous' and 'hazardous' describe physical danger, which does not fit 'short contracts'; 'doubtful' does not collocate with employment.",
           "focus": "lexical resource",
           "type": "mcq",
           "level": "core",
           "options": [
-            "A  sharp-edge",
-            "B  newest-edge",
-            "C  cutting-edge"
+            "A  precarious",
+            "B  dangerous",
+            "C  hazardous",
+            "D  doubtful"
           ]
         },
         {
           "id": "IELTS-V6-P1-Q6",
-          "prompt": "to ______ privacy concerns",
-          "answer": "A",
-          "evidence": "raise privacy concerns",
-          "reason": "Natural verb.",
+          "prompt": "Working from home can help parents ______ a balance between their careers and family life.",
+          "answer": "C",
+          "evidence": "strike a balance between",
+          "reason": "The fixed collocation is 'strike a balance'; 'set', 'beat' and 'take' are not used with 'a balance between'.",
           "focus": "lexical resource",
           "type": "mcq",
           "level": "core",
           "options": [
-            "A  raise",
-            "B  rise",
-            "C  grow up"
+            "A  set",
+            "B  beat",
+            "C  strike",
+            "D  take"
           ]
         },
         {
           "id": "IELTS-V6-P1-Q7",
-          "prompt": "traffic ______",
+          "prompt": "The use of facial recognition cameras in shopping centres has ______ serious privacy concerns.",
           "answer": "B",
-          "evidence": "traffic congestion",
-          "reason": "Fixed noun.",
-          "focus": "lexical resource",
+          "evidence": "raise concerns (transitive)",
+          "reason": "'Risen', 'arisen' and 'grown' are intransitive here: concerns rise or arise, but you cannot 'arise concerns'.",
+          "focus": "grammatical range and accuracy",
           "type": "mcq",
           "level": "core",
           "options": [
-            "A  crowd",
-            "B  congestion",
-            "C  busy"
+            "A  risen",
+            "B  raised",
+            "C  arisen",
+            "D  grown"
           ]
         },
         {
           "id": "IELTS-V6-P1-Q8",
-          "prompt": "to have a ______ impact on",
-          "answer": "A",
-          "evidence": "a profound impact on",
-          "reason": "Strong adjective.",
+          "prompt": "Building wider roads may actually ______ congestion, because it encourages more people to drive.",
+          "answer": "D",
+          "evidence": "exacerbate = make worse (the sentence describes a worsening)",
+          "reason": "'Alleviate', 'mitigate' and 'relieve' all mean make less serious, the opposite of what the sentence describes.",
           "focus": "lexical resource",
           "type": "mcq",
           "level": "core",
           "options": [
-            "A  profound",
-            "B  deep-ly",
-            "C  heavy"
+            "A  alleviate",
+            "B  mitigate",
+            "C  relieve",
+            "D  exacerbate"
           ]
         }
       ]
@@ -415,85 +428,78 @@
     {
       "id": "IELTS-V6-P2",
       "kind": "items",
-      "title": "Collocations in a reading summary",
-      "mode": "Timed practice under test-like conditions: ten minutes, no dictionary",
-      "instructions": "Complete the summary using the words in the box. Write the correct letter, A–H. Three letters are not used. List of words: A sedentary; B renewable; C congestion; D affordable; E security; F emissions; G obsolete; H sprawl",
+      "title": "Reading: the fifteen-minute city",
+      "mode": "Timed practice under test-like conditions: twelve minutes, no dictionary",
+      "instructions": "Questions 1-5: Do the following statements agree with the information in the passage? Write TRUE, FALSE or NOT GIVEN. Question 10: Choose the correct letter, A, B, C or D. Questions 6-9: Complete the summary sentences with words from the box. Write the correct letter. Four letters are not used. List of words: A suburbs; B regulations; C rents; D wealthier; E poorer; F villages; G salaries; H roads",
       "stimulus": {
         "type": "passage",
         "title": "The fifteen-minute city",
         "paragraphs": [
-          "Urban planners in several countries are promoting the idea of the 'fifteen-minute city', in which residents can reach work, schools, shops and parks within a quarter of an hour on foot or by bicycle. Supporters argue that the model could ease traffic congestion and reduce carbon emissions, since fewer people would need to drive.",
-          "The concept also responds to concerns about health. Researchers have linked long car journeys to a sedentary lifestyle, and walking or cycling to everyday destinations is seen as a simple way of building exercise into daily routines.",
-          "Critics, however, warn that the model may be difficult to apply in areas affected by urban sprawl, where homes, workplaces and services are far apart. Others fear that improvements to neighbourhoods could push up property prices and make affordable housing even harder to find."
+          "In recent years, urban planners in a number of European and North American cities have promoted the idea of the 'fifteen-minute city', a model in which residents can reach most of what they need in daily life, including work, schools, shops, health services and green space, within a quarter of an hour on foot or by bicycle. Rather than concentrating offices in a central business district and housing on the periphery, the model encourages a mixture of uses within each neighbourhood, so that fewer journeys require a car.",
+          "Advocates present the idea as a response to several problems at once. Shorter journeys, they argue, would curb carbon emissions from transport and alleviate traffic congestion, although even enthusiastic supporters concede that congestion is unlikely to disappear altogether, since deliveries, emergency services and longer trips would still depend on roads. The model is also promoted as a means of improving public health: if walking or cycling becomes the most convenient way to reach a school or a pharmacy, physical activity is built into daily routines rather than reserved for leisure time, which may help to counter the effects of an increasingly sedentary lifestyle.",
+          "A further claim concerns social life. Supporters suggest that when residents spend more time in their own neighbourhood, they are more likely to recognise their neighbours, use local businesses and take part in community activities. Evidence for this effect is, however, largely drawn from surveys of residents' own perceptions, and researchers caution that it is difficult to separate the influence of urban design from that of income, age and length of residence.",
+          "Critics raise a number of objections. The most frequently cited is that the model is far easier to apply in dense, historic city centres than in suburbs built around the car, where homes, workplaces and services are often separated by considerable distances. Converting such areas would require substantial investment and, in many cases, changes to planning regulations that have shaped development for decades. Others point out that many jobs cannot be relocated to residential districts, so that a fifteen-minute radius may cover shopping and schooling but not employment.",
+          "There are also concerns about fairness. If a neighbourhood becomes more attractive as a result of new parks, cycle lanes and local services, property prices and rents may rise, potentially forcing out the lower-income residents the improvements were intended to benefit. Some housing campaigners therefore argue that any such scheme should be accompanied by measures to protect affordable housing, such as limits on rent increases or a requirement that new developments include a proportion of low-cost homes.",
+          "Finally, the concept has attracted opposition from a small number of people who interpret it as an attempt to restrict where residents are allowed to travel. Planners involved in such schemes generally reject this interpretation, stressing that the aim is to make local trips more convenient, not to prevent longer ones. Whatever its eventual impact, the debate illustrates how decisions about the layout of a city can have far-reaching consequences for health, the environment and social equality."
         ]
       },
       "items": [
         {
           "id": "IELTS-V6-P2-Q1",
-          "prompt": "Advocates believe the approach could reduce (1) ______ on the roads.",
-          "answer": "C",
-          "evidence": "ease traffic congestion",
-          "reason": "C = congestion.",
+          "prompt": "The model aims to bring the different activities of daily life physically closer to people's homes.",
+          "answer": "TRUE",
+          "evidence": "the model encourages a mixture of uses within each neighbourhood",
+          "reason": "Work, schools and shops are mixed into residential neighbourhoods, so they are closer to homes.",
           "focus": "paraphrase recognition",
-          "type": "matching",
-          "level": "core",
-          "options": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H"
-          ]
+          "type": "tfng",
+          "level": "core"
         },
         {
           "id": "IELTS-V6-P2-Q2",
-          "prompt": "It might also help to lower (2) ______.",
-          "answer": "F",
-          "evidence": "reduce carbon emissions",
-          "reason": "F = emissions.",
-          "focus": "paraphrase recognition",
-          "type": "matching",
-          "level": "core",
-          "options": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H"
-          ]
+          "prompt": "Supporters believe that the model could remove road traffic problems completely.",
+          "answer": "FALSE",
+          "evidence": "even enthusiastic supporters concede that congestion is unlikely to disappear altogether",
+          "reason": "'Remove completely' is contradicted by 'unlikely to disappear altogether'.",
+          "focus": "detail discrimination",
+          "type": "tfng",
+          "level": "core"
         },
         {
           "id": "IELTS-V6-P2-Q3",
-          "prompt": "Long drives have been associated with an inactive, or (3) ______, way of life.",
-          "answer": "A",
-          "evidence": "a sedentary lifestyle",
-          "reason": "A = sedentary.",
-          "focus": "paraphrase recognition",
-          "type": "matching",
-          "level": "core",
-          "options": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H"
-          ]
+          "prompt": "The concept was first put into practice in North America.",
+          "answer": "NOT GIVEN",
+          "evidence": "European and North American cities are mentioned, but not where the idea was first applied.",
+          "reason": "The passage gives no information about which region used the idea first.",
+          "focus": "detail discrimination",
+          "type": "tfng",
+          "level": "core"
         },
         {
           "id": "IELTS-V6-P2-Q4",
-          "prompt": "The model may not suit places where a city has spread out without control, known as urban (4) ______.",
-          "answer": "H",
-          "evidence": "urban sprawl",
-          "reason": "H = sprawl.",
+          "prompt": "Researchers are confident that the social benefits reported by residents are caused by the design of their neighbourhood.",
+          "answer": "FALSE",
+          "evidence": "researchers caution that it is difficult to separate the influence of urban design from that of income, age and length of residence",
+          "reason": "Researchers say the cause is hard to identify, which contradicts 'confident'.",
+          "focus": "detail discrimination",
+          "type": "tfng",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-V6-P2-Q5",
+          "prompt": "According to some critics, a short walk or cycle from home may not reach the places where many people work.",
+          "answer": "TRUE",
+          "evidence": "a fifteen-minute radius may cover shopping and schooling but not employment",
+          "reason": "'Places where many people work' paraphrases 'employment'.",
+          "focus": "paraphrase recognition",
+          "type": "tfng",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-V6-P2-Q6",
+          "prompt": "Summary: Critics argue that the approach suits compact, older city centres better than car-dependent (6) ______.",
+          "answer": "A",
+          "evidence": "than in suburbs built around the car",
+          "reason": "'Car-dependent suburbs' paraphrases 'suburbs built around the car'. Villages are not mentioned, and the critics' contrast is between city centres and suburbs.",
           "focus": "paraphrase recognition",
           "type": "matching",
           "level": "core",
@@ -509,11 +515,11 @@
           ]
         },
         {
-          "id": "IELTS-V6-P2-Q5",
-          "prompt": "There are also fears that it could become harder to find (5) ______ homes.",
-          "answer": "D",
-          "evidence": "make affordable housing even harder to find",
-          "reason": "D = affordable.",
+          "id": "IELTS-V6-P2-Q7",
+          "prompt": "Summary: Adapting such areas would be costly and would require new (7) ______.",
+          "answer": "B",
+          "evidence": "changes to planning regulations that have shaped development for decades",
+          "reason": "The passage names investment and changes to regulations, not new roads.",
           "focus": "paraphrase recognition",
           "type": "matching",
           "level": "core",
@@ -526,6 +532,62 @@
             "F",
             "G",
             "H"
+          ]
+        },
+        {
+          "id": "IELTS-V6-P2-Q8",
+          "prompt": "Summary: Improving a district could push up housing costs and displace (8) ______ residents.",
+          "answer": "E",
+          "evidence": "potentially forcing out the lower-income residents",
+          "reason": "'Displace poorer residents' paraphrases 'forcing out the lower-income residents'; 'wealthier' is the opposite.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "level": "core",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ]
+        },
+        {
+          "id": "IELTS-V6-P2-Q9",
+          "prompt": "Summary: Some campaigners therefore want safeguards such as caps on (9) ______.",
+          "answer": "C",
+          "evidence": "such as limits on rent increases",
+          "reason": "'Caps on rents' paraphrases 'limits on rent increases'; salaries are not mentioned.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "level": "core",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ]
+        },
+        {
+          "id": "IELTS-V6-P2-Q10",
+          "prompt": "What is the main purpose of the final paragraph?",
+          "answer": "C",
+          "evidence": "Planners involved in such schemes generally reject this interpretation",
+          "reason": "The paragraph describes a mistaken interpretation, reports the planners' response, and ends with the wider importance of the debate (far-reaching consequences). A is the view the planners reject; B, D are not discussed.",
+          "focus": "writer's purpose",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  to argue that the model limits people's freedom to travel",
+            "B  to predict that the model will be adopted by most cities",
+            "C  to describe a misunderstanding of the concept and stress the wider significance of the debate",
+            "D  to compare the views of planners with those of housing campaigners"
           ]
         }
       ]
@@ -533,20 +595,27 @@
     {
       "id": "IELTS-V6-S1",
       "kind": "speaking",
-      "title": "Part 3 discussion with collocations",
-      "mode": "Pair practice; live feedback from partner and teacher",
-      "instructions": "Discuss each question for about two minutes. Use at least four collocations from the word bank, each with a reason or example.",
+      "title": "Speaking Part 3: interactive discussion",
+      "mode": "Pair practice in examiner and candidate roles; live feedback from partner and teacher",
+      "instructions": "Work in pairs. The examiner asks one question from the list, listens, and then asks one or two follow-up questions. The candidate answers each in three to five sentences: answer, reason, example, and a qualification where it fits. Swap roles after about six minutes.",
       "prompts": [
-        "How has technology changed the way people work in your country?",
-        "What can governments do to encourage people to live more healthily?",
-        "Do you think cities will become better or worse places to live in the future?"
+        "Do you think governments should be responsible for making people live more healthily?",
+        "How might technology change the way people work over the next twenty years?",
+        "What makes a neighbourhood a good place to live?"
       ],
-      "routine": "Speaker answers (reason + example); listener notes each collocation and whether it was natural; swap after each question.",
-      "observation": "Teacher judges vocabulary from what is heard live in pair discussion; pronunciation comments are limited to what was heard live.",
+      "follow_ups": [
+        "Why do you think that is?",
+        "Could you give me an example?",
+        "Would that be true for everyone, or only for some people?",
+        "What might be the disadvantages of that?",
+        "How might that change in the future?"
+      ],
+      "routine": "Examiner asks a question and one or two follow-ups; candidate develops each answer; after about six minutes, swap. The listener notes one well-developed answer and one place where a precise word would have helped.",
+      "observation": "Teacher and partner comment on development (reason, example, qualification) and on vocabulary heard live in the discussion; pronunciation comments are limited to what was heard live.",
       "models": [
         {
-          "label": "Illustrative Part 3 answer (not a certified band answer)",
-          "text": "I think technology has had a profound impact on working life in my country. On the one hand, cutting-edge technology like video calls means that many office workers can now work from home, which can improve their work-life balance because they spend less time commuting. On the other hand, it also raises privacy concerns, since some companies monitor their employees' computers, and I'd say it reduces job security in certain industries, because some tasks are now done automatically. So overall, it's brought real benefits, but people may need to acquire new practical skills just to keep up."
+          "label": "Illustrative Part 3 exchange (not a certified band answer)",
+          "text": "EXAMINER: Do you think governments should be responsible for making people live more healthily?\nCANDIDATE: To some extent, yes. Governments can't force people to exercise, but they can make the healthy choice the easy one. For example, if a city builds safe cycle lanes, people who would otherwise drive might cycle to work, which counters the effects of a sedentary lifestyle without anyone being told what to do.\nEXAMINER: Would that be true for everyone, or only for some people?\nCANDIDATE: Probably not for everyone. Someone with a long commute, or a parent taking three children to school, is unlikely to switch to a bicycle. So I'd say measures like that work best alongside other things, such as better public transport. And there's a cost argument as well: if obesity rates keep rising, it places a strain on health services that everyone pays for, so it's in the government's interest to act early."
         }
       ]
     },
@@ -554,44 +623,42 @@
       "id": "IELTS-V6-H1",
       "kind": "items",
       "homework": true,
-      "title": "Homework: topic collocations",
+      "title": "Homework: use the collocations in new contexts",
       "mode": "Homework; checked at the start of the next lesson",
-      "instructions": "Complete each collocation with ONE word.",
+      "instructions": "Questions 1-3: Complete each sentence with ONE word. Questions 4-6: Rewrite each sentence using the word-bank item in brackets. Keep the meaning the same.",
       "items": [
         {
           "id": "IELTS-V6-H1-Q1",
-          "prompt": "Many animals lose their natural ______ when forests are cut down.",
-          "answer": "habitat",
-          "evidence": "natural habitat",
+          "prompt": "Online banking has rendered many local bank branches largely ______.",
+          "answer": "obsolete",
+          "evidence": "render something obsolete",
           "reason": "Fixed collocation.",
           "focus": "lexical resource",
           "type": "completion",
           "level": "core",
-          "word_limit": 1,
-          "accept": [
-            "habitats"
-          ]
+          "word_limit": 1
         },
         {
           "id": "IELTS-V6-H1-Q2",
-          "prompt": "A ______ diet includes fruit, vegetables and protein.",
-          "answer": "balanced",
-          "evidence": "a balanced diet",
-          "reason": "Fixed collocation.",
+          "prompt": "Planting trees along busy streets can ______ the effects of extreme heat.",
+          "answer": "mitigate",
+          "evidence": "mitigate the effects of",
+          "reason": "'Alleviate' is also acceptable with 'the effects of'.",
           "focus": "lexical resource",
           "type": "completion",
           "level": "core",
           "word_limit": 1,
           "accept": [
-            "healthy"
+            "alleviate",
+            "reduce"
           ]
         },
         {
           "id": "IELTS-V6-H1-Q3",
-          "prompt": "Many graduates choose jobs with good career ______.",
-          "answer": "prospects",
-          "evidence": "career prospects",
-          "reason": "Fixed collocation.",
+          "prompt": "Deforestation has led to widespread habitat ______ in the region.",
+          "answer": "loss",
+          "evidence": "habitat loss",
+          "reason": "Fixed noun compound.",
           "focus": "lexical resource",
           "type": "completion",
           "level": "core",
@@ -599,59 +666,68 @@
         },
         {
           "id": "IELTS-V6-H1-Q4",
-          "prompt": "Older phones quickly become ______ when new models appear.",
-          "answer": "obsolete",
-          "evidence": "become obsolete",
-          "reason": "Fixed collocation.",
+          "prompt": "Rewrite: 'Many workers have jobs with no security and short contracts.' (precarious employment)",
+          "answer": "Many workers are in precarious employment, with short contracts and no job security.",
+          "evidence": "precarious employment",
+          "reason": "Accept any grammatical sentence that uses 'precarious employment' and keeps both ideas (no security, short contracts).",
           "focus": "lexical resource",
-          "type": "completion",
-          "level": "core",
-          "word_limit": 1,
-          "accept": [
-            "outdated"
-          ]
+          "type": "short",
+          "level": "core"
         },
         {
           "id": "IELTS-V6-H1-Q5",
-          "prompt": "Studying music and sport gives children a well-______ education.",
-          "answer": "rounded",
-          "evidence": "a well-rounded education",
-          "reason": "Fixed phrase.",
-          "focus": "lexical resource",
-          "type": "completion",
-          "level": "core",
-          "word_limit": 1
+          "prompt": "Rewrite: 'Smartphones are making paper maps unnecessary.' (render ... obsolete)",
+          "answer": "Smartphones are rendering paper maps obsolete.",
+          "evidence": "render something obsolete",
+          "reason": "Accept 'have rendered' or 'are rendering'; the object must come between 'render' and 'obsolete'.",
+          "focus": "grammatical range and accuracy",
+          "type": "short",
+          "level": "core"
         },
         {
           "id": "IELTS-V6-H1-Q6",
-          "prompt": "Building more homes could ______ the housing shortage.",
-          "answer": "ease",
-          "evidence": "ease / alleviate a problem",
-          "reason": "Natural verb.",
+          "prompt": "Rewrite: 'Group projects help students learn to question ideas and judge evidence.' (foster critical thinking)",
+          "answer": "Group projects foster critical thinking in students.",
+          "evidence": "foster critical thinking",
+          "reason": "Accept any accurate sentence with 'foster critical thinking'; 'among students' or 'in students' are both fine.",
           "focus": "lexical resource",
-          "type": "completion",
-          "level": "core",
-          "word_limit": 1,
-          "accept": [
-            "alleviate",
-            "reduce",
-            "solve",
-            "tackle"
-          ]
+          "type": "short",
+          "level": "core"
         }
+      ]
+    },
+    {
+      "id": "IELTS-V6-W2",
+      "kind": "writing",
+      "task": "paragraph",
+      "homework": true,
+      "title": "Homework: one developed Task 2 body paragraph",
+      "mode": "Homework under declared conditions; teacher feedback uses the four criteria",
+      "prompt": "Some people believe that the best way to improve public health is to increase the number of sports facilities. Others think this would have little effect and that other measures are needed. Write ONE body paragraph (about 150 words) explaining which other measures you think would be more effective, and why.",
+      "conditions": "20 minutes, in one sitting, without a dictionary, translator or AI tool. Write the start and finish time.",
+      "support": "Plan: topic sentence (your main measure) / reason / specific example / qualification or counter-point / link back to the question.",
+      "extension": "Include one sentence that concedes a point ('Admittedly, ...') before you return to your argument.",
+      "high_band": "Use three word-bank items accurately without forcing them; every sentence should move the argument forward.",
+      "model_label": "Illustrative model for teacher feedback only. Not a certified band answer.",
+      "model": "In my view, building more sports centres would do little on its own, because the main obstacle for most people is not a lack of facilities but a lack of time and habit. A more effective approach would be to make physical activity part of everyday routines. For instance, cities could invest in safe cycle lanes and wide pavements so that walking or cycling to work becomes the most convenient option, which would counter the effects of a sedentary lifestyle without requiring any extra free time. Admittedly, such changes are expensive and take years to complete. However, they would also alleviate traffic congestion and curb carbon emissions, so the investment would bring several benefits at once. In the long term, measures that change daily behaviour are likely to have more far-reaching consequences for public health than new facilities that only already-motivated people choose to use.",
+      "checklist": [
+        "Task Response: Does the paragraph answer the question (other measures, and why) with a clear position?",
+        "Coherence and Cohesion: Does it move from topic sentence to reason, example, concession and conclusion?",
+        "Lexical Resource: Are collocations accurate (verb + noun + preposition) and used only where they fit?",
+        "Grammatical Range and Accuracy: Are complex sentences accurate (because, so that, which, although)?"
       ]
     }
   ],
   "exit_ticket": [
-    "One collocation for each of three topics:",
-    "A collocation I used wrongly before today, and the correct version:",
-    "The topic I need more words for:"
+    "Two collocations I can now use accurately, with the verb or preposition that goes with them:",
+    "One distractor that tricked me today and why it was wrong:",
+    "One follow-up question I found hard to answer, and what I would add next time:"
   ],
   "homework": [
-    "Complete the collocation sentences on the homework sheet.",
-    "Write a 150-word paragraph on one topic using five collocations from the word bank. Underline them."
+    "Complete the collocation and rewriting tasks on the homework sheet.",
+    "Write the body paragraph under timed conditions (20 minutes) and bring it to the next lesson."
   ],
-  "delayed_followup": "In Lesson 22 (timed essay and long turn), note whether learners use topic collocations accurately and naturally. Record it as a later observation.",
+  "delayed_followup": "In Lesson 22 (timed essay and long turn), note whether learners use topic collocations accurately and develop Part 3 answers after follow-ups. Record it as a later observation.",
   "mapping_notes": "Focuses use Diagnostic Bible section 7.2 construct names where they apply (lexical resource, paraphrase recognition). Teaching focuses only. This optional vocabulary lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
   "release_blockers": [
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
@@ -659,111 +735,155 @@
   ],
   "followup": {
     "id": "IELTS-V6-C1",
-    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.0.0 on 2026-10-26. Keep private until use.",
-    "delivery": "About one teaching week later: 8 minutes, no word bank or dictionary. Record timing and support.",
-    "review": "Score each answer independently; accept only natural, accurate collocations. Do not convert to an IELTS band.",
+    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.1.0 on 2026-10-26. Keep private until use.",
+    "delivery": "About one teaching week later: 10 minutes, unseen text, no word bank or dictionary. Record timing and support.",
+    "review": "Score each answer independently. For multiple choice, ask the learner to name why one distractor is wrong. Do not convert to an IELTS band.",
     "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty.",
     "blocks": [
       {
         "id": "IELTS-V6-C1",
         "kind": "items",
-        "title": "Fresh check: topic collocations",
+        "title": "Fresh check: which word fits exactly?",
         "mode": "Withheld fresh check; independent, timed",
-        "instructions": "Questions 1-4: complete each sentence with ONE word. Questions 5-6: choose the most natural sentence, A, B or C.",
+        "instructions": "Choose the correct option, A, B, C or D, to complete each sentence. All the options are real English words.",
         "items": [
           {
             "id": "IELTS-V6-C1-Q1",
-            "prompt": "Solar and wind power are both forms of ______ energy.",
-            "answer": "renewable",
-            "evidence": "renewable energy",
-            "reason": "Fixed collocation.",
+            "prompt": "Rising temperatures are likely to ______ water shortages in the region.",
+            "answer": "A",
+            "evidence": "exacerbate a problem = make it worse",
+            "reason": "'Mitigate' and 'alleviate' mean the opposite; 'deteriorate' cannot take an object (things deteriorate; you cannot deteriorate something).",
             "focus": "lexical resource",
-            "type": "completion",
+            "type": "mcq",
             "level": "core",
-            "word_limit": 1,
-            "accept": [
-              "clean",
-              "green"
+            "options": [
+              "A  exacerbate",
+              "B  mitigate",
+              "C  alleviate",
+              "D  deteriorate"
             ]
           },
           {
             "id": "IELTS-V6-C1-Q2",
-            "prompt": "Many workers value job ______ more than a high salary.",
-            "answer": "security",
-            "evidence": "job security",
-            "reason": "Fixed collocation.",
+            "prompt": "This rare turtle is classified as an ______ species, so catching it is illegal.",
+            "answer": "C",
+            "evidence": "an endangered species",
+            "reason": "An extinct species no longer exists, so it could not be caught; 'extinguished' is used for fires and hopes; a 'dangerous' species would not explain why catching it is illegal.",
             "focus": "lexical resource",
-            "type": "completion",
+            "type": "mcq",
             "level": "core",
-            "word_limit": 1
+            "options": [
+              "A  dangerous",
+              "B  extinct",
+              "C  endangered",
+              "D  extinguished"
+            ]
           },
           {
             "id": "IELTS-V6-C1-Q3",
-            "prompt": "Improving bus and train services would strengthen the public transport ______.",
-            "answer": "network",
-            "evidence": "public transport network",
-            "reason": "Fixed collocation.",
+            "prompt": "Uncontrolled urban ______ has pushed the edge of the city twenty kilometres into the countryside.",
+            "answer": "B",
+            "evidence": "urban sprawl = uncontrolled outward growth",
+            "reason": "'Urban extension' is a planning term for planned growth, which contradicts 'uncontrolled'; 'urban stretch' and 'urban spill' are not used.",
             "focus": "lexical resource",
-            "type": "completion",
+            "type": "mcq",
             "level": "core",
-            "word_limit": 1,
-            "accept": [
-              "system"
+            "options": [
+              "A  extension",
+              "B  sprawl",
+              "C  stretch",
+              "D  spill"
             ]
           },
           {
             "id": "IELTS-V6-C1-Q4",
-            "prompt": "Regular exercise can ______ the immune system.",
-            "answer": "boost",
-            "evidence": "boost the immune system",
-            "reason": "Natural verb.",
-            "focus": "lexical resource",
-            "type": "completion",
-            "level": "core",
-            "word_limit": 1,
-            "accept": [
-              "strengthen"
-            ]
-          },
-          {
-            "id": "IELTS-V6-C1-Q5",
-            "prompt": "Which sentence is most natural?",
-            "answer": "B",
-            "evidence": "endangered species",
-            "reason": "A and C use wrong words.",
+            "prompt": "Cheap air travel has had ______ consequences for the tourism industry.",
+            "answer": "D",
+            "evidence": "far-reaching consequences = wide and strong effects",
+            "reason": "'Far-away' and 'far-off' describe distance; 'far-fetched' means unlikely to be true.",
             "focus": "lexical resource",
             "type": "mcq",
             "level": "core",
             "options": [
-              "A  Tigers are a dangered species.",
-              "B  Tigers are an endangered species.",
-              "C  Tigers are a danger species."
+              "A  far-away",
+              "B  far-off",
+              "C  far-fetched",
+              "D  far-reaching"
             ]
+          }
+        ]
+      },
+      {
+        "id": "IELTS-V6-C2",
+        "kind": "items",
+        "title": "Fresh check: working from home",
+        "mode": "Withheld fresh check; independent, timed",
+        "instructions": "Do the statements agree with the information in the passage? Write TRUE, FALSE or NOT GIVEN.",
+        "stimulus": {
+          "type": "passage",
+          "title": "Working from home",
+          "paragraphs": [
+            "Since the pandemic, a substantial proportion of office employees in many countries have continued to work from home for at least part of the week. Employers who resisted the change at first have discovered that it allows them to recruit from a much wider area and, in some cases, to rent smaller offices. For employees, the most frequently reported benefit is the time saved by not commuting, which many use to strike a better balance between paid work and family responsibilities.",
+            "The arrangement is not without drawbacks. Managers in several surveys reported that newly recruited staff found it harder to acquire practical skills when they could not observe experienced colleagues at work. Some workers also described a sense of isolation, and a minority said that the boundary between working hours and personal time had become harder to maintain. Researchers note, however, that these problems were reported far less often by employees who spent two or three days a week in the office than by those who worked remotely all the time."
+          ]
+        },
+        "items": [
+          {
+            "id": "IELTS-V6-C2-Q1",
+            "prompt": "Employers can now hire people who live further away from the workplace.",
+            "answer": "TRUE",
+            "evidence": "allows them to recruit from a much wider area",
+            "reason": "'Hire people who live further away' paraphrases 'recruit from a much wider area'.",
+            "focus": "paraphrase recognition",
+            "type": "tfng",
+            "level": "core"
           },
           {
-            "id": "IELTS-V6-C1-Q6",
-            "prompt": "Which sentence is most natural?",
-            "answer": "C",
-            "evidence": "lifelong learning",
-            "reason": "A and B are unnatural.",
-            "focus": "lexical resource",
-            "type": "mcq",
-            "level": "core",
-            "options": [
-              "A  Adults should do long-life studying.",
-              "B  Adults should make all-life learning.",
-              "C  Lifelong learning helps adults adapt to new jobs."
-            ]
+            "id": "IELTS-V6-C2-Q2",
+            "prompt": "Most employees said that working from home had damaged their family life.",
+            "answer": "FALSE",
+            "evidence": "which many use to strike a better balance between paid work and family responsibilities",
+            "reason": "Many report a better balance with family responsibilities; only a minority mention blurred boundaries.",
+            "focus": "detail discrimination",
+            "type": "tfng",
+            "level": "core"
+          },
+          {
+            "id": "IELTS-V6-C2-Q3",
+            "prompt": "Employees who combined office and home working reported fewer difficulties than full-time remote workers.",
+            "answer": "TRUE",
+            "evidence": "these problems were reported far less often by employees who spent two or three days a week in the office",
+            "reason": "'Combined office and home working' paraphrases 'two or three days a week in the office'.",
+            "focus": "paraphrase recognition",
+            "type": "tfng",
+            "level": "core"
+          },
+          {
+            "id": "IELTS-V6-C2-Q4",
+            "prompt": "Working from home has reduced the salaries of most office employees.",
+            "answer": "NOT GIVEN",
+            "evidence": "Pay is not mentioned in the passage.",
+            "reason": "The passage discusses recruitment, office space, commuting, skills and isolation, but not salaries.",
+            "focus": "detail discrimination",
+            "type": "tfng",
+            "level": "core"
           }
         ]
       }
     ]
   },
-  "approval_record": {
+  "previous_approval_record": {
     "approved_by": "Owner, Brains Heist LLC",
     "date": "2026-10-26",
     "version": "1.0.0",
     "scope": "Vocabulary lesson content, keys and models for teacher-only release to all eligible schools. Student task publication remains separate.",
-    "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek: 'there should also some Vocabulary lessons that really fit the IELTS in a very practical way for the students to benefit from. Make the needed adjustments and improvements now ... you have all my permissions, don't ask for any.' Not recorded as an in-platform decision; no review-draft pack was opened before approval."
+    "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek ('Make the needed adjustments and improvements now ... you have all my permissions'). Superseded by v1.1.0 after an external review judged v1.0.0 too easy for Band 6.5+ preparation."
+  },
+  "approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-26",
+    "version": "1.1.0",
+    "scope": "Vocabulary lesson content, keys and models for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 15:42 Asia/Bishkek, after sharing an external review of V6 v1.0.0 (difficulty 3.5/10; distractors too easy; reading answers copied; Part 3 not interactive; no writing): 'yes, but this time be very accurate', in reply to the proposal to rebuild V1-V6 at Band 6.5-7.5 level and re-release them. Not recorded as an in-platform decision; no review-draft pack was opened before approval."
   }
 }
