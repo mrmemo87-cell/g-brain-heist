@@ -5,10 +5,10 @@
   "vocabulary": true,
   "placement": "optional, after Week 4 (Lesson 7)",
   "week": 4,
-  "version": "1.0.0",
-  "presentation_version": "1.0.0",
+  "version": "1.1.0",
+  "presentation_version": "1.1.0",
   "title": "Vocabulary: precise language for Writing Task 2 arguments",
-  "status": "Owner approved v1.0.0 on 2026-10-26; teacher release to all eligible schools (optional vocabulary lesson)",
+  "status": "Owner approved v1.1.0 on 2026-10-26; teacher release to all eligible schools (optional vocabulary lesson)",
   "duration": 60,
   "test_type": "Academic",
   "bibles": {
@@ -25,7 +25,7 @@
   "prerequisites": [
     "Lesson 7 (Task 2 positions and developed arguments).",
     "Learners can identify the question type in a Task 2 prompt.",
-    "Optional vocabulary lesson: use when essays rely on 'good/bad', 'very' and 'I think' or overstate claims."
+    "Pitched at learners aiming for Band 6.5-7.5 whose essays rely on 'good/bad', 'very' and 'I think', or overstate claims."
   ],
   "objectives": [
     {
@@ -36,116 +36,117 @@
       ]
     },
     {
-      "text": "Use cause, effect and solution collocations accurately (lead to, stem from, tackle a problem, address the issue).",
+      "text": "Use cause, effect, solution and concession language with the correct preposition and grammar (stem from, have an effect on, although/despite).",
       "focus": [
         "lexical resource",
-        "coherence and cohesion"
+        "grammatical range and accuracy"
       ]
     },
     {
-      "text": "Replace vague words (good, bad, a lot, thing) with precise, natural alternatives.",
+      "text": "Recognise how a writer signals claims, concessions and conclusions in an argument text.",
       "focus": [
-        "lexical resource"
+        "paraphrase recognition",
+        "writer's views"
       ]
     }
   ],
   "levels": {
-    "foundation": "Use the six cause/effect/solution phrases in model sentences before writing your own.",
-    "core": "Write the paragraph with no use of 'good', 'bad', 'thing' or 'a lot of'.",
-    "extension": "Qualify one claim with hedging and support it with a specific example.",
-    "high_band": "Write a full body paragraph that concedes a counter-argument and rebuts it, using three word-bank items naturally."
+    "foundation": "Use the cause/effect and concession frames in the support box while writing.",
+    "core": "Write the paragraph with no use of 'good', 'bad', 'thing' or 'a lot of', and with one hedged claim.",
+    "extension": "Concede one counter-argument with 'Admittedly, ... however, ...' and rebut it.",
+    "high_band": "Write a full body paragraph in which every sentence advances the argument, with precise vocabulary used only where it fits."
   },
   "word_bank": [
     {
       "item": "lead to / result in",
       "meaning": "cause something to happen",
       "example": "Long working hours can lead to stress.",
-      "skill": "Writing T2"
+      "skill": "Writing Task 2"
     },
     {
       "item": "stem from / be caused by",
       "meaning": "be the result of",
       "example": "Many health problems stem from poor diet.",
-      "skill": "Writing T2"
+      "skill": "Writing Task 2"
     },
     {
-      "item": "tackle / address (a problem / an issue)",
+      "item": "tackle / address (a problem or an issue)",
       "meaning": "take action to deal with a problem",
       "example": "Governments must tackle air pollution.",
-      "skill": "Writing T2"
+      "skill": "Writing Task 2"
     },
     {
       "item": "have a detrimental effect on",
       "meaning": "cause harm to",
       "example": "Noise has a detrimental effect on concentration.",
-      "skill": "Writing T2"
+      "skill": "Writing Task 2"
     },
     {
-      "item": "be beneficial to / benefit",
+      "item": "have a beneficial effect on / be beneficial to",
       "meaning": "be good for; help",
       "example": "Exercise is beneficial to mental health.",
-      "skill": "Writing T2"
+      "skill": "Writing Task 2"
     },
     {
       "item": "arguably",
-      "meaning": "it can be argued (a careful claim)",
+      "meaning": "used to present a careful claim that you can defend",
       "example": "Arguably, the internet is the most important invention of the century.",
-      "skill": "Writing T2"
+      "skill": "Writing Task 2"
     },
     {
       "item": "to some extent / to a large extent",
       "meaning": "partly / mostly",
       "example": "I agree with this view to a large extent.",
-      "skill": "Writing T2"
+      "skill": "Writing Task 2"
     },
     {
       "item": "it is likely / unlikely that",
       "meaning": "probable / not probable",
       "example": "It is unlikely that cars will disappear soon.",
-      "skill": "Writing T2"
+      "skill": "Writing Task 2"
     },
     {
       "item": "a significant number / proportion of",
       "meaning": "many / a large part of (more precise than 'a lot of')",
       "example": "A significant proportion of graduates work abroad.",
-      "skill": "Writing T2"
+      "skill": "Writing Task 2"
     },
     {
-      "item": "a key factor / a major concern",
+      "item": "a key factor in / a major concern",
       "meaning": "an important cause / worry",
       "example": "Cost is a key factor in this decision.",
-      "skill": "Writing T2"
+      "skill": "Writing Task 2"
     },
     {
       "item": "outweigh",
       "meaning": "be more important than",
       "example": "The benefits outweigh the drawbacks.",
-      "skill": "Writing T2"
+      "skill": "Writing Task 2"
     },
     {
       "item": "drawback / downside",
       "meaning": "a disadvantage",
       "example": "One drawback of online learning is isolation.",
-      "skill": "Writing T2"
+      "skill": "Writing Task 2"
     },
     {
-      "item": "admittedly ... however",
+      "item": "admittedly ... however / although + clause / despite + noun",
       "meaning": "accept a point, then argue against it",
-      "example": "Admittedly, fees are high; however, ...",
-      "skill": "Writing T2"
+      "example": "Although fees are high, a degree usually pays for itself.",
+      "skill": "Writing Task 2"
     },
     {
-      "item": "implement / introduce (a policy / a measure)",
+      "item": "implement / introduce (a policy or a measure)",
       "meaning": "put a plan into action",
       "example": "Cities could implement congestion charges.",
-      "skill": "Writing T2"
+      "skill": "Writing Task 2"
     }
   ],
   "stages": [
     {
       "start": 0,
-      "end": 6,
-      "title": "Opening challenge: vague or precise?",
+      "end": 5,
+      "title": "Opening challenge: vague, precise or over-formal?",
       "show": [
         {
           "block": "IELTS-V3-K1",
@@ -157,24 +158,24 @@
         }
       ],
       "student": "Decide which sentence an examiner would reward most.",
-      "teacher": "Learners vote; reveal comments. Focus on precision, not long words.",
+      "teacher": "Learners vote; reveal the comments. Focus on precision and control, not long words.",
       "say": "Precise words make an argument clearer, not just longer.",
-      "check": "Learners can name two vague words in Learner A's sentence."
+      "check": "Learners name two vague words in Learner A's sentence and one problem in Learner C's."
     },
     {
-      "start": 6,
-      "end": 13,
+      "start": 5,
+      "end": 11,
       "title": "Word bank: cause, effect, solution and stance",
       "show": [],
-      "student": "Group the word bank: cause/effect, solutions, stance and concession. Note the preposition after each item.",
-      "teacher": "Drill the prepositions: lead to, stem from, beneficial to, a detrimental effect on.",
-      "say": "The preposition is part of the word.",
-      "check": "Learners complete five items with the right preposition."
+      "student": "Group the word bank: cause and effect, solutions, stance and concession. Note the preposition or structure after each item.",
+      "teacher": "Drill: lead TO, stem FROM, an effect ON, although + clause, despite + noun.",
+      "say": "The preposition and the structure are part of the word.",
+      "check": "Learners complete five frames with the right preposition."
     },
     {
-      "start": 13,
-      "end": 22,
-      "title": "Collocations and prepositions",
+      "start": 11,
+      "end": 18,
+      "title": "Which word fits exactly?",
       "show": [
         {
           "block": "IELTS-V3-P1",
@@ -185,15 +186,15 @@
           "part": "answers"
         }
       ],
-      "student": "Complete each sentence with ONE word.",
-      "teacher": "Seven minutes, bank closed for core and above.",
-      "say": "Check the word and the word after it.",
-      "check": "Most learners score six or more."
+      "student": "Choose the one correct option. All the options are real English words.",
+      "teacher": "Six minutes, word bank closed for core and above. In the reveal, ask why each wrong option fails.",
+      "say": "Check the word, the word after it, and the grammar of the sentence.",
+      "check": "Learners give the reason for at least four distractors."
     },
     {
-      "start": 22,
+      "start": 18,
       "end": 32,
-      "title": "Upgrade the vague sentence",
+      "title": "Reading: who should pay for university?",
       "show": [
         {
           "block": "IELTS-V3-P2",
@@ -204,10 +205,10 @@
           "part": "answers"
         }
       ],
-      "student": "Choose the most precise and natural version.",
-      "teacher": "Discuss why over-formal or wrong-collocation options fail.",
-      "say": "Natural and accurate beats rare and wrong.",
-      "check": "Learners explain one wrong option per question."
+      "student": "Answer the nine questions in twelve minutes. Mark the phrases the writer uses to give an opinion, concede a point and conclude.",
+      "teacher": "Twelve minutes, then reveal. Ask learners to read out the stance phrases they marked (In my view, I would argue, It is true that ... but).",
+      "say": "YES/NO/NOT GIVEN tests the writer's opinion, not the facts.",
+      "check": "Learners quote the stance phrase that decided each YES or NO answer."
     },
     {
       "start": 32,
@@ -219,24 +220,24 @@
           "part": "prompt"
         }
       ],
-      "student": "Plan: topic sentence, cause, effect, example, solution.",
+      "student": "Plan: topic sentence, reason, effect, specific example, concession, link back.",
       "teacher": "Check that each plan has a specific example.",
       "say": "One idea, fully developed.",
       "check": "Every learner has a plan with an example."
     },
     {
       "start": 35,
-      "end": 48,
+      "end": 47,
       "title": "Write independently",
       "show": [],
-      "student": "Write one body paragraph using at least five word-bank items.",
-      "teacher": "Thirteen minutes, no model visible.",
-      "say": "Underline each word-bank item you use.",
+      "student": "Write one body paragraph of about 140 words.",
+      "teacher": "Twelve minutes, no model visible.",
+      "say": "Use precise words where they help your argument; do not force them.",
       "check": "Paragraphs are finished on time."
     },
     {
-      "start": 48,
-      "end": 55,
+      "start": 47,
+      "end": 54,
       "title": "Compare with the model",
       "show": [
         {
@@ -248,13 +249,13 @@
           "part": "checklist"
         }
       ],
-      "student": "Find the cause/effect and hedging language in the model; improve two phrases in your own paragraph.",
+      "student": "Find the cause/effect, hedging and concession language in the model; improve two phrases in your own paragraph.",
       "teacher": "Ask learners to read one improved sentence aloud.",
       "say": "The model is illustrative, not a target band.",
       "check": "Each learner improves two phrases."
     },
     {
-      "start": 55,
+      "start": 54,
       "end": 60,
       "title": "Exit ticket and homework",
       "show": [
@@ -265,7 +266,7 @@
       ],
       "student": "Complete the exit ticket and note the homework.",
       "teacher": "Collect exit tickets.",
-      "say": "Keep a list of the vague words you over-use and their replacements.",
+      "say": "Keep a list of the vague words you over-use and their precise replacements.",
       "check": "Every learner writes one hedged claim."
     }
   ],
@@ -273,9 +274,9 @@
     {
       "id": "IELTS-V3-K1",
       "kind": "contrast",
-      "title": "Vague or precise?",
+      "title": "Vague, precise or over-formal?",
       "mode": "Opening challenge; learners decide before the reveal",
-      "instructions": "Question: 'Many people work long hours. What problems does this cause?' Three learners wrote a sentence. Which is best?",
+      "instructions": "Question: 'Many people work long hours. What problems does this cause?' Three learners wrote the first sentence of a body paragraph. Which is best?",
       "examples": [
         {
           "label": "Learner A",
@@ -284,123 +285,149 @@
         },
         {
           "label": "Learner B",
-          "text": "Excessive working hours can lead to chronic stress, which in turn has a detrimental effect on family relationships.",
-          "comment": "Best: precise words, a clear cause and effect, and careful 'can'."
+          "text": "Excessive working hours can lead to chronic stress, which in turn may have a detrimental effect on family relationships.",
+          "comment": "Best: precise words, a clear chain of cause and effect, and careful 'can' and 'may'."
         },
         {
           "label": "Learner C",
-          "text": "Long hours of labour engender multitudinous deleterious ramifications.",
-          "comment": "Over-formal and unnatural; the examiner rewards accurate, natural vocabulary, not rare words used to impress."
+          "text": "Prolonged occupational engagement engenders multifarious deleterious ramifications for individuals.",
+          "comment": "Over-formal and unclear: the words are real, but the sentence says less than Learner B's. Examiners reward accurate, natural vocabulary, not rare words used to impress."
         }
       ]
     },
     {
       "id": "IELTS-V3-P1",
       "kind": "items",
-      "title": "Collocations and prepositions",
+      "title": "Which word fits exactly?",
       "mode": "Controlled practice; word bank closed for core and above",
-      "instructions": "Complete each sentence with ONE word.",
+      "instructions": "Choose the correct option, A, B, C or D, to complete each sentence. All the options are real English words; only one is natural and grammatically correct in this sentence.",
       "items": [
         {
           "id": "IELTS-V3-P1-Q1",
-          "prompt": "Poor air quality can ______ to breathing difficulties in children.",
-          "answer": "lead",
+          "prompt": "Excessive working hours can ______ to stress-related illness.",
+          "answer": "B",
           "evidence": "lead to",
-          "reason": "lead + to",
+          "reason": "'Result' needs 'in'; 'cause' and 'bring' do not take 'to' in this sense.",
           "focus": "lexical resource",
-          "type": "completion",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1,
-          "accept": [
-            "contribute"
+          "options": [
+            "A  result",
+            "B  lead",
+            "C  cause",
+            "D  bring"
           ]
         },
         {
           "id": "IELTS-V3-P1-Q2",
-          "prompt": "Many traffic problems stem ______ a lack of public transport.",
-          "answer": "from",
+          "prompt": "Many traffic problems stem ______ a lack of investment in public transport.",
+          "answer": "A",
           "evidence": "stem from",
-          "reason": "Fixed preposition.",
+          "reason": "'Stem' takes only 'from' in this meaning.",
           "focus": "lexical resource",
-          "type": "completion",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1
+          "options": [
+            "A  from",
+            "B  of",
+            "C  by",
+            "D  with"
+          ]
         },
         {
           "id": "IELTS-V3-P1-Q3",
-          "prompt": "Regular exercise is beneficial ______ both physical and mental health.",
-          "answer": "to",
-          "evidence": "beneficial to",
-          "reason": "Fixed preposition.",
+          "prompt": "Regular exercise has a beneficial effect ______ mental health.",
+          "answer": "D",
+          "evidence": "an effect on",
+          "reason": "The noun 'effect' takes 'on'.",
           "focus": "lexical resource",
-          "type": "completion",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1,
-          "accept": [
-            "for"
+          "options": [
+            "A  at",
+            "B  in",
+            "C  to",
+            "D  on"
           ]
         },
         {
           "id": "IELTS-V3-P1-Q4",
-          "prompt": "Excessive screen time may have a detrimental effect ______ sleep.",
-          "answer": "on",
-          "evidence": "an effect on",
-          "reason": "Fixed preposition.",
+          "prompt": "Governments need to ______ the problem of youth unemployment urgently.",
+          "answer": "B",
+          "evidence": "tackle a problem",
+          "reason": "You 'undertake' a task, 'execute' a plan and 'conduct' research, but you tackle a problem.",
           "focus": "lexical resource",
-          "type": "completion",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1
+          "options": [
+            "A  undertake",
+            "B  tackle",
+            "C  execute",
+            "D  conduct"
+          ]
         },
         {
           "id": "IELTS-V3-P1-Q5",
-          "prompt": "Governments need to ______ the problem of youth unemployment.",
-          "answer": "tackle",
-          "evidence": "tackle/address a problem",
-          "reason": "Natural collocation.",
-          "focus": "lexical resource",
-          "type": "completion",
+          "prompt": "The writer wants to give a cautious opinion of their own: '______, the internet is the most significant invention of the last fifty years.'",
+          "answer": "A",
+          "evidence": "arguably = a careful claim the writer can defend",
+          "reason": "'Supposedly', 'allegedly' and 'reportedly' present the claim as someone else's and suggest the writer doubts it.",
+          "focus": "task response",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1,
-          "accept": [
-            "address",
-            "solve"
+          "options": [
+            "A  Arguably",
+            "B  Supposedly",
+            "C  Allegedly",
+            "D  Reportedly"
           ]
         },
         {
           "id": "IELTS-V3-P1-Q6",
           "prompt": "In my view, the advantages of studying abroad ______ the disadvantages.",
-          "answer": "outweigh",
-          "evidence": "advantages outweigh disadvantages",
-          "reason": "Comparison verb.",
+          "answer": "A",
+          "evidence": "outweigh = are more important than",
+          "reason": "'Overrule' is used for decisions, 'overtake' for movement or growth, and 'overload' means give too much to.",
           "focus": "lexical resource",
-          "type": "completion",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1
+          "options": [
+            "A  outweigh",
+            "B  overrule",
+            "C  overtake",
+            "D  overload"
+          ]
         },
         {
           "id": "IELTS-V3-P1-Q7",
-          "prompt": "I agree with this statement to a large ______.",
-          "answer": "extent",
-          "evidence": "to a large extent",
-          "reason": "Fixed phrase.",
-          "focus": "lexical resource",
-          "type": "completion",
+          "prompt": "A significant ______ of graduates now choose to work abroad.",
+          "answer": "C",
+          "evidence": "a significant proportion of + plural countable noun",
+          "reason": "'Amount' and 'deal' are used with uncountable nouns, and 'quantity' is not used for people.",
+          "focus": "grammatical range and accuracy",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1
+          "options": [
+            "A  amount",
+            "B  deal",
+            "C  proportion",
+            "D  quantity"
+          ]
         },
         {
           "id": "IELTS-V3-P1-Q8",
-          "prompt": "The city council could ______ a ban on cars in the historic centre.",
-          "answer": "introduce",
-          "evidence": "introduce/implement a ban",
-          "reason": "Natural collocation.",
-          "focus": "lexical resource",
-          "type": "completion",
+          "prompt": "______ tuition fees are high, a degree usually increases a graduate's lifetime earnings.",
+          "answer": "C",
+          "evidence": "although + clause",
+          "reason": "'Despite' needs a noun or -ing form; 'however' and 'nevertheless' cannot join two clauses in this position.",
+          "focus": "grammatical range and accuracy",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1,
-          "accept": [
-            "implement",
-            "impose"
+          "options": [
+            "A  Despite",
+            "B  However",
+            "C  Although",
+            "D  Nevertheless"
           ]
         }
       ]
@@ -408,98 +435,127 @@
     {
       "id": "IELTS-V3-P2",
       "kind": "items",
-      "title": "Upgrade the vague sentence",
-      "mode": "Controlled practice",
-      "instructions": "Choose the most precise and natural version, A, B or C.",
+      "title": "Reading: who should pay for university?",
+      "mode": "Timed practice under test-like conditions: twelve minutes, no dictionary",
+      "instructions": "Questions 1-6: Do the following statements agree with the claims of the writer? Write YES, NO or NOT GIVEN. Questions 7-9: Choose the correct letter, A, B, C or D.",
+      "stimulus": {
+        "type": "passage",
+        "title": "Who should pay for university?",
+        "paragraphs": [
+          "In many countries, the question of whether university education should be free at the point of use has become one of the most divisive issues in education policy. Supporters of free tuition argue that higher education benefits society as a whole, and that charging fees discourages talented students from poorer families from applying. Opponents respond that graduates themselves are the main beneficiaries, since a degree tends to increase lifetime earnings, and that it is therefore unfair to ask taxpayers who did not attend university to cover the cost. In my view, both positions contain an element of truth, but neither is as straightforward as its advocates suggest.",
+          "Consider first the claim that fees deter disadvantaged students. It seems intuitively plausible, and in some countries the introduction of fees was followed by a fall in applications. Yet the evidence is more mixed than is often assumed. In several systems where fees are high but are repaid only once a graduate's income exceeds a certain threshold, participation among poorer students has continued to rise. What appears to matter most is not the price itself but whether students believe they will be able to manage the debt. Clear information about repayment, I would argue, may do as much to widen access as abolishing fees altogether.",
+          "The argument that graduates should pay because they benefit personally is also less convincing than it first appears. It is true that, on average, graduates earn more than non-graduates, but averages conceal enormous variation between subjects and institutions. Moreover, many of the professions on which society depends most, such as nursing and teaching, require degrees but offer relatively modest salaries. Requiring these graduates to repay large debts may discourage people from entering exactly the careers that a country most needs to fill.",
+          "There is also a practical consideration. Free tuition must be funded from general taxation, and when public budgets are under pressure, governments that have abolished fees frequently respond by limiting the number of university places. The result can be that access becomes more restricted, not less, since the available places tend to go to applicants from schools that prepare students most effectively for competitive entry.",
+          "A more defensible position, in my opinion, lies between the two extremes. Fees could be retained for most courses but reduced or waived for subjects linked to shortages of skilled workers, and repayments could be linked to income so that no graduate is required to pay more than they can reasonably afford. Such a system would not satisfy those who regard free education as a matter of principle. It would, however, address the two concerns that matter most: ensuring that cost does not prevent capable students from applying, and ensuring that public money is directed where it brings the greatest benefit."
+        ]
+      },
       "items": [
         {
           "id": "IELTS-V3-P2-Q1",
-          "prompt": "'A lot of students have money problems.'",
-          "answer": "B",
-          "evidence": "a significant number of + financial difficulties",
-          "reason": "A is wrong collocation; C overclaims.",
-          "focus": "lexical resource",
-          "type": "mcq",
-          "level": "core",
-          "options": [
-            "A  A big amount of students have money problems.",
-            "B  A significant number of students experience financial difficulties.",
-            "C  Every student suffers from extreme poverty."
-          ]
+          "prompt": "Neither side of the debate fully reflects how complicated the issue is.",
+          "answer": "YES",
+          "evidence": "neither is as straightforward as its advocates suggest",
+          "reason": "The writer says both positions are less simple than their supporters claim.",
+          "focus": "writer's views",
+          "type": "ynng",
+          "level": "core"
         },
         {
           "id": "IELTS-V3-P2-Q2",
-          "prompt": "'Technology is good for education.'",
-          "answer": "C",
-          "evidence": "beneficial to + specific benefit",
-          "reason": "A is unnatural; B is still vague.",
-          "focus": "lexical resource",
-          "type": "mcq",
-          "level": "core",
-          "options": [
-            "A  Technology is very goodly for education.",
-            "B  Technology is a nice thing in education.",
-            "C  Technology can be beneficial to learning, for example by giving students access to online resources."
-          ]
+          "prompt": "Charging fees always reduces the number of applications from poorer students.",
+          "answer": "NO",
+          "evidence": "participation among poorer students has continued to rise",
+          "reason": "The writer gives counter-evidence and calls the evidence 'more mixed than is often assumed'.",
+          "focus": "writer's views",
+          "type": "ynng",
+          "level": "core"
         },
         {
           "id": "IELTS-V3-P2-Q3",
-          "prompt": "'Online shopping will kill all small shops.'",
-          "answer": "A",
-          "evidence": "hedged claim with 'likely'",
-          "reason": "B overclaims; C changes the meaning.",
-          "focus": "task response",
-          "type": "mcq",
-          "level": "core",
-          "options": [
-            "A  Online shopping is likely to force a significant number of small shops to close.",
-            "B  Online shopping will definitely destroy every shop in the world.",
-            "C  Online shopping is beneficial to small shops."
-          ]
+          "prompt": "Students' confidence about repaying their loans may matter more than the cost of the course.",
+          "answer": "YES",
+          "evidence": "What appears to matter most is not the price itself but whether students believe they will be able to manage the debt",
+          "reason": "'Confidence about repaying' paraphrases 'believe they will be able to manage the debt'.",
+          "focus": "paraphrase recognition",
+          "type": "ynng",
+          "level": "core"
         },
         {
           "id": "IELTS-V3-P2-Q4",
-          "prompt": "'There are bad things about working from home.'",
-          "answer": "B",
-          "evidence": "drawbacks + specific example",
-          "reason": "A is still vague; C wrong word form.",
-          "focus": "lexical resource",
-          "type": "mcq",
-          "level": "core",
-          "options": [
-            "A  Working from home has some bad sides.",
-            "B  Working from home has certain drawbacks, such as isolation from colleagues.",
-            "C  Working from home has disadvantageous."
-          ]
+          "prompt": "Most taxpayers support the abolition of university fees.",
+          "answer": "NOT GIVEN",
+          "evidence": "Taxpayers are mentioned, but not their opinions about fees.",
+          "reason": "The writer never says what most taxpayers think.",
+          "focus": "writer's views",
+          "type": "ynng",
+          "level": "core"
         },
         {
           "id": "IELTS-V3-P2-Q5",
-          "prompt": "'Some people say fees are too high, but universities need money.'",
-          "answer": "C",
-          "evidence": "admittedly ... however (concession)",
-          "reason": "A loses the contrast; B wrong linker.",
-          "focus": "coherence and cohesion",
-          "type": "mcq",
-          "level": "core",
-          "options": [
-            "A  Fees are high and universities need money.",
-            "B  Fees are high, therefore universities need money.",
-            "C  Admittedly, tuition fees are high; however, universities require funding to maintain standards."
-          ]
+          "prompt": "Making university free can, in practice, reduce the number of people who are able to study.",
+          "answer": "YES",
+          "evidence": "governments that have abolished fees frequently respond by limiting the number of university places",
+          "reason": "Limiting places means fewer people can study, so access can become 'more restricted, not less'.",
+          "focus": "inference",
+          "type": "ynng",
+          "level": "core"
         },
         {
           "id": "IELTS-V3-P2-Q6",
-          "prompt": "'Pollution is a big problem in cities.'",
-          "answer": "A",
-          "evidence": "a major concern + specific detail",
-          "reason": "B and C are vague or wrong collocations.",
-          "focus": "lexical resource",
+          "prompt": "Fees should be removed for every subject.",
+          "answer": "NO",
+          "evidence": "Fees could be retained for most courses but reduced or waived for subjects linked to shortages of skilled workers",
+          "reason": "The writer proposes keeping fees for most courses.",
+          "focus": "writer's views",
+          "type": "ynng",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-V3-P2-Q7",
+          "prompt": "In the second paragraph, the writer suggests that wider access to university may depend on",
+          "answer": "C",
+          "evidence": "Clear information about repayment, I would argue, may do as much to widen access as abolishing fees altogether",
+          "reason": "'Explaining clearly how loans are repaid' paraphrases 'clear information about repayment'. Raising fees, entry grades and new universities are not mentioned.",
+          "focus": "paraphrase recognition",
           "type": "mcq",
           "level": "core",
           "options": [
-            "A  Air pollution has become a major concern in many large cities.",
-            "B  Pollution is a very big huge problem.",
-            "C  Pollution makes a big problem to cities."
+            "A  raising fees for the most popular courses.",
+            "B  lowering the grades needed for entry.",
+            "C  explaining clearly how loans are repaid.",
+            "D  building more universities in poorer areas."
+          ]
+        },
+        {
+          "id": "IELTS-V3-P2-Q8",
+          "prompt": "Why does the writer mention nursing and teaching?",
+          "answer": "B",
+          "evidence": "require degrees but offer relatively modest salaries",
+          "reason": "They illustrate essential careers that are not highly paid, weakening the 'graduates benefit personally' argument.",
+          "focus": "writer's purpose",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  to show that average graduate earnings are a reliable guide",
+            "B  to give examples of essential careers that are not well paid",
+            "C  to argue that these courses should be shorter",
+            "D  to compare public and private universities"
+          ]
+        },
+        {
+          "id": "IELTS-V3-P2-Q9",
+          "prompt": "Which of the following best summarises the writer's position?",
+          "answer": "D",
+          "evidence": "A more defensible position, in my opinion, lies between the two extremes",
+          "reason": "The writer rejects both extremes (A and C) and proposes a reformed fee system rather than no change (B).",
+          "focus": "writer's views",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  University education should be free for everyone.",
+            "B  The debate cannot be resolved, so the current system should stay as it is.",
+            "C  Taxpayers should cover the full cost of higher education.",
+            "D  Fees should be kept but designed to protect access and to direct public money well."
           ]
         }
       ]
@@ -510,133 +566,104 @@
       "task": "paragraph",
       "title": "One developed body paragraph",
       "mode": "Independent classroom application after modelling; not a full Task 2 or Writing Screener",
-      "prompt": "In many countries, young people spend several hours a day on social media. What problems does this cause, and what can be done to reduce them? Write ONE body paragraph (about 120-150 words) about EITHER the problems OR the solutions.",
-      "conditions": "13 minutes, independent. No model visible. Record word-bank use.",
-      "support": "Frame: topic sentence → cause/effect (lead to, have a detrimental effect on) → specific example → link back. Solutions: tackle, introduce, it is likely that.",
+      "prompt": "In many cities, the number of private cars is increasing. Some people think the government should charge drivers a fee to enter city centres. To what extent do you agree or disagree? Write ONE body paragraph (about 140 words) that supports your view.",
+      "conditions": "12 minutes, independent. No model visible. Record word-bank use.",
+      "support": "Frame: topic sentence (your view) → reason (lead to / result in) → specific example → concession (Admittedly, ... ; however, ...) → link back. Avoid 'good', 'bad', 'thing' and 'a lot of'.",
       "extension": "Add a hedged claim (arguably / it is likely that).",
-      "high_band": "Concede one counter-point with 'admittedly' and rebut it.",
+      "high_band": "Concede one counter-point and rebut it with evidence or an example.",
       "model_label": "Illustrative classroom model for discussion only. Not a certified band answer.",
-      "model": "The most serious problem associated with heavy social media use is arguably its effect on young people's mental health. Constant exposure to carefully edited images of other people's lives can lead to unrealistic comparisons, and a significant proportion of teenagers report feeling anxious or inadequate as a result. Excessive use late at night also has a detrimental effect on sleep, which in turn makes it harder to concentrate at school. For example, a student who checks messages until midnight is unlikely to perform well in a morning examination. Admittedly, social media allows young people to stay in touch with friends; however, these benefits are unlikely to outweigh the harm when use becomes compulsive. It is therefore a major concern that parents and schools should not ignore.",
+      "model": "In my view, charging drivers to enter city centres is one of the most effective ways to tackle congestion. When people must pay each time they drive into the centre, a significant proportion of them are likely to switch to buses, trains or bicycles, particularly for short journeys. This reduction in traffic would also have a beneficial effect on air quality, which is a major concern in many large cities. London provides a useful example: after a congestion charge was introduced, traffic in the charging zone fell noticeably in the first years of the scheme. Admittedly, such fees may place a heavier burden on low-income drivers; however, this drawback can be addressed by using the revenue to improve public transport. Arguably, therefore, the benefits of a charge outweigh its disadvantages.",
       "checklist": [
-        "Lexical Resource: Have you replaced vague words (good, bad, thing, a lot of)?",
-        "Lexical Resource: Are prepositions correct (lead to, stem from, effect on)?",
-        "Task Response: Is there a specific example that supports the main idea?",
-        "Coherence and Cohesion: Does the paragraph develop one idea from topic sentence to conclusion?"
+        "Task Response: Is your position clear in the first sentence and supported throughout?",
+        "Lexical Resource: Have you replaced vague words, and are prepositions correct (lead to, stem from, effect on)?",
+        "Coherence and Cohesion: Does the paragraph develop one idea, with a concession that is then answered?",
+        "Grammatical Range and Accuracy: Are although/despite/however used with the correct structure?"
       ]
     },
     {
       "id": "IELTS-V3-H1",
       "kind": "items",
       "homework": true,
-      "title": "Homework: replace the vague words",
+      "title": "Homework: precise and careful claims",
       "mode": "Homework; checked at the start of the next lesson",
-      "instructions": "Write a more precise word or phrase (no more than FOUR words) to replace the words in brackets.",
+      "instructions": "Questions 1-3: Complete each sentence with ONE word. Questions 4-6: Rewrite each sentence as instructed.",
       "items": [
         {
           "id": "IELTS-V3-H1-Q1",
-          "prompt": "Cheap flights have [made happen] a rise in tourism.",
-          "answer": "led to",
-          "evidence": "lead to",
-          "reason": "Past form.",
+          "prompt": "Rising house prices have resulted ______ more young adults living with their parents.",
+          "answer": "in",
+          "evidence": "result in",
+          "reason": "Fixed preposition.",
           "focus": "lexical resource",
           "type": "completion",
           "level": "core",
-          "word_limit": 3,
-          "accept": [
-            "resulted in",
-            "caused",
-            "contributed to"
-          ]
+          "word_limit": 1
         },
         {
           "id": "IELTS-V3-H1-Q2",
-          "prompt": "[A lot of] young adults now live with their parents.",
-          "answer": "a significant number of",
-          "evidence": "precise quantity phrase",
-          "reason": "Also: many, a large proportion of.",
+          "prompt": "Many cases of childhood obesity are ______ by a lack of physical activity.",
+          "answer": "caused",
+          "evidence": "be caused by",
+          "reason": "Passive form.",
           "focus": "lexical resource",
           "type": "completion",
           "level": "core",
-          "word_limit": 4,
-          "accept": [
-            "many",
-            "a large proportion of",
-            "a significant proportion of"
-          ]
+          "word_limit": 1
         },
         {
           "id": "IELTS-V3-H1-Q3",
-          "prompt": "Fast food is [bad for] children's health.",
-          "answer": "harmful to",
-          "evidence": "harmful to / detrimental to",
-          "reason": "Adjective + preposition.",
-          "focus": "lexical resource",
+          "prompt": "______ the high cost, many families choose private education.",
+          "answer": "Despite",
+          "evidence": "despite + noun phrase",
+          "reason": "'In spite of' is also correct but uses three words; accept 'Despite' only for ONE word.",
+          "focus": "grammatical range and accuracy",
           "type": "completion",
           "level": "core",
-          "word_limit": 3,
-          "accept": [
-            "detrimental to",
-            "damaging to"
-          ]
+          "word_limit": 1
         },
         {
           "id": "IELTS-V3-H1-Q4",
-          "prompt": "The government should [do something about] homelessness.",
-          "answer": "tackle",
-          "evidence": "tackle / address",
-          "reason": "One verb.",
-          "focus": "lexical resource",
-          "type": "completion",
-          "level": "core",
-          "word_limit": 3,
-          "accept": [
-            "address",
-            "deal with"
-          ]
+          "prompt": "Make this claim more careful (hedge it): 'Online learning will replace schools.'",
+          "answer": "It is unlikely that online learning will replace schools entirely, although it may become a larger part of education.",
+          "evidence": "it is likely/unlikely that; may",
+          "reason": "Accept any accurate hedged version (for example 'Online learning may to some extent replace ...'); it must not make an absolute prediction.",
+          "focus": "task response",
+          "type": "short",
+          "level": "core"
         },
         {
           "id": "IELTS-V3-H1-Q5",
-          "prompt": "Learning a language is [good for] the brain.",
-          "answer": "beneficial to",
-          "evidence": "beneficial to / for",
-          "reason": "Adjective + preposition.",
+          "prompt": "Replace the vague words: 'Tourism is bad for old cities because it causes a lot of problems.'",
+          "answer": "Mass tourism can have a detrimental effect on historic city centres, for example by causing overcrowding and raising rents.",
+          "evidence": "have a detrimental effect on + specific example",
+          "reason": "Accept any version that replaces 'bad' and 'a lot of problems' with precise language and names at least one specific problem.",
           "focus": "lexical resource",
-          "type": "completion",
-          "level": "core",
-          "word_limit": 3,
-          "accept": [
-            "beneficial for",
-            "good for"
-          ]
+          "type": "short",
+          "level": "core"
         },
         {
           "id": "IELTS-V3-H1-Q6",
-          "prompt": "One [bad point] of city life is noise.",
-          "answer": "drawback",
-          "evidence": "drawback / downside / disadvantage",
-          "reason": "Noun.",
-          "focus": "lexical resource",
-          "type": "completion",
-          "level": "core",
-          "word_limit": 3,
-          "accept": [
-            "downside",
-            "disadvantage"
-          ]
+          "prompt": "Write a concession and rebuttal about this view: 'Robots will take everyone's jobs.'",
+          "answer": "Admittedly, automation will replace some routine jobs; however, it is unlikely to eliminate human work entirely, since it also creates new roles.",
+          "evidence": "admittedly ... however",
+          "reason": "Accept any accurate concession + rebuttal using 'admittedly ... however' or 'although'.",
+          "focus": "coherence and cohesion",
+          "type": "short",
+          "level": "core"
         }
       ]
     }
   ],
   "exit_ticket": [
-    "Two phrases for cause and effect, with their prepositions:",
-    "A vague word I will stop using, and my replacement:",
+    "Two cause-and-effect phrases with their prepositions:",
+    "A vague word I will stop using, and my precise replacement:",
     "One hedged claim about technology:"
   ],
   "homework": [
-    "Complete the vague-word replacements on the homework sheet.",
-    "Rewrite the conclusion of your last Task 2 essay, replacing every vague word with a precise one."
+    "Complete the homework sheet.",
+    "Rewrite the conclusion of your last Task 2 essay, replacing every vague word with a precise one and hedging one claim."
   ],
-  "delayed_followup": "In Lesson 15 (Task 2 under time), check whether essays use precise cause/effect collocations and hedging. Record it as a later observation.",
+  "delayed_followup": "In Lesson 15 (Task 2 under time), check whether essays use precise cause/effect collocations, accurate concession structures and hedging. Record it as a later observation.",
   "mapping_notes": "Focuses use Diagnostic Bible section 7.2 construct names where they apply (lexical resource, paraphrase recognition). Teaching focuses only. This optional vocabulary lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
   "release_blockers": [
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
@@ -644,105 +671,155 @@
   ],
   "followup": {
     "id": "IELTS-V3-C1",
-    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.0.0 on 2026-10-26. Keep private until use.",
-    "delivery": "About one teaching week later: 10 minutes, no word bank or dictionary. Record timing and support.",
-    "review": "Score each answer independently; accept only accurate, natural collocations. Do not convert to an IELTS band.",
+    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.1.0 on 2026-10-26. Keep private until use.",
+    "delivery": "About one teaching week later: 10 minutes, unseen text, no word bank or dictionary. Record timing and support.",
+    "review": "Score each answer independently; accept only accurate, natural language. Do not convert to an IELTS band.",
     "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty.",
     "blocks": [
       {
         "id": "IELTS-V3-C1",
         "kind": "items",
-        "title": "Fresh check: precise argument language",
+        "title": "Fresh check: which word fits exactly?",
         "mode": "Withheld fresh check; independent, timed",
-        "instructions": "Questions 1-4: complete each sentence with ONE word. Questions 5-6: choose the best version, A, B or C.",
+        "instructions": "Choose the correct option, A, B, C or D, to complete each sentence. All the options are real English words.",
         "items": [
           {
             "id": "IELTS-V3-C1-Q1",
-            "prompt": "Rising house prices have resulted ______ more young people renting.",
-            "answer": "in",
+            "prompt": "Higher fuel prices have resulted ______ a rise in the number of people using buses.",
+            "answer": "D",
             "evidence": "result in",
-            "reason": "Fixed preposition.",
+            "reason": "'Result' takes 'in' for consequences ('result from' gives the cause, which reverses the meaning here).",
             "focus": "lexical resource",
-            "type": "completion",
+            "type": "mcq",
             "level": "core",
-            "word_limit": 1
+            "options": [
+              "A  to",
+              "B  from",
+              "C  at",
+              "D  in"
+            ]
           },
           {
             "id": "IELTS-V3-C1-Q2",
-            "prompt": "Many cases of obesity are ______ by a lack of physical activity.",
-            "answer": "caused",
-            "evidence": "be caused by",
-            "reason": "Passive form.",
+            "prompt": "Local councils could ______ stricter rules on recycling.",
+            "answer": "A",
+            "evidence": "introduce / implement rules",
+            "reason": "You 'achieve' a goal, 'commit' a crime and 'perform' a task, but you introduce rules.",
             "focus": "lexical resource",
-            "type": "completion",
+            "type": "mcq",
             "level": "core",
-            "word_limit": 1
+            "options": [
+              "A  introduce",
+              "B  achieve",
+              "C  commit",
+              "D  perform"
+            ]
           },
           {
             "id": "IELTS-V3-C1-Q3",
-            "prompt": "Local authorities could ______ stricter recycling rules.",
-            "answer": "introduce",
-            "evidence": "introduce/implement rules",
-            "reason": "Collocation.",
-            "focus": "lexical resource",
-            "type": "completion",
+            "prompt": "______ the evidence, some politicians still deny that the policy has failed.",
+            "answer": "B",
+            "evidence": "despite + noun phrase",
+            "reason": "'Although' and 'even though' need a clause; 'however' cannot introduce a noun phrase.",
+            "focus": "grammatical range and accuracy",
+            "type": "mcq",
             "level": "core",
-            "word_limit": 1,
-            "accept": [
-              "implement",
-              "enforce"
+            "options": [
+              "A  Although",
+              "B  Despite",
+              "C  However",
+              "D  Even though"
             ]
           },
           {
             "id": "IELTS-V3-C1-Q4",
-            "prompt": "In my opinion, the risks of genetic testing do not ______ its benefits.",
-            "answer": "outweigh",
-            "evidence": "outweigh",
-            "reason": "Comparison verb.",
-            "focus": "lexical resource",
-            "type": "completion",
-            "level": "core",
-            "word_limit": 1
-          },
-          {
-            "id": "IELTS-V3-C1-Q5",
-            "prompt": "'Tourism is bad for old cities.'",
-            "answer": "B",
-            "evidence": "specific harm + hedging",
-            "reason": "A vague; C wrong collocation.",
-            "focus": "lexical resource",
-            "type": "mcq",
-            "level": "core",
-            "options": [
-              "A  Tourism is a bad thing for old cities.",
-              "B  Mass tourism can have a detrimental effect on historic city centres, for instance through overcrowding.",
-              "C  Tourism makes a detrimental to old cities."
-            ]
-          },
-          {
-            "id": "IELTS-V3-C1-Q6",
-            "prompt": "'Some say robots will take all jobs, but this is wrong.'",
+            "prompt": "The writer wants to state their own view with caution: 'Genetic testing could, ______, do more harm than good.'",
             "answer": "C",
-            "evidence": "admittedly ... however; hedged",
-            "reason": "A overclaims; B loses the contrast.",
+            "evidence": "arguably = a careful claim the writer can defend",
+            "reason": "'Allegedly', 'supposedly' and 'reportedly' attribute the claim to other people.",
             "focus": "task response",
             "type": "mcq",
             "level": "core",
             "options": [
-              "A  Robots will never take any jobs at all.",
-              "B  Robots will take jobs and people will lose work.",
-              "C  Admittedly, automation will replace some jobs; however, it is unlikely to eliminate human work entirely."
+              "A  allegedly",
+              "B  supposedly",
+              "C  arguably",
+              "D  reportedly"
             ]
+          }
+        ]
+      },
+      {
+        "id": "IELTS-V3-C2",
+        "kind": "items",
+        "title": "Fresh check: homework",
+        "mode": "Withheld fresh check; independent, timed",
+        "instructions": "Do the statements agree with the claims of the writer? Write YES, NO or NOT GIVEN.",
+        "stimulus": {
+          "type": "passage",
+          "title": "Does homework help?",
+          "paragraphs": [
+            "It is often claimed that homework improves academic performance, and many parents judge a school partly by how much homework it sets. In my view, this belief is only partly justified. For older secondary students, there is reasonable evidence that well-designed homework is associated with better results, particularly when it consolidates what has been taught in class.",
+            "For younger children, however, the benefits are far less clear, and excessive homework may have a detrimental effect on sleep and family life. What matters, I would argue, is not the quantity of homework but its purpose. A short task that asks a child to read with a parent is arguably more valuable than an hour of repetitive exercises."
+          ]
+        },
+        "items": [
+          {
+            "id": "IELTS-V3-C2-Q1",
+            "prompt": "The common belief that homework raises achievement is entirely correct.",
+            "answer": "NO",
+            "evidence": "this belief is only partly justified",
+            "reason": "'Only partly justified' contradicts 'entirely correct'.",
+            "focus": "writer's views",
+            "type": "ynng",
+            "level": "core"
+          },
+          {
+            "id": "IELTS-V3-C2-Q2",
+            "prompt": "Homework can benefit older students when it reinforces classroom learning.",
+            "answer": "YES",
+            "evidence": "particularly when it consolidates what has been taught in class",
+            "reason": "'Reinforces classroom learning' paraphrases 'consolidates what has been taught in class'.",
+            "focus": "paraphrase recognition",
+            "type": "ynng",
+            "level": "core"
+          },
+          {
+            "id": "IELTS-V3-C2-Q3",
+            "prompt": "Teachers in most schools set too much homework.",
+            "answer": "NOT GIVEN",
+            "evidence": "The writer discusses excessive homework but not how much most schools set.",
+            "reason": "No claim about most schools is made.",
+            "focus": "writer's views",
+            "type": "ynng",
+            "level": "core"
+          },
+          {
+            "id": "IELTS-V3-C2-Q4",
+            "prompt": "The amount of homework a child does is the most important factor.",
+            "answer": "NO",
+            "evidence": "What matters, I would argue, is not the quantity of homework but its purpose",
+            "reason": "The writer says purpose matters, not quantity.",
+            "focus": "writer's views",
+            "type": "ynng",
+            "level": "core"
           }
         ]
       }
     ]
   },
-  "approval_record": {
+  "previous_approval_record": {
     "approved_by": "Owner, Brains Heist LLC",
     "date": "2026-10-26",
     "version": "1.0.0",
     "scope": "Vocabulary lesson content, keys and models for teacher-only release to all eligible schools. Student task publication remains separate.",
-    "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek: 'there should also some Vocabulary lessons that really fit the IELTS in a very practical way for the students to benefit from. Make the needed adjustments and improvements now ... you have all my permissions, don't ask for any.' Not recorded as an in-platform decision; no review-draft pack was opened before approval."
+    "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek ('Make the needed adjustments and improvements now ... you have all my permissions'). Superseded by v1.1.0 after an external review judged v1.0.0 too easy for Band 6.5+ preparation."
+  },
+  "approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-26",
+    "version": "1.1.0",
+    "scope": "Vocabulary lesson content, keys and models for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 15:42 Asia/Bishkek, after sharing an external review of V6 v1.0.0 (difficulty 3.5/10; distractors too easy; reading answers copied; Part 3 not interactive; no writing): 'yes, but this time be very accurate', in reply to the proposal to rebuild V1-V6 at Band 6.5-7.5 level and re-release them. Not recorded as an in-platform decision; no review-draft pack was opened before approval."
   }
 }

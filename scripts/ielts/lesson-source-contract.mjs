@@ -286,6 +286,52 @@ function jaccard(a, b) {
   return shared / (A.size + B.size - shared);
 }
 
+// Vocabulary lessons (IELTS-V*) are held to the challenge level of real IELTS preparation (Band 6.5-7.5):
+// plausible four-option choices, paraphrased reading questions on a substantial passage, extended production
+// (a writing model of 120+ words or an interactive Part 3 with examiner follow-ups) and transfer homework.
+export const VOCABULARY_LEVEL = { minPassageWords: 450, maxItemOverlap: 0.6, maxMeanOverlap: 0.35, minModelWords: 120, minFollowUps: 3, minTransferItems: 2 };
+const OVERLAP_STOP = new Set('the a an of to in and or is are was were be been for on at by with that this it as from its their his her they we you i not no but than then so which who what when where how do does did have has had can could may might will would should'.split(' '));
+const overlapWords = (t) => (String(t).toLowerCase().replace(/_+/g, ' ').match(/[a-z]+/g) ?? []).filter((w) => !OVERLAP_STOP.has(w));
+export function itemEvidenceOverlap(prompt, evidence) {
+  const a = new Set(overlapWords(prompt)); const b = new Set(overlapWords(evidence));
+  if (!a.size) return 0;
+  let shared = 0; for (const w of a) if (b.has(w)) shared += 1;
+  return shared / a.size;
+}
+
+function vocabularyLevelErrors(lesson) {
+  const errors = [];
+  const L = VOCABULARY_LEVEL;
+  const blocks = lesson.blocks ?? [];
+  const all = [...blocks, ...(lesson.followup?.blocks ?? [])];
+  for (const block of all) {
+    for (const item of block.items ?? []) {
+      if (item.type === 'mcq' && (item.options ?? []).length !== 4) errors.push(`${item.id}: vocabulary multiple choice needs four plausible options (A-D)`);
+    }
+    if (block.stimulus?.type === 'passage') {
+      const words = wordCount(block.stimulus.paragraphs.join(' '));
+      if (!lesson.followup?.blocks?.includes(block) && words < L.minPassageWords) errors.push(`${block.id}: reading passage has ${words} words; vocabulary lessons need at least ${L.minPassageWords}`);
+      const overlaps = [];
+      for (const item of block.items ?? []) {
+        if (item.answer === 'NOT GIVEN' || !item.evidence) continue;
+        const o = itemEvidenceOverlap(item.prompt, item.evidence);
+        overlaps.push(o);
+        if (o > L.maxItemOverlap) errors.push(`${item.id}: question repeats ${(100 * o).toFixed(0)}% of the evidence wording; paraphrase it`);
+      }
+      if (overlaps.length && overlaps.reduce((a, b) => a + b, 0) / overlaps.length > L.maxMeanOverlap) errors.push(`${block.id}: questions copy the passage too closely on average`);
+    }
+    if (block.kind === 'speaking') {
+      if (!((block.follow_ups ?? []).length >= L.minFollowUps)) errors.push(`${block.id}: speaking practice needs at least ${L.minFollowUps} examiner follow-up questions (interactive, as in the real test)`);
+      if (/at least (\w+ )?(collocations|phrases|items|word-bank)/i.test(`${block.instructions} ${block.routine ?? ''}`)) errors.push(`${block.id}: do not ask learners to insert a quota of phrases; judge natural, developed answers`);
+    }
+  }
+  const productive = blocks.some((b) => b.kind === 'writing' && wordCount(b.model ?? '') >= L.minModelWords) || blocks.some((b) => b.kind === 'speaking' && (b.follow_ups ?? []).length >= L.minFollowUps);
+  if (!productive) errors.push(`vocabulary lessons need extended production: a writing task with a ${L.minModelWords}+ word model, or an interactive Part 3 discussion`);
+  const transfer = blocks.filter((b) => b.homework).flatMap((b) => b.items ?? []).filter((i) => i.type === 'short');
+  if (transfer.length < L.minTransferItems) errors.push(`vocabulary homework needs at least ${L.minTransferItems} open transfer tasks (type short, with a sample answer)`);
+  return errors;
+}
+
 export function validateLessonSource(lesson, { bibles = currentBibleVersions() } = {}) {
   const errors = [];
   const code = lesson.code;
@@ -301,6 +347,7 @@ export function validateLessonSource(lesson, { bibles = currentBibleVersions() }
   if ((extension || vocabulary) && !lesson.placement) errors.push('optional lessons need a placement note (when in the course they fit)');
   if (vocabulary && !(lesson.word_bank?.length >= 12)) errors.push('vocabulary lessons need a word_bank of at least 12 target items');
   for (const entry of lesson.word_bank ?? []) if (!entry.item || !entry.meaning || !entry.example || !entry.skill) errors.push(`word_bank entry ${entry.item ?? '?'} needs item, meaning, example and skill`);
+  if (vocabulary) errors.push(...vocabularyLevelErrors(lesson));
   if (lesson.duration !== 60) errors.push('core lessons are 60 minutes; schedule longer assessments separately');
   if (lesson.test_type !== 'Academic') errors.push('programme route is IELTS Academic only');
   if (!/draft/i.test(lesson.status ?? '') && !lesson.approval_record) errors.push('status must remain a draft until a human approval record is attached');

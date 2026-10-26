@@ -18,7 +18,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle, KeepTogether, Image
+from reportlab.platypus import PageBreak, CondPageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle, KeepTogether, Image
 
 INK, PRIMARY, MUTED, LINE, WASH = '#15243A', '#1746B0', '#4C6076', '#DCE5EF', '#EEF3FA'
 ROOT = Path(__file__).resolve().parents[2]
@@ -345,8 +345,13 @@ class Pack:
         for i, it in enumerate(b['items']):
             num = it['id'].rsplit('-Q', 1)[-1]
             body = [self.p(f"{num}.  {it['prompt']}")]
-            for opt in it.get('options', []) if it['type'] in ('mcq', 'choice') else []:
-                body.append(self.p(opt, 'O'))
+            opts = it.get('options', []) if it['type'] in ('mcq', 'choice') else []
+            if opts and max(len(o) for o in opts) <= 22:
+                # Single-word options print on one line, as on an IELTS paper, so a set of questions fits on one page.
+                body.append(self.p(('\u00a0' * 8).join(o.replace('  ', '\u00a0\u00a0') for o in opts), 'O'))
+            else:
+                for opt in opts:
+                    body.append(self.p(opt, 'O'))
             if it['type'] in ('matching', 'paragraph_match') and st.get('type') == 'passage':
                 body.append(self.p('Answer: ______   Evidence: ________________________________________'))
             elif it['type'] in ('matching', 'paragraph_match'):
@@ -401,6 +406,10 @@ class Pack:
             return out
         if k == 'speaking':
             out = [self.p(b['title'], 'H'), self.p(b['instructions'])] + [self.p(('•  ' if not re.match(r'^[A-Z]-?[A-Z]?\d', q) else '') + q, 'P') for q in b['prompts']]
+            if b.get('follow_ups'):
+                # Real Part 3 is interactive: the examiner asks short follow-ups that push for development.
+                out.append(self.p('Examiner follow-up questions (the examiner chooses one or two after each answer):', 'S'))
+                out += [self.p('•  ' + q, 'P') for q in b['follow_ups']]
             if b.get('support'):
                 out.append(self.p('Support: ' + b['support'], 'S'))
             out += [self.p('Partner notes: I heard  [ ] a direct answer  [ ] a reason  [ ] an example  [ ] a contrast  [ ] a consequence'), self.p('One useful next step: ____________________________________________')]
@@ -448,6 +457,8 @@ class Pack:
                     out.append(self.p(f'{label}: ' + b[key], 'S'))
         elif k == 'speaking':
             out += [self.p('•  ' + q, 'P') for q in b['prompts']]
+            if b.get('follow_ups'):
+                out += [self.p('Examiner follow-ups', 'H')] + [self.p('•  ' + q, 'P') for q in b['follow_ups']]
             for m_ in self.speaking_models(b):
                 out += [self.p(m_['label'] + ' (illustrative; teacher reads naturally; not a script to memorise)', 'H'), self.p(m_['text'])]
             for key, label in [('support', 'Support'), ('extension', 'Extension'), ('notice', 'Notice')]:
@@ -616,7 +627,7 @@ class Pack:
             out.append({'title': f"{b['title']}: check", 'body': b['checklist'], 'meta': [{'t': 'goal'} for _ in b['checklist']], 'build': True, 'workbook': wb,
                         'notes': notes_base + ' Partners check against these points; the writer makes one revision and keeps the first draft.'})
         elif k == 'speaking' and part == 'routine':
-            body = [b['instructions']] + ([b['support']] if b.get('support') else [])
+            body = [b['instructions']] + ([b['support']] if b.get('support') else []) + (['Examiner follow-ups: ' + ' / '.join(b['follow_ups'])] if b.get('follow_ups') else [])
             out.append({'title': f"{b['title']}: in pairs", 'body': body, 'meta': [{'t': 'card'} for _ in body], 'build': True, 'workbook': wb,
                         'notes': b['observation']})
         elif k == 'writing' and part == 'model':
@@ -701,9 +712,9 @@ class Pack:
         pages = []
         if d.get('word_bank'):
             # Vocabulary lessons open with the target items so learners can annotate them during the lesson.
-            rows = [['Word or phrase', 'Meaning / use', 'Example', 'Skill']] + [[w['item'], w['meaning'], w['example'], w['skill']] for w in d['word_bank']]
+            rows = [['Word or phrase', 'Meaning / use', 'Example']] + [[f"{w['item']}\n({w['skill']})", w['meaning'], w['example']] for w in d['word_bank']]
             pages.append([self.p('Word bank', 'H'), self.p('Tick each item when you have used it correctly in today\'s tasks. Add your own example in the margin.'),
-                          *self.table(rows, [100, 140, 205, 66]), self.p('Learn items as phrases, not single words: the collocation is what scores.', 'S')])
+                          *self.table(rows, [150, 150, 211]), self.p('Learn items as phrases, not single words: the collocation is what scores.', 'S')])
         if d.get('workbook_extra'):
             pages.append([])
             for x in [x for x in d['workbook_extra'] if x.get('position') == 'start']:
@@ -714,12 +725,16 @@ class Pack:
             if b.get('in_workbook') is False:
                 continue  # projected teaching contrast only; keeps analysis out of the practice pages
             needs_page = b['kind'] == 'writing' or bool(b.get('figure')) or (b.get('stimulus') or {}).get('type') == 'passage' and not (b.get('stimulus') or {}).get('workbook_reference')
-            if not pages or needs_page:
+            if d.get('vocabulary') and pages:
+                # Vocabulary workbooks flow continuously: a task starts a new page only when too little space is left,
+                # so no page holds a single stray question.
+                pages[-1] += [Spacer(1, 10), CondPageBreak(300 if needs_page else 120)]
+            elif not pages or needs_page:
                 pages.append([])
             elif pages[-1]:
                 pages[-1].append(Spacer(1, 10))
             pages[-1].extend(self.student_block(b))
-            if needs_page and b['kind'] == 'writing':
+            if needs_page and b['kind'] == 'writing' and not d.get('vocabulary'):
                 pages.append([])
         for x in [x for x in d.get('workbook_extra', []) if x.get('position') == 'end']:
             pages[-1].extend([Spacer(1, 10), self.p(x['title'], 'H')] + ([self.p(x['text'])] if x.get('text') else []) + [self.p(f + ' ________________________________') for f in x.get('fields', [])])

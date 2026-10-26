@@ -5,10 +5,10 @@
   "vocabulary": true,
   "placement": "optional, after Week 3 (Lesson 5 or 6)",
   "week": 3,
-  "version": "1.0.0",
-  "presentation_version": "1.0.0",
+  "version": "1.1.0",
+  "presentation_version": "1.1.0",
   "title": "Vocabulary: paraphrase power for Reading and Listening",
-  "status": "Owner approved v1.0.0 on 2026-10-26; teacher release to all eligible schools (optional vocabulary lesson)",
+  "status": "Owner approved v1.1.0 on 2026-10-26; teacher release to all eligible schools (optional vocabulary lesson)",
   "duration": 60,
   "test_type": "Academic",
   "bibles": {
@@ -25,126 +25,126 @@
   "prerequisites": [
     "Lesson 5 (Listening distractors and paraphrases) or Lesson 6 (Reading for specific information).",
     "Learners have met TRUE/FALSE/NOT GIVEN at least once.",
-    "Optional vocabulary lesson: use when learners miss answers because the question uses different words from the text."
+    "Pitched at learners aiming for Band 6.5-7.5 who lose marks because questions use different words from the text."
   ],
   "objectives": [
     {
-      "text": "Recognise common IELTS paraphrase pairs (for example decline = fall, substantial = large) quickly and accurately.",
+      "text": "Recognise 14 high-frequency IELTS paraphrase sets quickly and accurately (for example inadequate = not enough, predominantly = mainly).",
       "focus": [
         "paraphrase recognition",
         "lexical resource"
       ]
     },
     {
-      "text": "Use synonym and word-family knowledge to locate answers in Reading and Listening without relying on matching words.",
+      "text": "Detect near-miss paraphrases that change quantity, certainty, time or cause.",
       "focus": [
-        "paraphrase recognition",
-        "locating explicit evidence"
+        "detail discrimination"
       ]
     },
     {
-      "text": "Tell a true paraphrase from a near-miss that changes meaning (for example all / most, always / often).",
+      "text": "Paraphrase a Writing task question accurately in an introduction, without copying or changing its meaning.",
       "focus": [
-        "detail discrimination"
+        "lexical resource",
+        "task response"
       ]
     }
   ],
   "levels": {
-    "foundation": "Work with the first eight word-bank pairs only; use the word bank during practice.",
-    "core": "Complete all tasks with the word bank closed after the matching task.",
-    "extension": "For each TRUE/FALSE answer, name the exact paraphrase pair that decided it.",
-    "high_band": "Write your own TRUE, FALSE and NOT GIVEN statement for the practice passage, each depending on a different paraphrase, and test a partner."
+    "foundation": "Use the word bank throughout; for each reading answer, underline the matching words in the passage before deciding.",
+    "core": "Close the word bank after the first stage; name the paraphrase that decided each reading answer.",
+    "extension": "For each wrong option in the first task, say exactly what it changes (quantity, certainty, time or cause).",
+    "high_band": "In the writing task, paraphrase each question using different structures as well as different words (for example a noun phrase instead of a clause)."
   },
   "word_bank": [
     {
-      "item": "decline / fall / drop",
+      "item": "decline / fall / drop off",
       "meaning": "become smaller in number or amount",
       "example": "Visitor numbers declined = fewer people visited.",
       "skill": "Reading"
     },
     {
       "item": "substantial / considerable",
-      "meaning": "large in size or amount",
-      "example": "a substantial increase = a big rise",
+      "meaning": "large in size, amount or importance",
+      "example": "a substantial increase = a large rise",
       "skill": "Reading"
     },
     {
-      "item": "approximately / roughly",
-      "meaning": "close to an exact number",
-      "example": "roughly 300 = about 300",
+      "item": "approximately / roughly / in the region of",
+      "meaning": "close to, but not exactly, a number",
+      "example": "in the region of 300 = about 300",
       "skill": "Listening"
     },
     {
-      "item": "prohibit / ban",
+      "item": "prohibit / ban / outlaw",
       "meaning": "officially not allow",
-      "example": "Cars are prohibited = cars are banned",
+      "example": "Cars are prohibited = cars are banned.",
       "skill": "Reading"
     },
     {
-      "item": "obsolete / out of date",
+      "item": "obsolete / outdated",
       "meaning": "no longer used because something newer exists",
-      "example": "obsolete equipment = old technology nobody uses",
+      "example": "obsolete equipment = equipment nobody uses now",
       "skill": "Reading"
     },
     {
-      "item": "insufficient / not enough",
-      "meaning": "less than is needed",
-      "example": "insufficient funding = too little money",
+      "item": "inadequate / insufficient",
+      "meaning": "not enough, or not good enough",
+      "example": "inadequate funding = too little money",
       "skill": "Reading"
     },
     {
-      "item": "reluctant / unwilling",
+      "item": "reluctant / unwilling / hesitant",
       "meaning": "not wanting to do something",
-      "example": "reluctant to change = did not want to change",
+      "example": "reluctant to invest = did not want to invest",
       "skill": "Listening"
     },
     {
-      "item": "predominantly / mainly",
-      "meaning": "mostly; for the most part",
-      "example": "predominantly young = most were young",
+      "item": "predominantly / mainly / for the most part",
+      "meaning": "mostly, but not completely",
+      "example": "predominantly female = most, not all, were women",
       "skill": "Reading"
     },
     {
-      "item": "acquire / obtain / get",
+      "item": "acquire / obtain / gain",
       "meaning": "come to have something",
       "example": "acquire a skill = learn a skill",
       "skill": "Reading"
     },
     {
-      "item": "consequently / as a result",
+      "item": "consequently / as a result / hence",
       "meaning": "because of this",
       "example": "Consequently, prices rose = so prices went up.",
       "skill": "Reading"
     },
     {
-      "item": "vital / essential / crucial",
-      "meaning": "extremely important; necessary",
+      "item": "vital / essential / indispensable",
+      "meaning": "absolutely necessary",
       "example": "vital supplies = supplies people cannot do without",
       "skill": "Listening"
     },
     {
-      "item": "temporary / short-term",
+      "item": "temporary / short-term / interim",
       "meaning": "lasting only for a limited time",
-      "example": "a temporary closure = closed for a while",
+      "example": "an interim measure = a step taken until a permanent one is ready",
       "skill": "Listening"
     },
     {
-      "item": "the elderly / older people",
+      "item": "the elderly / older people / senior citizens",
       "meaning": "people in later life",
       "example": "services for the elderly = help for older residents",
       "skill": "Listening"
     },
     {
-      "item": "inexpensive / affordable / cheap",
-      "meaning": "not costing much",
-      "example": "an inexpensive option = a low-cost choice",
-      "skill": "Listening"
+      "item": "negligible / minimal / insignificant",
+      "meaning": "so small that it hardly matters",
+      "example": "a negligible effect = almost no effect",
+      "skill": "Reading"
     }
   ],
   "stages": [
     {
       "start": 0,
-      "end": 6,
+      "end": 5,
       "title": "Opening challenge: same idea, different words",
       "show": [
         {
@@ -157,24 +157,24 @@
         }
       ],
       "student": "Decide which learner reasoned best before the reveal.",
-      "teacher": "Learners vote. Reveal the comments. Stress that IELTS questions rarely repeat the text's words.",
-      "say": "The test checks meaning, not matching words.",
-      "check": "Learners can say why Learner A is wrong."
+      "teacher": "Learners vote. Reveal the comments. Stress that IELTS questions rarely repeat the text's words, and that small words decide the answer.",
+      "say": "Match the idea, then check every detail: amount, certainty, time and cause.",
+      "check": "Learners can say why Learner A and Learner C are wrong."
     },
     {
-      "start": 6,
-      "end": 14,
-      "title": "Word bank: meet the pairs",
+      "start": 5,
+      "end": 11,
+      "title": "Word bank: paraphrase sets",
       "show": [],
-      "student": "Read each pair aloud and add a translation or example of your own.",
-      "teacher": "Drill pronunciation (con-SID-er-a-ble, pre-DOM-in-ant-ly). Point out word families: decline (verb/noun), substantial(ly).",
-      "say": "Learn the pair, not the single word.",
-      "check": "Learners can give the partner word for six pairs with the bank closed."
+      "student": "Cover the meaning column. Explain each set to a partner and give one example sentence.",
+      "teacher": "Drill stress (con-SID-er-a-ble, pre-DOM-in-ant-ly, in-dis-PEN-sa-ble). Point out word families: decline (verb/noun), substantial(ly).",
+      "say": "Learn sets of words, not single words: the test will use the one you did not expect.",
+      "check": "Pairs can give a partner word for ten sets with the meaning column covered."
     },
     {
-      "start": 14,
-      "end": 22,
-      "title": "Match the paraphrases",
+      "start": 11,
+      "end": 19,
+      "title": "Exact or near-miss?",
       "show": [
         {
           "block": "IELTS-V1-P1",
@@ -185,15 +185,15 @@
           "part": "answers"
         }
       ],
-      "student": "Match each phrase to the option with the same meaning.",
-      "teacher": "Five minutes, bank closed. Reveal and ask which near-miss options tempted learners.",
-      "say": "Two options look similar; only one keeps the meaning.",
-      "check": "At least six of eight correct with the bank closed."
+      "student": "Choose the sentence that means exactly the same as the original. Every option is a correct English sentence.",
+      "teacher": "Seven minutes, word bank closed for core and above. In the reveal, ask what each wrong option changes.",
+      "say": "A paraphrase keeps the same amount, certainty, time and cause.",
+      "check": "Learners identify the change in at least two distractors per question."
     },
     {
-      "start": 22,
-      "end": 36,
-      "title": "Paraphrase in a test passage",
+      "start": 19,
+      "end": 33,
+      "title": "Reading: repair cafés",
       "show": [
         {
           "block": "IELTS-V1-P2",
@@ -204,51 +204,47 @@
           "part": "answers"
         }
       ],
-      "student": "Answer TRUE, FALSE or NOT GIVEN and underline the words in the passage that mean the same as the statement.",
-      "teacher": "Ten minutes timed. During the reveal, ask learners to name the paraphrase pair for each answer.",
-      "say": "Find the idea, then check every detail: quantity, time and certainty.",
-      "check": "Learners quote the evidence and name the paraphrase."
+      "student": "Answer the ten questions in twelve minutes. Underline the words in the passage that mean the same as each question.",
+      "teacher": "Twelve minutes, then reveal. For each answer, ask learners to name the paraphrase pair that decided it.",
+      "say": "Locate the idea, then test every word in the question against the passage.",
+      "check": "Learners quote evidence for every answer and explain both NOT GIVEN answers."
     },
     {
-      "start": 36,
-      "end": 46,
-      "title": "Near-miss paraphrases",
+      "start": 33,
+      "end": 45,
+      "title": "Paraphrase the question",
       "show": [
         {
-          "block": "IELTS-V1-P3",
-          "part": "questions"
-        },
-        {
-          "block": "IELTS-V1-P3",
-          "part": "answers"
-        }
-      ],
-      "student": "Choose the sentence that means exactly the same as the original.",
-      "teacher": "Focus on small words that change meaning: most/all, may/will, rarely/never.",
-      "say": "A paraphrase must keep the same amount, time and certainty.",
-      "check": "Learners explain why each wrong option fails."
-    },
-    {
-      "start": 46,
-      "end": 54,
-      "title": "Say it another way",
-      "show": [
-        {
-          "block": "IELTS-V1-S1",
+          "block": "IELTS-V1-W1",
           "part": "prompt"
-        },
-        {
-          "block": "IELTS-V1-S1",
-          "part": "model"
         }
       ],
-      "student": "Rephrase each sentence for your partner using a word-bank item; your partner checks the meaning is unchanged.",
-      "teacher": "Pairs. Listen live and note any changes of meaning.",
-      "say": "If you can produce the paraphrase, you will recognise it in the test.",
-      "check": "Each learner produces four accurate paraphrases."
+      "student": "Write the three introductions. Change the words and, where you can, the structure; never change the meaning.",
+      "teacher": "Twelve minutes, no model visible. Note learners who copy more than four words in a row from a question.",
+      "say": "Copied words do not count towards your word total in the real test, and changed meaning loses Task marks.",
+      "check": "Every learner finishes at least two introductions."
     },
     {
-      "start": 54,
+      "start": 45,
+      "end": 53,
+      "title": "Compare with the model and check",
+      "show": [
+        {
+          "block": "IELTS-V1-W1",
+          "part": "model"
+        },
+        {
+          "block": "IELTS-V1-W1",
+          "part": "checklist"
+        }
+      ],
+      "student": "Compare with the model. Use the checklist to find one place where your paraphrase changed the meaning, and fix it.",
+      "teacher": "Ask two learners to read an introduction aloud; the class says whether the meaning has changed.",
+      "say": "The model is illustrative, not a target band.",
+      "check": "Each learner makes one correction to their own work."
+    },
+    {
+      "start": 53,
       "end": 60,
       "title": "Exit ticket and homework",
       "show": [
@@ -257,10 +253,10 @@
           "part": "questions"
         }
       ],
-      "student": "Complete the exit ticket. Note the homework.",
-      "teacher": "Collect exit tickets; check which pairs are still unknown.",
-      "say": "Keep a paraphrase list and add to it after every test.",
-      "check": "Every learner writes three pairs from memory."
+      "student": "Complete the exit ticket and note the homework.",
+      "teacher": "Collect exit tickets; note which sets are still unknown.",
+      "say": "After every practice test, add the paraphrases you missed to your own list.",
+      "check": "Every learner writes three paraphrase sets from memory."
     }
   ],
   "blocks": [
@@ -269,7 +265,7 @@
       "kind": "contrast",
       "title": "Same idea, different words",
       "mode": "Opening challenge; learners decide before the reveal",
-      "instructions": "Passage: 'Over the past decade, the number of visitors to the museum has declined substantially.' Statement: 'Far fewer people visit the museum than ten years ago.' Three learners answered. Whose reasoning is best?",
+      "instructions": "Passage: 'Over the past decade, the number of visitors to the museum has declined substantially.' Statement: 'Far fewer people visit the museum than ten years ago.' Three learners answered TRUE, FALSE or NOT GIVEN. Whose reasoning is best?",
       "examples": [
         {
           "label": "Learner A",
@@ -278,520 +274,414 @@
         },
         {
           "label": "Learner B",
-          "text": "TRUE, because 'declined' = 'fewer', 'substantially' = 'far', and 'the past decade' = 'ten years ago'.",
-          "comment": "Best: every part of the statement is matched to the passage by meaning."
+          "text": "TRUE, because 'declined' = 'fewer', 'substantially' = 'far', and 'over the past decade' = 'than ten years ago'.",
+          "comment": "Best: every part of the statement is matched to the passage by meaning, including the amount and the time."
         },
         {
           "label": "Learner C",
-          "text": "FALSE, because the passage talks about the museum's number, not people.",
-          "comment": "Wrong: 'the number of visitors' is the number of people who visit."
+          "text": "FALSE, because the passage says 'substantially', and the statement says 'far', which is stronger.",
+          "comment": "Wrong: 'substantially' and 'far' express a similar large amount. Only a clear contradiction makes a statement FALSE."
         }
       ]
     },
     {
       "id": "IELTS-V1-P1",
       "kind": "items",
-      "title": "Match the paraphrases",
-      "mode": "Controlled practice; word bank closed",
-      "instructions": "Match each phrase (1–8) with the option, A–J, that has the same meaning. Two options are not used.",
+      "title": "Exact or near-miss?",
+      "mode": "Controlled practice; word bank closed for core and above",
+      "instructions": "Choose the sentence, A, B, C or D, that means exactly the same as the original. All the options are correct English; only one keeps the original meaning.",
       "items": [
         {
           "id": "IELTS-V1-P1-Q1",
-          "prompt": "a considerable rise",
-          "answer": "D",
-          "evidence": "considerable = large/big; rise = increase",
-          "reason": "D keeps both size and direction.",
-          "focus": "paraphrase recognition",
-          "type": "matching",
+          "prompt": "Original: 'The scheme was used predominantly by students.'",
+          "answer": "C",
+          "evidence": "predominantly = mainly, not exclusively",
+          "reason": "A says 'only' (all); B says half; D reverses the meaning.",
+          "focus": "detail discrimination",
+          "type": "mcq",
           "level": "core",
           "options": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "J"
+            "A  Only students used the scheme.",
+            "B  About half of the scheme's users were students.",
+            "C  Most of the people who used the scheme were students.",
+            "D  Students made little use of the scheme."
           ]
         },
         {
           "id": "IELTS-V1-P1-Q2",
-          "prompt": "prohibited in the city centre",
-          "answer": "H",
-          "evidence": "prohibit = ban; not allowed",
-          "reason": "H means the same rule.",
-          "focus": "paraphrase recognition",
-          "type": "matching",
+          "prompt": "Original: 'Prices may decline next year.'",
+          "answer": "B",
+          "evidence": "may = possibility, not certainty",
+          "reason": "A and D are certain; C changes the time to the past.",
+          "focus": "detail discrimination",
+          "type": "mcq",
           "level": "core",
           "options": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "J"
+            "A  Prices will fall next year.",
+            "B  It is possible that prices will drop next year.",
+            "C  Prices fell last year.",
+            "D  Prices are certain to stay the same next year."
           ]
         },
         {
           "id": "IELTS-V1-P1-Q3",
-          "prompt": "predominantly female",
+          "prompt": "Original: 'The road has been closed as an interim measure.'",
           "answer": "A",
-          "evidence": "predominantly = mainly; most were women",
-          "reason": "A keeps 'most', not 'all'.",
+          "evidence": "interim = temporary, until a permanent solution",
+          "reason": "B makes it permanent; C adds a reason that is not given; D changes the time.",
           "focus": "paraphrase recognition",
-          "type": "matching",
+          "type": "mcq",
           "level": "core",
           "options": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "J"
+            "A  The road has been shut for a limited period until a longer-term solution is found.",
+            "B  The road has been closed permanently.",
+            "C  The road has been closed because it was dangerous.",
+            "D  The road will be closed in the near future."
           ]
         },
         {
           "id": "IELTS-V1-P1-Q4",
-          "prompt": "insufficient staff",
-          "answer": "J",
-          "evidence": "insufficient = not enough",
-          "reason": "J = too few workers.",
+          "prompt": "Original: 'Funding was inadequate to complete the project.'",
+          "answer": "D",
+          "evidence": "inadequate = not enough",
+          "reason": "A says there was no money at all; B says the project was finished; C blames the cost of materials, which is not stated.",
           "focus": "paraphrase recognition",
-          "type": "matching",
+          "type": "mcq",
           "level": "core",
           "options": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "J"
+            "A  There was no money at all for the project.",
+            "B  The project was completed despite limited funds.",
+            "C  The project failed because materials became more expensive.",
+            "D  There was not enough money to finish the project."
           ]
         },
         {
           "id": "IELTS-V1-P1-Q5",
-          "prompt": "a temporary measure",
-          "answer": "F",
-          "evidence": "temporary = short-term",
-          "reason": "F = for a short time only.",
-          "focus": "paraphrase recognition",
-          "type": "matching",
+          "prompt": "Original: 'Residents were reluctant to accept the new parking rules.'",
+          "answer": "B",
+          "evidence": "reluctant = unwilling, but not necessarily refusing",
+          "reason": "A says they refused; C reverses the attitude; D changes who was unwilling.",
+          "focus": "detail discrimination",
+          "type": "mcq",
           "level": "core",
           "options": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "J"
+            "A  Residents refused to accept the new parking rules.",
+            "B  Residents did not really want to accept the new parking rules.",
+            "C  Residents welcomed the new parking rules.",
+            "D  The council was unwilling to introduce new parking rules."
           ]
         },
         {
           "id": "IELTS-V1-P1-Q6",
-          "prompt": "reluctant to invest",
-          "answer": "B",
-          "evidence": "reluctant = unwilling",
-          "reason": "B = did not want to spend money on it.",
+          "prompt": "Original: 'The effect of the new law on crime was negligible.'",
+          "answer": "C",
+          "evidence": "negligible = so small that it hardly matters",
+          "reason": "A and B say the law had a large effect; D says the effect is unknown.",
           "focus": "paraphrase recognition",
-          "type": "matching",
+          "type": "mcq",
           "level": "core",
           "options": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "J"
+            "A  The new law led to a sharp fall in crime.",
+            "B  The new law caused crime to increase considerably.",
+            "C  The new law made almost no difference to crime.",
+            "D  Nobody knows whether the new law affected crime."
           ]
         },
         {
           "id": "IELTS-V1-P1-Q7",
-          "prompt": "obsolete machinery",
-          "answer": "I",
-          "evidence": "obsolete = out of date, no longer used",
-          "reason": "I = old equipment that is no longer useful.",
+          "prompt": "Original: 'Consequently, the library extended its opening hours.'",
+          "answer": "A",
+          "evidence": "consequently = as a result (of what was said before)",
+          "reason": "B adds a specific reason that is not in the original; C changes the time; D reverses the change.",
           "focus": "paraphrase recognition",
-          "type": "matching",
+          "type": "mcq",
           "level": "core",
           "options": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "J"
+            "A  As a result, the library opened for longer.",
+            "B  The library opened for longer because students complained.",
+            "C  The library will soon open for longer.",
+            "D  As a result, the library reduced its opening hours."
           ]
         },
         {
           "id": "IELTS-V1-P1-Q8",
-          "prompt": "roughly a third",
-          "answer": "C",
-          "evidence": "roughly = approximately; a third = about 33%",
-          "reason": "C keeps the approximate amount.",
+          "prompt": "Original: 'Senior citizens make up roughly a third of the town's population.'",
+          "answer": "D",
+          "evidence": "senior citizens = older people; roughly a third = about 33%",
+          "reason": "A changes the group; B makes the figure exact; C changes the proportion to a majority.",
           "focus": "paraphrase recognition",
-          "type": "matching",
+          "type": "mcq",
           "level": "core",
           "options": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "J"
+            "A  About a third of the town's residents are children.",
+            "B  Exactly one in three residents is over sixty-five.",
+            "C  Most of the town's residents are elderly.",
+            "D  Approximately 33 per cent of the town's residents are older people."
           ]
         }
-      ],
-      "stimulus": {
-        "type": "options_list",
-        "title": "Options",
-        "paragraphs": [
-          "A  mostly women",
-          "B  unwilling to spend money on it",
-          "C  about 33 per cent",
-          "D  a large increase",
-          "E  completely female",
-          "F  a short-term step",
-          "G  exactly one in three",
-          "H  not allowed in the middle of town",
-          "I  out-of-date equipment",
-          "J  not enough workers"
-        ]
-      }
+      ]
     },
     {
       "id": "IELTS-V1-P2",
       "kind": "items",
-      "title": "Paraphrase in a test passage",
-      "mode": "Timed practice under test-like conditions: ten minutes, no dictionary",
-      "instructions": "Read the passage. Do the statements agree with the information? Write TRUE, FALSE or NOT GIVEN.",
+      "title": "Reading: repair cafés",
+      "mode": "Timed practice under test-like conditions: twelve minutes, no dictionary",
+      "instructions": "Questions 1-6: Do the following statements agree with the information in the passage? Write TRUE, FALSE or NOT GIVEN. Questions 7-10: Choose the correct letter, A, B, C or D.",
       "stimulus": {
         "type": "passage",
         "title": "Repair cafés",
         "paragraphs": [
-          "In the past ten years, repair cafés have appeared in a substantial number of towns across Europe. At these monthly events, volunteers help residents fix household items such as lamps, clothing and small electrical appliances free of charge. The organisers argue that many products are thrown away not because they are beyond repair but because their owners lack the tools or the confidence to attempt a repair themselves.",
-          "Surveys of visitors suggest that the cafés are attended predominantly by people over fifty, although organisers are keen to attract younger residents. Roughly two thirds of the items brought in are successfully repaired on the day. Items that cannot be fixed are often obsolete devices for which spare parts are no longer manufactured.",
-          "Funding remains a persistent difficulty. Most cafés rely on small grants from local councils, which are frequently insufficient to cover the cost of tools and room hire, and several have consequently been forced to close. Some manufacturers have been reluctant to make spare parts and repair manuals available to the public, arguing that untrained people could damage products or injure themselves."
+          "Over the past decade, repair cafés have appeared in a substantial number of towns and cities across Europe. At these events, which are usually held once a month in community halls or libraries, volunteers with technical skills help residents to mend household items such as lamps, bicycles, clothing and small electrical appliances. Visitors do not pay for the service, although many leave a voluntary donation towards the cost of tools and refreshments.",
+          "The organisers' central argument is that a large proportion of discarded products are not genuinely beyond repair. Instead, they are thrown away because their owners lack the tools, the knowledge or simply the confidence to attempt a repair themselves. Visitors are therefore expected to stay with their item and take part in the repair rather than leave it to be collected later, on the principle that people who have fixed something once are more likely to try again at home.",
+          "Data collected by one national network suggest that roughly two thirds of the items brought in are successfully repaired on the day. Those that cannot be fixed are frequently electronic devices for which spare parts are no longer manufactured, or products that have been glued or sealed in a way that prevents them from being opened without being damaged. The network has used these records to argue that manufacturers should be required to make products easier to dismantle, so that worn components can be replaced rather than the whole product being discarded.",
+          "Surveys of visitors indicate that attendance is predominantly made up of people over the age of fifty, many of whom grew up at a time when mending clothes and appliances was a routine part of household life. Organisers are keen to attract younger residents, and several cafés now run sessions specifically for students, although it is not yet clear whether these have changed the overall age profile.",
+          "Funding remains a persistent difficulty. Most cafés depend on small grants from local councils, which are frequently inadequate to cover the cost of room hire and specialist equipment, and a number have consequently been forced to reduce the frequency of their events or close altogether. Volunteer numbers are also a concern, since a small number of experienced repairers often carry much of the workload, and organisers worry about what will happen when they are no longer able to take part.",
+          "Manufacturers' responses have been mixed. Some have begun to publish repair manuals and sell spare parts directly to the public. Others have been reluctant to do so, arguing that untrained people could damage products or injure themselves, particularly when working with electrical items. In several countries, however, new legislation now obliges manufacturers of certain appliances to make spare parts available for a fixed number of years after a product is withdrawn from sale."
         ]
       },
       "items": [
         {
           "id": "IELTS-V1-P2-Q1",
-          "prompt": "Repair cafés charge visitors a small fee for each repair.",
+          "prompt": "People who bring items to a repair café are charged a small fee for each repair.",
           "answer": "FALSE",
-          "evidence": "free of charge",
-          "reason": "'Free of charge' contradicts 'a fee'.",
-          "focus": "paraphrase recognition",
+          "evidence": "Visitors do not pay for the service",
+          "reason": "The repairs are free; donations are voluntary, not a charge.",
+          "focus": "detail discrimination",
           "type": "tfng",
           "level": "core"
         },
         {
           "id": "IELTS-V1-P2-Q2",
-          "prompt": "Most people who attend repair cafés are older adults.",
+          "prompt": "Visitors are encouraged to help fix their own belongings.",
           "answer": "TRUE",
-          "evidence": "attended predominantly by people over fifty",
-          "reason": "predominantly = mostly; over fifty = older adults.",
+          "evidence": "Visitors are therefore expected to stay with their item and take part in the repair",
+          "reason": "'Help fix their own belongings' paraphrases 'take part in the repair'.",
           "focus": "paraphrase recognition",
           "type": "tfng",
           "level": "core"
         },
         {
           "id": "IELTS-V1-P2-Q3",
-          "prompt": "About sixty-six per cent of items are fixed during the event.",
-          "answer": "TRUE",
-          "evidence": "Roughly two thirds of the items brought in are successfully repaired on the day",
-          "reason": "roughly two thirds ≈ 66%; on the day = during the event.",
-          "focus": "paraphrase recognition",
+          "prompt": "Electrical appliances take longer to repair than clothing.",
+          "answer": "NOT GIVEN",
+          "evidence": "Both are mentioned, but repair times are never compared.",
+          "reason": "The passage lists types of item but gives no information about how long repairs take.",
+          "focus": "detail discrimination",
           "type": "tfng",
           "level": "core"
         },
         {
           "id": "IELTS-V1-P2-Q4",
-          "prompt": "Electrical items are the most difficult objects to repair.",
-          "answer": "NOT GIVEN",
-          "evidence": "No comparison of difficulty between types of item.",
-          "reason": "Electrical appliances are mentioned, but not as the hardest to fix.",
-          "focus": "detail discrimination",
+          "prompt": "Around sixty-six per cent of the objects brought to the events are fixed during the same visit.",
+          "answer": "TRUE",
+          "evidence": "roughly two thirds of the items brought in are successfully repaired on the day",
+          "reason": "'Around sixty-six per cent' = 'roughly two thirds'; 'during the same visit' = 'on the day'.",
+          "focus": "paraphrase recognition",
           "type": "tfng",
           "level": "core"
         },
         {
           "id": "IELTS-V1-P2-Q5",
-          "prompt": "Lack of money has caused some repair cafés to shut down.",
-          "answer": "TRUE",
-          "evidence": "several have consequently been forced to close",
-          "reason": "insufficient grants → consequently forced to close = shut down.",
-          "focus": "paraphrase recognition",
+          "prompt": "Special sessions for students have clearly increased the proportion of young visitors.",
+          "answer": "FALSE",
+          "evidence": "it is not yet clear whether these have changed the overall age profile",
+          "reason": "The passage says the effect is not yet clear, which contradicts 'clearly increased'.",
+          "focus": "detail discrimination",
           "type": "tfng",
           "level": "core"
         },
         {
           "id": "IELTS-V1-P2-Q6",
-          "prompt": "All manufacturers now provide repair guides to the public.",
-          "answer": "FALSE",
-          "evidence": "Some manufacturers have been reluctant to make spare parts and repair manuals available",
-          "reason": "Reluctant = unwilling, so not all do.",
+          "prompt": "Repair cafés in rural villages are more successful than those in large cities.",
+          "answer": "NOT GIVEN",
+          "evidence": "Towns and cities are mentioned, but villages are not, and no type of location is compared.",
+          "reason": "The passage gives no information comparing cafés in different kinds of place.",
           "focus": "detail discrimination",
           "type": "tfng",
           "level": "core"
-        }
-      ]
-    },
-    {
-      "id": "IELTS-V1-P3",
-      "kind": "items",
-      "title": "Near-miss paraphrases",
-      "mode": "Controlled practice; word bank closed",
-      "instructions": "Choose the sentence, A, B or C, that means exactly the same as the original.",
-      "items": [
-        {
-          "id": "IELTS-V1-P3-Q1",
-          "prompt": "Original: 'The scheme was mainly used by students.'",
-          "answer": "B",
-          "evidence": "mainly = most, not all",
-          "reason": "A says 'only'; C reverses who used it.",
-          "focus": "detail discrimination",
-          "type": "mcq",
-          "level": "core",
-          "options": [
-            "A  Only students used the scheme.",
-            "B  Most users of the scheme were students.",
-            "C  Students rarely used the scheme."
-          ]
         },
         {
-          "id": "IELTS-V1-P3-Q2",
-          "prompt": "Original: 'Prices may fall next year.'",
+          "id": "IELTS-V1-P2-Q7",
+          "prompt": "According to the organisers, many products are thrown away because",
           "answer": "C",
-          "evidence": "may = possibility, not certainty",
-          "reason": "A and B are certain.",
-          "focus": "detail discrimination",
-          "type": "mcq",
-          "level": "core",
-          "options": [
-            "A  Prices will drop next year.",
-            "B  Prices dropped last year.",
-            "C  It is possible that prices will go down next year."
-          ]
-        },
-        {
-          "id": "IELTS-V1-P3-Q3",
-          "prompt": "Original: 'The road is closed temporarily.'",
-          "answer": "A",
-          "evidence": "temporarily = for a limited time",
-          "reason": "B is permanent; C changes the reason.",
+          "evidence": "they are thrown away because their owners lack the tools, the knowledge or simply the confidence",
+          "reason": "'Do not feel able to repair them' paraphrases a lack of tools, knowledge or confidence; A and B are not claimed; D is the opposite of the organisers' argument.",
           "focus": "paraphrase recognition",
           "type": "mcq",
           "level": "core",
           "options": [
-            "A  The road is shut for a short period.",
-            "B  The road has been closed for good.",
-            "C  The road is closed because it is dangerous."
+            "A  replacement products have become cheaper.",
+            "B  modern products are designed to break quickly.",
+            "C  their owners do not feel able to repair them.",
+            "D  they are genuinely impossible to repair."
           ]
         },
         {
-          "id": "IELTS-V1-P3-Q4",
-          "prompt": "Original: 'Funding was insufficient to complete the project.'",
+          "id": "IELTS-V1-P2-Q8",
+          "prompt": "Which kind of item does the passage say is often impossible to repair?",
+          "answer": "A",
+          "evidence": "Those that cannot be fixed are frequently electronic devices for which spare parts are no longer manufactured",
+          "reason": "'Parts are no longer made' paraphrases 'spare parts are no longer manufactured'.",
+          "focus": "paraphrase recognition",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  electronic devices whose spare parts are no longer produced",
+            "B  clothing made from synthetic materials",
+            "C  bicycles that are more than twenty years old",
+            "D  products that were bought online"
+          ]
+        },
+        {
+          "id": "IELTS-V1-P2-Q9",
+          "prompt": "What does the passage say about volunteers?",
+          "answer": "D",
+          "evidence": "a small number of experienced repairers often carry much of the workload",
+          "reason": "'A few people do most of the work' paraphrases this; A, B and C are not stated.",
+          "focus": "paraphrase recognition",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  Most of them are under the age of fifty.",
+            "B  They are paid from council grants.",
+            "C  They must hold a formal qualification.",
+            "D  A few experienced people do much of the work."
+          ]
+        },
+        {
+          "id": "IELTS-V1-P2-Q10",
+          "prompt": "What is said about the attitude of manufacturers?",
           "answer": "B",
-          "evidence": "insufficient = not enough",
-          "reason": "A says there was no money at all; C says it was finished.",
-          "focus": "paraphrase recognition",
+          "evidence": "Manufacturers' responses have been mixed.",
+          "reason": "Some publish manuals and sell parts; others are reluctant. 'They do not all respond in the same way' paraphrases 'mixed'.",
+          "focus": "inference",
           "type": "mcq",
           "level": "core",
           "options": [
-            "A  There was no money for the project.",
-            "B  There was not enough money to finish the project.",
-            "C  The project was finished with too little money."
-          ]
-        },
-        {
-          "id": "IELTS-V1-P3-Q5",
-          "prompt": "Original: 'Residents were reluctant to accept the plan.'",
-          "answer": "C",
-          "evidence": "reluctant = unwilling",
-          "reason": "A means they refused; B says they were keen.",
-          "focus": "paraphrase recognition",
-          "type": "mcq",
-          "level": "core",
-          "options": [
-            "A  Residents refused the plan.",
-            "B  Residents were eager to accept the plan.",
-            "C  Residents did not really want to accept the plan."
-          ]
-        },
-        {
-          "id": "IELTS-V1-P3-Q6",
-          "prompt": "Original: 'Consequently, the library extended its opening hours.'",
-          "answer": "A",
-          "evidence": "consequently = as a result",
-          "reason": "B adds a reason that is not there; C changes the time.",
-          "focus": "paraphrase recognition",
-          "type": "mcq",
-          "level": "core",
-          "options": [
-            "A  As a result, the library opened for longer.",
-            "B  The library opened for longer because of complaints.",
-            "C  The library will soon open for longer."
+            "A  They have all opposed repair cafés.",
+            "B  They have not all responded in the same way.",
+            "C  They are now required to provide repair training.",
+            "D  They support repair cafés financially."
           ]
         }
       ]
     },
     {
-      "id": "IELTS-V1-S1",
-      "kind": "speaking",
-      "title": "Say it another way",
-      "mode": "Pair practice; live feedback from partner and teacher",
-      "instructions": "Read each sentence to your partner using a word-bank item instead of the underlined words. Your partner says 'same' or 'changed' and explains.",
-      "prompts": [
-        "The number of buses has gone down a lot.",
-        "Smoking is not allowed in the building.",
-        "Most of the volunteers were students.",
-        "There were not enough chairs for everyone.",
-        "The bridge will be closed for a short time.",
-        "Many people did not want to move house."
-      ],
-      "routine": "Speaker paraphrases; listener checks amount, time and certainty; swap after three sentences.",
-      "observation": "Teacher listens live and notes only meaning changes heard in the pair talk; pronunciation comments are limited to what was heard live.",
-      "models": [
-        {
-          "label": "Model paraphrases",
-          "text": "The number of buses has declined considerably. Smoking is prohibited in the building. The volunteers were predominantly students. There were insufficient chairs for everyone. The bridge will be closed temporarily. Many people were reluctant to move house."
-        }
+      "id": "IELTS-V1-W1",
+      "kind": "writing",
+      "task": "paragraph",
+      "title": "Paraphrase the question",
+      "mode": "Independent classroom application after modelling; not a full Writing task",
+      "prompt": "Write an introduction for each task below. Paraphrase the question in your own words (do not copy more than three words in a row) and, for the Task 2 questions, add a one-sentence position or outline. (1) Task 1: The graph below shows the number of international students enrolled at universities in three countries between 2000 and 2020. (2) Task 2: Some people think that the government should provide free public transport. To what extent do you agree or disagree? (3) Task 2: In many countries, the number of people living alone is increasing. What are the reasons for this, and is it a positive or negative development?",
+      "conditions": "12 minutes, independent. No model visible. Record word-bank use.",
+      "support": "Change at least two things in each question: words (number of people = proportion of residents), structure (a clause becomes a noun phrase), or order. Keep the time period, places and question parts exactly.",
+      "extension": "Use a different structure in each introduction, for example 'There has been a rise in ...' or 'Whether ... is a matter of debate.'",
+      "high_band": "In introduction 3, answer both parts of the question in one clear sentence.",
+      "model_label": "Illustrative classroom model for discussion only. Not a certified band answer.",
+      "model": "(1) The line graph illustrates how many overseas students were studying at universities in three different countries over a twenty-year period, from 2000 to 2020.\n\n(2) It is sometimes argued that public transport should be paid for entirely by the state, so that passengers travel without charge. While I accept that this would benefit some groups, I largely disagree, because the cost would ultimately fall on taxpayers and could reduce investment in the quality of services.\n\n(3) A growing proportion of the population in many nations now lives in single-person households. This trend can be explained by rising incomes and changing attitudes to marriage, and in my view it is largely positive, although it may increase loneliness among older people.",
+      "checklist": [
+        "Task Response: Does each introduction keep every part of the question (time, places, both questions)?",
+        "Lexical Resource: Have you avoided copying more than three words in a row?",
+        "Lexical Resource: Is the meaning exactly the same (no change in amount, time or cause)?",
+        "Coherence and Cohesion: Does each Task 2 introduction end with a clear position or outline?"
       ]
     },
     {
       "id": "IELTS-V1-H1",
       "kind": "items",
       "homework": true,
-      "title": "Homework: build your paraphrase list",
+      "title": "Homework: paraphrase in context",
       "mode": "Homework; checked at the start of the next lesson",
-      "instructions": "Write a word-bank paraphrase for each phrase (no more than TWO words).",
+      "instructions": "Questions 1-3: Write a word-bank word or phrase (no more than THREE words) that could replace the words in brackets without changing the meaning. Questions 4-6: Paraphrase each sentence. Keep the meaning exactly the same and do not copy more than three words in a row.",
       "items": [
         {
           "id": "IELTS-V1-H1-Q1",
-          "prompt": "a big increase → a ______ increase",
-          "answer": "substantial",
-          "evidence": "substantial = large",
-          "reason": "considerable is also correct.",
+          "prompt": "Support for the plan was (mostly but not entirely) among younger voters.",
+          "answer": "predominantly",
+          "evidence": "predominantly = mostly, not entirely",
+          "reason": "'Mainly' or 'for the most part' are also correct.",
           "focus": "lexical resource",
           "type": "completion",
           "level": "core",
-          "word_limit": 2,
+          "word_limit": 3,
           "accept": [
-            "considerable"
+            "mainly",
+            "for the most part",
+            "largely"
           ]
         },
         {
           "id": "IELTS-V1-H1-Q2",
-          "prompt": "about 500 people → ______ 500 people",
-          "answer": "approximately",
-          "evidence": "approximately = about",
-          "reason": "roughly is also correct.",
+          "prompt": "The software has become (no longer used because something newer exists).",
+          "answer": "obsolete",
+          "evidence": "obsolete = outdated",
+          "reason": "'Outdated' is also correct.",
           "focus": "lexical resource",
           "type": "completion",
           "level": "core",
-          "word_limit": 2,
+          "word_limit": 3,
           "accept": [
-            "roughly"
+            "outdated"
           ]
         },
         {
           "id": "IELTS-V1-H1-Q3",
-          "prompt": "out-of-date software → ______ software",
-          "answer": "obsolete",
-          "evidence": "obsolete = out of date",
-          "reason": "One word.",
+          "prompt": "Clean water is (absolutely necessary) for public health.",
+          "answer": "essential",
+          "evidence": "essential / vital / indispensable",
+          "reason": "Any of the three is correct.",
           "focus": "lexical resource",
           "type": "completion",
           "level": "core",
-          "word_limit": 2
+          "word_limit": 3,
+          "accept": [
+            "vital",
+            "indispensable"
+          ]
         },
         {
           "id": "IELTS-V1-H1-Q4",
-          "prompt": "so the event was cancelled → ______, the event was cancelled",
-          "answer": "consequently",
-          "evidence": "consequently = as a result",
-          "reason": "as a result is also correct.",
-          "focus": "lexical resource",
-          "type": "completion",
-          "level": "core",
-          "word_limit": 2,
-          "accept": [
-            "as a result"
-          ]
+          "prompt": "Paraphrase: 'The number of people cycling to work has risen considerably since 2010.'",
+          "answer": "Since 2010, there has been a substantial increase in the number of commuters who travel by bicycle.",
+          "evidence": "considerably = substantially; cycling to work = commuting by bicycle",
+          "reason": "Accept any accurate paraphrase that keeps 'since 2010', a large increase and the idea of travelling to work.",
+          "focus": "paraphrase recognition",
+          "type": "short",
+          "level": "core"
         },
         {
           "id": "IELTS-V1-H1-Q5",
-          "prompt": "very important for health → ______ for health",
-          "answer": "vital",
-          "evidence": "vital = essential",
-          "reason": "essential or crucial are also correct.",
-          "focus": "lexical resource",
-          "type": "completion",
-          "level": "core",
-          "word_limit": 2,
-          "accept": [
-            "essential",
-            "crucial"
-          ]
+          "prompt": "Paraphrase: 'Many older residents are unwilling to use online banking.'",
+          "answer": "A large number of senior citizens are reluctant to bank online.",
+          "evidence": "unwilling = reluctant; older residents = senior citizens",
+          "reason": "Accept any accurate paraphrase; 'many' must not become 'most' or 'all'.",
+          "focus": "detail discrimination",
+          "type": "short",
+          "level": "core"
         },
         {
           "id": "IELTS-V1-H1-Q6",
-          "prompt": "a cheap alternative → an ______ alternative",
-          "answer": "inexpensive",
-          "evidence": "inexpensive = cheap",
-          "reason": "affordable is also correct.",
-          "focus": "lexical resource",
-          "type": "completion",
-          "level": "core",
-          "word_limit": 2,
-          "accept": [
-            "affordable"
-          ]
+          "prompt": "Paraphrase: 'Because the grant was too small, the festival was cancelled.'",
+          "answer": "The grant was insufficient; consequently, the festival had to be cancelled.",
+          "evidence": "too small = insufficient/inadequate; because = consequently",
+          "reason": "Accept any accurate paraphrase that keeps the cause and the result.",
+          "focus": "paraphrase recognition",
+          "type": "short",
+          "level": "core"
         }
       ]
     }
   ],
   "exit_ticket": [
-    "Three paraphrase pairs I learned today:",
-    "One near-miss that tricked me (for example most / all):",
-    "What I will do when a question word is not in the passage:"
+    "Three paraphrase sets I can now recognise:",
+    "One near-miss that tricked me today, and what it changed:",
+    "What I will do when a word in a question is not in the passage:"
   ],
   "homework": [
-    "Complete the paraphrase list in the homework sheet.",
-    "Read one short English news article. Find five words and write a paraphrase for each in your vocabulary notebook."
+    "Complete the paraphrase tasks on the homework sheet.",
+    "After your next practice test, add every paraphrase you missed to your own list, with the passage word and the question word side by side."
   ],
-  "delayed_followup": "In Lesson 13 (advanced TRUE/FALSE/NOT GIVEN) or Lesson 18 (timed Reading), check whether learners name the paraphrase pair when justifying answers. Record it as a later observation.",
+  "delayed_followup": "In Lesson 13 (advanced TRUE/FALSE/NOT GIVEN) or Lesson 18 (timed Reading), check whether learners name the paraphrase that decided each answer. Record it as a later observation.",
   "mapping_notes": "Focuses use Diagnostic Bible section 7.2 construct names where they apply (lexical resource, paraphrase recognition). Teaching focuses only. This optional vocabulary lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
   "release_blockers": [
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
@@ -799,83 +689,135 @@
   ],
   "followup": {
     "id": "IELTS-V1-C1",
-    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.0.0 on 2026-10-26. Keep private until use.",
-    "delivery": "About one teaching week later: 10 minutes, unseen passage, no word bank or dictionary. Record timing and support.",
-    "review": "Score each answer independently. For each error, note whether the learner missed a paraphrase or misread a quantity, time or certainty word. Do not convert to an IELTS band.",
+    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.1.0 on 2026-10-26. Keep private until use.",
+    "delivery": "About one teaching week later: 10 minutes, unseen text, no word bank or dictionary. Record timing and support.",
+    "review": "Score each answer independently. For each error, note whether the learner missed a paraphrase or misread a quantity, certainty, time or cause. Do not convert to an IELTS band.",
     "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty.",
     "blocks": [
       {
         "id": "IELTS-V1-C1",
         "kind": "items",
-        "title": "Fresh check: community gardens",
+        "title": "Fresh check: exact or near-miss?",
         "mode": "Withheld fresh check; independent, timed",
-        "instructions": "Read the passage. Do the statements agree with the information? Write TRUE, FALSE or NOT GIVEN.",
+        "instructions": "Choose the sentence, A, B, C or D, that means exactly the same as the original.",
+        "items": [
+          {
+            "id": "IELTS-V1-C1-Q1",
+            "prompt": "Original: 'Smoking is prohibited throughout the building.'",
+            "answer": "B",
+            "evidence": "prohibited = banned; throughout = everywhere in",
+            "reason": "A limits the ban to some areas; C changes a rule into advice; D changes the time.",
+            "focus": "paraphrase recognition",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  Smoking is banned in some parts of the building.",
+              "B  Smoking is not allowed anywhere in the building.",
+              "C  People are advised not to smoke in the building.",
+              "D  Smoking will soon be banned in the building."
+            ]
+          },
+          {
+            "id": "IELTS-V1-C1-Q2",
+            "prompt": "Original: 'Staff numbers fell substantially after the merger.'",
+            "answer": "D",
+            "evidence": "fell substantially = dropped considerably",
+            "reason": "A reverses the direction; B makes the change small; C changes the time.",
+            "focus": "paraphrase recognition",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  The company employed many more people after the merger.",
+              "B  Staff numbers fell slightly after the merger.",
+              "C  Staff numbers had fallen before the merger.",
+              "D  The number of employees dropped considerably after the merger."
+            ]
+          },
+          {
+            "id": "IELTS-V1-C1-Q3",
+            "prompt": "Original: 'The plan was hesitantly approved by the committee.'",
+            "answer": "C",
+            "evidence": "hesitantly approved = approved, but without enthusiasm",
+            "reason": "A and D say it was not approved; B reverses the attitude.",
+            "focus": "detail discrimination",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  The committee rejected the plan.",
+              "B  The committee approved the plan enthusiastically.",
+              "C  The committee approved the plan, although with some doubts.",
+              "D  The committee has not yet decided about the plan."
+            ]
+          },
+          {
+            "id": "IELTS-V1-C1-Q4",
+            "prompt": "Original: 'The cost of the repairs was negligible.'",
+            "answer": "A",
+            "evidence": "negligible = very small",
+            "reason": "B and D make the cost large; C says the cost is unknown.",
+            "focus": "paraphrase recognition",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  The repairs cost very little.",
+              "B  The repairs were extremely expensive.",
+              "C  Nobody knows how much the repairs cost.",
+              "D  The repairs cost more than expected."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "IELTS-V1-C2",
+        "kind": "items",
+        "title": "Fresh check: community orchards",
+        "mode": "Withheld fresh check; independent, timed",
+        "instructions": "Do the statements agree with the information in the passage? Write TRUE, FALSE or NOT GIVEN.",
         "stimulus": {
           "type": "passage",
-          "title": "Community gardens",
+          "title": "Community orchards",
           "paragraphs": [
-            "Community gardens, where neighbours share a plot of land to grow vegetables and flowers, have become considerably more common in cities over the last twenty years. In one northern city, the number of such gardens tripled between 2005 and 2020, according to the local council.",
-            "Members are predominantly retired people and young families, and the gardens are frequently located on land that was previously unused, such as empty building sites. However, many plots are leased on a temporary basis, and gardeners are often reluctant to plant fruit trees, which can take several years to produce a crop.",
-            "Researchers have found that regular gardening is associated with lower stress levels, although it is not clear whether gardening itself is the cause. Water supply is a vital concern: several gardens have had to restrict watering in summer because the supply was inadequate."
+            "Community orchards, in which local residents plant and look after fruit trees on shared land, have become considerably more common in British towns over the past twenty years. Most are established on land that would otherwise be unused, such as the edges of parks or the grounds of schools and hospitals.",
+            "Volunteers are predominantly retired people and families with young children. Because many sites are leased on a temporary basis, groups are often hesitant to plant slow-growing varieties, some of which take several years to produce a crop. Researchers have found that people who take part report lower levels of stress, although it is not clear whether gardening itself, or the social contact it involves, is responsible."
           ]
         },
         "items": [
           {
-            "id": "IELTS-V1-C1-Q1",
-            "prompt": "Community gardens are far more widespread than they were two decades ago.",
+            "id": "IELTS-V1-C2-Q1",
+            "prompt": "There are far more community orchards in British towns than there were two decades ago.",
             "answer": "TRUE",
-            "evidence": "have become considerably more common in cities over the last twenty years",
-            "reason": "considerably more common = far more widespread.",
+            "evidence": "have become considerably more common in British towns over the past twenty years",
+            "reason": "'Far more' paraphrases 'considerably more common'; 'two decades' = 'twenty years'.",
             "focus": "paraphrase recognition",
             "type": "tfng",
             "level": "core"
           },
           {
-            "id": "IELTS-V1-C1-Q2",
-            "prompt": "Most garden members are teenagers.",
+            "id": "IELTS-V1-C2-Q2",
+            "prompt": "Most volunteers are teenagers.",
             "answer": "FALSE",
-            "evidence": "Members are predominantly retired people and young families",
-            "reason": "predominantly = mostly; teenagers are not the main group.",
+            "evidence": "Volunteers are predominantly retired people and families with young children",
+            "reason": "The main groups are retired people and young families, not teenagers.",
             "focus": "detail discrimination",
             "type": "tfng",
             "level": "core"
           },
           {
-            "id": "IELTS-V1-C1-Q3",
-            "prompt": "Gardeners may lose access to some plots after a period of time.",
+            "id": "IELTS-V1-C2-Q3",
+            "prompt": "Some groups avoid planting trees that take a long time to bear fruit.",
             "answer": "TRUE",
-            "evidence": "many plots are leased on a temporary basis",
-            "reason": "temporary = for a limited time.",
+            "evidence": "groups are often hesitant to plant slow-growing varieties, some of which take several years to produce a crop",
+            "reason": "'Avoid' paraphrases 'are hesitant to plant'; 'bear fruit' = 'produce a crop'.",
             "focus": "paraphrase recognition",
             "type": "tfng",
             "level": "core"
           },
           {
-            "id": "IELTS-V1-C1-Q4",
-            "prompt": "Many gardeners are unwilling to grow trees that are slow to bear fruit.",
-            "answer": "TRUE",
-            "evidence": "gardeners are often reluctant to plant fruit trees, which can take several years to produce a crop",
-            "reason": "reluctant = unwilling.",
-            "focus": "paraphrase recognition",
-            "type": "tfng",
-            "level": "core"
-          },
-          {
-            "id": "IELTS-V1-C1-Q5",
-            "prompt": "Gardening has been proven to reduce stress.",
+            "id": "IELTS-V1-C2-Q4",
+            "prompt": "Researchers have shown that the physical work of gardening is the cause of lower stress.",
             "answer": "FALSE",
-            "evidence": "it is not clear whether gardening itself is the cause",
-            "reason": "'Proven' is contradicted by 'not clear'.",
-            "focus": "detail discrimination",
-            "type": "tfng",
-            "level": "core"
-          },
-          {
-            "id": "IELTS-V1-C1-Q6",
-            "prompt": "The council pays for water used by the gardens.",
-            "answer": "NOT GIVEN",
-            "evidence": "Water supply is discussed, but not who pays for it.",
-            "reason": "No information about payment.",
+            "evidence": "it is not clear whether gardening itself, or the social contact it involves, is responsible",
+            "reason": "'Have shown' is contradicted by 'it is not clear'.",
             "focus": "detail discrimination",
             "type": "tfng",
             "level": "core"
@@ -884,11 +826,18 @@
       }
     ]
   },
-  "approval_record": {
+  "previous_approval_record": {
     "approved_by": "Owner, Brains Heist LLC",
     "date": "2026-10-26",
     "version": "1.0.0",
     "scope": "Vocabulary lesson content, keys and models for teacher-only release to all eligible schools. Student task publication remains separate.",
-    "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek: 'there should also some Vocabulary lessons that really fit the IELTS in a very practical way for the students to benefit from. Make the needed adjustments and improvements now ... you have all my permissions, don't ask for any.' Not recorded as an in-platform decision; no review-draft pack was opened before approval."
+    "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek ('Make the needed adjustments and improvements now ... you have all my permissions'). Superseded by v1.1.0 after an external review judged v1.0.0 too easy for Band 6.5+ preparation."
+  },
+  "approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-26",
+    "version": "1.1.0",
+    "scope": "Vocabulary lesson content, keys and models for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 15:42 Asia/Bishkek, after sharing an external review of V6 v1.0.0 (difficulty 3.5/10; distractors too easy; reading answers copied; Part 3 not interactive; no writing): 'yes, but this time be very accurate', in reply to the proposal to rebuild V1-V6 at Band 6.5-7.5 level and re-release them. Not recorded as an in-platform decision; no review-draft pack was opened before approval."
   }
 }

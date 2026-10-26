@@ -5,10 +5,10 @@
   "vocabulary": true,
   "placement": "optional, after Week 2 (Lesson 3)",
   "week": 2,
-  "version": "1.0.0",
-  "presentation_version": "1.0.0",
+  "version": "1.1.0",
+  "presentation_version": "1.1.0",
   "title": "Vocabulary: word forms and spelling for completion answers",
-  "status": "Owner approved v1.0.0 on 2026-10-26; teacher release to all eligible schools (optional vocabulary lesson)",
+  "status": "Owner approved v1.1.0 on 2026-10-26; teacher release to all eligible schools (optional vocabulary lesson)",
   "duration": 60,
   "test_type": "Academic",
   "bibles": {
@@ -25,35 +25,35 @@
   "prerequisites": [
     "Lesson 3 (Listening details, spelling and word limits).",
     "Learners know noun, verb, adjective and adverb.",
-    "Optional vocabulary lesson: use when correct ideas lose marks because of spelling, plurals or the wrong word form."
+    "Pitched at learners aiming for Band 6.5-7.5 who lose completion marks through spelling, plurals or the wrong word form."
   ],
   "objectives": [
     {
-      "text": "Choose the word form a gap needs (noun, verb, adjective, adverb; singular or plural) by reading the words around it.",
+      "text": "Identify the word form a gap needs (noun, verb, adjective, adverb; singular or plural) from the grammar around it.",
       "focus": [
         "word form accuracy",
         "grammatical range and accuracy"
       ]
     },
     {
-      "text": "Spell 20 high-frequency IELTS words correctly, including common traps (accommodation, environment, necessary).",
+      "text": "Find the exact form of a word in a passage when the question is paraphrased, and copy it accurately.",
       "focus": [
-        "spelling"
+        "paraphrase recognition",
+        "word form accuracy"
       ]
     },
     {
-      "text": "Build word families with common suffixes (-tion, -ment, -ity, -ive, -al, -ly) to read and write more flexibly.",
+      "text": "Spell high-frequency IELTS words correctly, including common traps (accommodation, environment, necessary).",
       "focus": [
-        "lexical resource",
-        "word form accuracy"
+        "spelling"
       ]
     }
   ],
   "levels": {
-    "foundation": "Work with the suffix table open; spell the first ten bank words only.",
-    "core": "Complete all tasks with the bank closed after the word-family stage.",
+    "foundation": "Keep the suffix list open; for each gap, write N, V, Adj or Adv before answering.",
+    "core": "Complete all tasks with the word bank closed after the word-family stage.",
     "extension": "For each completion answer, name the clue word that shows the form (for example 'a' + adjective + noun).",
-    "high_band": "Write a word family of four forms for five bank words and use each form in a sentence."
+    "high_band": "In the homework paragraph, use at least six different noun-forming or adjective-forming suffixes accurately."
   },
   "word_bank": [
     {
@@ -81,45 +81,39 @@
       "skill": "Listening"
     },
     {
-      "item": "temperature",
-      "meaning": "how hot or cold something is",
-      "example": "The temperature fell below zero.",
-      "skill": "Listening"
-    },
-    {
       "item": "Wednesday / February",
-      "meaning": "days and months need capitals and silent letters",
+      "meaning": "capital letters and silent letters",
       "example": "on Wednesday 12 February",
       "skill": "Listening"
     },
     {
       "item": "library / laboratory",
-      "meaning": "place for books / place for experiments",
+      "meaning": "a place for books / a place for experiments",
       "example": "the science laboratory",
       "skill": "Listening"
     },
     {
       "item": "-tion / -sion (nouns)",
-      "meaning": "inform → information; decide → decision",
+      "meaning": "renovate → renovation; decide → decision",
       "example": "a decision about transport",
       "skill": "Reading"
     },
     {
       "item": "-ment (nouns)",
-      "meaning": "develop → development; improve → improvement",
+      "meaning": "improve → improvement; develop → development",
       "example": "a significant improvement",
       "skill": "Reading"
     },
     {
       "item": "-ity (nouns)",
-      "meaning": "able → ability; popular → popularity",
+      "meaning": "afford(able) → affordability; popular → popularity",
       "example": "the popularity of cycling",
       "skill": "Reading"
     },
     {
-      "item": "-al / -ive / -ous (adjectives)",
-      "meaning": "nature → natural; create → creative; danger → dangerous",
-      "example": "a creative solution",
+      "item": "-al / -ive / -ous / -ient (adjectives)",
+      "meaning": "environment → environmental; effect → effective; danger → dangerous; suffice → sufficient",
+      "example": "an effective solution",
       "skill": "Reading"
     },
     {
@@ -136,15 +130,21 @@
     },
     {
       "item": "uncountable nouns",
-      "meaning": "no plural: information, equipment, advice, research, furniture",
-      "example": "useful equipment (not equipments)",
+      "meaning": "no plural: information, equipment, advice, research, accommodation",
+      "example": "useful equipment (not 'equipments')",
       "skill": "Listening"
+    },
+    {
+      "item": "in- / im- / un- (negative adjectives)",
+      "meaning": "sufficient → insufficient; possible → impossible; usual → unusual",
+      "example": "The car park is insufficient.",
+      "skill": "Reading"
     }
   ],
   "stages": [
     {
       "start": 0,
-      "end": 6,
+      "end": 5,
       "title": "Opening challenge: right idea, lost mark",
       "show": [
         {
@@ -157,23 +157,23 @@
         }
       ],
       "student": "Decide which answer would receive the mark.",
-      "teacher": "Learners vote; reveal comments. Stress that IELTS marks spelling and form.",
+      "teacher": "Learners vote; reveal the comments. Stress that IELTS marks spelling, number and form.",
       "say": "The right idea in the wrong form scores zero.",
-      "check": "Learners say why Learner A loses the mark."
+      "check": "Learners say why Learner A and Learner C lose the mark."
     },
     {
-      "start": 6,
-      "end": 14,
+      "start": 5,
+      "end": 11,
       "title": "Word families and suffixes",
       "show": [],
       "student": "Complete a word-family table for five verbs from the bank (verb, noun, adjective, adverb).",
-      "teacher": "Board the suffix groups. Point out spelling changes (decide → decision, able → ability).",
+      "teacher": "Board the suffix groups. Point out spelling changes (decide → decision, afford → affordability, suffice → sufficient).",
       "say": "The suffix tells you the job of the word.",
       "check": "Learners build three complete families."
     },
     {
-      "start": 14,
-      "end": 22,
+      "start": 11,
+      "end": 17,
       "title": "Which form fits the gap?",
       "show": [
         {
@@ -185,15 +185,15 @@
           "part": "answers"
         }
       ],
-      "student": "Write the correct form of the word in brackets.",
-      "teacher": "Six minutes; reveal and ask for the clue word each time.",
+      "student": "Choose the correct form. All four options are real words from the same family.",
+      "teacher": "Five minutes; reveal and ask for the clue word each time.",
       "say": "Read the words before and after the gap.",
-      "check": "Six of eight correct."
+      "check": "Learners name the clue for each answer."
     },
     {
-      "start": 22,
-      "end": 32,
-      "title": "Completion from a passage",
+      "start": 17,
+      "end": 30,
+      "title": "Reading: find the exact form",
       "show": [
         {
           "block": "IELTS-V5-P2",
@@ -204,14 +204,14 @@
           "part": "answers"
         }
       ],
-      "student": "Complete the notes with ONE word from the passage. Copy the exact form.",
-      "teacher": "Eight minutes timed. Check plurals and spelling strictly.",
-      "say": "Copy the word exactly; check singular or plural.",
-      "check": "Learners self-mark strictly."
+      "student": "Complete the notes with ONE word from the passage. The notes use different words, so find the idea first, then copy the exact form the gap needs.",
+      "teacher": "Eleven minutes, then reveal. Mark strictly: wrong form or spelling is wrong.",
+      "say": "Find the idea, check the form, copy the word exactly.",
+      "check": "Learners self-mark strictly and name the form of each answer."
     },
     {
-      "start": 32,
-      "end": 44,
+      "start": 30,
+      "end": 40,
       "title": "Listen and spell",
       "show": [
         {
@@ -223,15 +223,15 @@
           "part": "answers"
         }
       ],
-      "student": "Listen once and complete the form. Spelling must be correct.",
-      "teacher": "Read the script once at natural speed, spelling only the names that the script spells.",
-      "say": "Write, then check spelling and capitals in the last minute.",
+      "student": "Read the form for 30 seconds, then listen once and complete it. Spelling must be correct.",
+      "teacher": "Read the script once at natural speed. Spell only the names that the script spells.",
+      "say": "Write, then use the last minute to check spelling, capitals and plurals.",
       "check": "Most learners score five or more of seven."
     },
     {
-      "start": 44,
-      "end": 54,
-      "title": "Spelling challenge",
+      "start": 40,
+      "end": 48,
+      "title": "Spelling traps",
       "show": [
         {
           "block": "IELTS-V5-P3",
@@ -243,9 +243,28 @@
         }
       ],
       "student": "Choose the correct spelling.",
-      "teacher": "Quick-fire; learners correct their own notebooks.",
-      "say": "Learn the trap, not just the word.",
+      "teacher": "Quick-fire; learners copy the correct spellings into their notebooks.",
+      "say": "Learn the trap (double letter, silent letter), not just the word.",
       "check": "Learners record their three hardest words."
+    },
+    {
+      "start": 48,
+      "end": 54,
+      "title": "Error check",
+      "show": [
+        {
+          "block": "IELTS-V5-P4",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-V5-P4",
+          "part": "answers"
+        }
+      ],
+      "student": "Each sentence has ONE error of form, number or spelling. Write the correct word.",
+      "teacher": "Five minutes; reveal and classify each error (form, number, spelling).",
+      "say": "In the test, check every answer for these three errors.",
+      "check": "Learners classify all six errors."
     },
     {
       "start": 54,
@@ -255,11 +274,15 @@
         {
           "block": "IELTS-V5-H1",
           "part": "questions"
+        },
+        {
+          "block": "IELTS-V5-W2",
+          "part": "prompt"
         }
       ],
-      "student": "Complete the exit ticket and note the homework.",
+      "student": "Complete the exit ticket and note the two homework tasks.",
       "teacher": "Collect exit tickets.",
-      "say": "Check every completion answer for form and spelling before you move on.",
+      "say": "Check every completion answer for form, number and spelling before you move on.",
       "check": "Every learner spells five bank words correctly from memory."
     }
   ],
@@ -269,12 +292,13 @@
       "kind": "contrast",
       "title": "Right idea, lost mark",
       "mode": "Opening challenge; learners decide before the reveal",
-      "instructions": "Recording: '... we offer accommodation for up to forty students.' Form: 'Type of help offered: ______ (ONE WORD)'. Three learners answered. Who gets the mark?",
+      "instructions": "Recording: '... we can offer accommodation for up to forty students.' Form: 'Type of help offered: ______ (ONE WORD)'. Three learners answered. Who gets the mark?",
       "examples": [
         {
           "label": "Learner A",
           "text": "accomodation",
-          "comment": "No mark: misspelt. Accommodation has double c and double m."
+          "comment": "No mark: misspelt. 'Accommodation' has double c and double m.",
+          "deliberate_error": true
         },
         {
           "label": "Learner B",
@@ -284,7 +308,8 @@
         {
           "label": "Learner C",
           "text": "accommodations",
-          "comment": "No mark in this test: 'accommodation' is used here as an uncountable noun, as the recording says."
+          "comment": "No mark here: in British English 'accommodation' is normally uncountable, and the recording uses it without -s.",
+          "deliberate_error": true
         }
       ]
     },
@@ -293,120 +318,163 @@
       "kind": "items",
       "title": "Which form fits the gap?",
       "mode": "Controlled practice; word bank closed for core and above",
-      "instructions": "Write the correct form of the word in brackets (ONE word).",
+      "instructions": "Choose the correct form, A, B, C or D, to complete each sentence. All the options are real words from the same word family.",
       "items": [
         {
           "id": "IELTS-V5-P1-Q1",
-          "prompt": "The council made a ______ to close the road. (decide)",
-          "answer": "decision",
-          "evidence": "a + noun",
-          "reason": "Article 'a' needs a noun.",
+          "prompt": "The council has not yet made a final ______ about the new bridge.",
+          "answer": "C",
+          "evidence": "a final + noun",
+          "reason": "The article and adjective need a noun.",
           "focus": "word form accuracy",
-          "type": "completion",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1
+          "options": [
+            "A  decide",
+            "B  decisive",
+            "C  decision",
+            "D  decisively"
+          ]
         },
         {
           "id": "IELTS-V5-P1-Q2",
-          "prompt": "Cycling has grown in ______ over the past decade. (popular)",
-          "answer": "popularity",
+          "prompt": "Cycling has grown in ______ over the last decade.",
+          "answer": "D",
           "evidence": "in + noun",
-          "reason": "Preposition 'in' needs a noun.",
+          "reason": "The preposition 'in' needs a noun.",
           "focus": "word form accuracy",
-          "type": "completion",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1
+          "options": [
+            "A  popular",
+            "B  popularly",
+            "C  popularise",
+            "D  popularity"
+          ]
         },
         {
           "id": "IELTS-V5-P1-Q3",
-          "prompt": "The new system is far more ______ than the old one. (effect)",
-          "answer": "effective",
+          "prompt": "The new system is far more ______ than the old one.",
+          "answer": "A",
           "evidence": "more + adjective",
-          "reason": "Comparative needs an adjective.",
+          "reason": "The comparative needs an adjective describing the system.",
           "focus": "word form accuracy",
-          "type": "completion",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1
+          "options": [
+            "A  effective",
+            "B  effect",
+            "C  effectively",
+            "D  effectiveness"
+          ]
         },
         {
           "id": "IELTS-V5-P1-Q4",
-          "prompt": "Prices increased ______ last year. (significant)",
-          "answer": "significantly",
+          "prompt": "Prices increased ______ in the second half of the year.",
+          "answer": "D",
           "evidence": "verb + adverb",
-          "reason": "An adverb describes 'increased'.",
+          "reason": "An adverb describes how prices increased.",
           "focus": "word form accuracy",
-          "type": "completion",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1
+          "options": [
+            "A  significant",
+            "B  significance",
+            "C  signify",
+            "D  significantly"
+          ]
         },
         {
           "id": "IELTS-V5-P1-Q5",
-          "prompt": "There has been a major ______ in air quality. (improve)",
-          "answer": "improvement",
-          "evidence": "a major + noun",
-          "reason": "Adjective + noun.",
+          "prompt": "There has been a marked ______ in air quality since the factory closed.",
+          "answer": "A",
+          "evidence": "a marked + noun",
+          "reason": "The article and adjective need a noun.",
           "focus": "word form accuracy",
-          "type": "completion",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1
+          "options": [
+            "A  improvement",
+            "B  improve",
+            "C  improving",
+            "D  improved"
+          ]
         },
         {
           "id": "IELTS-V5-P1-Q6",
-          "prompt": "Several ______ were closed during the storm. (library)",
-          "answer": "libraries",
-          "evidence": "several + plural",
-          "reason": "y → ies.",
+          "prompt": "Several ______ in the area were closed because of the storm.",
+          "answer": "C",
+          "evidence": "several + plural noun (buildings that can be closed)",
+          "reason": "'Librarians' are people, who cannot be 'closed'; 'library' and 'librarian' are singular.",
           "focus": "word form accuracy",
-          "type": "completion",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1
+          "options": [
+            "A  library",
+            "B  librarian",
+            "C  libraries",
+            "D  librarians"
+          ]
         },
         {
           "id": "IELTS-V5-P1-Q7",
-          "prompt": "The project caused serious ______ damage. (environment)",
-          "answer": "environmental",
+          "prompt": "The new factory caused serious ______ damage to the river.",
+          "answer": "B",
           "evidence": "adjective + noun",
-          "reason": "Describes 'damage'.",
+          "reason": "An adjective describes 'damage'; 'environmentalist' refers to a person.",
           "focus": "word form accuracy",
-          "type": "completion",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1
+          "options": [
+            "A  environment",
+            "B  environmental",
+            "C  environmentally",
+            "D  environmentalist"
+          ]
         },
         {
           "id": "IELTS-V5-P1-Q8",
-          "prompt": "Researchers need more ______ before they can decide. (inform)",
-          "answer": "information",
+          "prompt": "Researchers need more ______ before they can reach a conclusion.",
+          "answer": "B",
           "evidence": "more + uncountable noun",
-          "reason": "No plural.",
+          "reason": "'Information' is the noun; it has no plural.",
           "focus": "word form accuracy",
-          "type": "completion",
+          "type": "mcq",
           "level": "core",
-          "word_limit": 1
+          "options": [
+            "A  inform",
+            "B  information",
+            "C  informative",
+            "D  informed"
+          ]
         }
       ]
     },
     {
       "id": "IELTS-V5-P2",
       "kind": "items",
-      "title": "Completion from a passage",
-      "mode": "Timed practice; ten minutes, no dictionary",
+      "title": "Reading: find the exact form",
+      "mode": "Timed practice under test-like conditions: eleven minutes, no dictionary",
       "instructions": "Complete the notes. Choose ONE WORD ONLY from the passage for each answer.",
       "stimulus": {
         "type": "passage",
         "title": "A new sports centre",
         "paragraphs": [
-          "The town's new sports centre, which opened in March, includes a twenty-five-metre swimming pool, two gymnasiums and several outdoor courts. The building was designed to reduce energy consumption: solar panels on the roof provide around a third of its electricity, and rainwater is collected for use in the changing rooms.",
-          "Membership has exceeded expectations. Within six weeks, over two thousand residents had registered, and the centre is now considering longer opening hours at weekends. Managers say the most popular facilities are the climbing wall and the evening yoga classes, which are frequently fully booked.",
-          "Some residents have raised concerns about parking, since the car park has only eighty spaces. The council has responded by introducing a new bus route and installing secure storage for bicycles near the main entrance."
+          "The town's new sports centre, which opened in March after almost three years of construction, replaces a building that had become too expensive to maintain. It contains a twenty-five-metre swimming pool, two sports halls, a climbing wall and several outdoor courts. The architects were asked to minimise energy consumption, and the result is one of the most efficient public buildings in the region: solar panels on the roof generate around a third of its electricity, while rainwater collected from the roof is filtered and used in the toilets and changing rooms.",
+          "Accessibility was another priority. All entrances are at ground level, the pool has a moveable floor that can be raised for swimmers who need shallow water, and the changing rooms include several spaces designed for families and for people with disabilities. Local disability groups were consulted at an early stage, and several of their recommendations were adopted in the final design, including clearer signs, quieter hand dryers and a hoist to help wheelchair users into the pool.",
+          "Membership has exceeded expectations. Within six weeks of opening, more than two thousand residents had registered, and the management is now considering longer opening hours at weekends. The most popular facilities so far are the climbing wall and the evening yoga classes, which are frequently fully booked. To improve affordability, the council has introduced reduced prices for students, pensioners and people who are unemployed.",
+          "The centre has not been without criticism. Some residents complained that the car park, which has only eighty spaces, is insufficient for a building of this size, particularly on Saturday mornings when children's swimming lessons take place. The council responded by introducing a new bus route that stops outside the main entrance and by installing secure storage for more than a hundred bicycles.",
+          "Running the centre requires a team of around forty staff, including lifeguards, fitness instructors and cleaners, many of whom previously worked at the old building. The management has introduced a training programme so that all staff hold a recognised first-aid qualification, and several instructors have completed additional courses in teaching swimming to adults, a service for which there has been unexpectedly strong demand. Local schools also use the pool on weekday mornings, an arrangement that provides the centre with a reliable income during hours when few adult members visit.",
+          "Others questioned the decision to demolish the old building rather than renovate it. The council argued that renovation would have cost almost as much as a new building while producing a centre that was far less efficient. Independent engineers who reviewed the plans broadly supported this conclusion, although they noted that the demolition itself had generated a considerable amount of waste, much of which could not be recycled."
         ]
       },
       "items": [
         {
           "id": "IELTS-V5-P2-Q1",
-          "prompt": "The centre has a pool, two ______ and outdoor courts.",
-          "answer": "gymnasiums",
-          "evidence": "two gymnasiums",
-          "reason": "Plural after 'two'.",
+          "prompt": "Design goal: keep the building's use of energy, or its energy ______, as low as possible.",
+          "answer": "consumption",
+          "evidence": "The architects were asked to minimise energy consumption",
+          "reason": "Noun after 'energy'; 'minimise' = keep as low as possible.",
           "focus": "word form accuracy",
           "type": "completion",
           "level": "core",
@@ -414,54 +482,54 @@
         },
         {
           "id": "IELTS-V5-P2-Q2",
-          "prompt": "The design aims to cut energy ______.",
-          "answer": "consumption",
-          "evidence": "reduce energy consumption",
-          "reason": "Noun after 'energy'.",
-          "focus": "word form accuracy",
+          "prompt": "Power: about a third of the centre's ______ is produced on top of the building.",
+          "answer": "electricity",
+          "evidence": "solar panels on the roof generate around a third of its electricity",
+          "reason": "'Produced on top of the building' paraphrases 'generate ... on the roof'.",
+          "focus": "paraphrase recognition",
           "type": "completion",
           "level": "core",
           "word_limit": 1
         },
         {
           "id": "IELTS-V5-P2-Q3",
-          "prompt": "About a third of the electricity comes from solar ______.",
-          "answer": "panels",
-          "evidence": "solar panels on the roof",
-          "reason": "Plural noun.",
-          "focus": "word form accuracy",
-          "type": "completion",
-          "level": "core",
-          "word_limit": 1
-        },
-        {
-          "id": "IELTS-V5-P2-Q4",
-          "prompt": "Collected ______ is used in the changing rooms.",
+          "prompt": "Water: ______ is cleaned and reused in toilets and changing rooms.",
           "answer": "rainwater",
-          "evidence": "rainwater is collected",
-          "reason": "One word; uncountable.",
+          "evidence": "rainwater collected from the roof is filtered and used in the toilets and changing rooms",
+          "reason": "One word, uncountable; 'cleaned' paraphrases 'filtered'.",
           "focus": "spelling",
           "type": "completion",
           "level": "core",
           "word_limit": 1
         },
         {
-          "id": "IELTS-V5-P2-Q5",
-          "prompt": "The most popular activities include the climbing wall and evening ______ classes.",
-          "answer": "yoga",
-          "evidence": "the evening yoga classes",
-          "reason": "Noun used as adjective.",
+          "id": "IELTS-V5-P2-Q4",
+          "prompt": "Design input: some ______ from local disability groups were included in the plans.",
+          "answer": "recommendations",
+          "evidence": "several of their recommendations were adopted in the final design",
+          "reason": "Plural noun after 'some ... were'.",
           "focus": "word form accuracy",
           "type": "completion",
           "level": "core",
           "word_limit": 1
         },
         {
+          "id": "IELTS-V5-P2-Q5",
+          "prompt": "Most popular so far: the climbing wall and evening ______ sessions.",
+          "answer": "yoga",
+          "evidence": "the climbing wall and the evening yoga classes",
+          "reason": "Noun used before another noun.",
+          "focus": "paraphrase recognition",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        },
+        {
           "id": "IELTS-V5-P2-Q6",
-          "prompt": "Concerns: there are not enough ______ in the car park.",
-          "answer": "spaces",
-          "evidence": "the car park has only eighty spaces",
-          "reason": "Plural.",
+          "prompt": "To increase the centre's ______, cheaper prices are offered to some groups.",
+          "answer": "affordability",
+          "evidence": "To improve affordability, the council has introduced reduced prices",
+          "reason": "The possessive 'the centre's' needs a noun; 'affordable' is the adjective.",
           "focus": "word form accuracy",
           "type": "completion",
           "level": "core",
@@ -469,10 +537,21 @@
         },
         {
           "id": "IELTS-V5-P2-Q7",
-          "prompt": "The council now provides secure ______ for bicycles.",
-          "answer": "storage",
-          "evidence": "installing secure storage for bicycles",
-          "reason": "Uncountable noun.",
+          "prompt": "Criticism: the parking provided is ______ on busy days.",
+          "answer": "insufficient",
+          "evidence": "the car park, which has only eighty spaces, is insufficient for a building of this size",
+          "reason": "After 'is', the gap needs an adjective meaning 'not enough'.",
+          "focus": "word form accuracy",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        },
+        {
+          "id": "IELTS-V5-P2-Q8",
+          "prompt": "Old building: ______ was rejected because it would have cost nearly as much as a new centre.",
+          "answer": "renovation",
+          "evidence": "renovation would have cost almost as much as a new building",
+          "reason": "The subject of the sentence needs a noun; 'renovate' is the verb.",
           "focus": "word form accuracy",
           "type": "completion",
           "level": "core",
@@ -494,9 +573,9 @@
           "STUDENT: Hello, I'd like to book a study room for a group project. My surname is Whitfield, that's W-H-I-T-F-I-E-L-D.",
           "RECEPTIONIST: Thank you. Which day would you like?",
           "STUDENT: Wednesday, please, the fourteenth of February, in the afternoon.",
-          "RECEPTIONIST: Fine. Our rooms have whiteboards, and you can borrow a projector, but please note that food is not allowed. Will you need any equipment?",
+          "RECEPTIONIST: Fine. All our rooms have whiteboards, and you can borrow a projector, but please note that food is not allowed. Will you need any equipment?",
           "STUDENT: Just the projector, thanks. Oh, and is it necessary to bring a student card?",
-          "RECEPTIONIST: Yes, you'll need it to enter the building. The room is on the third floor, next to the laboratory."
+          "RECEPTIONIST: Yes, you'll need it to enter the building after six o'clock. The room is on the third floor, next to the laboratory, not the library entrance, so take the lift on the left."
         ]
       },
       "items": [
@@ -557,21 +636,24 @@
         },
         {
           "id": "IELTS-V5-L1-Q6",
-          "prompt": "Bring: student ______",
-          "answer": "card",
-          "evidence": "bring a student card",
-          "reason": "Singular.",
+          "prompt": "Student card needed after: ______ p.m.",
+          "answer": "6",
+          "evidence": "you'll need it to enter the building after six o'clock",
+          "reason": "Accept '6' or 'six'.",
           "focus": "detail discrimination",
           "type": "completion",
           "level": "core",
-          "word_limit": 1
+          "word_limit": 1,
+          "accept": [
+            "six"
+          ]
         },
         {
           "id": "IELTS-V5-L1-Q7",
           "prompt": "Location: third floor, next to the ______",
           "answer": "laboratory",
-          "evidence": "next to the laboratory",
-          "reason": "Not 'library' – listen carefully.",
+          "evidence": "next to the laboratory, not the library entrance",
+          "reason": "Distractor: 'library' is mentioned and rejected.",
           "focus": "spelling",
           "type": "completion",
           "level": "core",
@@ -582,9 +664,10 @@
     {
       "id": "IELTS-V5-P3",
       "kind": "items",
-      "title": "Spelling challenge",
+      "deliberate_errors": true,
+      "title": "Spelling traps",
       "mode": "Quick-fire practice",
-      "instructions": "Choose the correct spelling, A, B or C.",
+      "instructions": "Choose the correct spelling, A, B, C or D. Three options in each question are deliberately misspelt.",
       "items": [
         {
           "id": "IELTS-V5-P3-Q1",
@@ -598,13 +681,14 @@
           "options": [
             "A  acommodation",
             "B  accommodation",
-            "C  accomodation"
+            "C  accomodation",
+            "D  acomodation"
           ]
         },
         {
           "id": "IELTS-V5-P3-Q2",
           "prompt": "the natural world",
-          "answer": "C",
+          "answer": "D",
           "evidence": "environment",
           "reason": "n before m.",
           "focus": "spelling",
@@ -613,7 +697,8 @@
           "options": [
             "A  enviroment",
             "B  envirnment",
-            "C  environment"
+            "C  enviornment",
+            "D  environment"
           ]
         },
         {
@@ -628,13 +713,14 @@
           "options": [
             "A  necessary",
             "B  neccessary",
-            "C  necesary"
+            "C  necesary",
+            "D  neccesary"
           ]
         },
         {
           "id": "IELTS-V5-P3-Q4",
           "prompt": "the people who rule a country",
-          "answer": "B",
+          "answer": "C",
           "evidence": "government",
           "reason": "n before m.",
           "focus": "spelling",
@@ -642,39 +728,112 @@
           "level": "core",
           "options": [
             "A  goverment",
-            "B  government",
-            "C  govermment"
+            "B  govermment",
+            "C  government",
+            "D  govenment"
           ]
         },
         {
           "id": "IELTS-V5-P3-Q5",
-          "prompt": "how hot or cold it is",
-          "answer": "A",
-          "evidence": "temperature",
-          "reason": "-ature ending.",
-          "focus": "spelling",
-          "type": "mcq",
-          "level": "core",
-          "options": [
-            "A  temperature",
-            "B  temprature",
-            "C  temperture"
-          ]
-        },
-        {
-          "id": "IELTS-V5-P3-Q6",
           "prompt": "the start of something",
-          "answer": "C",
+          "answer": "B",
           "evidence": "beginning",
-          "reason": "beginning has double n before -ing.",
+          "reason": "Double n before -ing.",
           "focus": "spelling",
           "type": "mcq",
           "level": "core",
           "options": [
             "A  begining",
-            "B  beggining",
-            "C  beginning"
+            "B  beginning",
+            "C  beggining",
+            "D  beginnig"
           ]
+        },
+        {
+          "id": "IELTS-V5-P3-Q6",
+          "prompt": "a room for scientific experiments",
+          "answer": "A",
+          "evidence": "laboratory",
+          "reason": "'labor' + 'atory'; often mispronounced and misspelt.",
+          "focus": "spelling",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  laboratory",
+            "B  labratory",
+            "C  laboratary",
+            "D  laboritory"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "IELTS-V5-P4",
+      "kind": "items",
+      "deliberate_errors": true,
+      "title": "Error check",
+      "mode": "Controlled practice",
+      "instructions": "Each completed answer below contains ONE error of form, number or spelling. Write the correct word.",
+      "items": [
+        {
+          "id": "IELTS-V5-P4-Q1",
+          "prompt": "'The council made an important decide.' Correct word:",
+          "answer": "decision",
+          "evidence": "an important + noun",
+          "reason": "Form: verb → noun.",
+          "focus": "word form accuracy",
+          "type": "short",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-V5-P4-Q2",
+          "prompt": "'Visitors can borrow several bicycle.' Correct word:",
+          "answer": "bicycles",
+          "evidence": "several + plural",
+          "reason": "Number: singular → plural.",
+          "focus": "word form accuracy",
+          "type": "short",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-V5-P4-Q3",
+          "prompt": "'The tour starts on wednesday.' Correct word:",
+          "answer": "Wednesday",
+          "evidence": "days take a capital letter",
+          "reason": "Spelling: capital letter.",
+          "focus": "spelling",
+          "type": "short",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-V5-P4-Q4",
+          "prompt": "'The project caused environment damage.' Correct word:",
+          "answer": "environmental",
+          "evidence": "adjective + noun",
+          "reason": "Form: noun → adjective.",
+          "focus": "word form accuracy",
+          "type": "short",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-V5-P4-Q5",
+          "prompt": "'The museum needs new equipments.' Correct word:",
+          "answer": "equipment",
+          "evidence": "uncountable noun",
+          "reason": "Number: 'equipment' has no plural.",
+          "focus": "word form accuracy",
+          "type": "short",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-V5-P4-Q6",
+          "prompt": "'Prices rose significant last year.' Correct word:",
+          "answer": "significantly",
+          "evidence": "verb + adverb",
+          "reason": "Form: adjective → adverb.",
+          "focus": "word form accuracy",
+          "type": "short",
+          "level": "core"
         }
       ]
     },
@@ -682,16 +841,16 @@
       "id": "IELTS-V5-H1",
       "kind": "items",
       "homework": true,
-      "title": "Homework: word families",
+      "title": "Homework: word families in use",
       "mode": "Homework; checked at the start of the next lesson",
-      "instructions": "Write the noun form of each verb or adjective (ONE word).",
+      "instructions": "Questions 1-3: Write the noun form of each word (ONE word). Questions 4-6: Rewrite each sentence using the word in brackets in the correct form. Keep the meaning the same.",
       "items": [
         {
           "id": "IELTS-V5-H1-Q1",
-          "prompt": "develop → ______",
-          "answer": "development",
-          "evidence": "-ment",
-          "reason": "Noun suffix.",
+          "prompt": "responsible → ______",
+          "answer": "responsibility",
+          "evidence": "-ible → -ibility",
+          "reason": "Spelling change.",
           "focus": "word form accuracy",
           "type": "completion",
           "level": "core",
@@ -699,21 +858,21 @@
         },
         {
           "id": "IELTS-V5-H1-Q2",
-          "prompt": "able → ______",
-          "answer": "ability",
-          "evidence": "-ity",
-          "reason": "Spelling change: able → abil-.",
-          "focus": "word form accuracy",
+          "prompt": "explain → ______",
+          "answer": "explanation",
+          "evidence": "-ain → -anation",
+          "reason": "Spelling change: no 'i' in 'explanation'.",
+          "focus": "spelling",
           "type": "completion",
           "level": "core",
           "word_limit": 1
         },
         {
           "id": "IELTS-V5-H1-Q3",
-          "prompt": "explain → ______",
-          "answer": "explanation",
-          "evidence": "-ation",
-          "reason": "Spelling change: no 'i' in -planation.",
+          "prompt": "describe → ______",
+          "answer": "description",
+          "evidence": "-be → -ption",
+          "reason": "Spelling change: b → p.",
           "focus": "spelling",
           "type": "completion",
           "level": "core",
@@ -721,48 +880,66 @@
         },
         {
           "id": "IELTS-V5-H1-Q4",
-          "prompt": "pollute → ______",
-          "answer": "pollution",
-          "evidence": "-ion",
-          "reason": "Noun suffix.",
+          "prompt": "Rewrite: 'The council decided to close the pool.' (decision)",
+          "answer": "The council made the decision to close the pool.",
+          "evidence": "decide → decision",
+          "reason": "Accept 'made a/the decision to' or 'The council's decision was to close the pool.'",
           "focus": "word form accuracy",
-          "type": "completion",
-          "level": "core",
-          "word_limit": 1
+          "type": "short",
+          "level": "core"
         },
         {
           "id": "IELTS-V5-H1-Q5",
-          "prompt": "responsible → ______",
-          "answer": "responsibility",
-          "evidence": "-ity",
-          "reason": "Spelling change: -ible → -ibility.",
+          "prompt": "Rewrite: 'Cycling has become much more popular.' (popularity)",
+          "answer": "There has been a significant rise in the popularity of cycling.",
+          "evidence": "popular → popularity",
+          "reason": "Accept any accurate sentence using the noun 'popularity'.",
           "focus": "word form accuracy",
-          "type": "completion",
-          "level": "core",
-          "word_limit": 1
+          "type": "short",
+          "level": "core"
         },
         {
           "id": "IELTS-V5-H1-Q6",
-          "prompt": "describe → ______",
-          "answer": "description",
-          "evidence": "-tion",
-          "reason": "Spelling change: b → p.",
-          "focus": "spelling",
-          "type": "completion",
-          "level": "core",
-          "word_limit": 1
+          "prompt": "Rewrite: 'The new rules were effective in reducing noise.' (effectively)",
+          "answer": "The new rules effectively reduced noise.",
+          "evidence": "effective → effectively",
+          "reason": "Accept any accurate sentence using the adverb correctly.",
+          "focus": "word form accuracy",
+          "type": "short",
+          "level": "core"
         }
+      ]
+    },
+    {
+      "id": "IELTS-V5-W2",
+      "kind": "writing",
+      "task": "paragraph",
+      "homework": true,
+      "title": "Homework: describe a public facility",
+      "mode": "Homework; teacher feedback on word form, spelling and accuracy",
+      "prompt": "Write a paragraph of about 130 words describing a public facility in your town or city (for example a library, park, pool or station). Explain what it offers and one way it could be improved. Underline every noun ending in -tion, -ment or -ity and every adjective ending in -al, -ive or -ient that you use.",
+      "conditions": "20 minutes, without a dictionary, translator or AI tool. Write the start and finish time, then check every underlined word for spelling and form.",
+      "support": "Useful forms: facility/facilities, accessible/accessibility, improve/improvement, popular/popularity, environment/environmental, sufficient/insufficient.",
+      "extension": "Use at least one negative adjective (insufficient, inaccessible, unreliable).",
+      "high_band": "Use six different suffixes accurately without forcing them.",
+      "model_label": "Illustrative model for teacher feedback only. Not a certified band answer.",
+      "model": "The central library in my city is one of its most popular public facilities. Since its renovation three years ago, it has offered a quiet reading room, free internet access and a collection of more than fifty thousand books. Its accessibility has also improved considerably: there is now a lift to every floor and a ramp at the main entrance. However, the opening hours are insufficient for many students, because the building closes at six o'clock on weekdays, just when most people finish work or school. In my view, the most effective improvement would be to extend the evening opening hours, even if only on two days a week. This relatively small change would make the library far more useful to the people who depend on it most.",
+      "checklist": [
+        "Word form: Is every underlined word the correct part of speech for its position?",
+        "Spelling: Are double letters and silent letters correct?",
+        "Number: Are plurals and uncountable nouns used correctly?",
+        "Task: Does the paragraph describe the facility and suggest one improvement?"
       ]
     }
   ],
   "exit_ticket": [
     "Three words I will now spell correctly:",
-    "The clue that tells me a gap needs a plural:",
-    "One word family I can write in full:"
+    "The clue that tells me a gap needs a noun:",
+    "One word family I can write in full (verb, noun, adjective, adverb):"
   ],
   "homework": [
     "Complete the word-family sheet.",
-    "Make a personal spelling list of ten words you have got wrong in tests and test yourself every day for a week."
+    "Write the paragraph about a public facility and check every underlined word."
   ],
   "delayed_followup": "In Lesson 14 or 17 (Listening Parts 3 and 2), check completion answers for spelling, plurals and word form. Record it as a later observation.",
   "mapping_notes": "Focuses use Diagnostic Bible section 7.2 construct names where they apply (lexical resource, paraphrase recognition). Teaching focuses only. This optional vocabulary lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
@@ -772,8 +949,8 @@
   ],
   "followup": {
     "id": "IELTS-V5-C1",
-    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.0.0 on 2026-10-26. Keep private until use.",
-    "delivery": "About one teaching week later: 8 minutes, teacher reads the script once; no word bank. Record timing and support.",
+    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.1.0 on 2026-10-26. Keep private until use.",
+    "delivery": "About one teaching week later: 10 minutes; the teacher reads the script once; no word bank. Record timing and support.",
     "review": "Mark strictly as in the test: wrong spelling, wrong form or wrong number is incorrect. Note which type of error each learner makes. Do not convert to an IELTS band.",
     "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty.",
     "blocks": [
@@ -830,17 +1007,6 @@
           },
           {
             "id": "IELTS-V5-C1-Q4",
-            "prompt": "Bring a ______ and water",
-            "answer": "pencil",
-            "evidence": "Just a pencil",
-            "reason": "Spelling: -cil.",
-            "focus": "spelling",
-            "type": "completion",
-            "level": "core",
-            "word_limit": 1
-          },
-          {
-            "id": "IELTS-V5-C1-Q5",
             "prompt": "Volunteers needed for ______",
             "answer": "publicity",
             "evidence": "help with publicity",
@@ -851,7 +1017,7 @@
             "word_limit": 1
           },
           {
-            "id": "IELTS-V5-C1-Q6",
+            "id": "IELTS-V5-C1-Q5",
             "prompt": "Concert money goes to the local ______",
             "answer": "hospital",
             "evidence": "the local hospital",
@@ -862,7 +1028,7 @@
             "word_limit": 1
           },
           {
-            "id": "IELTS-V5-C1-Q7",
+            "id": "IELTS-V5-C1-Q6",
             "prompt": "Contact: Mrs ______",
             "answer": "Coutts",
             "evidence": "Mrs Coutts",
@@ -873,14 +1039,94 @@
             "word_limit": 1
           }
         ]
+      },
+      {
+        "id": "IELTS-V5-C2",
+        "kind": "items",
+        "title": "Fresh check: which form fits?",
+        "mode": "Withheld fresh check; independent, timed",
+        "instructions": "Choose the correct form, A, B, C or D, to complete each sentence.",
+        "items": [
+          {
+            "id": "IELTS-V5-C2-Q1",
+            "prompt": "There has been a steady ______ in the number of tourists.",
+            "answer": "C",
+            "evidence": "a steady + noun",
+            "reason": "The article and adjective need a noun.",
+            "focus": "word form accuracy",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  grow",
+              "B  grown",
+              "C  growth",
+              "D  growing"
+            ]
+          },
+          {
+            "id": "IELTS-V5-C2-Q2",
+            "prompt": "The bridge was closed for ______ reasons.",
+            "answer": "A",
+            "evidence": "noun used before another noun: safety reasons",
+            "reason": "The fixed phrase is 'for safety reasons'; 'safe reasons' would mean the reasons are safe, and 'safely' and 'saves' cannot describe a noun.",
+            "focus": "word form accuracy",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  safety",
+              "B  safe",
+              "C  safely",
+              "D  saves"
+            ]
+          },
+          {
+            "id": "IELTS-V5-C2-Q3",
+            "prompt": "Public transport in the area is ______; buses are often late or cancelled.",
+            "answer": "D",
+            "evidence": "is + adjective (negative meaning)",
+            "reason": "The explanation shows a negative meaning: 'unreliable'.",
+            "focus": "word form accuracy",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  reliable",
+              "B  reliability",
+              "C  rely",
+              "D  unreliable"
+            ]
+          },
+          {
+            "id": "IELTS-V5-C2-Q4",
+            "prompt": "Several new sports ______ have been built near the station.",
+            "answer": "B",
+            "evidence": "several + plural countable noun",
+            "reason": "'Facility' is singular; 'facilitate' is a verb; a 'facilitator' is a person, who cannot be built.",
+            "focus": "word form accuracy",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  facility",
+              "B  facilities",
+              "C  facilitate",
+              "D  facilitators"
+            ]
+          }
+        ]
       }
     ]
   },
-  "approval_record": {
+  "previous_approval_record": {
     "approved_by": "Owner, Brains Heist LLC",
     "date": "2026-10-26",
     "version": "1.0.0",
     "scope": "Vocabulary lesson content, keys and models for teacher-only release to all eligible schools. Student task publication remains separate.",
-    "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek: 'there should also some Vocabulary lessons that really fit the IELTS in a very practical way for the students to benefit from. Make the needed adjustments and improvements now ... you have all my permissions, don't ask for any.' Not recorded as an in-platform decision; no review-draft pack was opened before approval."
+    "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek ('Make the needed adjustments and improvements now ... you have all my permissions'). Superseded by v1.1.0 after an external review judged v1.0.0 too easy for Band 6.5+ preparation."
+  },
+  "approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-26",
+    "version": "1.1.0",
+    "scope": "Vocabulary lesson content, keys and models for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 15:42 Asia/Bishkek, after sharing an external review of V6 v1.0.0 (difficulty 3.5/10; distractors too easy; reading answers copied; Part 3 not interactive; no writing): 'yes, but this time be very accurate', in reply to the proposal to rebuild V1-V6 at Band 6.5-7.5 level and re-release them. Not recorded as an in-platform decision; no review-draft pack was opened before approval."
   }
 }
