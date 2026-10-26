@@ -208,3 +208,195 @@
 .il-alloc .il-history-badge { margin: 6px 0 10px; }
 .il-alloc--done .il-history-badge { background: #ecfdf5; border-color: #a7f3d0; color: var(--bh-ielts-success); }
 .il-summary { margin-top: 1rem; padding: 1rem 1.25rem; border-left: 3px solid var(--bh-ielts-accent); background: var(--bh-ielts-surface-muted); border-radius: var(--bh-ielts-radius-sm); }
+
+/* Targeted practice, student view: one step at a time (2026-10-26). */
+.il-step { position: relative; padding-top: 1.4rem; }
+.il-step h2 { margin: .2rem 0 1rem; font-size: clamp(1.35rem, 3vw, 1.75rem); line-height: 1.2; }
+.il-step h2:focus { outline: none; }
+.il-step-progress { height: 6px; border-radius: 999px; background: var(--bh-ielts-secondary); overflow: hidden; }
+.il-step-progress span { display: block; height: 100%; background: var(--bh-ielts-primary); border-radius: inherit; transition: width .25s ease; }
+@media (prefers-reduced-motion: reduce) { .il-step-progress span { transition: none; } }
+.il-step-count { margin: .6rem 0 0; color: var(--bh-ielts-foreground-muted); font-size: .85rem; font-weight: 600; }
+.il-step-kicker { margin: 0 0 .35rem; font-size: .76rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--bh-ielts-primary); }
+.il-step-body { min-height: 9rem; }
+.il-step-body p { margin: .55rem 0; }
+.il-step-goal { padding: 1rem 1.15rem; border-radius: var(--bh-ielts-radius-md); background: var(--bh-ielts-secondary); border-left: 4px solid var(--bh-ielts-primary); }
+.il-step-goal p:last-child { margin: 0; font-size: 1.05rem; }
+.il-step-note { color: var(--bh-ielts-foreground); }
+.il-step-plan { margin: 1rem 0; padding: 0; list-style: none; counter-reset: plan; display: grid; gap: .5rem; }
+.il-step-plan li { counter-increment: plan; display: flex; gap: .7rem; align-items: center; }
+.il-step-plan li::before { content: counter(plan); flex: 0 0 1.8rem; height: 1.8rem; border-radius: 50%; display: grid; place-items: center; background: var(--bh-ielts-primary); color: #fff; font-weight: 800; font-size: .85rem; }
+.il-step-learn h3 { margin: 0 0 .8rem; font-size: 1.2rem; }
+.il-step-block { margin: .9rem 0; }
+.il-step-example { margin: 1.1rem 0; padding: 1rem 1.15rem; border-radius: var(--bh-ielts-radius-md); background: #f2fbf6; border: 1px solid #b7e4cb; }
+.il-step-example .il-step-kicker { color: var(--bh-ielts-success); }
+.il-step-list { margin: .5rem 0; padding-left: 1.4rem; display: grid; gap: .45rem; }
+.il-step-defs { margin: .6rem 0; display: grid; gap: .45rem; }
+.il-step-defs div { display: grid; grid-template-columns: 2rem 1fr; gap: .6rem; align-items: start; }
+.il-step-defs dt { width: 2rem; height: 2rem; border-radius: 8px; display: grid; place-items: center; background: var(--bh-ielts-primary); color: #fff; font-weight: 800; }
+.il-step-defs dd { margin: .2rem 0 0; }
+.il-step-answer span, .il-step-why span { display: inline-block; margin-right: .4rem; padding: .1rem .55rem; border-radius: 999px; background: var(--bh-ielts-success); color: #fff; font-size: .78rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.il-step-article { margin: .5rem 0; line-height: 1.8; color: #182139; max-width: 72ch; }
+.il-step-article h3 { margin: 0 0 .7rem; font-size: 1.15rem; }
+.il-step-para { display: grid; grid-template-columns: 1.9rem 1fr; gap: .7rem; margin: 0 0 1rem; }
+.il-step-letter { width: 1.9rem; height: 1.9rem; margin-top: .2rem; border-radius: 8px; display: grid; place-items: center; background: var(--bh-ielts-secondary); color: var(--bh-ielts-primary); font-weight: 800; border: 1px solid var(--bh-ielts-border); }
+.il-step-prompt { font-size: clamp(1.08rem, 2.6vw, 1.25rem); font-weight: 650; line-height: 1.5; margin: 0 0 1.1rem; }
+.il-step-options { display: grid; gap: .65rem; margin: .5rem 0 1rem; }
+.il-shell button.il-step-option { display: block; width: 100%; min-height: 54px; text-align: left; padding: .85rem 1rem; border: 2px solid var(--bh-ielts-border); background: var(--bh-ielts-surface); color: var(--bh-ielts-foreground); font-weight: 600; border-radius: var(--bh-ielts-radius-md); }
+.il-shell button.il-step-option:hover:not(:disabled) { border-color: var(--bh-ielts-primary); }
+.il-shell button.il-step-option.is-chosen { border-color: var(--bh-ielts-primary); background: var(--bh-ielts-secondary); color: var(--bh-ielts-primary); box-shadow: inset 4px 0 0 var(--bh-ielts-primary); }
+.il-step-peek { margin: .8rem 0 0; }
+.il-step-nav { display: flex; justify-content: space-between; gap: .75rem; margin-top: 1.4rem; padding-top: 1rem; border-top: 1px solid var(--bh-ielts-border); }
+.il-step-nav button:last-child { margin-left: auto; }
+.il-shell button.il-step-secondary { background: var(--bh-ielts-surface); color: var(--bh-ielts-primary); }
+.il-step-audio { margin: .9rem 0; padding: .8rem 1rem; border-radius: var(--bh-ielts-radius-md); background: var(--bh-ielts-surface-muted); border: 1px solid var(--bh-ielts-border); }
+.il-step-audio p { margin: .4rem 0; }
+.il-step-review { list-style: none; padding: 0; margin: .8rem 0; display: grid; gap: .5rem; }
+.il-shell button.il-step-jump { width: 100%; display: grid; grid-template-columns: 2rem 1fr auto; gap: .7rem; align-items: center; text-align: left; background: var(--bh-ielts-surface); color: var(--bh-ielts-foreground); border: 1px solid var(--bh-ielts-border); font-weight: 500; }
+.il-shell button.il-step-jump:hover { border-color: var(--bh-ielts-primary); }
+.il-step-qn { width: 2rem; height: 2rem; border-radius: 50%; display: inline-grid; place-items: center; background: var(--bh-ielts-secondary); color: var(--bh-ielts-primary); font-weight: 800; flex: 0 0 2rem; }
+.il-step-qtext { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.il-step-missing { color: var(--bh-ielts-warning); }
+.il-step-results { list-style: none; padding: 0; margin: 1rem 0; display: grid; gap: .8rem; }
+.il-step-results li { padding: .9rem 1rem; border-radius: var(--bh-ielts-radius-md); border: 1px solid var(--bh-ielts-border); border-left-width: 5px; }
+.il-step-results li.is-correct { border-left-color: var(--bh-ielts-success); }
+.il-step-results li.is-wrong { border-left-color: var(--bh-ielts-warning); background: #fffaf0; }
+.il-step-results p { margin: .4rem 0; }
+.il-step-qline { display: flex; gap: .6rem; align-items: flex-start; font-weight: 650; }
+.il-step-badge { display: inline-block; margin-right: .4rem; padding: .1rem .55rem; border-radius: 999px; font-size: .8rem; font-weight: 800; }
+.il-step-badge.ok { background: #ecfdf5; color: var(--bh-ielts-success); border: 1px solid #a7f3d0; }
+.il-step-badge.no { background: #fff4db; color: var(--bh-ielts-warning); border: 1px solid #f5d27a; }
+.il-step-why { padding: .6rem .8rem; border-radius: var(--bh-ielts-radius-sm); background: var(--bh-ielts-surface-muted); }
+@media (max-width: 520px) {
+  .il-step-nav button { flex: 1; }
+  .il-shell button.il-step-jump { grid-template-columns: 2rem 1fr; }
+  .il-shell button.il-step-jump strong { grid-column: 2; }
+}
+/* Step player polish: letter badges, compact peek panels, quiet source link. */
+.il-shell button.il-step-option { display: flex; align-items: center; gap: .8rem; }
+.il-step-option-letter { flex: none; display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 999px; background: var(--bh-ielts-surface-muted); color: var(--bh-ielts-primary); font-weight: 800; }
+.il-shell button.il-step-option.is-chosen .il-step-option-letter { background: var(--bh-ielts-primary); color: #fff; }
+.il-step-option-text { flex: 1; line-height: 1.35; }
+.il-shell button.il-step-option:hover:not(:disabled) { border-color: var(--bh-ielts-border); }
+@media (hover: hover) { .il-shell button.il-step-option:hover:not(:disabled) { border-color: var(--bh-ielts-primary); } }
+.il-shell button.il-step-option:focus:not(:focus-visible) { outline: none; }
+.il-preview.il-step-peek { padding: 0 1rem; margin: .6rem 0; }
+.il-preview.il-step-peek summary { display: flex; align-items: center; min-height: 48px; color: var(--bh-ielts-primary); }
+.il-preview.il-step-peek[open] { padding-bottom: 1rem; }
+.il-step-source { margin: 1rem .25rem; font-size: .9rem; }
+.il-shell .il-step-source button.il-inline-link { color: var(--bh-ielts-muted, #475569); font-weight: 500; }
+.il-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Step player: colour per step, highlights and motion (2026-10-26).
+   Every step kind has its own colour (--k) and soft tint (--kt): mission blue, learn amber, read teal,
+   questions violet, check green. Letters keep one colour everywhere (A blue, B teal, C amber, D violet, E green). */
+@property --p { syntax: "<number>"; inherits: false; initial-value: 0; }
+.il-step { --k: var(--bh-ielts-primary); --kt: #EEF3FA; --kd: #0B2E7A; overflow: hidden; border-top: 0; box-shadow: var(--bh-ielts-shadow-md); }
+.il-step::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 6px; background: linear-gradient(90deg, var(--k), color-mix(in srgb, var(--k) 55%, #fff)); transition: background .4s ease; }
+.il-step[data-kind="learn"] { --k: #B45309; --kt: #FFF6E5; --kd: #7A3A06; }
+.il-step[data-kind="listen"], .il-step[data-kind="passage"], .il-step[data-kind="task"] { --k: #0E7490; --kt: #E7F6F9; --kd: #0B4F63; }
+.il-step[data-kind="question"], .il-step[data-kind="response"] { --k: #5B3CC4; --kt: #F2EEFF; --kd: #3B2387; }
+.il-step[data-kind="review"] { --k: #087F5B; --kt: #E9F7F0; --kd: #05563D; }
+
+/* Progress: a gradient bar with a glowing tip that grows as the student moves. */
+.il-step-progress { height: 10px; background: var(--kt); margin-top: .4rem; }
+.il-step-progress span { position: relative; background: linear-gradient(90deg, #1746B0, #0E7490 45%, #5B3CC4 80%, #087F5B); background-size: 160% 100%; transition: width .5s cubic-bezier(.3,1.4,.5,1); }
+.il-step-progress span::after { content: ""; position: absolute; right: 0; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: #fff; border: 3px solid var(--k); box-shadow: 0 0 0 4px color-mix(in srgb, var(--k) 25%, transparent); }
+.il-step-progress { overflow: visible; }
+
+/* Header row: a coloured chip saying what kind of step this is, and the step count. */
+.il-step-top { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-top: .9rem; }
+.il-step-chip { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .75rem; border-radius: 999px; background: var(--kt); color: var(--kd); font-size: .8rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; border: 1px solid color-mix(in srgb, var(--k) 25%, transparent); }
+.il-step-top .il-step-count { margin: 0; }
+.il-step h2 { color: var(--kd); }
+
+/* Each new step slides in from the side the student is moving towards. */
+.il-step-stage { animation: il-step-in-forward .38s cubic-bezier(.2,.8,.2,1) both; }
+.il-step-stage.is-back { animation-name: il-step-in-back; }
+@keyframes il-step-in-forward { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes il-step-in-back { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+
+/* Mission card. */
+.il-step-goal { background: linear-gradient(135deg, var(--kt), #fff); border-left-color: var(--k); box-shadow: var(--bh-ielts-shadow-sm); }
+.il-step-goal .il-step-kicker { color: var(--k); }
+.il-step-plan li { padding: .55rem .7rem; border-radius: var(--bh-ielts-radius-sm); background: var(--bh-ielts-surface-muted); animation: il-rise .45s both; }
+.il-step-plan li:nth-child(2) { animation-delay: .08s; } .il-step-plan li:nth-child(3) { animation-delay: .16s; } .il-step-plan li:nth-child(4) { animation-delay: .24s; } .il-step-plan li:nth-child(5) { animation-delay: .32s; }
+.il-step-plan li:nth-child(1)::before { background: #B45309; } .il-step-plan li:nth-child(2)::before { background: #0E7490; } .il-step-plan li:nth-child(3)::before { background: #5B3CC4; } .il-step-plan li:nth-child(4)::before { background: #087F5B; } .il-step-plan li:nth-child(5)::before { background: #1746B0; }
+@keyframes il-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* Learn first: a warm notebook card; the kinds list uses each letter's own colour. */
+.il-step-learn { padding: 1rem 1.1rem; border-radius: var(--bh-ielts-radius-md); background: linear-gradient(180deg, #FFF8EC, #fff 60%); border: 1px solid #F6D9A8; }
+.il-step-learn > .il-step-kicker { color: #B45309; }
+.il-step-defs div { padding: .45rem .5rem; border-radius: var(--bh-ielts-radius-sm); background: color-mix(in srgb, var(--hue) 7%, #fff); animation: il-rise .4s both; }
+.il-step-defs div:nth-child(2) { animation-delay: .06s; } .il-step-defs div:nth-child(3) { animation-delay: .12s; } .il-step-defs div:nth-child(4) { animation-delay: .18s; } .il-step-defs div:nth-child(5) { animation-delay: .24s; } .il-step-defs div:nth-child(6) { animation-delay: .3s; }
+.il-step-defs dt { background: var(--hue, var(--bh-ielts-primary)); }
+.il-step-example { position: relative; background: linear-gradient(135deg, #ECFAF2, #F8FFFB); border: 2px dashed #8FD3AE; }
+.il-step-example::after { content: "★"; position: absolute; top: -.8rem; right: .9rem; width: 1.6rem; height: 1.6rem; display: grid; place-items: center; border-radius: 50%; background: var(--bh-ielts-success); color: #fff; font-size: .85rem; }
+.il-step-example .il-step-list li::marker { color: var(--bh-ielts-success); font-weight: 800; }
+.il-step-answer span { animation: il-pop .5s .2s both; }
+
+/* Highlighter: quoted phrases in a question look marked with a yellow pen. */
+mark.il-step-hl { padding: 0 .15em; border-radius: .25em; color: inherit; background: linear-gradient(104deg, transparent .2em, #FFE680 .4em, #FFD84D 92%, transparent 99%); background-size: 0% 100%; background-repeat: no-repeat; animation: il-mark .7s .25s ease-out forwards; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+@keyframes il-mark { to { background-size: 100% 100%; } }
+
+/* Passage: a soft reading card; each paragraph letter takes its colour. */
+.il-step-article { padding: .2rem .1rem; }
+.il-step-letter { background: var(--kt); color: var(--kd); border-color: color-mix(in srgb, var(--k) 25%, transparent); }
+
+/* Answer buttons: each letter in its own colour; choosing one fills it and pops a tick. */
+.il-shell button.il-step-option { --hue: var(--k); position: relative; transition: transform .12s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease; animation: il-rise .35s both; }
+.il-step-options .il-step-option:nth-child(2) { animation-delay: .04s; } .il-step-options .il-step-option:nth-child(3) { animation-delay: .08s; } .il-step-options .il-step-option:nth-child(4) { animation-delay: .12s; } .il-step-options .il-step-option:nth-child(5) { animation-delay: .16s; } .il-step-options .il-step-option:nth-child(6) { animation-delay: .2s; }
+.il-shell button.il-step-option:active:not(:disabled) { transform: scale(.98); }
+@media (hover: hover) { .il-shell button.il-step-option:hover:not(:disabled) { border-color: var(--hue); box-shadow: 0 4px 14px color-mix(in srgb, var(--hue) 18%, transparent); } }
+.il-step-option-letter { background: color-mix(in srgb, var(--hue) 12%, #fff); color: var(--hue); border: 2px solid color-mix(in srgb, var(--hue) 35%, #fff); transition: background .2s ease, color .2s ease; }
+.il-shell button.il-step-option.is-chosen { border-color: var(--hue); background: color-mix(in srgb, var(--hue) 9%, #fff); color: color-mix(in srgb, var(--hue) 70%, #000); box-shadow: 0 6px 18px color-mix(in srgb, var(--hue) 22%, transparent); }
+.il-shell button.il-step-option.is-chosen .il-step-option-letter { background: var(--hue); color: #fff; border-color: var(--hue); animation: il-pop .35s both; }
+.il-step-tick { flex: none; width: 1.6rem; height: 1.6rem; border-radius: 50%; display: grid; place-items: center; font-size: .9rem; color: #fff; background: var(--hue); opacity: 0; transform: scale(.3); transition: opacity .2s ease, transform .3s cubic-bezier(.3,1.6,.5,1); }
+.il-step-tick.is-on { opacity: 1; transform: scale(1); }
+@keyframes il-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+
+/* Buttons: Next takes the step's colour; once a question is answered its arrow nudges forward. */
+.il-shell .il-step-nav button.il-step-next { background: var(--k); border-color: var(--k); box-shadow: 0 6px 16px color-mix(in srgb, var(--k) 30%, transparent); transition: transform .15s ease, box-shadow .2s ease, background .3s ease; }
+.il-shell .il-step-nav button.il-step-next:active { transform: translateY(1px) scale(.99); }
+.il-shell .il-step-nav button.il-step-next.is-ready { animation: il-nudge 1.6s ease-in-out .4s 2; }
+@keyframes il-nudge { 0%, 100% { transform: none; } 30% { transform: translateX(4px); } 60% { transform: translateX(0); } }
+.il-shell .il-step-nav button.il-step-secondary { border-color: color-mix(in srgb, var(--k) 45%, #fff); color: var(--kd); }
+
+/* Check your answers: a progress ring and green/amber items. */
+.il-step-tally { display: flex; align-items: center; gap: 1rem; padding: .8rem 1rem; border-radius: var(--bh-ielts-radius-md); background: var(--kt); }
+.il-step-tally p { margin: 0; font-weight: 600; color: var(--kd); }
+.il-step-ring { --size: 3.6rem; --c: var(--k); flex: none; width: var(--size); height: var(--size); border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--c) calc(var(--p) * 1%), color-mix(in srgb, var(--c) 15%, #fff) 0); animation: il-ring 1s cubic-bezier(.3,.9,.4,1) both; }
+.il-step-ring b { width: calc(var(--size) - 12px); height: calc(var(--size) - 12px); border-radius: 50%; display: grid; place-items: center; background: #fff; color: var(--c); font-size: .95rem; }
+@keyframes il-ring { from { --p: 0; } }
+.il-step-review li { animation: il-rise .35s both; animation-delay: calc(var(--i, 0) * 45ms); }
+.il-shell button.il-step-jump.is-done { border-left: 5px solid var(--bh-ielts-success); }
+.il-shell button.il-step-jump.is-done .il-step-qn { background: var(--bh-ielts-success); color: #fff; }
+.il-shell button.il-step-jump.is-done strong { color: var(--bh-ielts-success); }
+.il-shell button.il-step-jump.is-missing { border: 2px dashed #F0C567; background: #FFFBF0; }
+.il-shell button.il-step-jump.is-missing .il-step-qn { background: #FFE9B5; color: var(--bh-ielts-warning); }
+.il-shell button.il-step-submit { background: var(--bh-ielts-success); border-color: var(--bh-ielts-success); box-shadow: 0 8px 20px rgba(8,127,91,.28); }
+.il-shell button.il-step-submit:not(:disabled) { animation: il-glow 2.2s ease-in-out 1s 2; }
+@keyframes il-glow { 50% { box-shadow: 0 0 0 7px rgba(8,127,91,.18), 0 8px 20px rgba(8,127,91,.28); } }
+
+/* Results: a big score ring with a cheer, cards that arrive one by one, confetti for a perfect score. */
+.il-step-score { position: relative; display: flex; align-items: center; gap: 1rem; margin: .4rem 0 1rem; padding: 1rem; border-radius: var(--bh-ielts-radius-md); background: linear-gradient(135deg, #EEF3FA, #fff); }
+.il-step-score .il-step-ring { --size: 5.4rem; }
+.il-step-score .il-step-ring b { font-size: 1.35rem; }
+.il-step-score.is-perfect { background: linear-gradient(135deg, #FFF4D6, #ECFAF2); }
+.il-step-score.is-perfect .il-step-ring, .il-step-score.is-strong .il-step-ring { --c: var(--bh-ielts-success); }
+.il-step-score.is-start .il-step-ring { --c: #B45309; }
+.il-step-cheer { margin: 0; font-size: 1.08rem; font-weight: 700; animation: il-rise .5s .5s both; }
+.il-step-results li { animation: il-rise .45s both; animation-delay: calc(.35s + var(--i, 0) * 90ms); box-shadow: var(--bh-ielts-shadow-sm); }
+.il-step-results li.is-correct { background: linear-gradient(90deg, #F2FBF6, #fff 40%); }
+.il-step-results li.is-wrong { background: linear-gradient(90deg, #FFF6E2, #fffdf8 40%); }
+.il-step-why { border-left: 3px solid var(--bh-ielts-success); background: #F6FBF8; }
+.il-step-confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; border-radius: inherit; }
+.il-step-confetti i { position: absolute; top: -12px; left: calc(6% + var(--i) * 6.6%); width: 8px; height: 13px; border-radius: 2px; background: hsl(calc(var(--i) * 47) 80% 55%); animation: il-fall 1.9s calc(var(--i) * 70ms) ease-in both; }
+@keyframes il-fall { 0% { opacity: 0; transform: translateY(0) rotate(0); } 10% { opacity: 1; } 100% { opacity: 0; transform: translateY(150px) rotate(540deg); } }
+
+/* Students who ask for less motion get the colours without the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .il-step *, .il-step *::before, .il-step *::after, .il-step-stage { animation: none !important; transition: none !important; }
+  mark.il-step-hl { background-size: 100% 100%; }
+}
+.il-step[data-kind="learn"] .il-step-learn > .il-step-kicker { display: none; }

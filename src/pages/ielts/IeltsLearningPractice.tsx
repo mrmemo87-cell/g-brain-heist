@@ -29,6 +29,7 @@ import LearningSpeakingRecorder from "../../components/ielts/LearningSpeakingRec
 import "../../styles/ielts-learning.css";
 import IeltsSchoolLearnerLinks from "../../components/ielts/IeltsSchoolLearnerLinks";
 import { IeltsTargetedTaskCards } from "../../components/ielts/IeltsTargetedPractice";
+import TargetedStepPlayer, { TargetedResultSteps } from "../../components/ielts/TargetedStepPlayer";
 const criterionLabels: Record<string, string> = {
   task_response: "Answering and developing the task",
   coherence_cohesion: "Organising and linking ideas",
@@ -378,75 +379,7 @@ export default function IeltsLearningPractice() {
       setWorking(false);
     }
   };
-  return (
-    <main className="il-shell">
-      <header>
-        <p className="il-eyebrow">BRAINS HEIST · PURPOSEFUL PRACTICE</p>
-        <h1>{ieltsMaterialTitle(detail?.display_code, detail?.title ?? "Targeted practice")}<IeltsMaterialProvenance label={detail?.originality_label}/></h1>
-        <Link to={detail?.manager ? teacherRoute : "/ielts/journey"}>{detail?.manager ? "← Review desk" : "← IELTS Journey"}</Link>
-        {detail?.manager && <p className="il-eyebrow">TEACHER REVIEW{teacherContext ? " · " + teacherContext.student_name : ""}</p>}
-      </header>
-      {!detail?.manager && <IeltsSchoolLearnerLinks onNavigate={navigate} active="targeted" />}
-      {!allocationId && <p>Short tasks chosen by your teacher. Start a task, continue saved work or read your feedback.</p>}
-      {error && (
-        <p role="alert" className="il-alert">
-          {error}
-        </p>
-      )}
-      {workspace && <IeltsTargetedTaskCards tasks={workspace.allocations} />}
-      {detail && (
-        <>
-          <section className="il-card">
-            <p className="il-eyebrow">
-              {detail.purpose === "guided_practice"
-                ? "Guided practice"
-                : "Fresh check · conditions recorded"}
-            </p>
-            <h2>Why this task?</h2>
-            <p>{detail.reason}</p>
-            <h3>{detail.manager ? "Practice goal" : "Your goal"}</h3>
-            <p>{detail.success_description}</p>
-            <p>{detail.instructions}</p>
-            <p className="il-muted">
-              This short task does not give an IELTS band or establish
-              improvement by itself.
-            </p>
-            {detail.manager ? (
-              <>
-                {contextError && <p role="alert">{contextError} <button onClick={() => void loadTeacherContext(detail.id)}>Reload review evidence</button></p>}
-                {teacherContext ? <>
-                  <details className="il-preview">
-                    <summary>Answer key and teaching notes</summary>
-                    {teacherContext.questions.filter(q => q.accepted_answers?.length).map((q, i) => <p key={q.id}><strong>{i + 1}. {q.prompt}</strong><br />{q.accepted_answers!.join(" / ")}</p>)}
-                    {teacherContext.teacher_notes && <p className="il-key-notes">{teacherContext.teacher_notes}</p>}
-                  </details>
-                  {(skill === "listening" || skill === "reading") ? <details className="il-preview">
-                    <summary>View original screener evidence</summary>
-                    {teacherContext.source ? <>
-                      <p>{teacherContext.source.score} / {teacherContext.source.total} · Confidence: low</p>
-                      <p>These are the original screener answers. This practice is a separate task. Neither result alone establishes improvement.</p>
-                      {teacherContext.source.integrity_state !== "clear" && <p>Check the original assessment conditions before drawing conclusions.</p>}
-                      {teacherContext.source.items.map((item, i) => <article key={item.id} className="il-source-item">
-                        <h3>{i + 1}. {item.prompt}</h3>
-                        <p><strong>Student answer:</strong> {item.response || "No answer saved"}</p>
-                        <p><strong>Accepted answer:</strong> {item.accepted_answers.join(" / ")}</p>
-                        <p>{item.response_state === "answered" ? item.correct ? "Correct" : "Incorrect" : "No valid answer"} · {item.construct}</p>
-                      </article>)}
-                    </> : <p>The original screener evidence is unavailable for review. Check the student’s record in the review desk.</p>}
-                  </details> : <Link to={skill === "writing" ? "/ielts/writing-screener/reviews/" + detail.source_attempt_id : detail.source_route}>Review original {skill} evidence →</Link>}
-                </> : !contextError && <p role="status">Loading teacher key and source evidence…</p>}
-              </>
-            ) : <Link to={detail.source_route ?? "/ielts/screener-result/" + detail.source_attempt_id}>View the source evidence</Link>}
-          </section>
-          <section className="il-card">
-            <h2>
-              {skill === "listening"
-                ? "Listen and respond"
-                : skill === "reading"
-                  ? "Read and explain"
-                  : "Your response"}
-            </h2>
-            {skill === "listening" && (
+  const audioBlock = detail && skill === "listening" ? (
               <>
                 <p>
                   The recording includes 30 seconds to read and 15 seconds to
@@ -546,8 +479,8 @@ export default function IeltsLearningPractice() {
                   playback resumes only when you choose.
                 </p>
               </>
-            )}
-            {pending && !detail.manager && !detail.result && (
+  ) : null;
+  const pendingNotice = pending && detail && !detail.manager && !detail.result ? (
               <div className="il-alert">
                 <p>This device has answers that differ from the server copy.</p>
                 <button
@@ -567,7 +500,78 @@ export default function IeltsLearningPractice() {
                   Keep server answers
                 </button>
               </div>
-            )}
+  ) : null;
+  return (
+    <main className="il-shell">
+      <header>
+        <p className="il-eyebrow">BRAINS HEIST · PURPOSEFUL PRACTICE</p>
+        <h1>{ieltsMaterialTitle(detail?.display_code, detail?.title ?? "Targeted practice")}<IeltsMaterialProvenance label={detail?.originality_label}/></h1>
+        <Link to={detail?.manager ? teacherRoute : "/ielts/journey"}>{detail?.manager ? "← Review desk" : "← IELTS Journey"}</Link>
+        {detail?.manager && <p className="il-eyebrow">TEACHER REVIEW{teacherContext ? " · " + teacherContext.student_name : ""}</p>}
+      </header>
+      {!detail?.manager && <IeltsSchoolLearnerLinks onNavigate={navigate} active="targeted" />}
+      {!allocationId && <p>Short tasks chosen by your teacher. Start a task, continue saved work or read your feedback.</p>}
+      {error && (
+        <p role="alert" className="il-alert">
+          {error}
+        </p>
+      )}
+      {workspace && <IeltsTargetedTaskCards tasks={workspace.allocations} />}
+      {detail && (
+        <>
+          {detail.manager ? (<>
+          <section className="il-card">
+            <p className="il-eyebrow">
+              {detail.purpose === "guided_practice"
+                ? "Guided practice"
+                : "Fresh check · conditions recorded"}
+            </p>
+            <h2>Why this task?</h2>
+            <p>{detail.reason}</p>
+            <h3>{detail.manager ? "Practice goal" : "Your goal"}</h3>
+            <p>{detail.success_description}</p>
+            <p>{detail.instructions}</p>
+            <p className="il-muted">
+              This short task does not give an IELTS band or establish
+              improvement by itself.
+            </p>
+            {detail.manager ? (
+              <>
+                {contextError && <p role="alert">{contextError} <button onClick={() => void loadTeacherContext(detail.id)}>Reload review evidence</button></p>}
+                {teacherContext ? <>
+                  <details className="il-preview">
+                    <summary>Answer key and teaching notes</summary>
+                    {teacherContext.questions.filter(q => q.accepted_answers?.length).map((q, i) => <p key={q.id}><strong>{i + 1}. {q.prompt}</strong><br />{q.accepted_answers!.join(" / ")}</p>)}
+                    {teacherContext.teacher_notes && <p className="il-key-notes">{teacherContext.teacher_notes}</p>}
+                  </details>
+                  {(skill === "listening" || skill === "reading") ? <details className="il-preview">
+                    <summary>View original screener evidence</summary>
+                    {teacherContext.source ? <>
+                      <p>{teacherContext.source.score} / {teacherContext.source.total} · Confidence: low</p>
+                      <p>These are the original screener answers. This practice is a separate task. Neither result alone establishes improvement.</p>
+                      {teacherContext.source.integrity_state !== "clear" && <p>Check the original assessment conditions before drawing conclusions.</p>}
+                      {teacherContext.source.items.map((item, i) => <article key={item.id} className="il-source-item">
+                        <h3>{i + 1}. {item.prompt}</h3>
+                        <p><strong>Student answer:</strong> {item.response || "No answer saved"}</p>
+                        <p><strong>Accepted answer:</strong> {item.accepted_answers.join(" / ")}</p>
+                        <p>{item.response_state === "answered" ? item.correct ? "Correct" : "Incorrect" : "No valid answer"} · {item.construct}</p>
+                      </article>)}
+                    </> : <p>The original screener evidence is unavailable for review. Check the student’s record in the review desk.</p>}
+                  </details> : <Link to={skill === "writing" ? "/ielts/writing-screener/reviews/" + detail.source_attempt_id : detail.source_route}>Review original {skill} evidence →</Link>}
+                </> : !contextError && <p role="status">Loading teacher key and source evidence…</p>}
+              </>
+            ) : <Link to={detail.source_route ?? "/ielts/screener-result/" + detail.source_attempt_id}>View the source evidence</Link>}
+          </section>
+          <section className="il-card">
+            <h2>
+              {skill === "listening"
+                ? "Listen and respond"
+                : skill === "reading"
+                  ? "Read and explain"
+                  : "Your response"}
+            </h2>
+            {audioBlock}
+            {!detail.manager && !detail.result && pendingNotice}
             {detail.content?.passage && (
               <article className="il-passage">
                 <h3>The passage</h3>
@@ -776,6 +780,43 @@ export default function IeltsLearningPractice() {
                 </p>
               )}
             </section>
+          )}
+          </>) : detail.result ? (
+            <TargetedResultSteps detail={detail} />
+          ) : (
+            <>
+              <TargetedStepPlayer
+                detail={detail}
+                answers={answers}
+                update={update}
+                draft={() => draft.current}
+                disabled={disabled}
+                working={working}
+                blocked={!!pending}
+                message={message}
+                audioBar={audioBlock}
+                pendingNotice={pendingNotice}
+                recorder={skill === "speaking" ? (
+                  <>
+                    <p>Save your clip before submitting. Keep this tab open while recording.</p>
+                    {detail.status !== "closed" && (
+                      <LearningSpeakingRecorder detail={detail} enabled={!disabled} onSaved={recordingSaved} onActiveChange={setRecordingActive} />
+                    )}
+                    {(detail.recordings ?? []).map((clip, i) => (
+                      <article key={clip.id}>
+                        <h3>Saved clip {i + 1} · {Math.round(clip.duration_seconds)} seconds</h3>
+                        {clip.interrupted && <p>An interruption was recorded. Your teacher will consider the conditions.</p>}
+                        <RecordingPlayer path={clip.path} />
+                      </article>
+                    ))}
+                  </>
+                ) : undefined}
+                canSubmit={!working && !pending && !recordingActive && detail.status !== "closed" && !(skill === "speaking" && !(detail.recordings ?? []).length)}
+                onSubmit={() => void submit()}
+                onSave={() => void save()}
+              />
+              <p className="il-step-source"><Link className="il-inline-link" to={detail.source_route ?? "/ielts/screener-result/" + detail.source_attempt_id}>Why was this set for me? See the evidence</Link></p>
+            </>
           )}
           {detail.review && !detail.manager && (
             <section className="il-card il-teacher">
