@@ -1,0 +1,769 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-V6",
+  "number": 6,
+  "vocabulary": true,
+  "placement": "optional, after Week 8 (Lesson 15 or 16)",
+  "week": 8,
+  "version": "1.0.0",
+  "presentation_version": "1.0.0",
+  "title": "Vocabulary: topic collocations for common IELTS themes",
+  "status": "Owner approved v1.0.0 on 2026-10-26; teacher release to all eligible schools (optional vocabulary lesson)",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": {
+    "diagnostic": "2.0.0",
+    "lessons": "1.2.0",
+    "visual": "1.2.0"
+  },
+  "rights": "Original Brains Heist LLC instructional material, AI-assisted. Passages, people and data are fictional and created for practice. Not official IELTS material. Human editorial and classroom review recommended.",
+  "audio": {
+    "required": false,
+    "statement": "No recording required.",
+    "recordings": []
+  },
+  "prerequisites": [
+    "Lesson 15 (Task 2 under time) or Lesson 16 (Speaking Part 3).",
+    "Learners have written at least one Task 2 essay.",
+    "Optional vocabulary lesson: use when learners have ideas about common topics but lack the precise phrases to express them."
+  ],
+  "objectives": [
+    {
+      "text": "Use 18 high-value collocations for six frequent IELTS topics: environment, health, education, work, technology and cities.",
+      "focus": [
+        "lexical resource"
+      ]
+    },
+    {
+      "text": "Recognise the same collocations when they are paraphrased in Reading and Listening.",
+      "focus": [
+        "paraphrase recognition"
+      ]
+    },
+    {
+      "text": "Use topic collocations accurately in Speaking Part 3 and Writing Task 2 without forcing them.",
+      "focus": [
+        "lexical resource",
+        "task response"
+      ]
+    }
+  ],
+  "levels": {
+    "foundation": "Learn three collocations per topic for two topics of your choice.",
+    "core": "Complete all tasks; use six collocations from three different topics in the discussion.",
+    "extension": "Use each collocation in both a spoken and a written sentence.",
+    "high_band": "In the discussion, combine two collocations in one developed answer with a reason and an example."
+  },
+  "word_bank": [
+    {
+      "item": "reduce carbon emissions / renewable energy",
+      "meaning": "cut the gases that cause warming / energy from wind, sun, water",
+      "example": "Switching to renewable energy would reduce carbon emissions.",
+      "skill": "Environment"
+    },
+    {
+      "item": "endangered species / natural habitat",
+      "meaning": "animals at risk of extinction / where they naturally live",
+      "example": "Deforestation destroys the natural habitat of endangered species.",
+      "skill": "Environment"
+    },
+    {
+      "item": "a sedentary lifestyle",
+      "meaning": "a way of life with little physical activity",
+      "example": "Office work often leads to a sedentary lifestyle.",
+      "skill": "Health"
+    },
+    {
+      "item": "a balanced diet / boost the immune system",
+      "meaning": "food with the right variety / make the body better at fighting illness",
+      "example": "A balanced diet can boost the immune system.",
+      "skill": "Health"
+    },
+    {
+      "item": "acquire practical skills / lifelong learning",
+      "meaning": "gain useful abilities / learning throughout life",
+      "example": "Apprenticeships help young people acquire practical skills.",
+      "skill": "Education"
+    },
+    {
+      "item": "academic performance / a well-rounded education",
+      "meaning": "results at school / education that develops many abilities",
+      "example": "Sport contributes to a well-rounded education.",
+      "skill": "Education"
+    },
+    {
+      "item": "job security / work-life balance",
+      "meaning": "confidence you will not lose your job / time for both work and private life",
+      "example": "Remote work can improve work-life balance.",
+      "skill": "Work"
+    },
+    {
+      "item": "a competitive salary / career prospects",
+      "meaning": "pay as good as other employers / chances of progress",
+      "example": "Graduates look for career prospects as well as a competitive salary.",
+      "skill": "Work"
+    },
+    {
+      "item": "cutting-edge technology / become obsolete",
+      "meaning": "the most advanced technology / no longer be used",
+      "example": "Many devices become obsolete within a few years.",
+      "skill": "Technology"
+    },
+    {
+      "item": "raise privacy concerns",
+      "meaning": "cause worry about personal information",
+      "example": "Facial recognition raises privacy concerns.",
+      "skill": "Technology"
+    },
+    {
+      "item": "traffic congestion / public transport network",
+      "meaning": "too many vehicles on roads / buses, trains and trams",
+      "example": "Expanding the public transport network can ease traffic congestion.",
+      "skill": "Cities"
+    },
+    {
+      "item": "affordable housing / urban sprawl",
+      "meaning": "homes people can pay for / uncontrolled spread of a city",
+      "example": "Urban sprawl increases commuting times.",
+      "skill": "Cities"
+    },
+    {
+      "item": "ease / alleviate (a problem)",
+      "meaning": "make a problem less serious",
+      "example": "New cycle lanes could ease congestion.",
+      "skill": "All topics"
+    },
+    {
+      "item": "have a profound impact on",
+      "meaning": "affect very strongly",
+      "example": "The internet has had a profound impact on education.",
+      "skill": "All topics"
+    }
+  ],
+  "stages": [
+    {
+      "start": 0,
+      "end": 6,
+      "title": "Opening challenge: which word goes with which?",
+      "show": [
+        {
+          "block": "IELTS-V6-K1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-V6-K1",
+          "part": "answers"
+        }
+      ],
+      "student": "Decide which sentence uses natural English.",
+      "teacher": "Learners vote; reveal comments. Introduce 'collocation'.",
+      "say": "Some words simply belong together. Learn them as pairs.",
+      "check": "Learners say why 'make a balanced diet' is unnatural."
+    },
+    {
+      "start": 6,
+      "end": 15,
+      "title": "Word bank: six topics",
+      "show": [],
+      "student": "In pairs, take one topic each and teach your partner its collocations with an example.",
+      "teacher": "Monitor pronunciation of sedentary, habitat, obsolete, congestion.",
+      "say": "Collocation + example = memory.",
+      "check": "Learners can give the partner word for ten collocations."
+    },
+    {
+      "start": 15,
+      "end": 23,
+      "title": "Complete the collocations",
+      "show": [
+        {
+          "block": "IELTS-V6-P1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-V6-P1",
+          "part": "answers"
+        }
+      ],
+      "student": "Choose the word that completes each collocation.",
+      "teacher": "Five minutes; reveal and drill the full phrase.",
+      "say": "Say the whole phrase when you check.",
+      "check": "Six of eight correct."
+    },
+    {
+      "start": 23,
+      "end": 35,
+      "title": "Collocations in a reading summary",
+      "show": [
+        {
+          "block": "IELTS-V6-P2",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-V6-P2",
+          "part": "answers"
+        }
+      ],
+      "student": "Complete the summary using words from the box. The summary paraphrases the passage.",
+      "teacher": "Ten minutes timed. During the reveal, show the paraphrase for each gap.",
+      "say": "The summary uses different words from the passage; match the meaning.",
+      "check": "Learners show evidence for each answer."
+    },
+    {
+      "start": 35,
+      "end": 48,
+      "title": "Part 3 discussion",
+      "show": [
+        {
+          "block": "IELTS-V6-S1",
+          "part": "prompt"
+        },
+        {
+          "block": "IELTS-V6-S1",
+          "part": "routine"
+        }
+      ],
+      "student": "Discuss two questions in pairs; use at least four collocations naturally.",
+      "teacher": "Pairs, four minutes per question set. Listen live for natural use and forced use.",
+      "say": "Use a collocation only when it says exactly what you mean.",
+      "check": "Each learner uses four collocations accurately."
+    },
+    {
+      "start": 48,
+      "end": 54,
+      "title": "Compare with the model",
+      "show": [
+        {
+          "block": "IELTS-V6-S1",
+          "part": "model"
+        }
+      ],
+      "student": "Read the model answer; underline each collocation and its reason or example.",
+      "teacher": "Highlight how the model develops each collocation with a reason.",
+      "say": "The model is illustrative, not a target band.",
+      "check": "Learners find six collocations in the model."
+    },
+    {
+      "start": 54,
+      "end": 60,
+      "title": "Exit ticket and homework",
+      "show": [
+        {
+          "block": "IELTS-V6-H1",
+          "part": "questions"
+        }
+      ],
+      "student": "Complete the exit ticket and note the homework.",
+      "teacher": "Collect exit tickets.",
+      "say": "Add three collocations to your notebook every week.",
+      "check": "Every learner writes collocations for two topics from memory."
+    }
+  ],
+  "blocks": [
+    {
+      "id": "IELTS-V6-K1",
+      "kind": "contrast",
+      "title": "Which word goes with which?",
+      "mode": "Opening challenge; learners decide before the reveal",
+      "instructions": "Three learners wrote about healthy living. Which sentence sounds most natural?",
+      "examples": [
+        {
+          "label": "Learner A",
+          "text": "People should make a balanced diet and do a healthy life.",
+          "comment": "Unnatural: we 'eat' or 'have' a balanced diet and 'lead' a healthy life."
+        },
+        {
+          "label": "Learner B",
+          "text": "People who lead a sedentary lifestyle should try to eat a balanced diet and exercise regularly.",
+          "comment": "Best: three natural collocations used accurately."
+        },
+        {
+          "label": "Learner C",
+          "text": "People with a sitting lifestyle need an equal food.",
+          "comment": "Wrong words: the collocations are 'sedentary lifestyle' and 'balanced diet'."
+        }
+      ]
+    },
+    {
+      "id": "IELTS-V6-P1",
+      "kind": "items",
+      "title": "Complete the collocations",
+      "mode": "Controlled practice; word bank closed for core and above",
+      "instructions": "Choose the word, A, B or C, that completes each collocation.",
+      "items": [
+        {
+          "id": "IELTS-V6-P1-Q1",
+          "prompt": "to ______ carbon emissions",
+          "answer": "B",
+          "evidence": "reduce carbon emissions",
+          "reason": "Natural verb.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  lower down",
+            "B  reduce",
+            "C  small"
+          ]
+        },
+        {
+          "id": "IELTS-V6-P1-Q2",
+          "prompt": "a ______ lifestyle (little exercise)",
+          "answer": "C",
+          "evidence": "sedentary lifestyle",
+          "reason": "Fixed collocation.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  sitting",
+            "B  lazy-ly",
+            "C  sedentary"
+          ]
+        },
+        {
+          "id": "IELTS-V6-P1-Q3",
+          "prompt": "to ______ practical skills",
+          "answer": "A",
+          "evidence": "acquire practical skills",
+          "reason": "Formal and natural.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  acquire",
+            "B  make",
+            "C  do"
+          ]
+        },
+        {
+          "id": "IELTS-V6-P1-Q4",
+          "prompt": "work-life ______",
+          "answer": "B",
+          "evidence": "work-life balance",
+          "reason": "Fixed phrase.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  equal",
+            "B  balance",
+            "C  mix"
+          ]
+        },
+        {
+          "id": "IELTS-V6-P1-Q5",
+          "prompt": "______ technology (the most advanced)",
+          "answer": "C",
+          "evidence": "cutting-edge technology",
+          "reason": "Fixed adjective.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  sharp-edge",
+            "B  newest-edge",
+            "C  cutting-edge"
+          ]
+        },
+        {
+          "id": "IELTS-V6-P1-Q6",
+          "prompt": "to ______ privacy concerns",
+          "answer": "A",
+          "evidence": "raise privacy concerns",
+          "reason": "Natural verb.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  raise",
+            "B  rise",
+            "C  grow up"
+          ]
+        },
+        {
+          "id": "IELTS-V6-P1-Q7",
+          "prompt": "traffic ______",
+          "answer": "B",
+          "evidence": "traffic congestion",
+          "reason": "Fixed noun.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  crowd",
+            "B  congestion",
+            "C  busy"
+          ]
+        },
+        {
+          "id": "IELTS-V6-P1-Q8",
+          "prompt": "to have a ______ impact on",
+          "answer": "A",
+          "evidence": "a profound impact on",
+          "reason": "Strong adjective.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  profound",
+            "B  deep-ly",
+            "C  heavy"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "IELTS-V6-P2",
+      "kind": "items",
+      "title": "Collocations in a reading summary",
+      "mode": "Timed practice under test-like conditions: ten minutes, no dictionary",
+      "instructions": "Complete the summary using the words in the box. Write the correct letter, A–H. Three letters are not used. List of words: A sedentary; B renewable; C congestion; D affordable; E security; F emissions; G obsolete; H sprawl",
+      "stimulus": {
+        "type": "passage",
+        "title": "The fifteen-minute city",
+        "paragraphs": [
+          "Urban planners in several countries are promoting the idea of the 'fifteen-minute city', in which residents can reach work, schools, shops and parks within a quarter of an hour on foot or by bicycle. Supporters argue that the model could ease traffic congestion and reduce carbon emissions, since fewer people would need to drive.",
+          "The concept also responds to concerns about health. Researchers have linked long car journeys to a sedentary lifestyle, and walking or cycling to everyday destinations is seen as a simple way of building exercise into daily routines.",
+          "Critics, however, warn that the model may be difficult to apply in areas affected by urban sprawl, where homes, workplaces and services are far apart. Others fear that improvements to neighbourhoods could push up property prices and make affordable housing even harder to find."
+        ]
+      },
+      "items": [
+        {
+          "id": "IELTS-V6-P2-Q1",
+          "prompt": "Advocates believe the approach could reduce (1) ______ on the roads.",
+          "answer": "C",
+          "evidence": "ease traffic congestion",
+          "reason": "C = congestion.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "level": "core",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ]
+        },
+        {
+          "id": "IELTS-V6-P2-Q2",
+          "prompt": "It might also help to lower (2) ______.",
+          "answer": "F",
+          "evidence": "reduce carbon emissions",
+          "reason": "F = emissions.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "level": "core",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ]
+        },
+        {
+          "id": "IELTS-V6-P2-Q3",
+          "prompt": "Long drives have been associated with an inactive, or (3) ______, way of life.",
+          "answer": "A",
+          "evidence": "a sedentary lifestyle",
+          "reason": "A = sedentary.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "level": "core",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ]
+        },
+        {
+          "id": "IELTS-V6-P2-Q4",
+          "prompt": "The model may not suit places where a city has spread out without control, known as urban (4) ______.",
+          "answer": "H",
+          "evidence": "urban sprawl",
+          "reason": "H = sprawl.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "level": "core",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ]
+        },
+        {
+          "id": "IELTS-V6-P2-Q5",
+          "prompt": "There are also fears that it could become harder to find (5) ______ homes.",
+          "answer": "D",
+          "evidence": "make affordable housing even harder to find",
+          "reason": "D = affordable.",
+          "focus": "paraphrase recognition",
+          "type": "matching",
+          "level": "core",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "IELTS-V6-S1",
+      "kind": "speaking",
+      "title": "Part 3 discussion with collocations",
+      "mode": "Pair practice; live feedback from partner and teacher",
+      "instructions": "Discuss each question for about two minutes. Use at least four collocations from the word bank, each with a reason or example.",
+      "prompts": [
+        "How has technology changed the way people work in your country?",
+        "What can governments do to encourage people to live more healthily?",
+        "Do you think cities will become better or worse places to live in the future?"
+      ],
+      "routine": "Speaker answers (reason + example); listener notes each collocation and whether it was natural; swap after each question.",
+      "observation": "Teacher judges vocabulary from what is heard live in pair discussion; pronunciation comments are limited to what was heard live.",
+      "models": [
+        {
+          "label": "Illustrative Part 3 answer (not a certified band answer)",
+          "text": "I think technology has had a profound impact on working life in my country. On the one hand, cutting-edge technology like video calls means that many office workers can now work from home, which can improve their work-life balance because they spend less time commuting. On the other hand, it also raises privacy concerns, since some companies monitor their employees' computers, and I'd say it reduces job security in certain industries, because some tasks are now done automatically. So overall, it's brought real benefits, but people may need to acquire new practical skills just to keep up."
+        }
+      ]
+    },
+    {
+      "id": "IELTS-V6-H1",
+      "kind": "items",
+      "homework": true,
+      "title": "Homework: topic collocations",
+      "mode": "Homework; checked at the start of the next lesson",
+      "instructions": "Complete each collocation with ONE word.",
+      "items": [
+        {
+          "id": "IELTS-V6-H1-Q1",
+          "prompt": "Many animals lose their natural ______ when forests are cut down.",
+          "answer": "habitat",
+          "evidence": "natural habitat",
+          "reason": "Fixed collocation.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "habitats"
+          ]
+        },
+        {
+          "id": "IELTS-V6-H1-Q2",
+          "prompt": "A ______ diet includes fruit, vegetables and protein.",
+          "answer": "balanced",
+          "evidence": "a balanced diet",
+          "reason": "Fixed collocation.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "healthy"
+          ]
+        },
+        {
+          "id": "IELTS-V6-H1-Q3",
+          "prompt": "Many graduates choose jobs with good career ______.",
+          "answer": "prospects",
+          "evidence": "career prospects",
+          "reason": "Fixed collocation.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        },
+        {
+          "id": "IELTS-V6-H1-Q4",
+          "prompt": "Older phones quickly become ______ when new models appear.",
+          "answer": "obsolete",
+          "evidence": "become obsolete",
+          "reason": "Fixed collocation.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "outdated"
+          ]
+        },
+        {
+          "id": "IELTS-V6-H1-Q5",
+          "prompt": "Studying music and sport gives children a well-______ education.",
+          "answer": "rounded",
+          "evidence": "a well-rounded education",
+          "reason": "Fixed phrase.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        },
+        {
+          "id": "IELTS-V6-H1-Q6",
+          "prompt": "Building more homes could ______ the housing shortage.",
+          "answer": "ease",
+          "evidence": "ease / alleviate a problem",
+          "reason": "Natural verb.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "alleviate",
+            "reduce",
+            "solve",
+            "tackle"
+          ]
+        }
+      ]
+    }
+  ],
+  "exit_ticket": [
+    "One collocation for each of three topics:",
+    "A collocation I used wrongly before today, and the correct version:",
+    "The topic I need more words for:"
+  ],
+  "homework": [
+    "Complete the collocation sentences on the homework sheet.",
+    "Write a 150-word paragraph on one topic using five collocations from the word bank. Underline them."
+  ],
+  "delayed_followup": "In Lesson 22 (timed essay and long turn), note whether learners use topic collocations accurately and naturally. Record it as a later observation.",
+  "mapping_notes": "Focuses use Diagnostic Bible section 7.2 construct names where they apply (lexical resource, paraphrase recognition). Teaching focuses only. This optional vocabulary lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
+  ],
+  "followup": {
+    "id": "IELTS-V6-C1",
+    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.0.0 on 2026-10-26. Keep private until use.",
+    "delivery": "About one teaching week later: 8 minutes, no word bank or dictionary. Record timing and support.",
+    "review": "Score each answer independently; accept only natural, accurate collocations. Do not convert to an IELTS band.",
+    "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty.",
+    "blocks": [
+      {
+        "id": "IELTS-V6-C1",
+        "kind": "items",
+        "title": "Fresh check: topic collocations",
+        "mode": "Withheld fresh check; independent, timed",
+        "instructions": "Questions 1-4: complete each sentence with ONE word. Questions 5-6: choose the most natural sentence, A, B or C.",
+        "items": [
+          {
+            "id": "IELTS-V6-C1-Q1",
+            "prompt": "Solar and wind power are both forms of ______ energy.",
+            "answer": "renewable",
+            "evidence": "renewable energy",
+            "reason": "Fixed collocation.",
+            "focus": "lexical resource",
+            "type": "completion",
+            "level": "core",
+            "word_limit": 1,
+            "accept": [
+              "clean",
+              "green"
+            ]
+          },
+          {
+            "id": "IELTS-V6-C1-Q2",
+            "prompt": "Many workers value job ______ more than a high salary.",
+            "answer": "security",
+            "evidence": "job security",
+            "reason": "Fixed collocation.",
+            "focus": "lexical resource",
+            "type": "completion",
+            "level": "core",
+            "word_limit": 1
+          },
+          {
+            "id": "IELTS-V6-C1-Q3",
+            "prompt": "Improving bus and train services would strengthen the public transport ______.",
+            "answer": "network",
+            "evidence": "public transport network",
+            "reason": "Fixed collocation.",
+            "focus": "lexical resource",
+            "type": "completion",
+            "level": "core",
+            "word_limit": 1,
+            "accept": [
+              "system"
+            ]
+          },
+          {
+            "id": "IELTS-V6-C1-Q4",
+            "prompt": "Regular exercise can ______ the immune system.",
+            "answer": "boost",
+            "evidence": "boost the immune system",
+            "reason": "Natural verb.",
+            "focus": "lexical resource",
+            "type": "completion",
+            "level": "core",
+            "word_limit": 1,
+            "accept": [
+              "strengthen"
+            ]
+          },
+          {
+            "id": "IELTS-V6-C1-Q5",
+            "prompt": "Which sentence is most natural?",
+            "answer": "B",
+            "evidence": "endangered species",
+            "reason": "A and C use wrong words.",
+            "focus": "lexical resource",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  Tigers are a dangered species.",
+              "B  Tigers are an endangered species.",
+              "C  Tigers are a danger species."
+            ]
+          },
+          {
+            "id": "IELTS-V6-C1-Q6",
+            "prompt": "Which sentence is most natural?",
+            "answer": "C",
+            "evidence": "lifelong learning",
+            "reason": "A and B are unnatural.",
+            "focus": "lexical resource",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  Adults should do long-life studying.",
+              "B  Adults should make all-life learning.",
+              "C  Lifelong learning helps adults adapt to new jobs."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-26",
+    "version": "1.0.0",
+    "scope": "Vocabulary lesson content, keys and models for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek: 'there should also some Vocabulary lessons that really fit the IELTS in a very practical way for the students to benefit from. Make the needed adjustments and improvements now ... you have all my permissions, don't ask for any.' Not recorded as an in-platform decision; no review-draft pack was opened before approval."
+  }
+}

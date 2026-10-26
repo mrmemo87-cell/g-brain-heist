@@ -1,0 +1,786 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-V4",
+  "number": 4,
+  "vocabulary": true,
+  "placement": "optional, after Week 6 (Lesson 12)",
+  "week": 6,
+  "version": "1.0.0",
+  "presentation_version": "1.0.0",
+  "title": "Vocabulary: natural, flexible language for Speaking",
+  "status": "Owner approved v1.0.0 on 2026-10-26; teacher release to all eligible schools (optional vocabulary lesson)",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": {
+    "diagnostic": "2.0.0",
+    "lessons": "1.2.0",
+    "visual": "1.2.0"
+  },
+  "rights": "Original Brains Heist LLC instructional material, AI-assisted. Passages, people and data are fictional and created for practice. Not official IELTS material. Human editorial and classroom review recommended.",
+  "audio": {
+    "required": false,
+    "statement": "No recording required.",
+    "recordings": []
+  },
+  "prerequisites": [
+    "Lesson 4 (Speaking Part 1) and Lesson 12 (Speaking Part 2 long turn).",
+    "Learners have given at least one Part 2 talk.",
+    "Optional vocabulary lesson: use when spoken answers repeat 'good', 'nice' and 'very' or use memorised idioms unnaturally."
+  ],
+  "objectives": [
+    {
+      "text": "Describe people, places and experiences with precise adjectives and natural collocations (breathtaking view, highly recommend).",
+      "focus": [
+        "lexical resource"
+      ]
+    },
+    {
+      "text": "Use flexible phrases to give opinions, buy thinking time and paraphrase when a word is missing.",
+      "focus": [
+        "fluency and coherence",
+        "lexical resource"
+      ]
+    },
+    {
+      "text": "Use a small number of common idiomatic expressions accurately and only where they fit.",
+      "focus": [
+        "lexical resource"
+      ]
+    }
+  ],
+  "levels": {
+    "foundation": "Use four describing words and two thinking-time phrases in the long turn.",
+    "core": "Speak for the full two minutes using at least six word-bank items naturally.",
+    "extension": "Paraphrase one word you do not know instead of stopping ('the thing you use to ...').",
+    "high_band": "Use one idiomatic expression accurately and one precise collocation per point on the cue card, with no memorised sentences."
+  },
+  "word_bank": [
+    {
+      "item": "breathtaking / stunning (view, scenery)",
+      "meaning": "extremely beautiful",
+      "example": "The view from the top was breathtaking.",
+      "skill": "Speaking"
+    },
+    {
+      "item": "bustling / lively (street, market)",
+      "meaning": "full of busy activity",
+      "example": "It is a bustling market, especially on Saturdays.",
+      "skill": "Speaking"
+    },
+    {
+      "item": "easy-going / down-to-earth (person)",
+      "meaning": "relaxed; practical and friendly",
+      "example": "My uncle is very down-to-earth.",
+      "skill": "Speaking"
+    },
+    {
+      "item": "I'd highly recommend ...",
+      "meaning": "I strongly suggest (natural collocation)",
+      "example": "I'd highly recommend the local café.",
+      "skill": "Speaking"
+    },
+    {
+      "item": "It's not something I've thought about much, but ...",
+      "meaning": "buy thinking time honestly",
+      "example": "It's not something I've thought about much, but I suppose ...",
+      "skill": "Speaking"
+    },
+    {
+      "item": "As far as I'm concerned, ...",
+      "meaning": "giving a personal opinion",
+      "example": "As far as I'm concerned, public transport should be free.",
+      "skill": "Speaking"
+    },
+    {
+      "item": "I suppose / I'd say",
+      "meaning": "softening an opinion",
+      "example": "I'd say it's mainly a question of money.",
+      "skill": "Speaking"
+    },
+    {
+      "item": "It depends on ...",
+      "meaning": "showing that the answer varies",
+      "example": "It depends on the age of the child.",
+      "skill": "Speaking"
+    },
+    {
+      "item": "What I mean is ... / In other words ...",
+      "meaning": "rephrasing to clarify",
+      "example": "In other words, it saves time.",
+      "skill": "Speaking"
+    },
+    {
+      "item": "the thing you use to ... / a kind of ...",
+      "meaning": "paraphrasing a missing word",
+      "example": "a kind of small boat used for fishing",
+      "skill": "Speaking"
+    },
+    {
+      "item": "a once-in-a-lifetime experience",
+      "meaning": "something very special that rarely happens",
+      "example": "Seeing the northern lights was a once-in-a-lifetime experience.",
+      "skill": "Speaking"
+    },
+    {
+      "item": "it was a real eye-opener",
+      "meaning": "it taught me something surprising",
+      "example": "Volunteering there was a real eye-opener.",
+      "skill": "Speaking"
+    },
+    {
+      "item": "I couldn't believe my eyes",
+      "meaning": "I was very surprised by what I saw",
+      "example": "When I saw the result, I couldn't believe my eyes.",
+      "skill": "Speaking"
+    },
+    {
+      "item": "looking back, ...",
+      "meaning": "reflecting on the past",
+      "example": "Looking back, it was the best decision I made.",
+      "skill": "Speaking"
+    }
+  ],
+  "stages": [
+    {
+      "start": 0,
+      "end": 6,
+      "title": "Opening challenge: natural or memorised?",
+      "show": [
+        {
+          "block": "IELTS-V4-K1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-V4-K1",
+          "part": "answers"
+        }
+      ],
+      "student": "Decide which answer sounds most natural.",
+      "teacher": "Read the three answers aloud. Learners vote; reveal comments.",
+      "say": "Examiners reward words used naturally, not idioms dropped in.",
+      "check": "Learners explain why Learner C sounds memorised."
+    },
+    {
+      "start": 6,
+      "end": 14,
+      "title": "Word bank: describe, opine, rephrase",
+      "show": [],
+      "student": "Say each item aloud with your own example about your town or family.",
+      "teacher": "Drill stress and linking (I'd-HIGH-ly re-com-MEND; as-far-as-I'm-con-CERNED).",
+      "say": "Learn it as a chunk you can say smoothly.",
+      "check": "Each learner says four items with their own example."
+    },
+    {
+      "start": 14,
+      "end": 22,
+      "title": "Match the phrase to its job",
+      "show": [
+        {
+          "block": "IELTS-V4-P1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-V4-P1",
+          "part": "answers"
+        }
+      ],
+      "student": "Match each phrase to what it does in a conversation.",
+      "teacher": "Five minutes; reveal and practise each in a mini-dialogue.",
+      "say": "Know why you use a phrase, not just the phrase.",
+      "check": "Six of eight correct."
+    },
+    {
+      "start": 22,
+      "end": 30,
+      "title": "Choose the natural answer",
+      "show": [
+        {
+          "block": "IELTS-V4-P2",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-V4-P2",
+          "part": "answers"
+        }
+      ],
+      "student": "Choose the most natural spoken response.",
+      "teacher": "Focus on wrong collocations and idioms in the wrong situation.",
+      "say": "If you are not sure an idiom fits, use a precise ordinary word.",
+      "check": "Learners correct each wrong option."
+    },
+    {
+      "start": 30,
+      "end": 35,
+      "title": "Prepare a long turn",
+      "show": [
+        {
+          "block": "IELTS-V4-S1",
+          "part": "prompt"
+        }
+      ],
+      "student": "One minute to make notes: choose three word-bank items for the cue card.",
+      "teacher": "Time one minute exactly.",
+      "say": "Notes are keywords, not sentences.",
+      "check": "Every learner has three word-bank items noted."
+    },
+    {
+      "start": 35,
+      "end": 48,
+      "title": "Speak and listen",
+      "show": [
+        {
+          "block": "IELTS-V4-S1",
+          "part": "routine"
+        }
+      ],
+      "student": "Speak for two minutes; your partner ticks each word-bank item they hear used naturally.",
+      "teacher": "Pairs, then swap. Listen live and note one precise word and one repeated word per learner.",
+      "say": "Keep going; rephrase if you lose a word.",
+      "check": "Each learner speaks for close to two minutes."
+    },
+    {
+      "start": 48,
+      "end": 55,
+      "title": "Compare with the model",
+      "show": [
+        {
+          "block": "IELTS-V4-S1",
+          "part": "model"
+        }
+      ],
+      "student": "Listen to or read the model; note two phrases to steal.",
+      "teacher": "Read the model aloud; ask which phrases were natural rather than impressive.",
+      "say": "The model is illustrative, not a target band.",
+      "check": "Each learner names two phrases to reuse."
+    },
+    {
+      "start": 55,
+      "end": 60,
+      "title": "Exit ticket and homework",
+      "show": [
+        {
+          "block": "IELTS-V4-H1",
+          "part": "questions"
+        }
+      ],
+      "student": "Complete the exit ticket and note the homework.",
+      "teacher": "Collect exit tickets.",
+      "say": "Record yourself once this week and count your repeated words.",
+      "check": "Every learner writes two new phrases."
+    }
+  ],
+  "blocks": [
+    {
+      "id": "IELTS-V4-K1",
+      "kind": "contrast",
+      "title": "Natural or memorised?",
+      "mode": "Opening challenge; learners decide before the reveal",
+      "instructions": "Examiner: 'Do you like the area where you live?' Three learners answered. Which answer is most natural?",
+      "examples": [
+        {
+          "label": "Learner A",
+          "text": "Yes, it's nice. It's very nice and very good. I like it very much.",
+          "comment": "Repetitive: 'nice', 'very' and 'good' give no detail."
+        },
+        {
+          "label": "Learner B",
+          "text": "Yes, on the whole. It's quite a lively neighbourhood with a bustling market, although it can get noisy at weekends.",
+          "comment": "Best: precise collocations, a balanced view and natural softening ('on the whole', 'quite')."
+        },
+        {
+          "label": "Learner C",
+          "text": "Yes, it's raining cats and dogs of happiness there and every cloud has a silver lining.",
+          "comment": "Memorised idioms used wrongly. They do not fit the question and confuse the listener."
+        }
+      ]
+    },
+    {
+      "id": "IELTS-V4-P1",
+      "kind": "items",
+      "title": "Match the phrase to its job",
+      "mode": "Controlled practice",
+      "instructions": "Match each phrase (1–8) to what it does, A–F. You may use a letter more than once.",
+      "stimulus": {
+        "type": "options_list",
+        "title": "What the phrase does",
+        "paragraphs": [
+          "A  gives a personal opinion",
+          "B  buys thinking time",
+          "C  shows the answer varies",
+          "D  rephrases to clarify",
+          "E  paraphrases a missing word",
+          "F  reflects on the past"
+        ]
+      },
+      "items": [
+        {
+          "id": "IELTS-V4-P1-Q1",
+          "prompt": "It depends on how old you are.",
+          "answer": "C",
+          "evidence": "It depends on = varies",
+          "reason": "Shows that the answer changes.",
+          "focus": "fluency and coherence",
+          "type": "matching",
+          "level": "core",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ]
+        },
+        {
+          "id": "IELTS-V4-P1-Q2",
+          "prompt": "As far as I'm concerned, it's too expensive.",
+          "answer": "A",
+          "evidence": "As far as I'm concerned = my opinion",
+          "reason": "Personal view.",
+          "focus": "fluency and coherence",
+          "type": "matching",
+          "level": "core",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ]
+        },
+        {
+          "id": "IELTS-V4-P1-Q3",
+          "prompt": "It's a kind of tool you use to open tins.",
+          "answer": "E",
+          "evidence": "a kind of tool you use to = paraphrase",
+          "reason": "Describes a word the speaker does not know.",
+          "focus": "lexical resource",
+          "type": "matching",
+          "level": "core",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ]
+        },
+        {
+          "id": "IELTS-V4-P1-Q4",
+          "prompt": "Looking back, I should have studied harder.",
+          "answer": "F",
+          "evidence": "Looking back = reflecting",
+          "reason": "Reflection on the past.",
+          "focus": "fluency and coherence",
+          "type": "matching",
+          "level": "core",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ]
+        },
+        {
+          "id": "IELTS-V4-P1-Q5",
+          "prompt": "That's an interesting question. Let me think ...",
+          "answer": "B",
+          "evidence": "buys time",
+          "reason": "Thinking-time phrase.",
+          "focus": "fluency and coherence",
+          "type": "matching",
+          "level": "core",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ]
+        },
+        {
+          "id": "IELTS-V4-P1-Q6",
+          "prompt": "What I mean is, it saves people a lot of time.",
+          "answer": "D",
+          "evidence": "What I mean is = clarify",
+          "reason": "Rephrasing.",
+          "focus": "fluency and coherence",
+          "type": "matching",
+          "level": "core",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ]
+        },
+        {
+          "id": "IELTS-V4-P1-Q7",
+          "prompt": "I'd say most people prefer the city.",
+          "answer": "A",
+          "evidence": "I'd say = softened opinion",
+          "reason": "Opinion.",
+          "focus": "fluency and coherence",
+          "type": "matching",
+          "level": "core",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ]
+        },
+        {
+          "id": "IELTS-V4-P1-Q8",
+          "prompt": "It's not something I've thought about much, but ...",
+          "answer": "B",
+          "evidence": "honest thinking time",
+          "reason": "Buys time.",
+          "focus": "fluency and coherence",
+          "type": "matching",
+          "level": "core",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "IELTS-V4-P2",
+      "kind": "items",
+      "title": "Choose the natural answer",
+      "mode": "Controlled practice",
+      "instructions": "Choose the most natural spoken answer, A, B or C.",
+      "items": [
+        {
+          "id": "IELTS-V4-P2-Q1",
+          "prompt": "Describe the view from a place you visited.",
+          "answer": "B",
+          "evidence": "breathtaking view",
+          "reason": "A wrong collocation; C too vague.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  The view was very breathtaken.",
+            "B  The view from the top was absolutely breathtaking.",
+            "C  The view was nice and good."
+          ]
+        },
+        {
+          "id": "IELTS-V4-P2-Q2",
+          "prompt": "Would you recommend the restaurant?",
+          "answer": "A",
+          "evidence": "highly recommend",
+          "reason": "B wrong collocation ('strongly' is less natural); C wrong grammar.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  Definitely, I'd highly recommend it, especially the fish.",
+            "B  Yes, I very recommend it.",
+            "C  Yes, I recommend to go there it."
+          ]
+        },
+        {
+          "id": "IELTS-V4-P2-Q3",
+          "prompt": "Tell me about a memorable trip.",
+          "answer": "C",
+          "evidence": "once-in-a-lifetime experience fits a special trip",
+          "reason": "A idiom in the wrong context; B unnatural.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  It was a piece of cake trip and I broke the ice.",
+            "B  The trip was very memorable and memorable.",
+            "C  Climbing the volcano was a once-in-a-lifetime experience."
+          ]
+        },
+        {
+          "id": "IELTS-V4-P2-Q4",
+          "prompt": "Describe your best friend's personality.",
+          "answer": "A",
+          "evidence": "easy-going + example",
+          "reason": "B wrong word; C memorised.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  She's really easy-going; nothing seems to stress her.",
+            "B  She's very easy-going-ly.",
+            "C  She is the apple of my eye of friends."
+          ]
+        },
+        {
+          "id": "IELTS-V4-P2-Q5",
+          "prompt": "You forget the word 'ladder'.",
+          "answer": "B",
+          "evidence": "paraphrase the missing word",
+          "reason": "A stops; C uses the wrong word.",
+          "focus": "fluency and coherence",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  I used ... sorry, I don't know the word.",
+            "B  I used one of those things you climb up to reach high places.",
+            "C  I used a stair."
+          ]
+        },
+        {
+          "id": "IELTS-V4-P2-Q6",
+          "prompt": "Do you think children should have phones?",
+          "answer": "C",
+          "evidence": "It depends on + reason",
+          "reason": "A too short; B overclaims.",
+          "focus": "fluency and coherence",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  No.",
+            "B  Every child in the world must have a phone at once.",
+            "C  It depends on their age. For younger children, I'd say it's probably unnecessary."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "IELTS-V4-S1",
+      "kind": "speaking",
+      "title": "Part 2 long turn with the word bank",
+      "mode": "Pair practice; live feedback from partner and teacher",
+      "instructions": "You will have one minute to prepare and up to two minutes to speak. Use at least six word-bank items naturally.",
+      "prompts": [
+        "Describe a place you have visited that you would like to visit again. You should say: where it is; when you went there; what you did there; and explain why you would like to go back."
+      ],
+      "routine": "1 minute notes (keywords only) → 2 minutes speaking → partner ticks word-bank items heard → swap.",
+      "observation": "Teacher and partner judge vocabulary from what is heard live; pronunciation comments are limited to what was heard live in class.",
+      "models": [
+        {
+          "label": "Illustrative long turn (not a certified band answer)",
+          "text": "The place I'd like to go back to is a small lakeside town in the mountains, about three hours from where I live. I went there two summers ago with my cousins. It's not something I'd normally choose, because I'm more of a city person, but looking back, it was a real eye-opener. The town itself is fairly quiet, but there's a bustling market every Sunday where local farmers sell honey and cheese. We hired a kind of small rowing boat – I think it's called a canoe – and paddled to the far side of the lake, and honestly, the view of the mountains reflected in the water was breathtaking. The people were very down-to-earth, too; one family even invited us for tea. As for why I'd like to go back, I'd say it's mainly because I felt completely relaxed there, which is rare for me. I'd highly recommend it to anyone who needs a break from city life."
+        }
+      ]
+    },
+    {
+      "id": "IELTS-V4-H1",
+      "kind": "items",
+      "homework": true,
+      "title": "Homework: make it natural",
+      "mode": "Homework; checked at the start of the next lesson",
+      "instructions": "Complete each spoken answer with ONE word.",
+      "items": [
+        {
+          "id": "IELTS-V4-H1-Q1",
+          "prompt": "The market is really ______ on Saturdays – it's full of people.",
+          "answer": "bustling",
+          "evidence": "bustling/lively market",
+          "reason": "Describes a busy place.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "lively",
+            "busy"
+          ]
+        },
+        {
+          "id": "IELTS-V4-H1-Q2",
+          "prompt": "As ______ as I'm concerned, homework should be shorter.",
+          "answer": "far",
+          "evidence": "As far as I'm concerned",
+          "reason": "Fixed phrase.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        },
+        {
+          "id": "IELTS-V4-H1-Q3",
+          "prompt": "I'd ______ recommend this book to teenagers.",
+          "answer": "highly",
+          "evidence": "highly recommend",
+          "reason": "Collocation.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "definitely",
+            "really"
+          ]
+        },
+        {
+          "id": "IELTS-V4-H1-Q4",
+          "prompt": "My grandfather is very down-to-______.",
+          "answer": "earth",
+          "evidence": "down-to-earth",
+          "reason": "Fixed phrase.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        },
+        {
+          "id": "IELTS-V4-H1-Q5",
+          "prompt": "Visiting the hospital as a volunteer was a real eye-______.",
+          "answer": "opener",
+          "evidence": "a real eye-opener",
+          "reason": "Fixed phrase.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        },
+        {
+          "id": "IELTS-V4-H1-Q6",
+          "prompt": "Looking ______, I'm glad I chose to study abroad.",
+          "answer": "back",
+          "evidence": "Looking back",
+          "reason": "Fixed phrase.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        }
+      ]
+    }
+  ],
+  "exit_ticket": [
+    "Two describing words I will use instead of 'nice':",
+    "My favourite phrase for buying thinking time:",
+    "One idiom I can use correctly, with an example:"
+  ],
+  "homework": [
+    "Complete the natural-answer sentences on the homework sheet.",
+    "Record a one-minute answer to 'Describe a person who has influenced you'. Listen back and replace two repeated words."
+  ],
+  "delayed_followup": "In Lesson 16 or 20 (Speaking Part 3 and full interview), note whether learners use precise collocations and recovery phrases instead of stopping. Record it as a later observation.",
+  "mapping_notes": "Focuses use Diagnostic Bible section 7.2 construct names where they apply (lexical resource, paraphrase recognition). Teaching focuses only. This optional vocabulary lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
+  ],
+  "followup": {
+    "id": "IELTS-V4-C1",
+    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.0.0 on 2026-10-26. Keep private until use.",
+    "delivery": "About one teaching week later: 8 minutes, no word bank. Record timing and support.",
+    "review": "Score each answer independently; accept only natural, accurate phrases. Do not convert to an IELTS band.",
+    "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty.",
+    "blocks": [
+      {
+        "id": "IELTS-V4-C1",
+        "kind": "items",
+        "title": "Fresh check: choose the natural reply",
+        "mode": "Withheld fresh check; independent, timed",
+        "instructions": "Questions 1-4: choose the most natural reply, A, B or C. Questions 5-6: complete each reply with ONE word.",
+        "items": [
+          {
+            "id": "IELTS-V4-C1-Q1",
+            "prompt": "What is your home town famous for?",
+            "answer": "C",
+            "evidence": "precise description, natural softening",
+            "reason": "A vague; B wrong collocation.",
+            "focus": "lexical resource",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  It is famous for good things and nice things.",
+              "B  It is famous for its very breathtaken nature.",
+              "C  It's best known for its hot springs, which attract quite a lot of visitors in winter."
+            ]
+          },
+          {
+            "id": "IELTS-V4-C1-Q2",
+            "prompt": "Is it better to live alone or with family?",
+            "answer": "A",
+            "evidence": "It depends on + development",
+            "reason": "B too short; C memorised.",
+            "focus": "fluency and coherence",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  I suppose it depends on your stage of life. Students often benefit from living with family because it's cheaper.",
+              "B  Family.",
+              "C  Home is where the heart is and the early bird catches the worm."
+            ]
+          },
+          {
+            "id": "IELTS-V4-C1-Q3",
+            "prompt": "Describe a day when you were very surprised.",
+            "answer": "B",
+            "evidence": "I couldn't believe my eyes",
+            "reason": "Idiom fits the context.",
+            "focus": "lexical resource",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  I was surprised very much like a surprise.",
+              "B  When I opened the envelope and saw I'd won, I couldn't believe my eyes.",
+              "C  It was raining cats and dogs of surprise."
+            ]
+          },
+          {
+            "id": "IELTS-V4-C1-Q4",
+            "prompt": "You forget the word 'thermometer'.",
+            "answer": "C",
+            "evidence": "paraphrase",
+            "reason": "Keeps communication going.",
+            "focus": "fluency and coherence",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  Sorry, I can't continue.",
+              "B  I used a temperature.",
+              "C  I used the thing you use to measure how hot something is."
+            ]
+          },
+          {
+            "id": "IELTS-V4-C1-Q5",
+            "prompt": "In other ______, the new park has made the area much greener.",
+            "answer": "words",
+            "evidence": "In other words",
+            "reason": "Fixed phrase.",
+            "focus": "lexical resource",
+            "type": "completion",
+            "level": "core",
+            "word_limit": 1
+          },
+          {
+            "id": "IELTS-V4-C1-Q6",
+            "prompt": "Watching the sunrise from the mountain was a once-in-a-______ experience.",
+            "answer": "lifetime",
+            "evidence": "once-in-a-lifetime",
+            "reason": "Fixed phrase.",
+            "focus": "lexical resource",
+            "type": "completion",
+            "level": "core",
+            "word_limit": 1
+          }
+        ]
+      }
+    ]
+  },
+  "approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-26",
+    "version": "1.0.0",
+    "scope": "Vocabulary lesson content, keys and models for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek: 'there should also some Vocabulary lessons that really fit the IELTS in a very practical way for the students to benefit from. Make the needed adjustments and improvements now ... you have all my permissions, don't ask for any.' Not recorded as an in-platform decision; no review-draft pack was opened before approval."
+  }
+}

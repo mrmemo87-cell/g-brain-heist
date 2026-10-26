@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { mockSourcePaths, validateMockSource } from '../scripts/ielts/mock-source-contract.mjs';
+import { mockSourcePaths, validateMockSource, readingLevel, promptEvidenceOverlap, READING_LEVEL } from '../scripts/ielts/mock-source-contract.mjs';
 import { lessonSourcePaths, validateLessonSource, bibleVersionErrors, currentBibleVersions } from '../scripts/ielts/lesson-source-contract.mjs';
 
 const load = (path) => JSON.parse(readFileSync(path, 'utf8'));
@@ -192,4 +192,55 @@ test('v1.1.1 summary, process branches and numeric-only audio keys meet the sour
   const mutated = structuredClone(x4);
   mutated.followup.blocks[0].items.find((i) => i.id === 'IELTS-X4-C1-Q7').accept = ['six hundred'];
   assert.ok(has(validateLessonSource(mutated), 'exceeds 1-word limit'));
+});
+
+
+test('mock Reading meets real-test length, density and paraphrase level', () => {
+  for (const mock of mockSourcePaths().map(load)) {
+    assert.equal(mock.version, '1.1.0', mock.code);
+    assert.equal(mock.approval_record?.version, '1.1.0');
+    const passages = mock.reading.passages;
+    const total = passages.reduce((t, p) => t + readingLevel(p.paragraphs).words, 0);
+    assert.ok(total >= READING_LEVEL.minTotal, `${mock.code}: ${total} words`);
+    passages.forEach((p, i) => {
+      const level = readingLevel(p.paragraphs);
+      assert.ok(level.words >= READING_LEVEL.minWords[i], `${mock.code} P${i + 1}: ${level.words}`);
+      assert.ok(level.wordsPerSentence >= READING_LEVEL.minWordsPerSentence);
+      assert.ok(level.longWordShare >= READING_LEVEL.minLongWordShare);
+    });
+    // Passage 3 is the longest and densest, as in the real test.
+    assert.ok(readingLevel(passages[2].paragraphs).words >= readingLevel(passages[0].paragraphs).words);
+  }
+  // A question that simply copies the passage is rejected.
+  const copy = structuredClone(load(mockSourcePaths()[0]));
+  const it = copy.reading.passages[0].groups[0].items.find((i) => i.answer !== 'NOT GIVEN');
+  it.prompt = it.evidence;
+  assert.ok(promptEvidenceOverlap(it.prompt, it.evidence) > READING_LEVEL.maxItemOverlap);
+  assert.ok(validateMockSource(copy).some((e) => /paraphrase it/.test(e)));
+});
+
+test('mocks use fictional researchers and distinct Speaking topics', () => {
+  const mocks = mockSourcePaths().map(load);
+  const text = JSON.stringify(mocks.map((m) => m.reading));
+  for (const real of ['Carskadon', 'Russell Foster', 'Wahlstrom', 'Gradisar']) assert.ok(!text.includes(real), real);
+  const cards = mocks.map((m) => m.speaking.part2.card);
+  assert.equal(new Set(cards).size, cards.length);
+  assert.ok(!/skill/i.test(mocks[2].speaking.part2.card));
+});
+
+test('vocabulary lessons V1-V6 are complete, approved and cover every skill', () => {
+  const vocab = lessonSourcePaths().map(load).filter((l) => /^IELTS-V[1-6]$/.test(l.code));
+  assert.equal(vocab.length, 6);
+  const skills = new Set();
+  for (const lesson of vocab) {
+    assert.deepEqual(validateLessonSource(lesson), [], lesson.code);
+    assert.equal(lesson.vocabulary, true);
+    assert.equal(lesson.approval_record?.version, lesson.version);
+    assert.ok(lesson.word_bank.length >= 12);
+    assert.match(lesson.title, /^Vocabulary:/);
+    for (const w of lesson.word_bank) skills.add(w.skill.split(' ')[0]);
+  }
+  for (const s of ['Reading', 'Listening', 'Writing', 'Speaking']) assert.ok(skills.has(s), s);
+  const bad = structuredClone(vocab[0]); bad.word_bank = bad.word_bank.slice(0, 3);
+  assert.ok(validateLessonSource(bad).some((e) => /word_bank/.test(e)));
 });

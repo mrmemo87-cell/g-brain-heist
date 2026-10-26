@@ -290,12 +290,17 @@ export function validateLessonSource(lesson, { bibles = currentBibleVersions() }
   const errors = [];
   const code = lesson.code;
   if (lesson.schema !== SCHEMA) errors.push(`schema must be ${SCHEMA}`);
-  // Core course lessons are IELTS-01..24; optional extension lessons (outside the 24-lesson sequence) are IELTS-X1..X8.
+  // Core course lessons are IELTS-01..24; optional extension lessons (outside the 24-lesson sequence) are IELTS-X1..X8;
+  // optional vocabulary lessons are IELTS-V1..V6.
   const extension = /^IELTS-X[1-8]$/.test(code ?? '');
-  if (!/^IELTS-\d{2}$/.test(code ?? '') && !extension) errors.push('code must look like IELTS-05 (core) or IELTS-X1 (extension)');
-  if (Number(code?.slice(extension ? 7 : 6)) !== lesson.number) errors.push('number must match the lesson code');
+  const vocabulary = /^IELTS-V[1-6]$/.test(code ?? '');
+  if (!/^IELTS-\d{2}$/.test(code ?? '') && !extension && !vocabulary) errors.push('code must look like IELTS-05 (core), IELTS-X1 (extension) or IELTS-V1 (vocabulary)');
+  if (Number(code?.slice(extension || vocabulary ? 7 : 6)) !== lesson.number) errors.push('number must match the lesson code');
   if (extension !== (lesson.extension === true)) errors.push('extension: true is required for (and only for) IELTS-X lessons');
-  if (extension && !lesson.placement) errors.push('extension lessons need a placement note (when in the course they fit)');
+  if (vocabulary !== (lesson.vocabulary === true)) errors.push('vocabulary: true is required for (and only for) IELTS-V lessons');
+  if ((extension || vocabulary) && !lesson.placement) errors.push('optional lessons need a placement note (when in the course they fit)');
+  if (vocabulary && !(lesson.word_bank?.length >= 12)) errors.push('vocabulary lessons need a word_bank of at least 12 target items');
+  for (const entry of lesson.word_bank ?? []) if (!entry.item || !entry.meaning || !entry.example || !entry.skill) errors.push(`word_bank entry ${entry.item ?? '?'} needs item, meaning, example and skill`);
   if (lesson.duration !== 60) errors.push('core lessons are 60 minutes; schedule longer assessments separately');
   if (lesson.test_type !== 'Academic') errors.push('programme route is IELTS Academic only');
   if (!/draft/i.test(lesson.status ?? '') && !lesson.approval_record) errors.push('status must remain a draft until a human approval record is attached');

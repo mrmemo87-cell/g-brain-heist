@@ -3,8 +3,8 @@
  "code": "IELTS-M3",
  "number": 3,
  "title": "Mock Test 3",
- "version": "1.0.0",
- "status": "Owner approved v1.0.0 on 2026-10-18; teacher release to all eligible schools",
+ "version": "1.1.0",
+ "status": "Owner approved v1.1.0 on 2026-10-26; teacher release to all eligible schools",
  "test_type": "Academic",
  "bibles": {
   "diagnostic": "1.10.0",
@@ -612,14 +612,14 @@
     "title": "The windcatchers of the desert",
     "labelled": false,
     "paragraphs": [
-     "For thousands of years, people living in the hot, dry regions of the Middle East have kept their homes cool without electricity. One of the most striking tools they developed is the windcatcher, a tall tower rising above the roof of a building. In the Iranian city of Yazd, which lies on the edge of the desert, many of these towers still dominate the skyline, and similar structures can be found around the Gulf, in North Africa and in parts of South Asia. Known in Persian as the badgir, the windcatcher is now attracting renewed interest from architects who are looking for ways to cool buildings without the high energy costs of air conditioning.",
-     "The principle behind the windcatcher is simple. Near the top of the tower are a number of tall, narrow openings. When the wind blows, air enters through the openings that face the wind and is directed down a shaft into the rooms below. Inside the tower, the shaft is divided by thin walls, known as partitions, into several channels, so that fresh air can move down one channel while used air moves up another. Even when there is no wind, the tower continues to work. During the day, the sun heats the tower, and the warm air inside it rises and escapes through the openings, drawing stale air out of the house below.",
-     "The most sophisticated windcatchers combined this airflow with water. In some houses, the incoming air was directed over a pool in the basement, or over an underground channel called a qanat, which carried water from distant mountains. As the water evaporated, it absorbed heat, lowering the temperature of the air before it rose into the living areas of the house. Some households used the cool basement to store food, and in a few places windcatchers were linked to large domed structures in which ice made on winter nights could be kept for use in summer.",
-     "Traditional towers were usually built from mud brick or fired brick, materials that were cheap, available locally and slow to heat up. A tower might be anything from a few metres to more than thirty metres tall, and its cross-section could be square, rectangular or eight-sided. Taller towers catch faster and cleaner air, because wind speed increases with height and there is less dust far above the street. The number of openings also varied. Towers in areas where the wind came mainly from one direction often opened on only one side, while those in places with changing winds might open on four or even eight sides.",
-     "Windcatchers were also a sign of status. Wealthy families built the tallest and most decorated towers, and in some cities there were rules about how high a tower could be, to prevent neighbours from blocking each other's breeze. During the twentieth century, however, many towers fell into disrepair. Electric fans and later air conditioning became widely available, and modern buildings, with their flat roofs and sealed windows, had no place for them. Some old towers were demolished; others were simply neglected, their openings blocked with bricks to keep out dust and birds.",
-     "Researchers have since tried to measure how effective traditional windcatchers really are, and the results are mixed. Studies suggest that a well-designed tower can lower indoor temperatures by several degrees, especially when it is combined with water and with thick walls that absorb heat during the day. However, performance depends heavily on local conditions. Where the wind is weak or keeps changing direction, a tower that opens on only one side may achieve little, and in humid climates, adding moisture to the air can make rooms feel less comfortable rather than more. Dust and insects entering through the openings are a further drawback.",
-     "Despite these limitations, modern architects have found new uses for the idea. Some recent buildings in Europe and the Middle East include rooftop wind towers, often made of metal, which turn automatically to face the wind. Others use sensors to open and close vents according to the temperature outside. In a number of schools in Britain, for example, roof-mounted ventilation towers have been installed to bring fresh air into classrooms without the need to open windows. These systems rarely replace air conditioning completely, but they can reduce the amount of time it is needed, cutting both energy bills and emissions.",
-     "Supporters argue that the windcatcher teaches a wider lesson. Before cheap energy was available, builders had to work with the climate rather than against it, choosing materials, orientation and shape to keep buildings comfortable. As energy costs rise and concern about climate change grows, many architects believe that this way of thinking deserves a central place in modern design."
+     "Long before electricity made mechanical air conditioning possible, the inhabitants of some of the world's hottest regions devised effective methods of keeping their homes cool. Among the most distinctive is the windcatcher, a tall tower rising above the roofline of a building and designed to capture passing breezes and channel them into the rooms below. Known in Persian as the badgir, the windcatcher is most strongly associated with the desert cities of central Iran, particularly Yazd, where hundreds of towers still punctuate the skyline, although comparable structures can be found around the Persian Gulf, in North Africa and in parts of South Asia.",
+     "In its simplest form, a windcatcher consists of a vertical shaft with openings near the top. Air enters through the openings that face the wind, is forced downwards through the shaft and flows into the building, displacing the warmer air already inside. Most towers are divided internally by thin walls, known as partitions, which separate the shaft into several channels, so that air can descend in one channel while it leaves through another. Even in the absence of wind, the tower continues to function to some degree: as the sun heats its upper section, the warm air inside it rises and escapes through the openings, drawing cooler air into the house from below in a process sometimes compared to the action of a chimney.",
+     "The most sophisticated windcatchers combined this airflow with water. In certain houses, the incoming air was directed over a pool in the basement or over an underground channel called a qanat, an ancient system of gently sloping tunnels that conveyed water by gravity from distant aquifers at the foot of the mountains. As the water evaporated, it absorbed heat from its surroundings, lowering the temperature of the air before it rose into the living areas of the house. Some households used the resulting cool basement to store perishable food, and in a few localities windcatchers were linked to large domed structures in which ice produced on winter nights could be preserved for use during the summer months.",
+     "The design of individual towers varied considerably according to local conditions. Where the prevailing wind blew consistently from a single direction, a tower might have openings on one side only, whereas in districts where winds were variable, towers with four or even eight sides were constructed so as to capture air from any quarter. Height was another important variable, because air moves more rapidly and carries less dust at greater distances above the ground. Taller towers were therefore more effective, but they were also more costly to build, and in some cities regulations restricted their height, apparently to prevent wealthier households from depriving their neighbours of a fair share of the breeze.",
+     "Windcatchers were constructed from locally available materials, principally mud brick, which absorbs heat slowly during the day and releases it gradually at night. This property, known as thermal mass, helped to moderate fluctuations in temperature inside the house. The towers did, however, require regular maintenance: openings had to be cleared of sand and debris, and many were fitted with wooden grilles or mesh to prevent birds and insects from entering the shaft and nesting there. Builders also paid close attention to the orientation of each tower relative to neighbouring structures, since an adjacent wall or dome could disrupt the flow of air and substantially reduce its effectiveness.",
+     "During the twentieth century, the spread of electric fans and air conditioning led many households to abandon their windcatchers. Some towers were demolished; others survived but fell into disrepair, their openings blocked or their internal walls allowed to collapse. In recent decades, however, architects and engineers have shown renewed interest in the principles behind them, partly in response to the substantial energy consumption and carbon emissions associated with mechanical cooling, which in some hot countries accounts for a large proportion of peak electricity demand during the summer.",
+     "Modern interpretations of the windcatcher have been incorporated into schools, offices and public buildings in a number of countries, including several with temperate climates. Contemporary designs frequently use lightweight materials and are equipped with sensors and motorised dampers that regulate the flow of air automatically. Some are combined with heat exchangers, which allow incoming fresh air to be warmed in winter by the stale air leaving the building, so that ventilation is maintained without excessive heat loss.",
+     "Engineers caution, nevertheless, that these systems seldom eliminate the need for air conditioning altogether in the hottest climates; rather, they reduce how often and how intensively it is required. Evaporative cooling is also far less effective in humid regions, where the air already contains considerable moisture and the addition of further water vapour can make conditions feel more oppressive rather than less. The windcatcher's lasting lesson may therefore be not that a particular structure should be copied, but that buildings designed in response to their local climate can achieve a great deal with comparatively modest resources."
     ],
     "groups": [
      {
@@ -987,14 +987,14 @@
         "prompt": "openings facing the ______",
         "answer": "wind",
         "accept": [],
-        "evidence": "air enters through the openings that face the wind"
+        "evidence": "Air enters through the openings that face the wind"
        },
        {
         "n": 2,
         "prompt": "thin walls (______) divide the shaft",
         "answer": "partitions",
         "accept": [],
-        "evidence": "the shaft is divided by thin walls, known as partitions"
+        "evidence": "thin walls, known as partitions"
        },
        {
         "n": 3,
@@ -1032,51 +1032,51 @@
        13
       ],
       "type": "tfng",
-      "instructions": "Do the following statements agree with the information given in Reading Passage 1? Write TRUE, FALSE or NOT GIVEN.",
+      "instructions": "Do the following statements agree with the information given in Reading Passage 1? Write TRUE if the statement agrees with the information, FALSE if the statement contradicts the information, or NOT GIVEN if there is no information on this.",
       "items": [
        {
         "n": 7,
-        "prompt": "Windcatchers are found only in Iran.",
-        "answer": "FALSE",
-        "evidence": "similar structures can be found around the Gulf, in North Africa and in parts of South Asia"
+        "prompt": "Structures resembling the badgir exist outside Iran.",
+        "answer": "TRUE",
+        "evidence": "comparable structures can be found around the Persian Gulf, in North Africa and in parts of South Asia"
        },
        {
         "n": 8,
-        "prompt": "A windcatcher can still move air through a house when there is no wind.",
-        "answer": "TRUE",
-        "evidence": "Even when there is no wind, the tower continues to work."
+        "prompt": "A windcatcher stops working entirely on still days.",
+        "answer": "FALSE",
+        "evidence": "Even in the absence of wind, the tower continues to function to some degree"
        },
        {
         "n": 9,
-        "prompt": "Qanats were built mainly to supply water to windcatchers.",
+        "prompt": "Underground water channels were originally dug in order to cool houses.",
         "answer": "NOT GIVEN",
-        "evidence": "an underground channel called a qanat, which carried water from distant mountains",
-        "note": "The passage says what qanats carried, not why they were built."
+        "evidence": "an ancient system of gently sloping tunnels that conveyed water by gravity from distant aquifers",
+        "note": "The passage says what qanats did, not why they were first built."
        },
        {
         "n": 10,
-        "prompt": "In some cities, the height of windcatchers was limited.",
+        "prompt": "Towers with several sides were built where the direction of the wind was unpredictable.",
         "answer": "TRUE",
-        "evidence": "in some cities there were rules about how high a tower could be"
+        "evidence": "in districts where winds were variable, towers with four or even eight sides were constructed"
        },
        {
         "n": 11,
-        "prompt": "Most traditional windcatchers have now been demolished.",
-        "answer": "NOT GIVEN",
-        "evidence": "Some old towers were demolished; others were simply neglected",
-        "note": "The passage says some towers were demolished and others neglected; it gives no proportion."
+        "prompt": "Restrictions on tower height appear to have been introduced for reasons of equality.",
+        "answer": "TRUE",
+        "evidence": "apparently to prevent wealthier households from depriving their neighbours of a fair share of the breeze"
        },
        {
         "n": 12,
-        "prompt": "Adding water to the air improves comfort in every type of climate.",
+        "prompt": "Mud brick heats up quickly in the sun and loses heat rapidly after dark.",
         "answer": "FALSE",
-        "evidence": "in humid climates, adding moisture to the air can make rooms feel less comfortable rather than more"
+        "evidence": "absorbs heat slowly during the day and releases it gradually at night"
        },
        {
         "n": 13,
-        "prompt": "Modern wind towers usually make air conditioning unnecessary.",
-        "answer": "FALSE",
-        "evidence": "These systems rarely replace air conditioning completely"
+        "prompt": "Most modern wind towers have been built in hot desert countries.",
+        "answer": "NOT GIVEN",
+        "evidence": "in a number of countries, including several with temperate climates",
+        "note": "Countries are mentioned, but not where most modern towers are."
        }
       ]
      }
@@ -1087,12 +1087,12 @@
     "title": "Why waiting feels longer than it is",
     "labelled": true,
     "paragraphs": [
-     "Most of us spend a surprising amount of our lives waiting: in supermarkets and banks, at airports and doctors' surgeries, on the phone and, increasingly, in online queues for tickets or services. Yet when people are asked afterwards how long they waited, their answers are often wildly inaccurate. In many studies, people overestimate the length of a wait, sometimes by a large margin, and their satisfaction appears to depend more on how long the wait felt than on how long it actually was. For organisations that deal with the public, this has an important implication. Reducing the actual time customers spend in a queue can be expensive, requiring extra staff or equipment. Changing how the wait feels may be much cheaper.",
-     "One of the most consistent findings is that empty time feels longer than occupied time. A frequently told story concerns an airport where passengers complained constantly about how long they had to wait for their luggage. Rather than speeding up the baggage handlers, the airport moved the arrival gates further from the baggage reclaim, so that passengers spent most of the time walking instead of standing still. Complaints reportedly fell almost to zero. The same idea explains why mirrors are often placed next to lifts, and why waiting rooms offer magazines and screens. Music has been used in a similar way on telephone helplines, although here the evidence is mixed: callers who dislike the music chosen may become more irritated, not less. In a series of laboratory studies, the psychologist Helena Varga found that participants who were given something to look at during a wait judged it to be considerably shorter than those who waited in an empty room.",
-     "A second factor is uncertainty. A wait of unknown length is generally more stressful than one whose length is known, because people cannot plan or relax. This also explains why an unexplained delay is so frustrating. A train that stops between stations without any announcement causes far more annoyance than one that is held for the same length of time after the driver has explained the reason. Tomas Reyes, who studies customer behaviour in public services, has shown that simply telling people how long they are likely to wait reduces their frustration, even when the wait itself is no shorter. Some organisations go further. Theme parks, for example, often display estimated waiting times for rides that are slightly longer than the real ones, so that visitors who reach the front sooner than expected feel pleasantly surprised rather than disappointed.",
-     "Perhaps the most powerful influence of all is a sense of fairness. Anyone who has seen another person push in front of them in a queue knows how strong the reaction can be. Many banks and post offices now use a single line that feeds several counters, instead of a separate line for each counter. With parallel lines, customers constantly compare their progress with others and feel cheated if a neighbouring line moves faster. Anand also observed that people who joined a queue at the same moment as a stranger watched that person's progress closely, and were noticeably less satisfied if the stranger was served first, even by a few seconds. In experiments by Priya Anand, participants said they preferred a single queue even when it was longer, because it guaranteed that everyone would be served in order. For Anand, this shows that people judge a wait not only by its length but by whether it seems just.",
-     "People are also more patient once they feel that the process has started. Restaurants that hand out menus to people waiting for a table, and clinics that ask patients to fill in forms before they see the doctor, are using this effect. Online, the equivalent is the progress indicator. Jonas Feld, who studies the design of websites, found that users were far more willing to wait for a page to load when they could see a bar moving across the screen or a message telling them their position in the queue. However, he also found that a bar that stopped moving, or moved backwards, produced more irritation than having no indicator at all. Feld suggests that the most effective indicators move steadily, and slightly faster at the end than at the beginning, so that the final part of the wait seems short.",
-     "Not everyone is comfortable with the way these findings are being applied. Critics argue that organisations may use psychological techniques as a cheap substitute for actually reducing waits, particularly in public services, where long delays can have serious consequences. Varga herself has warned that making a wait feel shorter is not the same as solving the problem, and that patients in a hospital waiting room, for example, need faster treatment rather than better distractions. The psychology of waiting, she argues, should be used alongside real improvements, not instead of them. Some regulators now require public services to publish their real average waiting times, so that improvements can be measured rather than merely felt."
+     "Most people have experienced the peculiar way in which time appears to stretch while they are waiting: in a queue at a bank, at a bus stop or on hold to a telephone helpline. Researchers who study the psychology of waiting have repeatedly found that individuals estimate the duration of a wait inaccurately, frequently believing that they have waited considerably longer than they actually have. Their satisfaction with a service, moreover, appears to depend more on how long the wait felt than on how long it lasted according to the clock, a finding with considerable implications for the organisations that manage queues. Organisations have consequently begun to treat the experience of waiting as something that can be designed, in much the same way as the products or services that customers are waiting to receive.",
+     "One of the most consistent findings in the field is that unoccupied time feels longer than occupied time. A frequently repeated, though possibly embellished, story concerns an office building whose occupants complained persistently about slow lifts. Rather than investing in faster lifts, the managers installed mirrors beside the doors, and the complaints reportedly diminished, apparently because people now had something with which to occupy themselves while they waited. The behavioural scientist Tomas Reyes notes that the same principle underlies the provision of magazines in waiting rooms, entertainment in queues at theme parks and music for callers who have been placed on hold. Researchers have since confirmed the general principle in controlled experiments, in which participants given a simple task to perform consistently underestimated the length of a delay compared with participants who were simply asked to sit and wait. The effect appears to be strongest when the activity is interesting enough to absorb attention but not so demanding that it becomes a burden in itself.",
+     "Uncertainty also makes waiting harder to bear. People who do not know how long they will have to wait tend to experience greater anxiety than those who do, and the absence of information can be more distressing than the delay itself. Reyes has found that simply informing people of the expected length of a wait reduces their frustration, even when the wait itself is not shortened. For this reason, many theme parks display estimated waiting times at the entrance to each ride, and these estimates are often deliberately set slightly longer than the actual wait, so that visitors are pleasantly surprised when they reach the front of the queue sooner than anticipated. Telephone helplines have adopted a comparable strategy, periodically informing callers of their approximate position or the expected time remaining, although Reyes cautions that inaccurate estimates can be more damaging than none at all, because they create expectations that are subsequently disappointed.",
+     "A sense of fairness is equally important. The economist Priya Anand argues that people judge a wait not only by its duration but also by whether it appears just, and observes that the sight of a later arrival being served first can provoke far more anger than a lengthy but orderly delay. In one of her studies, participants expressed a clear preference for a single queue feeding several service points over separate queues for each, even when the single queue appeared longer, because it guaranteed that customers would be served in the order in which they had arrived. Anand's research also suggests that people are generally willing to accept exceptions to strict order, such as priority for elderly or disabled customers, provided that the reasons are visible and widely regarded as legitimate.",
+     "A further factor is the perception of progress. The computer scientist Jonas Feld found that users of a website were considerably more willing to wait for a page to load when a bar advancing across the screen indicated that something was happening, even if the total waiting time was identical. A similar effect has been reported at one airport, where complaints about delays in retrieving luggage diminished after the walk from the arrival gates to the baggage reclaim area was deliberately lengthened. Passengers spent the same total time reaching their bags, but less of that time standing still beside an empty conveyor belt. Feld suggests that the principle applies equally to physical queues: a line that moves forward in small, frequent steps is generally perceived as shorter than one that remains stationary for long periods and then advances in large jumps, even when the overall rate of progress is the same.",
+     "Not everyone, however, is comfortable with the way in which these findings are being applied. The ethicist Helena Marsh warns that organisations may use psychological techniques to make customers feel better about delays rather than investing in genuine improvements to their services. In her view, such methods are legitimate only when they accompany real efforts to reduce waiting times, and should never be employed as a substitute for them. She also points out that some techniques, such as displaying a customer's position in an online queue, could be manipulated to discourage people from leaving, a practice she regards as deceptive. Marsh acknowledges, nevertheless, that many techniques are harmless and may genuinely improve people's experience, and she does not oppose their use in principle."
     ],
     "groups": [
      {
@@ -1104,57 +1104,57 @@
       "instructions": "Reading Passage 2 has six paragraphs, A–F. Choose the correct heading for each paragraph from the list of headings below. Write the correct number, i–ix.",
       "options_title": "List of Headings",
       "options": [
-       "i  Showing customers that they are moving forward",
+       "i  Visible movement towards the goal",
        "ii  How technology has removed the need to queue",
-       "iii  A concern about how the research is used",
-       "iv  The gap between actual and perceived waiting time",
-       "v  The cost of queues to the economy",
-       "vi  Why accurate information reduces frustration",
-       "vii  The benefits of keeping waiting people occupied",
-       "viii  Fairness as a source of satisfaction",
-       "ix  Cultural differences in attitudes to waiting"
+       "iii  Doubts about the ethics of applying the research",
+       "iv  A mismatch between real and remembered time",
+       "v  The economic cost of queues",
+       "vi  The calming effect of knowing what to expect",
+       "vii  Filling empty moments",
+       "viii  Order of service as a cause of resentment",
+       "ix  National differences in patience"
       ],
       "items": [
        {
         "n": 14,
         "prompt": "Paragraph A",
         "answer": "iv",
-        "evidence": "their satisfaction appears to depend more on how long the wait felt than on how long it actually was",
+        "evidence": "individuals estimate the duration of a wait inaccurately",
         "paragraph": "A"
        },
        {
         "n": 15,
         "prompt": "Paragraph B",
         "answer": "vii",
-        "evidence": "empty time feels longer than occupied time",
+        "evidence": "unoccupied time feels longer than occupied time",
         "paragraph": "B"
        },
        {
         "n": 16,
         "prompt": "Paragraph C",
         "answer": "vi",
-        "evidence": "simply telling people how long they are likely to wait reduces their frustration",
+        "evidence": "the absence of information can be more distressing than the delay itself",
         "paragraph": "C"
        },
        {
         "n": 17,
         "prompt": "Paragraph D",
         "answer": "viii",
-        "evidence": "people judge a wait not only by its length but by whether it seems just",
+        "evidence": "the sight of a later arrival being served first can provoke far more anger",
         "paragraph": "D"
        },
        {
         "n": 18,
         "prompt": "Paragraph E",
         "answer": "i",
-        "evidence": "when they could see a bar moving across the screen",
+        "evidence": "when a bar advancing across the screen indicated that something was happening",
         "paragraph": "E"
        },
        {
         "n": 19,
         "prompt": "Paragraph F",
         "answer": "iii",
-        "evidence": "Not everyone is comfortable with the way these findings are being applied.",
+        "evidence": "Not everyone, however, is comfortable with the way in which these findings are being applied.",
         "paragraph": "F"
        }
       ]
@@ -1165,10 +1165,10 @@
        23
       ],
       "type": "matching",
-      "instructions": "Look at the following statements (Questions 20–23) and the list of researchers below. Match each statement with the correct researcher, A–D.",
-      "options_title": "List of Researchers",
+      "instructions": "Look at the following statements (Questions 20–23) and the list of people below. Match each statement with the correct person, A–D. You may use any letter more than once.",
+      "options_title": "List of People",
       "options": [
-       "A  Helena Varga",
+       "A  Helena Marsh",
        "B  Tomas Reyes",
        "C  Priya Anand",
        "D  Jonas Feld"
@@ -1176,27 +1176,27 @@
       "items": [
        {
         "n": 20,
-        "prompt": "Knowing the likely length of a wait makes people less frustrated, even if the wait is not reduced.",
+        "prompt": "Being told what to expect can ease irritation without any change in the actual delay.",
         "answer": "B",
-        "evidence": "simply telling people how long they are likely to wait reduces their frustration"
+        "evidence": "simply informing people of the expected length of a wait reduces their frustration, even when the wait itself is not shortened"
        },
        {
         "n": 21,
-        "prompt": "People will accept a longer wait if the system seems fair to everyone.",
+        "prompt": "Customers may favour an arrangement that looks slower if it treats everyone equally.",
         "answer": "C",
-        "evidence": "participants said they preferred a single queue even when it was longer"
+        "evidence": "even when the single queue appeared longer, because it guaranteed that customers would be served in the order in which they had arrived"
        },
        {
         "n": 22,
-        "prompt": "Psychological techniques should not be used in place of genuine reductions in waiting time.",
+        "prompt": "Some information given to waiting customers could be used dishonestly.",
         "answer": "A",
-        "evidence": "should be used alongside real improvements, not instead of them"
+        "evidence": "could be manipulated to discourage people from leaving, a practice she regards as deceptive"
        },
        {
         "n": 23,
-        "prompt": "Seeing signs of progress makes people more willing to wait.",
+        "prompt": "An indication that a process is under way increases tolerance of delay.",
         "answer": "D",
-        "evidence": "users were far more willing to wait for a page to load when they could see a bar moving across the screen"
+        "evidence": "considerably more willing to wait for a page to load when a bar advancing across the screen indicated that something was happening"
        }
       ]
      },
@@ -1211,24 +1211,26 @@
       "items": [
        {
         "n": 24,
-        "prompt": "At one airport, complaints fell when passengers had to walk further to the ______.",
+        "prompt": "At one airport, the route to the ______ was made longer on purpose.",
         "answer": "baggage reclaim",
-        "accept": [],
-        "evidence": "the airport moved the arrival gates further from the baggage reclaim"
+        "accept": [
+         "baggage reclaim area"
+        ],
+        "evidence": "the walk from the arrival gates to the baggage reclaim area was deliberately lengthened"
        },
        {
         "n": 25,
-        "prompt": "Theme parks often show waiting times that are slightly ______ than the real ones.",
-        "answer": "longer",
+        "prompt": "Theme parks often display estimates that slightly exceed the real wait, so that visitors are ______ when it ends early.",
+        "answer": "pleasantly surprised",
         "accept": [],
-        "evidence": "slightly longer than the real ones"
+        "evidence": "so that visitors are pleasantly surprised"
        },
        {
         "n": 26,
-        "prompt": "Online, people may be told their ______ in the queue.",
-        "answer": "position",
+        "prompt": "In an office building, ______ were reportedly installed instead of faster lifts.",
+        "answer": "mirrors",
         "accept": [],
-        "evidence": "a message telling them their position in the queue"
+        "evidence": "the managers installed mirrors beside the doors"
        }
       ]
      }
@@ -1239,13 +1241,13 @@
     "title": "Citizen science: the return of the amateur",
     "labelled": false,
     "paragraphs": [
-     "In the nineteenth century, much of what was known about the natural world was collected by amateurs. Clergymen recorded the dates on which birds returned in spring, farmers kept careful weather diaries, and collectors sent specimens to museums from every corner of the globe. As science became a profession in the twentieth century, with its own universities, laboratories and journals, the role of the amateur declined. Research came to be seen as a task for experts with specialist training and expensive equipment. In the last two decades, however, amateurs have returned to science in large numbers, under a new name: citizen science.",
-     "Today, millions of volunteers take part in projects of every kind. They count birds in their gardens, photograph insects, record the calls of frogs, and classify images of distant galaxies on their computers. Some projects simply ask volunteers to contribute processing power, allowing their home computers to run calculations while they are not in use. Others rely on the eyes and judgement of volunteers for tasks that computers still find difficult, such as identifying animals in photographs taken by hidden cameras. The internet and the smartphone have made it possible to coordinate thousands of contributors and to collect observations with precise times and locations attached. Projects differ widely in how much they ask of volunteers. Some require only a few minutes of attention at a time, while others involve weekly surveys of the same site over many years.",
-     "The scientific benefits are considerable. Some questions simply cannot be answered without large numbers of observers spread across a wide area. Long-term changes in the timing of spring, for example, have been documented largely through records kept by volunteers over many decades. In astronomy, volunteers have identified unusual objects that automated systems had missed. Volunteers can also respond quickly to unexpected events, such as the arrival of a new pest or the sudden death of large numbers of fish, reporting what they see within hours. In my view, however, the most important contribution is scale: no research team, however well funded, could pay for the number of hours that volunteers give freely.",
-     "Professional scientists have not always welcomed this development. The most common concern is the quality of the data. Volunteers vary greatly in their skill, and some mistakes are inevitable: a common bird may be confused with a rare one, or a measurement may be taken carelessly. These concerns are reasonable, but I believe they are often exaggerated. Many projects now include ways of checking data, such as asking several volunteers to classify the same image, or requiring a photograph to support an unusual sighting. Studies comparing volunteer data with those of professionals have found that, for many tasks, accuracy is similar, especially after a short period of training. Indeed, some volunteers become highly skilled, and a number of amateur naturalists are recognised as leading experts on particular groups of insects or plants.",
-     "A more serious problem, in my opinion, is bias in where and when data are collected. Volunteers tend to record wildlife close to where they live, in towns and along roads, and at weekends rather than on weekdays. They are also more likely to report species that are attractive or easy to recognise. Unless these patterns are taken into account, the results can give a misleading picture. Fortunately, statisticians have developed methods to correct for some of these effects, although they cannot remove them entirely. Another difficulty is that many projects depend on short-term funding, so data collection may stop just as a long-term pattern is beginning to emerge.",
-     "There is also a question of fairness. Volunteers give their time, but they rarely share in the credit when results are published, and their names may not appear on the research papers that rely on their work. Some projects have tried to address this by listing contributors or by inviting volunteers to help interpret the results. I would go further: projects should be designed so that volunteers can propose their own questions, rather than merely collecting data for questions chosen by professionals. A few projects have already done this successfully, with local communities investigating issues such as air pollution in their own neighbourhoods.",
-     "Citizen science will not replace professional research, nor should it. Some investigations require equipment and expertise that volunteers cannot provide. But it has already changed what science is able to study, and, perhaps just as importantly, it has given many people direct experience of how scientific knowledge is produced. At a time when trust in experts is often questioned, that experience may prove to be one of its most valuable outcomes."
+     "For most of the history of modern science, the boundary between professional researchers and enthusiastic amateurs was far less distinct than it later became. Many of the most significant contributions to astronomy, botany and geology during the eighteenth and nineteenth centuries were made by clergymen, physicians and landowners pursuing their interests in their spare time. Over the course of the twentieth century, however, scientific research became increasingly specialised, dependent on expensive equipment and concentrated within universities and government laboratories, and the role of the amateur diminished correspondingly. The recent growth of what is now termed citizen science represents, in some respects, a revival of that older tradition, although it takes a markedly different form.",
+     "Citizen science projects typically invite members of the public to contribute to research by collecting or analysing data. Volunteers may record the birds visiting their gardens, report the first flowering of particular plants in spring or classify galaxies in photographs captured by telescopes. The value of such contributions lies principally in their scale. A single research team cannot monitor wildlife across an entire continent, but thousands of volunteers distributed across that area can, and some long-term datasets, including those documenting changes in the timing of spring, have been compiled very largely through records maintained by volunteers. In projects that involve the analysis of images, volunteers can also identify patterns that computer programs still find difficult to recognise reliably. Participation has been made considerably easier by the spread of smartphones, which allow observations to be photographed, located precisely and submitted within seconds, and by online platforms that can coordinate the efforts of volunteers in many different countries simultaneously.",
+     "Professional scientists have frequently been sceptical about the quality of data collected by people without formal training, and this concern is not without foundation. Volunteers may misidentify species, record observations inaccurately or report only what they expect to find. Nevertheless, studies comparing amateur and professional data have generally concluded that, for many tasks, the accuracy of volunteers is comparable to that of experts, particularly when tasks are clearly defined and adequate guidance is provided. Many projects now incorporate procedures for verifying data, such as asking several volunteers to classify the same image independently and accepting only those classifications on which most agree.",
+     "In my view, a more serious difficulty than accuracy is bias in where and when observations are made. Volunteers tend to record wildlife close to where they live, in accessible locations and in pleasant weather, with the consequence that remote or less attractive areas are underrepresented. Species that are conspicuous or easy to identify are reported more frequently than those that are inconspicuous, and the results can therefore convey a misleading impression of how common particular species are. Statistical techniques can reduce the effects of such biases, although they cannot eliminate them entirely, and researchers need to be explicit about the limitations that remain. Projects that direct volunteers to particular locations at particular times, rather than accepting observations wherever they happen to be made, have been able to reduce this problem considerably, although they tend to attract fewer participants.",
+     "Questions have also been raised about the relationship between volunteers and the professionals who analyse their data. In many projects, the public collects information but plays no part in formulating research questions or interpreting results, and volunteers may receive little acknowledgement when findings are published. Some projects have attempted to address this imbalance by naming contributors in academic papers or by inviting them to participate in discussions about how their data should be used. I would go further and argue that, wherever practicable, projects should be designed so that volunteers can propose their own questions as well as gather data to answer other people's. Such arrangements are admittedly more demanding for researchers, who must invest time in explaining their methods and negotiating priorities, but the resulting projects are likely to be more relevant to the communities involved and more sustainable over time.",
+     "A small number of projects have already achieved this with notable success, particularly in the monitoring of local environmental problems. Communities concerned about air or water pollution in their neighbourhoods have worked with scientists to design studies, collect samples and present their findings to local authorities, in some cases prompting changes in policy. Such projects demonstrate that volunteers are capable of far more than data collection, and that the expertise they bring, including detailed knowledge of their own surroundings, can complement that of professional researchers. In several cases, residents identified sources of pollution that official monitoring networks, with their small number of fixed measuring stations, had entirely overlooked.",
+     "It would be naive to imagine that citizen science can replace professional research, or that every project yields valuable results; some generate data that are never analysed, and others struggle to retain volunteers once initial enthusiasm fades, particularly when the tasks involved are repetitive and participants receive little information about what their efforts have achieved. Yet its potential benefits extend beyond the data it produces. Participants frequently report that taking part has altered the way in which they perceive their surroundings and increased their understanding of how scientific knowledge is generated. At a time when public trust in science is frequently called into question, that experience may ultimately prove to be one of the most valuable outcomes of citizen science."
     ],
     "groups": [
      {
@@ -1258,51 +1260,51 @@
       "items": [
        {
         "n": 27,
-        "prompt": "According to the first paragraph, amateurs became less involved in science because",
+        "prompt": "According to the first paragraph, the role of amateurs in science declined because",
         "options": [
-         "A  they lost interest in the natural world.",
-         "B  science became a professional activity.",
-         "C  museums stopped accepting specimens.",
-         "D  scientific equipment became cheaper."
+         "A  universities refused to accept their findings.",
+         "B  research came to require costly facilities and specialist knowledge.",
+         "C  amateurs lost interest in the natural world.",
+         "D  governments discouraged independent research."
         ],
         "answer": "B",
-        "evidence": "As science became a profession in the twentieth century"
+        "evidence": "scientific research became increasingly specialised, dependent on expensive equipment"
        },
        {
         "n": 28,
-        "prompt": "According to the second paragraph, volunteers are particularly useful for",
+        "prompt": "The writer suggests that the main strength of volunteer contributions is",
         "options": [
-         "A  writing computer programs.",
-         "B  designing new projects.",
-         "C  repairing equipment.",
-         "D  tasks that computers do not do well."
+         "A  the quality of the equipment volunteers use.",
+         "B  the range of places and numbers of observations involved.",
+         "C  the speed at which volunteers learn new skills.",
+         "D  their ability to write analytical computer programs."
         ],
-        "answer": "D",
-        "evidence": "tasks that computers still find difficult"
+        "answer": "B",
+        "evidence": "The value of such contributions lies principally in their scale."
        },
        {
         "n": 29,
-        "prompt": "What does the writer consider the greatest benefit of citizen science?",
+        "prompt": "How does the writer regard professionals' doubts about the accuracy of volunteer data?",
         "options": [
-         "A  the low cost of equipment",
-         "B  the training it gives volunteers",
-         "C  the amount of work volunteers can do",
-         "D  the discovery of rare species"
+         "A  as completely unfounded",
+         "B  as reasonable but often less serious than assumed",
+         "C  as the most important weakness of citizen science",
+         "D  as a problem that has now been solved"
         ],
-        "answer": "C",
-        "evidence": "the most important contribution is scale"
+        "answer": "B",
+        "evidence": "this concern is not without foundation"
        },
        {
         "n": 30,
-        "prompt": "What is the writer's view of concerns about data quality?",
+        "prompt": "Why are rare or inconspicuous species a problem for some projects?",
         "options": [
-         "A  They are fully justified.",
-         "B  They are often overstated.",
-         "C  They apply only to astronomy.",
-         "D  They have never been investigated."
+         "A  Volunteers are not allowed to record them.",
+         "B  They are reported less often than they occur.",
+         "C  Experts disagree about how to identify them.",
+         "D  They are found only in protected areas."
         ],
         "answer": "B",
-        "evidence": "I believe they are often exaggerated"
+        "evidence": "Species that are conspicuous or easy to identify are reported more frequently than those that are inconspicuous"
        }
       ]
      },
@@ -1312,36 +1314,36 @@
        35
       ],
       "type": "ynng",
-      "instructions": "Do the following statements agree with the claims of the writer in Reading Passage 3? Write YES, NO or NOT GIVEN.",
+      "instructions": "Do the following statements agree with the claims of the writer in Reading Passage 3? Write YES if the statement agrees with the claims of the writer, NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this.",
       "items": [
        {
         "n": 31,
-        "prompt": "For many tasks, volunteers can collect data as accurately as professionals.",
-        "answer": "YES",
-        "evidence": "for many tasks, accuracy is similar"
+        "prompt": "Citizen science today is identical to the amateur science of earlier centuries.",
+        "answer": "NO",
+        "evidence": "although it takes a markedly different form"
        },
        {
         "n": 32,
-        "prompt": "Bias in where and when data are collected is a bigger problem than data quality.",
+        "prompt": "Where observations come from is a greater concern than whether they are correct.",
         "answer": "YES",
-        "evidence": "A more serious problem, in my opinion, is bias in where and when data are collected."
+        "evidence": "a more serious difficulty than accuracy is bias in where and when observations are made"
        },
        {
         "n": 33,
-        "prompt": "Statistical methods can completely remove the effects of bias.",
+        "prompt": "Mathematical adjustments can fully correct for uneven sampling.",
         "answer": "NO",
-        "evidence": "although they cannot remove them entirely"
+        "evidence": "although they cannot eliminate them entirely"
        },
        {
         "n": 34,
-        "prompt": "Most projects now include volunteers' names on research papers.",
+        "prompt": "Volunteers who are named in publications tend to stay involved for longer.",
         "answer": "NOT GIVEN",
-        "evidence": "Some projects have tried to address this by listing contributors",
-        "note": "The writer says some projects list contributors; there is no claim about most projects or about names on papers."
+        "evidence": "by naming contributors in academic papers",
+        "note": "Naming contributors is mentioned, but not its effect on how long volunteers stay."
        },
        {
         "n": 35,
-        "prompt": "Volunteers should have the opportunity to propose their own research questions.",
+        "prompt": "Members of the public should be able to suggest topics for investigation.",
         "answer": "YES",
         "evidence": "projects should be designed so that volunteers can propose their own questions"
        }
@@ -1356,44 +1358,44 @@
       "instructions": "Complete each sentence with the correct ending, A–G, below.",
       "options_title": "Endings",
       "options": [
-       "A  is one way of checking the accuracy of data.",
-       "B  may be among the most valuable results of citizen science.",
-       "C  have been recorded largely by volunteers.",
-       "D  requires equipment that only professionals have.",
-       "E  can give a misleading impression.",
-       "F  show that volunteers can do more than collect data.",
+       "A  provides a way of confirming the reliability of results.",
+       "B  could be among the most important benefits of citizen science.",
+       "C  were assembled mainly from records kept by non-professionals.",
+       "D  requires equipment that only professionals possess.",
+       "E  may distort conclusions about how widespread a species is.",
+       "F  have shown that volunteers can contribute beyond gathering data.",
        "G  has been rejected by most professional scientists."
       ],
       "items": [
        {
         "n": 36,
-        "prompt": "Long-term changes in the timing of spring",
+        "prompt": "Some long-term records of seasonal change",
         "answer": "C",
-        "evidence": "have been documented largely through records kept by volunteers"
+        "evidence": "have been compiled very largely through records maintained by volunteers"
        },
        {
         "n": 37,
-        "prompt": "Asking several volunteers to classify the same image",
+        "prompt": "Having several people classify an image separately",
         "answer": "A",
-        "evidence": "Many projects now include ways of checking data, such as asking several volunteers to classify the same image"
+        "evidence": "accepting only those classifications on which most agree"
        },
        {
         "n": 38,
-        "prompt": "Results that are influenced by which species volunteers find easy to recognise",
+        "prompt": "A tendency to report species that are easy to spot",
         "answer": "E",
-        "evidence": "the results can give a misleading picture"
+        "evidence": "the results can therefore convey a misleading impression of how common particular species are"
        },
        {
         "n": 39,
-        "prompt": "Community projects investigating local air pollution",
+        "prompt": "Local pollution studies designed with community members",
         "answer": "F",
-        "evidence": "A few projects have already done this successfully, with local communities investigating issues such as air pollution"
+        "evidence": "Such projects demonstrate that volunteers are capable of far more than data collection"
        },
        {
         "n": 40,
-        "prompt": "Giving people direct experience of how scientific knowledge is produced",
+        "prompt": "Changing how participants understand the creation of scientific knowledge",
         "answer": "B",
-        "evidence": "that experience may prove to be one of its most valuable outcomes"
+        "evidence": "that experience may ultimately prove to be one of the most valuable outcomes of citizen science"
        }
       ]
      }
@@ -1483,20 +1485,20 @@
  "speaking": {
   "part1": [
    {
-    "topic": "Your home town",
+    "topic": "Work or studies",
     "questions": [
-     "Where is your home town?",
-     "What do you like most about it?",
-     "Has it changed much since you were a child?",
-     "Would you like to live there in the future?"
+     "Do you work or are you a student?",
+     "What do you enjoy most about your work or studies?",
+     "Is there anything you would like to change about it?",
+     "What do you plan to do in the next few years?"
     ]
    },
    {
-    "topic": "Weather",
+    "topic": "Neighbours",
     "questions": [
-     "What kind of weather do you like best?",
-     "Does the weather affect your mood?",
-     "What do you usually do on rainy days?"
+     "Do you know your neighbours well?",
+     "How often do you see or speak to them?",
+     "Have your neighbours ever helped you? How?"
     ]
    },
    {
@@ -1504,31 +1506,31 @@
     "questions": [
      "Do you often take photographs?",
      "What kinds of things do you like to photograph?",
-     "Do you prefer to keep photos on your phone or print them?"
+     "Do you prefer to keep photos on your phone or to print them? Why?"
     ]
    }
   ],
   "part2": {
-   "card": "Describe a skill you learned as a teenager or an adult.",
+   "card": "Describe a building in your town or city that you find interesting.",
    "points": [
-    "what the skill is",
-    "when and where you learned it",
-    "how you learned it",
-    "and explain how useful this skill has been for you."
+    "where the building is",
+    "what it looks like",
+    "what it is used for",
+    "and explain why you find it interesting."
    ],
    "rounding_off": [
-    "Was it difficult to learn?",
-    "Would you like to teach this skill to someone else?"
+    "Do other people in your town like this building?",
+    "Have you ever been inside it?"
    ]
   },
   "part3": {
-   "theme": "Learning skills",
+   "theme": "Buildings and cities",
    "questions": [
-    "What skills do you think young people should learn at school?",
-    "Is it easier to learn a new skill as a child or as an adult? Why?",
-    "Do you think online videos are a good way to learn practical skills?",
-    "Which skills do you think will become more important in the future?",
-    "Should employers pay for their staff to learn new skills?"
+    "Why do some cities keep old buildings while others replace them?",
+    "Should the design of new buildings reflect local traditions? Why/Why not?",
+    "How have homes in your country changed over the last fifty years?",
+    "Who should decide what new buildings look like: architects, governments or local people?",
+    "In what ways can the design of a city affect the health of the people who live there?"
    ]
   }
  },
@@ -1536,11 +1538,18 @@
   "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
   "Student task publication and platform evidence capture remain separate, governed steps."
  ],
- "approval_record": {
+ "previous_approval_record": {
   "approved_by": "Owner, Brains Heist LLC",
   "date": "2026-10-18",
   "version": "1.0.0",
   "scope": "Mock test content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
   "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 e54dc6c53b4a645c50940fe7a33150f2967d1bc874486b4c05dc679f392ea71c): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
+ },
+ "approval_record": {
+  "approved_by": "Owner, Brains Heist LLC",
+  "date": "2026-10-26",
+  "version": "1.1.0",
+  "scope": "Mock test content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Reading rebuilt to real-test length, difficulty and paraphrase level; Listening recordings unchanged; Speaking topics replaced to avoid repeating Mocks 1 and 2. Student task publication remains separate.",
+  "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek: 'I need to make sure all the IELTS materials (including the reading that I checked was weak in the Mock tests) and the lessons to be at the level of a real IELTS test ... Make the needed adjustments and improvements now; you have all my permissions, don't ask for any.' Not recorded as an in-platform decision; no review-draft pack was opened before approval."
  }
 }

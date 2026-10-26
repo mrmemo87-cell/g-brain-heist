@@ -1,0 +1,748 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-V3",
+  "number": 3,
+  "vocabulary": true,
+  "placement": "optional, after Week 4 (Lesson 7)",
+  "week": 4,
+  "version": "1.0.0",
+  "presentation_version": "1.0.0",
+  "title": "Vocabulary: precise language for Writing Task 2 arguments",
+  "status": "Owner approved v1.0.0 on 2026-10-26; teacher release to all eligible schools (optional vocabulary lesson)",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": {
+    "diagnostic": "2.0.0",
+    "lessons": "1.2.0",
+    "visual": "1.2.0"
+  },
+  "rights": "Original Brains Heist LLC instructional material, AI-assisted. Passages, people and data are fictional and created for practice. Not official IELTS material. Human editorial and classroom review recommended.",
+  "audio": {
+    "required": false,
+    "statement": "No recording required.",
+    "recordings": []
+  },
+  "prerequisites": [
+    "Lesson 7 (Task 2 positions and developed arguments).",
+    "Learners can identify the question type in a Task 2 prompt.",
+    "Optional vocabulary lesson: use when essays rely on 'good/bad', 'very' and 'I think' or overstate claims."
+  ],
+  "objectives": [
+    {
+      "text": "Express a clear position and qualify claims precisely (arguably, to some extent, it is likely that).",
+      "focus": [
+        "lexical resource",
+        "task response"
+      ]
+    },
+    {
+      "text": "Use cause, effect and solution collocations accurately (lead to, stem from, tackle a problem, address the issue).",
+      "focus": [
+        "lexical resource",
+        "coherence and cohesion"
+      ]
+    },
+    {
+      "text": "Replace vague words (good, bad, a lot, thing) with precise, natural alternatives.",
+      "focus": [
+        "lexical resource"
+      ]
+    }
+  ],
+  "levels": {
+    "foundation": "Use the six cause/effect/solution phrases in model sentences before writing your own.",
+    "core": "Write the paragraph with no use of 'good', 'bad', 'thing' or 'a lot of'.",
+    "extension": "Qualify one claim with hedging and support it with a specific example.",
+    "high_band": "Write a full body paragraph that concedes a counter-argument and rebuts it, using three word-bank items naturally."
+  },
+  "word_bank": [
+    {
+      "item": "lead to / result in",
+      "meaning": "cause something to happen",
+      "example": "Long working hours can lead to stress.",
+      "skill": "Writing T2"
+    },
+    {
+      "item": "stem from / be caused by",
+      "meaning": "be the result of",
+      "example": "Many health problems stem from poor diet.",
+      "skill": "Writing T2"
+    },
+    {
+      "item": "tackle / address (a problem / an issue)",
+      "meaning": "take action to deal with a problem",
+      "example": "Governments must tackle air pollution.",
+      "skill": "Writing T2"
+    },
+    {
+      "item": "have a detrimental effect on",
+      "meaning": "cause harm to",
+      "example": "Noise has a detrimental effect on concentration.",
+      "skill": "Writing T2"
+    },
+    {
+      "item": "be beneficial to / benefit",
+      "meaning": "be good for; help",
+      "example": "Exercise is beneficial to mental health.",
+      "skill": "Writing T2"
+    },
+    {
+      "item": "arguably",
+      "meaning": "it can be argued (a careful claim)",
+      "example": "Arguably, the internet is the most important invention of the century.",
+      "skill": "Writing T2"
+    },
+    {
+      "item": "to some extent / to a large extent",
+      "meaning": "partly / mostly",
+      "example": "I agree with this view to a large extent.",
+      "skill": "Writing T2"
+    },
+    {
+      "item": "it is likely / unlikely that",
+      "meaning": "probable / not probable",
+      "example": "It is unlikely that cars will disappear soon.",
+      "skill": "Writing T2"
+    },
+    {
+      "item": "a significant number / proportion of",
+      "meaning": "many / a large part of (more precise than 'a lot of')",
+      "example": "A significant proportion of graduates work abroad.",
+      "skill": "Writing T2"
+    },
+    {
+      "item": "a key factor / a major concern",
+      "meaning": "an important cause / worry",
+      "example": "Cost is a key factor in this decision.",
+      "skill": "Writing T2"
+    },
+    {
+      "item": "outweigh",
+      "meaning": "be more important than",
+      "example": "The benefits outweigh the drawbacks.",
+      "skill": "Writing T2"
+    },
+    {
+      "item": "drawback / downside",
+      "meaning": "a disadvantage",
+      "example": "One drawback of online learning is isolation.",
+      "skill": "Writing T2"
+    },
+    {
+      "item": "admittedly ... however",
+      "meaning": "accept a point, then argue against it",
+      "example": "Admittedly, fees are high; however, ...",
+      "skill": "Writing T2"
+    },
+    {
+      "item": "implement / introduce (a policy / a measure)",
+      "meaning": "put a plan into action",
+      "example": "Cities could implement congestion charges.",
+      "skill": "Writing T2"
+    }
+  ],
+  "stages": [
+    {
+      "start": 0,
+      "end": 6,
+      "title": "Opening challenge: vague or precise?",
+      "show": [
+        {
+          "block": "IELTS-V3-K1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-V3-K1",
+          "part": "answers"
+        }
+      ],
+      "student": "Decide which sentence an examiner would reward most.",
+      "teacher": "Learners vote; reveal comments. Focus on precision, not long words.",
+      "say": "Precise words make an argument clearer, not just longer.",
+      "check": "Learners can name two vague words in Learner A's sentence."
+    },
+    {
+      "start": 6,
+      "end": 13,
+      "title": "Word bank: cause, effect, solution and stance",
+      "show": [],
+      "student": "Group the word bank: cause/effect, solutions, stance and concession. Note the preposition after each item.",
+      "teacher": "Drill the prepositions: lead to, stem from, beneficial to, a detrimental effect on.",
+      "say": "The preposition is part of the word.",
+      "check": "Learners complete five items with the right preposition."
+    },
+    {
+      "start": 13,
+      "end": 22,
+      "title": "Collocations and prepositions",
+      "show": [
+        {
+          "block": "IELTS-V3-P1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-V3-P1",
+          "part": "answers"
+        }
+      ],
+      "student": "Complete each sentence with ONE word.",
+      "teacher": "Seven minutes, bank closed for core and above.",
+      "say": "Check the word and the word after it.",
+      "check": "Most learners score six or more."
+    },
+    {
+      "start": 22,
+      "end": 32,
+      "title": "Upgrade the vague sentence",
+      "show": [
+        {
+          "block": "IELTS-V3-P2",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-V3-P2",
+          "part": "answers"
+        }
+      ],
+      "student": "Choose the most precise and natural version.",
+      "teacher": "Discuss why over-formal or wrong-collocation options fail.",
+      "say": "Natural and accurate beats rare and wrong.",
+      "check": "Learners explain one wrong option per question."
+    },
+    {
+      "start": 32,
+      "end": 35,
+      "title": "Plan a body paragraph",
+      "show": [
+        {
+          "block": "IELTS-V3-W1",
+          "part": "prompt"
+        }
+      ],
+      "student": "Plan: topic sentence, cause, effect, example, solution.",
+      "teacher": "Check that each plan has a specific example.",
+      "say": "One idea, fully developed.",
+      "check": "Every learner has a plan with an example."
+    },
+    {
+      "start": 35,
+      "end": 48,
+      "title": "Write independently",
+      "show": [],
+      "student": "Write one body paragraph using at least five word-bank items.",
+      "teacher": "Thirteen minutes, no model visible.",
+      "say": "Underline each word-bank item you use.",
+      "check": "Paragraphs are finished on time."
+    },
+    {
+      "start": 48,
+      "end": 55,
+      "title": "Compare with the model",
+      "show": [
+        {
+          "block": "IELTS-V3-W1",
+          "part": "model"
+        },
+        {
+          "block": "IELTS-V3-W1",
+          "part": "checklist"
+        }
+      ],
+      "student": "Find the cause/effect and hedging language in the model; improve two phrases in your own paragraph.",
+      "teacher": "Ask learners to read one improved sentence aloud.",
+      "say": "The model is illustrative, not a target band.",
+      "check": "Each learner improves two phrases."
+    },
+    {
+      "start": 55,
+      "end": 60,
+      "title": "Exit ticket and homework",
+      "show": [
+        {
+          "block": "IELTS-V3-H1",
+          "part": "questions"
+        }
+      ],
+      "student": "Complete the exit ticket and note the homework.",
+      "teacher": "Collect exit tickets.",
+      "say": "Keep a list of the vague words you over-use and their replacements.",
+      "check": "Every learner writes one hedged claim."
+    }
+  ],
+  "blocks": [
+    {
+      "id": "IELTS-V3-K1",
+      "kind": "contrast",
+      "title": "Vague or precise?",
+      "mode": "Opening challenge; learners decide before the reveal",
+      "instructions": "Question: 'Many people work long hours. What problems does this cause?' Three learners wrote a sentence. Which is best?",
+      "examples": [
+        {
+          "label": "Learner A",
+          "text": "Working a lot is a bad thing because it causes a lot of problems for people.",
+          "comment": "Vague: 'a lot', 'bad thing' and 'problems' say nothing specific."
+        },
+        {
+          "label": "Learner B",
+          "text": "Excessive working hours can lead to chronic stress, which in turn has a detrimental effect on family relationships.",
+          "comment": "Best: precise words, a clear cause and effect, and careful 'can'."
+        },
+        {
+          "label": "Learner C",
+          "text": "Long hours of labour engender multitudinous deleterious ramifications.",
+          "comment": "Over-formal and unnatural; the examiner rewards accurate, natural vocabulary, not rare words used to impress."
+        }
+      ]
+    },
+    {
+      "id": "IELTS-V3-P1",
+      "kind": "items",
+      "title": "Collocations and prepositions",
+      "mode": "Controlled practice; word bank closed for core and above",
+      "instructions": "Complete each sentence with ONE word.",
+      "items": [
+        {
+          "id": "IELTS-V3-P1-Q1",
+          "prompt": "Poor air quality can ______ to breathing difficulties in children.",
+          "answer": "lead",
+          "evidence": "lead to",
+          "reason": "lead + to",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "contribute"
+          ]
+        },
+        {
+          "id": "IELTS-V3-P1-Q2",
+          "prompt": "Many traffic problems stem ______ a lack of public transport.",
+          "answer": "from",
+          "evidence": "stem from",
+          "reason": "Fixed preposition.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        },
+        {
+          "id": "IELTS-V3-P1-Q3",
+          "prompt": "Regular exercise is beneficial ______ both physical and mental health.",
+          "answer": "to",
+          "evidence": "beneficial to",
+          "reason": "Fixed preposition.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "for"
+          ]
+        },
+        {
+          "id": "IELTS-V3-P1-Q4",
+          "prompt": "Excessive screen time may have a detrimental effect ______ sleep.",
+          "answer": "on",
+          "evidence": "an effect on",
+          "reason": "Fixed preposition.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        },
+        {
+          "id": "IELTS-V3-P1-Q5",
+          "prompt": "Governments need to ______ the problem of youth unemployment.",
+          "answer": "tackle",
+          "evidence": "tackle/address a problem",
+          "reason": "Natural collocation.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "address",
+            "solve"
+          ]
+        },
+        {
+          "id": "IELTS-V3-P1-Q6",
+          "prompt": "In my view, the advantages of studying abroad ______ the disadvantages.",
+          "answer": "outweigh",
+          "evidence": "advantages outweigh disadvantages",
+          "reason": "Comparison verb.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        },
+        {
+          "id": "IELTS-V3-P1-Q7",
+          "prompt": "I agree with this statement to a large ______.",
+          "answer": "extent",
+          "evidence": "to a large extent",
+          "reason": "Fixed phrase.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        },
+        {
+          "id": "IELTS-V3-P1-Q8",
+          "prompt": "The city council could ______ a ban on cars in the historic centre.",
+          "answer": "introduce",
+          "evidence": "introduce/implement a ban",
+          "reason": "Natural collocation.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "implement",
+            "impose"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "IELTS-V3-P2",
+      "kind": "items",
+      "title": "Upgrade the vague sentence",
+      "mode": "Controlled practice",
+      "instructions": "Choose the most precise and natural version, A, B or C.",
+      "items": [
+        {
+          "id": "IELTS-V3-P2-Q1",
+          "prompt": "'A lot of students have money problems.'",
+          "answer": "B",
+          "evidence": "a significant number of + financial difficulties",
+          "reason": "A is wrong collocation; C overclaims.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  A big amount of students have money problems.",
+            "B  A significant number of students experience financial difficulties.",
+            "C  Every student suffers from extreme poverty."
+          ]
+        },
+        {
+          "id": "IELTS-V3-P2-Q2",
+          "prompt": "'Technology is good for education.'",
+          "answer": "C",
+          "evidence": "beneficial to + specific benefit",
+          "reason": "A is unnatural; B is still vague.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  Technology is very goodly for education.",
+            "B  Technology is a nice thing in education.",
+            "C  Technology can be beneficial to learning, for example by giving students access to online resources."
+          ]
+        },
+        {
+          "id": "IELTS-V3-P2-Q3",
+          "prompt": "'Online shopping will kill all small shops.'",
+          "answer": "A",
+          "evidence": "hedged claim with 'likely'",
+          "reason": "B overclaims; C changes the meaning.",
+          "focus": "task response",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  Online shopping is likely to force a significant number of small shops to close.",
+            "B  Online shopping will definitely destroy every shop in the world.",
+            "C  Online shopping is beneficial to small shops."
+          ]
+        },
+        {
+          "id": "IELTS-V3-P2-Q4",
+          "prompt": "'There are bad things about working from home.'",
+          "answer": "B",
+          "evidence": "drawbacks + specific example",
+          "reason": "A is still vague; C wrong word form.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  Working from home has some bad sides.",
+            "B  Working from home has certain drawbacks, such as isolation from colleagues.",
+            "C  Working from home has disadvantageous."
+          ]
+        },
+        {
+          "id": "IELTS-V3-P2-Q5",
+          "prompt": "'Some people say fees are too high, but universities need money.'",
+          "answer": "C",
+          "evidence": "admittedly ... however (concession)",
+          "reason": "A loses the contrast; B wrong linker.",
+          "focus": "coherence and cohesion",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  Fees are high and universities need money.",
+            "B  Fees are high, therefore universities need money.",
+            "C  Admittedly, tuition fees are high; however, universities require funding to maintain standards."
+          ]
+        },
+        {
+          "id": "IELTS-V3-P2-Q6",
+          "prompt": "'Pollution is a big problem in cities.'",
+          "answer": "A",
+          "evidence": "a major concern + specific detail",
+          "reason": "B and C are vague or wrong collocations.",
+          "focus": "lexical resource",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  Air pollution has become a major concern in many large cities.",
+            "B  Pollution is a very big huge problem.",
+            "C  Pollution makes a big problem to cities."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "IELTS-V3-W1",
+      "kind": "writing",
+      "task": "paragraph",
+      "title": "One developed body paragraph",
+      "mode": "Independent classroom application after modelling; not a full Task 2 or Writing Screener",
+      "prompt": "In many countries, young people spend several hours a day on social media. What problems does this cause, and what can be done to reduce them? Write ONE body paragraph (about 120-150 words) about EITHER the problems OR the solutions.",
+      "conditions": "13 minutes, independent. No model visible. Record word-bank use.",
+      "support": "Frame: topic sentence → cause/effect (lead to, have a detrimental effect on) → specific example → link back. Solutions: tackle, introduce, it is likely that.",
+      "extension": "Add a hedged claim (arguably / it is likely that).",
+      "high_band": "Concede one counter-point with 'admittedly' and rebut it.",
+      "model_label": "Illustrative classroom model for discussion only. Not a certified band answer.",
+      "model": "The most serious problem associated with heavy social media use is arguably its effect on young people's mental health. Constant exposure to carefully edited images of other people's lives can lead to unrealistic comparisons, and a significant proportion of teenagers report feeling anxious or inadequate as a result. Excessive use late at night also has a detrimental effect on sleep, which in turn makes it harder to concentrate at school. For example, a student who checks messages until midnight is unlikely to perform well in a morning examination. Admittedly, social media allows young people to stay in touch with friends; however, these benefits are unlikely to outweigh the harm when use becomes compulsive. It is therefore a major concern that parents and schools should not ignore.",
+      "checklist": [
+        "Lexical Resource: Have you replaced vague words (good, bad, thing, a lot of)?",
+        "Lexical Resource: Are prepositions correct (lead to, stem from, effect on)?",
+        "Task Response: Is there a specific example that supports the main idea?",
+        "Coherence and Cohesion: Does the paragraph develop one idea from topic sentence to conclusion?"
+      ]
+    },
+    {
+      "id": "IELTS-V3-H1",
+      "kind": "items",
+      "homework": true,
+      "title": "Homework: replace the vague words",
+      "mode": "Homework; checked at the start of the next lesson",
+      "instructions": "Write a more precise word or phrase (no more than FOUR words) to replace the words in brackets.",
+      "items": [
+        {
+          "id": "IELTS-V3-H1-Q1",
+          "prompt": "Cheap flights have [made happen] a rise in tourism.",
+          "answer": "led to",
+          "evidence": "lead to",
+          "reason": "Past form.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 3,
+          "accept": [
+            "resulted in",
+            "caused",
+            "contributed to"
+          ]
+        },
+        {
+          "id": "IELTS-V3-H1-Q2",
+          "prompt": "[A lot of] young adults now live with their parents.",
+          "answer": "a significant number of",
+          "evidence": "precise quantity phrase",
+          "reason": "Also: many, a large proportion of.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 4,
+          "accept": [
+            "many",
+            "a large proportion of",
+            "a significant proportion of"
+          ]
+        },
+        {
+          "id": "IELTS-V3-H1-Q3",
+          "prompt": "Fast food is [bad for] children's health.",
+          "answer": "harmful to",
+          "evidence": "harmful to / detrimental to",
+          "reason": "Adjective + preposition.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 3,
+          "accept": [
+            "detrimental to",
+            "damaging to"
+          ]
+        },
+        {
+          "id": "IELTS-V3-H1-Q4",
+          "prompt": "The government should [do something about] homelessness.",
+          "answer": "tackle",
+          "evidence": "tackle / address",
+          "reason": "One verb.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 3,
+          "accept": [
+            "address",
+            "deal with"
+          ]
+        },
+        {
+          "id": "IELTS-V3-H1-Q5",
+          "prompt": "Learning a language is [good for] the brain.",
+          "answer": "beneficial to",
+          "evidence": "beneficial to / for",
+          "reason": "Adjective + preposition.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 3,
+          "accept": [
+            "beneficial for",
+            "good for"
+          ]
+        },
+        {
+          "id": "IELTS-V3-H1-Q6",
+          "prompt": "One [bad point] of city life is noise.",
+          "answer": "drawback",
+          "evidence": "drawback / downside / disadvantage",
+          "reason": "Noun.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 3,
+          "accept": [
+            "downside",
+            "disadvantage"
+          ]
+        }
+      ]
+    }
+  ],
+  "exit_ticket": [
+    "Two phrases for cause and effect, with their prepositions:",
+    "A vague word I will stop using, and my replacement:",
+    "One hedged claim about technology:"
+  ],
+  "homework": [
+    "Complete the vague-word replacements on the homework sheet.",
+    "Rewrite the conclusion of your last Task 2 essay, replacing every vague word with a precise one."
+  ],
+  "delayed_followup": "In Lesson 15 (Task 2 under time), check whether essays use precise cause/effect collocations and hedging. Record it as a later observation.",
+  "mapping_notes": "Focuses use Diagnostic Bible section 7.2 construct names where they apply (lexical resource, paraphrase recognition). Teaching focuses only. This optional vocabulary lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
+  ],
+  "followup": {
+    "id": "IELTS-V3-C1",
+    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.0.0 on 2026-10-26. Keep private until use.",
+    "delivery": "About one teaching week later: 10 minutes, no word bank or dictionary. Record timing and support.",
+    "review": "Score each answer independently; accept only accurate, natural collocations. Do not convert to an IELTS band.",
+    "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty.",
+    "blocks": [
+      {
+        "id": "IELTS-V3-C1",
+        "kind": "items",
+        "title": "Fresh check: precise argument language",
+        "mode": "Withheld fresh check; independent, timed",
+        "instructions": "Questions 1-4: complete each sentence with ONE word. Questions 5-6: choose the best version, A, B or C.",
+        "items": [
+          {
+            "id": "IELTS-V3-C1-Q1",
+            "prompt": "Rising house prices have resulted ______ more young people renting.",
+            "answer": "in",
+            "evidence": "result in",
+            "reason": "Fixed preposition.",
+            "focus": "lexical resource",
+            "type": "completion",
+            "level": "core",
+            "word_limit": 1
+          },
+          {
+            "id": "IELTS-V3-C1-Q2",
+            "prompt": "Many cases of obesity are ______ by a lack of physical activity.",
+            "answer": "caused",
+            "evidence": "be caused by",
+            "reason": "Passive form.",
+            "focus": "lexical resource",
+            "type": "completion",
+            "level": "core",
+            "word_limit": 1
+          },
+          {
+            "id": "IELTS-V3-C1-Q3",
+            "prompt": "Local authorities could ______ stricter recycling rules.",
+            "answer": "introduce",
+            "evidence": "introduce/implement rules",
+            "reason": "Collocation.",
+            "focus": "lexical resource",
+            "type": "completion",
+            "level": "core",
+            "word_limit": 1,
+            "accept": [
+              "implement",
+              "enforce"
+            ]
+          },
+          {
+            "id": "IELTS-V3-C1-Q4",
+            "prompt": "In my opinion, the risks of genetic testing do not ______ its benefits.",
+            "answer": "outweigh",
+            "evidence": "outweigh",
+            "reason": "Comparison verb.",
+            "focus": "lexical resource",
+            "type": "completion",
+            "level": "core",
+            "word_limit": 1
+          },
+          {
+            "id": "IELTS-V3-C1-Q5",
+            "prompt": "'Tourism is bad for old cities.'",
+            "answer": "B",
+            "evidence": "specific harm + hedging",
+            "reason": "A vague; C wrong collocation.",
+            "focus": "lexical resource",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  Tourism is a bad thing for old cities.",
+              "B  Mass tourism can have a detrimental effect on historic city centres, for instance through overcrowding.",
+              "C  Tourism makes a detrimental to old cities."
+            ]
+          },
+          {
+            "id": "IELTS-V3-C1-Q6",
+            "prompt": "'Some say robots will take all jobs, but this is wrong.'",
+            "answer": "C",
+            "evidence": "admittedly ... however; hedged",
+            "reason": "A overclaims; B loses the contrast.",
+            "focus": "task response",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  Robots will never take any jobs at all.",
+              "B  Robots will take jobs and people will lose work.",
+              "C  Admittedly, automation will replace some jobs; however, it is unlikely to eliminate human work entirely."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-26",
+    "version": "1.0.0",
+    "scope": "Vocabulary lesson content, keys and models for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek: 'there should also some Vocabulary lessons that really fit the IELTS in a very practical way for the students to benefit from. Make the needed adjustments and improvements now ... you have all my permissions, don't ask for any.' Not recorded as an in-platform decision; no review-draft pack was opened before approval."
+  }
+}
