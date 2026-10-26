@@ -21,3 +21,14 @@ test('all 24 course lessons are accepted; codes outside the course are not',asyn
  payload={school_id:'school',school,release:'teacher_only',packs:[mk('IELTS-01'),mk('IELTS-17'),mk('IELTS-24')]};assert.equal((await api.approvedTeacherPacks('school')).length,3);
  payload={...payload,packs:[mk('IELTS-25')]};await assert.rejects(api.approvedTeacherPacks('school'),/identity mismatch/);
 });
+test('packs stored under their content-version folder, and vocabulary lessons, load; mismatched paths do not',async()=>{
+ bytes=new Blob(['lesson']);const hash=Buffer.from(await crypto.subtle.digest('SHA-256',await bytes.arrayBuffer())).toString('hex');
+ const school={id:'school',name:'Own School',logo_url:null};
+ const mk=(code,version,folder=version,sha=hash)=>({lesson_code:code,title:'Lesson',version,branding_version:'1.0.0',school,object_path:`templates/${code}/${folder}/${sha}.zip`,sha256:hash,size_bytes:6});
+ // As released on 2026-10-26: X lessons at 1.1.1, mocks at 1.1.0, Lesson 21 at 0.3.0, vocabulary at 1.0.0, older packs in the 1.0.0 folder.
+ payload={school_id:'school',school,release:'teacher_only',packs:[mk('IELTS-X1','1.1.1'),mk('IELTS-M1','1.1.0'),mk('IELTS-21','0.3.0'),mk('IELTS-V1','1.0.0'),mk('IELTS-05','0.2.0','1.0.0')]};
+ assert.equal((await api.approvedTeacherPacks('school')).length,5);
+ for(const bad of [mk('IELTS-X1','1.1.1','9.9.9'),mk('IELTS-X1','1.1.1','1.1.1','0'.repeat(64)),{...mk('IELTS-X1','1.1.1'),object_path:`templates/IELTS-X2/1.1.1/${hash}.zip`},mk('IELTS-V7','1.0.0')]) {
+  payload={...payload,packs:[bad]};await assert.rejects(api.approvedTeacherPacks('school'),/identity mismatch/);
+ }
+});
