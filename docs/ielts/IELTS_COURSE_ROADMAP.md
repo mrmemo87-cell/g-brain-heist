@@ -11,7 +11,7 @@ Reference delivery: 12 teaching weeks, 24 lessons, two 60-minute lessons weekly.
 | 2 | IELTS-03 | Listening details, spelling and word limits | Approved content in the classroom format (v1.1.0, 2026-10-18); teacher release to all IELTS schools with school branding; student tasks unreleased |
 | 2 | IELTS-04 | Clear paragraphs and Speaking Part 1 | Approved content in the classroom format (v1.1.0, 2026-10-18); teacher release to all IELTS schools with school branding; student tasks unreleased |
 | 3 | IELTS-05 | Listening distractors and paraphrases | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
-| 3 | IELTS-06 | Reading specific information | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
+| 3 | IELTS-06 | Reading specific information | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding. Harder v0.3.0 draft (deeper paraphrase, nearby distractors, six-statement matching features, tighter timings) awaiting owner review |
 | 4 | IELTS-07 | Task 2 ideas and supporting examples | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
 | 4 | IELTS-08 | Speaking development and first progress review | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
 | 5 | IELTS-09 | Reading headings and paragraph purpose | Owner approved v0.2.0 (2026-10-18); teacher release to all IELTS schools with school branding |
