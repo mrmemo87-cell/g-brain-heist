@@ -89,7 +89,7 @@ class Pack:
         elif self.logo:
             shutil.copyfile(self.logo, self.out / 'assets' / ('school-logo' + self.logo.suffix.lower()))
         self.code = self.d['code']
-        self.n = LessonNo(self.d['number'], f"X{self.d['number']}") if self.d.get('extension') else self.d['number']
+        self.n = LessonNo(self.d['number'], f"X{self.d['number']}") if self.d.get('extension') else LessonNo(self.d['number'], f"V{self.d['number']}") if self.d.get('vocabulary') else self.d['number']
         self.files = []
         self._fonts()
         self.blocks = {b['id']: b for b in self.d['blocks']}
@@ -650,10 +650,15 @@ class Pack:
 
     def build_slides(self):
         d = self.d
-        slides = [{'title': d['title'], 'kind': 'cover', 'body': [(f"Extension lesson {self.n} · {d['placement']}" if d.get('extension') else f"Lesson {self.n} · Week {d['week']}"), '\n'.join(o['text'] for o in d['objectives'][:2])],
+        slides = [{'title': d['title'], 'kind': 'cover', 'body': [(f"Extension lesson {self.n} · {d['placement']}" if d.get('extension') else f"Vocabulary lesson {self.n} · {d['placement']}" if d.get('vocabulary') else f"Lesson {self.n} · Week {d['week']}"), '\n'.join(o['text'] for o in d['objectives'][:2])],
                    'meta': [{'t': 'kicker'}, {'t': 'lead'}], 'dark': True, 'notes': f"{d['status']}. Confirm the reviewed version before teaching. " + d['audio']['statement']},
                   {'title': 'Today you will', 'body': [o['text'] for o in d['objectives']], 'meta': [{'t': 'goal'} for _ in d['objectives']], 'build': True,
                    'notes': 'Objectives are teaching goals, not measured results.'}]
+        if d.get('word_bank'):
+            half = (len(d['word_bank']) + 1) // 2
+            for part, chunk in enumerate((d['word_bank'][:half], d['word_bank'][half:]), 1):
+                slides.append({'title': f'Word bank ({part} of 2)', 'body': [f"{w['item']}: {w['meaning']}" for w in chunk], 'meta': [{'t': 'goal'} for _ in chunk],
+                               'build': True, 'workbook': 'Word bank', 'notes': 'Drill pronunciation and the full phrase. Learners tick items as they use them.'})
         self.stage_slides = []
         for si, s in enumerate(d['stages']):
             wbs = []
@@ -694,6 +699,11 @@ class Pack:
         d = self.d
         # Student workbook: one page per block, then reflection.
         pages = []
+        if d.get('word_bank'):
+            # Vocabulary lessons open with the target items so learners can annotate them during the lesson.
+            rows = [['Word or phrase', 'Meaning / use', 'Example', 'Skill']] + [[w['item'], w['meaning'], w['example'], w['skill']] for w in d['word_bank']]
+            pages.append([self.p('Word bank', 'H'), self.p('Tick each item when you have used it correctly in today\'s tasks. Add your own example in the margin.'),
+                          *self.table(rows, [100, 140, 205, 66]), self.p('Learn items as phrases, not single words: the collocation is what scores.', 'S')])
         if d.get('workbook_extra'):
             pages.append([])
             for x in [x for x in d['workbook_extra'] if x.get('position') == 'start']:

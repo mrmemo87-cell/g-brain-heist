@@ -15,6 +15,26 @@ const LETTERED = ['mcq', 'matching', 'endings', 'summary_box'];
 const letterOf = (option) => String(option).trim().split(/\s+/)[0];
 const speechOf = (line) => line.replace(/^[A-Z][A-Z .']*:\s*/, '');
 
+
+// Real-test level for Academic Reading (Bible: passages rise in length and difficulty; questions paraphrase).
+// Measured, not judged: these thresholds stop a mock from slipping below the level of a real paper.
+export const READING_LEVEL = { minWords: [750, 820, 880], minTotal: 2500, minWordsPerSentence: 20, minLongWordShare: 0.18, maxItemOverlap: 0.6, maxMeanOverlap: 0.35 };
+const STOP = new Set('the a an of to in and or is are was were be been for on at by with that this it as from its their his her they we you i not no but than then so which who what when where how do does did have has had can could may might will would should'.split(' '));
+const contentWords = (t) => (String(t).toLowerCase().match(/[a-z]+/g) ?? []).filter((w) => !STOP.has(w));
+export function promptEvidenceOverlap(prompt, evidence) {
+  const a = new Set(contentWords(prompt)); const b = new Set(contentWords(evidence));
+  if (!a.size) return 0;
+  let shared = 0; for (const w of a) if (b.has(w)) shared += 1;
+  return shared / a.size;
+}
+export function readingLevel(paragraphs) {
+  const text = paragraphs.join(' ');
+  const sentences = text.split(/(?<=[.!?])\s+/).filter((x) => x.trim());
+  const words = text.match(/[A-Za-z][A-Za-z'’-]*/g) ?? [];
+  return { words: wordCount(text), wordsPerSentence: words.length / Math.max(1, sentences.length), longWordShare: words.filter((w) => w.length >= 8).length / Math.max(1, words.length) };
+}
+const PARAPHRASED = new Set(['tfng', 'ynng', 'mcq', 'endings', 'matching', 'short']);
+
 function itemsOf(groups) {
   const out = [];
   for (const g of groups ?? []) {
@@ -140,10 +160,24 @@ export function validateMockSource(mock, { bibles = currentBibleVersions() } = {
   // Reading: three passages, forty questions, verbatim evidence.
   const passages = mock.reading?.passages ?? [];
   if (passages.length !== 3) errors.push('reading needs three passages');
+  const totalWords = passages.reduce((t, p) => t + wordCount(p.paragraphs.join(' ')), 0);
+  if (totalWords < READING_LEVEL.minTotal) errors.push(`Reading: ${totalWords} words in total; a real paper has about 2,500-2,750`);
   checkNumbering('Reading', passages.flatMap((p) => p.groups ?? []), errors);
   for (const p of passages) {
     const words = wordCount(p.paragraphs.join(' '));
     if (words < 700 || words > 1100) errors.push(`Reading Passage ${p.n}: ${words} words; Academic passages are about 700-1000 words`);
+    const level = readingLevel(p.paragraphs);
+    const idx = passages.indexOf(p);
+    if (level.words < READING_LEVEL.minWords[idx]) errors.push(`Reading Passage ${p.n}: ${level.words} words; a real Passage ${idx + 1} needs at least ${READING_LEVEL.minWords[idx]}`);
+    if (level.wordsPerSentence < READING_LEVEL.minWordsPerSentence) errors.push(`Reading Passage ${p.n}: ${level.wordsPerSentence.toFixed(1)} words per sentence is below academic level (${READING_LEVEL.minWordsPerSentence})`);
+    if (level.longWordShare < READING_LEVEL.minLongWordShare) errors.push(`Reading Passage ${p.n}: ${(100 * level.longWordShare).toFixed(1)}% long words is below academic level (${100 * READING_LEVEL.minLongWordShare}%)`);
+    const overlaps = [];
+    for (const g of p.groups ?? []) for (const it of g.items ?? []) {
+      if (!PARAPHRASED.has(g.type) || !it.evidence || it.answer === 'NOT GIVEN') continue;
+      const o = promptEvidenceOverlap(it.prompt, it.evidence); overlaps.push(o);
+      if (o > READING_LEVEL.maxItemOverlap) errors.push(`Reading Q${it.n}: question repeats ${(100 * o).toFixed(0)}% of the evidence wording; paraphrase it`);
+    }
+    if (overlaps.length && overlaps.reduce((a, b) => a + b, 0) / overlaps.length > READING_LEVEL.maxMeanOverlap) errors.push(`Reading Passage ${p.n}: questions copy the passage wording too closely on average`);
     const source = normalize(p.paragraphs.join(' '));
     for (const g of p.groups ?? []) {
       checkGroup(`Reading Passage ${p.n}`, g, source, errors, p.paragraphs);

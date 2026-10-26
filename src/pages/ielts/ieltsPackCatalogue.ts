@@ -1,10 +1,10 @@
 /** Presentation helpers shared by the teacher library: pack kind, course week and skill label. */
-export type PackKind = 'course' | 'extension' | 'mock';
+export type PackKind = 'course' | 'extension' | 'vocabulary' | 'mock';
 
 export const packKind = (code: string): PackKind =>
-  code.startsWith('IELTS-M') ? 'mock' : code.startsWith('IELTS-X') ? 'extension' : 'course';
+  code.startsWith('IELTS-M') ? 'mock' : code.startsWith('IELTS-X') ? 'extension' : code.startsWith('IELTS-V') ? 'vocabulary' : 'course';
 
-/** Short code shown in the number badge: 01, X1, M1. */
+/** Short code shown in the number badge: 01, X1, V1, M1. */
 export const packNumber = (code: string) => code.replace(/^IELTS-/, '');
 
 /** The 24-lesson course runs two lessons a week. */
@@ -12,6 +12,7 @@ export const courseWeek = (code: string) => Math.ceil(Number(packNumber(code)) /
 
 const SKILLS: [RegExp, string][] = [
   [/mock test/i, 'All skills'],
+  [/^vocabulary/i, 'Vocabulary'],
   [/fresh receptive|listening.*reading|reading.*listening/i, 'Listening + Reading'],
   [/fresh productive|essay.*long turn/i, 'Writing + Speaking'],
   [/paragraphs and speaking/i, 'Writing + Speaking'],
@@ -32,4 +33,4 @@ export function groupBy<T>(items: T[], key: (item: T) => string | number): [stri
   return [...map.entries()];
 }
 
-export const kindLabel: Record<PackKind, string> = { course: 'Course lessons', extension: 'Extension lessons', mock: 'Mock tests' };
+export const kindLabel: Record<PackKind, string> = { course: 'Course lessons', extension: 'Extension lessons', vocabulary: 'Vocabulary lessons', mock: 'Mock tests' };

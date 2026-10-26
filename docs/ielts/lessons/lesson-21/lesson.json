@@ -3,35 +3,86 @@
   "code": "IELTS-21",
   "number": 21,
   "week": 11,
-  "version": "0.2.0",
-  "presentation_version": "0.2.0",
+  "version": "0.3.0",
+  "presentation_version": "0.3.0",
   "title": "Fresh receptive-skill check: one Listening section and one Reading passage",
   "answer_grid": 23,
-  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
-  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
+  "status": "Owner approved v0.3.0 on 2026-10-26; teacher release to all eligible schools",
   "duration": 60,
   "test_type": "Academic",
-  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "bibles": {
+    "diagnostic": "1.10.0",
+    "lessons": "1.1.0",
+    "visual": "1.1.0"
+  },
   "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Script, passage, questions and keys are original; the passage uses general, widely reported findings without specific statistics. Human editorial, factual, key, mapping, difficulty and originality review pending.",
   "audio": {
     "required": true,
     "statement": "Recordings produced (v1, 2026-10-17): IELTS-21-L1. Played in two parts with a mid-recording reading pause where marked. Owner listening review pending; do not use with students until it is recorded.",
     "recordings": [
-      { "id": "IELTS-21-L1", "block": "IELTS-21-L1", "status": "Owner approved v1 with the lesson pack on 2026-10-18; device/classroom playback acceptance pending", "conditions": "Fresh classroom check under test-like conditions: played once, no pausing, reading time inside the recording.",
-        "voices": { "instruction": "Tom (British, examiner style; steady model)", "CLERK": "Niki (North American, middle-aged, friendly)", "DANIELA": "Marlene (British, middle-aged)" },
+      {
+        "id": "IELTS-21-L1",
+        "block": "IELTS-21-L1",
+        "status": "Owner approved v1 with the lesson pack on 2026-10-18; device/classroom playback acceptance pending",
+        "conditions": "Fresh classroom check under test-like conditions: played once, no pausing, reading time inside the recording.",
+        "voices": {
+          "instruction": "Tom (British, examiner style; steady model)",
+          "CLERK": "Niki (North American, middle-aged, friendly)",
+          "DANIELA": "Marlene (British, middle-aged)"
+        },
         "segments": [
-          { "type": "speech", "voice": "instruction", "text": "This recording is copyright Brains Heist LLC. All rights reserved." },
-          { "type": "speech", "voice": "instruction", "text": "Part 1. You will hear a woman booking a room at a community centre. First, you have thirty seconds to look at questions one to five." },
-          { "type": "silence", "seconds": 30 },
-          { "type": "speech", "voice": "instruction", "text": "Now listen carefully and answer questions one to five." },
-          { "type": "passage", "from_line": 0 },
-          { "type": "speech", "voice": "instruction", "text": "Before you hear the rest of the conversation, you have thirty seconds to look at questions six to ten." },
-          { "type": "silence", "seconds": 30 },
-          { "type": "speech", "voice": "instruction", "text": "Now listen and answer questions six to ten." },
-          { "type": "passage", "from_line": 13 },
-          { "type": "speech", "voice": "instruction", "text": "That is the end of the recording. You now have fifteen seconds to check your answers." },
-          { "type": "silence", "seconds": 15 }
-        ] }
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "This recording is copyright Brains Heist LLC. All rights reserved."
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "Part 1. You will hear a woman booking a room at a community centre. First, you have thirty seconds to look at questions one to five."
+          },
+          {
+            "type": "silence",
+            "seconds": 30
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "Now listen carefully and answer questions one to five."
+          },
+          {
+            "type": "passage",
+            "from_line": 0
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "Before you hear the rest of the conversation, you have thirty seconds to look at questions six to ten."
+          },
+          {
+            "type": "silence",
+            "seconds": 30
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "Now listen and answer questions six to ten."
+          },
+          {
+            "type": "passage",
+            "from_line": 13
+          },
+          {
+            "type": "speech",
+            "voice": "instruction",
+            "text": "That is the end of the recording. You now have fifteen seconds to check your answers."
+          },
+          {
+            "type": "silence",
+            "seconds": 15
+          }
+        ]
+      }
     ]
   },
   "prerequisites": [
@@ -40,9 +91,26 @@
     "This lesson collects fresh classroom evidence. Full-length mock tests (four Listening sections; three Reading passages) are arranged separately, outside 60-minute lessons."
   ],
   "objectives": [
-    { "text": "Complete a fresh Listening section and a fresh Reading passage independently under timed conditions.", "focus": ["explicit detail", "locating explicit evidence"] },
-    { "text": "Apply your personal strategies (question order, transfer checks, distractor awareness) without prompting.", "focus": ["distractor resistance", "sequencing"] },
-    { "text": "Record results honestly with their conditions, as classroom evidence rather than bands.", "focus": ["learner planning"] }
+    {
+      "text": "Complete a fresh Listening section and a fresh Reading passage independently under timed conditions.",
+      "focus": [
+        "explicit detail",
+        "locating explicit evidence"
+      ]
+    },
+    {
+      "text": "Apply your personal strategies (question order, transfer checks, distractor awareness) without prompting.",
+      "focus": [
+        "distractor resistance",
+        "sequencing"
+      ]
+    },
+    {
+      "text": "Record results honestly with their conditions, as classroom evidence rather than bands.",
+      "focus": [
+        "learner planning"
+      ]
+    }
   ],
   "levels": {
     "foundation": "Any adjusted condition (extra reading time, larger print) is agreed before the check and recorded; no hints during the check.",
@@ -58,41 +126,165 @@
       "mode": "Fresh classroom check: one play, no pausing, no support",
       "instructions": "Complete the form. Write NO MORE THAN TWO WORDS AND/OR A NUMBER for each answer.",
       "form_title": "Greenway Community Centre: room booking",
-      "stimulus": { "type": "transcript", "title": "Recording IELTS-21-L1 transcript (teacher-private)", "paragraphs": [
-        "CLERK: Greenway Community Centre, bookings. How can I help?",
-        "DANIELA: Hello. I'd like to book a room for my daughter's eighteenth birthday party.",
-        "CLERK: Of course. What date were you thinking of?",
-        "DANIELA: Friday the twelfth of July, if possible.",
-        "CLERK: Let me check. I'm afraid Friday the twelfth is already taken. The day after is free, though.",
-        "DANIELA: The thirteenth? That's fine, actually. Let's say Saturday.",
-        "CLERK: And how many guests are you expecting?",
-        "DANIELA: We first said sixty, but we've cut the list, so around forty-five.",
-        "CLERK: In that case, the Main Hall would be too big. I'd suggest the Garden Room. It holds up to fifty and opens onto the garden.",
-        "DANIELA: That sounds lovely. What time could we have it from?",
-        "CLERK: What time would you like?",
-        "DANIELA: Guests will arrive at seven, but we'll need to decorate first, so could we have the room from half past five?",
-        "CLERK: Yes, that's fine. The Garden Room is thirty-two pounds an hour in the evening. During the day it's twenty-five.",
-        "DANIELA: OK. Is there a deposit?",
-        "CLERK: Yes, fifty pounds, which we return after the event if there's no damage.",
-        "DANIELA: Do you provide tables and chairs?",
-        "CLERK: Tables, chairs and a sound system are all included. You'll need to bring your own tablecloths, though.",
-        "DANIELA: And is there parking?",
-        "CLERK: There's no parking at the front, but you can use the car park behind the library, which is free after six.",
-        "CLERK: Could I take your name?",
-        "DANIELA: Daniela Moretti. That's M, O, R, E, T, T, I.",
-        "CLERK: Thank you. And on the day, please collect the keys from the café next door, because our office closes at five."
-      ] },
+      "stimulus": {
+        "type": "transcript",
+        "title": "Recording IELTS-21-L1 transcript (teacher-private)",
+        "paragraphs": [
+          "CLERK: Greenway Community Centre, bookings. How can I help?",
+          "DANIELA: Hello. I'd like to book a room for my daughter's eighteenth birthday party.",
+          "CLERK: Of course. What date were you thinking of?",
+          "DANIELA: Friday the twelfth of July, if possible.",
+          "CLERK: Let me check. I'm afraid Friday the twelfth is already taken. The day after is free, though.",
+          "DANIELA: The thirteenth? That's fine, actually. Let's say Saturday.",
+          "CLERK: And how many guests are you expecting?",
+          "DANIELA: We first said sixty, but we've cut the list, so around forty-five.",
+          "CLERK: In that case, the Main Hall would be too big. I'd suggest the Garden Room. It holds up to fifty and opens onto the garden.",
+          "DANIELA: That sounds lovely. What time could we have it from?",
+          "CLERK: What time would you like?",
+          "DANIELA: Guests will arrive at seven, but we'll need to decorate first, so could we have the room from half past five?",
+          "CLERK: Yes, that's fine. The Garden Room is thirty-two pounds an hour in the evening. During the day it's twenty-five.",
+          "DANIELA: OK. Is there a deposit?",
+          "CLERK: Yes, fifty pounds, which we return after the event if there's no damage.",
+          "DANIELA: Do you provide tables and chairs?",
+          "CLERK: Tables, chairs and a sound system are all included. You'll need to bring your own tablecloths, though.",
+          "DANIELA: And is there parking?",
+          "CLERK: There's no parking at the front, but you can use the car park behind the library, which is free after six.",
+          "CLERK: Could I take your name?",
+          "DANIELA: Daniela Moretti. That's M, O, R, E, T, T, I.",
+          "CLERK: Thank you. And on the day, please collect the keys from the café next door, because our office closes at five."
+        ]
+      },
       "items": [
-        { "id": "IELTS-21-L1-Q1", "prompt": "Day of the party: ________", "answer": "Saturday", "accept": ["Saturday 13 July", "13 July"], "evidence": "Let's say Saturday", "reason": "Friday the twelfth is already taken.", "focus": "distractor resistance", "type": "completion", "word_limit": 2, "level": "core" },
-        { "id": "IELTS-21-L1-Q2", "prompt": "Number of guests: about ________", "answer": "45", "accept": ["forty-five"], "evidence": "so around forty-five", "reason": "Sixty was the first plan.", "focus": "numerical information", "type": "completion", "word_limit": 2, "level": "core" },
-        { "id": "IELTS-21-L1-Q3", "prompt": "Room: the ________", "answer": "Garden Room", "evidence": "I'd suggest the Garden Room", "reason": "The Main Hall is too big.", "focus": "distractor resistance", "type": "completion", "word_limit": 2, "level": "core" },
-        { "id": "IELTS-21-L1-Q4", "prompt": "Room needed from: ________ pm", "answer": "5.30", "accept": ["5:30", "half past five"], "evidence": "could we have the room from half past five?", "reason": "Seven is when guests arrive.", "focus": "numerical information", "type": "completion", "word_limit": 2, "level": "core" },
-        { "id": "IELTS-21-L1-Q5", "prompt": "Evening cost per hour: £________", "answer": "32", "accept": ["thirty-two"], "evidence": "thirty-two pounds an hour in the evening", "reason": "Twenty-five is the daytime price.", "focus": "distractor resistance", "type": "completion", "word_limit": 2, "level": "core" },
-        { "id": "IELTS-21-L1-Q6", "prompt": "Deposit: £________", "answer": "50", "accept": ["fifty"], "evidence": "fifty pounds, which we return after the event", "reason": "Direct detail; returned if there is no damage.", "focus": "numerical information", "type": "completion", "word_limit": 2, "level": "core" },
-        { "id": "IELTS-21-L1-Q7", "prompt": "Customer must bring: ________", "answer": "tablecloths", "evidence": "You'll need to bring your own tablecloths", "reason": "Tables, chairs and the sound system are included.", "focus": "distractor resistance", "type": "completion", "word_limit": 2, "level": "core" },
-        { "id": "IELTS-21-L1-Q8", "prompt": "Parking: car park behind the ________", "answer": "library", "evidence": "the car park behind the library", "reason": "There is no parking at the front.", "focus": "explicit detail", "type": "completion", "word_limit": 2, "level": "core" },
-        { "id": "IELTS-21-L1-Q9", "prompt": "Surname: Daniela ________", "answer": "Moretti", "evidence": "That's M, O, R, E, T, T, I", "reason": "Spelling must be exact, including the double T.", "focus": "spelling/orthographic accuracy", "type": "completion", "word_limit": 2, "level": "core" },
-        { "id": "IELTS-21-L1-Q10", "prompt": "Collect keys from: the ________ next door", "answer": "café", "accept": ["cafe"], "evidence": "collect the keys from the café next door", "reason": "The office closes at five.", "focus": "explicit detail", "type": "completion", "word_limit": 2, "level": "core" }
+        {
+          "id": "IELTS-21-L1-Q1",
+          "prompt": "Day of the party: ________",
+          "answer": "Saturday",
+          "accept": [
+            "Saturday 13 July",
+            "13 July"
+          ],
+          "evidence": "Let's say Saturday",
+          "reason": "Friday the twelfth is already taken.",
+          "focus": "distractor resistance",
+          "type": "completion",
+          "word_limit": 2,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-L1-Q2",
+          "prompt": "Number of guests: about ________",
+          "answer": "45",
+          "accept": [
+            "forty-five"
+          ],
+          "evidence": "so around forty-five",
+          "reason": "Sixty was the first plan.",
+          "focus": "numerical information",
+          "type": "completion",
+          "word_limit": 2,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-L1-Q3",
+          "prompt": "Room: the ________",
+          "answer": "Garden Room",
+          "evidence": "I'd suggest the Garden Room",
+          "reason": "The Main Hall is too big.",
+          "focus": "distractor resistance",
+          "type": "completion",
+          "word_limit": 2,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-L1-Q4",
+          "prompt": "Room needed from: ________ pm",
+          "answer": "5.30",
+          "accept": [
+            "5:30",
+            "half past five"
+          ],
+          "evidence": "could we have the room from half past five?",
+          "reason": "Seven is when guests arrive.",
+          "focus": "numerical information",
+          "type": "completion",
+          "word_limit": 2,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-L1-Q5",
+          "prompt": "Evening cost per hour: £________",
+          "answer": "32",
+          "accept": [
+            "thirty-two"
+          ],
+          "evidence": "thirty-two pounds an hour in the evening",
+          "reason": "Twenty-five is the daytime price.",
+          "focus": "distractor resistance",
+          "type": "completion",
+          "word_limit": 2,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-L1-Q6",
+          "prompt": "Deposit: £________",
+          "answer": "50",
+          "accept": [
+            "fifty"
+          ],
+          "evidence": "fifty pounds, which we return after the event",
+          "reason": "Direct detail; returned if there is no damage.",
+          "focus": "numerical information",
+          "type": "completion",
+          "word_limit": 2,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-L1-Q7",
+          "prompt": "Customer must bring: ________",
+          "answer": "tablecloths",
+          "evidence": "You'll need to bring your own tablecloths",
+          "reason": "Tables, chairs and the sound system are included.",
+          "focus": "distractor resistance",
+          "type": "completion",
+          "word_limit": 2,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-L1-Q8",
+          "prompt": "Parking: car park behind the ________",
+          "answer": "library",
+          "evidence": "the car park behind the library",
+          "reason": "There is no parking at the front.",
+          "focus": "explicit detail",
+          "type": "completion",
+          "word_limit": 2,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-L1-Q9",
+          "prompt": "Surname: Daniela ________",
+          "answer": "Moretti",
+          "evidence": "That's M, O, R, E, T, T, I",
+          "reason": "Spelling must be exact, including the double T.",
+          "focus": "spelling/orthographic accuracy",
+          "type": "completion",
+          "word_limit": 2,
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-L1-Q10",
+          "prompt": "Collect keys from: the ________ next door",
+          "answer": "café",
+          "accept": [
+            "cafe"
+          ],
+          "evidence": "collect the keys from the café next door",
+          "reason": "The office closes at five.",
+          "focus": "explicit detail",
+          "type": "completion",
+          "word_limit": 2,
+          "level": "core"
+        }
       ]
     },
     {
@@ -101,39 +293,299 @@
       "title": "Reading Passage 1",
       "mode": "Fresh classroom check: twenty minutes, no dictionary, no support",
       "instructions": "Questions 11-14: which paragraph, A-F, contains the following information? Questions 15-19: write TRUE, FALSE or NOT GIVEN. Questions 20-23: choose the correct letter, A, B or C.",
-      "stimulus": { "type": "passage", "title": "The teenage clock", "labelled": true, "paragraphs": [
-        "Parents have long complained that teenagers stay up late and find it hard to get up in the morning. This was often blamed on laziness or, more recently, on screens. Over recent decades, however, researchers who study sleep have offered a different explanation: much of the change is biological.",
-        "Everyone has an internal body clock that regulates when we feel sleepy and when we feel alert, partly through the hormone melatonin, which the body releases in the evening. During adolescence, the timing of this release shifts later, so that many teenagers do not feel sleepy until late in the evening. This shift appears in early adolescence and seems to reverse gradually in the early twenties. Teenagers' need for sleep, however, does not fall at the same rate; most teenagers still need more sleep than adults.",
-        "The result is a mismatch. If school begins early, a teenager who cannot fall asleep before eleven may regularly get far less sleep than they need. Researchers have linked such shortages to poorer concentration, lower mood and a greater risk of accidents among young drivers, although it is difficult to separate the effects of sleep from those of other factors in teenagers' lives. Weekend lie-ins, often criticised, may partly be an attempt to repay this 'sleep debt', although sleeping much later at weekends can make Monday mornings even harder.",
-        "Screens and social activities do play a part. Light from phones and computers in the evening may further delay sleepiness, and a busy social life can push bedtimes later. But these factors appear to add to the biological shift rather than cause it; the delay has been observed in many different cultures, including among teenagers with little access to technology.",
-        "In response, some schools have experimented with later start times. Reported results have often been encouraging: students sleep longer, attendance improves and fewer fall asleep in class. In some cases, schools also reported better exam results, but because other changes were often made at the same time, researchers are cautious about claiming that later starts alone were responsible. Nor are such changes simple to introduce. Bus timetables, after-school sports and the working hours of parents and teachers may all need to change, and some families find the new schedule inconvenient.",
-        "Sleep researchers generally agree that the solution is not simply to tell teenagers to go to bed earlier, since their bodies may not allow them to fall asleep. Instead, they recommend a combination of later school starts where possible, less screen use before bed, and more understanding from adults that teenage sleep patterns are not simply a matter of discipline."
-      ] },
+      "stimulus": {
+        "type": "passage",
+        "title": "The teenage clock",
+        "labelled": true,
+        "paragraphs": [
+          "Over the past two decades, a growing number of cities have committed themselves to ambitious programmes of tree planting, frequently pledging to plant hundreds of thousands or even millions of trees within a decade. Urban trees were once regarded primarily as decoration, valued for softening the appearance of streets and parks but seldom considered essential infrastructure. That perception has altered considerably as researchers have accumulated evidence that trees perform a range of measurable services, from moderating temperatures to reducing the volume of water that flows into drains after heavy rain. Municipal budgets that once treated tree maintenance as a minor expense are now beginning to allocate funding comparable to that given to roads and lighting.",
+          "The most frequently cited benefit concerns heat. Densely built urban areas are typically several degrees warmer than the surrounding countryside, a phenomenon known as the urban heat island effect, because asphalt, brick and concrete absorb solar energy during the day and release it slowly after dark. Trees counteract this in two ways: their canopies shade the surfaces beneath them, and they release water vapour through their leaves, a process that cools the surrounding air. Measurements taken on hot afternoons have found that streets lined with mature trees can be considerably cooler at pavement level than comparable streets without them, a difference that may be significant for elderly residents and others vulnerable to heat-related illness. The cooling effect depends heavily on the size of the canopy, however, so newly planted saplings provide relatively little benefit for many years until they reach maturity.",
+          "Trees also influence the movement of water. When rain falls on paved surfaces, it runs off rapidly into drainage systems, which can be overwhelmed during intense storms, causing localised flooding. A tree canopy intercepts a proportion of the rainfall, some of which evaporates before reaching the ground, while roots improve the capacity of the soil to absorb water. Several cities now incorporate tree pits and planted strips into their drainage plans, although engineers emphasise that trees can supplement, but not replace, conventional drainage infrastructure. The effect is greatest during moderate rainfall; in the most extreme storms, the soil quickly becomes saturated and the contribution of trees becomes comparatively small.",
+          "Claims regarding air quality are more complicated. Leaves can capture fine particles from the air, and many planting schemes are promoted on the grounds that they will make the air healthier to breathe. However, the overall effect at city scale appears to be modest, and in narrow streets enclosed by tall buildings, a dense canopy can actually trap vehicle exhaust close to the ground by reducing the circulation of air. Some species also release natural compounds that contribute to the formation of ground-level ozone in hot weather. Researchers therefore recommend that species and locations be selected with care, rather than assuming that more trees will automatically improve the air. Pollen from certain species can also aggravate allergies, a consideration that planners have not always taken into account when selecting trees for streets near schools and hospitals.",
+          "Planting a tree, moreover, is considerably easier than ensuring that it survives. Young trees in cities face compacted soil, restricted root space, damage from vehicles and vandalism, and, in many regions, increasingly frequent summer droughts. Studies in several countries have reported that a substantial proportion of newly planted street trees die within their first few years, often because watering is neglected once the initial planting has been completed. As a result, some urban foresters argue that targets based on the number of trees planted are misleading, and that cities should instead measure the extent of canopy cover that is actually maintained over time. Some cities now employ teams responsible solely for caring for young trees during their first three summers, and report markedly higher survival rates as a result.",
+          "There are also questions of fairness. In many cities, tree cover is unevenly distributed, with wealthier neighbourhoods enjoying considerably more shade than poorer ones, which are frequently those most exposed to heat and pollution. A number of local authorities have consequently begun to direct new planting towards areas with the least existing cover. Even this approach has generated debate, however, since residents in some districts have expressed concern that improvements to the local environment could increase property prices and rents, eventually displacing the very people the programmes were intended to benefit."
+        ]
+      },
       "items": [
-        { "id": "IELTS-21-R1-Q11", "prompt": "a reference to a hormone involved in sleep", "options": ["A", "B", "C", "D", "E", "F"], "answer": "B", "evidence": "partly through the hormone melatonin", "reason": "Melatonin is named in paragraph B.", "focus": "locating explicit evidence", "type": "paragraph_match", "level": "core" },
-        { "id": "IELTS-21-R1-Q12", "prompt": "practical difficulties of changing school hours", "options": ["A", "B", "C", "D", "E", "F"], "answer": "E", "evidence": "Bus timetables, after-school sports and the working hours of parents and teachers may all need to change", "reason": "Practical obstacles to later starts.", "focus": "paraphrase recognition", "type": "paragraph_match", "level": "core" },
-        { "id": "IELTS-21-R1-Q13", "prompt": "evidence that late sleeping is not caused by technology alone", "options": ["A", "B", "C", "D", "E", "F"], "answer": "D", "evidence": "including among teenagers with little access to technology", "reason": "The delay exists even without much technology.", "focus": "inference", "type": "paragraph_match", "level": "core" },
-        { "id": "IELTS-21-R1-Q14", "prompt": "possible dangers of not getting enough sleep", "options": ["A", "B", "C", "D", "E", "F"], "answer": "C", "evidence": "a greater risk of accidents among young drivers", "reason": "'Dangers' paraphrases 'risk of accidents'.", "focus": "paraphrase recognition", "type": "paragraph_match", "level": "core" },
-        { "id": "IELTS-21-R1-Q15", "prompt": "Teenagers generally need less sleep than adults.", "answer": "FALSE", "evidence": "most teenagers still need more sleep than adults", "reason": "The passage states the opposite.", "focus": "True/False/Not Given reasoning", "type": "tfng", "level": "core" },
-        { "id": "IELTS-21-R1-Q16", "prompt": "The later timing of sleep continues throughout adult life.", "answer": "FALSE", "evidence": "seems to reverse gradually in the early twenties", "reason": "The shift reverses in early adulthood.", "focus": "detail discrimination", "type": "tfng", "level": "core" },
-        { "id": "IELTS-21-R1-Q17", "prompt": "Evening light from screens may delay the feeling of sleepiness.", "answer": "TRUE", "evidence": "Light from phones and computers in the evening may further delay sleepiness", "reason": "Direct paraphrase.", "focus": "paraphrase recognition", "type": "tfng", "level": "core" },
-        { "id": "IELTS-21-R1-Q18", "prompt": "Teenagers in rural areas sleep longer than those in cities.", "answer": "NOT GIVEN", "evidence": "Rural and urban teenagers are not compared.", "reason": "Different cultures are mentioned, but not rural versus urban.", "focus": "True/False/Not Given reasoning", "type": "tfng", "level": "core" },
-        { "id": "IELTS-21-R1-Q19", "prompt": "Every family welcomes later school start times.", "answer": "FALSE", "evidence": "some families find the new schedule inconvenient", "reason": "'Every family' is contradicted.", "focus": "detail discrimination", "type": "tfng", "level": "core" },
-        { "id": "IELTS-21-R1-Q20", "prompt": "Why is it difficult to measure the effects of lost sleep, according to paragraph C?", "paragraph": "C", "options": ["A  Other factors in teenagers' lives also have effects.", "B  Teenagers do not report their sleep accurately.", "C  Researchers disagree about how much sleep is needed."], "answer": "A", "evidence": "it is difficult to separate the effects of sleep from those of other factors", "reason": "B and C are not mentioned.", "focus": "inference", "type": "mcq", "level": "core" },
-        { "id": "IELTS-21-R1-Q21", "prompt": "What does the writer say about weekend lie-ins?", "paragraph": "C", "options": ["A  They fully solve the problem of lost sleep.", "B  They are a sign of laziness.", "C  They may make the start of the week more difficult."], "answer": "C", "evidence": "can make Monday mornings even harder", "reason": "They may 'partly' repay sleep debt (against A); the criticism is reported, not endorsed (against B).", "focus": "writer stance/purpose", "type": "mcq", "level": "core" },
-        { "id": "IELTS-21-R1-Q22", "prompt": "Why are researchers cautious about reports of better exam results?", "paragraph": "E", "options": ["A  The results were never published.", "B  Other changes were made at the same time.", "C  Only a few students took part."], "answer": "B", "evidence": "because other changes were often made at the same time", "reason": "The later start cannot be isolated as the cause.", "focus": "inference", "type": "mcq", "level": "extension" },
-        { "id": "IELTS-21-R1-Q23", "prompt": "What do sleep researchers recommend?", "paragraph": "F", "options": ["A  telling teenagers to go to bed earlier", "B  banning phones in bedrooms", "C  a combination of measures, including later starts where possible"], "answer": "C", "evidence": "they recommend a combination of later school starts where possible", "reason": "A is rejected explicitly; B goes beyond 'less screen use'.", "focus": "writer stance/purpose", "type": "mcq", "level": "core" }
+        {
+          "id": "IELTS-21-R1-Q11",
+          "prompt": "a warning that a proposed improvement could harm the people it aims to help",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ],
+          "answer": "F",
+          "evidence": "eventually displacing the very people the programmes were intended to benefit",
+          "reason": "Rising rents could push out the residents the planting was meant to help.",
+          "focus": "paraphrase recognition",
+          "type": "paragraph_match",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-R1-Q12",
+          "prompt": "a description of a natural process by which leaves lower air temperature",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ],
+          "answer": "B",
+          "evidence": "they release water vapour through their leaves, a process that cools the surrounding air",
+          "reason": "'Natural process' paraphrases the release of water vapour.",
+          "focus": "locating explicit evidence",
+          "type": "paragraph_match",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-R1-Q13",
+          "prompt": "a criticism of the way some planting targets are measured",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ],
+          "answer": "E",
+          "evidence": "targets based on the number of trees planted are misleading",
+          "reason": "Foresters prefer canopy cover maintained over time.",
+          "focus": "paraphrase recognition",
+          "type": "paragraph_match",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-R1-Q14",
+          "prompt": "a reference to a change in how trees are viewed",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ],
+          "answer": "A",
+          "evidence": "That perception has altered considerably",
+          "reason": "Trees moved from decoration to infrastructure.",
+          "focus": "inference",
+          "type": "paragraph_match",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-R1-Q15",
+          "prompt": "Cities are generally cooler than nearby rural areas.",
+          "answer": "FALSE",
+          "evidence": "Densely built urban areas are typically several degrees warmer than the surrounding countryside",
+          "reason": "The passage states the opposite.",
+          "focus": "True/False/Not Given reasoning",
+          "type": "tfng",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-R1-Q16",
+          "prompt": "Trees can make conventional drainage systems unnecessary.",
+          "answer": "FALSE",
+          "evidence": "trees can supplement, but not replace, conventional drainage infrastructure",
+          "reason": "'Supplement, but not replace' contradicts 'unnecessary'.",
+          "focus": "detail discrimination",
+          "type": "tfng",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-R1-Q17",
+          "prompt": "In some streets, trees may make air pollution at ground level worse.",
+          "answer": "TRUE",
+          "evidence": "a dense canopy can actually trap vehicle exhaust close to the ground",
+          "reason": "Trapping exhaust worsens local air quality.",
+          "focus": "paraphrase recognition",
+          "type": "tfng",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-R1-Q18",
+          "prompt": "Fruit trees are the species most commonly planted in city streets.",
+          "answer": "NOT GIVEN",
+          "evidence": "Species are discussed, but no type is said to be the most common.",
+          "reason": "Fruit trees are never mentioned.",
+          "focus": "True/False/Not Given reasoning",
+          "type": "tfng",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-R1-Q19",
+          "prompt": "Poorer districts usually have less tree cover than wealthier ones.",
+          "answer": "TRUE",
+          "evidence": "wealthier neighbourhoods enjoying considerably more shade than poorer ones",
+          "reason": "'Less tree cover' paraphrases 'less shade'.",
+          "focus": "paraphrase recognition",
+          "type": "tfng",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-R1-Q20",
+          "prompt": "According to paragraph D, what do researchers advise?",
+          "paragraph": "D",
+          "options": [
+            "A  planting as many trees as possible near busy roads",
+            "B  choosing tree types and planting sites thoughtfully",
+            "C  avoiding trees in all narrow streets"
+          ],
+          "answer": "B",
+          "evidence": "species and locations be selected with care",
+          "reason": "'Thoughtfully' paraphrases 'with care'.",
+          "focus": "detail discrimination",
+          "type": "mcq",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-R1-Q21",
+          "prompt": "Why do many young street trees die, according to paragraph E?",
+          "paragraph": "E",
+          "options": [
+            "A  They are planted in the wrong season.",
+            "B  They often stop receiving water after planting.",
+            "C  They are attacked by insects."
+          ],
+          "answer": "B",
+          "evidence": "often because watering is neglected once the initial planting has been completed",
+          "reason": "'Stop receiving water' paraphrases 'watering is neglected'.",
+          "focus": "paraphrase recognition",
+          "type": "mcq",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-R1-Q22",
+          "prompt": "What does the writer say about trees and air quality overall?",
+          "paragraph": "D",
+          "options": [
+            "A  Their benefits for the whole city are fairly limited.",
+            "B  They clean city air more than any other measure.",
+            "C  Their effect has never been measured."
+          ],
+          "answer": "A",
+          "evidence": "the overall effect at city scale appears to be modest",
+          "reason": "'Fairly limited' paraphrases 'modest'.",
+          "focus": "inference",
+          "type": "mcq",
+          "level": "core"
+        },
+        {
+          "id": "IELTS-21-R1-Q23",
+          "prompt": "What is the main purpose of the passage?",
+          "paragraph": "A",
+          "options": [
+            "A  to argue that cities should stop planting trees",
+            "B  to examine the benefits and difficulties of urban tree planting",
+            "C  to compare tree planting in different countries"
+          ],
+          "answer": "B",
+          "evidence": "researchers have accumulated evidence that trees perform a range of measurable services",
+          "reason": "The passage weighs benefits (B-C) against complications (D-F).",
+          "focus": "writer's purpose",
+          "type": "mcq",
+          "level": "core"
+        }
       ]
     }
   ],
   "stages": [
-    { "start": 0, "end": 3, "title": "Conditions for today's check", "show": [], "student": "Clear your desk. You will do one Listening section and one Reading passage, independently, with the answer grid at the end of the workbook.", "teacher": "Confirm the recording hash, check that no learner has seen these materials, and record agreed adjusted conditions. State that results are classroom evidence, not bands.", "say": "Today shows how your strategies work on new material. Do your best; no help is available during the check.", "check": "Conditions recorded for each learner." },
-    { "start": 3, "end": 12, "title": "Listening section: one play", "show": [{ "block": "IELTS-21-L1", "part": "questions" }], "student": "Listen once and complete Questions 1-10. The recording gives reading time before each half.", "teacher": "Play IELTS-21-L1 once without pausing. Record interruptions. If audio fails, stop, note it and reschedule the Listening part.", "say": "One play, no pausing.", "check": "All answers written." },
-    { "start": 12, "end": 14, "title": "Transfer Listening answers", "show": [], "student": "Transfer answers 1-10 to the answer grid in two minutes.", "teacher": "Time two minutes.", "say": "Check spelling and number format.", "check": "Grid rows 1-10 complete." },
-    { "start": 14, "end": 36, "title": "Reading passage: twenty minutes plus transfer", "show": [{ "block": "IELTS-21-R1", "part": "questions" }], "student": "Answer Questions 11-23 in twenty minutes, writing directly on the answer grid. Use your sixty-minute plan.", "teacher": "Give time calls at 10 and 18 minutes. Do not answer questions about meaning. Record adjusted times.", "say": "Ten minutes left... two minutes left: no blanks.", "check": "Grids collected." },
-    { "start": 36, "end": 48, "title": "Review: Listening and Reading answers", "show": [{ "block": "IELTS-21-L1", "part": "answers" }, { "block": "IELTS-21-R1", "part": "answers" }], "student": "Mark a copy of your grid (the teacher keeps the original). Label each wrong answer by type.", "teacher": "Reveal after originals are collected. Keep the original grids unchanged as the evidence record.", "say": "The original grid is your evidence. Corrections go on your copy.", "check": "Original grids kept unchanged; copies marked." },
-    { "start": 48, "end": 56, "title": "Record and reflect", "show": [], "student": "In the log at the end of the workbook, record both raw scores, the conditions and your main error type for each skill.", "teacher": "Record scores per learner with date, form identity, conditions and support. Compare with earlier work only where demand and conditions are similar; otherwise write 'change not yet established'. No band conversion.", "say": "A score on one section and one passage is evidence about today's tasks, not your IELTS band.", "check": "Each learner has recorded scores and conditions." },
-    { "start": 56, "end": 60, "title": "Exit ticket and homework", "show": [], "student": "Complete the exit ticket and take the homework sheet.", "teacher": "Collect exit tickets. Confirm dates for separately arranged full mock sections if the programme offers them.", "say": "Next lesson: fresh Writing and Speaking evidence.", "check": "Everyone knows the next check dates." }
+    {
+      "start": 0,
+      "end": 3,
+      "title": "Conditions for today's check",
+      "show": [],
+      "student": "Clear your desk. You will do one Listening section and one Reading passage, independently, with the answer grid at the end of the workbook.",
+      "teacher": "Confirm the recording hash, check that no learner has seen these materials, and record agreed adjusted conditions. State that results are classroom evidence, not bands.",
+      "say": "Today shows how your strategies work on new material. Do your best; no help is available during the check.",
+      "check": "Conditions recorded for each learner."
+    },
+    {
+      "start": 3,
+      "end": 12,
+      "title": "Listening section: one play",
+      "show": [
+        {
+          "block": "IELTS-21-L1",
+          "part": "questions"
+        }
+      ],
+      "student": "Listen once and complete Questions 1-10. The recording gives reading time before each half.",
+      "teacher": "Play IELTS-21-L1 once without pausing. Record interruptions. If audio fails, stop, note it and reschedule the Listening part.",
+      "say": "One play, no pausing.",
+      "check": "All answers written."
+    },
+    {
+      "start": 12,
+      "end": 14,
+      "title": "Transfer Listening answers",
+      "show": [],
+      "student": "Transfer answers 1-10 to the answer grid in two minutes.",
+      "teacher": "Time two minutes.",
+      "say": "Check spelling and number format.",
+      "check": "Grid rows 1-10 complete."
+    },
+    {
+      "start": 14,
+      "end": 36,
+      "title": "Reading passage: twenty minutes plus transfer",
+      "show": [
+        {
+          "block": "IELTS-21-R1",
+          "part": "questions"
+        }
+      ],
+      "student": "Answer Questions 11-23 in twenty minutes, writing directly on the answer grid. Use your sixty-minute plan.",
+      "teacher": "Give time calls at 10 and 18 minutes. Do not answer questions about meaning. Record adjusted times.",
+      "say": "Ten minutes left... two minutes left: no blanks.",
+      "check": "Grids collected."
+    },
+    {
+      "start": 36,
+      "end": 48,
+      "title": "Review: Listening and Reading answers",
+      "show": [
+        {
+          "block": "IELTS-21-L1",
+          "part": "answers"
+        },
+        {
+          "block": "IELTS-21-R1",
+          "part": "answers"
+        }
+      ],
+      "student": "Mark a copy of your grid (the teacher keeps the original). Label each wrong answer by type.",
+      "teacher": "Reveal after originals are collected. Keep the original grids unchanged as the evidence record.",
+      "say": "The original grid is your evidence. Corrections go on your copy.",
+      "check": "Original grids kept unchanged; copies marked."
+    },
+    {
+      "start": 48,
+      "end": 56,
+      "title": "Record and reflect",
+      "show": [],
+      "student": "In the log at the end of the workbook, record both raw scores, the conditions and your main error type for each skill.",
+      "teacher": "Record scores per learner with date, form identity, conditions and support. Compare with earlier work only where demand and conditions are similar; otherwise write 'change not yet established'. No band conversion.",
+      "say": "A score on one section and one passage is evidence about today's tasks, not your IELTS band.",
+      "check": "Each learner has recorded scores and conditions."
+    },
+    {
+      "start": 56,
+      "end": 60,
+      "title": "Exit ticket and homework",
+      "show": [],
+      "student": "Complete the exit ticket and take the homework sheet.",
+      "teacher": "Collect exit tickets. Confirm dates for separately arranged full mock sections if the programme offers them.",
+      "say": "Next lesson: fresh Writing and Speaking evidence.",
+      "check": "Everyone knows the next check dates."
+    }
   ],
   "exit_ticket": [
     "My Listening and Reading scores, with the conditions:",
@@ -156,16 +608,53 @@
         "title": "Plants in the office",
         "mode": "Withheld delayed check; independent, timed",
         "instructions": "Write TRUE, FALSE or NOT GIVEN.",
-        "stimulus": { "type": "passage", "title": "Plants in the office", "labelled": true, "paragraphs": [
-          "Many companies now place plants in offices, hoping to make workplaces more pleasant. Some studies have reported that employees in offices with plants say they feel more satisfied with their surroundings.",
-          "Claims that a few pot plants can significantly clean the air in a whole building, however, are treated with caution by many scientists, because laboratory tests in sealed chambers do not reflect conditions in a ventilated office.",
-          "Plants also need care. Without regular watering and enough light, they quickly look unhealthy, and a row of dying plants may do more harm than good to the atmosphere of an office."
-        ] },
+        "stimulus": {
+          "type": "passage",
+          "title": "Plants in the office",
+          "labelled": true,
+          "paragraphs": [
+            "Many companies now place plants in offices, hoping to make workplaces more pleasant. Some studies have reported that employees in offices with plants say they feel more satisfied with their surroundings.",
+            "Claims that a few pot plants can significantly clean the air in a whole building, however, are treated with caution by many scientists, because laboratory tests in sealed chambers do not reflect conditions in a ventilated office.",
+            "Plants also need care. Without regular watering and enough light, they quickly look unhealthy, and a row of dying plants may do more harm than good to the atmosphere of an office."
+          ]
+        },
         "items": [
-          { "id": "IELTS-21-C1-Q1", "prompt": "Some employees report greater satisfaction with offices that contain plants.", "answer": "TRUE", "evidence": "employees in offices with plants say they feel more satisfied with their surroundings", "reason": "Direct paraphrase.", "focus": "paraphrase recognition", "type": "tfng" },
-          { "id": "IELTS-21-C1-Q2", "prompt": "Scientists agree that a few plants can clean the air of an entire building.", "answer": "FALSE", "evidence": "are treated with caution by many scientists", "reason": "Scientists are cautious, not in agreement with the claim.", "focus": "True/False/Not Given reasoning", "type": "tfng" },
-          { "id": "IELTS-21-C1-Q3", "prompt": "Office plants are more expensive to maintain than air filters.", "answer": "NOT GIVEN", "evidence": "No cost comparison.", "reason": "Costs are not mentioned.", "focus": "True/False/Not Given reasoning", "type": "tfng" },
-          { "id": "IELTS-21-C1-Q4", "prompt": "Poorly maintained plants may make an office feel worse.", "answer": "TRUE", "evidence": "may do more harm than good to the atmosphere of an office", "reason": "Direct paraphrase.", "focus": "paraphrase recognition", "type": "tfng" }
+          {
+            "id": "IELTS-21-C1-Q1",
+            "prompt": "Some employees report greater satisfaction with offices that contain plants.",
+            "answer": "TRUE",
+            "evidence": "employees in offices with plants say they feel more satisfied with their surroundings",
+            "reason": "Direct paraphrase.",
+            "focus": "paraphrase recognition",
+            "type": "tfng"
+          },
+          {
+            "id": "IELTS-21-C1-Q2",
+            "prompt": "Scientists agree that a few plants can clean the air of an entire building.",
+            "answer": "FALSE",
+            "evidence": "are treated with caution by many scientists",
+            "reason": "Scientists are cautious, not in agreement with the claim.",
+            "focus": "True/False/Not Given reasoning",
+            "type": "tfng"
+          },
+          {
+            "id": "IELTS-21-C1-Q3",
+            "prompt": "Office plants are more expensive to maintain than air filters.",
+            "answer": "NOT GIVEN",
+            "evidence": "No cost comparison.",
+            "reason": "Costs are not mentioned.",
+            "focus": "True/False/Not Given reasoning",
+            "type": "tfng"
+          },
+          {
+            "id": "IELTS-21-C1-Q4",
+            "prompt": "Poorly maintained plants may make an office feel worse.",
+            "answer": "TRUE",
+            "evidence": "may do more harm than good to the atmosphere of an office",
+            "reason": "Direct paraphrase.",
+            "focus": "paraphrase recognition",
+            "type": "tfng"
+          }
         ]
       }
     ],
@@ -176,5 +665,19 @@
   "release_blockers": [
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
     "Student task publication and platform evidence capture remain separate, governed steps."
-  ]
+  ],
+  "previous_approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-18",
+    "version": "0.2.0",
+    "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."
+  },
+  "approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-26",
+    "version": "0.3.0",
+    "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Fresh Reading check (Questions 11-23) replaced with a full-length Passage 1 on a new topic (urban trees) at real-test difficulty; it no longer repeats Mock 1's teen-sleep topic. Listening and everything else unchanged. Student task publication remains separate.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek: 'I need to make sure all the IELTS materials (including the reading that I checked was weak in the Mock tests) and the lessons to be at the level of a real IELTS test ... Make the needed adjustments and improvements now; you have all my permissions, don't ask for any.' Not recorded as an in-platform decision; no review-draft pack was opened before approval."
+  }
 }

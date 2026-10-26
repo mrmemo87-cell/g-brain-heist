@@ -1,0 +1,924 @@
+{
+  "schema": "bh-ielts-lesson-source/2",
+  "code": "IELTS-V2",
+  "number": 2,
+  "vocabulary": true,
+  "placement": "optional, after Week 6 (Lesson 11)",
+  "week": 6,
+  "version": "1.0.0",
+  "presentation_version": "1.0.0",
+  "title": "Vocabulary: describing trends and comparisons for Writing Task 1",
+  "status": "Owner approved v1.0.0 on 2026-10-26; teacher release to all eligible schools (optional vocabulary lesson)",
+  "duration": 60,
+  "test_type": "Academic",
+  "bibles": {
+    "diagnostic": "2.0.0",
+    "lessons": "1.2.0",
+    "visual": "1.2.0"
+  },
+  "rights": "Original Brains Heist LLC instructional material, AI-assisted. Passages, people and data are fictional and created for practice. Not official IELTS material. Human editorial and classroom review recommended.",
+  "audio": {
+    "required": false,
+    "statement": "No recording required.",
+    "recordings": []
+  },
+  "prerequisites": [
+    "Lesson 11 (Task 1 overviews and accurate comparisons).",
+    "Learners can read the axes of a line graph and a bar chart.",
+    "Optional vocabulary lesson: use when Task 1 answers repeat 'increase' and 'decrease' or describe changes inaccurately."
+  ],
+  "objectives": [
+    {
+      "text": "Use precise verbs, nouns and adverbs for trends (plummet, level off, a steady rise, marginally) with accurate grammar.",
+      "focus": [
+        "lexical resource",
+        "grammatical range and accuracy"
+      ]
+    },
+    {
+      "text": "Compare figures accurately with proportion and comparison language (twice as many, account for, overtake, by contrast).",
+      "focus": [
+        "lexical resource",
+        "task achievement"
+      ]
+    },
+    {
+      "text": "Match the strength of a word to the size of the change, so that descriptions are accurate, not just varied.",
+      "focus": [
+        "accuracy of data description"
+      ]
+    }
+  ],
+  "levels": {
+    "foundation": "Use the verb + adverb pattern only (rose sharply, fell slightly) and the word bank during writing.",
+    "core": "Use at least two noun patterns (a sharp rise in ...) and two comparison phrases accurately in the paragraph.",
+    "extension": "Write one sentence that combines a trend and a comparison (for example: '..., overtaking gas in about 2016').",
+    "high_band": "Write the full overview and both body paragraphs with no repeated trend word and every number supporting a key feature."
+  },
+  "word_bank": [
+    {
+      "item": "rise / increase / grow / climb",
+      "meaning": "go up",
+      "example": "Wind and solar power rose steadily.",
+      "skill": "Writing T1"
+    },
+    {
+      "item": "fall / decrease / decline / drop",
+      "meaning": "go down",
+      "example": "The use of coal declined sharply after 2005.",
+      "skill": "Writing T1"
+    },
+    {
+      "item": "plummet / soar",
+      "meaning": "fall / rise very fast by a large amount",
+      "example": "Sales soared from 5% to 40% in two years.",
+      "skill": "Writing T1"
+    },
+    {
+      "item": "level off / plateau / remain stable",
+      "meaning": "stop changing and stay at about the same level",
+      "example": "Gas remained stable at about a third.",
+      "skill": "Writing T1"
+    },
+    {
+      "item": "fluctuate (between ... and ...)",
+      "meaning": "go up and down irregularly",
+      "example": "Prices fluctuated between 20 and 25 dollars.",
+      "skill": "Writing T1"
+    },
+    {
+      "item": "peak at / reach a peak of",
+      "meaning": "reach the highest point",
+      "example": "Bus use peaked at 25% in 2015.",
+      "skill": "Writing T1"
+    },
+    {
+      "item": "a sharp / steady / slight + noun",
+      "meaning": "noun pattern for trends with an adjective",
+      "example": "There was a sharp fall in coal use.",
+      "skill": "Writing T1"
+    },
+    {
+      "item": "sharply / steadily / slightly / marginally",
+      "meaning": "adverbs showing speed or size of change",
+      "example": "Gas rose marginally, from 30% to 32%.",
+      "skill": "Writing T1"
+    },
+    {
+      "item": "account for / make up",
+      "meaning": "be a particular proportion of a total",
+      "example": "Coal accounted for 58% of electricity in 2000.",
+      "skill": "Writing T1"
+    },
+    {
+      "item": "overtake / surpass",
+      "meaning": "become larger than something that was larger before",
+      "example": "Renewables overtook coal in about 2017.",
+      "skill": "Writing T1"
+    },
+    {
+      "item": "twice / three times as many (as)",
+      "meaning": "comparison by multiplying",
+      "example": "Teenagers spent three times as many hours on social media.",
+      "skill": "Writing T1"
+    },
+    {
+      "item": "by contrast / whereas / while",
+      "meaning": "introduce a different or opposite trend",
+      "example": "Coal fell, whereas renewables rose.",
+      "skill": "Writing T1"
+    },
+    {
+      "item": "approximately / just over / just under / nearly",
+      "meaning": "give a number that is not exact",
+      "example": "just under a quarter (22%)",
+      "skill": "Writing T1"
+    },
+    {
+      "item": "the proportion / share of",
+      "meaning": "part of a total, usually a percentage",
+      "example": "The share of gas changed very little.",
+      "skill": "Writing T1"
+    }
+  ],
+  "stages": [
+    {
+      "start": 0,
+      "end": 6,
+      "title": "Opening challenge: varied or accurate?",
+      "show": [
+        {
+          "block": "IELTS-V2-K1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-V2-K1",
+          "part": "answers"
+        }
+      ],
+      "student": "Decide which sentence describes the graph best before the reveal.",
+      "teacher": "Show the graph. Learners vote. Reveal the comments.",
+      "say": "A word must fit the size of the change. Variety comes second.",
+      "check": "Learners can say why 'plummeted' is wrong for gas."
+    },
+    {
+      "start": 6,
+      "end": 14,
+      "title": "Word bank: verbs, nouns and adverbs",
+      "show": [],
+      "student": "Sort the word bank into 'up', 'down', 'no change' and 'compare'. Mark how strong each word is.",
+      "teacher": "Board a scale from 'slightly' to 'dramatically'. Drill the two patterns: verb + adverb, adjective + noun + in.",
+      "say": "Two patterns: 'rose sharply' and 'a sharp rise in'.",
+      "check": "Learners transform three sentences between the two patterns."
+    },
+    {
+      "start": 14,
+      "end": 24,
+      "title": "Describe the graph accurately",
+      "show": [
+        {
+          "block": "IELTS-V2-P1",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-V2-P1",
+          "part": "answers"
+        }
+      ],
+      "student": "Complete each sentence with ONE word that matches the graph.",
+      "teacher": "Eight minutes. During the reveal, accept alternatives only if the size of change fits.",
+      "say": "Check the numbers before you choose the word.",
+      "check": "Most learners score six or more."
+    },
+    {
+      "start": 24,
+      "end": 32,
+      "title": "Spot the inaccurate description",
+      "show": [
+        {
+          "block": "IELTS-V2-P2",
+          "part": "questions"
+        },
+        {
+          "block": "IELTS-V2-P2",
+          "part": "answers"
+        }
+      ],
+      "student": "Choose the accurate sentence each time.",
+      "teacher": "Focus on comparison maths: twice as many, nearly half, overtook.",
+      "say": "Examiners check accuracy; wrong comparisons lose marks.",
+      "check": "Learners explain each wrong option with a number."
+    },
+    {
+      "start": 32,
+      "end": 36,
+      "title": "Plan your paragraph",
+      "show": [
+        {
+          "block": "IELTS-V2-W1",
+          "part": "prompt"
+        }
+      ],
+      "student": "Choose the three key features and the words you will use for each.",
+      "teacher": "Check plans quickly: one overview feature must be a comparison.",
+      "say": "Plan the features, then choose the words.",
+      "check": "Every learner has three features noted."
+    },
+    {
+      "start": 36,
+      "end": 48,
+      "title": "Write independently",
+      "show": [],
+      "student": "Write an overview and one body paragraph, using at least six word-bank items accurately.",
+      "teacher": "Twelve minutes, no model visible. Note learners using the bank.",
+      "say": "Tick each word-bank item as you use it.",
+      "check": "Paragraphs are finished on time."
+    },
+    {
+      "start": 48,
+      "end": 55,
+      "title": "Compare with the model",
+      "show": [
+        {
+          "block": "IELTS-V2-W1",
+          "part": "model"
+        },
+        {
+          "block": "IELTS-V2-W1",
+          "part": "checklist"
+        }
+      ],
+      "student": "Underline the trend words in the model and check your own paragraph with the checklist.",
+      "teacher": "Ask: which word in the model is strongest, and is it justified by the numbers?",
+      "say": "The model is illustrative, not a target band.",
+      "check": "Learners correct one inaccurate word in their own text."
+    },
+    {
+      "start": 55,
+      "end": 60,
+      "title": "Exit ticket and homework",
+      "show": [
+        {
+          "block": "IELTS-V2-H1",
+          "part": "questions"
+        }
+      ],
+      "student": "Complete the exit ticket and note the homework.",
+      "teacher": "Collect the exit tickets.",
+      "say": "Use the noun pattern at least once in every Task 1 answer.",
+      "check": "Every learner writes one noun-pattern sentence from memory."
+    }
+  ],
+  "blocks": [
+    {
+      "id": "IELTS-V2-K1",
+      "kind": "contrast",
+      "title": "Varied or accurate?",
+      "mode": "Opening challenge; learners decide before the reveal",
+      "instructions": "In one country, the share of electricity generated from gas rose from 30% to 32% between 2000 and 2020. Three learners described this change. Which sentence is best?",
+      "examples": [
+        {
+          "label": "Learner A",
+          "text": "The use of gas soared over the period.",
+          "comment": "Inaccurate: 'soared' means a very large, fast rise. Two percentage points is tiny."
+        },
+        {
+          "label": "Learner B",
+          "text": "Gas remained relatively stable, rising only marginally from 30% to 32%.",
+          "comment": "Best: the words match the size of the change and the numbers prove it."
+        },
+        {
+          "label": "Learner C",
+          "text": "Gas fluctuated dramatically between 2000 and 2020.",
+          "comment": "Inaccurate: the line barely moves; 'dramatically' exaggerates."
+        }
+      ]
+    },
+    {
+      "id": "IELTS-V2-P1",
+      "kind": "items",
+      "title": "Describe the graph accurately",
+      "mode": "Controlled practice; word bank open for foundation only",
+      "instructions": "Look at the graph. Complete each sentence with ONE word that describes the data accurately.",
+      "figure": {
+        "type": "line",
+        "title": "Electricity generated from three sources, one country, 2000-2020",
+        "x_label": "Year",
+        "y_label": "% of total electricity",
+        "y_max": 70,
+        "x": [
+          "2000",
+          "2005",
+          "2010",
+          "2015",
+          "2020"
+        ],
+        "series": [
+          {
+            "name": "Coal",
+            "values": [
+              58,
+              57,
+              49,
+              36,
+              22
+            ]
+          },
+          {
+            "name": "Gas",
+            "values": [
+              30,
+              31,
+              33,
+              33,
+              32
+            ]
+          },
+          {
+            "name": "Wind and solar",
+            "values": [
+              2,
+              4,
+              11,
+              24,
+              41
+            ]
+          }
+        ],
+        "alt": "Line graph of three sources of electricity from 2000 to 2020. Coal is stable at about 58 then falls sharply to 22. Gas stays between 30 and 33. Wind and solar rise from 2 to 41, overtaking gas around 2016 and coal around 2017.",
+        "note": "Fictional data created for practice."
+      },
+      "items": [
+        {
+          "id": "IELTS-V2-P1-Q1",
+          "prompt": "Between 2010 and 2020, the share of coal fell ______, from 49% to 22%.",
+          "answer": "sharply",
+          "evidence": "Coal 49 → 22",
+          "reason": "A large, fast fall; dramatically or considerably also fit.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "dramatically",
+            "considerably",
+            "significantly",
+            "steeply"
+          ]
+        },
+        {
+          "id": "IELTS-V2-P1-Q2",
+          "prompt": "Gas remained ______ at around a third throughout the period.",
+          "answer": "stable",
+          "evidence": "Gas 30-33",
+          "reason": "Very little change.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "steady",
+            "constant"
+          ]
+        },
+        {
+          "id": "IELTS-V2-P1-Q3",
+          "prompt": "Wind and solar power ______ coal in about 2017.",
+          "answer": "overtook",
+          "evidence": "Wind/solar 24 → 41; coal 36 → 22",
+          "reason": "One source became larger than the other.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "surpassed"
+          ]
+        },
+        {
+          "id": "IELTS-V2-P1-Q4",
+          "prompt": "In 2000, coal ______ for 58% of all electricity.",
+          "answer": "accounted",
+          "evidence": "Coal 2000 = 58",
+          "reason": "'account for' + percentage.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        },
+        {
+          "id": "IELTS-V2-P1-Q5",
+          "prompt": "There was a ______ rise in wind and solar power after 2010.",
+          "answer": "dramatic",
+          "evidence": "11 → 41",
+          "reason": "Adjective before the noun 'rise'.",
+          "focus": "grammatical range and accuracy",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "sharp",
+            "significant",
+            "considerable",
+            "rapid",
+            "steep"
+          ]
+        },
+        {
+          "id": "IELTS-V2-P1-Q6",
+          "prompt": "Gas use rose only ______, from 30% to 32%.",
+          "answer": "marginally",
+          "evidence": "Gas 30 → 32",
+          "reason": "A very small change.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "slightly"
+          ]
+        },
+        {
+          "id": "IELTS-V2-P1-Q7",
+          "prompt": "Between 2000 and 2005, coal changed very little, ______ wind and solar doubled.",
+          "answer": "whereas",
+          "evidence": "Coal 58 → 57; wind/solar 2 → 4",
+          "reason": "Contrast linker.",
+          "focus": "cohesion",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "while"
+          ]
+        },
+        {
+          "id": "IELTS-V2-P1-Q8",
+          "prompt": "By 2020, wind and solar produced ______ under half of the country's electricity.",
+          "answer": "just",
+          "evidence": "Wind/solar 2020 = 41",
+          "reason": "41% is a little under 50%.",
+          "focus": "accuracy of data description",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "slightly"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "IELTS-V2-P2",
+      "kind": "items",
+      "title": "Spot the inaccurate description",
+      "mode": "Controlled practice; chart visible",
+      "instructions": "Look at the bar chart. Choose the sentence, A, B or C, that describes the data accurately.",
+      "figure": {
+        "type": "bar",
+        "title": "Average weekly hours spent on four activities by teenagers, one city, 2010 and 2020",
+        "x_label": "Activity",
+        "y_label": "Hours per week",
+        "y_max": 25,
+        "x": [
+          "Social media",
+          "Sport",
+          "Reading",
+          "Homework"
+        ],
+        "series": [
+          {
+            "name": "2010",
+            "values": [
+              6,
+              8,
+              5,
+              10
+            ]
+          },
+          {
+            "name": "2020",
+            "values": [
+              18,
+              6,
+              3,
+              10
+            ]
+          }
+        ],
+        "alt": "Bar chart comparing 2010 and 2020. Social media rises from 6 to 18 hours. Sport falls from 8 to 6. Reading falls from 5 to 3. Homework stays at 10.",
+        "note": "Fictional data created for practice."
+      },
+      "items": [
+        {
+          "id": "IELTS-V2-P2-Q1",
+          "prompt": "Social media",
+          "answer": "B",
+          "evidence": "6 → 18 hours",
+          "reason": "18 is three times 6.",
+          "focus": "accuracy of data description",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  Time on social media doubled between 2010 and 2020.",
+            "B  Teenagers spent three times as long on social media in 2020 as in 2010.",
+            "C  Time on social media rose slightly."
+          ]
+        },
+        {
+          "id": "IELTS-V2-P2-Q2",
+          "prompt": "Homework",
+          "answer": "A",
+          "evidence": "10 → 10 hours",
+          "reason": "No change.",
+          "focus": "accuracy of data description",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  Time spent on homework remained unchanged at ten hours.",
+            "B  Homework peaked at ten hours in 2020.",
+            "C  Homework fluctuated around ten hours."
+          ]
+        },
+        {
+          "id": "IELTS-V2-P2-Q3",
+          "prompt": "Reading",
+          "answer": "C",
+          "evidence": "5 → 3 hours",
+          "reason": "A fall of two hours; reading was the lowest activity in 2020.",
+          "focus": "accuracy of data description",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  Reading plummeted to zero.",
+            "B  Reading overtook sport in 2020.",
+            "C  Reading fell from five to three hours, the lowest figure in 2020."
+          ]
+        },
+        {
+          "id": "IELTS-V2-P2-Q4",
+          "prompt": "Sport and social media in 2010",
+          "answer": "B",
+          "evidence": "Sport 8, social media 6 (2010)",
+          "reason": "Sport was higher in 2010; social media overtook it by 2020.",
+          "focus": "accuracy of data description",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  In 2010, teenagers spent more time on social media than on sport.",
+            "B  Social media overtook sport between 2010 and 2020.",
+            "C  Sport and social media accounted for the same time in both years."
+          ]
+        },
+        {
+          "id": "IELTS-V2-P2-Q5",
+          "prompt": "Overall",
+          "answer": "A",
+          "evidence": "Only social media rose; sport and reading fell; homework unchanged",
+          "reason": "A identifies the main feature without false detail.",
+          "focus": "task achievement",
+          "type": "mcq",
+          "level": "core",
+          "options": [
+            "A  Overall, social media was the only activity to grow, while time spent on sport and reading declined.",
+            "B  Overall, teenagers spent less time on every activity.",
+            "C  Overall, homework rose more than any other activity."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "IELTS-V2-W1",
+      "kind": "writing",
+      "task": "paragraph",
+      "title": "Overview and one body paragraph",
+      "mode": "Independent classroom application after modelling; not a full Task 1 or Writing Screener",
+      "prompt": "The graph shows the percentage of electricity generated from three sources in one country between 2000 and 2020. Write an overview and ONE body paragraph (about 90-110 words) describing the most important changes.",
+      "figure": {
+        "type": "line",
+        "title": "Electricity generated from three sources, one country, 2000-2020",
+        "x_label": "Year",
+        "y_label": "% of total electricity",
+        "y_max": 70,
+        "x": [
+          "2000",
+          "2005",
+          "2010",
+          "2015",
+          "2020"
+        ],
+        "series": [
+          {
+            "name": "Coal",
+            "values": [
+              58,
+              57,
+              49,
+              36,
+              22
+            ]
+          },
+          {
+            "name": "Gas",
+            "values": [
+              30,
+              31,
+              33,
+              33,
+              32
+            ]
+          },
+          {
+            "name": "Wind and solar",
+            "values": [
+              2,
+              4,
+              11,
+              24,
+              41
+            ]
+          }
+        ],
+        "alt": "Line graph of three sources of electricity from 2000 to 2020. Coal is stable at about 58 then falls sharply to 22. Gas stays between 30 and 33. Wind and solar rise from 2 to 41, overtaking gas around 2016 and coal around 2017.",
+        "note": "Fictional data created for practice."
+      },
+      "conditions": "12 minutes, independent. No model visible. Record word-bank use.",
+      "support": "Overview frame: Overall, ... while ... . Body: start with the biggest change; use one verb + adverb pattern and one adjective + noun pattern; add one comparison.",
+      "extension": "Include 'overtake' with an approximate year.",
+      "high_band": "No trend word may be repeated; every number must support a key feature.",
+      "model_label": "Illustrative classroom model for discussion only. Not a certified band answer.",
+      "model": "Overall, electricity generation shifted from coal towards wind and solar power, which had become the largest source by the end of the period, while the share of gas remained relatively stable.\n\nIn 2000, coal accounted for 58% of electricity, but after 2005 its share plummeted, reaching just 22% in 2020. By contrast, wind and solar power, which produced a mere 2% at the start, grew slowly at first and then soared after 2010, overtaking coal between 2015 and 2020 and climbing to 41%. Gas, meanwhile, rose only marginally, from 30% to a peak of 33% before levelling off.",
+      "checklist": [
+        "Lexical Resource: Does each trend word match the size of the change?",
+        "Lexical Resource: Have you used both a verb + adverb and an adjective + noun pattern?",
+        "Task Achievement: Does the overview give the main trends without numbers?",
+        "Grammatical Range and Accuracy: Are past tenses and prepositions (from ... to, by, at) correct?"
+      ]
+    },
+    {
+      "id": "IELTS-V2-H1",
+      "kind": "items",
+      "homework": true,
+      "title": "Homework: transform the pattern",
+      "mode": "Homework; checked at the start of the next lesson",
+      "instructions": "Rewrite each sentence using the noun pattern. Write the missing word (ONE word).",
+      "items": [
+        {
+          "id": "IELTS-V2-H1-Q1",
+          "prompt": "Prices rose slightly. → There was a ______ rise in prices.",
+          "answer": "slight",
+          "evidence": "adverb → adjective",
+          "reason": "slightly → slight",
+          "focus": "grammatical range and accuracy",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        },
+        {
+          "id": "IELTS-V2-H1-Q2",
+          "prompt": "Sales fell dramatically. → There was a dramatic ______ in sales.",
+          "answer": "fall",
+          "evidence": "verb → noun",
+          "reason": "fall/drop/decline/decrease",
+          "focus": "grammatical range and accuracy",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "drop",
+            "decline",
+            "decrease"
+          ]
+        },
+        {
+          "id": "IELTS-V2-H1-Q3",
+          "prompt": "Visitor numbers grew steadily. → There was a steady ______ in visitor numbers.",
+          "answer": "growth",
+          "evidence": "grow → growth",
+          "reason": "rise/increase also fit",
+          "focus": "grammatical range and accuracy",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "rise",
+            "increase"
+          ]
+        },
+        {
+          "id": "IELTS-V2-H1-Q4",
+          "prompt": "Unemployment fluctuated. → Unemployment showed some ______.",
+          "answer": "fluctuation",
+          "evidence": "fluctuate → fluctuation",
+          "reason": "Noun form.",
+          "focus": "word form accuracy",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1,
+          "accept": [
+            "fluctuations"
+          ]
+        },
+        {
+          "id": "IELTS-V2-H1-Q5",
+          "prompt": "Car sales peaked at 2 million. → Car sales reached a ______ of 2 million.",
+          "answer": "peak",
+          "evidence": "peak (verb) → peak (noun)",
+          "reason": "Same word.",
+          "focus": "lexical resource",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        },
+        {
+          "id": "IELTS-V2-H1-Q6",
+          "prompt": "Exports increased considerably. → There was a ______ increase in exports.",
+          "answer": "considerable",
+          "evidence": "considerably → considerable",
+          "reason": "Adjective form.",
+          "focus": "word form accuracy",
+          "type": "completion",
+          "level": "core",
+          "word_limit": 1
+        }
+      ]
+    }
+  ],
+  "exit_ticket": [
+    "Two ways to say 'went down a lot':",
+    "The word I use for a very small change:",
+    "One sentence with 'overtook' or 'accounted for':"
+  ],
+  "homework": [
+    "Complete the pattern transformations on the homework sheet.",
+    "Find a chart in a newspaper or online. Write five sentences about it using five different word-bank items."
+  ],
+  "delayed_followup": "In Lesson 19 (Task 1 tables and accuracy), check whether learners choose trend words that match the size of the change. Record it as a later observation.",
+  "mapping_notes": "Focuses use Diagnostic Bible section 7.2 construct names where they apply (lexical resource, paraphrase recognition). Teaching focuses only. This optional vocabulary lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic.",
+  "release_blockers": [
+    "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
+    "Student task publication and platform evidence capture remain separate, governed steps."
+  ],
+  "followup": {
+    "id": "IELTS-V2-C1",
+    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.0.0 on 2026-10-26. Keep private until use.",
+    "delivery": "About one teaching week later: 10 minutes, unseen chart, no word bank or dictionary. Record timing and support.",
+    "review": "Score each answer independently. Accept alternatives only when they match the size of the change. Do not convert to an IELTS band.",
+    "difficulty_calibration": "Editorial relative-difficulty labels only. They do not imply an IELTS band, psychometric calibration, or verified difficulty.",
+    "blocks": [
+      {
+        "id": "IELTS-V2-C1",
+        "kind": "items",
+        "title": "Fresh check: museum visitors",
+        "mode": "Withheld fresh check; independent, timed",
+        "instructions": "Look at the graph. Complete each sentence with ONE word, or choose the correct letter.",
+        "figure": {
+          "type": "line",
+          "title": "Annual visitors to three museums, one city, 2014-2022 (thousands)",
+          "x_label": "Year",
+          "y_label": "Visitors (thousands)",
+          "y_max": 500,
+          "x": [
+            "2014",
+            "2016",
+            "2018",
+            "2020",
+            "2022"
+          ],
+          "series": [
+            {
+              "name": "Science museum",
+              "values": [
+                420,
+                410,
+                430,
+                150,
+                400
+              ]
+            },
+            {
+              "name": "Art gallery",
+              "values": [
+                200,
+                260,
+                310,
+                120,
+                330
+              ]
+            },
+            {
+              "name": "History museum",
+              "values": [
+                150,
+                155,
+                150,
+                60,
+                140
+              ]
+            }
+          ],
+          "alt": "Line graph of three museums from 2014 to 2022. All three drop sharply in 2020. The science museum is highest except in 2020. The art gallery rises from 200 to 310, falls to 120 in 2020, then reaches 330 in 2022. The history museum stays near 150 apart from 2020.",
+          "note": "Fictional data created for practice."
+        },
+        "items": [
+          {
+            "id": "IELTS-V2-C1-Q1",
+            "prompt": "In 2020, visitor numbers at all three museums ______ dramatically.",
+            "answer": "fell",
+            "evidence": "All drop sharply in 2020",
+            "reason": "A large fall.",
+            "focus": "lexical resource",
+            "type": "completion",
+            "level": "core",
+            "word_limit": 1,
+            "accept": [
+              "dropped",
+              "declined",
+              "plummeted",
+              "decreased"
+            ]
+          },
+          {
+            "id": "IELTS-V2-C1-Q2",
+            "prompt": "Apart from 2020, the history museum remained relatively ______ at around 150,000.",
+            "answer": "stable",
+            "evidence": "History 150, 155, 150, 140",
+            "reason": "Little change.",
+            "focus": "lexical resource",
+            "type": "completion",
+            "level": "core",
+            "word_limit": 1,
+            "accept": [
+              "steady",
+              "constant"
+            ]
+          },
+          {
+            "id": "IELTS-V2-C1-Q3",
+            "prompt": "The art gallery ______ at 330,000 visitors in 2022.",
+            "answer": "peaked",
+            "evidence": "Art gallery highest value 330 in 2022",
+            "reason": "Highest point.",
+            "focus": "lexical resource",
+            "type": "completion",
+            "level": "core",
+            "word_limit": 1
+          },
+          {
+            "id": "IELTS-V2-C1-Q4",
+            "prompt": "Which sentence is accurate?",
+            "answer": "C",
+            "evidence": "Science 420 vs art gallery 200 in 2014",
+            "reason": "420 is just over twice 200.",
+            "focus": "accuracy of data description",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  In 2014, the art gallery had more visitors than the science museum.",
+              "B  In 2014, the science museum had three times as many visitors as the art gallery.",
+              "C  In 2014, the science museum had just over twice as many visitors as the art gallery."
+            ]
+          },
+          {
+            "id": "IELTS-V2-C1-Q5",
+            "prompt": "Which sentence is accurate?",
+            "answer": "A",
+            "evidence": "Art gallery 200 → 310 (2014-2018)",
+            "reason": "A steady rise of over 50%.",
+            "focus": "accuracy of data description",
+            "type": "mcq",
+            "level": "core",
+            "options": [
+              "A  Between 2014 and 2018, the art gallery saw a steady rise in visitors.",
+              "B  Between 2014 and 2018, the art gallery fluctuated wildly.",
+              "C  Between 2014 and 2018, the art gallery overtook the science museum."
+            ]
+          },
+          {
+            "id": "IELTS-V2-C1-Q6",
+            "prompt": "In 2022, the art gallery ______ the history museum by a wide margin, but not the science museum.",
+            "answer": "exceeded",
+            "evidence": "330 vs 140; science 400",
+            "reason": "exceeded/outnumbered/surpassed.",
+            "focus": "lexical resource",
+            "type": "completion",
+            "level": "core",
+            "word_limit": 1,
+            "accept": [
+              "surpassed",
+              "outnumbered",
+              "outperformed"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-26",
+    "version": "1.0.0",
+    "scope": "Vocabulary lesson content, keys and models for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek: 'there should also some Vocabulary lessons that really fit the IELTS in a very practical way for the students to benefit from. Make the needed adjustments and improvements now ... you have all my permissions, don't ask for any.' Not recorded as an in-platform decision; no review-draft pack was opened before approval."
+  }
+}

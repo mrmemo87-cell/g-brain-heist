@@ -13,7 +13,7 @@ export interface ReviewDraftCatalogue { canDecide: boolean; packs: ReviewDraftPa
 
 const hex64 = /^[a-f0-9]{64}$/;
 // Core lessons 05-24, optional extension lessons X1-X8 and full mock tests M1-M3.
-const lessonCode = /^IELTS-(0[5-9]|1[0-9]|2[0-4]|X[1-8]|M[1-3])$/;
+const lessonCode = /^IELTS-(0[5-9]|1[0-9]|2[0-4]|X[1-8]|V[1-6]|M[1-3])$/;
 const semver = /^[0-9]+\.[0-9]+\.[0-9]+$/;
 
 function validDecision(d: unknown): d is ReviewDecision {

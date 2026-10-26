@@ -3,8 +3,8 @@
  "code": "IELTS-M2",
  "number": 2,
  "title": "Mock Test 2",
- "version": "1.0.0",
- "status": "Owner approved v1.0.0 on 2026-10-18; teacher release to all eligible schools",
+ "version": "1.1.0",
+ "status": "Owner approved v1.1.0 on 2026-10-26; teacher release to all eligible schools",
  "test_type": "Academic",
  "bibles": {
   "diagnostic": "1.10.0",
@@ -765,14 +765,14 @@
     "title": "Farming upwards: the rise of vertical farms",
     "labelled": false,
     "paragraphs": [
-     "In a former warehouse on the edge of a large city, lettuce is growing on shelves that reach almost to the ceiling. There is no soil and no sunlight. Instead, the plants grow under rows of purple-pink lamps, with their roots in trays of water containing dissolved nutrients. This is a vertical farm, and its supporters believe that buildings like this one could change the way cities are fed. Inside, the temperature, humidity and even the carbon dioxide level are adjusted automatically by computers, and workers wear protective clothing to avoid bringing in insects or disease from outside.",
-     "The idea of growing food in tall buildings is not new. It was popularised in the late 1990s by an American professor, Dickson Despommier, who challenged his students to design a farm that could feed a city from within its own boundaries. For many years, however, the concept remained largely theoretical. The cost of lighting was simply too high, and few investors believed that indoor crops could compete with those grown in fields. Small experimental farms were built in universities and research centres, but they were seen mainly as a way of studying plant growth rather than as businesses that could supply supermarkets.",
-     "What changed was the development of light-emitting diodes, or LEDs. Earlier indoor farms relied on lamps that wasted much of their energy as heat. LEDs produce little heat and can be tuned to emit only the colours of light that plants use most efficiently for photosynthesis, mainly red and blue. This is why many vertical farms are bathed in a purple glow. As the price of LEDs fell during the 2010s, commercial vertical farms began to open in Asia, Europe and North America. Japan was among the earliest adopters, partly because of concerns about food security after a major earthquake in 2011 disrupted supplies, and partly because land suitable for farming near its large cities is scarce and expensive.",
-     "Most vertical farms use a method called hydroponics, in which plants grow with their roots in water rather than soil. Some use a variation called aeroponics, where the roots hang in the air and are sprayed with a fine mist. Both methods use far less water than conventional agriculture, because the water is collected and reused. Some operators claim a reduction of more than ninety per cent. The nutrients that plants would normally take from the soil are dissolved in the water, and sensors monitor their levels continuously so that they can be adjusted for each crop.",
-     "Supporters point to several other advantages. Because the growing environment is completely controlled, crops can be harvested all year round, regardless of the weather. Pests are rare, so pesticides are seldom needed. And because farms can be built close to where people live, produce can reach shops within hours of being picked, reducing the need for long-distance transport and refrigeration.",
-     "However, the industry has faced serious difficulties. The most significant is energy. Although LEDs are efficient, they still consume large amounts of electricity, as do the systems that control temperature and humidity. In countries where electricity is expensive or generated mainly from fossil fuels, both the financial and the environmental case for vertical farming becomes much weaker. Several well-funded companies have closed in recent years after failing to make a profit.",
-     "There is also the question of which crops are suitable. At present, vertical farms grow mainly leafy greens and herbs. These plants are small, grow quickly and can be sold at relatively high prices. Staple crops such as wheat and rice, which provide most of the world's calories, are not economically viable indoors, because they need a great deal of space and light for a product that sells cheaply.",
-     "Even so, researchers continue to experiment. Some farms are now testing strawberries and tomatoes, which require pollination; a few have introduced bees into their growing rooms. Others are combining vertical farming with renewable energy, for example by building farms next to solar or wind installations. A further area of research involves breeding new plant varieties that are better suited to indoor conditions, for example dwarf fruit trees that can be grown on shelves. Whether vertical farms will ever produce more than a small share of our food remains uncertain, but they are likely to play a growing role in supplying fresh produce to cities."
+     "Inside a converted warehouse on the outskirts of a large city, lettuces are growing on shelves stacked almost to the ceiling. There is no soil, and not a single window admits daylight. Instead, the plants are illuminated by rows of purple-pink diodes, their roots suspended in trays through which a nutrient solution circulates continuously, while sensors record temperature, humidity and carbon dioxide levels every few seconds. Facilities of this kind, generally described as vertical farms, have multiplied rapidly over the past fifteen years, and their supporters claim that they could transform the way in which cities are supplied with fresh food.",
+     "The underlying idea is not entirely new. Growing plants without soil, a technique known as hydroponics, has been practised experimentally for well over a century, and commercial greenhouses have used it for decades. What distinguishes the modern vertical farm is the combination of hydroponics with complete control over the growing environment and with artificial lighting efficient enough to replace the sun altogether. The decisive technical development was the falling cost of light-emitting diodes, or LEDs, which convert electricity into light far more efficiently than earlier lamps and emit relatively little heat, so that they can be positioned only a few centimetres above the leaves without scorching them.",
+     "Because the environment is sealed, growers are able to adjust conditions to suit each crop precisely. The colour of the light, for example, can be tuned to the wavelengths that plants use most effectively for photosynthesis, which is why most facilities appear pink rather than white. Since pests have few opportunities to enter, pesticides are rarely necessary, and the produce frequently requires no washing before it is eaten. Most strikingly, the water that is not absorbed by the plants is collected, filtered and recirculated, so that a vertical farm may consume as little as five per cent of the water required to grow the same quantity of lettuce in an open field.",
+     "Advocates also emphasise the advantages of location. Conventional vegetables are frequently transported hundreds or even thousands of kilometres between farm and supermarket, losing freshness during the journey; a vertical farm, by contrast, can be situated within the city that it supplies, allowing produce to be harvested in the morning and sold the same afternoon. Furthermore, because harvests are unaffected by droughts, floods or unseasonal frosts, output remains consistent throughout the year, an attribute that retailers value highly.",
+     "The principal obstacle is energy. Sunlight is free, whereas electric lighting is not, and in most facilities lighting accounts for the largest single share of operating costs, followed by the climate-control systems that remove the heat and moisture generated inside the building. Unless that electricity is derived from renewable sources, the carbon emissions associated with a vertically farmed lettuce can actually exceed those of one grown outdoors and transported a considerable distance. Several well-funded companies have closed in recent years, having discovered that their running costs could not be recovered from the prices that consumers were prepared to pay. Critics also note that the buildings themselves, with their pumps, sensors and specialised equipment, represent a substantial initial investment that must be repaid before any profit is made.",
+     "For these reasons, the range of crops that can be grown profitably remains narrow. Leafy greens and herbs are well suited to vertical farming because they mature quickly, occupy little height and consist largely of edible material. Staple crops such as wheat and rice, in contrast, require extended growing periods and produce a high proportion of stalk and straw, which renders indoor cultivation economically unworkable at present. Even tomatoes and strawberries, which a number of companies are now attempting to cultivate, demand substantially more light and space than lettuce does.",
+     "Researchers are attempting to address these limitations in a variety of ways. Some are developing plant varieties specifically bred for indoor cultivation, compact enough to fit between closely spaced shelves and capable of growing well under lower light intensity. Others are investigating whether lighting could be concentrated in periods when electricity is cheapest, such as during the night, without reducing yields significantly. A third approach involves locating farms close to sources of waste heat, such as factories or data centres, so that energy which would otherwise be lost can contribute to maintaining suitable growing temperatures.",
+     "Whether vertical farms will ever become more than a specialised supplier of salad ingredients remains uncertain. They are unlikely to replace conventional agriculture, which still produces the overwhelming majority of the world's calories. Nevertheless, in cities where land is scarce, the climate is harsh or fresh produce must otherwise be imported over long distances, they may come to occupy a valuable, if limited, place in the food supply, particularly if the cost of renewable electricity continues to decline."
     ],
     "groups": [
      {
@@ -781,45 +781,44 @@
        6
       ],
       "type": "tfng",
-      "instructions": "Do the following statements agree with the information given in Reading Passage 1? Write TRUE, FALSE or NOT GIVEN.",
+      "instructions": "Do the following statements agree with the information given in Reading Passage 1? Write TRUE if the statement agrees with the information, FALSE if the statement contradicts the information, or NOT GIVEN if there is no information on this.",
       "items": [
        {
         "n": 1,
-        "prompt": "The plants in the warehouse farm receive no natural light.",
-        "answer": "TRUE",
-        "evidence": "There is no soil and no sunlight."
+        "prompt": "Growing plants without soil was first attempted in the last fifteen years.",
+        "answer": "FALSE",
+        "evidence": "has been practised experimentally for well over a century"
        },
        {
         "n": 2,
-        "prompt": "Despommier's students built the first working vertical farm.",
-        "answer": "NOT GIVEN",
-        "evidence": "who challenged his students to design a farm that could feed a city",
-        "note": "The passage says Despommier challenged students to design a farm; it does not say they built one."
+        "prompt": "The pinkish appearance of many indoor farms is the result of a deliberate choice about the light used.",
+        "answer": "TRUE",
+        "evidence": "The colour of the light, for example, can be tuned to the wavelengths that plants use most effectively for photosynthesis, which is why most facilities appear pink rather than white."
        },
        {
         "n": 3,
-        "prompt": "Investors were enthusiastic about vertical farming before the development of LEDs.",
-        "answer": "FALSE",
-        "evidence": "few investors believed that indoor crops could compete with those grown in fields"
+        "prompt": "Shoppers prefer the flavour of lettuce grown indoors to that of field-grown lettuce.",
+        "answer": "NOT GIVEN",
+        "evidence": "losing freshness during the journey",
+        "note": "Freshness is mentioned, but nothing is said about which taste shoppers prefer."
        },
        {
         "n": 4,
-        "prompt": "Aeroponics uses more water than hydroponics.",
-        "answer": "NOT GIVEN",
-        "evidence": "Both methods use far less water than conventional agriculture",
-        "note": "The passage compares both methods with conventional agriculture, not with each other."
+        "prompt": "Retail businesses appreciate being able to rely on a steady supply throughout the year.",
+        "answer": "TRUE",
+        "evidence": "output remains consistent throughout the year, an attribute that retailers value highly"
        },
        {
         "n": 5,
-        "prompt": "Vertical farms rarely need to use pesticides.",
-        "answer": "TRUE",
-        "evidence": "Pests are rare, so pesticides are seldom needed."
+        "prompt": "Indoor farming always has a smaller environmental impact than traditional agriculture.",
+        "answer": "FALSE",
+        "evidence": "the carbon emissions associated with a vertically farmed lettuce can actually exceed those of one grown outdoors"
        },
        {
         "n": 6,
-        "prompt": "Every vertical farm company that has received large investments has made a profit.",
-        "answer": "FALSE",
-        "evidence": "Several well-funded companies have closed in recent years after failing to make a profit."
+        "prompt": "Some vertical-farming businesses have failed because their expenses were too high.",
+        "answer": "TRUE",
+        "evidence": "having discovered that their running costs could not be recovered from the prices that consumers were prepared to pay"
        }
       ]
      },
@@ -835,52 +834,52 @@
       "items": [
        {
         "n": 7,
-        "prompt": "Lighting: LEDs give off little ______.",
+        "prompt": "Lighting: modern lamps release relatively little ______, so they can be placed close to plants.",
         "answer": "heat",
         "accept": [],
-        "evidence": "LEDs produce little heat"
+        "evidence": "emit relatively little heat"
        },
        {
         "n": 8,
-        "prompt": "LEDs can provide the colours plants need for ______.",
-        "answer": "photosynthesis",
+        "prompt": "Pest control: ______ are seldom required inside sealed buildings.",
+        "answer": "pesticides",
         "accept": [],
-        "evidence": "the colours of light that plants use most efficiently for photosynthesis"
+        "evidence": "pesticides are rarely necessary"
        },
        {
         "n": 9,
-        "prompt": "Advantage: crops are produced all year, whatever the ______.",
-        "answer": "weather",
+        "prompt": "Water: unused water is filtered and ______.",
+        "answer": "recirculated",
         "accept": [],
-        "evidence": "regardless of the weather"
+        "evidence": "collected, filtered and recirculated"
        },
        {
         "n": 10,
-        "prompt": "Advantage: less need for transport and ______.",
-        "answer": "refrigeration",
+        "prompt": "Main cost: electricity for ______.",
+        "answer": "lighting",
         "accept": [],
-        "evidence": "reducing the need for long-distance transport and refrigeration"
+        "evidence": "lighting accounts for the largest single share of operating costs"
        },
        {
         "n": 11,
-        "prompt": "Main problem: ______ use",
-        "answer": "energy",
+        "prompt": "Unsuitable crops: wheat and rice produce too much stalk and ______.",
+        "answer": "straw",
         "accept": [],
-        "evidence": "The most significant is energy."
+        "evidence": "a high proportion of stalk and straw"
        },
        {
         "n": 12,
-        "prompt": "Suitable crops: leafy greens and ______",
-        "answer": "herbs",
+        "prompt": "Research: breeding ______ plant varieties that fit between narrow shelves.",
+        "answer": "compact",
         "accept": [],
-        "evidence": "vertical farms grow mainly leafy greens and herbs"
+        "evidence": "compact enough to fit between closely spaced shelves"
        },
        {
         "n": 13,
-        "prompt": "Experiments: ______ added to growing rooms for pollination",
-        "answer": "bees",
+        "prompt": "Research: siting farms near factories or data centres to use waste ______.",
+        "answer": "heat",
         "accept": [],
-        "evidence": "a few have introduced bees into their growing rooms"
+        "evidence": "close to sources of waste heat"
        }
       ]
      }
@@ -891,12 +890,12 @@
     "title": "The return of the sea otter",
     "labelled": true,
     "paragraphs": [
-     "Along the Pacific coast of North America, the sea otter is enjoying a remarkable recovery. Two centuries ago, hundreds of thousands of these animals lived in the coastal waters between Japan and California. By the early twentieth century, they had been hunted almost to extinction for their fur, which is the densest of any mammal, with up to a million hairs in a single square centimetre. Only a few small groups survived, in isolated places that hunters had failed to reach. Unlike most marine mammals, sea otters spend almost their whole lives at the surface, floating on their backs, and they often wrap themselves in kelp to avoid drifting away while they sleep. They are also one of the few animals known to use tools, frequently using a stone to break open the shells of their prey.",
-     "International protection came in 1911, when a treaty between the United States, Russia, Japan and Britain banned commercial hunting. Recovery was slow at first, but from the 1960s onwards, conservationists began moving otters from surviving populations to areas where they had disappeared. This was difficult and expensive work: the animals had to be caught at sea, kept in floating pens and then carried by boat or aircraft, sometimes over hundreds of kilometres. Some of these relocations failed, as the animals swam back towards their original homes or died soon after release. Others succeeded, and today several regions have populations numbering in the thousands. Scientists now count the animals regularly, usually from small aircraft or from the shore, and these surveys show that growth has been fastest in areas with large rocky reefs and plenty of food. In places where the coast is sandy, populations have increased much more slowly.",
-     "The return of the sea otter has had effects far beyond the species itself. Sea otters eat large quantities of sea urchins, spiny animals that feed on kelp, the giant seaweed that forms underwater forests along rocky coasts. When otters disappeared, urchin numbers exploded, and in many places the kelp forests were eaten away, leaving bare rock that scientists call urchin barrens. Where otters have returned, urchins have been brought under control and the kelp has grown back. In one well-studied area, kelp cover increased several times over within a decade of the otters' arrival. Urchins have not disappeared, but those that remain tend to hide in cracks in the rock and feed on drifting pieces of seaweed rather than on living plants.",
-     "Divers who knew these coasts before and after the otters' return describe the change as dramatic, comparing it to the difference between a desert and a forest. This chain of effects is an example of what ecologists call a trophic cascade, in which a predator influences an entire ecosystem by controlling the animals it eats. Kelp forests provide shelter and food for hundreds of other species, including many fish that are important to commercial fishing. They also absorb carbon dioxide, and some researchers have suggested that the recovery of sea otters has increased the amount of carbon stored along certain coastlines, although estimates of the scale of this effect vary widely.",
-     "Not everyone has welcomed the otters' return. Sea otters also eat shellfish such as crabs, clams and abalone, which support valuable fisheries. In some areas, fishermen have reported that catches fell sharply after otters arrived, and there has been tension between fishing communities and conservation groups. Some economists argue that the losses to shellfish fisheries are outweighed by gains in fin fish and tourism, but these benefits are not always felt by the same people who bear the costs. In some regions, local councils have tried to bring the groups together, for example by involving fishermen in counting otters and in deciding which areas should be protected.",
-     "Sea otters also face new threats. Because they lack a thick layer of fat, they depend entirely on their fur to stay warm, and oil spills can be fatal, as oil destroys its insulating properties. Disease, often linked to pollution flowing from the land, is a growing cause of death in some populations, and in parts of Alaska, numbers have fallen again, possibly because killer whales have begun to hunt otters more often. Managers therefore stress that the species' recovery cannot be taken for granted, and that continued monitoring will be essential."
+     "Along the Pacific coast of North America, the sea otter has staged one of the more remarkable recoveries in the history of wildlife conservation. Two centuries ago, several hundred thousand of these animals are thought to have inhabited the coastal waters in a broad arc stretching from northern Japan to the Baja California peninsula. Unlike most marine mammals, however, sea otters possess no insulating layer of blubber; instead, they rely on a coat of extraordinarily dense fur, with more hairs per square centimetre than any other mammal, which traps a layer of air against the skin. That same characteristic made their pelts exceptionally valuable to fur traders, and from the eighteenth century onwards they were hunted relentlessly. Historical records from trading companies suggest that tens of thousands of pelts were shipped across the Pacific in some years, a scale of exploitation that few populations of a slow-breeding mammal could withstand.",
+     "By the early twentieth century, the species had been reduced to perhaps one or two thousand individuals, scattered among a handful of isolated colonies, and many observers assumed that it was destined for extinction. International protection was finally agreed in 1911, when a treaty between several Pacific nations prohibited commercial hunting. Recovery, nonetheless, proceeded slowly. Sea otters reproduce at a modest rate, typically giving birth to a single pup at a time, and the surviving populations were too widely dispersed to recolonise their former range unaided. In several regions, conservationists eventually relocated animals by boat or aircraft in an effort to re-establish colonies on stretches of coast where the species had disappeared. Some of these translocations failed, as released animals dispersed far from the intended site or failed to survive the stress of capture and transport, but others established colonies that have since expanded steadily along the coast.",
+     "As numbers increased, scientists began to observe that the otters' return was transforming entire coastal ecosystems. Sea otters consume large quantities of sea urchins, spiny animals that graze on kelp, the giant seaweed that forms dense underwater forests in cool, shallow waters. Where otters had been eliminated, urchin populations had multiplied unchecked and reduced extensive kelp forests to barren expanses of rock. Where otters were reintroduced, urchin numbers declined and the kelp regenerated, sometimes within a few years. Ecologists cite this sequence as a classic illustration of a 'keystone species', an animal whose influence on its environment is disproportionate to its abundance. The phenomenon has been documented in Alaska, British Columbia and California, and although its details vary from site to site, the general pattern has proved remarkably consistent.",
+     "The recovery of the kelp has implications that extend beyond the otters themselves. Kelp forests provide shelter and nourishment for hundreds of other species, including commercially significant fish, and they dampen the force of waves approaching the shore. Kelp also absorbs carbon dioxide as it grows, and some researchers have estimated that the presence of otters may substantially increase the quantity of carbon stored along coastlines where they are found. These calculations remain controversial, however, because much depends on how long the carbon taken up by kelp remains locked away rather than being returned to the atmosphere. Some tourism operators, too, have begun to promote otter-watching excursions, although the economic value of such activities has not been systematically assessed. Even so, the broad ecological benefits of restored kelp forests are now widely accepted among marine biologists.",
+     "Not everyone has greeted the otters' return enthusiastically. Shellfish fishermen, in particular, complain that the animals consume the clams, crabs and abalone on which their livelihoods depend, and in some areas the reappearance of otters has coincided with the collapse of local shellfish fisheries. Conservationists respond that these fisheries flourished in the first place largely because the otters had been removed, and that their productivity during the twentieth century was therefore an artificial situation rather than a natural one. Negotiating between these perspectives has become a recurrent source of tension in coastal communities. In parts of Alaska, indigenous communities have also raised the question of whether traditional, small-scale harvesting of otters should be permitted where populations have recovered strongly, a proposal that remains contentious.",
+     "Despite its successes, the sea otter remains vulnerable. Because the animals depend on their fur for warmth, contamination by oil prevents it from insulating them, and a single major spill can prove fatal to hundreds of individuals. Disease, frequently associated with pollutants and parasites carried into the sea by rivers and storm drains, has become a growing cause of mortality in certain populations. In some areas, increased predation by orcas, which appear to have turned to otters as their usual prey has declined, has caused sharp and unexpected falls in numbers. The species has therefore been described not as rescued but as recovering, a distinction that conservationists insist upon. Monitoring programmes now track the size and health of the main populations, providing early warning of declines that might otherwise go unnoticed until recovery has been reversed."
     ],
     "groups": [
      {
@@ -918,33 +917,33 @@
       "items": [
        {
         "n": 14,
-        "prompt": "a reason why the fur of sea otters was so valuable",
+        "prompt": "an explanation of why the animals were commercially attractive",
         "answer": "A",
-        "evidence": "the densest of any mammal"
+        "evidence": "That same characteristic made their pelts exceptionally valuable to fur traders"
        },
        {
         "n": 15,
-        "prompt": "a description of attempts to establish otters in new areas that did not succeed",
+        "prompt": "a reference to human intervention to help the species spread",
         "answer": "B",
-        "evidence": "Some of these relocations failed"
+        "evidence": "conservationists eventually relocated animals by boat or aircraft"
        },
        {
         "n": 16,
-        "prompt": "a term for areas where kelp has disappeared",
-        "answer": "C",
-        "evidence": "leaving bare rock that scientists call urchin barrens"
+        "prompt": "a counter-argument to a complaint made by one group of workers",
+        "answer": "E",
+        "evidence": "Conservationists respond that these fisheries flourished in the first place largely because the otters had been removed"
        },
        {
         "n": 17,
-        "prompt": "an example of a conflict between different groups of people",
-        "answer": "E",
-        "evidence": "there has been tension between fishing communities and conservation groups"
+        "prompt": "a reason for uncertainty about an estimate",
+        "answer": "D",
+        "evidence": "much depends on how long the carbon taken up by kelp remains locked away"
        },
        {
         "n": 18,
-        "prompt": "a possible explanation for a recent decline in one region",
+        "prompt": "an example of a change in the behaviour of a predator",
         "answer": "F",
-        "evidence": "possibly because killer whales have begun to hunt otters more often"
+        "evidence": "which appear to have turned to otters as their usual prey has declined"
        }
       ]
      },
@@ -957,19 +956,19 @@
       "instructions": "Choose TWO letters, A–E.",
       "stem": "Which TWO benefits of kelp forests are mentioned in the passage?",
       "options": [
-       "A  They protect the coast from storms.",
-       "B  They provide a habitat for many species.",
-       "C  They are a source of food for humans.",
-       "D  They take in carbon dioxide.",
-       "E  They attract large numbers of tourists."
+       "A  They reduce the impact of waves on the coast.",
+       "B  They provide food for sea otters.",
+       "C  They are harvested as a source of fertiliser.",
+       "D  They support many other kinds of marine life.",
+       "E  They attract visitors to coastal areas."
       ],
       "answer": [
-       "B",
+       "A",
        "D"
       ],
       "evidence": [
-       "Kelp forests provide shelter and food for hundreds of other species",
-       "They also absorb carbon dioxide"
+       "they dampen the force of waves approaching the shore",
+       "Kelp forests provide shelter and nourishment for hundreds of other species"
       ]
      },
      {
@@ -979,21 +978,21 @@
       ],
       "type": "multi",
       "instructions": "Choose TWO letters, A–E.",
-      "stem": "Which TWO threats to sea otters are mentioned in the passage?",
+      "stem": "Which TWO current threats to sea otters are mentioned in the passage?",
       "options": [
-       "A  oil spills",
+       "A  pollution reaching the sea from the land",
        "B  a shortage of sea urchins",
-       "C  illegal hunting",
-       "D  disease",
-       "E  rising sea temperatures"
+       "C  illegal hunting for fur",
+       "D  rising sea temperatures",
+       "E  attacks by larger marine animals"
       ],
       "answer": [
        "A",
-       "D"
+       "E"
       ],
       "evidence": [
-       "oil spills can be fatal",
-       "Disease, often linked to pollution flowing from the land, is a growing cause of death"
+       "pollutants and parasites carried into the sea by rivers and storm drains",
+       "increased predation by orcas"
       ]
      },
      {
@@ -1002,35 +1001,41 @@
        26
       ],
       "type": "short",
-      "instructions": "Answer the questions below. Choose NO MORE THAN THREE WORDS from the passage for each answer.",
+      "instructions": "Answer the questions below. Choose NO MORE THAN THREE WORDS AND/OR A NUMBER from the passage for each answer.",
       "word_limit": 3,
       "items": [
        {
         "n": 23,
-        "prompt": "In which year was commercial hunting of sea otters banned?",
+        "prompt": "In which year did an agreement end the commercial hunting of sea otters?",
         "answer": "1911",
-        "evidence": "International protection came in 1911"
+        "evidence": "International protection was finally agreed in 1911"
        },
        {
         "n": 24,
-        "prompt": "What do sea urchins feed on?",
-        "answer": "kelp",
-        "evidence": "spiny animals that feed on kelp"
+        "prompt": "What do sea otters have instead of a fat layer to keep them warm?",
+        "answer": "dense fur",
+        "accept": [
+         "extraordinarily dense fur"
+        ],
+        "evidence": "a coat of extraordinarily dense fur"
        },
        {
         "n": 25,
-        "prompt": "What name is given to the process in which a predator affects a whole ecosystem?",
-        "answer": "trophic cascade",
-        "evidence": "what ecologists call a trophic cascade",
+        "prompt": "What did kelp forests become in places where otters were absent?",
+        "answer": "barren expanses",
         "accept": [
-         "a trophic cascade"
-        ]
+         "barren expanses of rock"
+        ],
+        "evidence": "reduced extensive kelp forests to barren expanses of rock"
        },
        {
         "n": 26,
-        "prompt": "Apart from fin fish, what do some economists say benefits from the return of otters?",
-        "answer": "tourism",
-        "evidence": "outweighed by gains in fin fish and tourism"
+        "prompt": "What term do ecologists use for an animal with an unusually large effect on its environment?",
+        "answer": "keystone species",
+        "accept": [
+         "a keystone species"
+        ],
+        "evidence": "a classic illustration of a 'keystone species'"
        }
       ]
      }
@@ -1041,13 +1046,14 @@
     "title": "Should schools still teach handwriting?",
     "labelled": false,
     "paragraphs": [
-     "In many classrooms, the pencil is giving way to the keyboard. Children who once spent hours practising joined-up writing now learn to type in their first years at school, and much of their written work is completed on screens. Some education systems have reduced or removed the requirement to teach cursive handwriting altogether. To many people this seems a sensible adjustment to modern life. After all, most adults now write far more on keyboards than by hand. Typing is faster for most people, it produces text that is easy to read and edit, and it allows students to share their work instantly. Yet I believe the case for abandoning handwriting is weaker than it first appears.",
-     "The strongest argument for continuing to teach handwriting comes from research on learning. Several studies have found that students who take notes by hand remember lectures better than those who type. One explanation is that typing is fast enough to allow students to record a lecturer's words almost exactly, without thinking about them. Writing by hand is slower, so students are forced to summarise and select, and this extra processing helps them to understand and remember. These findings have been widely reported, and although later studies have not always reproduced the effect, the overall pattern is consistent enough to take seriously.",
-     "There is also evidence that handwriting plays a role in learning to read. When young children form letters by hand, they appear to recognise them more quickly than children who learn the same letters by typing or tracing. Brain-imaging studies have shown that writing letters activates areas associated with reading in a way that typing does not. The precise mechanism is not fully understood, but it seems that the effort of producing each shape helps to fix it in memory. Similar results have been reported for spelling: children who practise words by writing them out appear to learn them more securely than those who type them, perhaps for the same reason.",
-     "Critics reply that these benefits do not require years of training in neat or joined-up writing. A child can gain the advantages of forming letters without spending hours perfecting a particular style, and the time saved could be used for other skills, such as coding or keyboard fluency, which are more relevant to the workplace. I accept that the traditional emphasis on beautiful handwriting was often excessive. Many adults still remember being criticised for untidy letters, and it is hard to argue that this was a good use of school time.",
-     "But this is an argument for changing how handwriting is taught, not for abandoning it. The goal should be fluent, legible writing that a student can produce without conscious effort, so that their attention is free for thinking. Students who struggle to form letters quickly are at a disadvantage in any task that requires writing by hand, including many examinations, which in most countries are still taken on paper. Removing handwriting from the curriculum would not remove these demands; it would simply leave weaker students less prepared for them.",
-     "There is a further consideration that is often overlooked. Technology is not equally available to all students. In schools with limited budgets, or in homes without reliable internet access, a pencil and paper remain the most dependable tools for learning. A curriculum that assumes every child has a device risks widening existing inequalities. Teaching handwriting well is, in this sense, a matter of fairness as well as effectiveness. It is also worth remembering that devices fail. Batteries run out, networks go down and software changes, while a pencil continues to work in almost any circumstances. In my own experience of visiting schools, the classrooms that coped best with technical problems were those in which children were equally comfortable with paper.",
-     "None of this means that typing should be neglected. Children need both skills, and the question is one of balance. A reasonable approach would be to teach fluent handwriting in the early years of primary school, when it supports reading and spelling, and to introduce typing gradually once that foundation is secure. Such an approach would also allow schools to spend less time on decorative styles and more on helping slower writers to build speed. The danger lies not in embracing new technology, but in assuming that it makes older skills unnecessary."
+     "In classrooms across much of the world, the pencil is steadily yielding to the keyboard. Children who would once have devoted hours to practising joined-up script now learn to type during their earliest years at school, and a growing proportion of their written work is produced and submitted on screens. Several education systems have already removed cursive writing from the compulsory curriculum, and others are considering whether to follow. Since most adults now write far more on keyboards than by hand, it is tempting to conclude that handwriting has become an obsolete skill, retained largely out of nostalgia. I believe that conclusion is premature, although not for the reasons most commonly advanced by its opponents.",
+     "The case for handwriting is frequently presented in sentimental terms: a handwritten letter is said to be more personal, a signature an expression of individual character, and fine penmanship a mark of education and discipline. These arguments may possess a certain charm, but they cannot justify the considerable amount of classroom time that the teaching of handwriting requires. If the only advantages of writing by hand were aesthetic or emotional, schools would be entirely justified in concentrating their limited resources elsewhere. Indeed, by resting the case on such grounds, defenders of handwriting may inadvertently strengthen the position of those who regard it as an outdated accomplishment.",
+     "The more persuasive arguments concern learning rather than appearance. A number of studies have found that young children who practise forming letters by hand subsequently recognise them more readily than children who learn the same letters by selecting them on a keyboard. One plausible explanation is that drawing a letter obliges the child to attend to its shape in detail, whereas pressing a key requires only that the correct key be identified. Brain-imaging research has indicated that regions associated with reading become more active after handwriting practice than after typing practice, although such studies have generally involved small numbers of participants and their conclusions should be treated with appropriate caution.",
+     "Comparable claims have been made regarding older students. In one widely publicised experiment, university students who took lecture notes by hand performed better on conceptual questions about the lecture than those who typed their notes on laptops. The researchers attributed this to speed: because handwriting is slower, students are compelled to summarise and select rather than transcribe the lecturer's words verbatim, and that process of selection deepens their understanding. Subsequent attempts to replicate the finding, however, have yielded inconsistent results, and it remains possible that the advantage reflects the way in which students choose to use a laptop rather than any inherent property of handwriting itself. It would be unwise, therefore, to treat this single study as decisive evidence that laptops should be banned from lecture theatres, as some enthusiastic commentators have proposed.",
+     "There are also practical considerations. In many countries, important examinations continue to be written on paper, and students whose handwriting is slow or illegible may be penalised not for their ideas but for their inability to record them quickly enough. Until such examinations are conducted entirely on computers, abandoning instruction in handwriting would place some students at a measurable disadvantage. It is worth noting, too, that a pen and paper require neither electricity nor an internet connection, a consideration of some significance in schools where access to technology remains unreliable. Teachers also report that students who cannot write fluently by hand often find it more difficult to annotate texts, sketch diagrams or jot down quick notes during discussions, activities that remain a routine part of classroom learning even in schools that are well equipped with computers.",
+     "Another consideration, rarely mentioned in public debate, concerns students with particular learning difficulties. For some children with conditions that affect fine motor control, the physical act of writing is so laborious that it obstructs the expression of their ideas, and for these students access to a keyboard can be genuinely liberating. Any sensible policy must therefore allow for flexibility, recognising that the arguments which apply to the majority of learners may not apply to every individual, and that teachers are generally best placed to judge which approach serves a particular child.",
+     "None of this suggests that schools should resist the teaching of typing, which is indisputably essential in modern working life. Nor does it require a return to the hours of copying exercises that were once commonplace, many of which were concerned more with uniformity of appearance than with fluency. The objective should be handwriting that is legible and sufficiently rapid to keep pace with thought, not handwriting that is beautiful. Whether that writing is joined or printed is, in my view, considerably less significant than whether the child can produce it comfortably and without conscious effort.",
+     "The most sensible approach, then, is not to choose between pen and keyboard but to determine what each does best. Handwriting appears particularly valuable in the early stages of literacy and when the aim is to think and remember, while typing is superior for producing, revising and sharing longer texts. A curriculum that allocates time to both, and that explains to students why each matters, is likely to serve them better than one that treats either skill as a relic or as a substitute for the other. Such a curriculum would also be easier to defend against the charge of nostalgia, since it rests on evidence about learning rather than on attachment to tradition."
     ],
     "groups": [
      {
@@ -1056,44 +1062,44 @@
        32
       ],
       "type": "ynng",
-      "instructions": "Do the following statements agree with the claims of the writer in Reading Passage 3? Write YES, NO or NOT GIVEN.",
+      "instructions": "Do the following statements agree with the claims of the writer in Reading Passage 3? Write YES if the statement agrees with the claims of the writer, NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this.",
       "items": [
        {
         "n": 27,
-        "prompt": "Most adults now write more on keyboards than by hand.",
-        "answer": "YES",
-        "evidence": "most adults now write far more on keyboards than by hand"
+        "prompt": "Emotional arguments in favour of handwriting are sufficient to justify the time spent on it.",
+        "answer": "NO",
+        "evidence": "they cannot justify the considerable amount of classroom time that the teaching of handwriting requires"
        },
        {
         "n": 28,
-        "prompt": "The research on note-taking should be ignored because some later studies did not repeat the results.",
-        "answer": "NO",
-        "evidence": "the overall pattern is consistent enough to take seriously"
+        "prompt": "Evidence from brain scans about handwriting should be interpreted carefully.",
+        "answer": "YES",
+        "evidence": "their conclusions should be treated with appropriate caution"
        },
        {
         "n": 29,
-        "prompt": "Scientists fully understand why forming letters by hand helps children to read.",
+        "prompt": "Later research has consistently confirmed the benefits of taking notes by hand.",
         "answer": "NO",
-        "evidence": "The precise mechanism is not fully understood"
+        "evidence": "Subsequent attempts to replicate the finding, however, have yielded inconsistent results"
        },
        {
         "n": 30,
-        "prompt": "Schools in the past spent too much time on making handwriting neat.",
-        "answer": "YES",
-        "evidence": "the traditional emphasis on beautiful handwriting was often excessive"
+        "prompt": "Teachers generally prefer marking typed work to handwritten work.",
+        "answer": "NOT GIVEN",
+        "evidence": "a growing proportion of their written work is produced and submitted on screens",
+        "note": "The writer does not say what teachers prefer to mark."
        },
        {
         "n": 31,
-        "prompt": "Coding should replace handwriting in the primary school curriculum.",
-        "answer": "NO",
-        "evidence": "this is an argument for changing how handwriting is taught, not for abandoning it"
+        "prompt": "Some students may lose marks in examinations because they write too slowly.",
+        "answer": "YES",
+        "evidence": "students whose handwriting is slow or illegible may be penalised not for their ideas"
        },
        {
         "n": 32,
-        "prompt": "Students who write by hand in examinations achieve higher marks than those who type.",
-        "answer": "NOT GIVEN",
-        "evidence": "including many examinations, which in most countries are still taken on paper",
-        "note": "The writer says many examinations are taken on paper, but makes no comparison of marks between handwritten and typed examinations."
+        "prompt": "Children should be taught to join their letters rather than print them.",
+        "answer": "NO",
+        "evidence": "Whether that writing is joined or printed is, in my view, considerably less significant"
        }
       ]
      },
@@ -1109,31 +1115,33 @@
       "items": [
        {
         "n": 33,
-        "prompt": "Students who take notes by hand cannot write as fast as those who type, so they have to ______ and select.",
-        "answer": "summarise",
-        "accept": [],
-        "evidence": "students are forced to summarise and select"
+        "prompt": "Young children who learn letters by hand later ______ them more easily than those who use a keyboard.",
+        "answer": "recognise",
+        "accept": [
+         "recognize"
+        ],
+        "evidence": "subsequently recognise them more readily"
        },
        {
         "n": 34,
-        "prompt": "This additional ______ improves understanding and memory.",
-        "answer": "processing",
+        "prompt": "Writing a letter forces a child to pay close attention to its ______.",
+        "answer": "shape",
         "accept": [],
-        "evidence": "this extra processing helps them to understand and remember"
+        "evidence": "obliges the child to attend to its shape in detail"
        },
        {
         "n": 35,
-        "prompt": "Brain-imaging studies show that writing letters activates areas linked to ______.",
-        "answer": "reading",
+        "prompt": "Because handwriting is slow, students must summarise and ______ instead of copying every word.",
+        "answer": "select",
         "accept": [],
-        "evidence": "activates areas associated with reading"
+        "evidence": "compelled to summarise and select"
        },
        {
         "n": 36,
-        "prompt": "It seems that the ______ needed to produce each letter helps children remember it.",
-        "answer": "effort",
+        "prompt": "Pen and paper do not depend on a supply of ______ or an internet connection.",
+        "answer": "electricity",
         "accept": [],
-        "evidence": "the effort of producing each shape helps to fix it in memory"
+        "evidence": "require neither electricity nor an internet connection"
        }
       ]
      },
@@ -1147,51 +1155,51 @@
       "items": [
        {
         "n": 37,
-        "prompt": "According to the writer, the aim of handwriting teaching should be",
+        "prompt": "In the first paragraph, the writer suggests that the decision to drop handwriting",
         "options": [
-         "A  beautiful, joined-up writing.",
-         "B  writing that is fluent and easy to read.",
-         "C  speed rather than accuracy.",
-         "D  preparation for the workplace."
+         "A  has already been taken by most education systems.",
+         "B  is being made too hastily.",
+         "C  is mainly motivated by cost.",
+         "D  has been opposed by most parents."
         ],
         "answer": "B",
-        "evidence": "The goal should be fluent, legible writing"
+        "evidence": "I believe that conclusion is premature"
        },
        {
         "n": 38,
-        "prompt": "Why does the writer mention schools with limited budgets?",
+        "prompt": "What does the writer say about the laptop experiment?",
         "options": [
-         "A  to show that handwriting is cheaper to teach",
-         "B  to argue that technology can be unreliable",
-         "C  to suggest that dropping handwriting could increase inequality",
-         "D  to explain why some schools have stopped teaching typing"
+         "A  Its results may be explained by students' habits with the device.",
+         "B  It proved that typing damages understanding.",
+         "C  It involved too few students to be useful.",
+         "D  It was designed to promote handwriting."
         ],
-        "answer": "C",
-        "evidence": "risks widening existing inequalities"
+        "answer": "A",
+        "evidence": "the advantage reflects the way in which students choose to use a laptop"
        },
        {
         "n": 39,
-        "prompt": "What does the writer recommend?",
+        "prompt": "The writer criticises traditional copying exercises because they",
         "options": [
-         "A  teaching typing before handwriting",
-         "B  teaching handwriting and typing at the same time from the start",
-         "C  teaching handwriting first and typing later",
-         "D  replacing typing lessons with handwriting practice"
+         "A  took time away from typing practice.",
+         "B  focused on neatness rather than ease of writing.",
+         "C  were too difficult for young children.",
+         "D  discouraged students from expressing ideas."
         ],
-        "answer": "C",
-        "evidence": "introduce typing gradually once that foundation is secure"
+        "answer": "B",
+        "evidence": "many of which were concerned more with uniformity of appearance than with fluency"
        },
        {
         "n": 40,
-        "prompt": "What is the writer's overall purpose?",
+        "prompt": "What is the writer's main conclusion?",
         "options": [
-         "A  to argue that handwriting still has an important place in schools",
-         "B  to compare education systems in different countries",
-         "C  to criticise the use of technology in classrooms",
-         "D  to describe the history of handwriting teaching"
+         "A  Typing should replace handwriting in later school years.",
+         "B  Schools should teach both skills for their different strengths.",
+         "C  Handwriting is more important than typing for older students.",
+         "D  The evidence on handwriting is too weak to guide policy."
         ],
-        "answer": "A",
-        "evidence": "I believe the case for abandoning handwriting is weaker than it first appears"
+        "answer": "B",
+        "evidence": "not to choose between pen and keyboard but to determine what each does best"
        }
       ]
      }
@@ -1445,11 +1453,18 @@
   "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
   "Student task publication and platform evidence capture remain separate, governed steps."
  ],
- "approval_record": {
+ "previous_approval_record": {
   "approved_by": "Owner, Brains Heist LLC",
   "date": "2026-10-18",
   "version": "1.0.0",
   "scope": "Mock test content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
   "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 de11ca06764beacb5128f6385977cd563443c9226a1d8f96997c2e363c02a03e): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
+ },
+ "approval_record": {
+  "approved_by": "Owner, Brains Heist LLC",
+  "date": "2026-10-26",
+  "version": "1.1.0",
+  "scope": "Mock test content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Reading rebuilt to real-test length, difficulty and paraphrase level; Listening recordings unchanged. Student task publication remains separate.",
+  "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek: 'I need to make sure all the IELTS materials (including the reading that I checked was weak in the Mock tests) and the lessons to be at the level of a real IELTS test ... Make the needed adjustments and improvements now; you have all my permissions, don't ask for any.' Not recorded as an in-platform decision; no review-draft pack was opened before approval."
  }
 }

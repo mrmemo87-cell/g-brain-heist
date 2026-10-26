@@ -45,7 +45,7 @@ export default function IeltsApprovedTeacherPacks({schoolId}:{schoolId:string}) 
   finally {if(epoch.current===run){lock.current=false;setBusy('');}}
  }
  const byKind=(k:PackKind)=>packs.filter(p=>packKind(p.lesson_code)===k);
- const tabs=(['course','extension','mock'] as PackKind[]).filter(k=>byKind(k).length>0);
+ const tabs=(['course','extension','vocabulary','mock'] as PackKind[]).filter(k=>byKind(k).length>0);
  const active:PackKind=tabs.includes(tab)?tab:(tabs[0]??'course');
  const shown=byKind(active);
 
@@ -88,6 +88,10 @@ export default function IeltsApprovedTeacherPacks({schoolId}:{schoolId:string}) 
   </section>)}
   {active==='extension'&&<>
    <p className="lesson-muted">Optional 60-minute lessons outside the 24-lesson course, for task types learners need extra practice with.</p>
+   <div className="pack-list">{shown.map(row)}</div>
+  </>}
+  {active==='vocabulary'&&<>
+   <p className="lesson-muted">Optional 60-minute lessons that teach the words and phrases learners need for each IELTS skill, with practice in test-style tasks.</p>
    <div className="pack-list">{shown.map(row)}</div>
   </>}
   {active==='mock'&&<>

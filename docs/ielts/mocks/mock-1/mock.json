@@ -3,8 +3,8 @@
  "code": "IELTS-M1",
  "number": 1,
  "title": "Mock Test 1",
- "version": "1.0.0",
- "status": "Owner approved v1.0.0 on 2026-10-18; teacher release to all eligible schools",
+ "version": "1.1.0",
+ "status": "Owner approved v1.1.0 on 2026-10-26; teacher release to all eligible schools",
  "test_type": "Academic",
  "bibles": {
   "diagnostic": "1.10.0",
@@ -618,14 +618,14 @@
     "title": "Cork: an ancient material with a modern future",
     "labelled": false,
     "paragraphs": [
-     "For more than two thousand years, people have taken advantage of an unusual natural material: the bark of the cork oak tree. Found mainly in the western Mediterranean, the cork oak is the only tree whose bark can be removed without killing it. After harvesting, the tree simply grows a new layer, and the process can be repeated many times over its long life. Portugal is by far the largest producer, accounting for around half of the world's supply, followed by Spain, Morocco and Algeria.",
-     "The properties of cork have been understood since ancient times. Fishermen used it to keep their nets afloat, and wine merchants used it to seal containers. What makes it so useful is its structure. Under a microscope, cork is made up of millions of tiny cells, each filled with a gas similar to air. A single cubic centimetre contains around forty million of these cells. This structure makes cork extremely light, so it floats easily, and also elastic: when it is squeezed, it returns to its original shape. The cell walls contain a waxy substance called suberin, which makes cork almost completely waterproof.",
-     "Harvesting cork is still done by hand, and it requires considerable skill. The workers, known in Portugal as tiradores, use a small axe to cut the bark, taking great care not to damage the living layer beneath. The work takes place in early summer, when the bark separates most easily from the trunk, and each strip is numbered so that it can be traced back to the forest it came from. A tree cannot be harvested until it is about twenty-five years old, and the first harvest produces bark of poor quality, which is used for flooring and insulation rather than bottle stoppers. After that, the bark can be removed every nine years. Since a cork oak can live for two hundred years, a single tree may be harvested more than fifteen times.",
-     "For most of the twentieth century, the industry depended heavily on one product. Wine stoppers accounted for the majority of the industry's income, and when screw caps and plastic stoppers became popular in the 1990s, many people predicted that cork forests would disappear. Some producers in Australia and New Zealand switched almost entirely to screw caps. Environmental groups warned that if cork lost its value, landowners would replace the forests with more profitable crops.",
-     "These predictions have not come true. Part of the reason is that the cork industry improved its quality control, reducing a problem known as cork taint, which spoils the taste of wine. But more important has been the development of new uses. Cork is now found in products ranging from shoes and furniture to the heat shields of space vehicles, where its resistance to high temperatures is valuable. Because cork does not conduct heat well, it is also increasingly used as insulation in buildings, and some architects have designed entire houses with cork walls. Even the waste produced when stoppers are punched out of the bark is now ground into granules and pressed into boards, so that almost nothing is thrown away.",
-     "Cork forests themselves have also attracted attention for reasons beyond the material they produce. They support a remarkable range of wildlife, including several endangered species, such as the Iberian lynx. Because the trees are not cut down, cork forests store large amounts of carbon, and studies have suggested that a harvested tree absorbs more carbon than one that is left alone, as it must regrow its bark. This has led some campaigners to argue that buying cork products actively helps to protect the environment.",
-     "The economic importance of the forests is considerable. In the rural areas where they grow, cork harvesting provides seasonal work for thousands of people, and the skilled harvesters are among the best-paid agricultural workers in Europe. Many landowners also use the land beneath the trees for grazing animals or keeping bees, so that the forest supports several kinds of income at once.",
-     "Nevertheless, the industry faces challenges. In some regions, the number of young trees is falling, partly because grazing animals eat the seedlings. Longer, drier summers linked to climate change have also made the trees more vulnerable to disease. Researchers in Portugal are now testing whether irrigation can help young trees grow faster, so that the first harvest could take place earlier than at present."
+     "Across the western Mediterranean, and particularly in the south of Portugal and Spain, extensive woodlands of cork oak have shaped both the landscape and the regional economy for centuries. The cork oak is unusual among commercially valuable trees because the part that is harvested is neither its timber nor its fruit but its outer bark, a thick and spongy layer that the tree regenerates after it has been stripped. Provided the work is carried out skilfully, the removal causes no lasting damage, and a single tree may continue to yield cork for well over two hundred years.",
+     "Human use of the material is remarkably old. Archaeologists have recovered cork floats attached to fishing nets in Mediterranean settlements dating back several thousand years, and classical writers described its use in footwear, beehives and the stoppers of storage jars. It was not until the seventeenth century, however, that cork acquired the role for which it is now best known. The spread of glass bottles strong enough to be laid on their side created a demand for a stopper that would remain tightly sealed for years, and cork proved ideally suited to that purpose.",
+     "The explanation for this suitability lies in the internal structure of the bark. Examined under a microscope, cork consists of millions of tiny, closely packed cells, each a sealed compartment containing a gas comparable in composition to air. Because these compartments make up most of its volume, the material is extraordinarily light, and it floats readily on water. The cell walls contain a waxy substance called suberin, which makes them almost impermeable to liquids and gases, while their flexible structure allows the material to be compressed and then to recover its original dimensions once the pressure is released.",
+     "The harvest itself remains a manual craft that machines have largely failed to replace. A tree cannot be stripped for the first time until it is about twenty-five years old, and the bark obtained from this initial harvest is irregular and too coarse for stoppers, so it is generally ground up for use in other products. Thereafter the bark is removed at intervals of approximately nine years, always during the summer months, when the tree is actively growing and the outer layer separates most cleanly. Workers use short-handled axes to cut and lift the bark in large curved sheets, a task demanding considerable experience, since a careless blow that reaches the living tissue beneath can permanently reduce the quality of future harvests.",
+     "Only from the third harvest onwards, when a tree is typically more than forty years old, is the bark of sufficient quality for the finest bottle stoppers. After stripping, the sheets are stacked outdoors for several months, then boiled in water, a process that cleans them, removes impurities and makes the material more flexible. Stoppers are then punched directly from the thickest sections, while the remaining material is broken into granules that can be bonded together to manufacture lower-grade stoppers and a wide variety of other goods.",
+     "During the late twentieth century, the industry encountered serious difficulties. A proportion of bottles sealed with natural cork were spoiled by a chemical compound that gave the wine an unpleasant, musty smell, and many producers began to adopt alternatives made of plastic or aluminium. For a period, commentators predicted that the cork oak forests themselves might be abandoned, as landowners would no longer have any financial incentive to maintain them. In response, manufacturers invested heavily in testing and improved processing methods, and the frequency of such contamination has since fallen considerably.",
+     "At the same time, new applications have broadened the market. Granulated cork is now incorporated into flooring, wall coverings and sports equipment, and its insulating properties have attracted the interest of architects seeking natural construction materials. Because cork resists the transmission of heat, sound and vibration, it has also been employed in specialised engineering contexts, including the thermal protection of spacecraft components. Manufacturers frequently emphasise that waste from stopper production is rarely discarded: virtually all of it is redirected into these secondary products.",
+     "Conservationists, for their part, value the cork forests for reasons that extend well beyond commerce. The open woodlands, known in Portugal as montado, support an unusually wide range of plant and animal species, among them several endangered birds of prey. Since harvesting does not require trees to be felled, the forests can be exploited economically while remaining largely intact. Some researchers argue that stripped trees absorb more carbon dioxide as they regenerate their bark, although the scale of this effect remains a matter of debate. What seems clear is that the long-term survival of these landscapes depends to a considerable extent on a continuing demand for the material they produce."
     ],
     "groups": [
      {
@@ -638,47 +638,47 @@
       "items": [
        {
         "n": 1,
-        "prompt": "Removing the bark of the cork oak does not kill the tree.",
+        "prompt": "Harvesting the outer layer of a cork oak need not harm the tree permanently.",
         "answer": "TRUE",
-        "evidence": "the only tree whose bark can be removed without killing it"
+        "evidence": "Provided the work is carried out skilfully, the removal causes no lasting damage"
        },
        {
         "n": 2,
-        "prompt": "Cork was first used by fishermen.",
+        "prompt": "Fishing communities were the earliest people to make use of cork.",
         "answer": "NOT GIVEN",
-        "evidence": "Fishermen used it to keep their nets afloat",
-        "note": "The passage says fishermen used cork, but not that they were the first to use it."
+        "evidence": "Archaeologists have recovered cork floats attached to fishing nets",
+        "note": "The passage gives fishing as an early use, but says nothing about which group used cork first."
        },
        {
         "n": 3,
-        "prompt": "Machines are now used for most of the cork harvest.",
-        "answer": "FALSE",
-        "evidence": "Harvesting cork is still done by hand"
+        "prompt": "Cork became widely used to seal bottles once bottles could be stored horizontally.",
+        "answer": "TRUE",
+        "evidence": "The spread of glass bottles strong enough to be laid on their side created a demand for a stopper"
        },
        {
         "n": 4,
-        "prompt": "Bark from the first harvest is not used to make bottle stoppers.",
-        "answer": "TRUE",
-        "evidence": "used for flooring and insulation rather than bottle stoppers"
+        "prompt": "Cork is heavy because of the substance contained in its walls.",
+        "answer": "FALSE",
+        "evidence": "the material is extraordinarily light"
        },
        {
         "n": 5,
-        "prompt": "Producers in Australia and New Zealand have now returned to using cork.",
-        "answer": "NOT GIVEN",
-        "evidence": "Some producers in Australia and New Zealand switched almost entirely to screw caps",
-        "note": "The passage says they switched to screw caps; it says nothing about a return to cork."
+        "prompt": "Specialised machinery now performs most of the stripping in Portugal.",
+        "answer": "FALSE",
+        "evidence": "The harvest itself remains a manual craft that machines have largely failed to replace."
        },
        {
         "n": 6,
-        "prompt": "Cork taint has become a more serious problem in recent years.",
-        "answer": "FALSE",
-        "evidence": "reducing a problem known as cork taint"
+        "prompt": "Bark from a tree's first stripping is normally unsuitable for wine bottles.",
+        "answer": "TRUE",
+        "evidence": "the bark obtained from this initial harvest is irregular and too coarse for stoppers"
        },
        {
         "n": 7,
-        "prompt": "A harvested cork oak may absorb more carbon than an unharvested one.",
-        "answer": "TRUE",
-        "evidence": "a harvested tree absorbs more carbon than one that is left alone"
+        "prompt": "Plastic stoppers cost producers less than those made from natural cork.",
+        "answer": "NOT GIVEN",
+        "evidence": "many producers began to adopt alternatives made of plastic or aluminium",
+        "note": "The passage says producers changed because of contamination; it does not compare costs."
        }
       ]
      },
@@ -690,51 +690,49 @@
       "type": "completion",
       "instructions": "Complete the notes below. Choose ONE WORD ONLY from the passage for each answer.",
       "word_limit": 1,
-      "form_title": "Cork",
+      "form_title": "Cork: structure and production",
       "items": [
        {
         "n": 8,
-        "prompt": "Each cell is filled with a ______ similar to air.",
-        "answer": "gas",
+        "prompt": "Structure: the waxy material in the cell walls is known as ______.",
+        "answer": "suberin",
         "accept": [],
-        "evidence": "each filled with a gas similar to air"
+        "evidence": "a waxy substance called suberin"
        },
        {
         "n": 9,
-        "prompt": "Cork returns to its shape after being squeezed because it is ______.",
-        "answer": "elastic",
+        "prompt": "Harvest timing: bark is stripped in ______, when it comes away most easily.",
+        "answer": "summer",
         "accept": [],
-        "evidence": "also elastic: when it is squeezed, it returns to its original shape"
+        "evidence": "always during the summer months"
        },
        {
         "n": 10,
-        "prompt": "A substance called ______ makes cork waterproof.",
-        "answer": "suberin",
+        "prompt": "Tools: workers rely on ______ with short handles.",
+        "answer": "axes",
         "accept": [],
-        "evidence": "a waxy substance called suberin, which makes cork almost completely waterproof"
+        "evidence": "Workers use short-handled axes"
        },
        {
         "n": 11,
-        "prompt": "Bark can be removed every ______ years after the first harvest.",
-        "answer": "nine",
-        "accept": [
-         "9"
-        ],
-        "evidence": "the bark can be removed every nine years"
+        "prompt": "Processing: after months outdoors, sheets are ______ to clean them and make them more flexible.",
+        "answer": "boiled",
+        "accept": [],
+        "evidence": "then boiled in water"
        },
        {
         "n": 12,
-        "prompt": "Cork is used in space vehicles because it resists high ______.",
-        "answer": "temperatures",
+        "prompt": "Leftover material is turned into ______ for lower-grade products.",
+        "answer": "granules",
         "accept": [],
-        "evidence": "its resistance to high temperatures is valuable"
+        "evidence": "broken into granules"
        },
        {
         "n": 13,
-        "prompt": "Young trees are being lost because grazing animals eat the ______.",
-        "answer": "seedlings",
+        "prompt": "Ecology: the open cork woodlands are called ______ in Portugal.",
+        "answer": "montado",
         "accept": [],
-        "evidence": "grazing animals eat the seedlings"
+        "evidence": "known in Portugal as montado"
        }
       ]
      }
@@ -745,13 +743,13 @@
     "title": "Why teenagers sleep late",
     "labelled": true,
     "paragraphs": [
-     "Parents around the world are familiar with the scene: a teenager who cannot fall asleep before midnight, and who then has to be dragged out of bed for school the next morning. For a long time, this behaviour was blamed on laziness, late-night television or, more recently, mobile phones. However, a growing body of research suggests that the main cause is biological, and that it affects almost every adolescent, regardless of culture or lifestyle.",
-     "The key lies in the body's internal clock, which controls when we feel sleepy and when we feel alert. One of the signals this clock uses is melatonin, a hormone that is released in the evening and helps prepare the body for sleep. In the 1990s, the American researcher Mary Carskadon discovered that during adolescence, melatonin is released significantly later in the evening than it is in children or adults. As a result, a typical sixteen-year-old does not feel sleepy until around eleven o'clock at night, even if they are tired. Carskadon also found that this delay begins at the start of puberty and continues until the early twenties, when the timing gradually returns to the adult pattern. Indeed, some researchers have proposed that the end of this delay could be used as a biological marker of the end of adolescence.",
-     "A second mechanism adds to the problem. Throughout the day, a pressure to sleep builds up in the brain, rather like water filling a tank. Researchers have found that in teenagers this pressure builds up more slowly than in younger children. A ten-year-old who has been awake since seven in the morning will be exhausted by nine at night, but a teenager can stay awake for much longer without feeling the need to sleep. The two processes work together: the internal clock delays the signal to sleep, while the slower build-up of pressure removes the tiredness that might otherwise override it. Neither process is under the teenager's conscious control.",
-     "If teenagers simply went to bed later and got up later, this shift would cause few difficulties. The problem is that school timetables are designed around the sleep patterns of adults. In many countries, secondary schools start earlier than primary schools, often before eight o'clock, partly because of the cost of running school buses. Teenagers, who need around nine hours of sleep a night, therefore regularly sleep for only six or seven. The British sleep scientist Russell Foster has compared this to asking adults to start work at four in the morning. At weekends, many teenagers try to catch up by sleeping until midday, but this only shifts their internal clock even later, making Monday morning harder still.",
-     "The consequences go well beyond tiredness. Studies have linked chronic sleep loss in adolescents with poorer memory, reduced concentration and lower examination results. Lack of sleep also affects mood: tired teenagers are more likely to be irritable and are at greater risk of depression. There is evidence too that sleep-deprived young drivers are more likely to be involved in road accidents, a finding that has particular significance in countries where teenagers can drive to school. Some researchers also believe that poor sleep may affect appetite, making young people more likely to choose sugary foods, although the evidence for this is less clear.",
-     "These findings have persuaded some schools to experiment with later start times. In one well-known study in the United States, led by Kyla Wahlstrom, several high schools moved their start time from 7.15 to 8.40. Attendance improved, fewer students fell asleep in class, and the number of car accidents involving teenage drivers in the area fell. Similar results have been reported in Britain, where a school that started at ten o'clock saw a noticeable improvement in test results, although the researchers admitted that the study was too small to be conclusive.",
-     "Not everyone is convinced. Some teachers argue that later starts simply mean later finishes, which interfere with sports and part-time jobs. Others suggest that teenagers would just stay up even later. The Australian researcher Michael Gradisar has found some support for this concern, showing that the use of electronic devices late at night can delay sleep further. However, he stresses that technology makes an existing biological tendency worse rather than causing it. Most researchers now agree that while screens play a part, they cannot explain why adolescents everywhere, including those without access to technology, show the same pattern."
+     "Parents have long complained that adolescents are reluctant to go to bed at a reasonable hour and almost impossible to wake in the morning. For much of the twentieth century this behaviour was attributed to poor discipline, excessive socialising or, more recently, the attractions of screens. Over the past three decades, however, a substantial body of research has suggested that the pattern is rooted primarily in biology, and that the conventional school timetable may be poorly matched to the physiological needs of the students it is intended to serve. The shift in interpretation matters, because explanations that locate the problem in individual character tend to produce very different remedies from those that locate it in the structure of the institutions surrounding young people.",
+     "Central to this argument is the body's internal clock, the mechanism that regulates when we feel alert and when we feel drowsy over a twenty-four-hour cycle. One of the signals the clock uses to prepare the body for sleep is melatonin, a hormone released by the brain as darkness falls. In a series of laboratory studies, the sleep researcher Helen Varga measured melatonin levels in volunteers of different ages and found that during adolescence its evening release occurs considerably later than in childhood, in some cases by as much as two hours. Teenagers who stay awake late, she concluded, are frequently not choosing to resist sleep; their bodies have simply not yet begun to produce it. Varga also observed that the delay was not confined to any particular culture or social group, a finding that strengthened her view that it reflects a developmental change common to the species rather than a product of modern lifestyles.",
+     "A second process compounds the effect. Throughout the waking day, a chemical pressure to sleep gradually accumulates in the brain, and it is this pressure that eventually makes sleep irresistible. The neuroscientist Daniel Okafor has shown that in adolescents this pressure intensifies at a noticeably slower rate than it does in younger children. As a result, a fourteen-year-old may feel wide awake at an hour when a ten-year-old would be struggling to keep his eyes open, even if both woke at the same time that morning. Okafor emphasises that neither process operates in isolation; it is the combination of a late hormonal signal and a slowly accumulating sleep pressure that makes an early bedtime so difficult for many adolescents to achieve.",
+     "Most teenagers are thought to require between eight and ten hours of sleep each night, yet many secondary schools begin their lessons before eight o'clock. Students who cannot fall asleep before eleven or midnight therefore routinely obtain only six or seven hours. The early start is seldom justified on educational grounds; it frequently reflects the scheduling of shared school transport, which is cheaper to operate when buses can serve primary and secondary schools in successive runs. Okafor describes the outcome as a mismatch imposed on an entire generation for reasons that have little to do with learning.",
+     "The consequences of persistent sleep loss appear to be considerable. Students who regularly sleep for less than eight hours tend to achieve lower grades, find it harder to concentrate and are more likely to report symptoms of depression. There is also evidence that drowsy teenage drivers are involved in a disproportionate number of road accidents in the early morning. The psychologist Sara Lindqvist argues that because these effects accumulate gradually, they are easily mistaken for laziness or lack of motivation rather than recognised as signs of chronic fatigue. Teachers responsible for early lessons frequently report that the first period of the day is the least productive, with many students appearing physically present but mentally absent.",
+     "These findings have encouraged a number of education authorities to experiment with later start times. In one American district studied by the education researcher Paul Whitcombe, moving the beginning of the school day from 7.15 to 8.40 resulted in students sleeping, on average, around an hour longer each night. Attendance improved, fewer students were observed falling asleep in class, and the rate of car accidents involving teenage drivers declined. Whitcombe acknowledges, however, that the improvement in examination results was smaller and less consistent than many advocates had anticipated. The district also recorded a modest decline in visits to the school nurse for complaints such as headaches, which researchers interpreted as a further indication of improved wellbeing.",
+     "Not everyone is convinced that timetables should be changed. Critics point out that later finishing times reduce the hours available for sport, part-time employment and family responsibilities, and that the costs of reorganising transport can be substantial. Lindqvist adds that the late-night use of phones and tablets intensifies a natural tendency rather than creating it, since their light suppresses melatonin still further; changing the timetable without addressing evening habits, she warns, may therefore produce only part of the expected benefit. Others question whether the evidence from a handful of districts can be generalised to schools operating under very different conditions, and call for larger trials before national policies are altered."
     ],
     "groups": [
      {
@@ -763,57 +761,57 @@
       "instructions": "Reading Passage 2 has seven paragraphs, A–G. Choose the correct heading for paragraphs B–G from the list of headings below. Write the correct number, i–ix.",
       "options_title": "List of Headings",
       "options": [
-       "i  A mismatch between biology and the school day",
-       "ii  Doubts about changing the timetable",
-       "iii  A hormone that arrives late",
-       "iv  The cost of school transport",
-       "v  Effects on learning, mood and safety",
+       "i  A practical reason behind early lessons",
+       "ii  Reservations about reform",
+       "iii  A signal for sleep that arrives late",
+       "iv  How parents can enforce bedtimes",
+       "v  Hidden costs that are often misread",
        "vi  Why adults need less sleep",
-       "vii  Results of moving the start of school",
-       "viii  A slower build-up of tiredness",
-       "ix  The role of parents"
+       "vii  Measured outcomes of a timetable change",
+       "viii  Tiredness that builds more slowly",
+       "ix  The decline of a popular explanation"
       ],
       "items": [
        {
         "n": 14,
         "prompt": "Paragraph B",
         "answer": "iii",
-        "evidence": "melatonin is released significantly later in the evening",
+        "evidence": "during adolescence its evening release occurs considerably later than in childhood",
         "paragraph": "B"
        },
        {
         "n": 15,
         "prompt": "Paragraph C",
         "answer": "viii",
-        "evidence": "in teenagers this pressure builds up more slowly than in younger children",
+        "evidence": "this pressure intensifies at a noticeably slower rate",
         "paragraph": "C"
        },
        {
         "n": 16,
         "prompt": "Paragraph D",
         "answer": "i",
-        "evidence": "school timetables are designed around the sleep patterns of adults",
+        "evidence": "it frequently reflects the scheduling of shared school transport",
         "paragraph": "D"
        },
        {
         "n": 17,
         "prompt": "Paragraph E",
         "answer": "v",
-        "evidence": "poorer memory, reduced concentration and lower examination results",
+        "evidence": "they are easily mistaken for laziness or lack of motivation",
         "paragraph": "E"
        },
        {
         "n": 18,
         "prompt": "Paragraph F",
         "answer": "vii",
-        "evidence": "Attendance improved, fewer students fell asleep in class",
+        "evidence": "Attendance improved, fewer students were observed falling asleep in class",
         "paragraph": "F"
        },
        {
         "n": 19,
         "prompt": "Paragraph G",
         "answer": "ii",
-        "evidence": "Not everyone is convinced.",
+        "evidence": "Not everyone is convinced that timetables should be changed",
         "paragraph": "G"
        }
       ]
@@ -827,35 +825,35 @@
       "instructions": "Look at the following statements (Questions 20–23) and the list of researchers below. Match each statement with the correct researcher, A–D. You may use any letter more than once.",
       "options_title": "List of Researchers",
       "options": [
-       "A  Mary Carskadon",
-       "B  Russell Foster",
-       "C  Kyla Wahlstrom",
-       "D  Michael Gradisar"
+       "A  Helen Varga",
+       "B  Daniel Okafor",
+       "C  Sara Lindqvist",
+       "D  Paul Whitcombe"
       ],
       "items": [
        {
         "n": 20,
-        "prompt": "Using technology at night makes a natural tendency stronger.",
-        "answer": "D",
-        "evidence": "technology makes an existing biological tendency worse rather than causing it"
+        "prompt": "Screens strengthen a pattern that already exists in the body.",
+        "answer": "C",
+        "evidence": "intensifies a natural tendency rather than creating it"
        },
        {
         "n": 21,
-        "prompt": "Teenagers start producing a sleep hormone later in the evening.",
-        "answer": "A",
-        "evidence": "during adolescence, melatonin is released significantly later in the evening"
+        "prompt": "Academic gains from a reform were more modest than some people predicted.",
+        "answer": "D",
+        "evidence": "the improvement in examination results was smaller and less consistent than many advocates had anticipated"
        },
        {
         "n": 22,
-        "prompt": "A change in school hours was followed by fewer road accidents.",
-        "answer": "C",
-        "evidence": "the number of car accidents involving teenage drivers in the area fell"
+        "prompt": "Late bedtimes are often not a matter of personal choice.",
+        "answer": "A",
+        "evidence": "Teenagers who stay awake late, she concluded, are frequently not choosing to resist sleep"
        },
        {
         "n": 23,
-        "prompt": "Early school starts are like asking adults to begin work before dawn.",
+        "prompt": "Young people as a group have been disadvantaged by decisions unrelated to education.",
         "answer": "B",
-        "evidence": "compared this to asking adults to start work at four in the morning"
+        "evidence": "a mismatch imposed on an entire generation for reasons that have little to do with learning"
        }
       ]
      },
@@ -866,34 +864,34 @@
       ],
       "type": "summary_box",
       "instructions": "Complete the summary using the list of words, A–F, below. Write the correct letter, A–F.",
-      "summary_title": "Teenagers and sleep",
-      "summary": "Teenagers need about nine hours of sleep, but because many secondary schools start early, they often sleep for only six or seven hours. Starting early is partly a result of the (24) ______ of school buses. A long-term lack of sleep is linked to poorer exam results and to a higher risk of (25) ______. Some critics say later start times would create problems for (26) ______ and part-time work.",
+      "summary_title": "School start times",
+      "summary": "Although teenagers generally need at least eight hours of sleep, early lessons mean that many obtain far less. Starting early is often driven by the (24) ______ of operating buses rather than by teaching needs. Over time, lack of sleep is associated with weaker grades and a greater likelihood of (25) ______. Opponents of later starts argue that they would limit opportunities for (26) ______ and paid work after school.",
       "options": [
        "A  safety",
-       "B  cost",
+       "B  expense",
        "C  depression",
-       "D  sports",
+       "D  sport",
        "E  homework",
-       "F  timing"
+       "F  attendance"
       ],
       "items": [
        {
         "n": 24,
         "prompt": "gap 24",
         "answer": "B",
-        "evidence": "partly because of the cost of running school buses"
+        "evidence": "which is cheaper to operate when buses can serve primary and secondary schools in successive runs"
        },
        {
         "n": 25,
         "prompt": "gap 25",
         "answer": "C",
-        "evidence": "are at greater risk of depression"
+        "evidence": "are more likely to report symptoms of depression"
        },
        {
         "n": 26,
         "prompt": "gap 26",
         "answer": "D",
-        "evidence": "which interfere with sports and part-time jobs"
+        "evidence": "later finishing times reduce the hours available for sport"
        }
       ]
      }
@@ -904,13 +902,13 @@
     "title": "In defence of boredom",
     "labelled": false,
     "paragraphs": [
-     "Few experiences are as universally disliked as boredom. We go to great lengths to avoid it, filling every spare moment with music, messages and videos. In one widely reported experiment, a majority of participants who were left alone in a room for fifteen minutes chose to give themselves a mild electric shock rather than sit with their own thoughts. Yet in recent years a number of psychologists have begun to argue that boredom is not simply an unpleasant state to be escaped, but one that may serve a useful purpose. Their claims deserve to be taken seriously, even if, as I shall suggest, they are sometimes overstated.",
-     "To understand why, it helps to be clear about what boredom actually is. It is not the same as having nothing to do. A person waiting for a delayed train may be bored, but so may a student sitting in a lecture that is full of information. Researchers generally define boredom as the experience of wanting to be engaged in a satisfying activity but being unable to find one. In other words, it is a signal that our current situation is not meeting our needs. Like hunger or pain, its unpleasantness is precisely what makes it effective: it pushes us to change what we are doing. Psychologists also distinguish boredom from apathy. An apathetic person does not care whether they are engaged or not, whereas a bored person cares a great deal, which is why boredom feels restless rather than calm.",
-     "From this point of view, the problem with modern life is not that we are too often bored, but that we have become too good at removing the feeling before it can do its job. When we reach for a phone at the first moment of restlessness, we satisfy the immediate need for stimulation without asking whether our time could be better spent. The signal is switched off, but the underlying situation remains unchanged. I would argue that this is one reason why so many people report feeling busy and yet dissatisfied. Our devices are extremely effective at giving us something to do; they are much less effective at giving us something worth doing. It is worth adding that this is not entirely a new problem. Long before smartphones, people complained that newspapers, radio and television were filling every quiet moment, and philosophers as far back as the nineteenth century worried about the effects of constant distraction. What has changed is the speed and ease with which distraction is now available.",
-     "There is also some evidence that boredom can encourage creativity. In a study at a British university, participants who first completed a deliberately dull task, copying numbers from a telephone directory, later produced more original ideas in a creative thinking test than those who had not. The researchers suggested that boredom leads the mind to wander, and that this daydreaming allows unexpected connections to form. The effect was modest, and the study has not been repeated on a large scale, so it would be unwise to draw firm conclusions from it. Nevertheless, it fits with the experience of many writers and scientists who report that their best ideas came during periods of apparent idleness.",
-     "This does not mean that all boredom is beneficial. Chronic boredom, the kind experienced by people in repetitive jobs or with few opportunities, is associated with poor health, risk-taking and depression. It would be absurd to tell someone in such circumstances that their boredom is a gift. The useful kind of boredom is brief and occasional, and it occurs when a person has the freedom to respond to it.",
-     "What, then, should we do? Some educators have suggested that children's lives have become so scheduled that they rarely have the chance to experience boredom and learn to deal with it on their own. Rather than filling every afternoon with organised activities, they propose that parents should leave some time unstructured. I find this argument persuasive, although it is easy to take it too far: a child left alone with nothing to do for hours is not necessarily developing creativity. The aim is not to make children bored, but to stop rescuing them from boredom immediately.",
-     "For adults, the lesson is perhaps simpler. The next time you find yourself waiting with nothing to do, it may be worth resisting the urge to reach for your phone, at least for a few minutes. The feeling that follows will probably be uncomfortable. But it may also be the moment when you notice what you really want to be doing."
+     "Few states of mind are as universally disliked as boredom, and modern societies have devised an unprecedented range of technologies to ensure that it need never be endured for long. In one frequently cited experiment, a majority of participants who were asked to sit alone with their thoughts for fifteen minutes elected to administer a mild electric shock to themselves rather than remain unoccupied. Yet in recent years a number of psychologists and philosophers have begun to argue that boredom is not merely an unpleasant condition to be escaped, but one that may perform a valuable function. Their claims deserve serious consideration, even if, as I shall suggest, they are occasionally overstated by enthusiastic popularisers.",
+     "Any defence of boredom must begin by establishing what the experience actually involves. It is frequently confused with idleness, yet the two are quite distinct: a passenger waiting for a delayed train may be bored, but so may a student attending a lecture crammed with information. Most researchers now define boredom as the frustrated desire for satisfying engagement, the awareness that one would like to be absorbed in something meaningful combined with an inability to find it. Understood in this way, boredom functions as an internal signal that our present circumstances are failing to meet our needs, and, like hunger or physical discomfort, its unpleasantness is precisely what makes it effective, since it compels us to alter our behaviour. It should also be distinguished from apathy: whereas an apathetic individual is indifferent to whether he or she is engaged, a bored person cares intensely, which explains why boredom is experienced as restlessness rather than calm.",
+     "From this perspective, the difficulty with contemporary life is not that we are bored too often, but that we have become remarkably efficient at extinguishing the sensation before it has accomplished anything. When we reach for a device at the first flicker of restlessness, we satisfy the immediate craving for stimulation without considering whether our time might be better spent. The signal is silenced, but the underlying situation persists. I suspect that this goes some way towards explaining why so many people describe themselves as constantly occupied and yet persistently unfulfilled: our devices are superbly effective at supplying something to do, but considerably less effective at supplying something worth doing. Nor is the complaint entirely novel. Commentators in earlier generations voiced similar anxieties about newspapers, radio and television, and nineteenth-century philosophers worried about the corrosive effects of perpetual distraction. What has altered is not the temptation itself but the speed and convenience with which it can now be satisfied.",
+     "Some evidence also suggests that boredom may stimulate creative thinking. In a study conducted at a British university, volunteers who first spent a period performing a deliberately tedious task, copying telephone numbers from a directory, subsequently generated more original responses in a test of creative thinking than a comparison group who had not. The researchers proposed that boredom encourages the mind to wander, and that this undirected mental activity permits unexpected associations to form. The effect was modest, however, and the experiment has not been replicated on a substantial scale, so it would be imprudent to build ambitious conclusions upon it. Nevertheless, its findings are consistent with the testimony of numerous writers and scientists who attribute their most productive insights to periods of apparent inactivity. It is also conceivable that the volunteers were simply more motivated by the creative task because it offered relief from what had preceded it, an alternative explanation the original researchers did not entirely exclude.",
+     "None of this implies that boredom is invariably beneficial. Chronic boredom, of the kind endured by individuals trapped in monotonous employment or deprived of meaningful opportunities, is associated with impaired health, reckless behaviour and depression. It would be both insensitive and absurd to inform someone in such circumstances that their condition is secretly a gift. The productive variety of boredom is brief and intermittent, and, crucially, it arises in situations where the individual possesses sufficient freedom to respond to it by changing course. Any account that celebrates boredom without acknowledging this distinction risks trivialising the experience of those for whom it is not a passing inconvenience but a persistent feature of daily existence.",
+     "What practical conclusions, then, might reasonably be drawn? Several educationalists have argued that children's lives have become so comprehensively scheduled that they seldom have the opportunity to experience boredom and to develop strategies for dealing with it independently. Instead of filling every afternoon with supervised activities, they recommend that parents deliberately leave some periods unstructured. I find this argument largely persuasive, although it can easily be pushed too far: a child abandoned for hours with nothing whatsoever to do is not necessarily cultivating imagination. The objective is not to manufacture boredom, but to refrain from rescuing children from it the moment it appears. Such advice, it should be noted, is easier to follow for families with flexible working hours and access to safe outdoor space, and its practicality may vary considerably from one household to another.",
+     "For adults, the implications are perhaps more straightforward. The next time you find yourself waiting with nothing to occupy you, it may be worth resisting the impulse to reach for your phone, if only for a few minutes, and to observe the thoughts that arise in the absence of external stimulation. The sensation that follows will probably be uncomfortable, and there is no guarantee that it will lead anywhere remarkable. But it may also prove to be the moment at which you recognise what you would genuinely prefer to be doing, which is, after all, precisely the information that boredom exists to provide."
     ],
     "groups": [
      {
@@ -923,33 +921,34 @@
       "items": [
        {
         "n": 27,
-        "prompt": "Being bored is the same as having nothing to do.",
-        "answer": "NO",
-        "evidence": "It is not the same as having nothing to do."
+        "prompt": "Some people who argue for the benefits of boredom exaggerate their case.",
+        "answer": "YES",
+        "evidence": "they are occasionally overstated by enthusiastic popularisers"
        },
        {
         "n": 28,
-        "prompt": "The unpleasant feeling of boredom is what makes it useful.",
-        "answer": "YES",
-        "evidence": "its unpleasantness is precisely what makes it effective"
+        "prompt": "A person who has a lot to occupy them cannot be bored.",
+        "answer": "NO",
+        "evidence": "so may a student attending a lecture crammed with information"
        },
        {
         "n": 29,
-        "prompt": "Using phones to avoid boredom may explain why many people feel dissatisfied.",
-        "answer": "YES",
-        "evidence": "I would argue that this is one reason why so many people report feeling busy and yet dissatisfied"
+        "prompt": "Concern about the effect of distractions is a recent phenomenon.",
+        "answer": "NO",
+        "evidence": "Nor is the complaint entirely novel."
        },
        {
         "n": 30,
-        "prompt": "Writers are more likely to experience boredom than scientists.",
+        "prompt": "Scientists are more likely than writers to have ideas when they are idle.",
         "answer": "NOT GIVEN",
-        "evidence": "it fits with the experience of many writers and scientists"
+        "evidence": "the testimony of numerous writers and scientists",
+        "note": "Writers and scientists are mentioned together; the writer does not compare them."
        },
        {
         "n": 31,
-        "prompt": "People in repetitive jobs should be told that boredom is good for them.",
-        "answer": "NO",
-        "evidence": "It would be absurd to tell someone in such circumstances that their boredom is a gift."
+        "prompt": "Boredom is only useful if a person is able to do something about it.",
+        "answer": "YES",
+        "evidence": "it arises in situations where the individual possesses sufficient freedom to respond to it by changing course"
        }
       ]
      },
@@ -962,44 +961,44 @@
       "instructions": "Complete each sentence with the correct ending, A–G, below.",
       "options_title": "Endings",
       "options": [
-       "A  copied information from a list.",
-       "B  is a sign that our needs are not being met.",
-       "C  were given an electric shock without warning.",
-       "D  is linked to health problems.",
-       "E  should have some free time without planned activities.",
-       "F  has been confirmed by several large studies.",
-       "G  preferred mild pain to sitting quietly."
+       "A  had carried out a repetitive activity beforehand.",
+       "B  indicates that something in our situation needs to change.",
+       "C  were punished for failing to remain still.",
+       "D  is linked with a range of harmful outcomes.",
+       "E  would benefit from time that is not organised for them.",
+       "F  has been demonstrated by several large-scale studies.",
+       "G  preferred physical discomfort to inactivity."
       ],
       "items": [
        {
         "n": 32,
-        "prompt": "In one experiment, most people left alone in a room",
+        "prompt": "In one experiment, many people who were left without any occupation",
         "answer": "G",
-        "evidence": "chose to give themselves a mild electric shock rather than sit with their own thoughts"
+        "evidence": "elected to administer a mild electric shock to themselves rather than remain unoccupied"
        },
        {
         "n": 33,
-        "prompt": "According to researchers, boredom",
+        "prompt": "Like hunger, the unpleasant feeling of boredom",
         "answer": "B",
-        "evidence": "it is a signal that our current situation is not meeting our needs"
+        "evidence": "it compels us to alter our behaviour"
        },
        {
         "n": 34,
-        "prompt": "Before the creative thinking test, some participants",
+        "prompt": "The volunteers who produced more original ideas",
         "answer": "A",
-        "evidence": "copying numbers from a telephone directory"
+        "evidence": "performing a deliberately tedious task, copying telephone numbers from a directory"
        },
        {
         "n": 35,
-        "prompt": "Long-term boredom",
+        "prompt": "Boredom that continues over long periods",
         "answer": "D",
-        "evidence": "is associated with poor health, risk-taking and depression"
+        "evidence": "is associated with impaired health, reckless behaviour and depression"
        },
        {
         "n": 36,
-        "prompt": "Some educators believe children",
+        "prompt": "According to some educationalists, children",
         "answer": "E",
-        "evidence": "parents should leave some time unstructured"
+        "evidence": "they recommend that parents deliberately leave some periods unstructured"
        }
       ]
      },
@@ -1013,51 +1012,51 @@
       "items": [
        {
         "n": 37,
-        "prompt": "What does the writer say about the British creativity study?",
+        "prompt": "How does the writer regard the British university study?",
         "options": [
-         "A  It proved that boredom causes creativity.",
-         "B  Its results should be treated with caution.",
-         "C  Its method has been widely criticised.",
-         "D  It contradicted the experience of writers."
+         "A  as conclusive proof that boredom produces creativity",
+         "B  as an interesting finding that should be interpreted cautiously",
+         "C  as a flawed experiment that has been widely rejected",
+         "D  as evidence that contradicts what many writers report"
         ],
         "answer": "B",
-        "evidence": "it would be unwise to draw firm conclusions from it"
+        "evidence": "it would be imprudent to build ambitious conclusions upon it"
        },
        {
         "n": 38,
-        "prompt": "According to the writer, the useful kind of boredom is",
+        "prompt": "In the third paragraph, the writer suggests that modern technology",
         "options": [
-         "A  frequent and intense.",
-         "B  experienced mainly by children.",
-         "C  short and occasional.",
-         "D  caused by repetitive work."
+         "A  has made people more bored than previous generations were.",
+         "B  provides activity without necessarily providing meaning.",
+         "C  is the main reason why people feel apathetic.",
+         "D  has removed the temptation to seek distraction."
         ],
-        "answer": "C",
-        "evidence": "The useful kind of boredom is brief and occasional"
+        "answer": "B",
+        "evidence": "considerably less effective at supplying something worth doing"
        },
        {
         "n": 39,
-        "prompt": "What is the writer's view of the educators' proposal?",
+        "prompt": "What is the writer's attitude to the educationalists' recommendation?",
         "options": [
-         "A  He agrees with it but warns against going too far.",
-         "B  He thinks it is unrealistic for most parents.",
-         "C  He rejects it as harmful to children.",
-         "D  He believes it needs more research."
+         "A  He accepts it but warns against applying it to an extreme.",
+         "B  He doubts that most parents would be willing to follow it.",
+         "C  He believes it would harm children's development.",
+         "D  He thinks it should be tested before it is adopted."
         ],
         "answer": "A",
-        "evidence": "I find this argument persuasive, although it is easy to take it too far"
+        "evidence": "I find this argument largely persuasive, although it can easily be pushed too far"
        },
        {
         "n": 40,
-        "prompt": "What is the main purpose of the passage?",
+        "prompt": "Which of the following best summarises the writer's overall argument?",
         "options": [
-         "A  to describe a series of experiments on boredom",
-         "B  to argue that boredom can have value",
-         "C  to explain how phones affect the brain",
-         "D  to compare boredom in children and adults"
+         "A  Boredom should be eliminated wherever possible.",
+         "B  Short periods of boredom can be valuable if we pay attention to them.",
+         "C  Children experience boredom differently from adults.",
+         "D  Research has now established the benefits of boredom."
         ],
         "answer": "B",
-        "evidence": "boredom is not simply an unpleasant state to be escaped, but one that may serve a useful purpose"
+        "evidence": "one that may perform a valuable function"
        }
       ]
      }
@@ -1166,11 +1165,18 @@
   "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
   "Student task publication and platform evidence capture remain separate, governed steps."
  ],
- "approval_record": {
+ "previous_approval_record": {
   "approved_by": "Owner, Brains Heist LLC",
   "date": "2026-10-18",
   "version": "1.0.0",
   "scope": "Mock test content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
   "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 d4586b15b15dadeba0d66377870e9346a970034b515f5c3c42edad592981bef4): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
+ },
+ "approval_record": {
+  "approved_by": "Owner, Brains Heist LLC",
+  "date": "2026-10-26",
+  "version": "1.1.0",
+  "scope": "Mock test content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Reading rebuilt to real-test length, difficulty and paraphrase level; Listening recordings unchanged. Student task publication remains separate.",
+  "basis": "Owner instruction in the review conversation on 2026-10-26 11:08 Asia/Bishkek: 'I need to make sure all the IELTS materials (including the reading that I checked was weak in the Mock tests) and the lessons to be at the level of a real IELTS test ... Make the needed adjustments and improvements now; you have all my permissions, don't ask for any.' Not recorded as an in-platform decision; no review-draft pack was opened before approval."
  }
 }
