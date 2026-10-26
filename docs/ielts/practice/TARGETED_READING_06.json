@@ -1,10 +1,10 @@
 {
  "bible": "2.0.0",
- "scope": "Lesson 6 step-by-step practice on the 'Cooling the city from the roof up' passage (IELTS-06 v0.3.0): five guided steps and one mixed check. v0.2.0 opens every step with a learn-first worked example and explains every answer.",
+ "scope": "Lesson 6 step-by-step practice on the 'Cooling the city from the roof up' passage (IELTS-06 v0.3.0): five guided steps and one mixed check. v0.2.0 (codes r28-v2..r33-v2) opens every step with a learn-first worked example and explains every answer; it is installed beside v0.1.0 (r28-v1..r33-v1), which stays unchanged because learning tasks are immutable.",
  "lesson": "IELTS-06 v0.3.0",
  "tasks": [
   {
-   "code": "bh-ielts-targeted-reading-r28-v1",
+   "code": "bh-ielts-targeted-reading-r28-v2",
    "version": "0.2.0",
    "title": "Lesson 6 step 1 of 6: What is the question asking for?",
    "skill": "reading",
@@ -219,10 +219,14 @@
     "source": "docs/ielts/practice/TARGETED_READING_06.json 0.2.0"
    },
    "content_sha256": "c74dd27f16ab777ad27ee0c41f83dd63a7ff71b27280ce128514e21d57a44092",
-   "previous_content_sha256": "bda53c9a973f647536db6eb5d548bbaa357933268c08e2ed8b76016982d590fe"
+   "supersedes": {
+    "code": "bh-ielts-targeted-reading-r28-v1",
+    "version": "0.1.0",
+    "content_sha256": "bda53c9a973f647536db6eb5d548bbaa357933268c08e2ed8b76016982d590fe"
+   }
   },
   {
-   "code": "bh-ielts-targeted-reading-r29-v1",
+   "code": "bh-ielts-targeted-reading-r29-v2",
    "version": "0.2.0",
    "title": "Lesson 6 step 2 of 6: Does this paragraph contain it?",
    "skill": "reading",
@@ -365,10 +369,14 @@
     "source": "docs/ielts/practice/TARGETED_READING_06.json 0.2.0"
    },
    "content_sha256": "6bb73ed1caf02b82aaa4895675e397b547f9647b7177cee6a1e362901c9f4cb8",
-   "previous_content_sha256": "0d05ffe9059d10f752b4742553dfd32409871be93f9069816a9fe5ea80300470"
+   "supersedes": {
+    "code": "bh-ielts-targeted-reading-r29-v1",
+    "version": "0.1.0",
+    "content_sha256": "0d05ffe9059d10f752b4742553dfd32409871be93f9069816a9fe5ea80300470"
+   }
   },
   {
-   "code": "bh-ielts-targeted-reading-r30-v1",
+   "code": "bh-ielts-targeted-reading-r30-v2",
    "version": "0.2.0",
    "title": "Lesson 6 step 3 of 6: Two paragraphs, one trap",
    "skill": "reading",
@@ -511,10 +519,14 @@
     "source": "docs/ielts/practice/TARGETED_READING_06.json 0.2.0"
    },
    "content_sha256": "37d6d965041b896ef22f3633b3b9a55a60b4930581759291aeae6347285a6da9",
-   "previous_content_sha256": "6b0ebab9824266c6dcc1c758ddfc60a0ab819a3adf19e05d1de96bd58eb22529"
+   "supersedes": {
+    "code": "bh-ielts-targeted-reading-r30-v1",
+    "version": "0.1.0",
+    "content_sha256": "6b0ebab9824266c6dcc1c758ddfc60a0ab819a3adf19e05d1de96bd58eb22529"
+   }
   },
   {
-   "code": "bh-ielts-targeted-reading-r31-v1",
+   "code": "bh-ielts-targeted-reading-r31-v2",
    "version": "0.2.0",
    "title": "Lesson 6 step 4 of 6: Predict, then find",
    "skill": "reading",
@@ -603,10 +615,14 @@
     "source": "docs/ielts/practice/TARGETED_READING_06.json 0.2.0"
    },
    "content_sha256": "2859c74adf3f5d47bc782191203c091f6d0018766fa8729963d0dc4d9995346c",
-   "previous_content_sha256": "76e7d005712f9eb0c3ffc2d2970544c8cbe9f51ec847b6ee23674d0aecfb83da"
+   "supersedes": {
+    "code": "bh-ielts-targeted-reading-r31-v1",
+    "version": "0.1.0",
+    "content_sha256": "76e7d005712f9eb0c3ffc2d2970544c8cbe9f51ec847b6ee23674d0aecfb83da"
+   }
   },
   {
-   "code": "bh-ielts-targeted-reading-r32-v1",
+   "code": "bh-ielts-targeted-reading-r32-v2",
    "version": "0.2.0",
    "title": "Lesson 6 step 5 of 6: Who says what?",
    "skill": "reading",
@@ -797,10 +813,14 @@
     "source": "docs/ielts/practice/TARGETED_READING_06.json 0.2.0"
    },
    "content_sha256": "a33b3403df07ced31f6fdbddf2601927327d69c4546708a1b8077997c959b008",
-   "previous_content_sha256": "6146f795b26d85e786766cebb1d0c47c3f52ad2ab480b96660c86fedc765e2c7"
+   "supersedes": {
+    "code": "bh-ielts-targeted-reading-r32-v1",
+    "version": "0.1.0",
+    "content_sha256": "6146f795b26d85e786766cebb1d0c47c3f52ad2ab480b96660c86fedc765e2c7"
+   }
   },
   {
-   "code": "bh-ielts-targeted-reading-r33-v1",
+   "code": "bh-ielts-targeted-reading-r33-v2",
    "version": "0.2.0",
    "title": "Lesson 6 step 6 of 6: Mixed check",
    "skill": "reading",
@@ -981,7 +1001,11 @@
     "source": "docs/ielts/practice/TARGETED_READING_06.json 0.2.0"
    },
    "content_sha256": "803c4565ec6a9f5ed9578d6d742e52c6a74b4316f38711d65fcb4eac8a1cb2bd",
-   "previous_content_sha256": "713ad5d6360e5918d511c690b9c8c38e7db2df41b4189cad18bf7ec7819ac8dd"
+   "supersedes": {
+    "code": "bh-ielts-targeted-reading-r33-v1",
+    "version": "0.1.0",
+    "content_sha256": "713ad5d6360e5918d511c690b9c8c38e7db2df41b4189cad18bf7ec7819ac8dd"
+   }
   }
  ]
 }
