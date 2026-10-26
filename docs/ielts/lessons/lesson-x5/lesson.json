@@ -8,7 +8,7 @@
   "version": "1.1.0",
   "presentation_version": "1.1.0",
   "title": "Academic Writing Task 1: describing a process",
-  "status": "Private teacher-review revision DRAFT v1.1.0 (NOT approved or released; prior v1.0.0 approval is historical only).",
+  "status": "Owner approved v1.1.0 on 2026-10-26; teacher release to all eligible schools (optional extension lesson)",
   "duration": 60,
   "test_type": "Academic",
   "bibles": {
@@ -419,7 +419,7 @@
   ],
   "followup": {
     "id": "IELTS-X5-C1",
-    "status": "Private fresh-transfer draft. Withhold from advance student distribution. Human review and exposure/comparability checks pending.",
+    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.1.0 on 2026-10-26. Keep private until use.",
     "delivery": "About one teaching week after this lesson, after feedback on the homework. 20 minutes: overview and one body paragraph for a new process. No model, frame or phrase bank unless recorded as support. Classroom observation only.",
     "blocks": [
       {
@@ -462,8 +462,7 @@
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
   "release_blockers": [
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
-    "Student task publication and platform evidence capture remain separate, governed steps.",
-    "v1.1.0 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
+    "Student task publication and platform evidence capture remain separate, governed steps."
   ],
   "previous_approval_record": {
     "approved_by": "Owner, Brains Heist LLC",
@@ -471,5 +470,12 @@
     "version": "1.0.0",
     "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
     "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 3d6f8c1e3465b9f0bde721e016b99ea2ad89cdcb4249c1c1b5af95bc22e897af): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
+  },
+  "approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-26",
+    "version": "1.1.0",
+    "scope": "Extension lesson content, keys, models and figures for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 06:18 Asia/Bishkek, after Claude's review of PR #1711 and the follow-up fixes (footer, flow-chart page breaks, choose-TWO numbering): 'I need them approved for teaching and normally ready to use in the IELTS course.' Content and keys are as reviewed in PR #1711. Not recorded as an in-platform decision; no school-scoped review-draft pack was opened before approval."
   }
 }

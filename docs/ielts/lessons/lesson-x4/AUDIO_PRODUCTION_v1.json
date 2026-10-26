@@ -89,80 +89,103 @@
    }
   },
   "IELTS-X4-C1": {
-   "file": "IELTS-X4-C1_v1.mp3",
-   "sha256": "a9636195493468dc4cce7a7e8359309e7d243b87a51e29d1278620ae7504370f",
-   "bytes": 1607328,
-   "duration_seconds": 133.896,
+   "file": "IELTS-X4-C1_v2.mp3",
+   "sha256": "e400f3d6fdfb87bab4822973d35dc382cf3f5a6aa75173695d74514421caa1b5",
+   "bytes": 3913632,
+   "duration_seconds": 326.088,
    "integrated_lufs": -18.5,
    "true_peak_dbfs": -1.7,
    "designed_cues": [
     {
      "label": "reading_silence",
-     "start": 13.39,
+     "start": 15.273,
      "seconds": 30.0
     },
     {
      "label": "response_silence",
-     "start": 118.863,
+     "start": 311.054,
      "seconds": 15.0
     }
    ],
    "detected_pauses_over_10s": [
-    30.14,
+    30.01,
     15.07
    ],
    "segments": [
     {
      "segment": "notice",
-     "source_lufs": -20.5,
-     "gain_db": 2.5,
+     "source_lufs": -18.6,
+     "gain_db": 0.6,
      "start": 0.0,
      "seconds": 4.871
     },
     {
      "segment": "C1_intro",
-     "source_lufs": -21.5,
-     "gain_db": 3.5,
+     "source_lufs": -20.8,
+     "gain_db": 2.8,
      "start": 5.571,
-     "seconds": 7.819
+     "seconds": 9.702
     },
     {
      "segment": "C1_listen",
-     "source_lufs": -20.8,
-     "gain_db": 2.8,
-     "start": 43.39,
-     "seconds": 3.591
+     "source_lufs": -20.7,
+     "gain_db": 2.7,
+     "start": 45.273,
+     "seconds": 3.529
     },
     {
-     "segment": "C1_passage",
-     "source_lufs": -20.2,
-     "gain_db": 2.2,
-     "start": 47.981,
-     "seconds": 64.284
+     "segment": "C1_passage_1",
+     "source_lufs": -29.9,
+     "gain_db": 11.9,
+     "start": 49.802,
+     "seconds": 127.239
+    },
+    {
+     "segment": "C1_passage_2",
+     "source_lufs": -30.2,
+     "gain_db": 12.2,
+     "start": 177.841,
+     "seconds": 126.616
     },
     {
      "segment": "end",
-     "source_lufs": -21.4,
-     "gain_db": 3.4,
-     "start": 113.466,
+     "source_lufs": -18.6,
+     "gain_db": 0.6,
+     "start": 305.657,
      "seconds": 5.397
     }
    ],
-   "transcript_sha256": "eb0f2aab638c5174be83b2444ff6b8882698dac5d44b1a243bdb8cb790c694b6",
+   "produced": "2026-10-26",
+   "transcript_sha256": "ec6604f2105d5fc617bae616e4302a7dc42b4553ee897251c6c868cfd0c6fecd",
+   "transcript_basis": "SHA-256 of the IELTS-X4-C1 stimulus paragraphs joined by blank lines (speaker labels included); the speaker label 'ARCHIVIST:' is not spoken.",
    "generation": {
     "passage": {
-     "task": "3307e9f3-7dfa-493f-a372-25ce896f6a36",
+     "tasks": [
+      "e6a08646-79ac-4f57-806a-53fb53fc2b47",
+      "9ba6cd32-b89a-46b8-a4bc-828ccdc31aac"
+     ],
      "model": "eleven_v4",
-     "voice": "Elias",
+     "voice": "Miriam",
      "stability": 0.5,
-     "seed": 4201
+     "seed": 4202,
+     "split": "paragraphs 1-4 and 5-8, joined with 0.8 s silence; previousText/nextText context"
     },
-    "intro_task": "b5dd59fb-380b-406d-8e10-7f063802d863",
-    "listen_cue_task": "2030c612-fa4b-437d-9363-b85a2627b0c1",
-    "end_cue_task": "73a6d894-22dd-443f-a93d-5a42a9af2e0f",
-    "notice_task": "27432479-fca3-4fbb-a210-2d53aff3f703 (reused from IELTS-M1)"
-   }
+    "intro_task": "d8c4397f-5770-41cc-9579-579241d45f38",
+    "listen_cue_task": "b7fe4479-6749-4136-a113-cff7c0bba20e",
+    "notice_and_end_cue": "Cut unchanged from IELTS-X4-C1_v1 (identical text and voice: notice 0.000-4.871 s, end cue 113.466-118.863 s)"
+   },
+   "verification": "Script text sent verbatim to the speech model. No automatic speech-recognition comparison was possible in this session; a word-for-word listening check is still to be recorded."
   }
  },
- "status": "Owner approved v1 with the pack on 2026-10-18; device/classroom playback acceptance pending"
+ "status": "IELTS-X4-L1 v1: owner approved 2026-10-18. IELTS-X4-C1 v2: owner approved with lesson v1.1.1 on 2026-10-26. Device/classroom playback acceptance pending.",
+ "superseded": {
+  "IELTS-X4-C1_v1": {
+   "file": "IELTS-X4-C1_v1.mp3",
+   "sha256": "a9636195493468dc4cce7a7e8359309e7d243b87a51e29d1278620ae7504370f",
+   "bytes": 1607328,
+   "duration_seconds": 133.896,
+   "transcript_sha256": "eb0f2aab638c5174be83b2444ff6b8882698dac5d44b1a243bdb8cb790c694b6",
+   "reason": "Script revised in lesson v1.1.1; v1 audio no longer matches. Kept for the historical v1.0.0 pack only."
+  }
+ }
 }

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { mockSourcePaths, validateMockSource } from '../scripts/ielts/mock-source-contract.mjs';
 import { lessonSourcePaths, validateLessonSource, bibleVersionErrors, currentBibleVersions } from '../scripts/ielts/lesson-source-contract.mjs';
 
@@ -81,12 +82,14 @@ test('drafts must use the current Bibles; approved sources keep the earlier vers
 });
 
 
-test('revised extensions have substantive independent checks and honest audio status', () => {
+test('revised extensions are owner approved, with substantive independent checks and honest audio status', () => {
   const extensions = lessonSourcePaths().map(load).filter((l) => /^IELTS-X[1-8]$/.test(l.code));
   for (const lesson of extensions) {
     assert.equal(lesson.version, /^IELTS-X[1-4]$/.test(lesson.code) ? '1.1.1' : '1.1.0');
-    assert.match(lesson.status, /draft/i);
-    assert.equal(lesson.approval_record, undefined);
+    assert.match(lesson.status, /^Owner approved v1\.1\.[01] on 2026-10-26/);
+    assert.equal(lesson.approval_record?.version, lesson.version);
+    assert.equal(lesson.approval_record?.date, '2026-10-26');
+    assert.ok(!lesson.release_blockers.some((b) => /owner approval/i.test(b)), lesson.code + ': stale approval blocker');
     assert.deepEqual(lesson.bibles, currentBibleVersions());
     assert.equal(lesson.previous_approval_record?.version, '1.0.0');
     assert.doesNotMatch(lesson.status, /merged/i, lesson.code + ': status must stay true after the PR is merged');
@@ -105,9 +108,17 @@ test('revised extensions have substantive independent checks and honest audio st
   assert.equal(check.items.length, 8); // two choose-TWO pairs plus six completions, ten marks
   assert.equal(check.items.filter((i) => i.type === 'choice').length, 2);
   const recording = listening.audio.recordings.find((r) => r.block === check.id);
-  assert.match(recording.status, /new recording required/i);
-  assert.equal(recording.delivered_sha256, undefined);
-  assert.ok(listening.release_blockers.some((b) => b.includes('IELTS-X4-C1')));
+  // The v1.0.0 C1 audio does not match the revised script; only the v2 recording made for it may ship.
+  assert.equal(recording.file_version, 'v2');
+  assert.match(recording.status, /Owner approved v2/);
+  const production = JSON.parse(readFileSync(new URL('../docs/ielts/lessons/lesson-x4/AUDIO_PRODUCTION_v1.json', import.meta.url)));
+  const c1 = production.recordings['IELTS-X4-C1'];
+  assert.equal(c1.file, 'IELTS-X4-C1_v2.mp3');
+  assert.match(c1.sha256, /^[a-f0-9]{64}$/);
+  assert.deepEqual(c1.detected_pauses_over_10s.map(Math.round), [30, 15]);
+  const transcript = check.stimulus.paragraphs.join('\n\n');
+  assert.equal(c1.transcript_sha256, createHash('sha256').update(transcript).digest('hex'), 'recording must be made from the current script');
+  assert.notEqual(c1.sha256, production.superseded['IELTS-X4-C1_v1'].sha256);
 });
 
 

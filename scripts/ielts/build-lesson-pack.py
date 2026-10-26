@@ -477,10 +477,10 @@ class Pack:
     def copy_audio(self):
         audio_dir = Path(self.args.audio_dir) if getattr(self.args, 'audio_dir', None) else None
         for r in self.d['audio'].get('recordings', []):
-            src = audio_dir / f"{r['id']}_v1.mp3" if audio_dir else None
+            src = audio_dir / f"{r['id']}_{r.get('file_version', 'v1')}.mp3" if audio_dir else None
             if src and src.is_file():
                 # Recordings travel inside the private pack; status text says whether they are approved.
-                rel = f"Teacher-private/Audio/{r['id']}_v1.mp3"
+                rel = f"Teacher-private/Audio/{r['id']}_{r.get('file_version', 'v1')}.mp3"
                 (self.out / 'Teacher-private/Audio').mkdir(exist_ok=True)
                 shutil.copyfile(src, self.out / rel)
                 self.files.append({'file': rel, 'audience': 'teacher', 'recording': r['id'], 'status': r['status'], 'sha256_source': sha256(src)})
@@ -490,7 +490,7 @@ class Pack:
         rec = next((r for r in self.d['audio'].get('recordings', []) if r['block'] == b['id']), None)
         if not rec or b['id'] not in self.blocks:
             return None
-        rel = f"Audio/{rec['id']}_v1.mp3"
+        rel = f"Audio/{rec['id']}_{rec.get('file_version', 'v1')}.mp3"
         have = (self.out / 'Teacher-private' / rel).exists()
         return {'id': rec['id'], 'src': rel if have else None, 'status': rec['status']}
 
@@ -921,7 +921,7 @@ class Pack:
         d, n = self.d, self.n
         items = []
         for r in d['audio']['recordings']:
-            rel = f"Teacher-private/Audio/{r['id']}_v1.mp3"
+            rel = f"Teacher-private/Audio/{r['id']}_{r.get('file_version', 'v1')}.mp3"
             if (self.out / rel).exists():
                 items.append(f"<li><a href=\"{E(rel)}\">{E(r['id'])}</a>: {E(r['status'])}</li>")
             else:
@@ -1014,7 +1014,7 @@ def main():
     ap.add_argument('--logo')
     ap.add_argument('--review-date')
     ap.add_argument('--template', action='store_true', help='School-neutral template for per-school branding at download time')
-    ap.add_argument('--audio-dir', help='Folder with produced <recording id>_v1.mp3 files to include for teacher review')
+    ap.add_argument('--audio-dir', help='Folder with produced <recording id>_<file_version, default v1>.mp3 files to include for teacher review')
     args = ap.parse_args()
     check = subprocess.run(['node', str(ROOT / 'scripts/ielts/lesson-source-contract.mjs'), args.source], capture_output=True, text=True)
     if check.returncode:

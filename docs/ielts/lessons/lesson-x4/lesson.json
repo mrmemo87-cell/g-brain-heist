@@ -8,7 +8,7 @@
   "version": "1.1.1",
   "presentation_version": "1.1.1",
   "title": "Listening: flow charts and 'choose TWO' questions",
-  "status": "Private teacher-review revision DRAFT v1.1.1; not approved or released; prior v1.0.0 approval historical only.",
+  "status": "Owner approved v1.1.1 on 2026-10-26; teacher release to all eligible schools (optional extension lesson)",
   "duration": 60,
   "test_type": "Academic",
   "bibles": {
@@ -19,7 +19,7 @@
   "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Speakers, places and organisations in the recordings are fictional. Human editorial, key, mapping, difficulty and originality review pending.",
   "audio": {
     "required": true,
-    "statement": "Existing IELTS-X4-L1 guided audio is unchanged. Revised IELTS-X4-C1 fresh check requires NEW recording, review, checksum, playback validation and owner approval. Do not substitute the old v1.0.0 recording.",
+    "statement": "IELTS-X4-L1 v1 is unchanged from the v1.0.0 release. IELTS-X4-C1 v2 was produced on 2026-10-26 for the revised script and approved with the lesson; the v1.0.0 C1 recording does not match the revised script and must not be used. Device and classroom playback acceptance pending.",
     "recordings": [
       {
         "id": "IELTS-X4-L1",
@@ -70,11 +70,11 @@
       {
         "id": "IELTS-X4-C1",
         "block": "IELTS-X4-C1",
-        "status": "Draft v1.1.1: NEW RECORDING REQUIRED; NOT APPROVED; old v1.0.0 audio incompatible with revised transcript",
+        "status": "Owner approved v2 with lesson v1.1.1 on 2026-10-26; device/classroom playback acceptance pending",
         "conditions": "Played once, no pausing, no transcript, no coaching. Record conditions.",
         "voices": {
-          "instruction": "Tom (examiner-style)",
-          "ARCHIVIST": "Distinct adult speaker; natural academic-instruction delivery; voice casting pending"
+          "instruction": "Tom (British, examiner style; steady model)",
+          "ARCHIVIST": "Miriam (British, middle-aged, calm)"
         },
         "segments": [
           {
@@ -108,7 +108,8 @@
             "type": "silence",
             "seconds": 15
           }
-        ]
+        ],
+        "file_version": "v2"
       }
     ]
   },
@@ -519,7 +520,7 @@
   ],
   "followup": {
     "id": "IELTS-X4-C1",
-    "status": "WITHHELD v1.1.1 revised audio-script draft; NEW RECORDING REQUIRED and not yet approved.",
+    "status": "WITHHELD from students until the planned fresh check; approved with lesson v1.1.1 on 2026-10-26. Keep private until use.",
     "delivery": "About one teaching week after the lesson only AFTER approval of a new matching IELTS-X4-C1 recording. Play once with 30 seconds reading time and 15 seconds checking. No pause, replay, transcript, help or coaching; log any deviation.",
     "blocks": [
       {
@@ -774,9 +775,7 @@
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.2 construct names. Draft teaching focuses only. Items from one passage, recording or task are not independent longitudinal observations. This optional extension lesson sits outside the 24-lesson sequence and changes no scoring, screener, readiness or band logic. Editorial revision 2026-10-24: advanced tasks are instructional challenges, not calibrated IELTS Band 7–9 evidence. Guided success must not be treated as independent proficiency. Observe an unseen, timed transfer task without hints before making instructional readiness judgments.",
   "release_blockers": [
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
-    "Student task publication and platform evidence capture remain separate, governed steps.",
-    "IELTS-X4-C1: new script needs generated, transcript-matched recording, verified duration and hash, owner review and classroom playback acceptance before any independent fresh check.",
-    "v1.1.1 revised lesson: needs contract validation, fresh-check editorial and answer-key review, generated-pack acceptance and explicit owner approval before publication."
+    "Student task publication and platform evidence capture remain separate, governed steps."
   ],
   "previous_approval_record": {
     "approved_by": "Owner, Brains Heist LLC",
@@ -784,5 +783,12 @@
     "version": "1.0.0",
     "scope": "Extension lesson content, keys, models, figures and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.",
     "basis": "Owner approval stated in the review conversation on 2026-10-18 23:51 Asia/Bishkek after reviewing the v0.1.0 school-scoped review draft (pack SHA-256 c6881d492f1a9c8fd95e00502ed9e12586f75c75548f958e1ddbac322fd0f92e): 'approved ... these all materials are official now and ready, then publish to all schools'. Released as v1.0.0 with content, keys and recordings unchanged; only status, approval and release metadata changed. Not recorded as an in-platform decision."
+  },
+  "approval_record": {
+    "approved_by": "Owner, Brains Heist LLC",
+    "date": "2026-10-26",
+    "version": "1.1.1",
+    "scope": "Extension lesson content, keys, models, figures and recordings (IELTS-X4-L1 v1 unchanged; IELTS-X4-C1 v2 produced 2026-10-26 for the revised script) for teacher-only release to all eligible schools. Student task publication remains separate.",
+    "basis": "Owner instruction in the review conversation on 2026-10-26 06:18 Asia/Bishkek, after Claude's review of PR #1711 and the follow-up fixes (footer, flow-chart page breaks, choose-TWO numbering): 'I need them approved for teaching and normally ready to use in the IELTS course.' Content and keys are as reviewed in PR #1711. Not recorded as an in-platform decision; no school-scoped review-draft pack was opened before approval."
   }
 }
