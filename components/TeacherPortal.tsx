@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 127414)
-Total output lines: 9827
-
 import React, { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
 import RetentionTrialGate from '../src/features/retention/RetentionTrialGate';
 const RetentionTeacherPanel = React.lazy(() => import('../src/features/retention/RetentionTeacherPanel'));
@@ -4419,7 +4416,2097 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           confidentiality: audience === 'family' ? 'family-copy' : 'confidential',
           generatedAt: new Date().toISOString(),
           generatedBy: profile.full_name || profile.username || 'Teacher',
-          subject: selectedReportAss…27414 tokens truncated…                >
+          subject: selectedReportAssignment.subject_name,
+          className: selectedAnalysisStudent.batch || undefined,
+          studentName: selectedAnalysisStudent.student_name,
+          schoolId: profile.school_id,
+          studentUserId: selectedAnalysisStudent.student_id,
+          visibilityScope: audience === 'family' ? 'student_family' : 'private',
+          sourceType: 'teacher_assignment',
+          sourceId: selectedReportAssignment.id,
+        },
+        bodyHtml,
+        orientation: 'portrait',
+        fileName: schoolDocumentFileName(resolvedBranding.schoolName, selectedAnalysisStudent.student_name, assignmentTitle, audience, new Date().toISOString().slice(0, 10)),
+      });
+    } catch (error) {
+      brainsAlert(error instanceof Error ? error.message : 'Unable to open the document preview.', 'info');
+    }
+  };
+
+  // Download CSV template
+  const downloadCSVTemplate = () => {
+    const blob = new Blob([TEACHER_QUESTION_IMPORT_TEMPLATE], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'brains-heist-my-pool-question-template.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const previewBulkImport = (text: string, source: string) => {
+    try {
+      const preview = parseTeacherQuestionImport(text);
+      setBulkImportPreview(preview);
+      setBulkImportSource(source);
+    } catch (error) {
+      setBulkImportPreview(null);
+      setBulkImportSource('');
+      brainsAlert(error instanceof Error ? error.message : 'Unable to read these questions.', 'error');
+    }
+  };
+
+  const handleCSVUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      previewBulkImport(await file.text(), file.name);
+    } catch (error) {
+      brainsAlert('Unable to read this file: ' + (error as Error).message, 'error');
+    } finally {
+      e.target.value = '';
+    }
+  };
+
+  const confirmBulkImport = async () => {
+    if (!bulkImportPreview?.questions.length || bulkImportPreview.issues.length) return;
+    setUploading(true);
+    setUploadProgress({ current: 0, total: bulkImportPreview.questions.length });
+    try {
+      const result = await GameService.bulk_create_teacher_questions(bulkImportPreview.questions);
+      setUploadProgress({ current: result.submitted, total: result.submitted });
+      await loadQuestionsOnDemand();
+      setBulkImportPreview(null);
+      setBulkImportSource('');
+      setBulkPasteText('');
+      brainsAlert(`Added ${result.created} classroom question${result.created === 1 ? '' : 's'} to My Pool.${result.duplicatesSkipped ? ` ${result.duplicatesSkipped} existing duplicate${result.duplicatesSkipped === 1 ? ' was' : 's were'} skipped.` : ''} These questions do not affect official Academic Profile analytics.`, 'success');
+      setView('question-bank');
+    } catch (error) {
+      brainsAlert('Bulk import failed safely; no partial questions were added. ' + (error as Error).message, 'error');
+    } finally {
+      setUploading(false);
+      setUploadProgress({ current: 0, total: 0 });
+    }
+  };
+
+  // Render Dashboard
+  const renderDashboard = () => {
+    const myClasses = teachingGroups.length
+      ? teachingGroups.map((group) => group.name)
+      : Array.from(new Set(allocatedClasses.map((cls) => cls.class_code)));
+    const activeAssignments = assignments.filter((a) => a.completed_count < a.student_count).length;
+    const totalSubmissions = assignmentSuccess?.submission_count ?? 0;
+    const hasAssignmentSuccess = totalSubmissions > 0;
+    const successRate = assignmentSuccess?.success_rate ?? 0;
+    const pendingWriting = cambridgeScores.filter(
+      (score) => isTeacherMarkedCambridgeTest(score.quiz_name) && score.answers?.requires_marking
+    ).length;
+    const studentsWithoutClass = availableStudents.filter((student) => !student.batch).length;
+
+    const classHealthRows = myClasses.map((classCode) => {
+      const classStudents = availableStudents.filter((student) => student.batch === classCode);
+      const classAssignments = assignments.filter((assignment) => assignment.batch === classCode);
+      const totalAssigned = classAssignments.reduce((sum, assignment) => sum + (assignment.student_count || 0), 0);
+      const totalCompleted = classAssignments.reduce((sum, assignment) => sum + (assignment.completed_count || 0), 0);
+      const completionRate = totalAssigned > 0 ? Math.round((totalCompleted / totalAssigned) * 100) : null;
+
+      const classCambridgeScores = cambridgeScores.filter((score) => (score.student_class || 'Unknown') === classCode);
+      const averageScore = classCambridgeScores.length > 0
+        ? Math.round(classCambridgeScores.reduce((sum, score) => sum + (score.percentage || 0), 0) / classCambridgeScores.length)
+        : null;
+
+      return {
+        classCode,
+        studentCount: classStudents.length,
+        assignmentsInProgress: classAssignments.filter((assignment) => assignment.completed_count < assignment.student_count).length,
+        completionRate,
+        averageScore,
+      };
+    }).sort((a, b) => (a.completionRate ?? Number.POSITIVE_INFINITY) - (b.completionRate ?? Number.POSITIVE_INFINITY));
+
+    const lowCompletionClasses = classHealthRows.filter((row) => row.completionRate !== null && row.completionRate > 0 && row.completionRate < 60);
+
+    const studentRiskMap = new Map<string, { name: string; batch: string; reasons: string[]; riskScore: number }>();
+    const markRisk = (studentId: string, name: string, batch: string, reason: string, weight: number) => {
+      const existing = studentRiskMap.get(studentId);
+      if (existing) {
+        existing.riskScore += weight;
+        if (!existing.reasons.includes(reason)) existing.reasons.push(reason);
+        return;
+      }
+      studentRiskMap.set(studentId, { name, batch, reasons: [reason], riskScore: weight });
+    };
+
+    availableStudents.forEach((student) => {
+      if (!student.batch) {
+        markRisk(student.id, student.display_name || student.username, 'Unassigned', 'Not mapped to a class yet', 4);
+      }
+    });
+
+    lowCompletionClasses.forEach((row) => {
+      availableStudents
+        .filter((student) => student.batch === row.classCode)
+        .forEach((student) => {
+          markRisk(
+            student.id,
+            student.display_name || student.username,
+            student.batch || 'Unknown',
+            `${row.classCode} completion is ${row.completionRate}%`,
+            2
+          );
+        });
+    });
+
+    cambridgeScores
+      .filter((score) => Number(score.percentage || 0) < 60)
+      .forEach((score) => {
+        const matchedStudent = availableStudents.find((student) => student.username === score.student_name || student.display_name === score.student_name);
+        if (!matchedStudent) return;
+        markRisk(
+          matchedStudent.id,
+          matchedStudent.display_name || matchedStudent.username,
+          matchedStudent.batch || score.student_class || 'Unknown',
+          `Low Cambridge score (${score.percentage}%) on ${score.quiz_name}`,
+          3
+        );
+      });
+
+    const atRiskStudents = Array.from(studentRiskMap.values())
+      .sort((a, b) => b.riskScore - a.riskScore)
+      .slice(0, 6);
+
+    const topIssues: string[] = [];
+    if (!teacherHasClassAllocations) topIssues.push('No class allocations are configured for this teacher account.');
+    if (lowCompletionClasses.length > 0) topIssues.push(`${lowCompletionClasses.length} class(es) are below 60% assignment completion.`);
+    if (studentsWithoutClass > 0) topIssues.push(`${studentsWithoutClass} student(s) have no class mapping.`);
+    if (hasAssignmentSuccess && successRate < 65) topIssues.push(`Assignment success rate is ${successRate}% (below target).`);
+    if (pendingWriting > 0) topIssues.push(`${pendingWriting} Cambridge writing submission(s) still need marking.`);
+
+    const recommendedActions = [
+      lowCompletionClasses.length > 0
+        ? `Run a catch-up check with ${lowCompletionClasses[0].classCode} and review missed assignment blockers.`
+        : 'Keep assignment momentum by scheduling the next formative check this week.',
+      pendingWriting > 0
+        ? 'Open Cambridge Tests and clear pending writing to unlock score release.'
+        : 'Review Cambridge trends and release marked scores to students.',
+      studentsWithoutClass > 0
+        ? 'Coordinate with school admin to map unassigned students into classes.'
+        : 'Use Reports to target the bottom-performing students with a custom assignment.',
+    ];
+
+    const priorityItems = [
+      activeAssignments > 0 ? `Review ${activeAssignments} assignment${activeAssignments > 1 ? 's' : ''} still in progress.` : 'No pending assignments — great pacing today.',
+      teacherHasClassAllocations
+        ? `Prepare next class for ${myClasses.slice(0, 2).join(' • ')}${myClasses.length > 2 ? '…' : ''}.`
+        : 'Coordinate with your school admin to finalize class allocations.',
+      !hasAssignmentSuccess
+        ? 'Assignment success will appear after the first student submission.'
+        : successRate < 65
+        ? 'Success rate is below 65% — prioritize revision and targeted support.'
+        : 'Success trend is healthy — keep momentum with formative checks.',
+    ];
+
+    const alertItems: Array<{ tone: 'warning' | 'info'; text: string }> = [];
+    for (const row of assignmentSuccess?.followups || []) {
+      alertItems.push({
+        tone: row.kind === 'missing' ? 'warning' : 'info',
+        text: row.kind === 'missing'
+          ? `${row.student_name} has not completed “${row.assignment_title}”.`
+          : `${row.student_name} needs help with “${row.assignment_title}” (${Math.round(Number(row.accuracy))}% accuracy).`,
+      });
+    }
+    const visibleStudentAlerts = alertItems.slice(0, 8);
+    const remainingFollowups = (assignmentSuccess?.followup_count || 0) - visibleStudentAlerts.length;
+    if (remainingFollowups > 0) {
+      visibleStudentAlerts.push({ tone: 'warning', text: `${remainingFollowups} more student follow-ups — open Reports for the full list.` });
+    }
+
+    if (activeAssignments > 0 && alertItems.length === 0) {
+      visibleStudentAlerts.push({
+        tone: 'warning',
+        text: `${activeAssignments} in-progress assignment${activeAssignments > 1 ? 's' : ''} — open Reports to review the assigned students.`,
+      });
+    }
+    if (!teacherHasClassAllocations) {
+      visibleStudentAlerts.push({ tone: 'warning', text: 'No class allocations found for this teacher account.' });
+    }
+
+    return (
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="teacher-section-header">
+        <h2 className="teacher-section-title">
+          <span>📊</span> Dashboard Overview
+        </h2>
+        <p className="teacher-section-subtitle">Manage your classes, questions, and track student progress</p>
+      </div>
+
+      <RetentionTrialGate userId={profile.id}>
+        <RetentionTeacherPanel userId={profile.id} name={profile.username} submissions={assignmentSuccess ? totalSubmissions : null}
+          activeAssignments={activeAssignments} pendingReviews={pendingWriting} followups={assignmentSuccess?.followups || []}
+          reportsAllowed={canUseTeacherFeature(FEATURE_KEYS.REPORTS)} assignmentsAllowed={canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
+          onReports={() => openEntitledView('reports', 'Reports')} onAssignments={() => openEntitledView('assignments', 'Assignments')}
+          onInterventions={() => openEntitledView('interventions', 'Interventions')} />
+      </RetentionTrialGate>
+      {/* Dashboard shortcuts */}
+      <TeacherIeltsProgrammeShortcut entry={ieltsProgramme.entry} failed={ieltsProgramme.failed} onRetry={ieltsProgramme.retry} />
+      <div className="teacher-stats-grid">
+        <button type="button" onClick={() => setView('students')} className="teacher-dashboard-stat cyan text-left" aria-label="Open My Classes">
+          <div className="teacher-dashboard-stat-info">
+            <h4>My Classes</h4>
+            <div className="teacher-dashboard-stat-value">{myClasses.length || 0}</div>
+            <p className="teacher-dashboard-stat-sub">{myClasses.join(' · ') || 'No classes assigned'}</p>
+          </div>
+          <div className="teacher-dashboard-stat-icon"><TeacherWorkspaceIcon name="classes" /></div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => openEntitledView('assignments', 'Assignments')}
+          className={`teacher-dashboard-stat green text-left ${!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          aria-label="Open Assignments"
+          disabled={!canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
+        >
+          <div className="teacher-dashboard-stat-info">
+            <h4>Assignments</h4>
+            <div className="teacher-dashboard-stat-value">{assignments.length}</div>
+            <p className="teacher-dashboard-stat-sub">{activeAssignments} in progress</p>
+          </div>
+          <div className="teacher-dashboard-stat-icon"><TeacherWorkspaceIcon name="assignments" /></div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => openEntitledView('reports', 'Reports')}
+          className={`teacher-dashboard-stat amber text-left ${!canUseTeacherFeature(FEATURE_KEYS.REPORTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          aria-label="Open Reports"
+          disabled={!canUseTeacherFeature(FEATURE_KEYS.REPORTS)}
+        >
+          <div className="teacher-dashboard-stat-info">
+            <h4>Reports</h4>
+            <div className="teacher-dashboard-stat-value">{assignmentSuccess ? totalSubmissions : '—'}</div>
+            <p className="teacher-dashboard-stat-sub">Completed assignment submissions</p>
+          </div>
+          <div className="teacher-dashboard-stat-icon">💬</div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => openEntitledView('reports', 'Reports')}
+          className={`teacher-dashboard-stat purple text-left ${!canUseTeacherFeature(FEATURE_KEYS.REPORTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          aria-label="Open Assignment Success reports"
+          disabled={!canUseTeacherFeature(FEATURE_KEYS.REPORTS)}
+        >
+          <div className="teacher-dashboard-stat-info">
+            <h4>Assignment Success</h4>
+            <div className="teacher-dashboard-stat-value">{assignmentSuccess ? `${successRate}%` : '—'}</div>
+            <p className="teacher-dashboard-stat-sub">
+              {hasAssignmentSuccess
+                ? `${assignmentSuccess?.correct_answer_count ?? 0}/${assignmentSuccess?.answered_question_count ?? 0} answers correct`
+                : 'Appears after the first submission'}
+            </p>
+          </div>
+          <div className="teacher-dashboard-stat-icon">📈</div>
+        </button>
+      </div>
+
+      <div className="teacher-dashboard-grid">
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>🎯</span> Today&apos;s Priorities
+          </h3>
+          <ul className="teacher-priority-list">
+            {priorityItems.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Quick Actions Section */}
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>⚡</span> Quick Actions
+          </h3>
+          <div className="teacher-actions-grid teacher-actions-grid-compact">
+          {(() => {
+            // Pilot quota helper
+            const tq = (label: string): PilotQuota | null => getQuotaForFeature(label, pilotQuotas);
+            const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
+            const isExhausted = (label: string) => tq(label)?.exhausted === true;
+            const featureForAction: Record<string, FeatureKey> = {
+              'Create Question': FEATURE_KEYS.CUSTOM_QUESTIONS,
+              'Question Bank': FEATURE_KEYS.QUESTION_BANK,
+              'Bulk Upload': FEATURE_KEYS.CUSTOM_QUESTIONS,
+              'New Assignment': FEATURE_KEYS.ASSIGNMENTS,
+            };
+            const isDisabled = (label: string) => !canUseTeacherFeature(featureForAction[label]) || (isPilot && isExhausted(label));
+            const quotaBadge = (label: string) => {
+              if (!isPilot) return null;
+              const q = tq(label);
+              if (!q) return null;
+              const fid = FEATURE_TO_QUOTA[label];
+              const ql = fid ? QUOTA_LABELS[fid] : '';
+              if (q.exhausted) return <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', borderColor: '#ef4444' }}>⚡ UPGRADE</span>;
+              return <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', borderColor: '#22d3ee' }}>{q.remaining}/{q.limit} {ql}</span>;
+            };
+            return <>
+          <button
+            onClick={() => {
+              if (isDisabled('Create Question')) return;
+              setQuestionBatchDefaults({});
+              setView('question-batch');
+            }}
+            className={`teacher-action-card teacher-action-card--mini ${isDisabled('Create Question') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            data-color="pink"
+            disabled={isDisabled('Create Question')}
+          >
+            {isDisabled('Create Question') && !isPilot && <span className="teacher-pro-badge">PRO</span>}
+            {quotaBadge('Create Question')}
+            <div className="teacher-action-icon">PDF</div>
+            <h4 className="teacher-action-title">Add Question Batch</h4>
+            <p className="teacher-action-desc">Upload a PDF, check the questions, then submit</p>
+          </button>
+
+          <button
+            onClick={() => !isDisabled('Question Bank') ? setView('question-bank') : undefined}
+            className={`teacher-action-card teacher-action-card--mini ${isDisabled('Question Bank') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            data-color="cyan"
+            disabled={isDisabled('Question Bank')}
+          >
+            {isDisabled('Question Bank') && !isPilot && <span className="teacher-pro-badge">PRO</span>}
+            {quotaBadge('Question Bank')}
+            <div className="teacher-action-icon"><TeacherWorkspaceIcon name="questions" /></div>
+            <h4 className="teacher-action-title">Question Bank</h4>
+            <p className="teacher-action-desc">View and manage all questions</p>
+          </button>
+
+          <button
+            onClick={() => !isDisabled('New Assignment') ? openBlankAssignmentForm() : undefined}
+            className={`teacher-action-card teacher-action-card--mini ${isDisabled('New Assignment') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            data-color="purple"
+            disabled={isDisabled('New Assignment')}
+          >
+            {isDisabled('New Assignment') && !isPilot && <span className="teacher-pro-badge">PRO</span>}
+            {quotaBadge('New Assignment')}
+            <div className="teacher-action-icon"><TeacherWorkspaceIcon name="assignments" /></div>
+            <h4 className="teacher-action-title">New Assignment</h4>
+            <p className="teacher-action-desc">Assign work to students</p>
+          </button>
+            </>;
+          })()}
+
+          {/* Lockdown Mode opens the official class-battle workspace. */}
+          {(() => {
+            const lockdownLocked = !canUseTeacherFeature(FEATURE_KEYS.CLANS);
+            return (
+              <button
+                onClick={() => {
+                  if (lockdownLocked) {
+                    showFeatureUnavailable('Lockdown Mode');
+                    return;
+                  }
+                  if (onLockdown) {
+                    onLockdown();
+                    return;
+                  }
+                  showFeatureUnavailable('Lockdown Mode');
+                }}
+                className={`teacher-action-card teacher-action-card-lockdown teacher-action-card--mini ${lockdownLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                data-color="emerald"
+                disabled={lockdownLocked}
+              >
+                {lockdownLocked && <span className="teacher-pro-badge">PRO</span>}
+                <div className="teacher-action-icon">🔒</div>
+                <h4 className="teacher-action-title">Lockdown Mode</h4>
+                <p className="teacher-action-desc">Run an official live class battle</p>
+              </button>
+            );
+          })()}
+
+        </div>
+      </div>
+      </div>
+
+      <div className="teacher-dashboard-grid teacher-dashboard-grid-bottom">
+        {/* Recent Activity Section */}
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>📅</span> Recent Assignments
+          </h3>
+          {assignments.length > 0 ? (
+            <div className="teacher-table-container">
+              <table className="teacher-table teacher-responsive-summary-table">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Subject</th>
+                    <th style={{ textAlign: 'center' }}>Completed</th>
+                    <th style={{ textAlign: 'center' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {assignments.slice(0, 5).map((a) => (
+                    <tr key={a.id}>
+                      <td data-label="Assignment" style={{ fontWeight: 500 }}>{a.title}</td>
+                      <td data-label="Subject">{a.subject_name}</td>
+                      <td data-label="Completed" style={{ textAlign: 'center' }}>{a.completed_count}/{a.student_count}</td>
+                      <td data-label="Status" style={{ textAlign: 'center' }}>
+                        <span className={`teacher-badge ${
+                          a.completed_count >= a.student_count ? 'success' : 'warning'
+                        }`}>
+                          {a.completed_count >= a.student_count ? '✅ Complete' : '⏳ In Progress'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">No assignments yet. Use Quick Actions to create your first one.</p>
+          )}
+        </div>
+
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>🚨</span> Student Alerts
+          </h3>
+          {visibleStudentAlerts.length > 0 ? (
+            <ul className="teacher-alert-list">
+              {visibleStudentAlerts.map((item, idx) => (
+                <li key={idx} className={`teacher-alert-item ${item.tone}`}>
+                  {item.text}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-slate-500">No critical alerts right now.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="teacher-dashboard-grid teacher-dashboard-grid-bottom">
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>🩺</span> Class Health Dashboard
+          </h3>
+          {classHealthRows.length === 0 ? (
+            <p className="text-sm text-slate-500">No class health data yet. Class metrics will appear after assignments and submissions.</p>
+          ) : (
+            <div className="teacher-table-container">
+              <table className="teacher-table teacher-responsive-summary-table">
+                <thead>
+                  <tr>
+                    <th>Class</th>
+                    <th style={{ textAlign: 'center' }}>Students</th>
+                    <th style={{ textAlign: 'center' }}>In Progress</th>
+                    <th style={{ textAlign: 'center' }}>Completion</th>
+                    <th style={{ textAlign: 'center' }}>Avg Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {classHealthRows.map((row) => (
+                    <tr key={row.classCode}>
+                      <td data-label="Class" style={{ fontWeight: 600 }}>{row.classCode}</td>
+                      <td data-label="Students" style={{ textAlign: 'center' }}>{row.studentCount}</td>
+                      <td data-label="In progress" style={{ textAlign: 'center' }}>{row.assignmentsInProgress}</td>
+                      <td data-label="Completion" style={{ textAlign: 'center' }}>
+                        {row.completionRate === null
+                          ? <span className="teacher-badge neutral">No data</span>
+                          : <span className={`teacher-badge ${row.completionRate >= 75 ? 'success' : row.completionRate >= 50 ? 'warning' : 'danger'}`}>
+                              {row.completionRate}%
+                            </span>}
+                      </td>
+                      <td data-label="Average score" style={{ textAlign: 'center' }}>{row.averageScore !== null ? `${row.averageScore}%` : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>🧯</span> At-Risk Students
+          </h3>
+          {atRiskStudents.length === 0 ? (
+            <p className="text-sm text-slate-500">No high-risk students detected from current submissions.</p>
+          ) : (
+            <ul className="space-y-3">
+              {atRiskStudents.map((student, index) => (
+                <li key={`${student.name}-${index}`} className="rounded-lg border border-red-200 bg-red-50 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-semibold text-red-800">{student.name}</div>
+                    <span className="text-xs text-red-700">{student.batch}</span>
+                  </div>
+                  <p className="text-xs text-red-700 mt-1">{student.reasons[0]}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      <div className="teacher-dashboard-grid teacher-dashboard-grid-bottom">
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>⚠️</span> Top Issues
+          </h3>
+          {topIssues.length === 0 ? (
+            <p className="text-sm text-slate-500">No major issues detected right now.</p>
+          ) : (
+            <ul className="teacher-alert-list">
+              {topIssues.map((issue, index) => (
+                <li key={index} className="teacher-alert-item warning">
+                  {issue}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="teacher-panel-card">
+          <h3 className="teacher-subsection-title">
+            <span>✅</span> Recommended Actions
+          </h3>
+          <ul className="teacher-priority-list">
+            {recommendedActions.map((action, index) => (
+              <li key={index}>{action}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Geometry Builder is the only dashboard tool without its own portal navigation route. */}
+      <div className="teacher-mb-8">
+        <h3 className="teacher-subsection-title">
+          <span>📐</span> Specialist Tool
+        </h3>
+        <div className="teacher-tools-grid teacher-tools-grid--single">
+          {(() => {
+            const tq = (label: string): PilotQuota | null => getQuotaForFeature(label, pilotQuotas);
+            const isPilot = pilotQuotas?.is_pilot && !pilotQuotas?.expired;
+            const isExhausted = (label: string) => tq(label)?.exhausted === true;
+            const isDisabledT = (label: string) => !canUseTeacherFeature(FEATURE_KEYS.CUSTOM_QUESTIONS) || (isPilot && isExhausted(label));
+            const quotaBadgeSm = (label: string) => {
+              if (!isPilot) return null;
+              const q = tq(label);
+              if (!q) return null;
+              const fid = FEATURE_TO_QUOTA[label];
+              const ql = fid ? QUOTA_LABELS[fid] : '';
+              if (q.exhausted) return <span className="teacher-pro-badge-sm" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', borderColor: '#ef4444' }}>⚡ UPGRADE</span>;
+              return <span className="teacher-pro-badge-sm" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', borderColor: '#22d3ee', color: '#e0f2fe' }}>{q.remaining}/{q.limit} {ql}</span>;
+            };
+            return <>
+          <button
+            type="button"
+            onClick={() => !isDisabledT('Geometry Builder') ? setView('geometry-diagrams') : undefined}
+            className={`teacher-tool-card teacher-tool-card--geometry orange ${isDisabledT('Geometry Builder') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={isDisabledT('Geometry Builder')}
+          >
+            <div className="teacher-tool-icon">📐</div>
+            <div className="teacher-tool-info">
+              <h4 className="teacher-tool-title">Geometry Builder</h4>
+              <p className="teacher-tool-desc">Create interactive diagram questions</p>
+            </div>
+            {isDisabledT('Geometry Builder') && !isPilot && <span className="teacher-pro-badge-sm">PRO</span>}
+            {quotaBadgeSm('Geometry Builder')}
+          </button>
+            </>;
+          })()}
+
+        </div>
+      </div>
+    </div>
+  );
+  };
+
+  // Render Create Question Form
+  const renderCreateQuestion = () => {
+    // If a teacher has no allocated classes or subjects, show access denied.
+    if (!teacherHasClassAllocations) {
+      return (
+        <div className="max-w-3xl mx-auto">
+          <button
+            onClick={() => setView('dashboard')}
+            className="teacher-back-btn"
+          >
+            <span>←</span> Back to Dashboard
+          </button>
+          
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 text-center mt-6">
+            <div className="text-4xl mb-4">🔒</div>
+            <h2 className="text-xl font-bold text-amber-800 mb-2">No Class Assignments</h2>
+            <p className="text-amber-700 mb-4">
+              You need to be assigned to at least one class and subject by your school admin before you can create questions.
+            </p>
+            <p className="text-sm text-amber-600">
+              Please contact your school administrator to assign you to classes.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    
+    return (
+    <div className="max-w-3xl mx-auto">
+      <button
+        onClick={() => {
+          setEditingQuestion(null);
+          setView('question-bank');
+        }}
+        className="teacher-back-btn"
+      >
+        <span>←</span> Back to Questions
+      </button>
+
+      <h2 className="text-2xl font-bold text-slate-800 mb-6">
+        {editingQuestion ? 'Edit Question' : 'Create New Question'}
+      </h2>
+
+      {/* Question type selector */}
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
+        <h3 className="text-sm font-semibold text-slate-700 mb-3">Question type</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setQuestionType('multiple_choice');
+              setQuestionText('');
+              setCorrectAnswer('');
+              setOptions([
+                { text: '', image_url: undefined },
+                { text: '', image_url: undefined },
+                { text: '', image_url: undefined },
+                { text: '', image_url: undefined }
+              ]);
+            }}
+            className="p-3 bg-white hover:bg-cyan-50 border border-slate-200 hover:border-cyan-400 rounded-lg transition-all text-sm"
+          >
+            <div className="text-2xl mb-1">📝</div>
+            <div className="text-slate-700 font-semibold">Multiple Choice</div>
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => {
+              setQuestionType('true_false');
+              setQuestionText('');
+              setCorrectAnswer('True');
+              setOptions([
+                { text: 'True', image_url: undefined },
+                { text: 'False', image_url: undefined }
+              ]);
+            }}
+            className="p-3 bg-white hover:bg-green-50 border border-slate-200 hover:border-green-400 rounded-lg transition-all text-sm"
+          >
+            <div className="text-2xl mb-1">✓✗</div>
+            <div className="text-slate-700 font-semibold">True/False</div>
+          </button>
+          
+          <button
+            type="button"
+            disabled
+            className="cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 p-3 text-sm opacity-65"
+          >
+            <div className="text-2xl mb-1">✏️</div>
+            <div className="font-semibold text-slate-500">Short Answer</div>
+            <div className="mt-1 text-xs text-slate-400">Unavailable</div>
+          </button>
+          
+          <button
+            type="button"
+            disabled
+            className="cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 p-3 text-sm opacity-65"
+          >
+            <div className="text-2xl mb-1">↕</div>
+            <div className="font-semibold text-slate-500">Drag &amp; Drop</div>
+            <div className="mt-1 text-xs text-slate-400">Coming soon</div>
+          </button>
+        </div>
+      </div>
+
+      <div className="teacher-card">
+        <form onSubmit={handleCreateQuestion} className="space-y-6">
+          {/* Subject & Difficulty */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="teacher-form-group">
+              <label className="teacher-label">Subject</label>
+              <select
+                value={subject}
+                onChange={(e) => {
+                  const nextSubject = e.target.value as Subject;
+                  setSubject(nextSubject);
+                  const assignedGrades = getAssignedGradesForQuestionSubject(nextSubject);
+                  setEligibleGradeLevels(assignedGrades.length === 1 ? [assignedGrades[0]] : []);
+                }}
+                className="teacher-select"
+                required
+              >
+                {teacherAssignedSubjects.length > 0 ? (
+                  teacherAssignedSubjects.map(subj => (
+                    <option key={subj} value={subj}>{subj}</option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Maths">Maths</option>
+                    <option value="Science">Science</option>
+                    <option value="English">English</option>
+                    <option value="Russian Language">Russian Language</option>
+                    <option value="Kyrgyz Language">Kyrgyz Language</option>
+                    <option value="German Language">German Language</option>
+                    <option value="Geography">Geography</option>
+                    <option value="Global Perspective">Global Perspective</option>
+                    <option value="ICT">ICT</option>
+                  </>
+                )}
+              </select>
+              {teacherAssignedSubjects.length > 0 && (
+                <p className="text-xs text-slate-500 mt-1">Only subjects assigned to your classes</p>
+              )}
+            </div>
+
+            <div className="teacher-form-group">
+              <label className="teacher-label">Difficulty</label>
+              <select
+                value={difficulty}
+                onChange={(e) => {
+                  const newDifficulty = e.target.value as QuestionDifficulty;
+                  setDifficulty(newDifficulty);
+                  // Auto-set points based on difficulty
+                  setPoints(getDefaultPointsForDifficulty(newDifficulty));
+                }}
+                className="teacher-select"
+                required
+              >
+                <option value="easy">⭐ Easy (10 XP)</option>
+                <option value="medium">⭐⭐ Medium (15 XP)</option>
+                <option value="hard">⭐⭐⭐ Hard (20 XP)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Topic Selection */}
+          <div className="teacher-form-group">
+            <label className="teacher-label">My Pool topic</label>
+            <div className={`teacher-topic-picker ${topicMode === 'custom' && !teacherOwnedTopics.includes(customTopicName) ? 'is-creating' : ''}`}>
+              <select
+                value={topicMode === 'general' ? 'General' : (teacherOwnedTopics.includes(customTopicName) ? customTopicName : '__new__')}
+                onChange={(e) => {
+                  if (e.target.value === 'General') {
+                    setTopicMode('general');
+                    setCustomTopicName('');
+                  } else if (e.target.value === '__new__') {
+                    setTopicMode('custom');
+                    setCustomTopicName('');
+                  } else {
+                    setTopicMode('custom');
+                    setCustomTopicName(e.target.value);
+                  }
+                }}
+                className="teacher-select"
+              >
+                <option value="General">General</option>
+                {teacherOwnedTopics.filter((topic) => topic !== 'General').map((topic) => <option key={topic} value={topic}>{topic}</option>)}
+                <option value="__new__">＋ Create a new topic</option>
+              </select>
+              {topicMode === 'custom' && !teacherOwnedTopics.includes(customTopicName) && (
+                <input
+                  type="text"
+                  value={customTopicName}
+                  onChange={(e) => setCustomTopicName(e.target.value)}
+                  className="teacher-input teacher-topic-picker__new"
+                  placeholder="Name the new topic"
+                  required
+                />
+              )}
+            </div>
+            <p className="text-xs text-slate-500 mt-2">Choose one of your topics or create a new one. The topic is added to My Pool when this question is saved.</p>
+          </div>
+
+          <fieldset className="teacher-form-group rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+            <legend className="teacher-label px-2">Classroom question & academic alignment</legend>
+
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(360px,1.2fr)]">
+              <div>
+                <div className="rounded-xl border border-slate-200 bg-white p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <strong className="block text-sm text-slate-900">Target grade</strong>
+                      <p className="mt-1 text-xs leading-5 text-slate-600">
+                        Choose one grade for Academic Verification. You can select multiple grades only when keeping the question classroom-only in My Pool.
+                      </p>
+                    </div>
+                    {teacherQuestionAssignedGrades.length === 1 && eligibleGradeLevels.length === 1 && eligibleGradeLevels[0] === teacherQuestionAssignedGrades[0] && (
+                      <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-[11px] font-semibold text-cyan-800">
+                        Auto-selected from your teaching allocation
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {Array.from({ length: 12 }, (_, index) => index + 1).map((grade) => {
+                      const selected = eligibleGradeLevels.includes(grade);
+                      const assigned = teacherQuestionAssignedGrades.includes(grade);
+                      return (
+                        <label
+                          key={grade}
+                          className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${selected ? 'border-cyan-500 bg-cyan-100 text-cyan-950' : assigned ? 'border-cyan-200 bg-cyan-50/60 text-slate-700' : 'border-slate-200 bg-white text-slate-600'}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={() => setEligibleGradeLevels((current) => current.includes(grade)
+                              ? current.filter((value) => value !== grade)
+                              : [...current, grade].sort((a, b) => a - b))}
+                          />
+                          <span>Grade {grade}</span>
+                          {assigned && <span className="text-[10px] font-semibold uppercase tracking-wide text-cyan-700">Your class</span>}
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  {teacherQuestionAssignedGrades.length > 1 && (
+                    <p className="mt-3 text-xs text-slate-500">
+                      Your {subject} allocations cover Grades {teacherQuestionAssignedGrades.join(', ')}. Choose the grade this question is primarily designed to assess.
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                  <strong className="block text-sm text-amber-950">My Pool remains the default</strong>
+                  <p className="mt-1 text-xs leading-5 text-amber-900/80">
+                    Saving normally keeps this as a classroom question. By itself, it never changes the official Academic Profile. Only approved Academic Verification can make it official evidence.
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-cyan-200 bg-white p-4 shadow-sm">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <strong className="text-sm text-slate-900">Academic Skill Registry</strong>
+                      {manualRegistrySupported && eligibleGradeLevels.length === 1 && !manualRegistryLoading && (
+                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">Ready</span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-xs leading-5 text-slate-600">
+                      Classify the question using the durable competency hierarchy used by Academic Profile and Intervention.
+                    </p>
+                  </div>
+                  {(manualRegistryVersion || manualRegistryPhase) && (
+                    <div className="flex flex-wrap justify-end gap-1.5">
+                      {manualRegistryPhase && (
+                        <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold capitalize text-slate-600">
+                          {manualRegistryPhase.replace(/_/g, ' ')}
+                        </span>
+                      )}
+                      {manualRegistryVersion && (
+                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600">
+                          {manualRegistryVersion}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {manualRegistryProgrammes.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {manualRegistryProgrammes.map((programme) => (
+                      <span key={programme.code} className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[11px] font-medium text-indigo-800">
+                        Cambridge {programme.code} · {programme.name.replace(/^Cambridge\s+/i, '')}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {manualRegistryLoading && (
+                  <div className="mt-4 rounded-lg border border-cyan-100 bg-cyan-50 px-3 py-2 text-xs text-cyan-800">
+                    Loading the published registry for {subject}…
+                  </div>
+                )}
+
+                {!manualRegistryLoading && eligibleGradeLevels.length !== 1 && (
+                  <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+                    Select exactly one target grade above to unlock Strand → Skill → Subskill → Evidence Focus.
+                  </div>
+                )}
+
+                {!manualRegistryLoading && eligibleGradeLevels.length === 1 && manualRegistrySupported === false && (
+                  <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">
+                    This subject does not currently have a published canonical registry for this grade. You can still save the question safely to My Pool.
+                  </div>
+                )}
+
+                <div className="mt-4 grid gap-3">
+                  <label className="teacher-form-group">
+                    <span className="teacher-label">1. Strand</span>
+                    <select
+                      value={manualStrandCode}
+                      onChange={(event) => {
+                        setManualStrandCode(event.target.value);
+                        setManualPrimarySkillCode('');
+                        setManualAtomicSubskillCode('');
+                        setSubmitForAcademicVerification(false);
+                      }}
+                      className="teacher-select"
+                      disabled={eligibleGradeLevels.length !== 1 || manualRegistryLoading || !manualRegistrySupported}
+                    >
+                      <option value="">Choose strand</option>
+                      {manualRegistryStrands.map((strand) => <option key={strand.code} value={strand.code}>{strand.name}</option>)}
+                    </select>
+                  </label>
+
+                  <label className="teacher-form-group">
+                    <span className="teacher-label">2. Skill</span>
+                    <select
+                      value={manualPrimarySkillCode}
+                      onChange={(event) => {
+                        setManualPrimarySkillCode(event.target.value);
+                        setManualAtomicSubskillCode('');
+                        setSubmitForAcademicVerification(false);
+                      }}
+                      className="teacher-select"
+                      disabled={!manualStrandCode || manualRegistryLoading || !manualRegistrySupported}
+                    >
+                      <option value="">Choose skill</option>
+                      {manualRegistryPrimarySkills.map((skill) => <option key={skill.code} value={skill.code}>{skill.name}</option>)}
+                    </select>
+                    {selectedManualRegistrySkill?.description && <span className="mt-1 text-xs text-slate-500">{selectedManualRegistrySkill.description}</span>}
+                  </label>
+
+                  <label className="teacher-form-group">
+                    <span className="teacher-label">3. Subskill</span>
+                    <select
+                      value={manualAtomicSubskillCode}
+                      onChange={(event) => {
+                        setManualAtomicSubskillCode(event.target.value);
+                        setManualEvidenceFocuses([]);
+                        setManualEvidenceFocusCode('');
+                        setSubmitForAcademicVerification(false);
+                      }}
+                      className="teacher-select"
+                      disabled={!manualPrimarySkillCode || manualRegistryLoading || !manualRegistrySupported}
+                    >
+                      <option value="">Choose subskill</option>
+                      {manualRegistrySubskills.map((leaf) => <option key={leaf.subskillCode} value={leaf.subskillCode}>{leaf.subskillName}</option>)}
+                    </select>
+                    <span className="mt-1 text-xs text-slate-500">
+                      {selectedManualRegistryLeaf?.subskillDescription || 'Choose the reusable diagnostic competency measured by this question.'}
+                    </span>
+                  </label>
+
+                  <label className="teacher-form-group">
+                    <span className="teacher-label">4. Evidence Focus</span>
+                    <select
+                      value={manualEvidenceFocusCode}
+                      onChange={(event) => {
+                        setManualEvidenceFocusCode(event.target.value);
+                        setSubmitForAcademicVerification(false);
+                      }}
+                      className="teacher-select"
+                      disabled={!manualAtomicSubskillCode || manualEvidenceFocusLoading || !manualRegistrySupported}
+                    >
+                      <option value="">{manualEvidenceFocusLoading ? 'Loading evidence focuses…' : 'Choose evidence focus'}</option>
+                      {manualEvidenceFocuses.map((focus) => (
+                        <option key={focus.code} value={focus.code}>{focus.name}</option>
+                      ))}
+                    </select>
+                    <span className="mt-1 text-xs text-slate-500">
+                      {selectedManualEvidenceFocus?.description
+                        || (manualAtomicSubskillCode
+                          ? 'Choose the exact assessable behaviour this question measures. This is what Intervention will target.'
+                          : 'Choose a subskill first to load controlled Evidence Focus options.')}
+                    </span>
+                  </label>
+                </div>
+
+                {selectedManualRegistryLeaf && (
+                  <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                      {selectedManualEvidenceFocus ? 'Intervention target selected' : 'Academic identity selected'}
+                    </span>
+                    <p className="mt-1 text-sm font-semibold text-emerald-950">
+                      {selectedManualRegistryLeaf.strandName} → {selectedManualRegistryLeaf.skillName} → {selectedManualRegistryLeaf.subskillName}
+                      {selectedManualEvidenceFocus ? ` → ${selectedManualEvidenceFocus.name}` : ''}
+                    </p>
+                  </div>
+                )}
+
+                <label className={`mt-4 flex items-start gap-3 rounded-xl border p-3 transition-colors ${submitForAcademicVerification ? 'border-cyan-300 bg-cyan-50' : 'border-slate-200 bg-slate-50'} ${!selectedManualRegistryLeaf || !selectedManualEvidenceFocus ? 'cursor-not-allowed opacity-65' : 'cursor-pointer'}`}>
+                  <input
+                    id="submit-academic-verification"
+                    type="checkbox"
+                    checked={submitForAcademicVerification}
+                    disabled={!selectedManualRegistryLeaf || !selectedManualEvidenceFocus || !manualRegistrySupported || manualRegistryLoading || manualEvidenceFocusLoading || eligibleGradeLevels.length !== 1}
+                    onChange={(event) => setSubmitForAcademicVerification(event.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+                  />
+                  <span>
+                    <strong className="block text-sm text-slate-900">Submit for Academic Verification</strong>
+                    <span className="mt-1 block text-xs leading-5 text-slate-600">
+                      This freezes the submitted snapshot for platform review. A superadmin must still confirm the school curriculum objective, assessment process, Evidence Focus and evidence statement before the question can affect Academic Profile or Intervention.
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </div>
+          </fieldset>
+
+          {/* Question Type */}
+          <div className="teacher-form-group">
+            <label className="teacher-label">Question type</label>
+            <select
+              value={questionType}
+              onChange={(e) => {
+                const nextQuestionType = e.target.value as typeof questionType;
+                setQuestionType(nextQuestionType);
+                setCorrectAnswer(nextQuestionType === 'true_false' ? 'True' : '');
+              }}
+              className="teacher-select"
+              required
+            >
+              <option value="multiple_choice">Multiple Choice</option>
+              <option value="true_false">True/False</option>
+              <option value="short_answer">Short Answer</option>
+              <option value="drag_drop" disabled>Drag &amp; Drop — coming soon</option>
+            </select>
+          </div>
+
+          {/* Question Text */}
+          <div className="teacher-form-group">
+            <label className="teacher-label">Question</label>
+            <textarea
+              value={questionText}
+              onChange={(e) => setQuestionText(e.target.value)}
+              onPaste={(e) => {
+                // Handle image paste from clipboard for question image
+                const items = e.clipboardData?.items;
+                if (items) {
+                  for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                      const file = items[i].getAsFile();
+                      if (file) {
+                        setQuestionImage(file);
+                        setQuestionImageUrl('');
+                      }
+                      break;
+                    }
+                  }
+                }
+              }}
+              className="teacher-textarea min-h-[100px]"
+              placeholder="Enter your question here... (paste screenshot to add image)"
+              required
+            />
+          </div>
+
+          {/* Question Image (Optional) */}
+          <div className="teacher-form-group">
+            <label className="teacher-label">Question Image (Optional)</label>
+            <div 
+              className="space-y-3"
+              onPaste={(e) => {
+                // Handle image paste from clipboard
+                const items = e.clipboardData?.items;
+                if (items) {
+                  for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                      e.preventDefault();
+                      const file = items[i].getAsFile();
+                      if (file) {
+                        setQuestionImage(file);
+                        setQuestionImageUrl('');
+                      }
+                      break;
+                    }
+                  }
+                }
+              }}
+              tabIndex={0}
+            >
+              {(questionImageUrl || questionImage) && (
+                <div className="relative inline-block">
+                  <img
+                    src={questionImage ? URL.createObjectURL(questionImage) : questionImageUrl}
+                    alt="Question preview"
+                    className="max-w-full max-h-48 rounded-lg border border-slate-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuestionImage(null);
+                      setQuestionImageUrl('');
+                    }}
+                    className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+              {!questionImage && !questionImageUrl && (
+                <div 
+                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center cursor-pointer hover:border-cyan-500 transition-all bg-slate-50"
+                  onClick={() => document.getElementById('question-image-input')?.click()}
+                >
+                  <div className="text-slate-500">
+                    <span className="text-2xl">📷</span>
+                    <p className="mt-2">Click to upload or <span className="text-cyan-600 font-medium">paste screenshot</span> (Ctrl+V)</p>
+                    <p className="text-xs mt-1">JPEG, PNG, GIF, SVG, or WebP (max 5MB)</p>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center gap-3">
+                <label className="cursor-pointer bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded-lg px-4 py-2 text-purple-700 font-medium transition-all">
+                  📷 {questionImage || questionImageUrl ? 'Change Image' : 'Upload Image'}
+                  <input
+                    id="question-image-input"
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setQuestionImage(file);
+                        setQuestionImageUrl('');
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+                <span className="text-xs text-slate-500">or paste screenshot (Ctrl+V)</span>
+              </div>
+              {uploadingImage && (
+                <div className="text-cyan-600 text-sm animate-pulse">⏳ Uploading image...</div>
+              )}
+            </div>
+          </div>
+
+          {/* Multiple Choice Options */}
+          {questionType === 'multiple_choice' && (
+            <div className="teacher-form-group">
+              <label className="teacher-label">Answer Options (Check the correct answer)</label>
+              <div className="space-y-4">
+                {options.map((option, index) => (
+                  <div 
+                    key={index} 
+                    className={`bg-slate-50 border rounded-xl p-4 transition-all ${
+                      correctAnswer === option.text && option.text.trim() 
+                        ? 'border-emerald-500 bg-emerald-50' 
+                        : 'border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      {/* Correct Answer Checkbox */}
+                      <input
+                        type="checkbox"
+                        checked={correctAnswer === option.text && option.text.trim() !== ''}
+                        onChange={(e) => {
+                          if (e.target.checked && option.text.trim()) {
+                            setCorrectAnswer(option.text);
+                          } else if (!e.target.checked && correctAnswer === option.text) {
+                            setCorrectAnswer('');
+                          }
+                        }}
+                        className="w-5 h-5 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer"
+                        title="Mark as correct answer"
+                      />
+                      <span className="text-cyan-600 font-bold">{String.fromCharCode(65 + index)}.</span>
+                      <input
+                        type="text"
+                        value={option.text}
+                        onChange={(e) => {
+                          const oldText = option.text;
+                          const newOptions = [...options];
+                          newOptions[index] = { ...newOptions[index], text: e.target.value };
+                          setOptions(newOptions);
+                          // Update correct answer if this was the correct one
+                          if (correctAnswer === oldText) {
+                            setCorrectAnswer(e.target.value);
+                          }
+                        }}
+                        onPaste={(e) => {
+                          // Handle image paste from clipboard
+                          const items = e.clipboardData?.items;
+                          if (items) {
+                            for (let i = 0; i < items.length; i++) {
+                              if (items[i].type.indexOf('image') !== -1) {
+                                e.preventDefault();
+                                const file = items[i].getAsFile();
+                                if (file) {
+                                  const newImages = [...optionImages];
+                                  newImages[index] = file;
+                                  setOptionImages(newImages);
+                                  const newOptions = [...options];
+                                  newOptions[index] = { ...newOptions[index], image_url: undefined };
+                                  setOptions(newOptions);
+                                }
+                                break;
+                              }
+                            }
+                          }
+                        }}
+                        className="teacher-input flex-1"
+                        placeholder={`Option ${String.fromCharCode(65 + index)} text (paste image here)`}
+                        required
+                      />
+                      {correctAnswer === option.text && option.text.trim() && (
+                        <span className="text-emerald-600 text-sm font-semibold">✓ Correct</span>
+                      )}
+                    </div>
+                    {/* Option Image */}
+                    <div className="ml-12 flex items-center gap-3">
+                      {(option.image_url || optionImages[index]) && (
+                        <div className="relative inline-block">
+                          <img
+                            src={optionImages[index] ? URL.createObjectURL(optionImages[index]!) : option.image_url}
+                            alt={`Option ${String.fromCharCode(65 + index)} preview`}
+                            className="max-h-20 rounded border border-slate-300"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newOptions = [...options];
+                              newOptions[index] = { ...newOptions[index], image_url: undefined };
+                              setOptions(newOptions);
+                              const newImages = [...optionImages];
+                              newImages[index] = null;
+                              setOptionImages(newImages);
+                            }}
+                            className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                      <label className="cursor-pointer text-xs bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded px-2 py-1 text-purple-700 font-medium transition-all">
+                        📷 {option.image_url || optionImages[index] ? 'Change' : 'Add Image'}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const newImages = [...optionImages];
+                              newImages[index] = file;
+                              setOptionImages(newImages);
+                              // Clear existing URL when new file is selected
+                              const newOptions = [...options];
+                              newOptions[index] = { ...newOptions[index], image_url: undefined };
+                              setOptions(newOptions);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                      <span className="text-xs text-slate-500">or paste screenshot</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* True/False Answer */}
+          {questionType === 'true_false' && (
+            <div className="teacher-form-group">
+              <fieldset>
+                <legend className="teacher-label">
+                Correct Answer
+                </legend>
+                <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Correct answer">
+                  {(['True', 'False'] as const).map((answer) => (
+                    <label
+                      key={answer}
+                      className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border p-3 font-semibold transition-all ${
+                        correctAnswer.toLowerCase() === answer.toLowerCase()
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="true-false-correct-answer"
+                        value={answer}
+                        checked={correctAnswer.toLowerCase() === answer.toLowerCase()}
+                        onChange={() => setCorrectAnswer(answer)}
+                        className="h-5 w-5 border-slate-300 text-emerald-500 focus:ring-emerald-500"
+                        required
+                      />
+                      {answer}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            </div>
+          )}
+
+          {questionType === 'short_answer' && (
+            <div className="teacher-form-group">
+              <label className="teacher-label" htmlFor="teacher-short-answer">Accepted answer</label>
+              <input
+                id="teacher-short-answer"
+                type="text"
+                value={correctAnswer}
+                onChange={(event) => setCorrectAnswer(event.target.value)}
+                className="teacher-input"
+                placeholder="Enter the answer students should give"
+                required
+              />
+              <p className="mt-1 text-xs text-slate-500">Keep the answer precise. This is used for classroom marking only.</p>
+            </div>
+          )}
+
+          {/* Explanation */}
+          <div className="teacher-form-group">
+            <label className="teacher-label">Explanation (Optional)</label>
+            <textarea
+              value={explanation}
+              onChange={(e) => setExplanation(e.target.value)}
+              className="teacher-textarea"
+              placeholder="Explain why this answer is correct..."
+              rows={3}
+            />
+          </div>
+
+          {/* Points */}
+          <div className="teacher-form-group">
+            <label className="teacher-label">
+              Points (XP Reward) <span className="text-slate-500 font-normal">— Max {MAX_QUESTION_XP} XP</span>
+            </label>
+            <input
+              type="number"
+              value={points}
+              onChange={(e) => {
+                const val = parseInt(e.target.value) || 0;
+                setPoints(Math.min(Math.max(val, 1), MAX_QUESTION_XP));
+              }}
+              className="teacher-input"
+              min="1"
+              max={MAX_QUESTION_XP}
+              required
+            />
+            <p className="text-xs text-slate-500 mt-1">
+              Default: Easy=10, Medium=15, Hard=20. You can adjust up to {MAX_QUESTION_XP} XP.
+            </p>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="teacher-btn teacher-btn-primary w-full py-4 text-lg"
+          >
+            {submitForAcademicVerification
+              ? (editingQuestion ? '📤 Save & Submit for Verification' : '📤 Create & Submit for Verification')
+              : (editingQuestion ? '💾 Save Changes' : '✨ Create Question')}
+          </button>
+        </form>
+      </div>
+    </div>
+    );
+  };
+
+  // Render CSV Upload View
+  const renderCSVUpload = () => (
+    <div className="mx-auto max-w-5xl">
+      <button
+        onClick={() => setView('question-bank')}
+        className="teacher-back-link mb-4"
+      >
+        ← Back to Questions
+      </button>
+
+      <div className="teacher-card">
+        <header className="mb-6">
+          <span className="text-sm font-bold uppercase tracking-[0.16em] text-cyan-700">Teacher-owned content</span>
+          <h2 className="mt-2 text-2xl font-bold text-slate-800">Bulk import to My Pool</h2>
+          <p className="mt-2 text-sm text-slate-600">Upload CSV or paste rows copied from Excel or Google Sheets. Nothing is saved until you review and confirm the preview.</p>
+        </header>
+
+        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-slate-700">
+          <strong>Classroom-only by design.</strong> Every imported question stays private and editable in My Pool. It can be assigned and included in classroom reports, but it cannot create official Academic Profile evidence.
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-2">
+          <section className="rounded-xl border border-slate-200 bg-slate-50 p-5" aria-labelledby="bulk-file-title">
+            <h3 id="bulk-file-title" className="font-bold text-slate-800">Upload a CSV</h3>
+            <p className="mt-1 text-sm text-slate-500">Use the template for the cleanest import.</p>
+            <button type="button" onClick={downloadCSVTemplate} className="teacher-btn teacher-btn-secondary mt-4 w-full">Download CSV template</button>
+            <input type="file" accept=".csv,text/csv" onChange={handleCSVUpload} disabled={uploading} className="hidden" id="csv-upload" />
+            <label htmlFor="csv-upload" className={`mt-3 block cursor-pointer rounded-xl border-2 border-dashed border-cyan-300 bg-white p-6 text-center ${uploading ? 'pointer-events-none opacity-50' : ''}`}>
+              <strong className="block text-cyan-700">Choose CSV file</strong>
+              <span className="mt-1 block text-xs text-slate-500">Maximum 500 valid questions per import</span>
+            </label>
+          </section>
+
+          <section className="rounded-xl border border-slate-200 bg-slate-50 p-5" aria-labelledby="bulk-paste-title">
+            <h3 id="bulk-paste-title" className="font-bold text-slate-800">Paste from a spreadsheet</h3>
+            <p className="mt-1 text-sm text-slate-500">Include the header row, then copy and paste the selected cells.</p>
+            <textarea className="teacher-textarea mt-4 min-h-36 font-mono text-xs" value={bulkPasteText} onChange={(event) => setBulkPasteText(event.target.value)} placeholder="subject&#9;topic&#9;grade_levels&#9;difficulty&#9;question_type…" />
+            <button type="button" className="teacher-btn teacher-btn-secondary mt-3 w-full" disabled={!bulkPasteText.trim() || uploading} onClick={() => previewBulkImport(bulkPasteText, 'Pasted spreadsheet rows')}>Review pasted questions</button>
+          </section>
+        </div>
+
+        {bulkImportPreview ? (
+          <section className="mt-6 rounded-xl border border-cyan-200 bg-cyan-50/40 p-5" aria-labelledby="bulk-preview-title">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div><span className="text-xs font-bold uppercase tracking-wider text-cyan-700">Preview · {bulkImportSource}</span><h3 id="bulk-preview-title" className="mt-1 text-xl font-bold text-slate-800">{bulkImportPreview.questions.length} valid question{bulkImportPreview.questions.length === 1 ? '' : 's'}</h3></div>
+              <div className="text-right text-sm"><div className={bulkImportPreview.issues.length ? 'font-bold text-red-600' : 'text-emerald-700'}>{bulkImportPreview.issues.length} row issue{bulkImportPreview.issues.length === 1 ? '' : 's'}</div><div className="text-slate-500">{bulkImportPreview.duplicateRows.length} duplicate row{bulkImportPreview.duplicateRows.length === 1 ? '' : 's'} skipped</div></div>
+            </div>
+            {bulkImportPreview.issues.length ? <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4"><strong className="text-red-700">Fix these rows before importing:</strong><ul className="mt-2 space-y-1 text-sm text-red-700">{bulkImportPreview.issues.slice(0, 10).map((issue) => <li key={`${issue.row}-${issue.message}`}>Row {issue.row}: {issue.message}</li>)}</ul>{bulkImportPreview.issues.length > 10 ? <p className="mt-2 text-xs text-red-600">And {bulkImportPreview.issues.length - 10} more.</p> : null}</div> : null}
+            <div className="mt-4 overflow-x-auto rounded-lg border border-slate-200 bg-white"><table className="min-w-full text-left text-sm"><thead className="bg-slate-100 text-xs uppercase text-slate-500"><tr><th className="px-3 py-2">Row</th><th className="px-3 py-2">Subject</th><th className="px-3 py-2">Topic</th><th className="px-3 py-2">Question</th><th className="px-3 py-2">Grades</th></tr></thead><tbody>{bulkImportPreview.questions.slice(0, 12).map((question) => <tr key={question.sourceRow} className="border-t border-slate-100"><td className="px-3 py-2">{question.sourceRow}</td><td className="px-3 py-2">{question.subject}</td><td className="px-3 py-2">{question.topic}</td><td className="max-w-xl px-3 py-2">{question.question_text}</td><td className="px-3 py-2">{question.eligible_grade_levels?.join(', ') || '—'}</td></tr>)}</tbody></table></div>
+            {bulkImportPreview.questions.length > 12 ? <p className="mt-2 text-xs text-slate-500">Showing the first 12 valid questions.</p> : null}
+            <div className="mt-5 flex flex-wrap justify-end gap-3"><button type="button" className="teacher-btn teacher-btn-secondary" onClick={() => { setBulkImportPreview(null); setBulkImportSource(''); }} disabled={uploading}>Clear preview</button><button type="button" className="teacher-btn teacher-btn-primary" onClick={() => { void confirmBulkImport(); }} disabled={uploading || !bulkImportPreview.questions.length || bulkImportPreview.issues.length > 0}>{uploading ? `Importing ${uploadProgress.current}/${uploadProgress.total}…` : `Import ${bulkImportPreview.questions.length} to My Pool`}</button></div>
+          </section>
+        ) : null}
+      </div>
+    </div>
+  );
+
+  const renderStudents = () => {
+    const availableStudentById = new Map(availableStudents.map((student) => [student.id, student]));
+
+    const canonicalGroups = teachingGroups
+      .filter((group) => group.status === 'active')
+      .map((group) => {
+        const roster = teachingGroupRosters[group.id] || [];
+        const students = roster.map((member) => {
+          const existing = availableStudentById.get(member.student_id);
+          if (existing) return existing;
+
+          const name = member.student_name || 'Student';
+          return {
+            id: member.student_id,
+            username: name,
+            display_name: name,
+            grade: Number(group.gradeLevel) || 0,
+            batch: (member.class_code || null) as StudentForAssignment['batch'],
+            avatar_url: null,
+          } satisfies StudentForAssignment;
+        });
+
+        return {
+          key: group.id,
+          title: group.name,
+          groupType: group.groupType,
+          subjects: [group.schoolSubjectName],
+          students,
+          sourceType: 'teaching-group' as const,
+          sourceId: group.id,
+        };
+      })
+      .sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: 'base', numeric: true }));
+
+    // Compatibility fallback for schools that have not materialized teaching
+    // groups yet. Once canonical groups exist, never collapse them back into
+    // registration classes because custom groups must remain distinct.
+    const legacyClassMap = new Map<string, { subjects: Set<string>; students: StudentForAssignment[] }>();
+    if (canonicalGroups.length === 0) {
+      allocatedClasses
+        .filter((allocatedClass) => allocatedClass.is_active)
+        .forEach((allocatedClass) => {
+          const existing = legacyClassMap.get(allocatedClass.class_code) || { subjects: new Set<string>(), students: [] };
+          if (allocatedClass.subject) existing.subjects.add(allocatedClass.subject);
+          legacyClassMap.set(allocatedClass.class_code, existing);
+        });
+
+      availableStudents.forEach((student) => {
+        const classCode = student.batch || 'Class not assigned';
+        const existing = legacyClassMap.get(classCode) || { subjects: new Set<string>(), students: [] };
+        const teacherSubjects = (student as StudentForAssignment & { teacher_subjects?: string[] }).teacher_subjects || [];
+        teacherSubjects.forEach((subjectName) => {
+          if (subjectName) existing.subjects.add(subjectName);
+        });
+        existing.students.push(student);
+        legacyClassMap.set(classCode, existing);
+      });
+    }
+
+    const legacyGroups = [...legacyClassMap.entries()]
+      .map(([classCode, value]) => ({
+        key: `legacy:${classCode}`,
+        title: `Class ${classCode}`,
+        groupType: 'class' as const,
+        subjects: [...value.subjects].sort(),
+        students: value.students,
+        sourceType: 'legacy-class' as const,
+        sourceId: classCode,
+      }))
+      .sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: 'base', numeric: true }));
+
+    const search = studentSearchTerm.trim().toLocaleLowerCase();
+    const rosterGroups = (canonicalGroups.length > 0 ? canonicalGroups : legacyGroups)
+      .map((group) => ({
+        ...group,
+        students: group.students.filter((student) => !search || [
+          student.display_name,
+          student.batch,
+          group.title,
+          ...group.subjects,
+        ].join(' ').toLocaleLowerCase().includes(search)),
+      }))
+      .filter((group) => !search ||
+        group.students.length > 0 ||
+        group.title.toLocaleLowerCase().includes(search) ||
+        group.subjects.some((subjectName) => subjectName.toLocaleLowerCase().includes(search)));
+
+    const printTeachingGroupDocuments = (groups: typeof rosterGroups) => {
+      if (!groups.length) return;
+      const today = new Date().toISOString().slice(0, 10);
+      const bodyHtml = groups.map((group, groupIndex) => `
+        <section class="${groupIndex > 0 ? 'document-page-break' : ''}">
+          <h2>${escapeSchoolDocumentHtml(group.title)}</h2>
+          <p><strong>Subject:</strong> ${escapeSchoolDocumentHtml(group.subjects.join(', ') || 'Not linked')}</p>
+          <table>
+            <thead><tr><th style="width:8%">No.</th><th>Official student name</th><th style="width:14%">Grade</th><th style="width:35%">Teacher notes</th></tr></thead>
+            <tbody>${group.students.length ? group.students.map((student, index) => `<tr><td>${index + 1}</td><td>${escapeSchoolDocumentHtml(student.display_name)}</td><td>${escapeSchoolDocumentHtml(student.grade || '—')}</td><td></td></tr>`).join('') : '<tr><td colspan="4">No students are currently enrolled in this teaching group.</td></tr>'}</tbody>
+          </table>
+        </section>`).join('');
+      try {
+        openSchoolDocumentPreview({
+          meta: {
+            documentId: createSchoolDocumentId('roster'),
+            templateVersion: 'teaching-group-roster-v1',
+            title: 'Teaching Group Roster',
+            subtitle: groups.length === 1 ? groups[0]?.title : `${groups.length} teaching groups`,
+            schoolName: resolvedBranding.schoolName,
+            schoolLogoUrl: resolvedBranding.schoolLogoUrl,
+            audience: 'teacher',
+            status: 'final',
+            confidentiality: 'confidential',
+            generatedAt: new Date().toISOString(),
+            generatedBy: profile.full_name || profile.username || 'Teacher',
+            schoolId: profile.school_id,
+            sourceType: 'class_roster',
+            sourceId: groups.length === 1 ? groups[0]?.sourceId : 'all-teaching-groups',
+          },
+          bodyHtml,
+          orientation: 'portrait',
+          inkSaver: true,
+          fileName: schoolDocumentFileName(resolvedBranding.schoolName, 'Teaching_Group_Roster', groups.length === 1 ? groups[0]?.title : 'All_Groups', today),
+        });
+      } catch (error) {
+        brainsAlert(error instanceof Error ? error.message : 'Unable to open the teaching group document.', 'info');
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="teacher-section-header">
+          <div>
+            <h2>My Classes</h2>
+            <p className="text-sm text-slate-500 mt-1">Each teaching group stays separate, including custom groups such as ESL.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="teacher-btn teacher-btn-secondary" onClick={() => printTeachingGroupDocuments(rosterGroups)} disabled={!rosterGroups.length}>Print all rosters</button>
+          </div>
+        </div>
+
+        <div className="teacher-card p-4">
+          <label htmlFor="teacher-student-search" className="sr-only">Search teaching groups and students</label>
+          <input
+            id="teacher-student-search"
+            type="search"
+            value={studentSearchTerm}
+            onChange={(event) => setStudentSearchTerm(event.target.value)}
+            placeholder="Search by teaching group, subject, or student…"
+            className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+          />
+        </div>
+
+        {rosterGroups.length === 0 ? (
+          <div className="teacher-card p-10 text-center text-slate-500">No teaching groups or students match this search.</div>
+        ) : (
+          <div className="grid gap-5 xl:grid-cols-2">
+            {rosterGroups.map((group) => (
+              <section key={group.key} className="teacher-card p-0 overflow-hidden">
+                <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="font-bold text-slate-800">{group.title}</h3>
+                      {group.sourceType === 'teaching-group' && (
+                        <span className="mt-1 block text-xs font-medium text-slate-400">
+                          {group.groupType === 'custom' ? 'Custom teaching group' : group.groupType === 'whole_grade' ? 'Whole-grade teaching group' : 'Class teaching group'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-slate-500">{group.students.length} student{group.students.length === 1 ? '' : 's'}</span>
+                      <button type="button" className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100" onClick={() => printTeachingGroupDocuments([group])}>Print</button>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {group.subjects.length
+                      ? group.subjects.map((subjectName) => <span key={subjectName} className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600">{subjectName}</span>)
+                      : <span className="text-xs text-slate-400">No subject linked</span>}
+                  </div>
+                </div>
+                {group.students.length ? (
+                  <ul className="divide-y divide-slate-100">
+                    {group.students.map((student) => (
+                      <li key={student.id} className="flex items-center gap-3 px-5 py-3">
+                        <img src={student.avatar_url || '/default-avatar.png'} alt="" className="h-10 w-10 rounded-full object-cover bg-slate-100" />
+                        <div className="min-w-0">
+                          <div className="font-semibold text-slate-800">{student.display_name}</div>
+                          <div className="truncate text-xs text-slate-500">
+                            Grade {student.grade || '—'}{student.batch ? ` · Registration class ${student.batch}` : ''}
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="px-5 py-6 text-sm text-slate-500">No students are currently enrolled in this teaching group.</p>
+                )}
+              </section>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const handleDeleteAssignment = async (assignment: TeacherAssignmentSummary) => {
+    if (!teacher || assignment.teacher_id !== teacher.id || deletingAssignmentId) {
+      brainsAlert('You can only delete assignments that you created.', 'error');
+      return;
+    }
+
+    const assignmentName = assignment.title || assignment.topic_name;
+    const confirmed = await brainsConfirm({
+      title: `Delete “${assignmentName}”?`,
+      message: 'This permanently removes this assignment for every assigned student, including related submissions, scores, progress, and reporting data.',
+      confirmLabel: 'Delete assignment',
+      cancelLabel: 'Keep assignment',
+      destructive: true,
+    });
+    if (!confirmed) return;
+
+    setDeletingAssignmentId(assignment.id);
+    try {
+      await GameService.delete_teacher_assignment(assignment.id);
+      setAssignments((current) => current.filter((item) => item.id !== assignment.id));
+      if (selectedReportAssignment?.id === assignment.id) {
+        setSelectedReportAssignment(null);
+        setAssignmentReport([]);
+      }
+      brainsAlert('Assignment and all related data were permanently deleted.', 'success');
+    } catch (error) {
+      console.error('Error deleting assignment:', error);
+      brainsAlert(error instanceof Error ? error.message : 'Unable to delete assignment. Please try again.', 'error');
+    } finally {
+      setDeletingAssignmentId(null);
+    }
+  };
+
+  const handlePrintAssignmentPaper = async (assignment: TeacherAssignmentSummary) => {
+    if (!teacher || assignment.teacher_id !== teacher.id || printingAssignmentId) {
+      if (!teacher || assignment.teacher_id !== teacher.id) brainsAlert('You can only print assignments that you created.', 'error');
+      return;
+    }
+
+    setPaperWorkspaceMode('scan');
+    setPaperAssignment(assignment);
+  };
+
+  const renderAssignments = () => (
+    <div className="teacher-assignment-workspace">
+      <AssignmentToolbar
+        classes={assignmentClassFolders} counts={assignmentFolderCounts}
+        total={assignments.length} shown={filteredAssignments.length}
+        selectedClass={assignmentClassFilter} onClass={setAssignmentClassFilter}
+        search={assignmentSearchTerm} onSearch={setAssignmentSearchTerm}
+        subjects={assignmentSubjects} subject={assignmentSubjectFilter}
+        onSubject={(value) => setAssignmentSubjectFilter(value as Subject | 'all')}
+        status={assignmentStatusFilter} onStatus={setAssignmentStatusFilter}
+        canCreate={canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
+        onAssignment={openBlankAssignmentForm} onDiagnostic={() => openDiagnosticComposer()}
+      />
+
+      {assignments.length === 0 ? (
+        <div className="teacher-card p-12 text-center">
+          <div className="text-6xl mb-4">🧭</div>
+          <p className="text-xl text-slate-500 mb-4">No assignments yet</p>
+          <p className="text-slate-400">Choose Create to add an assignment or diagnostic.</p>
+        </div>
+      ) : filteredAssignments.length === 0 ? (
+        <div className="teacher-card p-12 text-center">
+          <div className="text-5xl mb-4">🔍</div>
+          <p className="text-lg text-slate-500 mb-2">No assignments match your filters</p>
+          <button
+            onClick={() => {
+              setAssignmentClassFilter('all');
+              setAssignmentSearchTerm('');
+              setAssignmentSubjectFilter('all');
+              setAssignmentStatusFilter('all');
+            }}
+            className="text-cyan-600 hover:text-cyan-700 font-medium"
+          >
+            Clear all filters
+          </button>
+        </div>
+      ) : (
+        <section aria-label={assignmentClassFilter === 'all' ? 'All assignments' : assignmentClassFilter === 'individual' ? 'Individual assignments' : `${assignmentClassFilter} assignments`}>
+          <div className="teacher-assignment-workspace__list">
+            {filteredAssignments.map((assignment) => (
+              <AssignmentCard
+                key={assignment.id}
+                assignment={assignment}
+                canManage={assignment.teacher_id === teacher?.id}
+                printing={printingAssignmentId === assignment.id}
+                printDisabled={printingAssignmentId !== null}
+                deleting={deletingAssignmentId === assignment.id}
+                deleteDisabled={deletingAssignmentId !== null}
+                onReport={() => handleOpenReport(assignment)}
+                onPrint={() => void handlePrintAssignmentPaper(assignment)}
+                onRecord={() => { setPaperWorkspaceMode("manual"); setPaperAssignment(assignment); }}
+                onEdit={() => handleEditAssignment(assignment)}
+                onDelete={() => void handleDeleteAssignment(assignment)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+
+  const renderCreateAssignment = () => {
+    if (!teacherHasClassAllocations) {
+      return (
+        <div className="max-w-3xl mx-auto">
+          <button onClick={() => setView('dashboard')} className="teacher-back-link mb-6">
+            <span>←</span> Back to Dashboard
+          </button>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 text-center mt-6">
+            <div className="text-4xl mb-4">🔒</div>
+            <h2 className="text-xl font-bold text-amber-800 mb-2">No teaching groups allocated</h2>
+            <p className="text-amber-700 mb-4">
+              Your school administrator must allocate you to at least one teaching group before you can create school assignments.
+            </p>
+            <p className="text-sm text-amber-600">Teaching groups can follow a registration class, a whole grade, or a cross-class elective roster.</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <React.Suspense
+        fallback={(
+          <div className="min-h-[60vh] grid place-items-center rounded-2xl border border-cyan-400/20 bg-slate-950 text-cyan-100">
+            Preparing assignment workspace…
+          </div>
+        )}
+      >
+        <AssignmentWizard
+          initialStep={preparedDiagnostic ? 3 : assignmentLockedSubject ? 2 : 1}
+          lockedSubject={assignmentLockedSubject}
+          preparedDiagnostic={preparedDiagnostic}
+          assignmentDelivery={assignmentDelivery}
+          setAssignmentDelivery={setAssignmentDelivery}
+          assignmentMode={assignmentMode}
+          setAssignmentMode={setAssignmentMode}
+          assignmentBatches={assignmentBatches}
+          setAssignmentBatches={setAssignmentBatches}
+          assignmentSubject={assignmentSubject}
+          setAssignmentSubject={chooseAssignmentSubject}
+          assignmentTitle={assignmentTitle}
+          setAssignmentTitle={setAssignmentTitle}
+          assignmentDescription={assignmentDescription}
+          setAssignmentDescription={setAssignmentDescription}
+          assignmentInstructions={assignmentInstructions}
+          setAssignmentInstructions={setAssignmentInstructions}
+          assignmentQuestionIds={assignmentQuestionIds}
+          setAssignmentQuestionIds={setAssignmentQuestionIds}
+          assignmentDueAt={assignmentDueAt}
+          setAssignmentDueAt={setAssignmentDueAt}
+          assignmentAssignedAt={assignmentAssignedAt}
+          setAssignmentAssignedAt={setAssignmentAssignedAt}
+          assignmentPublishStatus={assignmentPublishStatus}
+          setAssignmentPublishStatus={setAssignmentPublishStatus}
+          assignmentCategory={assignmentCategory}
+          setAssignmentCategory={setAssignmentCategory}
+          schoolId={profile.school_id || undefined}
+          assignmentCloseAfterDue={assignmentCloseAfterDue}
+          setAssignmentCloseAfterDue={setAssignmentCloseAfterDue}
+          assignmentNotifyByEmail={assignmentNotifyByEmail}
+          setAssignmentNotifyByEmail={setAssignmentNotifyByEmail}
+          editingAssignment={Boolean(editingAssignment)}
+          assignmentDifficulty={assignmentDifficulty}
+          setAssignmentDifficulty={setAssignmentDifficulty}
+          assignmentTopicMode={assignmentTopicMode}
+          setAssignmentTopicMode={setAssignmentTopicMode}
+          assignmentTopicName={assignmentTopicName}
+          setAssignmentTopicName={setAssignmentTopicName}
+          assignmentSubmitting={assignmentSubmitting}
+          availableStudents={availableStudents}
+          selectedStudentIds={selectedStudentIds}
+          setSelectedStudentIds={setSelectedStudentIds}
+          allocatedClasses={allocatedClasses}
+          teacherAssignedSubjects={teacherAssignedSubjects}
+          teachingGroups={teachingGroups}
+          assignmentGroupId={assignmentGroupId}
+          setAssignmentGroupId={setAssignmentGroupId}
+          teacherId={teacher?.id}
+          questions={questions}
+          onQuestionsLoaded={mergeLoadedQuestions}
+          onSubmit={handleCreateAssignment}
+          onSaveDraft={handleSaveAssignmentDraft}
+          onCancel={() => { resetAssignmentDraft(); setView('assignments'); }}
+        />
+      </React.Suspense>
+    );
+  };
+
+  const renderReports = () => {
+    const assignments = reportAssignments;
+    return (
+    <div>
+      {reportAssignmentsLoading && <div className="teacher-info-message">Loading archived assignment reports…</div>}
+      <div className="teacher-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <h2 style={{ margin: 0 }}>Assignment Reports</h2>
+          {reportAcademicYears.length > 0 && <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700 }}>
+            Academic Year
+            <select
+              value={reportAcademicYearId}
+              onChange={(event) => setReportAcademicYearId(event.target.value)}
+              style={{ border: '1px solid #dbe3ef', borderRadius: 8, padding: '7px 10px', background: '#fff' }}
+            >
+              {reportAcademicYears.map((year) => <option key={year.id} value={year.id}>
+                {year.name} {year.status === 'current' ? '(Current)' : '(Archived)'}
+              </option>)}
+            </select>
+          </label>}
+          {isArchivedReportYear && <span style={{ fontSize: 12, fontWeight: 800, color: '#64748b' }}>Archived · read only</span>}
+        </div>
+        {assignments.length > 0 && !isArchivedReportYear && (
+          <button
+            onClick={() => setView('collective-report')}
+            className="teacher-btn teacher-btn-primary text-sm flex items-center gap-2"
+          >
+            📋 Collective Report
+          </button>
+        )}
+      </div>
+      {assignments.length === 0 ? (
+        <div className="teacher-card p-10 text-center">
+          <div className="text-5xl mb-3">📄</div>
+          <p className="text-slate-500">Create an assignment to see progress here.</p>
+        </div>
+      ) : (
+        <div className="teacher-card p-0 overflow-hidden">
+          <div className="teacher-mobile-record-list" aria-label="Assignment reports">
+            {assignments.map((assignment) => {
+              const completed = assignment.completed_count >= assignment.student_count;
+              const completionPercent = assignment.student_count > 0
+                ? Math.round((assignment.completed_count / assignment.student_count) * 100)
+                : 0;
+              return (
+                <article key={assignment.id} className="teacher-mobile-record-card">
+                  <div className="teacher-mobile-record-heading">
+                    <div>
+                      <span className="teacher-mobile-record-eyebrow">{assignment.subject_name}</span>
+                      <h3>{assignment.title || assignment.topic_name}</h3>
+                    </div>
+                    <span className={`teacher-badge ${completed ? 'success' : 'warning'}`}>
+                      {completed ? 'Complete' : 'In progress'}
+                    </span>
+                  </div>
+                  <dl className="teacher-mobile-record-meta">
+                    <div><dt>Class</dt><dd>{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</dd></div>
+                    <div><dt>Questions</dt><dd>{assignment.question_count}</dd></div>
+                    <div><dt>Created</dt><dd>{new Date(assignment.assigned_at).toLocaleDateString()}</dd></div>
+                    <div><dt>Due</dt><dd>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : 'No deadline'}</dd></div>
+                  </dl>
+                  <div className="teacher-mobile-record-progress">
+                    <div>
+                      <span>Student completion</span>
+                      <strong>{assignment.completed_count}/{assignment.student_count}</strong>
+                    </div>
+                    <div className="teacher-mobile-progress-track" aria-label={`${completionPercent}% completed`}>
+                      <span style={{ width: `${completionPercent}%` }} />
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => handleOpenReport(assignment)} className="teacher-mobile-record-action">
+                    View assignment report <span aria-hidden="true">→</span>
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+          <table className="teacher-table teacher-desktop-only-table">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Title</th>
+                <th>Topic</th>
+                <th>Class</th>
+                <th>Created</th>
+                <th>Questions</th>
+                <th>Students</th>
+                <th>Due</th>
+                <th>Completed</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {assignments.map((assignment) => (
+                <tr key={assignment.id}>
+                  <td className="font-medium">{assignment.subject_name}</td>
+                  <td className="font-medium">{assignment.title || assignment.topic_name}</td>
+                  <td>{assignment.topic_name}</td>
+                  <td>{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</td>
+                  <td>{new Date(assignment.assigned_at).toLocaleDateString()}</td>
+                  <td>{assignment.question_count}</td>
+                  <td>{assignment.student_count}</td>
+                  <td>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : '—'}</td>
+                  <td>
+                    <span className="teacher-badge teacher-badge-primary">
+                      {assignment.completed_count}/{assignment.student_count}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      onClick={() => handleOpenReport(assignment)}
+                      className="teacher-btn teacher-btn-secondary text-sm"
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+  };
+
+  const renderReportDetail = () => (
+    <div>
+      <button
+        onClick={() => {
+          reportLoadRequestRef.current += 1;
+          setReportLoading(false);
+          setQuestionAnalysisLoading(false);
+          setView('reports');
+        }}
+        className="teacher-back-link mb-4"
+      >
+        <span>←</span> Back to Reports
+      </button>
+
+      {!selectedReportAssignment ? (
+        <div className="teacher-card p-12 text-center text-slate-500">Select an assignment to view details.</div>
+      ) : (
+        <div className="space-y-6">
+          <div className="teacher-card">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-800 mb-2">{selectedReportAssignment.title || selectedReportAssignment.topic_name}</h2>
+                <p className="text-slate-600">
+                  {selectedReportAssignment.subject_name} · Topic {selectedReportAssignment.topic_name} · Class {selectedReportAssignment.assignment_mode === 'custom' ? 'Selected students' : selectedReportAssignment.batch || '—'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void handlePrintAssignmentPaper(selectedReportAssignment)}
+                disabled={printingAssignmentId !== null}
+                className="teacher-btn teacher-btn-primary disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {printingAssignmentId === selectedReportAssignment.id ? 'Preparing paper…' : '🖨️ Print assignment'}
+              </button>
+            </div>
+            <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Created</dt><dd>{new Date(selectedReportAssignment.assigned_at).toLocaleDateString()}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Class</dt><dd>{selectedReportAssignment.assignment_mode === 'custom' ? 'Selected students' : selectedReportAssignment.batch || '—'}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Questions</dt><dd>{selectedReportAssignment.question_count}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Students</dt><dd>{selectedReportAssignment.student_count}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Due</dt><dd>{selectedReportAssignment.due_at ? new Date(selectedReportAssignment.due_at).toLocaleDateString() : 'No deadline'}</dd></div>
+            </dl>
+          </div>
+
+          {reportLoading ? (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-10 text-center">
+              <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-cyan-600" aria-hidden="true" />
+              <div className="font-semibold text-slate-700">Loading student results…</div>
+              <div className="mt-1 text-sm text-slate-500">Question analysis is loading in parallel.</div>
+            </div>
+          ) : assignmentReport.length === 0 ? (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-10 text-center text-slate-500">No students have completed this assignment yet.</div>
+          ) : (
+            <>
+              {diagnosticIntelligence && diagnosticIntelligence.assignment.focusCount > 0 ? (
+                <DiagnosticIntelligencePanel
+                  data={diagnosticIntelligence}
+                  loading={diagnosticIntelligenceLoading}
+                  onReviewStudent={(studentId) => {
+                    const row = assignmentReport.find((item) => item.student_id === studentId);
+                    if (row) void handleViewStudentAnalysis(row);
+                  }}
+                />
+              ) : diagnosticIntelligenceLoading ? (
+                <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-sm font-semibold text-cyan-800">Building the diagnostic skill map…</div>
+              ) : null}
+
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
+                <div><h3 className="text-xl font-bold text-slate-800">Student Performance</h3><p className="mt-1 text-sm text-slate-500">Open a student to review every answer and the evidence behind their result.</p></div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void handlePrintClassReport()}
+                    disabled={printingClassReport || reportLoading || assignmentReport.length === 0}
+                    className="teacher-btn teacher-btn-primary disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {printingClassReport ? 'Preparing report…' : 'Print class report'}
+                  </button>
+                  <button
+                    onClick={handleExportReport}
+                    className="teacher-btn teacher-btn-secondary"
+                  >
+                    Export CSV
+                  </button>
+                </div>
+              </div>
+
+              {/* Student Performance Table */}
+              <div className="overflow-x-auto bg-white border border-slate-200 rounded-xl">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="bg-slate-100 border-b border-slate-200">
+                    <tr>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Student</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Class</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">
+                        <span className="inline-flex items-center gap-1">Score <span title="Total XP points earned from correct answers. Each question can carry different points." aria-label="Score explanation" className="cursor-help text-cyan-600">ⓘ</span></span>
+                      </th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Correct</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Incorrect</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Accuracy</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Completed</th>
+                      <th className="py-3 px-4 text-slate-700 font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {assignmentReport.map((row, i) => (
+                      <tr key={row.student_id} className={`border-b border-slate-100 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
+                        <td className="py-3 px-4 text-slate-800 font-medium">{row.student_name}{row.completion_source === 'paper' && <span className="mt-1 block text-xs font-medium text-blue-700">Paper · Teacher confirmed</span>}</td>
+                        <td className="py-3 px-4 text-slate-600">{row.batch ?? '—'}</td>
+                        <td className="py-3 px-4 text-slate-700">{row.score}</td>
+                        <td className="py-3 px-4 text-green-600 font-medium">{row.correct}</td>
+                        <td className="py-3 px-4 text-red-600 font-medium">{row.incorrect}</td>
+                        <td className="py-3 px-4">
+                          <span className={`font-bold ${row.accuracy >= 70 ? 'text-green-600' : row.accuracy >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                            {row.accuracy}%
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-slate-500 text-sm">{new Date(row.completed_at).toLocaleString()}</td>
+                        <td className="py-3 px-4">
+                          <button
+                            onClick={() => handleViewStudentAnalysis(row)}
+                            className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg text-xs font-medium transition-colors"
+                          >
                             🔍 Analyze
                           </button>
                         </td>
