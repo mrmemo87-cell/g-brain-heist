@@ -8,6 +8,7 @@ import {
   type IeltsStartingPoint,
 } from '../../../../services/ieltsStartingPointService';
 import IeltsWorkCard, { dueText, skillName } from './IeltsWorkCard';
+import { IeltsWaitingForScreeners } from '../IeltsTargetedPractice';
 import { openSet, seenFeedback, useIeltsStudentWork } from './useIeltsStudentWork';
 
 const greeting = () => {
@@ -47,7 +48,9 @@ export default function IeltsStudentHome() {
   const summary = loading
     ? 'Checking what is new for you…'
     : newCount + goingCount + feedback.length === 0
-      ? 'You are all caught up. New work from your teachers will appear here.'
+      ? work.waiting > 0
+        ? `${plural(work.waiting, 'task unlocks', 'tasks unlock')} when you finish your starting checks.`
+        : 'You are all caught up. New work from your teachers will appear here.'
       : [newCount && plural(newCount, 'new task', 'new tasks'), feedback.length && plural(feedback.length, 'piece of feedback', 'pieces of feedback'), goingCount && `${goingCount} to finish`]
           .filter(Boolean).join(' · ');
   let n = 0;
@@ -99,6 +102,8 @@ export default function IeltsStudentHome() {
         </section>
       )}
 
+      {!loading && <IeltsWaitingForScreeners count={work.waiting} />}
+
       {goingCount > 0 && (
         <section className="isn-section" aria-labelledby="isn-going">
           <h2 id="isn-going" className="isn-section-title">Pick up where you left off</h2>
@@ -117,7 +122,7 @@ export default function IeltsStudentHome() {
         </section>
       )}
 
-      {!loading && !work.tasksError && newCount + goingCount + feedback.length === 0 && (
+      {!loading && !work.tasksError && newCount + goingCount + feedback.length === 0 && work.waiting === 0 && (
         <section className="isn-caught-up" aria-label="All caught up">
           <span className="isn-check" aria-hidden="true">✓</span>
           <div>

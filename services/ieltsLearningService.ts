@@ -129,6 +129,18 @@ async function rpc<T>(name: string, args: Record<string, unknown>): Promise<T> {
 }
 export const learningWorkspace = (school: string | null = null) =>
   rpc<LearningWorkspace>("rpc_ielts_learning_workspace", { p_school: school });
+/** Unlocks any batch tasks a teacher queued for this student once their Listening, Reading and Writing screeners are done. */
+export const claimDeferredLearning = () =>
+  rpc<{ released: number; waiting: number }>("rpc_ielts_learning_claim_deferred", {});
+/**
+ * The student's own workspace. Queued batch tasks are unlocked first; if that check fails the workspace still loads.
+ * `waiting` counts tasks that will appear after the student's screeners.
+ */
+export const studentLearningWorkspace = async (): Promise<LearningWorkspace & { waiting: number }> => {
+  const claim = await claimDeferredLearning().catch(() => null);
+  const workspace = await learningWorkspace();
+  return { ...workspace, waiting: claim?.waiting ?? 0 };
+};
 export const learningDetail = (id: string) =>
   rpc<LearningDetail>("rpc_ielts_learning_detail", { p_id: id });
 export const allocateLearning = (

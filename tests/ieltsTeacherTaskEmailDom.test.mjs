@@ -6,11 +6,11 @@ const loop={batch:{id:'batch',name:'October',revision:4},policy:'p',gaps:[],stud
 async function run({untick=false,due=false,emailFails=false}={}){const calls=[],errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/',runScripts:'outside-only',pretendToBeVisual:true,virtualConsole:vc});const w=dom.window;Object.assign(w,{TextEncoder,TextDecoder,Request,Response,Headers});let assigned=false;
  w.fetch=async(url,opts)=>{const fn=String(url).split('/').pop(),args=JSON.parse(opts.body);calls.push({fn,args});
   if(fn==='rpc_ielts_batch_learning_loop')return new Response(JSON.stringify(loop));
-  if(fn==='rpc_ielts_batch_assign_practice'){assigned=true;return new Response(JSON.stringify({assigned_count:1,allocation_ids:['alloc-1']}));}
+  if(fn==='rpc_ielts_batch_assign_practice_after_screeners'){assigned=true;return new Response(JSON.stringify({assigned_count:1,allocation_ids:['alloc-1']}));}
   if(fn==='rpc_ielts_notify_students')return emailFails?new Response(JSON.stringify({message:'nope'}),{status:400}):new Response(JSON.stringify({keys:['ielts-task-assigned:targeted:alloc-1'],queued:1}));
   if(fn==='rpc_ielts_email_status')return new Response(JSON.stringify({total:1,waiting:0,sent:0,delivered:1,no_email:0,turned_off:0,not_delivered:0}));
   assert.equal(fn,'rpc_ielts_batch_practice_preview');
-  return new Response(JSON.stringify({batch:{id:'batch',name:'October',revision:4},tasks:[{code:'practice',display_code:'R-001',title:'Evidence first',skill:'reading',purpose:'guided_practice',instructions:'i',success_description:'s'}],students:args.p_task?[{id:'ready',name:'Ready Student',class_name:'11A',eligible:true,source_ready:true,source_id:'attempt',prior_count:0,active:assigned}]:[]}));};
+  return new Response(JSON.stringify({batch:{id:'batch',name:'October',revision:4},tasks:[{code:'practice',display_code:'R-001',title:'Evidence first',skill:'reading',purpose:'guided_practice',instructions:'i',success_description:'s'}],students:args.p_task?[{id:'ready',name:'Ready Student',class_name:'11A',eligible:true,source_ready:true,source_id:'attempt',screeners:{listening:true,reading:true,writing:true},prior_count:0,active:assigned}]:[]}));};
  const wait=async f=>{for(let i=0;i<150;i++){if(f())return;await new Promise(r=>setTimeout(r,15));}throw Error(w.document.body.textContent);};
  w.eval(bundle.outputFiles[0].text);
  try{
@@ -31,7 +31,7 @@ async function run({untick=false,due=false,emailFails=false}={}){const calls=[],
   await wait(()=>{const b=[...w.document.querySelectorAll('button')].find(b=>b.textContent.includes('Confirm & assign'));return b&&!b.disabled;});
   assert.equal(calls.filter(c=>c.fn==='rpc_ielts_notify_students').length,0,'nothing is emailed before confirming');
   [...w.document.querySelectorAll('button')].find(b=>b.textContent.includes('Confirm & assign')).click();
-  await wait(()=>text().includes('Assigned to 1 students'));
+  await wait(()=>text().includes('Assigned now to 1 student.'));
   if(!untick)await wait(()=>emailFails?text().includes('email could not be queued'):text().includes('Email: delivered to 1.'));
   else await new Promise(r=>setTimeout(r,100));
   assert.deepEqual(errors,[]);
@@ -41,10 +41,10 @@ async function run({untick=false,due=false,emailFails=false}={}){const calls=[],
 test('new-task email is on by default and sent once, after the assignment is confirmed',async()=>{
  const {calls}=await run();const n=calls.filter(c=>c.fn==='rpc_ielts_notify_students');
  assert.equal(n.length,1);assert.deepEqual(n[0].args,{p_event:'targeted_assigned',p_refs:['alloc-1'],p_remind_due:false});
- assert.ok(calls.findIndex(c=>c.fn==='rpc_ielts_batch_assign_practice')<calls.findIndex(c=>c.fn==='rpc_ielts_notify_students'));});
+ assert.ok(calls.findIndex(c=>c.fn==='rpc_ielts_batch_assign_practice_after_screeners')<calls.findIndex(c=>c.fn==='rpc_ielts_notify_students'));});
 test('a due date offers a reminder, ticked by default',async()=>{
  const {calls}=await run({due:true});assert.equal(calls.find(c=>c.fn==='rpc_ielts_notify_students').args.p_remind_due,true);});
 test('unticking the box sends no email',async()=>{
  const {calls}=await run({untick:true});assert.equal(calls.filter(c=>c.fn==='rpc_ielts_notify_students').length,0);});
 test('an email failure keeps the assignment and says so plainly',async()=>{
- const {text}=await run({emailFails:true});assert.match(text,/Assigned to 1 students/);assert.match(text,/the email could not be queued\. Students will still see it/);});
+ const {text}=await run({emailFails:true});assert.match(text,/Assigned now to 1 student./);assert.match(text,/the email could not be queued\. Students will still see it/);});
