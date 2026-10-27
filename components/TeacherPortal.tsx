@@ -76,6 +76,7 @@ import {
   schoolDocumentFileName,
   type SchoolDocumentAudience,
 } from '../src/lib/schoolDocument';
+import { buildTeacherAssignmentClassReport } from '../src/lib/teacherAssignmentClassReport';
 import {
   parseTeacherQuestionImport,
   TEACHER_QUESTION_IMPORT_TEMPLATE,
@@ -642,6 +643,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentDifficulty, setAssignmentDifficulty] = useState<QuestionDifficulty>('easy');
   const [assignmentSubmitting, setAssignmentSubmitting] = useState(false);
   const [reportLoading, setReportLoading] = useState(false);
+  const [printingClassReport, setPrintingClassReport] = useState(false);
   const [assignmentReport, setAssignmentReport] = useState<TeacherAssignmentReportRow[]>([]);
   const [selectedReportAssignment, setSelectedReportAssignment] = useState<TeacherAssignmentSummary | null>(null);
   const [availableStudents, setAvailableStudents] = useState<StudentForAssignment[]>([]);
@@ -4322,6 +4324,58 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     window.URL.revokeObjectURL(url);
   };
 
+  const handlePrintClassReport = async () => {
+    if (!selectedReportAssignment || reportLoading || !assignmentReport.length || printingClassReport) return;
+    const assignment = selectedReportAssignment;
+    const rows = [...assignmentReport];
+    setPrintingClassReport(true);
+    // Reserve the tab during the click so the asynchronous quota check does not
+    // cause popup blocking. The shared preview retains its same-tab fallback.
+    const preview = window.open('', '_blank');
+    if (preview) preview.opener = null;
+    try {
+      const quota = await tryConsumePilotQuota('reports_generated');
+      if (!quota.proceed) {
+        preview?.close();
+        brainsAlert(quota.error || 'You\'ve reached the report export limit on the Pilot plan. Upgrade to continue.', 'error');
+        return;
+      }
+      const generatedAt = new Date().toISOString();
+      const assignmentTitle = assignment.title || assignment.topic_name;
+      openSchoolDocumentPreview({
+        meta: {
+          documentId: createSchoolDocumentId('assignment'),
+          templateVersion: 'assignment-class-v1',
+          documentTypeLabel: 'Assignment class report',
+          title: assignmentTitle,
+          subtitle: 'Class results · Assignment performance report',
+          schoolName: resolvedBranding.schoolName,
+          schoolLogoUrl: resolvedBranding.schoolLogoUrl,
+          audience: 'teacher',
+          status: 'final',
+          confidentiality: 'confidential',
+          generatedAt,
+          generatedBy: profile.full_name || profile.username || 'Teacher',
+          subject: assignment.subject_name,
+          className: assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || undefined,
+          schoolId: profile.school_id,
+          visibilityScope: 'private',
+          sourceType: 'teacher_assignment',
+          sourceId: assignment.id,
+        },
+        bodyHtml: buildTeacherAssignmentClassReport(assignment, rows),
+        orientation: 'landscape',
+        inkSaver: true,
+        fileName: schoolDocumentFileName(resolvedBranding.schoolName, assignmentTitle, 'class-report', generatedAt.slice(0, 10)),
+      }, preview);
+    } catch (error) {
+      preview?.close();
+      brainsAlert(error instanceof Error ? error.message : 'Unable to open the class report preview.', 'error');
+    } finally {
+      setPrintingClassReport(false);
+    }
+  };
+
   const handlePrintStudentAnalysis = (audience: SchoolDocumentAudience = 'teacher') => {
     if (!selectedReportAssignment || !selectedAnalysisStudent) return;
     const assignmentTitle = selectedReportAssignment.title || selectedReportAssignment.topic_name;
@@ -6399,12 +6453,22 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
                 <div><h3 className="text-xl font-bold text-slate-800">Student Performance</h3><p className="mt-1 text-sm text-slate-500">Open a student to review every answer and the evidence behind their result.</p></div>
-                <button
-                  onClick={handleExportReport}
-                  className="teacher-btn teacher-btn-secondary"
-                >
-                  Export CSV
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void handlePrintClassReport()}
+                    disabled={printingClassReport || reportLoading || assignmentReport.length === 0}
+                    className="teacher-btn teacher-btn-primary disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {printingClassReport ? 'Preparing report…' : 'Print class report'}
+                  </button>
+                  <button
+                    onClick={handleExportReport}
+                    className="teacher-btn teacher-btn-secondary"
+                  >
+                    Export CSV
+                  </button>
+                </div>
               </div>
 
               {/* Student Performance Table */}
