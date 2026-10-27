@@ -38,7 +38,7 @@
   ],
   "levels": {
     "foundation": "Underline the first sentence and one repeated idea in each paragraph before choosing a heading; the teacher may cross out two wrong headings for one item and sort the summary box into nouns and adjectives, recorded as support.",
-    "core": "Questions 1-7 (headings, paragraphs A-G) in 12 minutes, then Questions 8-13 in 8 minutes: 20 minutes for the passage, as in the test. Justify each heading with a quotation.",
+    "core": "Questions 1-7 (headings, paragraphs A-G) in 12 minutes, then Questions 8-13 in 8 minutes: 20 minutes, the usual practice allocation for one passage (the test gives 60 minutes for three passages and 40 questions). Justify each heading with a quotation.",
     "extension": "For each unused heading (vii, viii, x), write which paragraph makes it tempting and why it is still wrong.",
     "high_band": "All thirteen questions in 17 minutes with no support, then summarise the writer's argument in no more than 25 words."
   },
@@ -117,7 +117,7 @@
       "items": [
         { "id": "IELTS-09-R2-Q8", "prompt": "In paragraph B, the writer suggests that people who throw away repairable items are", "paragraph": "B", "options": ["A  careless about the environment.", "B  unaware that repairs are possible.", "C  responding reasonably to the choices they face.", "D  influenced mainly by falling retail prices."], "answer": "C", "evidence": "less an act of carelessness than a rational response to the options on offer", "reason": "The writer rejects A ('less an act of carelessness'). D takes one factor and makes it the main one; falling prices are only one of several reasons listed.", "focus": "writer stance/purpose", "type": "mcq", "level": "core" },
         { "id": "IELTS-09-R2-Q9", "prompt": "What is the main purpose of paragraph E?", "paragraph": "E", "options": ["A  to show that repair cafés produce no measurable benefit", "B  to explain why the benefits of repair cafés are difficult to confirm", "C  to recommend new methods for recording repairs", "D  to compare repair cafés with professional repair shops"], "answer": "B", "evidence": "Measurement is itself problematic", "reason": "The critics doubt the size of the effect and say it is hard to measure. A overstates this: 'no measurable benefit' is stronger than anything in the paragraph. C is never recommended.", "focus": "writer stance/purpose", "type": "mcq", "level": "core" },
-        { "id": "IELTS-09-R2-Q10", "prompt": "Which statement best reflects the writer's overall view?", "paragraph": "G", "options": ["A  Repair cafés will solve the problem of waste if more people attend.", "B  Repair cafés matter mainly because they change what people expect of broken products.", "C  New laws have made repair cafés unnecessary.", "D  Manufacturers, not volunteers, should carry out all repairs."], "answer": "B", "evidence": "may lie less in the quantity of objects they save than in what they make visible", "reason": "The writer values what the cafés show people is possible. C contradicts the supporters' view that laws make their task easier; D is the commentators' argument pushed too far.", "focus": "writer stance/purpose", "type": "mcq", "level": "extension" }
+        { "id": "IELTS-09-R2-Q10", "prompt": "Which statement best reflects the writer's overall view?", "paragraph": "G", "options": ["A  Repair cafés will solve the problem of waste if more people attend.", "B  Repair cafés matter mainly because they change what people expect of broken products.", "C  Volunteers should campaign for stricter repair laws.", "D  Manufacturers, not volunteers, should carry out all repairs."], "answer": "B", "evidence": "may lie less in the quantity of objects they save than in what they make visible", "reason": "The writer values what the cafés show people is possible. C is never suggested: the laws came from the commentators' argument, not from volunteers' campaigns. D is the commentators' argument pushed too far.", "focus": "writer stance/purpose", "type": "mcq", "level": "extension" }
       ],
       "support": "Foundation: for Questions 9 and 10, the teacher names the paragraph to reread; record the support.",
       "high_band": "Paragraph G begins 'That argument'. Which argument does this refer to, and why is it an effective link between F and G?"
@@ -132,12 +132,12 @@
       "stimulus": {
         "type": "options_list",
         "title": "Words",
-        "paragraphs": ["A  impact", "B  design", "C  easier", "D  retail", "E  cheaper", "F  popularity", "G  manufacturing", "H  unnecessary"]
+        "paragraphs": ["A  dangerous", "B  design", "C  easier", "D  retail", "E  cheaper", "F  popular", "G  manufacturing", "H  unnecessary"]
       },
       "items": [
-        { "id": "IELTS-09-R3-Q11", "prompt": "Critics question the real ______ of repair cafés, partly because organisers seldom check whether repaired items stay in use.", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "A", "evidence": "question how much difference such events actually make", "reason": "'How much difference' is paraphrased as impact. F (popularity) is a trap: the paragraph is about effect, not attendance.", "focus": "paraphrase recognition", "type": "matching", "level": "core" },
+        { "id": "IELTS-09-R3-Q11", "prompt": "Besides doubting the scale of the benefits, critics point to practical limits: electrical repairs can be ______, and volunteers' time is limited.", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "A", "evidence": "electrical repairs carry genuine safety risks", "reason": "'Can be dangerous' paraphrases 'carry genuine safety risks'. F (popular) fits the grammar but the paragraph never discusses popularity.", "focus": "paraphrase recognition", "type": "matching", "level": "core" },
         { "id": "IELTS-09-R3-Q12", "prompt": "Some commentators believe that whether an object can be repaired is mostly settled at the ______ stage.", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "B", "evidence": "at the design stage", "reason": "The answer is decided when engineers choose fastenings and materials. G (manufacturing) is a trap: 'manufacturers' appears nearby, but the passage names the design stage.", "focus": "distractor resistance", "type": "matching", "level": "core" },
-        { "id": "IELTS-09-R3-Q13", "prompt": "Supporters expect new laws to make the work of volunteers ______.", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "C", "evidence": "regulation will make the volunteers' task easier", "reason": "H (unnecessary) is the opposite trap from Question 10, option C. E (cheaper) fits the grammar but is not what supporters say.", "focus": "distractor resistance", "type": "matching", "level": "core" }
+        { "id": "IELTS-09-R3-Q13", "prompt": "Supporters expect new laws to make the work of volunteers ______.", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "C", "evidence": "regulation will make the volunteers' task easier", "reason": "H (unnecessary) is the opposite of what supporters say. E (cheaper) fits the grammar but is not what supporters say.", "focus": "distractor resistance", "type": "matching", "level": "core" }
       ],
       "support": "Foundation: before reading, sort the eight box words into nouns and adjectives; each gap then has fewer candidates. Record the support.",
       "extension": "For each answer, underline the words in the summary that paraphrase the passage.",
@@ -200,7 +200,7 @@
         { "block": "IELTS-09-R2", "part": "questions" },
         { "block": "IELTS-09-R3", "part": "questions" }
       ],
-      "student": "Answer Questions 8-13 alone in 8 minutes. That completes the passage in 20 minutes, the time you have in the test.",
+      "student": "Answer Questions 8-13 alone in 8 minutes. That completes the passage in 20 minutes: in the test you have 60 minutes for three passages.",
       "teacher": "Foundation group: name the paragraph to reread for Questions 9 and 10 and allow the noun/adjective sort for the box, recorded as support.",
       "say": "Writer questions: reject options that say more than the writer does. Summary: the right box word is usually a paraphrase.",
       "check": "All answers committed."
@@ -214,7 +214,7 @@
         { "block": "IELTS-09-R3", "part": "answers" }
       ],
       "student": "Check answers and add the evidence.",
-      "teacher": "Reveal Q8-Q13. Map the argument on the board: A spread, B cause, C method, D social benefit, E doubts, F shift of responsibility, G laws and position. Show how 'That argument' links F and G, and why G (manufacturing) and H (unnecessary) are traps.",
+      "teacher": "Reveal Q8-Q13. Map the argument on the board: A spread, B cause, C method, D social benefit, E doubts, F shift of responsibility, G laws and position. Show how 'That argument' links F and G, and why G (manufacturing) and H (unnecessary) are traps, and how Question 11 uses different evidence from Question 9.",
       "say": "Good writers answer their critics. Paragraph G accepts the criticism and changes the question.",
       "check": "Learners can state the writer's position in their own words."
     },

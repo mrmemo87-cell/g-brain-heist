@@ -68,7 +68,7 @@
       "kind": "items",
       "title": "The case for the pen",
       "mode": "Independent practice under time (12 minutes); not a Reading Screener",
-      "instructions": "Questions 1-7: do the following statements agree with the views of the writer? Write YES if the statement agrees with the views of the writer, NO if the statement contradicts the views of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this.",
+      "instructions": "Questions 1-9: do the following statements agree with the views of the writer? Write YES if the statement agrees with the views of the writer, NO if the statement contradicts the views of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this.",
       "stimulus": {
         "type": "passage",
         "title": "The case for the pen",
@@ -90,9 +90,9 @@
         { "id": "IELTS-13-R1-Q3", "prompt": "Claims that handwriting develops the brain in special ways are sometimes exaggerated.", "answer": "YES", "evidence": "popular headlines tend to run ahead of what the researchers themselves conclude", "reason": "'Run ahead of what the researchers conclude' means the claims go further than the evidence: they are exaggerated.", "focus": "paraphrase recognition", "type": "ynng", "level": "core" },
         { "id": "IELTS-13-R1-Q4", "prompt": "Differences in brain activity during handwriting prove that it leads to better learning.", "answer": "NO", "evidence": "a difference in activity is not in itself evidence of better learning", "reason": "'Prove' is much stronger than the writer allows; the writer says the difference is not evidence of better learning.", "focus": "True/False/Not Given reasoning", "type": "ynng", "level": "core" },
         { "id": "IELTS-13-R1-Q5", "prompt": "For some students, keyboards offer clear advantages over writing by hand.", "answer": "YES", "evidence": "a keyboard is not a convenience but a liberation", "reason": "'Clear advantages' paraphrases 'a liberation' for learners who find writing difficult.", "focus": "paraphrase recognition", "type": "ynng", "level": "core" },
-        { "id": "IELTS-13-R1-Q6", "prompt": "Schools that bought large numbers of laptops now regret the decision.", "answer": "NOT GIVEN", "evidence": "Schools that have invested heavily in laptops and tablets understandably want to see that investment used", "reason": "The writer says these schools want the devices used. Nothing is said about whether they regret buying them: the topic is there, the view is not.", "focus": "True/False/Not Given reasoning", "type": "ynng", "level": "core" },
-        { "id": "IELTS-13-R1-Q7", "prompt": "Handwriting is better suited than typing to the planning stage of work.", "answer": "YES", "evidence": "Handwriting suits the early, untidy stages of thinking", "reason": "Planning is one of the early stages the writer lists ('sketching a plan').", "focus": "writer stance/purpose", "type": "ynng", "level": "core" },
-        { "id": "IELTS-13-R1-Q8", "prompt": "Teachers have more than enough time to add handwriting practice to their lessons.", "answer": "NO", "evidence": "I accept that the timetable is crowded", "reason": "The writer concedes that time is limited; the solution is to combine practice with other subjects, not that time is plentiful.", "focus": "inference", "type": "ynng", "level": "core" },
+        { "id": "IELTS-13-R1-Q6", "prompt": "Handwriting is better suited than typing to the planning stage of work.", "answer": "YES", "evidence": "Handwriting suits the early, untidy stages of thinking", "reason": "Planning is one of the early stages the writer lists ('sketching a plan').", "focus": "writer stance/purpose", "type": "ynng", "level": "core" },
+        { "id": "IELTS-13-R1-Q7", "prompt": "Teachers have more than enough time to add handwriting practice to their lessons.", "answer": "NO", "evidence": "I accept that the timetable is crowded", "reason": "The writer concedes that time is limited; the solution is to combine practice with other subjects, not that time is plentiful.", "focus": "inference", "type": "ynng", "level": "core" },
+        { "id": "IELTS-13-R1-Q8", "prompt": "Schools that bought large numbers of laptops now regret the decision.", "answer": "NOT GIVEN", "evidence": "Schools that have invested heavily in laptops and tablets understandably want to see that investment used", "reason": "The writer says these schools want the devices used. Nothing is said about whether they regret buying them: the topic is there, the view is not.", "focus": "True/False/Not Given reasoning", "type": "ynng", "level": "core" },
         { "id": "IELTS-13-R1-Q9", "prompt": "Most parents would support more handwriting practice in schools.", "answer": "NOT GIVEN", "evidence": "Parents are not mentioned.", "reason": "The writer gives no view about parents' opinions.", "focus": "True/False/Not Given reasoning", "type": "ynng", "level": "extension" }
       ],
       "support": "Foundation: highlight opinion signals first. The teacher may name the paragraph for two items; record which.",
@@ -104,27 +104,28 @@
       "kind": "items",
       "title": "Sentence endings: following the argument",
       "mode": "Independent practice under time (6 minutes); same passage",
-      "instructions": "Questions 10-13: use the passage 'The case for the pen'. Complete each sentence with the correct ending, A-G, below. Write the correct letter. Three endings are not used.",
+      "instructions": "Questions 10-13: use the passage 'The case for the pen'. Complete each sentence with the correct ending, A-H, below. Write the correct letter. Four endings are not used.",
       "stimulus": {
         "type": "options_list",
         "title": "Endings",
         "paragraphs": [
-          "A  because they can be kept for the tasks they suit best.",
+          "A  because students need to judge which tool suits each stage of a task.",
           "B  because typed examinations are easier to mark.",
-          "C  because they claim more than the research shows.",
+          "C  because they mostly involved small groups of university students.",
           "D  because handwriting is faster than typing.",
-          "E  because assessment should follow learning rather than shape it.",
-          "F  because it can be combined with work in other subjects.",
-          "G  because younger students cannot use keyboards."
+          "E  because a test can change what is taught.",
+          "F  because they let students focus on ideas rather than mechanics.",
+          "G  because younger students cannot use keyboards.",
+          "H  because they were carried out by neuroscientists."
         ]
       },
       "items": [
-        { "id": "IELTS-13-R2-Q10", "prompt": "The writer says that some supporters of handwriting weaken their own case", "options": ["A", "B", "C", "D", "E", "F", "G"], "answer": "C", "evidence": "Advocates of handwriting do their case no favours by overstating it", "reason": "'Overstating it' is paraphrased as claiming more than the research shows.", "focus": "writer stance/purpose", "type": "matching", "level": "core" },
-        { "id": "IELTS-13-R2-Q11", "prompt": "The writer argues that handwriting practice need not take much timetable time", "options": ["A", "B", "C", "D", "E", "F", "G"], "answer": "F", "evidence": "students can practise it while planning a history essay", "reason": "Practice happens inside history and science work, so little extra time is needed.", "focus": "writer stance/purpose", "type": "matching", "level": "core" },
-        { "id": "IELTS-13-R2-Q12", "prompt": "According to the writer, the devices that schools have bought need not be wasted", "options": ["A", "B", "C", "D", "E", "F", "G"], "answer": "A", "evidence": "it simply asks that they be used for the tasks they do best", "reason": "'Kept for the tasks they suit best' paraphrases 'used for the tasks they do best'.", "focus": "writer stance/purpose", "type": "matching", "level": "core" },
-        { "id": "IELTS-13-R2-Q13", "prompt": "The writer rejects the idea of matching teaching to the format of examinations", "options": ["A", "B", "C", "D", "E", "F", "G"], "answer": "E", "evidence": "Examinations should reflect how students learn best rather than dictate it", "reason": "Assessment should follow learning. B is tempting because it mentions typed exams, but marking is never discussed.", "focus": "writer stance/purpose", "type": "matching", "level": "extension" }
+        { "id": "IELTS-13-R2-Q10", "prompt": "The writer treats the note-taking studies with some caution", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "C", "evidence": "many of the studies involve small samples of university students", "reason": "The small samples are one reason the writer will not call the evidence conclusive. H is a near-word trap: neuroscientists appear in a different paragraph, about brain imaging.", "focus": "writer stance/purpose", "type": "matching", "level": "core" },
+        { "id": "IELTS-13-R2-Q11", "prompt": "The writer regards spelling and grammar tools as useful", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "F", "evidence": "can also free a student to concentrate on ideas rather than mechanics", "reason": "'Focus on ideas' paraphrases 'concentrate on ideas'.", "focus": "writer stance/purpose", "type": "matching", "level": "core" },
+        { "id": "IELTS-13-R2-Q12", "prompt": "The writer wants schools to teach both handwriting and typing", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "A", "evidence": "the judgement to match the tool to the stage of the task", "reason": "The skill worth teaching is choosing the right tool for each stage. D is never claimed: the passage does not compare speed.", "focus": "writer stance/purpose", "type": "matching", "level": "core" },
+        { "id": "IELTS-13-R2-Q13", "prompt": "The writer thinks examination boards should be careful about moving to screens", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "E", "evidence": "A test that changes what is taught should be judged by that effect", "reason": "B is tempting because it mentions typed exams, but marking is never discussed.", "focus": "writer stance/purpose", "type": "matching", "level": "extension" }
       ],
-      "high_band": "Check every ending for grammar as well as meaning, then explain why ending B is tempting for Question 13.",
+      "high_band": "Check every ending for grammar as well as meaning, then explain why ending H is tempting for Question 10.",
       "support": "Foundation: the teacher crosses out one wrong ending with the class first (D: the passage never compares speed). Record the support."
     }
   ],
@@ -172,7 +173,7 @@
         { "block": "IELTS-13-R1", "part": "answers" }
       ],
       "student": "Check answers. For each wrong answer, write whether you confused NO and NOT GIVEN, or misread a strong word.",
-      "teacher": "Reveal in pairs after learners give their evidence. Spend time on Q2 (NO: the writer denies the claim), Q4 (NO: 'prove' is too strong) and Q6 (NOT GIVEN: the topic is there, the view is not).",
+      "teacher": "Reveal in pairs after learners give their evidence. Spend time on Q2 (NO: the writer denies the claim), Q4 (NO: 'prove' is too strong) and Q8 (NOT GIVEN: the topic is there, the view is not).",
       "say": "NO means the writer says the opposite. NOT GIVEN means the writer says nothing about it.",
       "check": "Learners can explain the difference using Q2 and Q6."
     },
@@ -196,7 +197,7 @@
         { "block": "IELTS-13-R2", "part": "answers" }
       ],
       "student": "Check answers and map the argument: view, evidence, concession, response, proposal.",
-      "teacher": "Reveal Q10-Q13. Map the argument: position (A), reported research and its limits (B, C), concession (D), proposal (E), two objections answered (F, G), final rejection (H). Show why B and G are tempting but never stated.",
+      "teacher": "Reveal Q10-Q13. Map the argument: position (A), reported research and its limits (B, C), concession (D), proposal (E), two objections answered (F, G), final rejection (H). Show why B, D and H are tempting but never stated.",
       "say": "The concession-and-response pattern you see here is the one you use in Task 2.",
       "check": "Learners can name one concession and its response."
     },
