@@ -6,7 +6,7 @@
   "version": "0.3.0",
   "presentation_version": "0.3.0",
   "title": "Reading for specific information",
-  "status": "Draft v0.3.0 for owner review (harder reading set: deeper paraphrase, nearby distractors, six-statement matching features, tighter timings). v0.2.0 remains the owner-approved, released version.",
+  "status": "Owner approved v0.3.0 on 2026-10-27; teacher release to all eligible schools",
   "duration": 60,
   "test_type": "Academic",
   "bibles": { "diagnostic": "2.0.0", "lessons": "1.2.0", "visual": "1.2.0" },
@@ -190,5 +190,6 @@
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
     "Student task publication and platform evidence capture remain separate, governed steps."
   ],
+  "approval_record": { "approved_by": "Owner, Brains Heist LLC", "date": "2026-10-27", "version": "0.3.0", "scope": "Lesson content, keys, models and presentation for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner instruction in the review conversation on 2026-10-27 15:03 Asia/Bishkek, after reviewing PR #1725 (harder reading set) and piloting the Lesson 6 step-by-step practice with a student: 'make lesson 6 and its lessons approved and live to be used normally'. Content and keys are as reviewed in PR #1725. Not recorded as an in-platform decision; no school-scoped review-draft pack was opened before approval." },
   "previous_approval_record": { "approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision." }
 }
