@@ -207,3 +207,25 @@ test('AI is teacher-only, deduplicates work, caches private drafts and links con
  assert.equal((await getDetail(aiId)).review.fields.went_well,fields.went_well);
  await actor(outsider);await assert.rejects(db.query('select rpc_ielts_learning_review_with_draft($1,$2,$3,$4)',[aiId,JSON.stringify(fields),req,claim.id]),/not_authorized/);
 });
+test('Reading saves accept each question\'s own format: option letters, YES/NO, typed gaps and TRUE/FALSE/NOT GIVEN',async()=>{
+ await db.exec(readFileSync('supabase/migrations/20261026141904_ielts_learning_save_reading_choices.sql','utf8').replace(/^(revoke|grant)[^\n]*\n/gm,''));
+ const qs=[
+  {id:'q1',prompt:'Which paragraph?',accepted_answers:['B'],options:[{value:'A',label:'Paragraph A'},{value:'B',label:'Paragraph B'}]},
+  {id:'q2',prompt:'Does it?',accepted_answers:['YES'],options:[{value:'YES',label:'YES'},{value:'NO',label:'NO'}]},
+  {id:'q3',prompt:'Gap ________.',accepted_answers:['stormwater fees'],answer_format:'text'},
+  {id:'q4',prompt:'Statement',accepted_answers:['TRUE']},
+  {id:'q5',prompt:'Gap ________.',accepted_answers:['dusk'],answer_format:'text'},
+  {id:'q6',prompt:'Kind?',accepted_answers:['E'],options:['A','B','C','D','E'].map(v=>({value:v,label:v}))}].map(q=>({...q,taxonomy_node_id:'be5b2be3-ffb1-4cfb-95c8-cb9e3e9101de',supporting_node_id:'bcddba69-28bc-436c-bb54-01a3c5733099'}));
+ const cols=(await db.query("select column_name from information_schema.columns where table_schema='private' and table_name='ielts_learning_allocations'")).rows.map(r=>r.column_name);
+ await db.query("insert into private.ielts_learning_tasks(code,version,title,skill,purpose,instructions,success_description,taxonomy_version_id,pilot_student,questions,content,review_record,content_sha256,requires_review) values('bh-ielts-targeted-reading-choices-test','0.1.0','Choices','reading','guided_practice','i','s','ad250533-8582-4bc5-986b-32b0c9640a16',$1,$2,'{\"passage\":\"p\"}','{}',repeat('c',64),false)",[student,JSON.stringify(qs)]);
+ const alloc=(await db.query(`insert into private.ielts_learning_allocations(school_id,student_id,task_code,${cols.includes('source_attempt_id')?'source_attempt_id,':''}reason,teacher_id,request_id) values($1,$2,'bh-ielts-targeted-reading-choices-test',${cols.includes('source_attempt_id')?'$3,':''}'Synthetic save-format test only.',$4,gen_random_uuid()) returning id`,cols.includes('source_attempt_id')?[school,student,source,teacher]:[school,student,teacher])).rows[0].id;
+ await actor(student);
+ await assert.rejects(saveResponse(alloc,{q1:'C'}),/invalid_answers/,'a letter that is not one of the choices');
+ await assert.rejects(saveResponse(alloc,{q2:'TRUE'}),/invalid_answers/,'TRUE is not a YES/NO choice');
+ await assert.rejects(saveResponse(alloc,{q4:'B'}),/invalid_answers/,'a letter on a TRUE/FALSE/NOT GIVEN question');
+ await assert.rejects(saveResponse(alloc,{q3:'x'.repeat(121)}),/invalid_answers/);
+ await assert.rejects(saveResponse(alloc,{q7:'A'}),/invalid_answers/);
+ await saveResponse(alloc,{q1:'B',q2:'YES',q3:'stormwater fees',q4:'TRUE',q5:'Dusk',q6:'',e1:'Paragraph E, last sentence.'});
+ const r=(await db.query('select rpc_ielts_learning_submit($1,1) d',[alloc])).rows[0].d;
+ assert.equal(r.result.score,5);assert.equal(r.result.total,6);
+});
