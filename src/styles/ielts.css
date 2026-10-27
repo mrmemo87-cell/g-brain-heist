@@ -31,16 +31,16 @@ body.ielts-theme {
 }
 
 /* Force light theme for IELTS pages */
-body.ielts-theme button,
-body.ielts-theme div,
-body.ielts-theme span,
-body.ielts-theme p {
+body.ielts-theme:has(.ielts-shell) button,
+body.ielts-theme:has(.ielts-shell) div,
+body.ielts-theme:has(.ielts-shell) span,
+body.ielts-theme:has(.ielts-shell) p {
   background-color: transparent !important;
   color: #111827 !important;
 }
 
-body.ielts-theme input,
-body.ielts-theme textarea {
+body.ielts-theme:has(.ielts-shell) input,
+body.ielts-theme:has(.ielts-shell) textarea {
   background-color: #FFFFFF !important;
   color: #111827 !important;
   border: 1px solid #E5E7EB !important;
@@ -52,7 +52,7 @@ body.ielts-theme > * {
 }
 
 /* Force button styling */
-body.ielts-theme button {
+body.ielts-theme:has(.ielts-shell) button {
   background-color: transparent !important;
   color: #111827 !important;
   border: none !important;
@@ -717,4 +717,20 @@ body.ielts-theme {
     padding-left: 1.25rem;
     padding-right: 1.25rem;
   }
+}
+
+/* Compact sign-in layout: the account action stays close to the heading on phones. */
+.ielts-auth-wrapper { box-sizing: border-box; min-height: 100svh; padding: 24px 16px; font-family: var(--bh-ielts-font-body); }
+.ielts-auth-panel { box-sizing: border-box; min-width: 0; padding: 32px; gap: 24px; }
+.ielts-auth-logo { width: 56px; height: 56px; object-fit: contain; }
+.ielts-auth-panel .ielts-auth-google { min-height: 48px; width: 100%; margin: 0; }
+.ielts-auth-panel .ielts-auth-email-toggle { display: block; min-height: 44px; margin: 8px auto 0;
+  background: transparent; border: 0; color: var(--bh-ielts-primary); font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; }
+.ielts-auth-panel :is(button,input):focus-visible { outline: 3px solid var(--bh-ielts-focus); outline-offset: 3px; }
+.ielts-auth-panel .ielts-auth-field input { box-sizing: border-box; min-width: 0; width: 100%; min-height: 48px; font-size: 16px; }
+.ielts-auth-panel .ielts-auth-footer { font-size: 14px; line-height: 1.6; }
+.ielts-auth-panel .ielts-auth-footer p { margin: 0 0 8px; }
+@media (max-width: 480px) {
+  .ielts-auth-panel { padding: 24px; gap: 24px; }
+  .ielts-auth-panel .ielts-auth-title { font-size: 1.75rem; line-height: 1.2; }
 }

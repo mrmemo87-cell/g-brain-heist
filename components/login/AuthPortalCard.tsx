@@ -5,6 +5,8 @@ import { GoogleIcon } from '../icons';
 type Mode = 'login' | 'signup' | 'reset' | 'confirm';
 
 interface AuthPortalCardProps {
+    returningAccount?: React.ReactNode;
+    rememberAccountControl?: React.ReactNode;
     mode: Mode;
     email: string;
     password: string;
@@ -31,6 +33,8 @@ interface AuthPortalCardProps {
 }
 
 const AuthPortalCard: React.FC<AuthPortalCardProps> = ({
+    returningAccount,
+    rememberAccountControl,
     mode,
     email,
     password,
@@ -119,24 +123,26 @@ const AuthPortalCard: React.FC<AuthPortalCardProps> = ({
                 <div className="mb-6 text-center">
                     <p className="text-[10px] font-black uppercase tracking-[0.32em] text-cyan-300/75">Brains Heist access</p>
                     <h2 className="mt-2 text-2xl font-black tracking-tight text-white">{mode === 'login' ? 'Welcome back, Agent.' : mode === 'signup' ? 'Create your identity.' : 'Reset access.'}</h2>
-                    <p className="mt-2 text-sm text-slate-400">{mode === 'login' ? 'The fastest way in is Google.' : mode === 'signup' ? 'Google works for new accounts too.' : 'We’ll send you a secure reset link.'}</p>
+                    <p className="mt-2 text-sm text-slate-400">{returningAccount ? 'Continue with your saved account.' : mode === 'login' ? 'The fastest way in is Google.' : mode === 'signup' ? 'Google works for new accounts too.' : 'We’ll send you a secure reset link.'}</p>
                 </div>
 
-                {mode !== 'reset' && (
-                    <button type="button" onClick={onGoogle} disabled={isGoogleLoading} className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white px-4 font-extrabold text-slate-900 shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(0,0,0,0.26)] disabled:opacity-60">
+                {returningAccount}
+                {mode !== 'reset' && !returningAccount && (
+                    <button type="button" data-auth-google onClick={onGoogle} disabled={isGoogleLoading} className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white px-4 font-extrabold text-slate-900 shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(0,0,0,0.26)] disabled:opacity-60">
                         <GoogleIcon className="h-5 w-5" />
                         {isGoogleLoading ? 'Connecting…' : 'Continue with Google'}
                     </button>
                 )}
 
-                {mode !== 'reset' && <div className="my-5 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.28em] text-slate-600"><span className="h-px flex-1 bg-white/10" /><span>or</span><span className="h-px flex-1 bg-white/10" /></div>}
+                {mode !== 'reset' && !returningAccount && <div className="my-5 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.28em] text-slate-600"><span className="h-px flex-1 bg-white/10" /><span>or</span><span className="h-px flex-1 bg-white/10" /></div>}
 
                 {mode === 'reset' && <button type="button" onClick={() => onSwitchMode('login')} className="mb-5 text-sm font-bold text-cyan-300">← Back to sign in</button>}
 
                 {error && <div role="alert" className="mb-4 rounded-2xl border border-rose-400/30 bg-rose-400/[0.08] px-4 py-3 text-sm text-rose-100">{error}</div>}
                 {success && <div role="status" className="mb-4 rounded-2xl border border-emerald-400/30 bg-emerald-400/[0.08] px-4 py-3 text-sm text-emerald-100">✓ {success}</div>}
 
-                <form onSubmit={onSubmit} className="space-y-4">
+                {rememberAccountControl}
+                {!returningAccount && <form onSubmit={onSubmit} className="space-y-4">
                     {mode === 'signup' && <input autoComplete="username" required value={username} onChange={(event) => onUsernameChange(event.target.value)} placeholder="Choose a username" aria-label="Username" className="block h-13 w-full rounded-2xl border border-slate-600/70 bg-slate-800/70 px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10" />}
                     <input type="email" autoComplete="email" required value={email} onChange={(event) => onEmailChange(event.target.value)} placeholder="Email address" aria-label="Email" className="block h-13 w-full rounded-2xl border border-slate-600/70 bg-slate-800/70 px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10" />
                     {mode !== 'reset' && (
@@ -152,7 +158,7 @@ const AuthPortalCard: React.FC<AuthPortalCardProps> = ({
                         <span ref={shimmerRef} className="pointer-events-none absolute -inset-y-3 left-[-45%] z-10 w-[42%] -skew-x-12 bg-gradient-to-r from-transparent via-white/80 to-transparent mix-blend-screen" aria-hidden="true" />
                         <span className="relative z-20">{isLoading ? 'Working…' : mode === 'login' ? 'Enter →' : mode === 'signup' ? 'Create account →' : 'Send reset link →'}</span>
                     </button>
-                </form>
+                </form>}
 
                 {mode !== 'reset' && <p className="mt-5 text-center text-sm text-slate-400">{mode === 'login' ? 'New to Brains Heist?' : 'Already have an account?'}{' '}<button type="button" onClick={() => onSwitchMode(mode === 'login' ? 'signup' : 'login')} className="font-extrabold text-cyan-300 hover:text-cyan-200">{mode === 'login' ? 'Create account' : 'Sign in'}</button></p>}
             </div>

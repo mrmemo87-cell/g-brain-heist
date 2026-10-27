@@ -1,5 +1,5 @@
 import LoginLaunchpad from './LoginLaunchpad';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as AuthService from '../services/authService';
 import { consumeBanMessage } from '../services/banMessage';
 import { askVisitorAssistant } from '../services/visitorAssistantService';
@@ -7,6 +7,8 @@ import { submitDemoRequest } from '../services/demoRequestService';
 import PortalLanding from './login/PortalLanding';
 import ExploreUniverse from './login/ExploreUniverse';
 import AuthPortalCard from './login/AuthPortalCard';
+import RememberedAccount, { RememberAccountPreference, useRememberedSignIn } from './auth/RememberedAccount';
+import { clearRememberAccountIntent, prepareRememberAccount } from '../services/rememberedAccount';
 
 interface LoginViewProps {
     onLogin: (email: string, pass: string) => Promise<void>;
@@ -18,8 +20,12 @@ type AssistantMessage = {
 };
 
 const PENDING_CONFIRMATION_KEY = 'brains_heist_pending_confirmation_v1';
+const focusGoogleSignIn = () => window.requestAnimationFrame(() =>
+    document.querySelector<HTMLButtonElement>('[data-auth-google]')?.focus());
 
 const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
+    const remembered = useRememberedSignIn();
+    const signInInFlight = useRef(false);
     const [mode, setMode] = useState<'login' | 'signup' | 'reset' | 'confirm'>('login');
     const [pageMode, setPageMode] = useState<'portal' | 'explore'>('portal');
     const [email, setEmail] = useState('');
@@ -73,7 +79,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             setMode('confirm');
             setPageMode('portal');
         } catch {
-            window.localStorage.removeItem(PENDING_CONFIRMATION_KEY);
+            try { window.localStorage.removeItem(PENDING_CONFIRMATION_KEY); } catch { /* Optional storage. */ }
         }
     }, []);
 
@@ -94,7 +100,8 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-        if (isLoading) return;
+        if (isLoading || signInInFlight.current) return;
+        signInInFlight.current = true;
         setError(null);
         setSuccess(null);
         setIsLoading(true);
@@ -140,8 +147,10 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 return;
             }
 
+            prepareRememberAccount(remembered.remember, 'password');
             await onLogin(email.trim(), password);
         } catch (err: any) {
+            clearRememberAccountIntent();
             if (AuthService.isEmailConfirmationRequiredError(err)) {
                 const confirmationEmail = err.email || email.trim();
                 const expiresAt = pendingExpiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -155,19 +164,24 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 setError(friendlyError(err?.message));
             }
         } finally {
+            signInInFlight.current = false;
             setIsLoading(false);
         }
     };
 
-    const handleGoogleSignIn = async () => {
-        if (isGoogleLoading) return;
+    const handleGoogleSignIn = async (loginHint?: string) => {
+        if (signInInFlight.current) return;
+        signInInFlight.current = true;
         setError(null);
         setIsGoogleLoading(true);
         try {
-            await AuthService.loginWithGoogle();
+            prepareRememberAccount(mode === 'login' && remembered.remember, 'google');
+            await AuthService.loginWithGoogle(loginHint);
         } catch (err: any) {
+            clearRememberAccountIntent();
             setError(friendlyError(err?.message || 'Google sign-in failed.'));
         } finally {
+            signInInFlight.current = false;
             setIsGoogleLoading(false);
         }
     };
@@ -255,51 +269,75 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
     if (isLoading && mode === 'login') return <LoginLaunchpad message="Signing you in…" />;
 
+    const assistantTrigger = (
+            <button
+                type="button"
+                onClick={() => setAssistantOpen(true)}
+                className={`${pageMode === 'explore' ? 'fixed bottom-5 right-5 z-40' : 'mx-auto mt-4'} flex items-center gap-2 rounded-full border border-cyan-300/25 bg-[#081321]/95 px-4 py-3 text-sm font-black text-white shadow-[0_15px_45px_rgba(0,0,0,0.35),0_0_30px_rgba(34,211,238,0.12)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-cyan-300/45`}
+            >
+                <span className="text-cyan-300">◉</span> Ask Brains
+            </button>
+    );
+
     const authCard = (
-        <AuthPortalCard
-            mode={mode}
-            email={email}
-            password={password}
-            username={username}
-            showPassword={showPassword}
-            confirmationCode={confirmationCode}
-            pendingEmail={pendingEmail}
-            pendingExpiresAt={pendingExpiresAt}
-            error={error}
-            success={success}
-            isLoading={isLoading}
-            isGoogleLoading={isGoogleLoading}
-            resendLoading={resendLoading}
-            onEmailChange={setEmail}
-            onPasswordChange={setPassword}
-            onUsernameChange={setUsername}
-            onConfirmationCodeChange={setConfirmationCode}
-            onTogglePassword={() => setShowPassword((current) => !current)}
-            onSubmit={handleSubmit}
-            onGoogle={() => void handleGoogleSignIn()}
-            onSwitchMode={switchMode}
-            onSwitchFromConfirmation={switchFromConfirmation}
-            onResendConfirmation={() => void handleResendConfirmation()}
-        />
+        <>
+            <AuthPortalCard
+                returningAccount={mode === 'login' && remembered.account ? <RememberedAccount
+                    account={remembered.account} busy={isGoogleLoading || isLoading}
+                    onContinue={() => {
+                        if (remembered.account?.provider === 'google') {
+                            void handleGoogleSignIn(remembered.account.email);
+                        } else if (remembered.account) {
+                            setEmail(remembered.account.email);
+                            setPassword('');
+                            remembered.selectPassword();
+                            window.requestAnimationFrame(() => document.querySelector<HTMLInputElement>('input[autocomplete="current-password"]')?.focus());
+                        }
+                    }}
+                    onUseAnother={() => { remembered.chooseAnother(); setEmail(''); setPassword(''); setError(null); focusGoogleSignIn(); }}
+                    onForget={() => { remembered.forget(); setEmail(''); setPassword(''); setError(null); focusGoogleSignIn(); }}
+                /> : undefined}
+                rememberAccountControl={mode === 'login' ? <RememberAccountPreference checked={remembered.remember}
+                    onChange={remembered.setRemember} disabled={isLoading || isGoogleLoading} /> : undefined}
+                mode={mode}
+                email={email}
+                password={password}
+                username={username}
+                showPassword={showPassword}
+                confirmationCode={confirmationCode}
+                pendingEmail={pendingEmail}
+                pendingExpiresAt={pendingExpiresAt}
+                error={error}
+                success={success}
+                isLoading={isLoading}
+                isGoogleLoading={isGoogleLoading}
+                resendLoading={resendLoading}
+                onEmailChange={setEmail}
+                onPasswordChange={setPassword}
+                onUsernameChange={setUsername}
+                onConfirmationCodeChange={setConfirmationCode}
+                onTogglePassword={() => setShowPassword((current) => !current)}
+                onSubmit={handleSubmit}
+                onGoogle={() => void handleGoogleSignIn()}
+                onSwitchMode={switchMode}
+                onSwitchFromConfirmation={switchFromConfirmation}
+                onResendConfirmation={() => void handleResendConfirmation()}
+            />
+            {assistantTrigger}
+        </>
     );
 
     return (
         <>
             {pageMode === 'portal' ? (
-                <PortalLanding onExplore={() => setPageMode('explore')}>
+                <PortalLanding returning={remembered.isReturning} onExplore={() => setPageMode('explore')}>
                     {authCard}
                 </PortalLanding>
             ) : (
                 <ExploreUniverse onBack={() => setPageMode('portal')} onRequestDemo={openDemoModal} />
             )}
 
-            <button
-                type="button"
-                onClick={() => setAssistantOpen(true)}
-                className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full border border-cyan-300/25 bg-[#081321]/95 px-4 py-3 text-sm font-black text-white shadow-[0_15px_45px_rgba(0,0,0,0.35),0_0_30px_rgba(34,211,238,0.12)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-cyan-300/45"
-            >
-                <span className="text-cyan-300">◉</span> Ask Brains
-            </button>
+            {pageMode === 'explore' && assistantTrigger}
 
             {assistantOpen && (
                 <div className="fixed inset-0 z-50 flex items-end justify-end bg-black/55 p-4 backdrop-blur-sm sm:p-6" role="dialog" aria-modal="true" aria-label="Brains Assistant">

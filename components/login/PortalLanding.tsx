@@ -3,11 +3,12 @@ import gsap from 'gsap';
 import LoginFooter from '../LoginFooter';
 
 interface PortalLandingProps {
+    returning?: boolean;
     onExplore: () => void;
     children: React.ReactNode;
 }
 
-const PortalLanding: React.FC<PortalLandingProps> = ({ onExplore, children }) => {
+const PortalLanding: React.FC<PortalLandingProps> = ({ onExplore, children, returning = false }) => {
     const rootRef = useRef<HTMLDivElement>(null);
     const gridRef = useRef<HTMLDivElement>(null);
     const glowOneRef = useRef<HTMLDivElement>(null);
@@ -50,7 +51,7 @@ const PortalLanding: React.FC<PortalLandingProps> = ({ onExplore, children }) =>
                 </div>
 
                 <section className="mx-auto grid w-full flex-1 items-center gap-10 py-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-14 lg:py-8">
-                    <div className="mx-auto max-w-3xl text-center lg:text-start">
+                    <div className={`${returning ? 'hidden lg:block' : ''} mx-auto max-w-3xl text-center lg:text-start`}>
                         <h1 ref={headlineRef} className="text-[clamp(3.6rem,8.5vw,7.8rem)] font-black leading-[0.86] tracking-[-0.055em] text-white">
                             Where school<br />feels like a<br /><span className="bg-gradient-to-r from-cyan-300 via-teal-300 to-fuchsia-400 bg-clip-text text-transparent">game.</span>
                         </h1>
