@@ -1,0 +1,35 @@
+.remembered-account, .remember-account-preference {
+  --account-ink: #e2e8f0;
+  --account-muted: #cbd5e1;
+  --account-accent: #67e8f9;
+  --account-button: #67e8f9;
+  --account-on-button: #06101d;
+  color: var(--account-ink);
+  min-width: 0;
+}
+.remembered-account__identity { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.remembered-account__identity > div { display: grid; gap: 4px; min-width: 0; }
+.remembered-account__identity strong, .remembered-account__identity span { overflow-wrap: anywhere; }
+.remembered-account__identity > div > span { color: var(--account-muted); font-size: 14px; }
+.remembered-account__avatar { display: grid; place-items: center; flex: 0 0 44px; height: 44px;
+  border: 1px solid currentColor; border-radius: 50%; font-weight: 700; }
+.remembered-account .remembered-account__continue { display: block; width: 100%; min-height: 48px;
+  border: 0; border-radius: 13px; padding: 12px 16px; font: inherit; font-weight: 700;
+  background: var(--account-button); color: var(--account-on-button); overflow-wrap: anywhere; cursor: pointer; }
+.remembered-account__hint, .remember-account-preference p { font-size: 14px; line-height: 1.5; color: var(--account-muted); margin: 8px 0; }
+.remembered-account__actions { display: flex; flex-wrap: wrap; column-gap: 16px; }
+.remembered-account__actions button { min-height: 44px; padding: 8px 0; font: inherit; font-size: 14px;
+  color: var(--account-accent); background: transparent; border: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.remember-account-preference { margin: 16px 0; }
+.remember-account-preference label { display: flex; gap: 10px; align-items: center; min-height: 44px; font-size: 14px; cursor: pointer; }
+.remember-account-preference input { flex: 0 0 20px; width: 20px; height: 20px; accent-color: var(--account-button); }
+.remember-account-preference p { margin: 0; }
+.remembered-account button:disabled { opacity: .65; cursor: wait; }
+.remembered-account button:focus-visible, .remember-account-preference input:focus-visible { outline: 3px solid var(--account-accent); outline-offset: 3px; }
+.ielts-auth-panel .remembered-account, .ielts-auth-panel .remember-account-preference {
+  --account-ink: var(--bh-ielts-foreground);
+  --account-muted: var(--bh-ielts-foreground-muted);
+  --account-accent: var(--bh-ielts-focus);
+  --account-button: var(--bh-ielts-primary);
+  --account-on-button: var(--bh-ielts-primary-foreground);
+}

@@ -350,13 +350,14 @@ export const checkEmailVerification = async (): Promise<{
     };
 };
 
-export const loginWithGoogle = async (): Promise<void> => {
+export const loginWithGoogle = async (loginHint?: string): Promise<void> => {
     const redirectTo = getAuthRedirectUrl();
 
     const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
             redirectTo,
+            queryParams: loginHint ? { login_hint: loginHint } : { prompt: 'select_account' },
         },
     });
 

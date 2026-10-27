@@ -1,0 +1,154 @@
+[
+  {
+    "area": "ielts",
+    "width": 320,
+    "scroll": 320,
+    "viewport": 320,
+    "primary": "rgb(23, 70, 176)",
+    "ink": "rgb(255, 255, 255)",
+    "button": {
+      "x": 40,
+      "y": 387.171875,
+      "width": 240,
+      "height": 72,
+      "top": 387.171875,
+      "right": 280,
+      "bottom": 459.171875,
+      "left": 40
+    },
+    "errors": []
+  },
+  {
+    "area": "ielts",
+    "width": 375,
+    "scroll": 375,
+    "viewport": 375,
+    "primary": "rgb(23, 70, 176)",
+    "ink": "rgb(255, 255, 255)",
+    "button": {
+      "x": 40,
+      "y": 407.296875,
+      "width": 295,
+      "height": 72,
+      "top": 407.296875,
+      "right": 335,
+      "bottom": 479.296875,
+      "left": 40
+    },
+    "errors": []
+  },
+  {
+    "area": "ielts",
+    "width": 768,
+    "scroll": 768,
+    "viewport": 768,
+    "primary": "rgb(23, 70, 176)",
+    "ink": "rgb(255, 255, 255)",
+    "button": {
+      "x": 176,
+      "y": 402.8125,
+      "width": 416,
+      "height": 48,
+      "top": 402.8125,
+      "right": 592,
+      "bottom": 450.8125,
+      "left": 176
+    },
+    "errors": []
+  },
+  {
+    "area": "ielts",
+    "width": 1440,
+    "scroll": 1440,
+    "viewport": 1440,
+    "primary": "rgb(23, 70, 176)",
+    "ink": "rgb(255, 255, 255)",
+    "button": {
+      "x": 512,
+      "y": 402.8125,
+      "width": 416,
+      "height": 48,
+      "top": 402.8125,
+      "right": 928,
+      "bottom": 450.8125,
+      "left": 512
+    },
+    "errors": []
+  },
+  {
+    "area": "main",
+    "width": 320,
+    "scroll": 320,
+    "viewport": 320,
+    "primary": "rgb(103, 232, 249)",
+    "ink": "rgb(6, 16, 29)",
+    "button": {
+      "x": 41,
+      "y": 408,
+      "width": 238,
+      "height": 72,
+      "top": 408,
+      "right": 279,
+      "bottom": 480,
+      "left": 41
+    },
+    "errors": []
+  },
+  {
+    "area": "main",
+    "width": 375,
+    "scroll": 375,
+    "viewport": 375,
+    "primary": "rgb(103, 232, 249)",
+    "ink": "rgb(6, 16, 29)",
+    "button": {
+      "x": 41,
+      "y": 370,
+      "width": 293,
+      "height": 72,
+      "top": 370,
+      "right": 334,
+      "bottom": 442,
+      "left": 41
+    },
+    "errors": []
+  },
+  {
+    "area": "main",
+    "width": 768,
+    "scroll": 768,
+    "viewport": 768,
+    "primary": "rgb(103, 232, 249)",
+    "ink": "rgb(6, 16, 29)",
+    "button": {
+      "x": 189,
+      "y": 349,
+      "width": 390,
+      "height": 72,
+      "top": 349,
+      "right": 579,
+      "bottom": 421,
+      "left": 189
+    },
+    "errors": []
+  },
+  {
+    "area": "main",
+    "width": 1440,
+    "scroll": 1440,
+    "viewport": 1440,
+    "primary": "rgb(103, 232, 249)",
+    "ink": "rgb(6, 16, 29)",
+    "button": {
+      "x": 857.546875,
+      "y": 341,
+      "width": 390,
+      "height": 72,
+      "top": 341,
+      "right": 1247.546875,
+      "bottom": 413,
+      "left": 857.546875
+    },
+    "errors": []
+  }
+]
