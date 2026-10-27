@@ -15,12 +15,12 @@
   "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Scripts, questions and keys are original. Human editorial, key, mapping, difficulty and originality review pending.",
   "audio": {
     "required": true,
-    "statement": "IELTS-14-L1 needs a new (v2) recording for the revised script; the fresh-check recording is unchanged.",
+    "statement": "IELTS-14-L1 v2 recording produced on 2026-10-27 for the revised script; owner listening approval pending.",
     "recordings": [
       {
         "id": "IELTS-14-L1",
         "block": "IELTS-14-L1",
-        "status": "Script revised for v0.3.0; the v2 recording has not been produced. The v1 recording no longer matches and must not be used with this version.",
+        "status": "Produced v2 on 2026-10-27 for the v0.3.0 script; owner listening approval pending. Do not use with students until it is recorded.",
         "conditions": "Guided practice. First play once without pausing; optional teacher-controlled second play for review only. Questions depend on telling three speakers apart.",
         "voices": {
           "instruction": "Tom (British, examiner style; steady model)",
@@ -40,7 +40,11 @@
           { "type": "passage" },
           { "type": "speech", "voice": "instruction", "text": "That is the end of the recording. You now have fifteen seconds to check your answers." },
           { "type": "silence", "seconds": 15 }
-        ]
+        ],
+        "file_version": "v2",
+        "delivered_sha256": "15e9186ed8f4080904ad034b4554734b07a4705fb7ffdea8eca70a696492719a",
+        "duration_seconds": 306.912,
+        "production_record": "docs/ielts/lessons/lesson-14/AUDIO_PRODUCTION_v1.json"
       },
       {
         "id": "IELTS-14-C1",
@@ -154,8 +158,7 @@
           "JOSH: So we keep the pie chart for business size and change the posting one to a bar chart.",
           "PROFESSOR GRANT: Exactly. And how long will you spend on the limitations you mentioned?",
           "JOSH: Honestly, I thought we'd skip them. We're short of time as it is.",
-          "AMIRA: But they're the reason question four doesn't tell us much. If we don't say so, someone will ask.",
-          "AMIRA: Could they go at the very end, after the recommendations?",
+          "AMIRA: But they're the reason question four doesn't tell us much. If we don't say so, someone will ask. Could they go at the very end, after the recommendations?",
           "PROFESSOR GRANT: I'd put them just before the recommendations, so that each recommendation can show how you'd deal with a limitation. It doesn't need long: thirty seconds would show you've thought critically about your own data.",
           "JOSH: Fine, a short slide on limitations, then, just before the recommendations. By the way, I heard the deadline had been moved to next Friday.",
           "PROFESSOR GRANT: That's for the marketing group, I'm afraid. Yours is still this Thursday, as planned.",
@@ -334,7 +337,7 @@
   "delayed_followup": "In Lesson 17 (timed Listening sections), include one Part 3 matching set and check whether learners wait for agreement before answering. Record it as a later observation.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.1 construct names. Draft teaching focuses only. Items from one recording are not independent longitudinal observations.",
   "release_blockers": [
-    "IELTS-14-L1: the v2 recording for the revised script must be produced and owner approved before release (LB-05).",
+    "IELTS-14-L1: the v2 recording (produced 2026-10-27) needs owner listening approval before release (LB-05).",
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
     "Student task publication and platform evidence capture remain separate, governed steps."
   ]
