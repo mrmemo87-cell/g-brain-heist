@@ -15,97 +15,113 @@
   },
   "recordings": {
     "IELTS-10-L1": {
-      "file": "IELTS-10-L1_v1.mp3",
-      "sha256": "5438650ee5ca04816dd6c2a5da0d664d129e82f887819bda3d65421ead0aee10",
-      "bytes": 7028073,
-      "duration_seconds": 292.8,
-      "transcript_sha256": "16cf2f452d247029d95574259abde86e3164acd2443fd53c47d33234a1a5f5a0",
+      "file": "IELTS-10-L1_v2.mp3",
+      "sha256": "02b8031fc265cce24760adb645830d198308254a81695c56039e98a876132c9e",
+      "bytes": 8017495,
+      "duration_seconds": 334.032,
+      "transcript_sha256": "22acc6249e41664d69e2d2b93c57d3413fdcc5f652f2bee1f7433c6b1a138917",
       "voices": {
         "instruction": "Tom (British, examiner style; steady model)",
         "LECTURER": "Eleanor (Canadian, middle-aged, measured)"
       },
       "generation": {
         "passage": {
-          "task": "f9c7f93d-be38-4409-aee2-93f3e43f0d2a",
-          "model": "eleven_v3",
+          "task": [
+            "3f69c50c-36e2-4373-911e-e3e7a43ebcdc",
+            "2b019ef3-61a4-4c07-ba63-f3fa81b6ff53"
+          ],
+          "model": "eleven_v4 (two calls joined with a 0.6 s gap between paragraphs, previous/next text supplied)",
+          "voice": "Eleanor",
           "stability": 0.5,
-          "seed": 10011
+          "seed": [
+            10021,
+            10022
+          ]
         },
-        "intro_task": "fa28ebb8-8ed5-4055-b30a-d848c436cddf",
-        "listen_cue_task": "d39e1165-36b9-4547-8de3-f144c7f843a8"
+        "intro_task": "ae6a99f7-4578-478f-865f-1a59d7ddfb3d",
+        "notice_task": "b536415d-96fb-4406-b3fc-9a80475bc3eb",
+        "listen_cue_task": "6ab5e5a4-cee0-488f-82f1-a9a52022de01",
+        "end_cue_task": "086518ee-1d6e-46b1-bcf8-9331bc1f5837",
+        "instructions": "eleven_multilingual_v2, voice Tom, stability 0.7"
       },
-      "passage_words": 525,
-      "passage_words_per_minute": 143,
-      "designed_cues": [
-        {
-          "label": "reading_silence",
-          "start": 17.18,
-          "seconds": 30.0
-        },
-        {
-          "label": "response_silence",
-          "start": 277.766,
-          "seconds": 15.0
-        }
-      ],
+      "passage_words": 725,
+      "passage_words_per_minute": 167,
       "segments": [
         {
           "segment": "notice",
-          "source_lufs": -21.2,
-          "gain_db": 3.2,
+          "source_lufs": -21.0,
+          "gain_db": 3.0,
           "start": 0.0,
-          "seconds": 4.412
+          "seconds": 4.305
         },
         {
           "segment": "L10_intro",
-          "source_lufs": -23.2,
-          "gain_db": 5.2,
-          "start": 5.112,
-          "seconds": 12.068
+          "source_lufs": -22.7,
+          "gain_db": 4.7,
+          "start": 5.005,
+          "seconds": 10.58
         },
         {
-          "segment": "listen_1_8",
-          "source_lufs": -21.1,
-          "gain_db": 3.1,
-          "start": 47.18,
-          "seconds": 3.615
+          "label": "reading_silence",
+          "start": 15.585,
+          "seconds": 30.0
         },
         {
-          "segment": "L10_passage",
-          "source_lufs": -21.7,
-          "gain_db": 3.7,
-          "start": 51.795,
-          "seconds": 219.68
+          "segment": "listen_1_10",
+          "source_lufs": -21.4,
+          "gain_db": 3.4,
+          "start": 45.585,
+          "seconds": 2.943
+        },
+        {
+          "segment": "L10_passage_A",
+          "source_lufs": -22.9,
+          "gain_db": 4.9,
+          "start": 49.528,
+          "seconds": 140.434
+        },
+        {
+          "segment": "L10_passage_B",
+          "source_lufs": -23.9,
+          "gain_db": 5.9,
+          "start": 190.562,
+          "seconds": 120.583
         },
         {
           "segment": "end_check",
           "source_lufs": -23.9,
           "gain_db": 5.9,
-          "start": 272.675,
-          "seconds": 5.091
+          "start": 312.345,
+          "seconds": 6.642
+        },
+        {
+          "label": "response_silence",
+          "start": 318.987,
+          "seconds": 15.0
         }
       ],
-      "verification": {
-        "integrated_lufs": -18.9,
-        "true_peak_dbfs": -1.4,
-        "decoded_clipped_samples": 0,
-        "detected_pauses": [
-          {
-            "detected_start": 17.084,
-            "detected_end": 47.224,
-            "detected_seconds": 30.14
-          },
-          {
-            "detected_start": 277.677,
-            "detected_end": 292.766,
-            "detected_seconds": 15.089
-          }
-        ],
-        "unexpected_gaps_over_1_5s": []
-      },
       "review": {
         "status": "Owner listening review pending"
-      }
+      },
+      "integrated_lufs": -18.5,
+      "true_peak_dbfs": -1.5,
+      "produced": "2026-10-27",
+      "detected_pauses_over_10s": [
+        30.05,
+        15.01
+      ],
+      "designed_cues": [
+        {
+          "label": "reading_silence",
+          "start": 15.585,
+          "seconds": 30.0
+        },
+        {
+          "label": "response_silence",
+          "start": 318.987,
+          "seconds": 15.0
+        }
+      ]
     },
     "IELTS-10-C1": {
       "file": "IELTS-10-C1_v1.mp3",
@@ -200,5 +216,13 @@
         "status": "Owner listening review pending"
       }
     }
-  }
+  },
+  "superseded": {
+    "IELTS-10-L1_v1": {
+      "file": "IELTS-10-L1_v1.mp3",
+      "sha256": "5438650ee5ca04816dd6c2a5da0d664d129e82f887819bda3d65421ead0aee10",
+      "reason": "Script revised for lesson v0.3.0 (ten questions; owner approved 2026-10-27). The v1 recording no longer matches and must not ship with v0.3.0."
+    }
+  },
+  "v2_note": "2026-10-27: IELTS-10-L1 and IELTS-14-L1 re-recorded as v2 for the owner-approved v0.3.0 scripts with the same voices and assembly method (MP3 192 kbps). Word-for-word listening check against the script not performed (no speech recognition available); owner listening approval given on 2026-10-27 18:09 Asia/Bishkek (\"Audio approved\")."
 }
