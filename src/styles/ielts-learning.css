@@ -400,3 +400,7 @@ mark.il-step-hl { padding: 0 .15em; border-radius: .25em; color: inherit; backgr
   mark.il-step-hl { background-size: 100% 100%; }
 }
 .il-step[data-kind="learn"] .il-step-learn > .il-step-kicker { display: none; }
+/* Why "Confirm and assign" is off, shown right above the button. */
+.il-assign-block { margin: .8rem 0 .6rem; padding: .75rem 1rem; border-radius: var(--bh-ielts-radius-md); background: #FFF6E2; border: 1px solid #F0C567; color: #6B4700; }
+.il-assign-block p { margin: 0; font-weight: 600; }
+.il-assign-block p + * { display: inline-block; margin-top: .45rem; }
