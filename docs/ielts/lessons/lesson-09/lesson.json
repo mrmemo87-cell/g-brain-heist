@@ -3,14 +3,14 @@
   "code": "IELTS-09",
   "number": 9,
   "week": 5,
-  "version": "0.2.0",
-  "presentation_version": "0.2.0",
+  "version": "0.3.0",
+  "presentation_version": "0.3.0",
   "title": "Reading headings, paragraph purpose and the writer's argument",
-  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
-  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
+  "status": "Draft v0.3.0 for owner review (real-test length passage, ten headings with three decoys, four-option writer questions, word-box summary, 20-minute timing). v0.2.0 remains the owner-approved, released version.",
+  "previous_approval_record": { "approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision." },
   "duration": 60,
   "test_type": "Academic",
-  "bibles": { "diagnostic": "1.10.0", "lessons": "1.1.0", "visual": "1.1.0" },
+  "bibles": { "diagnostic": "2.0.0", "lessons": "1.2.0", "visual": "1.2.0" },
   "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Passages are original academic-style texts using general, widely reported facts only. No third-party passages or assessment questions copied. Human editorial, factual, key, mapping, difficulty and originality review pending.",
   "audio": { "required": false, "statement": "No recording required. Reading lesson.", "recordings": [] },
   "prerequisites": [
@@ -19,15 +19,28 @@
     "Printed workbook for every learner: the passage is long enough that phone reading slows the task."
   ],
   "objectives": [
-    { "text": "Choose a heading that matches the main idea of a whole paragraph, not one detail in it.", "focus": ["heading/paragraph purpose", "main idea"] },
-    { "text": "Identify what a paragraph does in an argument: introduce, explain a cause, describe, give limits, conclude.", "focus": ["writer stance/purpose"] },
-    { "text": "Explain the writer's overall position and how a counter-argument is handled.", "focus": ["writer stance/purpose", "inference"] }
+    {
+      "text": "Choose a heading that matches the main idea of a whole paragraph when a decoy heading matches one detail, a contradicted fact or a closely related idea.",
+      "focus": ["heading/paragraph purpose", "main idea"]
+    },
+    {
+      "text": "Identify what a paragraph does in an argument: introduce, explain a cause, describe a method, report criticism, shift responsibility, conclude.",
+      "focus": ["writer stance/purpose"]
+    },
+    {
+      "text": "Explain the writer's overall position and how criticism is answered, rejecting options that overstate what the writer says.",
+      "focus": ["writer stance/purpose", "inference"]
+    },
+    {
+      "text": "Complete a summary from a word box, rejecting words that appear near the answer but carry the wrong meaning.",
+      "focus": ["paraphrase recognition", "distractor resistance"]
+    }
   ],
   "levels": {
-    "foundation": "Underline the topic sentence and one repeated idea in each paragraph before choosing a heading; teacher may remove two wrong headings for one item, recorded as support.",
-    "core": "Match headings to paragraphs A-F in 12 minutes and justify each choice with a quotation.",
-    "extension": "For each distractor heading (vii, viii), write which paragraph makes it tempting and why it is still wrong.",
-    "high_band": "Summarise the writer's argument in one sentence of no more than 25 words, then identify the sentence in paragraph F that best expresses the writer's position."
+    "foundation": "Underline the first sentence and one repeated idea in each paragraph before choosing a heading; the teacher may cross out two wrong headings for one item and sort the summary box into nouns and adjectives, recorded as support.",
+    "core": "Questions 1-7 (headings, paragraphs A-G) in 12 minutes, then Questions 8-13 in 8 minutes: 20 minutes for the passage, as in the test. Justify each heading with a quotation.",
+    "extension": "For each unused heading (vii, viii, x), write which paragraph makes it tempting and why it is still wrong.",
+    "high_band": "All thirteen questions in 17 minutes with no support, then summarise the writer's argument in no more than 25 words."
   },
   "blocks": [
     {
@@ -36,9 +49,13 @@
       "title": "Too narrow, too wide or just right?",
       "mode": "Opening challenge; answer alone, then compare",
       "instructions": "Read the paragraph. Choose the best heading, A, B or C.",
-      "stimulus": { "type": "passage", "title": "Practice paragraph", "paragraphs": [
-        "Many students say they study better with music, yet the evidence is mixed. Songs with lyrics seem to compete with reading for the same mental resources, while quiet instrumental music appears to disturb some learners far less. Volume matters too: what helps at a low level may distract at a high one. The answer, then, depends on the task, the music and the person."
-      ] },
+      "stimulus": {
+        "type": "passage",
+        "title": "Practice paragraph",
+        "paragraphs": [
+          "Many students say they study better with music, yet the evidence is mixed. Songs with lyrics seem to compete with reading for the same mental resources, while quiet instrumental music appears to disturb some learners far less. Volume matters too: what helps at a low level may distract at a high one. The answer, then, depends on the task, the music and the person."
+        ]
+      },
       "items": [
         { "id": "IELTS-09-M1-Q1", "prompt": "Which heading fits the whole paragraph?", "options": ["A  Why songs with lyrics distract readers", "B  The effects of music on study depend on several factors", "C  How students choose what to study"], "answer": "B", "evidence": "The answer, then, depends on the task, the music and the person.", "reason": "A covers only one detail (lyrics). C is about a different topic. B matches the paragraph's conclusion and every point in it.", "focus": "main idea", "type": "mcq", "level": "core" }
       ]
@@ -47,63 +64,183 @@
       "id": "IELTS-09-R1",
       "kind": "items",
       "title": "Fixing things together",
-      "mode": "Independent classroom practice after modelling; not a Reading Screener",
-      "instructions": "The passage has six paragraphs, A-F. Choose the correct heading for each paragraph from the list of headings. There are more headings than paragraphs, so you will not use them all. List of headings: i A practical lesson rather than a free service; ii Why usable objects end up as rubbish; iii An idea that has travelled; iv Connections that have nothing to do with tools; v Questions about how much difference it makes; vi When the rules begin to change; vii The rising cost of new electrical goods; viii Training a new generation of professional repairers.",
-      "stimulus": { "type": "passage", "title": "Fixing things together", "labelled": true, "paragraphs": [
-        "On a Saturday morning in a community hall, a dozen volunteers sit behind tables covered with screwdrivers, sewing machines and soldering irons. Residents arrive carrying broken toasters, lamps with loose wires and jackets with torn pockets. Events of this kind, usually called repair cafés, are generally traced to Amsterdam in 2009. Since then, the idea has been copied in many countries, often in libraries, schools and church halls, with no central organisation telling local groups what to do.",
-        "The objects that reach these tables are rarely beyond saving. More often, they have been abandoned because fixing them seemed harder than replacing them. A replacement part may be difficult to find, a professional repair may cost almost as much as a new item, and some products are glued or sealed in ways that make them hard to open. In these circumstances, throwing something away is not careless behaviour so much as a reasonable response to the choices available.",
-        "What happens at the table is deliberately different from a visit to a repair shop. The owner is expected to sit beside the volunteer and, wherever it is safe, to hold the screwdriver. The volunteer explains what is being checked and why, so that the next small fault might be fixed at home. No one is charged, although many cafés invite donations. Organisers stress that the aim is not to compete with local businesses but to show people that many repairs are within their reach.",
-        "For many regular visitors, however, the repairs are only part of the appeal. Retired engineers find themselves explaining circuits to teenagers; neighbours who have lived on the same street for years speak for the first time while waiting for a kettle to be tested. Volunteers often describe the satisfaction of being useful, and visitors describe a growing confidence that objects can be understood rather than simply bought and discarded.",
-        "Critics point out that the scale of these events is tiny compared with the volume of goods thrown away each year. A few hundred items repaired in a town barely registers against national waste figures. There are practical concerns as well: electrical repairs carry safety risks, and the whole model depends on volunteers whose time and skills are limited. Some argue that real change will come not from community halls but from the companies that design products in the first place.",
-        "That argument has begun to influence lawmakers. In several regions, new rules require manufacturers to make spare parts and repair information available for longer, and to avoid designs that prevent repair without good reason. Supporters of repair cafés see no conflict here. Their value, they suggest, may lie less in the number of objects they save than in what they show is possible: that a broken product is often a problem to be solved rather than a reason to shop."
-      ] },
+      "mode": "Independent practice under time (12 minutes); not a Reading Screener",
+      "instructions": "Questions 1-7: the passage has seven paragraphs, A-G. Choose the correct heading for each paragraph from the list of headings below. There are more headings than paragraphs, so you will not use them all. List of headings: i Learning rather than a free service; ii Why usable objects become waste; iii An idea that has spread without central direction; iv Rewards that have little to do with mending; v Doubts about how much difference is made; vi When the rules begin to change; vii The rising cost of new electrical goods; viii Training a new generation of professional repairers; ix Responsibility placed at the wrong stage; x Why local councils pay for repair events.",
+      "stimulus": {
+        "type": "passage",
+        "title": "Fixing things together",
+        "labelled": true,
+        "paragraphs": [
+          "On a Saturday morning in a converted library annexe, a dozen volunteers sit behind trestle tables strewn with screwdrivers, sewing machines and soldering irons, while residents queue with broken toasters, lamps with frayed flexes and jackets missing their zips. Gatherings of this kind, commonly known as repair cafés, are usually traced to a single event staged in Amsterdam in 2009. What began as a one-off experiment has since been replicated in thousands of locations across several continents. Notably, this expansion has taken place without any central body directing it: local groups borrow the format, adapt it to their own premises and volunteers, and are linked, if at all, only by a loose network that shares advice and insurance templates.",
+          "The objects that reach these tables are seldom beyond saving. More typically, they have been set aside because restoring them appeared more troublesome than replacing them. Spare parts may be unobtainable or priced at a large fraction of the cost of a new appliance; professional labour, charged by the hour, can make even a simple repair uneconomic; and a growing number of products are glued, welded or secured with unusual screws that discourage anyone from opening them. Retail prices for many small appliances have, in real terms, actually fallen over recent decades, widening the gap between the cost of repair and the cost of replacement. Seen in this light, discarding a faulty item is less an act of carelessness than a rational response to the options on offer.",
+          "What takes place at the table is intended to differ from a transaction in a repair shop. The owner is expected to sit beside the volunteer and, wherever it is safe, to handle the tools; the volunteer narrates each step of the diagnosis so that a similar fault might in future be dealt with at home. No fee is charged, although donations are welcomed. Organisers are careful to stress that they do not set out to undercut local repair businesses; on the contrary, items requiring specialist equipment are often referred to them. The intention is educational rather than commercial: to demonstrate that a surprising proportion of faults lie within the competence of an ordinary, unqualified person.",
+          "For many regular attendees, however, the repairs themselves are almost incidental. Retired engineers find themselves explaining circuit boards to teenagers, and neighbours who have shared a street for decades strike up their first conversations while a kettle is tested. Volunteers frequently mention the satisfaction of feeling useful after leaving paid employment, while visitors describe a growing conviction that the objects around them can be understood rather than merely purchased and discarded. A number of local councils have begun to fund such events partly on these grounds, treating them as a means of reducing isolation among older residents as much as a waste-reduction measure.",
+          "Sceptics, however, question how much difference such events actually make. Even an active café may repair a few hundred items a year, a figure that barely registers against the tonnes of electrical and textile waste a single town generates. Measurement is itself problematic: organisers typically record whether an item left the table working, but rarely whether it was still in use six months later, or whether its owner would have bought a replacement in any case. Without such data, estimates of the carbon saved rest on assumptions that critics regard as optimistic. There are practical constraints as well, since electrical repairs carry genuine safety risks and the entire model depends on a pool of volunteers whose time and skills are finite.",
+          "Some commentators go further, arguing that responsibility has been placed on the wrong shoulders. Whether a product can be repaired, they contend, is largely decided long before it reaches a consumer: at the design stage, when engineers choose fastenings, materials and the arrangement of components. From this perspective, asking volunteers to rescue appliances one at a time treats the symptom rather than the cause, and may even allow manufacturers to present waste as a problem of consumer behaviour rather than of product design.",
+          "That argument has begun to influence legislators. In several jurisdictions, new regulations oblige manufacturers to supply spare parts and repair manuals for a minimum number of years and to avoid designs that obstruct repair without technical justification. Supporters of repair cafés see no contradiction between such laws and their own work; if anything, they argue, regulation will make the volunteers' task easier. Their contribution, it seems, may lie less in the quantity of objects they save than in what they make visible: that a broken product is frequently a problem to be solved rather than a prompt to shop, and that this expectation, once widely held, is precisely what makes stricter rules politically achievable."
+        ]
+      },
       "items": [
-        { "id": "IELTS-09-R1-Q1", "prompt": "Paragraph A", "paragraph": "A", "options": ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii"], "answer": "iii", "evidence": "the idea has been copied in many countries", "reason": "The paragraph moves from one event to the spread of the idea from Amsterdam to many countries.", "focus": "heading/paragraph purpose", "type": "matching", "level": "core" },
-        { "id": "IELTS-09-R1-Q2", "prompt": "Paragraph B", "paragraph": "B", "options": ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii"], "answer": "ii", "evidence": "they have been abandoned because fixing them seemed harder than replacing them", "reason": "The whole paragraph explains why repairable objects are thrown away. Heading vii is tempting because cost is mentioned, but the paragraph is not about rising prices.", "focus": "heading/paragraph purpose", "type": "matching", "level": "core" },
-        { "id": "IELTS-09-R1-Q3", "prompt": "Paragraph C", "paragraph": "C", "options": ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii"], "answer": "i", "evidence": "so that the next small fault might be fixed at home", "reason": "The owner learns by doing; the paragraph contrasts this with a repair shop. Heading viii is wrong: visitors, not professionals, are being taught.", "focus": "heading/paragraph purpose", "type": "matching", "level": "core" },
-        { "id": "IELTS-09-R1-Q4", "prompt": "Paragraph D", "paragraph": "D", "options": ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii"], "answer": "iv", "evidence": "the repairs are only part of the appeal", "reason": "The paragraph describes social contact between generations and neighbours, not the repairs themselves.", "focus": "heading/paragraph purpose", "type": "matching", "level": "core" },
-        { "id": "IELTS-09-R1-Q5", "prompt": "Paragraph E", "paragraph": "E", "options": ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii"], "answer": "v", "evidence": "the scale of these events is tiny compared with the volume of goods thrown away", "reason": "The paragraph presents critics' doubts about scale, safety and dependence on volunteers.", "focus": "heading/paragraph purpose", "type": "matching", "level": "core" },
-        { "id": "IELTS-09-R1-Q6", "prompt": "Paragraph F", "paragraph": "F", "options": ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii"], "answer": "vi", "evidence": "new rules require manufacturers to make spare parts and repair information available for longer", "reason": "The paragraph's new information is the change in law; the final sentence then states the writer's view.", "focus": "heading/paragraph purpose", "type": "matching", "level": "core" }
+        { "id": "IELTS-09-R1-Q1", "prompt": "Paragraph A", "paragraph": "A", "options": ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"], "answer": "iii", "evidence": "without any central body directing it", "reason": "The paragraph moves from one event to its copying in thousands of places with no central body. 'Spread without central direction' sums up the whole paragraph; Amsterdam is only the starting point.", "focus": "heading/paragraph purpose", "type": "matching", "level": "core" },
+        { "id": "IELTS-09-R1-Q2", "prompt": "Paragraph B", "paragraph": "B", "options": ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"], "answer": "ii", "evidence": "they have been set aside because restoring them appeared more troublesome than replacing them", "reason": "The paragraph explains why repairable objects are thrown away. Heading vii is a trap twice over: cost is only one reason, and the passage says retail prices have fallen, not risen.", "focus": "heading/paragraph purpose", "type": "matching", "level": "core" },
+        { "id": "IELTS-09-R1-Q3", "prompt": "Paragraph C", "paragraph": "C", "options": ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"], "answer": "i", "evidence": "The intention is educational rather than commercial", "reason": "The owner handles the tools and the volunteer explains each step: it is a lesson, not a free repair. Heading viii is a trap: the aim is to show that an 'ordinary, unqualified person' can repair things, not to train professionals.", "focus": "heading/paragraph purpose", "type": "matching", "level": "core" },
+        { "id": "IELTS-09-R1-Q4", "prompt": "Paragraph D", "paragraph": "D", "options": ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"], "answer": "iv", "evidence": "the repairs themselves are almost incidental", "reason": "The paragraph is about conversation, usefulness and confidence: rewards beyond mending. Council funding (heading x) appears only in the last sentence and is explained by these social benefits.", "focus": "heading/paragraph purpose", "type": "matching", "level": "core" },
+        { "id": "IELTS-09-R1-Q5", "prompt": "Paragraph E", "paragraph": "E", "options": ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"], "answer": "v", "evidence": "question how much difference such events actually make", "reason": "Scale, weak measurement and optimistic estimates are all doubts about the size of the effect.", "focus": "heading/paragraph purpose", "type": "matching", "level": "core" },
+        { "id": "IELTS-09-R1-Q6", "prompt": "Paragraph F", "paragraph": "F", "options": ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"], "answer": "ix", "evidence": "responsibility has been placed on the wrong shoulders", "reason": "The commentators argue repairability is decided 'at the design stage', so volunteers treat the symptom. Heading v is tempting because this is also criticism, but the point here is where responsibility lies, not how big the effect is.", "focus": "heading/paragraph purpose", "type": "matching", "level": "core" },
+        { "id": "IELTS-09-R1-Q7", "prompt": "Paragraph G", "paragraph": "G", "options": ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"], "answer": "vi", "evidence": "new regulations oblige manufacturers to supply spare parts", "reason": "The paragraph reports new laws and how supporters respond to them; 'That argument' links back to paragraph F.", "focus": "heading/paragraph purpose", "type": "matching", "level": "core" }
       ],
       "support": "Foundation: underline the first sentence and one repeated idea in each paragraph. The teacher may cross out two wrong headings for one item; record which item.",
-      "extension": "Explain why heading vii is tempting for paragraph B and why heading viii is tempting for paragraph C.",
+      "extension": "Explain why heading vii is tempting for paragraph B, heading viii for paragraph C and heading x for paragraph D, and why each is still wrong.",
       "high_band": "In no more than 25 words, summarise the writer's argument across the whole passage."
     },
     {
       "id": "IELTS-09-R2",
       "kind": "items",
       "title": "What is the writer doing?",
-      "mode": "Independent classroom practice; same passage",
-      "instructions": "Choose the correct letter, A, B or C.",
-      "stimulus": { "type": "passage", "title": "Fixing things together (same passage)", "labelled": true, "workbook_reference": "Use the passage printed with the heading questions.", "paragraphs": [
-        "On a Saturday morning in a community hall, a dozen volunteers sit behind tables covered with screwdrivers, sewing machines and soldering irons. Residents arrive carrying broken toasters, lamps with loose wires and jackets with torn pockets. Events of this kind, usually called repair cafés, are generally traced to Amsterdam in 2009. Since then, the idea has been copied in many countries, often in libraries, schools and church halls, with no central organisation telling local groups what to do.",
-        "The objects that reach these tables are rarely beyond saving. More often, they have been abandoned because fixing them seemed harder than replacing them. A replacement part may be difficult to find, a professional repair may cost almost as much as a new item, and some products are glued or sealed in ways that make them hard to open. In these circumstances, throwing something away is not careless behaviour so much as a reasonable response to the choices available.",
-        "What happens at the table is deliberately different from a visit to a repair shop. The owner is expected to sit beside the volunteer and, wherever it is safe, to hold the screwdriver. The volunteer explains what is being checked and why, so that the next small fault might be fixed at home. No one is charged, although many cafés invite donations. Organisers stress that the aim is not to compete with local businesses but to show people that many repairs are within their reach.",
-        "For many regular visitors, however, the repairs are only part of the appeal. Retired engineers find themselves explaining circuits to teenagers; neighbours who have lived on the same street for years speak for the first time while waiting for a kettle to be tested. Volunteers often describe the satisfaction of being useful, and visitors describe a growing confidence that objects can be understood rather than simply bought and discarded.",
-        "Critics point out that the scale of these events is tiny compared with the volume of goods thrown away each year. A few hundred items repaired in a town barely registers against national waste figures. There are practical concerns as well: electrical repairs carry safety risks, and the whole model depends on volunteers whose time and skills are limited. Some argue that real change will come not from community halls but from the companies that design products in the first place.",
-        "That argument has begun to influence lawmakers. In several regions, new rules require manufacturers to make spare parts and repair information available for longer, and to avoid designs that prevent repair without good reason. Supporters of repair cafés see no conflict here. Their value, they suggest, may lie less in the number of objects they save than in what they show is possible: that a broken product is often a problem to be solved rather than a reason to shop."
-      ] },
+      "mode": "Independent practice under time with Questions 11-13 (8 minutes together); same passage",
+      "instructions": "Questions 8-10: choose the correct letter, A, B, C or D.",
+      "stimulus": {
+        "type": "passage",
+        "title": "Fixing things together (same passage)",
+        "labelled": true,
+        "workbook_reference": "Use the passage printed with the heading questions.",
+        "paragraphs": [
+          "On a Saturday morning in a converted library annexe, a dozen volunteers sit behind trestle tables strewn with screwdrivers, sewing machines and soldering irons, while residents queue with broken toasters, lamps with frayed flexes and jackets missing their zips. Gatherings of this kind, commonly known as repair cafés, are usually traced to a single event staged in Amsterdam in 2009. What began as a one-off experiment has since been replicated in thousands of locations across several continents. Notably, this expansion has taken place without any central body directing it: local groups borrow the format, adapt it to their own premises and volunteers, and are linked, if at all, only by a loose network that shares advice and insurance templates.",
+          "The objects that reach these tables are seldom beyond saving. More typically, they have been set aside because restoring them appeared more troublesome than replacing them. Spare parts may be unobtainable or priced at a large fraction of the cost of a new appliance; professional labour, charged by the hour, can make even a simple repair uneconomic; and a growing number of products are glued, welded or secured with unusual screws that discourage anyone from opening them. Retail prices for many small appliances have, in real terms, actually fallen over recent decades, widening the gap between the cost of repair and the cost of replacement. Seen in this light, discarding a faulty item is less an act of carelessness than a rational response to the options on offer.",
+          "What takes place at the table is intended to differ from a transaction in a repair shop. The owner is expected to sit beside the volunteer and, wherever it is safe, to handle the tools; the volunteer narrates each step of the diagnosis so that a similar fault might in future be dealt with at home. No fee is charged, although donations are welcomed. Organisers are careful to stress that they do not set out to undercut local repair businesses; on the contrary, items requiring specialist equipment are often referred to them. The intention is educational rather than commercial: to demonstrate that a surprising proportion of faults lie within the competence of an ordinary, unqualified person.",
+          "For many regular attendees, however, the repairs themselves are almost incidental. Retired engineers find themselves explaining circuit boards to teenagers, and neighbours who have shared a street for decades strike up their first conversations while a kettle is tested. Volunteers frequently mention the satisfaction of feeling useful after leaving paid employment, while visitors describe a growing conviction that the objects around them can be understood rather than merely purchased and discarded. A number of local councils have begun to fund such events partly on these grounds, treating them as a means of reducing isolation among older residents as much as a waste-reduction measure.",
+          "Sceptics, however, question how much difference such events actually make. Even an active café may repair a few hundred items a year, a figure that barely registers against the tonnes of electrical and textile waste a single town generates. Measurement is itself problematic: organisers typically record whether an item left the table working, but rarely whether it was still in use six months later, or whether its owner would have bought a replacement in any case. Without such data, estimates of the carbon saved rest on assumptions that critics regard as optimistic. There are practical constraints as well, since electrical repairs carry genuine safety risks and the entire model depends on a pool of volunteers whose time and skills are finite.",
+          "Some commentators go further, arguing that responsibility has been placed on the wrong shoulders. Whether a product can be repaired, they contend, is largely decided long before it reaches a consumer: at the design stage, when engineers choose fastenings, materials and the arrangement of components. From this perspective, asking volunteers to rescue appliances one at a time treats the symptom rather than the cause, and may even allow manufacturers to present waste as a problem of consumer behaviour rather than of product design.",
+          "That argument has begun to influence legislators. In several jurisdictions, new regulations oblige manufacturers to supply spare parts and repair manuals for a minimum number of years and to avoid designs that obstruct repair without technical justification. Supporters of repair cafés see no contradiction between such laws and their own work; if anything, they argue, regulation will make the volunteers' task easier. Their contribution, it seems, may lie less in the quantity of objects they save than in what they make visible: that a broken product is frequently a problem to be solved rather than a prompt to shop, and that this expectation, once widely held, is precisely what makes stricter rules politically achievable."
+        ]
+      },
       "items": [
-        { "id": "IELTS-09-R2-Q7", "prompt": "In paragraph B, the writer suggests that people who throw away repairable items are", "paragraph": "B", "options": ["A  careless about the environment.", "B  unaware that repairs are possible.", "C  responding sensibly to the options they have."], "answer": "C", "evidence": "a reasonable response to the choices available", "reason": "The writer explicitly rejects 'careless behaviour'. Option B is not stated.", "focus": "writer stance/purpose", "type": "mcq", "level": "core" },
-        { "id": "IELTS-09-R2-Q8", "prompt": "What is the main purpose of paragraph E?", "paragraph": "E", "options": ["A  to present limitations of repair cafés", "B  to argue that repair cafés should stop", "C  to explain safety rules for electrical repairs"], "answer": "A", "evidence": "Critics point out that the scale of these events is tiny", "reason": "The paragraph reports critics' limitations; it does not recommend stopping, and safety is only one example.", "focus": "writer stance/purpose", "type": "mcq", "level": "core" },
-        { "id": "IELTS-09-R2-Q9", "prompt": "Which statement best reflects the writer's overall view?", "paragraph": "F", "options": ["A  Repair cafés will solve the problem of waste if more people attend.", "B  Repair cafés matter mainly because they change what people believe is possible.", "C  New laws have made repair cafés unnecessary."], "answer": "B", "evidence": "may lie less in the number of objects they save than in what they show is possible", "reason": "The writer accepts the critics' point about scale (against A) and sees no conflict with new laws (against C).", "focus": "writer stance/purpose", "type": "mcq", "level": "extension" }
+        { "id": "IELTS-09-R2-Q8", "prompt": "In paragraph B, the writer suggests that people who throw away repairable items are", "paragraph": "B", "options": ["A  careless about the environment.", "B  unaware that repairs are possible.", "C  responding reasonably to the choices they face.", "D  influenced mainly by falling retail prices."], "answer": "C", "evidence": "less an act of carelessness than a rational response to the options on offer", "reason": "The writer rejects A ('less an act of carelessness'). D takes one factor and makes it the main one; falling prices are only one of several reasons listed.", "focus": "writer stance/purpose", "type": "mcq", "level": "core" },
+        { "id": "IELTS-09-R2-Q9", "prompt": "What is the main purpose of paragraph E?", "paragraph": "E", "options": ["A  to show that repair cafés produce no measurable benefit", "B  to explain why the benefits of repair cafés are difficult to confirm", "C  to recommend new methods for recording repairs", "D  to compare repair cafés with professional repair shops"], "answer": "B", "evidence": "Measurement is itself problematic", "reason": "The critics doubt the size of the effect and say it is hard to measure. A overstates this: 'no measurable benefit' is stronger than anything in the paragraph. C is never recommended.", "focus": "writer stance/purpose", "type": "mcq", "level": "core" },
+        { "id": "IELTS-09-R2-Q10", "prompt": "Which statement best reflects the writer's overall view?", "paragraph": "G", "options": ["A  Repair cafés will solve the problem of waste if more people attend.", "B  Repair cafés matter mainly because they change what people expect of broken products.", "C  New laws have made repair cafés unnecessary.", "D  Manufacturers, not volunteers, should carry out all repairs."], "answer": "B", "evidence": "may lie less in the quantity of objects they save than in what they make visible", "reason": "The writer values what the cafés show people is possible. C contradicts the supporters' view that laws make their task easier; D is the commentators' argument pushed too far.", "focus": "writer stance/purpose", "type": "mcq", "level": "extension" }
       ],
-      "support": "Foundation: for Q8 and Q9, the teacher names the paragraph to reread; record the support.",
-      "high_band": "Paragraph F begins 'That argument'. Which argument does this refer to, and why is it an effective link between E and F?"
+      "support": "Foundation: for Questions 9 and 10, the teacher names the paragraph to reread; record the support.",
+      "high_band": "Paragraph G begins 'That argument'. Which argument does this refer to, and why is it an effective link between F and G?"
+    },
+    {
+      "id": "IELTS-09-R3",
+      "kind": "items",
+      "title": "Summary: doubts, design and the law",
+      "mode": "Independent practice under time with Questions 8-10 (8 minutes together); same passage",
+      "instructions": "Questions 11-13: complete the summary of paragraphs E-G using the list of words, A-H, below. Write the correct letter. Five words are not used.",
+      "form_title": "Summary: doubts, design and the law",
+      "stimulus": {
+        "type": "options_list",
+        "title": "Words",
+        "paragraphs": ["A  impact", "B  design", "C  easier", "D  retail", "E  cheaper", "F  popularity", "G  manufacturing", "H  unnecessary"]
+      },
+      "items": [
+        { "id": "IELTS-09-R3-Q11", "prompt": "Critics question the real ______ of repair cafés, partly because organisers seldom check whether repaired items stay in use.", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "A", "evidence": "question how much difference such events actually make", "reason": "'How much difference' is paraphrased as impact. F (popularity) is a trap: the paragraph is about effect, not attendance.", "focus": "paraphrase recognition", "type": "matching", "level": "core" },
+        { "id": "IELTS-09-R3-Q12", "prompt": "Some commentators believe that whether an object can be repaired is mostly settled at the ______ stage.", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "B", "evidence": "at the design stage", "reason": "The answer is decided when engineers choose fastenings and materials. G (manufacturing) is a trap: 'manufacturers' appears nearby, but the passage names the design stage.", "focus": "distractor resistance", "type": "matching", "level": "core" },
+        { "id": "IELTS-09-R3-Q13", "prompt": "Supporters expect new laws to make the work of volunteers ______.", "options": ["A", "B", "C", "D", "E", "F", "G", "H"], "answer": "C", "evidence": "regulation will make the volunteers' task easier", "reason": "H (unnecessary) is the opposite trap from Question 10, option C. E (cheaper) fits the grammar but is not what supporters say.", "focus": "distractor resistance", "type": "matching", "level": "core" }
+      ],
+      "support": "Foundation: before reading, sort the eight box words into nouns and adjectives; each gap then has fewer candidates. Record the support.",
+      "extension": "For each answer, underline the words in the summary that paraphrase the passage.",
+      "high_band": "Explain in one sentence why G (manufacturing) and H (unnecessary) are attractive wrong answers."
     }
   ],
   "stages": [
-    { "start": 0, "end": 5, "title": "Opening challenge: the best heading", "show": [{ "block": "IELTS-09-M1", "part": "questions" }, { "block": "IELTS-09-M1", "part": "answers" }], "student": "Read the short paragraph and choose the best heading before the reveal.", "teacher": "Give 90 seconds. Ask why A is tempting (it is true but too narrow). Establish the rule: a heading covers the whole paragraph.", "say": "A heading is a summary of the whole paragraph, not the most interesting detail.", "check": "Learners can explain why A is too narrow." },
-    { "start": 5, "end": 11, "title": "Strategy: main idea and paragraph function", "show": [], "student": "Copy the four questions: What is the topic? What does the writer say about it? Is this cause, example, limit or conclusion? Which heading says all of that?", "teacher": "Model the four questions on paragraph A of the passage aloud. Do not give the heading for A; learners will decide it independently. Point out that the list has two extra headings.", "say": "Read the first and last sentences, then check the middle supports the same idea.", "check": "Learners can name the four questions." },
-    { "start": 11, "end": 23, "title": "Independent practice: headings A-F", "show": [{ "block": "IELTS-09-R1", "part": "questions" }], "student": "Match headings to paragraphs A-F in 12 minutes. Write a short quotation for each.", "teacher": "Keep answers private. Record any support (crossed-out headings) with the learner's name. Early finishers move to Questions 7-9.", "say": "Two headings will not be used. If a heading only fits one sentence, it is probably a trap.", "check": "Original answers committed." },
-    { "start": 23, "end": 32, "title": "Review headings and traps", "show": [{ "block": "IELTS-09-R1", "part": "answers" }], "student": "Check answers. For each wrong answer, write whether you chose by detail or by main idea.", "teacher": "Reveal in pairs after learners give their evidence. Spend time on B (vii is tempting: cost) and C (viii is tempting: volunteers have skills).", "say": "Cost appears in paragraph B, but the paragraph is about why things are thrown away.", "check": "Learners can explain one distractor." },
-    { "start": 32, "end": 41, "title": "What is the writer doing?", "show": [{ "block": "IELTS-09-R2", "part": "questions" }], "student": "Answer Questions 7-9 alone.", "teacher": "Foundation group: name the paragraph to reread for Q8 and Q9, recorded as support. High-band learners also answer the 'That argument' question.", "say": "Ask: is the writer describing, explaining, criticising or concluding here?", "check": "All answers committed." },
-    { "start": 41, "end": 49, "title": "Review: the writer's argument", "show": [{ "block": "IELTS-09-R2", "part": "answers" }], "student": "Check answers and add the evidence.", "teacher": "Reveal Q7-Q9. Map the argument on the board: A context, B cause, C method, D social benefit, E criticism, F response and position. Show how 'That argument' links E and F.", "say": "Good writers answer their critics. Paragraph F accepts the criticism and changes the question.", "check": "Learners can state the writer's position in their own words." },
-    { "start": 49, "end": 55, "title": "My reading log", "show": [], "student": "In the log at the end of the workbook, record each wrong answer, whether it was a detail trap or a function mistake, and one strategy.", "teacher": "Circulate and note the error types learners actually record. No band conversion.", "say": "Your log shows which reading skill to practise next.", "check": "Each learner has one strategy target." },
-    { "start": 55, "end": 60, "title": "Exit ticket and homework", "show": [], "student": "Complete the exit ticket and take the homework sheet.", "teacher": "Collect exit tickets. Assign online practice only through the existing reviewed workflow. Record the fresh-check date.", "say": "Next lesson you will take notes from a lecture, using the same idea: follow the structure.", "check": "Everyone knows the homework and next check date." }
+    {
+      "start": 0,
+      "end": 5,
+      "title": "Opening challenge: the best heading",
+      "show": [
+        { "block": "IELTS-09-M1", "part": "questions" },
+        { "block": "IELTS-09-M1", "part": "answers" }
+      ],
+      "student": "Read the short paragraph and choose the best heading before the reveal.",
+      "teacher": "Give 90 seconds. Ask why A is tempting (it is true but too narrow). Establish the rule: a heading covers the whole paragraph.",
+      "say": "A heading is a summary of the whole paragraph, not the most interesting detail.",
+      "check": "Learners can explain why A is too narrow."
+    },
+    {
+      "start": 5,
+      "end": 10,
+      "title": "Strategy: main idea and paragraph function",
+      "show": [],
+      "student": "Copy the four questions: What is the topic? What does the writer say about it? Is this cause, example, limit or conclusion? Which heading says all of that?",
+      "teacher": "Model the four questions on paragraph A of the passage aloud. Do not give the heading for A; learners will decide it independently. Point out that the list has ten headings for seven paragraphs: three are decoys.",
+      "say": "Read the first and last sentences, then check the middle supports the same idea.",
+      "check": "Learners can name the four questions."
+    },
+    {
+      "start": 10,
+      "end": 22,
+      "title": "Independent practice: headings A-G (12 minutes)",
+      "show": [
+        { "block": "IELTS-09-R1", "part": "questions" }
+      ],
+      "student": "Match headings to paragraphs A-G in 12 minutes. Write a short quotation for each.",
+      "teacher": "Keep answers private. Record any support (crossed-out headings) with the learner's name. High-band learners go straight on to Questions 8-13 and stop at 17 minutes.",
+      "say": "Three headings will not be used. If a heading only fits one sentence, or says something the paragraph contradicts, it is a trap.",
+      "check": "Original answers committed."
+    },
+    {
+      "start": 22,
+      "end": 30,
+      "title": "Review headings and traps",
+      "show": [
+        { "block": "IELTS-09-R1", "part": "answers" }
+      ],
+      "student": "Check answers. For each wrong answer, write whether you chose by detail or by main idea.",
+      "teacher": "Reveal in pairs after learners give their evidence. Spend time on B (vii: the passage says prices have fallen), C (viii: unqualified people, not professionals) and D (x: council funding is the last sentence only).",
+      "say": "A decoy heading usually matches one detail, a contradicted fact or the paragraph next door.",
+      "check": "Learners can explain one distractor."
+    },
+    {
+      "start": 30,
+      "end": 38,
+      "title": "Writer's purpose and summary (8 minutes)",
+      "show": [
+        { "block": "IELTS-09-R2", "part": "questions" },
+        { "block": "IELTS-09-R3", "part": "questions" }
+      ],
+      "student": "Answer Questions 8-13 alone in 8 minutes. That completes the passage in 20 minutes, the time you have in the test.",
+      "teacher": "Foundation group: name the paragraph to reread for Questions 9 and 10 and allow the noun/adjective sort for the box, recorded as support.",
+      "say": "Writer questions: reject options that say more than the writer does. Summary: the right box word is usually a paraphrase.",
+      "check": "All answers committed."
+    },
+    {
+      "start": 38,
+      "end": 47,
+      "title": "Review: the writer's argument and the summary traps",
+      "show": [
+        { "block": "IELTS-09-R2", "part": "answers" },
+        { "block": "IELTS-09-R3", "part": "answers" }
+      ],
+      "student": "Check answers and add the evidence.",
+      "teacher": "Reveal Q8-Q13. Map the argument on the board: A spread, B cause, C method, D social benefit, E doubts, F shift of responsibility, G laws and position. Show how 'That argument' links F and G, and why G (manufacturing) and H (unnecessary) are traps.",
+      "say": "Good writers answer their critics. Paragraph G accepts the criticism and changes the question.",
+      "check": "Learners can state the writer's position in their own words."
+    },
+    {
+      "start": 47,
+      "end": 55,
+      "title": "My reading log",
+      "show": [],
+      "student": "In the log at the end of the workbook, record each wrong answer, whether it was a detail trap or a function mistake, and one strategy.",
+      "teacher": "Circulate and note the error types learners actually record. No band conversion.",
+      "say": "Your log shows which reading skill to practise next.",
+      "check": "Each learner has one strategy target."
+    },
+    {
+      "start": 55,
+      "end": 60,
+      "title": "Exit ticket and homework",
+      "show": [],
+      "student": "Complete the exit ticket and take the homework sheet.",
+      "teacher": "Collect exit tickets. Assign online practice only through the existing reviewed workflow. Record the fresh-check date.",
+      "say": "Next lesson you will take notes from a lecture, using the same idea: follow the structure.",
+      "check": "Everyone knows the homework and next check date."
+    }
   ],
   "exit_ticket": [
-    "How I can tell a heading is too narrow:",
+    "How I can tell a heading is a decoy:",
     "One job a paragraph can do in an argument:",
     "The writer's position in 'Fixing things together', in my own words:"
   ],
@@ -123,12 +260,17 @@
         "title": "Quieter nights",
         "mode": "Withheld fresh check; independent, timed",
         "instructions": "The passage has four paragraphs, A-D. Choose the correct heading for each paragraph. List of headings: i A problem that is easy to overlook; ii Measuring sound across a whole city; iii Small changes with noticeable effects; iv Where the sound comes from; v Why residents prefer the countryside; vi The cost of building new roads.",
-        "stimulus": { "type": "passage", "title": "Quieter nights", "labelled": true, "paragraphs": [
-          "Most people notice noise only when it stops them sleeping. Because it leaves no visible mark, night-time noise rarely receives the attention given to air pollution or litter, even though disturbed sleep affects concentration, mood and health. Many city residents simply accept it as part of urban life.",
-          "The sources vary by neighbourhood. Near main roads, the steady sound of traffic dominates, while in central districts the problem is often voices and music from late-opening venues. Delivery vehicles arriving before dawn, building work and even air-conditioning units on rooftops add to the mixture.",
-          "Some cities now map noise systematically. Sensors placed on lamp posts record sound levels through the night, and the data are combined into maps that show which streets are loudest and at what times. These maps allow planners to compare areas fairly instead of responding only to the residents who complain most.",
-          "The solutions are often modest. Quieter road surfaces, rules on delivery times and better insulation for homes beside busy roads can each reduce disturbance. None of these measures is dramatic, but together they can make a real difference to how well people sleep."
-        ] },
+        "stimulus": {
+          "type": "passage",
+          "title": "Quieter nights",
+          "labelled": true,
+          "paragraphs": [
+            "Most people notice noise only when it stops them sleeping. Because it leaves no visible mark, night-time noise rarely receives the attention given to air pollution or litter, even though disturbed sleep affects concentration, mood and health. Many city residents simply accept it as part of urban life.",
+            "The sources vary by neighbourhood. Near main roads, the steady sound of traffic dominates, while in central districts the problem is often voices and music from late-opening venues. Delivery vehicles arriving before dawn, building work and even air-conditioning units on rooftops add to the mixture.",
+            "Some cities now map noise systematically. Sensors placed on lamp posts record sound levels through the night, and the data are combined into maps that show which streets are loudest and at what times. These maps allow planners to compare areas fairly instead of responding only to the residents who complain most.",
+            "The solutions are often modest. Quieter road surfaces, rules on delivery times and better insulation for homes beside busy roads can each reduce disturbance. None of these measures is dramatic, but together they can make a real difference to how well people sleep."
+          ]
+        },
         "items": [
           { "id": "IELTS-09-C1-Q1", "prompt": "Paragraph A", "paragraph": "A", "options": ["i", "ii", "iii", "iv", "v", "vi"], "answer": "i", "evidence": "night-time noise rarely receives the attention given to air pollution", "reason": "The paragraph explains why the problem is overlooked.", "focus": "heading/paragraph purpose", "type": "matching" },
           { "id": "IELTS-09-C1-Q2", "prompt": "Paragraph B", "paragraph": "B", "options": ["i", "ii", "iii", "iv", "v", "vi"], "answer": "iv", "evidence": "The sources vary by neighbourhood", "reason": "The paragraph lists sources of noise.", "focus": "heading/paragraph purpose", "type": "matching" },

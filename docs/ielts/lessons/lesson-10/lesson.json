@@ -3,110 +3,57 @@
   "code": "IELTS-10",
   "number": 10,
   "week": 5,
-  "version": "0.2.0",
-  "presentation_version": "0.2.0",
+  "version": "0.3.0",
+  "presentation_version": "0.3.0",
   "title": "Listening Part 4: lecture notes and summaries",
-  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
-  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
+  "status": "Draft v0.3.0 for owner review (full ten-question Part 4 lecture with a corrected-figure distractor and a further factor). The IELTS-10-L1 script changed, so its recording must be produced again before release. v0.2.0 remains the owner-approved, released version.",
+  "previous_approval_record": { "approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision." },
   "duration": 60,
   "test_type": "Academic",
-  "bibles": {
-    "diagnostic": "1.10.0",
-    "lessons": "1.1.0",
-    "visual": "1.1.0"
-  },
+  "bibles": { "diagnostic": "2.0.0", "lessons": "1.2.0", "visual": "1.2.0" },
   "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Lecture scripts are original and describe general, widely reported ideas without citing specific studies. Human editorial, factual, key, mapping, difficulty and originality review pending.",
   "audio": {
     "required": true,
-    "statement": "Recordings produced (v1, 2026-10-17): IELTS-10-L1, IELTS-10-C1. Owner listening review pending; do not use with students until it is recorded.",
+    "statement": "IELTS-10-L1 needs a new (v2) recording for the revised script; IELTS-10-C1 v1 is unchanged and owner approved.",
     "recordings": [
       {
         "id": "IELTS-10-L1",
         "block": "IELTS-10-L1",
-        "status": "Owner approved v1 with the lesson pack on 2026-10-18; device/classroom playback acceptance pending",
+        "status": "Script revised for v0.3.0; the v2 recording has not been produced. The v1 recording no longer matches and must not be used with this version.",
         "conditions": "Guided practice. First play once without pausing; optional teacher-controlled second play for review only.",
-        "voices": {
-          "instruction": "Tom (British, examiner style; steady model)",
-          "LECTURER": "Eleanor (Canadian, middle-aged, measured)"
-        },
+        "voices": { "instruction": "Tom (British, examiner style; steady model)", "LECTURER": "Eleanor (Canadian, middle-aged, measured)" },
         "segments": [
+          { "type": "speech", "voice": "instruction", "text": "This recording is copyright Brains Heist LLC. All rights reserved." },
           {
             "type": "speech",
             "voice": "instruction",
-            "text": "This recording is copyright Brains Heist LLC. All rights reserved."
+            "text": "Part 4. You will hear part of a lecture about the design of queues. First, you have thirty seconds to look at questions one to ten."
           },
-          {
-            "type": "speech",
-            "voice": "instruction",
-            "text": "Part 4. You will hear part of a lecture about the design of queues. First, you have thirty seconds to look at questions one to eight."
-          },
-          {
-            "type": "silence",
-            "seconds": 30
-          },
-          {
-            "type": "speech",
-            "voice": "instruction",
-            "text": "Now listen carefully and answer questions one to eight."
-          },
-          {
-            "type": "passage"
-          },
-          {
-            "type": "speech",
-            "voice": "instruction",
-            "text": "That is the end of the recording. You now have fifteen seconds to check your answers."
-          },
-          {
-            "type": "silence",
-            "seconds": 15
-          }
-        ],
-        "delivered_sha256": "5438650ee5ca04816dd6c2a5da0d664d129e82f887819bda3d65421ead0aee10",
-        "duration_seconds": 292.8,
-        "production_record": "docs/ielts/lessons/lesson-10/AUDIO_PRODUCTION_v1.json"
+          { "type": "silence", "seconds": 30 },
+          { "type": "speech", "voice": "instruction", "text": "Now listen carefully and answer questions one to ten." },
+          { "type": "passage" },
+          { "type": "speech", "voice": "instruction", "text": "That is the end of the recording. You now have fifteen seconds to check your answers." },
+          { "type": "silence", "seconds": 15 }
+        ]
       },
       {
         "id": "IELTS-10-C1",
         "block": "IELTS-10-C1",
         "status": "Owner approved v1 with the lesson pack on 2026-10-18; device/classroom playback acceptance pending",
         "conditions": "Played once, no pausing, no transcript, no coaching. Record conditions.",
-        "voices": {
-          "instruction": "Tom (British, examiner style; steady model)",
-          "LECTURER": "Elias (North American, older, calm)"
-        },
+        "voices": { "instruction": "Tom (British, examiner style; steady model)", "LECTURER": "Elias (North American, older, calm)" },
         "segments": [
-          {
-            "type": "speech",
-            "voice": "instruction",
-            "text": "This recording is copyright Brains Heist LLC. All rights reserved."
-          },
+          { "type": "speech", "voice": "instruction", "text": "This recording is copyright Brains Heist LLC. All rights reserved." },
           {
             "type": "speech",
             "voice": "instruction",
             "text": "Part 4. You will hear part of a lecture about how birds find their way during migration. First, you have thirty seconds to look at questions one to six."
           },
-          {
-            "type": "silence",
-            "seconds": 30
-          },
-          {
-            "type": "speech",
-            "voice": "instruction",
-            "text": "Now listen carefully and answer questions one to six."
-          },
-          {
-            "type": "passage"
-          },
-          {
-            "type": "speech",
-            "voice": "instruction",
-            "text": "That is the end of the recording. You now have fifteen seconds to check your answers."
-          },
-          {
-            "type": "silence",
-            "seconds": 15
-          }
+          { "type": "silence", "seconds": 30 },
+          { "type": "speech", "voice": "instruction", "text": "Now listen carefully and answer questions one to six." },
+          { "type": "passage" },
+          { "type": "speech", "voice": "instruction", "text": "That is the end of the recording. You now have fifteen seconds to check your answers." },
+          { "type": "silence", "seconds": 15 }
         ],
         "delivered_sha256": "07957cc6da4fe2a22c3f5be4540545e3745edef16ef907e0e5b70dd238ac2737",
         "duration_seconds": 171.408,
@@ -122,30 +69,21 @@
   "objectives": [
     {
       "text": "Use the lecturer's signposting (first, the second factor, finally) to follow the structure of a monologue and keep your place in the notes.",
-      "focus": [
-        "academic-monologue comprehension",
-        "sequencing"
-      ]
+      "focus": ["academic-monologue comprehension", "sequencing"]
     },
     {
       "text": "Predict the type of word needed in each gap before listening and respect a ONE WORD ONLY limit.",
-      "focus": [
-        "word-limit/task compliance",
-        "spelling/orthographic accuracy"
-      ]
+      "focus": ["word-limit/task compliance", "spelling/orthographic accuracy"]
     },
     {
       "text": "Reject distractors in a lecture: ideas mentioned and then replaced by the real solution.",
-      "focus": [
-        "distractor resistance",
-        "paraphrase recognition"
-      ]
+      "focus": ["distractor resistance", "paraphrase recognition"]
     }
   ],
   "levels": {
     "foundation": "Word-type hints beside each gap and a printed list of signposts; teacher-controlled second play with pauses at each signpost, recorded as support.",
-    "core": "Complete all eight notes after one play, with correct spelling and word limits.",
-    "extension": "For Questions 3, 4 and 6, write the distractor the lecturer mentions before the answer.",
+    "core": "Complete all ten notes after one play, with correct spelling and word limits.",
+    "extension": "For Questions 3, 4, 7 and 8, write the distractor the lecturer mentions before the answer.",
     "high_band": "After the first play, write a three-sentence summary of the lecture's argument from your notes alone, then check it against the notes structure."
   },
   "blocks": [
@@ -163,16 +101,7 @@
         ]
       },
       "items": [
-        {
-          "id": "IELTS-10-M1-Q1",
-          "prompt": "Who will give the introduction? Speaker A / Speaker B",
-          "answer": "Speaker B",
-          "evidence": "could you take the introduction as well?",
-          "reason": "The answer is delayed: A first offers to do it, then changes the plan several lines later.",
-          "focus": "distractor resistance",
-          "type": "choice",
-          "level": "core"
-        }
+        { "id": "IELTS-10-M1-Q1", "prompt": "Who will give the introduction? Speaker A / Speaker B", "answer": "Speaker B", "evidence": "could you take the introduction as well?", "reason": "The answer is delayed: A first offers to do it, then changes the plan several lines later.", "focus": "distractor resistance", "type": "choice", "level": "core" }
       ]
     },
     {
@@ -181,55 +110,11 @@
       "title": "Predict before you listen",
       "mode": "Guided practice; no recording required",
       "instructions": "Look at the notes for Recording 1. What type of word is needed in each gap? Write A for a noun, B for an adjective or adverb in comparative form, or C for a verb.",
-      "stimulus": {
-        "type": "none"
-      },
+      "stimulus": { "type": "none" },
       "items": [
-        {
-          "id": "IELTS-10-P1-Q1",
-          "prompt": "Separate lines: customers frustrated when another line moved ________",
-          "options": [
-            "A",
-            "B",
-            "C"
-          ],
-          "answer": "B",
-          "evidence": "'moved ...' needs a word describing how: a comparative such as quicker or slower.",
-          "reason": "After 'moved', a comparison with their own line is expected.",
-          "focus": "word-limit/task compliance",
-          "type": "matching",
-          "level": "core"
-        },
-        {
-          "id": "IELTS-10-P1-Q2",
-          "prompt": "Offices put ________ beside lift doors",
-          "options": [
-            "A",
-            "B",
-            "C"
-          ],
-          "answer": "A",
-          "evidence": "'put ... beside' needs a thing: a noun, probably plural.",
-          "reason": "Check plural: 'put ... beside lift doors' suggests more than one.",
-          "focus": "word-limit/task compliance",
-          "type": "matching",
-          "level": "core"
-        },
-        {
-          "id": "IELTS-10-P1-Q3",
-          "prompt": "Queue-jumping produces ________ out of proportion to the time lost",
-          "options": [
-            "A",
-            "B",
-            "C"
-          ],
-          "answer": "A",
-          "evidence": "'produces ...' needs a noun: what is produced.",
-          "reason": "A feeling or reaction is likely; listen for a noun.",
-          "focus": "word-limit/task compliance",
-          "type": "matching",
-          "level": "core"
-        }
+        { "id": "IELTS-10-P1-Q1", "prompt": "Separate lines: customers frustrated when another line moved ________", "options": ["A", "B", "C"], "answer": "B", "evidence": "'moved ...' needs a word describing how: a comparative such as quicker or slower.", "reason": "After 'moved', a comparison with their own line is expected.", "focus": "word-limit/task compliance", "type": "matching", "level": "core" },
+        { "id": "IELTS-10-P1-Q2", "prompt": "Offices put ________ beside lift doors", "options": ["A", "B", "C"], "answer": "A", "evidence": "'put ... beside' needs a thing: a noun, probably plural.", "reason": "Check plural: 'put ... beside lift doors' suggests more than one.", "focus": "word-limit/task compliance", "type": "matching", "level": "core" },
+        { "id": "IELTS-10-P1-Q3", "prompt": "Queue-jumping produces ________ out of proportion to the time lost", "options": ["A", "B", "C"], "answer": "A", "evidence": "'produces ...' needs a noun: what is produced.", "reason": "A feeling or reaction is likely; listen for a noun.", "focus": "word-limit/task compliance", "type": "matching", "level": "core" }
       ],
       "support": "Foundation: the teacher reads each note aloud and asks 'a thing, a description or an action?'"
     },
@@ -238,7 +123,7 @@
       "kind": "items",
       "title": "The design of queues",
       "mode": "Guided listening practice: one play under practice conditions, then teacher-controlled review",
-      "instructions": "Complete the notes below. Write ONE WORD ONLY for each answer.",
+      "instructions": "Questions 1-10: complete the notes below. Write ONE WORD ONLY for each answer.",
       "form_title": "The design of queues: lecture notes",
       "stimulus": {
         "type": "transcript",
@@ -246,124 +131,31 @@
         "paragraphs": [
           "LECTURER: Good morning, everyone. In today's lecture I want to look at something we all experience but rarely think about: waiting in queues. Businesses spend a surprising amount of effort designing how we wait, and the research behind these designs tells us a lot about how people perceive time.",
           "LECTURER: Let's start with the shape of the queue itself. Many banks and post offices once had a separate line for each counter. The problem was that customers kept comparing their own line with the others, and they became frustrated whenever another line moved faster. A single line feeding several counters solves this. The average wait may be almost the same, but people consider the system fairer, and that sense of fairness makes the wait easier to accept.",
-          "LECTURER: This leads to an important point. What matters to customers is often not the actual length of the wait, but how long it feels. And several factors make a wait feel longer than it really is.",
+          "LECTURER: This leads to an important point. What matters to customers is often not the actual length of the wait, but how long it feels. And people are remarkably poor judges of it. Early studies put the error at around a quarter, but more careful work, which compared the times people reported with video recordings of the same queues, suggests that we overestimate our waiting time by roughly a third. So the question for designers is what makes a wait feel longer than it really is, and several factors stand out.",
           "LECTURER: The first is having nothing to do. Unoccupied time drags. A well-known example comes from office buildings where people complained that the lifts were too slow. Rather than install faster lifts, which would have been expensive, managers put mirrors beside the lift doors. People spent the time checking their appearance, and the complaints largely stopped, even though the lifts were no faster.",
           "LECTURER: The second factor is uncertainty. If you don't know how long you'll be waiting, every minute seems longer. That's why many theme parks and call centres now display or announce an estimated waiting time. Interestingly, some organisations deliberately give a slightly longer estimate than they expect, so that customers are pleasantly surprised when they're served early.",
           "LECTURER: Third, unexplained waits feel longer than explained ones. Passengers on a delayed train are far more patient when the driver gives the reason for the delay, even if the news itself is bad. Silence, on the other hand, tends to make people imagine the worst.",
           "LECTURER: The fourth factor concerns the stage of the process. Waiting before a service begins feels longer than waiting once it has started. Restaurants understand this very well. Rather than leaving customers standing by the door until a table is ready, they often hand them a menu, because once you're choosing your meal, you feel the experience has already begun.",
-          "LECTURER: Fifth, and perhaps most powerful, is fairness. People will tolerate a long wait if everyone is treated equally, but even a short wait becomes unbearable if someone pushes in. Seeing someone jump the queue produces anger out of all proportion to the time actually lost.",
+          "LECTURER: A further factor, and one that is easy to overlook, is company. People who wait alone consistently report the time as longer than people who wait with friends or family. Conversation, it seems, is a natural distraction, and it works even between strangers: in some studies, simply seating people so that they faced one another made the wait feel shorter.",
+          "LECTURER: The last factor, and perhaps the most powerful, is fairness. People will tolerate a long wait if everyone is treated equally, but even a short wait becomes unbearable if someone pushes in. Seeing someone jump the queue produces anger out of all proportion to the time actually lost.",
           "LECTURER: Finally, let's think about the future of queuing. Increasingly, the line itself is disappearing. In virtual queues, customers register when they arrive and then receive a message on their phone when it's their turn. This allows them to shop, eat or simply sit down instead of standing in line. It doesn't remove the wait, of course, but it changes how the wait feels, which, as we've seen, is what really matters.",
           "LECTURER: In the next lecture, we'll look at how these ideas have been applied in hospitals, where waiting can be a matter of health rather than convenience."
         ]
       },
       "items": [
-        {
-          "id": "IELTS-10-L1-Q1",
-          "prompt": "Separate lines: customers frustrated when another line moved ________",
-          "answer": "faster",
-          "accept": [
-            "quicker",
-            "more quickly"
-          ],
-          "evidence": "they became frustrated whenever another line moved faster",
-          "reason": "The comparison with their own line is the source of frustration.",
-          "focus": "explicit detail",
-          "type": "completion",
-          "word_limit": 1,
-          "hint": "a comparative word",
-          "level": "core"
-        },
-        {
-          "id": "IELTS-10-L1-Q2",
-          "prompt": "Single line: average wait similar, but system seen as ________",
-          "answer": "fairer",
-          "evidence": "people consider the system fairer",
-          "reason": "'Seen as' paraphrases 'consider'.",
-          "focus": "paraphrase recognition",
-          "type": "completion",
-          "word_limit": 1,
-          "hint": "a comparative adjective",
-          "level": "core"
-        },
-        {
-          "id": "IELTS-10-L1-Q3",
-          "prompt": "Nothing to do: offices put ________ beside lift doors",
-          "answer": "mirrors",
-          "evidence": "managers put mirrors beside the lift doors",
-          "reason": "Faster lifts were considered but rejected as too expensive.",
-          "focus": "distractor resistance",
-          "type": "completion",
-          "word_limit": 1,
-          "hint": "a plural noun",
-          "level": "core"
-        },
-        {
-          "id": "IELTS-10-L1-Q4",
-          "prompt": "Uncertainty: theme parks announce an estimated waiting ________",
-          "answer": "time",
-          "evidence": "display or announce an estimated waiting time",
-          "reason": "The 'slightly longer estimate' that follows is extra detail, not the answer.",
-          "focus": "explicit detail",
-          "type": "completion",
-          "word_limit": 1,
-          "hint": "a noun",
-          "level": "core"
-        },
-        {
-          "id": "IELTS-10-L1-Q5",
-          "prompt": "Unexplained waits: train passengers more patient if told the ________ for a delay",
-          "answer": "reason",
-          "evidence": "the driver gives the reason for the delay",
-          "reason": "'Told' paraphrases 'gives'.",
-          "focus": "paraphrase recognition",
-          "type": "completion",
-          "word_limit": 1,
-          "hint": "a noun",
-          "level": "core"
-        },
-        {
-          "id": "IELTS-10-L1-Q6",
-          "prompt": "Before service begins: restaurants give waiting customers a ________",
-          "answer": "menu",
-          "evidence": "they often hand them a menu",
-          "reason": "A table is mentioned, but customers are waiting for it; the menu is what they are given.",
-          "focus": "distractor resistance",
-          "type": "completion",
-          "word_limit": 1,
-          "hint": "a noun",
-          "level": "core"
-        },
-        {
-          "id": "IELTS-10-L1-Q7",
-          "prompt": "Fairness: queue-jumping produces ________ out of proportion to time lost",
-          "answer": "anger",
-          "evidence": "produces anger out of all proportion to the time actually lost",
-          "reason": "The note paraphrases the lecturer's sentence closely; spelling must be correct.",
-          "focus": "spelling/orthographic accuracy",
-          "type": "completion",
-          "word_limit": 1,
-          "hint": "a noun (a feeling)",
-          "level": "core"
-        },
-        {
-          "id": "IELTS-10-L1-Q8",
-          "prompt": "Future: virtual queues send customers a message on their ________",
-          "answer": "phone",
-          "accept": [
-            "phones",
-            "mobile"
-          ],
-          "evidence": "receive a message on their phone when it's their turn",
-          "reason": "A single noun fits the ONE WORD limit.",
-          "focus": "explicit detail",
-          "type": "completion",
-          "word_limit": 1,
-          "hint": "a noun",
-          "level": "extension"
-        }
+        { "id": "IELTS-10-L1-Q1", "prompt": "Separate lines: customers frustrated when another line moved ________", "answer": "faster", "accept": ["quicker", "more quickly"], "evidence": "they became frustrated whenever another line moved faster", "reason": "The comparison with their own line is the source of frustration.", "focus": "explicit detail", "type": "completion", "word_limit": 1, "hint": "a comparative word", "level": "core" },
+        { "id": "IELTS-10-L1-Q2", "prompt": "Single line: average wait similar, but system seen as ________", "answer": "fairer", "evidence": "people consider the system fairer", "reason": "'Seen as' paraphrases 'consider'.", "focus": "paraphrase recognition", "type": "completion", "word_limit": 1, "hint": "a comparative adjective", "level": "core" },
+        { "id": "IELTS-10-L1-Q3", "prompt": "Perception: people overestimate their waiting time by about one ________", "answer": "third", "evidence": "we overestimate our waiting time by roughly a third", "reason": "'A quarter' comes first but is the early, corrected figure; the lecturer's own answer follows 'but more careful work'.", "focus": "distractor resistance", "type": "completion", "word_limit": 1, "hint": "noun (a fraction)", "level": "core" },
+        { "id": "IELTS-10-L1-Q4", "prompt": "Nothing to do: offices put ________ beside lift doors", "answer": "mirrors", "evidence": "managers put mirrors beside the lift doors", "reason": "Faster lifts were considered but rejected as too expensive.", "focus": "distractor resistance", "type": "completion", "word_limit": 1, "hint": "a plural noun", "level": "core" },
+        { "id": "IELTS-10-L1-Q5", "prompt": "Uncertainty: theme parks announce an estimated waiting ________", "answer": "time", "evidence": "display or announce an estimated waiting time", "reason": "The 'slightly longer estimate' that follows is extra detail, not the answer.", "focus": "explicit detail", "type": "completion", "word_limit": 1, "hint": "a noun", "level": "core" },
+        { "id": "IELTS-10-L1-Q6", "prompt": "Unexplained waits: train passengers more patient if told the ________ for a delay", "answer": "reason", "evidence": "the driver gives the reason for the delay", "reason": "'Told' paraphrases 'gives'.", "focus": "paraphrase recognition", "type": "completion", "word_limit": 1, "hint": "a noun", "level": "core" },
+        { "id": "IELTS-10-L1-Q7", "prompt": "Before service begins: restaurants give waiting customers a ________", "answer": "menu", "evidence": "they often hand them a menu", "reason": "A table is mentioned, but customers are waiting for it; the menu is what they are given.", "focus": "distractor resistance", "type": "completion", "word_limit": 1, "hint": "a noun", "level": "core" },
+        { "id": "IELTS-10-L1-Q8", "prompt": "Company: waiting ________ feels longer than waiting with others", "answer": "alone", "evidence": "People who wait alone consistently report the time as longer", "reason": "'Feels longer' paraphrases 'report the time as longer'.", "focus": "paraphrase recognition", "type": "completion", "word_limit": 1, "hint": "adverb", "level": "core" },
+        { "id": "IELTS-10-L1-Q9", "prompt": "Fairness: queue-jumping produces ________ out of proportion to time lost", "answer": "anger", "evidence": "produces anger out of all proportion to the time actually lost", "reason": "The note paraphrases the lecturer's sentence closely; spelling must be correct.", "focus": "spelling/orthographic accuracy", "type": "completion", "word_limit": 1, "hint": "a noun (a feeling)", "level": "core" },
+        { "id": "IELTS-10-L1-Q10", "prompt": "Future: virtual queues send customers a message on their ________", "answer": "phone", "accept": ["phones", "mobile"], "evidence": "receive a message on their phone when it's their turn", "reason": "A single noun fits the ONE WORD limit.", "focus": "explicit detail", "type": "completion", "word_limit": 1, "hint": "a noun", "level": "extension" }
       ],
       "support": "Foundation: word-type hints are printed beside each gap. A second, teacher-controlled play with pauses at each signpost is allowed after the first attempt and recorded as support.",
-      "extension": "For Questions 3, 4 and 6, write what the lecturer mentions before the correct answer.",
+      "extension": "For Questions 3, 4, 7 and 8, write what the lecturer mentions before the correct answer, and why it is wrong.",
       "high_band": "From your notes only, write a three-sentence summary of the lecture's main argument."
     }
   ],
@@ -373,14 +165,8 @@
       "end": 5,
       "title": "Opening challenge: the delayed answer",
       "show": [
-        {
-          "block": "IELTS-10-M1",
-          "part": "questions"
-        },
-        {
-          "block": "IELTS-10-M1",
-          "part": "answers"
-        }
+        { "block": "IELTS-10-M1", "part": "questions" },
+        { "block": "IELTS-10-M1", "part": "answers" }
       ],
       "student": "Listen to a short exchange read aloud once and answer the question.",
       "teacher": "Read the mini-model once at natural speed. Ask when the answer changed. Connect to Lesson 5: in longer recordings, corrections can come several sentences later.",
@@ -392,14 +178,8 @@
       "end": 11,
       "title": "Signposts and prediction",
       "show": [
-        {
-          "block": "IELTS-10-P1",
-          "part": "questions"
-        },
-        {
-          "block": "IELTS-10-P1",
-          "part": "answers"
-        }
+        { "block": "IELTS-10-P1", "part": "questions" },
+        { "block": "IELTS-10-P1", "part": "answers" }
       ],
       "student": "Predict the word type for three gaps, then check. Copy the signpost list: first, the second factor, third, the fourth factor, fifth, finally.",
       "teacher": "Teach how Part 4 lectures are organised by signposts, and how notes follow the same order. Reveal prediction answers after learners commit.",
@@ -411,12 +191,9 @@
       "end": 14,
       "title": "Prepare for the lecture",
       "show": [
-        {
-          "block": "IELTS-10-L1",
-          "part": "questions"
-        }
+        { "block": "IELTS-10-L1", "part": "questions" }
       ],
-      "student": "Read Questions 1-8. Predict the word type for every gap.",
+      "student": "Read Questions 1-10. Predict the word type for every gap.",
       "teacher": "The recording gives 30 seconds of reading time; allow up to 2 more minutes for prediction. Foundation learners use the printed word-type hints.",
       "say": "ONE WORD ONLY. Two words will be marked wrong, even if the meaning is correct.",
       "check": "Each learner has a prediction beside most gaps."
@@ -426,10 +203,7 @@
       "end": 22,
       "title": "The lecture: one play",
       "show": [
-        {
-          "block": "IELTS-10-L1",
-          "part": "questions"
-        }
+        { "block": "IELTS-10-L1", "part": "questions" }
       ],
       "student": "Listen once and complete the notes.",
       "teacher": "Play IELTS-10-L1 once without pausing. If audio fails, stop and use Plan B; never read the transcript as a substitute.",
@@ -441,15 +215,12 @@
       "end": 33,
       "title": "Review: answers, distractors and spelling",
       "show": [
-        {
-          "block": "IELTS-10-L1",
-          "part": "answers"
-        }
+        { "block": "IELTS-10-L1", "part": "answers" }
       ],
       "student": "Check answers. Mark spelling and word-limit errors separately from listening errors. Keep your first answers visible.",
-      "teacher": "Reveal in pairs. Ask what the lecturer said before the answer for Q3 (faster lifts) and Q6 (a table). Optional teacher-controlled second play with pauses at signposts for foundation learners, recorded as support.",
+      "teacher": "Reveal in pairs. Ask what the lecturer said before the answer for Q3 (a quarter, the early figure), Q4 (faster lifts) and Q7 (a table). Optional teacher-controlled second play with pauses at signposts for foundation learners, recorded as support.",
       "say": "Mentioned is not the same as the answer. Faster lifts were mentioned and rejected.",
-      "check": "Learners can explain the distractor for Q3."
+      "check": "Learners can explain the distractor for Q3 or Q4."
     },
     {
       "start": 33,
@@ -492,11 +263,7 @@
       "check": "Everyone knows the homework and check date."
     }
   ],
-  "exit_ticket": [
-    "Two signposts that help me follow a lecture:",
-    "What I do if I miss one answer in Part 4:",
-    "My target for the next listening task:"
-  ],
+  "exit_ticket": ["Two signposts that help me follow a lecture:", "What I do if I miss one answer in Part 4:", "My target for the next listening task:"],
   "homework": [
     "Listen to a short talk or podcast segment in English (5-10 minutes) on any academic topic. Take notes using the speaker's signposts, then write a three-sentence summary.",
     "Make a list of ten words you misspelled or nearly misspelled this week and practise them.",
@@ -527,72 +294,12 @@
           ]
         },
         "items": [
-          {
-            "id": "IELTS-10-C1-Q1",
-            "prompt": "By day: birds use the position of the ________",
-            "answer": "sun",
-            "evidence": "many species use the position of the sun",
-            "reason": "Direct detail after the 'during the day' signpost.",
-            "focus": "explicit detail",
-            "type": "completion",
-            "word_limit": 1
-          },
-          {
-            "id": "IELTS-10-C1-Q2",
-            "prompt": "At night: star use shown in experiments in ________",
-            "answer": "planetariums",
-            "accept": [
-              "planetaria"
-            ],
-            "evidence": "experiments in planetariums",
-            "reason": "Spelling must be correct.",
-            "focus": "spelling/orthographic accuracy",
-            "type": "completion",
-            "word_limit": 1
-          },
-          {
-            "id": "IELTS-10-C1-Q3",
-            "prompt": "Magnetic field: works even under heavy ________",
-            "answer": "cloud",
-            "accept": [
-              "clouds"
-            ],
-            "evidence": "it can still be detected under heavy cloud",
-            "reason": "Contrasted with the sun and stars, which clouds hide.",
-            "focus": "explicit detail",
-            "type": "completion",
-            "word_limit": 1
-          },
-          {
-            "id": "IELTS-10-C1-Q4",
-            "prompt": "Near the destination: birds use ________ such as coastlines and rivers",
-            "answer": "landmarks",
-            "evidence": "rely on landmarks such as coastlines, rivers and mountain ranges",
-            "reason": "The examples follow the answer word.",
-            "focus": "paraphrase recognition",
-            "type": "completion",
-            "word_limit": 1
-          },
-          {
-            "id": "IELTS-10-C1-Q5",
-            "prompt": "Some seabirds use ________ to locate their nesting islands",
-            "answer": "smell",
-            "evidence": "some seabirds seem to use smell to locate the small islands",
-            "reason": "Direct detail; 'nesting islands' paraphrases 'islands where they nest'.",
-            "focus": "paraphrase recognition",
-            "type": "completion",
-            "word_limit": 1
-          },
-          {
-            "id": "IELTS-10-C1-Q6",
-            "prompt": "Young birds often fail to correct being pushed off ________ by wind",
-            "answer": "course",
-            "evidence": "if strong winds push them off course, they often fail to correct it",
-            "reason": "'Off course' is the fixed phrase; 'direction' appears earlier but does not fit the gap.",
-            "focus": "distractor resistance",
-            "type": "completion",
-            "word_limit": 1
-          }
+          { "id": "IELTS-10-C1-Q1", "prompt": "By day: birds use the position of the ________", "answer": "sun", "evidence": "many species use the position of the sun", "reason": "Direct detail after the 'during the day' signpost.", "focus": "explicit detail", "type": "completion", "word_limit": 1 },
+          { "id": "IELTS-10-C1-Q2", "prompt": "At night: star use shown in experiments in ________", "answer": "planetariums", "accept": ["planetaria"], "evidence": "experiments in planetariums", "reason": "Spelling must be correct.", "focus": "spelling/orthographic accuracy", "type": "completion", "word_limit": 1 },
+          { "id": "IELTS-10-C1-Q3", "prompt": "Magnetic field: works even under heavy ________", "answer": "cloud", "accept": ["clouds"], "evidence": "it can still be detected under heavy cloud", "reason": "Contrasted with the sun and stars, which clouds hide.", "focus": "explicit detail", "type": "completion", "word_limit": 1 },
+          { "id": "IELTS-10-C1-Q4", "prompt": "Near the destination: birds use ________ such as coastlines and rivers", "answer": "landmarks", "evidence": "rely on landmarks such as coastlines, rivers and mountain ranges", "reason": "The examples follow the answer word.", "focus": "paraphrase recognition", "type": "completion", "word_limit": 1 },
+          { "id": "IELTS-10-C1-Q5", "prompt": "Some seabirds use ________ to locate their nesting islands", "answer": "smell", "evidence": "some seabirds seem to use smell to locate the small islands", "reason": "Direct detail; 'nesting islands' paraphrases 'islands where they nest'.", "focus": "paraphrase recognition", "type": "completion", "word_limit": 1 },
+          { "id": "IELTS-10-C1-Q6", "prompt": "Young birds often fail to correct being pushed off ________ by wind", "answer": "course", "evidence": "if strong winds push them off course, they often fail to correct it", "reason": "'Off course' is the fixed phrase; 'direction' appears earlier but does not fit the gap.", "focus": "distractor resistance", "type": "completion", "word_limit": 1 }
         ]
       }
     ],
@@ -601,6 +308,7 @@
   "delayed_followup": "In Lesson 17 (timed Listening sections), include one Part 4 note-completion set and check signpost tracking and word limits without hints. Record it as a later observation.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.1 construct names. Draft teaching focuses only. Items from one recording are not independent longitudinal observations.",
   "release_blockers": [
+    "IELTS-10-L1: the v2 recording for the revised script must be produced and owner approved before release (LB-05).",
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
     "Student task publication and platform evidence capture remain separate, governed steps."
   ]

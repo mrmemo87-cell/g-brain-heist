@@ -3,27 +3,23 @@
   "code": "IELTS-14",
   "number": 14,
   "week": 7,
-  "version": "0.2.0",
-  "presentation_version": "0.2.0",
+  "version": "0.3.0",
+  "presentation_version": "0.3.0",
   "title": "Listening Part 3: longer discussions, delayed answers and matching",
-  "status": "Owner approved v0.2.0 on 2026-10-18; teacher release to all eligible schools",
-  "approval_record": {"approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision."},
+  "status": "Draft v0.3.0 for owner review (full ten-question Part 3 section: two further decisions that change during the discussion). The IELTS-14-L1 script changed, so its recording must be produced again before release. v0.2.0 remains the owner-approved, released version.",
+  "previous_approval_record": { "approved_by": "Owner, Brains Heist LLC", "date": "2026-10-18", "version": "0.2.0", "scope": "Lesson content, keys, models, presentation and included recordings for teacher-only release to all eligible schools. Student task publication remains separate.", "basis": "Owner approval stated in the review conversation on 2026-10-18 12:03 Asia/Bishkek, after downloading and reviewing the v0.2.0 private review packs in the teacher library; the owner requested teacher release to all schools. Not recorded as an in-platform decision." },
   "duration": 60,
   "test_type": "Academic",
-  "bibles": {
-    "diagnostic": "1.10.0",
-    "lessons": "1.1.0",
-    "visual": "1.1.0"
-  },
+  "bibles": { "diagnostic": "2.0.0", "lessons": "1.2.0", "visual": "1.2.0" },
   "rights": "Original Brains Heist LLC instructional draft, AI-assisted. Scripts, questions and keys are original. Human editorial, key, mapping, difficulty and originality review pending.",
   "audio": {
     "required": true,
-    "statement": "Recordings produced (v1, 2026-10-17): IELTS-14-L1, IELTS-14-C1. Owner listening review pending; do not use with students until it is recorded.",
+    "statement": "IELTS-14-L1 needs a new (v2) recording for the revised script; the fresh-check recording is unchanged.",
     "recordings": [
       {
         "id": "IELTS-14-L1",
         "block": "IELTS-14-L1",
-        "status": "Owner approved v1 with the lesson pack on 2026-10-18; device/classroom playback acceptance pending",
+        "status": "Script revised for v0.3.0; the v2 recording has not been produced. The v1 recording no longer matches and must not be used with this version.",
         "conditions": "Guided practice. First play once without pausing; optional teacher-controlled second play for review only. Questions depend on telling three speakers apart.",
         "voices": {
           "instruction": "Tom (British, examiner style; steady model)",
@@ -32,41 +28,18 @@
           "JOSH": "Noah (North American, young, calm)"
         },
         "segments": [
+          { "type": "speech", "voice": "instruction", "text": "This recording is copyright Brains Heist LLC. All rights reserved." },
           {
             "type": "speech",
             "voice": "instruction",
-            "text": "This recording is copyright Brains Heist LLC. All rights reserved."
+            "text": "Part 3. You will hear two students, Amira and Josh, discussing their presentation with their tutor, Professor Grant. First, you have thirty seconds to look at questions one to ten."
           },
-          {
-            "type": "speech",
-            "voice": "instruction",
-            "text": "Part 3. You will hear two students, Amira and Josh, discussing their presentation with their tutor, Professor Grant. First, you have thirty seconds to look at questions one to eight."
-          },
-          {
-            "type": "silence",
-            "seconds": 30
-          },
-          {
-            "type": "speech",
-            "voice": "instruction",
-            "text": "Now listen carefully and answer questions one to eight."
-          },
-          {
-            "type": "passage"
-          },
-          {
-            "type": "speech",
-            "voice": "instruction",
-            "text": "That is the end of the recording. You now have fifteen seconds to check your answers."
-          },
-          {
-            "type": "silence",
-            "seconds": 15
-          }
-        ],
-        "delivered_sha256": "e043f4cad931ac60449388b06ec252247f8dc6a30bc7fba398423f262666b59e",
-        "duration_seconds": 221.664,
-        "production_record": "docs/ielts/lessons/lesson-14/AUDIO_PRODUCTION_v1.json"
+          { "type": "silence", "seconds": 30 },
+          { "type": "speech", "voice": "instruction", "text": "Now listen carefully and answer questions one to ten." },
+          { "type": "passage" },
+          { "type": "speech", "voice": "instruction", "text": "That is the end of the recording. You now have fifteen seconds to check your answers." },
+          { "type": "silence", "seconds": 15 }
+        ]
       },
       {
         "id": "IELTS-14-C1",
@@ -80,37 +53,17 @@
           "BEN": "Frank (North American, young)"
         },
         "segments": [
-          {
-            "type": "speech",
-            "voice": "instruction",
-            "text": "This recording is copyright Brains Heist LLC. All rights reserved."
-          },
+          { "type": "speech", "voice": "instruction", "text": "This recording is copyright Brains Heist LLC. All rights reserved." },
           {
             "type": "speech",
             "voice": "instruction",
             "text": "Part 3. You will hear two students, Lucy and Ben, discussing a field trip with their tutor, Dr Okafor. First, you have thirty seconds to look at questions one to six."
           },
-          {
-            "type": "silence",
-            "seconds": 30
-          },
-          {
-            "type": "speech",
-            "voice": "instruction",
-            "text": "Now listen carefully and answer questions one to six."
-          },
-          {
-            "type": "passage"
-          },
-          {
-            "type": "speech",
-            "voice": "instruction",
-            "text": "That is the end of the recording. You now have fifteen seconds to check your answers."
-          },
-          {
-            "type": "silence",
-            "seconds": 15
-          }
+          { "type": "silence", "seconds": 30 },
+          { "type": "speech", "voice": "instruction", "text": "Now listen carefully and answer questions one to six." },
+          { "type": "passage" },
+          { "type": "speech", "voice": "instruction", "text": "That is the end of the recording. You now have fifteen seconds to check your answers." },
+          { "type": "silence", "seconds": 15 }
         ],
         "delivered_sha256": "5b73b884545864b293eb07b22f1b025d6851a9e3c51dabb65fee0de9b25a1b2b",
         "duration_seconds": 140.832,
@@ -126,29 +79,20 @@
   "objectives": [
     {
       "text": "Follow decisions in a three-speaker discussion where suggestions are made, rejected and revised.",
-      "focus": [
-        "distractor resistance",
-        "matching/reference tracking"
-      ]
+      "focus": ["distractor resistance", "matching/reference tracking"]
     },
     {
       "text": "Answer 'choose TWO' questions by checking each option against what is finally agreed, not what is first mentioned.",
-      "focus": [
-        "distractor resistance",
-        "detail discrimination"
-      ]
+      "focus": ["distractor resistance", "detail discrimination"]
     },
     {
       "text": "Match items to decisions (matching features) while keeping track of answers that arrive late.",
-      "focus": [
-        "matching/reference tracking",
-        "sequencing"
-      ]
+      "focus": ["matching/reference tracking", "sequencing"]
     }
   ],
   "levels": {
     "foundation": "Speaker names written in the margin with one adjective each after the introduction; teacher-controlled second play with pauses after each decision, recorded as support.",
-    "core": "Answer all eight questions after one play.",
+    "core": "Answer all ten questions after one play.",
     "extension": "For each matching item, write the option that was suggested first and then rejected or changed, if any.",
     "high_band": "After one play, explain in two sentences why Josh's plan for the recommendations changed, using the reason Amira gives."
   },
@@ -167,16 +111,7 @@
         ]
       },
       "items": [
-        {
-          "id": "IELTS-14-M1-Q1",
-          "prompt": "Which TWO will the students bring? A laptop / B projector / C handouts / D speakers",
-          "answer": "A and C",
-          "evidence": "But bring the laptop",
-          "reason": "The projector and speakers are rejected because the room already has them; the laptop and handouts are confirmed.",
-          "focus": "distractor resistance",
-          "type": "choice",
-          "level": "core"
-        }
+        { "id": "IELTS-14-M1-Q1", "prompt": "Which TWO will the students bring? A laptop / B projector / C handouts / D speakers", "answer": "A and C", "evidence": "But bring the laptop", "reason": "The projector and speakers are rejected because the room already has them; the laptop and handouts are confirmed.", "focus": "distractor resistance", "type": "choice", "level": "core" }
       ]
     },
     {
@@ -184,7 +119,7 @@
       "kind": "items",
       "title": "Preparing a presentation",
       "mode": "Guided listening practice: one play under practice conditions, then teacher-controlled review",
-      "instructions": "Questions 1-2: choose TWO letters, A-E. Questions 3-6: what do the speakers decide about each part of the presentation? Choose the correct letter, A-F, from the list (A shorten it; B add examples; C remove it; D move it to the start; E ask the tutor again; F keep it unchanged). Questions 7-8: choose the correct letter, A, B or C.",
+      "instructions": "Questions 1-2: choose TWO letters, A-E. Questions 3-6: what do the speakers decide about each part of the presentation? Choose the correct letter, A-F, from the list (A shorten it; B add examples; C remove it; D move it to the start; E ask the tutor again; F keep it unchanged). Questions 7-10: choose the correct letter, A, B or C.",
       "stimulus": {
         "type": "transcript",
         "title": "Recording IELTS-14-L1 transcript (teacher-private)",
@@ -208,7 +143,15 @@
           "AMIRA: Fair enough.",
           "JOSH: And the recommendations at the end? We were going to leave them as they are.",
           "PROFESSOR GRANT: They're sensible, but rather general. Each one would be more convincing with a real example from one of the businesses you surveyed.",
-          "JOSH: Right, we can do that. By the way, I heard the deadline had been moved to next Friday.",
+          "JOSH: Right, we can do that.",
+          "AMIRA: One more thing about the results. We've used pie charts for everything at the moment.",
+          "PROFESSOR GRANT: Pie charts work well for showing what share of your sample each size of business made up. But for how often each group posts, you're asking the audience to compare amounts across groups, and that's much easier to see as bars side by side.",
+          "JOSH: So we keep the pie chart for business size and change the posting one to a bar chart.",
+          "PROFESSOR GRANT: Exactly. And how long will you spend on the limitations you mentioned?",
+          "JOSH: Honestly, I thought we'd skip them. We're short of time as it is.",
+          "AMIRA: But they're the reason question four doesn't tell us much. If we don't say so, someone will ask.",
+          "PROFESSOR GRANT: I agree with Amira. It doesn't need long. Thirty seconds just before the recommendations would show you've thought critically about your own data.",
+          "JOSH: Fine, a short slide on limitations, then, just before the recommendations. By the way, I heard the deadline had been moved to next Friday.",
           "PROFESSOR GRANT: That's for the marketing group, I'm afraid. Yours is still this Thursday, as planned.",
           "JOSH: Ah. OK, Thursday it is.",
           "PROFESSOR GRANT: And who's presenting which part?",
@@ -219,128 +162,15 @@
         ]
       },
       "items": [
-        {
-          "id": "IELTS-14-L1-Q1",
-          "prompt": "Questions 1-2. Which TWO problems did the students have with their survey?",
-          "options": [
-            "A  too few businesses replied",
-            "B  one question was misunderstood",
-            "C  it was sent out too late",
-            "D  some results were lost",
-            "E  businesses refused to take part"
-          ],
-          "answer": "B and C",
-          "accept": [
-            "C and B"
-          ],
-          "evidence": "And we sent it out too late",
-          "reason": "B: owners misunderstood 'engagement' in question four. C: replies arrived late. A is mentioned as a worry but did not happen (thirty-two replied). D and E are not mentioned.",
-          "focus": "distractor resistance",
-          "type": "choice",
-          "level": "core"
-        },
-        {
-          "id": "IELTS-14-L1-Q3",
-          "prompt": "the background section",
-          "options": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F"
-          ],
-          "answer": "A",
-          "evidence": "I'd cut it to about one minute",
-          "reason": "Josh confirms: 'we'll shorten it'.",
-          "focus": "matching/reference tracking",
-          "type": "matching",
-          "level": "core"
-        },
-        {
-          "id": "IELTS-14-L1-Q4",
-          "prompt": "the survey results",
-          "options": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F"
-          ],
-          "answer": "D",
-          "evidence": "So the results go at the start",
-          "reason": "The surprising finding becomes the opening hook.",
-          "focus": "matching/reference tracking",
-          "type": "matching",
-          "level": "core"
-        },
-        {
-          "id": "IELTS-14-L1-Q5",
-          "prompt": "the history of social media",
-          "options": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F"
-          ],
-          "answer": "C",
-          "evidence": "I'd leave it out altogether",
-          "reason": "Amira accepts: 'Fair enough.' Effort spent on it is not a reason to keep it.",
-          "focus": "matching/reference tracking",
-          "type": "matching",
-          "level": "core"
-        },
-        {
-          "id": "IELTS-14-L1-Q6",
-          "prompt": "the recommendations",
-          "options": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F"
-          ],
-          "answer": "B",
-          "evidence": "Each one would be more convincing with a real example",
-          "reason": "F (keep unchanged) was the students' original plan, but they agree to add examples.",
-          "focus": "distractor resistance",
-          "type": "matching",
-          "level": "core"
-        },
-        {
-          "id": "IELTS-14-L1-Q7",
-          "prompt": "When is the students' deadline?",
-          "options": [
-            "A  next Friday",
-            "B  this Thursday",
-            "C  Wednesday morning"
-          ],
-          "answer": "B",
-          "evidence": "Yours is still this Thursday, as planned",
-          "reason": "Next Friday is the marketing group's deadline; Wednesday morning is for optional slide comments.",
-          "focus": "distractor resistance",
-          "type": "mcq",
-          "level": "core"
-        },
-        {
-          "id": "IELTS-14-L1-Q8",
-          "prompt": "Who will present the recommendations?",
-          "options": [
-            "A  Josh",
-            "B  Amira",
-            "C  both students"
-          ],
-          "answer": "B",
-          "evidence": "You take the recommendations, then",
-          "reason": "Josh planned to present them, but Amira takes them because she knows the examples. The answer comes late in the conversation.",
-          "focus": "matching/reference tracking",
-          "type": "mcq",
-          "level": "extension"
-        }
+        { "id": "IELTS-14-L1-Q1", "prompt": "Questions 1-2. Which TWO problems did the students have with their survey?", "options": ["A  too few businesses replied", "B  one question was misunderstood", "C  it was sent out too late", "D  some results were lost", "E  businesses refused to take part"], "answer": "B and C", "accept": ["C and B"], "evidence": "And we sent it out too late", "reason": "B: owners misunderstood 'engagement' in question four. C: replies arrived late. A is mentioned as a worry but did not happen (thirty-two replied). D and E are not mentioned.", "focus": "distractor resistance", "type": "choice", "level": "core" },
+        { "id": "IELTS-14-L1-Q3", "prompt": "the background section", "options": ["A", "B", "C", "D", "E", "F"], "answer": "A", "evidence": "I'd cut it to about one minute", "reason": "Josh confirms: 'we'll shorten it'.", "focus": "matching/reference tracking", "type": "matching", "level": "core" },
+        { "id": "IELTS-14-L1-Q4", "prompt": "the survey results", "options": ["A", "B", "C", "D", "E", "F"], "answer": "D", "evidence": "So the results go at the start", "reason": "The surprising finding becomes the opening hook.", "focus": "matching/reference tracking", "type": "matching", "level": "core" },
+        { "id": "IELTS-14-L1-Q5", "prompt": "the history of social media", "options": ["A", "B", "C", "D", "E", "F"], "answer": "C", "evidence": "I'd leave it out altogether", "reason": "Amira accepts: 'Fair enough.' Effort spent on it is not a reason to keep it.", "focus": "matching/reference tracking", "type": "matching", "level": "core" },
+        { "id": "IELTS-14-L1-Q6", "prompt": "the recommendations", "options": ["A", "B", "C", "D", "E", "F"], "answer": "B", "evidence": "Each one would be more convincing with a real example", "reason": "F (keep unchanged) was the students' original plan, but they agree to add examples.", "focus": "distractor resistance", "type": "matching", "level": "core" },
+        { "id": "IELTS-14-L1-Q7", "prompt": "What does the tutor suggest about the charts?", "options": ["A  Replace every pie chart with a table.", "B  Show how often each group posts as a bar chart.", "C  Remove the charts from the results section."], "answer": "B", "evidence": "that's much easier to see as bars side by side", "reason": "The pie chart stays for business size; only the posting chart changes. A and C are never suggested.", "focus": "matching/reference tracking", "type": "mcq", "level": "core" },
+        { "id": "IELTS-14-L1-Q8", "prompt": "What do the students decide about the limitations of their survey?", "options": ["A  They will leave them out to save time.", "B  They will mention them briefly before the recommendations.", "C  They will discuss them in detail at the end."], "answer": "B", "evidence": "a short slide on limitations, then, just before the recommendations", "reason": "A was Josh's first idea, but Amira and the tutor persuade him. 'Thirty seconds' rules out C.", "focus": "distractor resistance", "type": "mcq", "level": "core" },
+        { "id": "IELTS-14-L1-Q9", "prompt": "When is the students' deadline?", "options": ["A  next Friday", "B  this Thursday", "C  Wednesday morning"], "answer": "B", "evidence": "Yours is still this Thursday, as planned", "reason": "Next Friday is the marketing group's deadline; Wednesday morning is for optional slide comments.", "focus": "distractor resistance", "type": "mcq", "level": "core" },
+        { "id": "IELTS-14-L1-Q10", "prompt": "Who will present the recommendations?", "options": ["A  Josh", "B  Amira", "C  both students"], "answer": "B", "evidence": "You take the recommendations, then", "reason": "Josh planned to present them, but Amira takes them because she knows the examples. The answer comes late in the conversation.", "focus": "matching/reference tracking", "type": "mcq", "level": "extension" }
       ],
       "support": "Foundation: after the introduction, write A, J and PG in the margin with one word to remember each voice. A second, paused play is allowed after the first attempt and recorded as support.",
       "extension": "For Questions 3-6, write the option first suggested or assumed, if different from the answer.",
@@ -353,14 +183,8 @@
       "end": 5,
       "title": "Opening challenge: choose TWO",
       "show": [
-        {
-          "block": "IELTS-14-M1",
-          "part": "questions"
-        },
-        {
-          "block": "IELTS-14-M1",
-          "part": "answers"
-        }
+        { "block": "IELTS-14-M1", "part": "questions" },
+        { "block": "IELTS-14-M1", "part": "answers" }
       ],
       "student": "Listen to a short exchange read aloud once and choose TWO.",
       "teacher": "Read once at natural speed. Reveal. Establish the rule: in 'choose TWO', every option may be mentioned; only two are finally agreed.",
@@ -372,7 +196,7 @@
       "end": 10,
       "title": "Strategy: tracking decisions",
       "show": [],
-      "student": "Copy the decision signals: 'I'd...', 'Why not...?', 'Good idea', 'That makes sense', 'Fair enough', 'Actually...'. Underline the key word in each option for Questions 1-8.",
+      "student": "Copy the decision signals: 'I'd...', 'Why not...?', 'Good idea', 'That makes sense', 'Fair enough', 'Actually...'. Underline the key word in each option for Questions 1-10.",
       "teacher": "Explain that in Part 3, a suggestion becomes an answer only when the speakers accept it. Foundation group prepares the speaker margin notes.",
       "say": "Wait for the agreement: 'OK, we'll...', 'That makes sense', 'Fair enough'.",
       "check": "Learners can name three agreement signals."
@@ -382,12 +206,9 @@
       "end": 13,
       "title": "Prepare for the recording",
       "show": [
-        {
-          "block": "IELTS-14-L1",
-          "part": "questions"
-        }
+        { "block": "IELTS-14-L1", "part": "questions" }
       ],
-      "student": "Read Questions 1-8 during the reading time.",
+      "student": "Read Questions 1-10 during the reading time.",
       "teacher": "The recording gives 30 seconds of reading time; allow one more minute. Do not pre-teach answers.",
       "say": "Three speakers. Track who suggests and who decides.",
       "check": "Learners have underlined key words."
@@ -397,12 +218,9 @@
       "end": 21,
       "title": "The tutorial: one play",
       "show": [
-        {
-          "block": "IELTS-14-L1",
-          "part": "questions"
-        }
+        { "block": "IELTS-14-L1", "part": "questions" }
       ],
-      "student": "Listen once and answer Questions 1-8.",
+      "student": "Listen once and answer Questions 1-10.",
       "teacher": "Play IELTS-14-L1 once without pausing. If audio fails, stop and use Plan B; never read the transcript as a substitute.",
       "say": "Some answers come late. Keep listening to the end.",
       "check": "All answers committed."
@@ -412,22 +230,19 @@
       "end": 34,
       "title": "Review: suggestions, decisions and late answers",
       "show": [
-        {
-          "block": "IELTS-14-L1",
-          "part": "answers"
-        }
+        { "block": "IELTS-14-L1", "part": "answers" }
       ],
       "student": "Check answers. For each wrong answer, write whether you chose a suggestion that was later changed, or missed a late answer.",
-      "teacher": "Reveal Q1-2, then Q3-6, then Q7-8. Focus on Q1-2 (A was a worry, not a problem), Q6 (F was the original plan) and Q8 (late change). Optional teacher-controlled second play for foundation learners, recorded as support.",
+      "teacher": "Reveal Q1-2, then Q3-6, then Q7-10. Focus on Q1-2 (A was a worry, not a problem), Q6 (F was the original plan) Q8 (Josh's first idea is rejected) and Q10 (late change). Optional teacher-controlled second play for foundation learners, recorded as support.",
       "say": "The final decision is the answer, even if it comes several lines later.",
-      "check": "Learners can explain the trap in Q6 and Q8."
+      "check": "Learners can explain the trap in Q6, Q8 and Q10."
     },
     {
       "start": 34,
       "end": 44,
       "title": "Transcript analysis (guided review)",
       "show": [],
-      "student": "With the transcript handout (teacher-released after the first play), highlight each suggestion in one colour and each agreement in another for Questions 3-8.",
+      "student": "With the transcript handout (teacher-released after the first play), highlight each suggestion in one colour and each agreement in another for Questions 3-10.",
       "teacher": "Distribute the transcript only now, as guided review. Model one example. Collect transcripts afterwards; they are not homework.",
       "say": "See how each decision has two steps: a suggestion, then acceptance.",
       "check": "Learners have highlighted at least four suggestion-decision pairs."
@@ -463,11 +278,7 @@
       "check": "Everyone knows the homework and check date."
     }
   ],
-  "exit_ticket": [
-    "How I know a suggestion has become a decision:",
-    "What I do in 'choose TWO' questions:",
-    "My target for the next listening task:"
-  ],
+  "exit_ticket": ["How I know a suggestion has become a decision:", "What I do in 'choose TWO' questions:", "My target for the next listening task:"],
   "homework": [
     "Listen to a discussion or interview in English with at least two speakers (5-10 minutes). Note one suggestion that was accepted and one that was rejected, with the words that showed it.",
     "Write a six-line dialogue where a plan changes twice before the final decision. Swap with a partner next lesson.",
@@ -503,90 +314,12 @@
           ]
         },
         "items": [
-          {
-            "id": "IELTS-14-C1-Q1",
-            "prompt": "When will the field trip take place?",
-            "options": [
-              "A  the twelfth",
-              "B  the nineteenth",
-              "C  the twenty-fifth"
-            ],
-            "answer": "B",
-            "evidence": "so it'll be the nineteenth",
-            "reason": "The twelfth was rejected because the bus company is fully booked.",
-            "focus": "distractor resistance",
-            "type": "mcq"
-          },
-          {
-            "id": "IELTS-14-C1-Q2",
-            "prompt": "How many water-testing kits will they have?",
-            "options": [
-              "A  two",
-              "B  four",
-              "C  six"
-            ],
-            "answer": "C",
-            "evidence": "I've asked the chemistry lab to lend us another two",
-            "reason": "Four from the department plus two borrowed.",
-            "focus": "numerical information",
-            "type": "mcq"
-          },
-          {
-            "id": "IELTS-14-C1-Q3",
-            "prompt": "What form will the safety information take?",
-            "options": [
-              "A  a long document",
-              "B  a one-page checklist",
-              "C  a short presentation"
-            ],
-            "answer": "B",
-            "evidence": "One page is plenty",
-            "reason": "The long document was Ben's original plan.",
-            "focus": "distractor resistance",
-            "type": "mcq"
-          },
-          {
-            "id": "IELTS-14-C1-Q4",
-            "prompt": "What will students do about lunch?",
-            "options": [
-              "A  bring their own",
-              "B  eat at the café by the bridge",
-              "C  buy food on the bus"
-            ],
-            "answer": "A",
-            "evidence": "I'd still ask people to bring their own",
-            "reason": "The café discount is mentioned but rejected.",
-            "focus": "distractor resistance",
-            "type": "mcq"
-          },
-          {
-            "id": "IELTS-14-C1-Q5",
-            "prompt": "Who will write each report?",
-            "options": [
-              "A  each student individually",
-              "B  pairs of students",
-              "C  the whole group together"
-            ],
-            "answer": "B",
-            "evidence": "Each pair writes one report",
-            "reason": "The tutor rules out the other two options explicitly.",
-            "focus": "explicit detail",
-            "type": "mcq"
-          },
-          {
-            "id": "IELTS-14-C1-Q6",
-            "prompt": "What does Dr Okafor say about the length of the report?",
-            "options": [
-              "A  Longer reports usually get better marks.",
-              "B  About two thousand words is appropriate.",
-              "C  There is no word limit."
-            ],
-            "answer": "B",
-            "evidence": "Around two thousand words",
-            "reason": "He warns that much longer reports usually lack selection, which contradicts A.",
-            "focus": "speaker attitude/opinion",
-            "type": "mcq"
-          }
+          { "id": "IELTS-14-C1-Q1", "prompt": "When will the field trip take place?", "options": ["A  the twelfth", "B  the nineteenth", "C  the twenty-fifth"], "answer": "B", "evidence": "so it'll be the nineteenth", "reason": "The twelfth was rejected because the bus company is fully booked.", "focus": "distractor resistance", "type": "mcq" },
+          { "id": "IELTS-14-C1-Q2", "prompt": "How many water-testing kits will they have?", "options": ["A  two", "B  four", "C  six"], "answer": "C", "evidence": "I've asked the chemistry lab to lend us another two", "reason": "Four from the department plus two borrowed.", "focus": "numerical information", "type": "mcq" },
+          { "id": "IELTS-14-C1-Q3", "prompt": "What form will the safety information take?", "options": ["A  a long document", "B  a one-page checklist", "C  a short presentation"], "answer": "B", "evidence": "One page is plenty", "reason": "The long document was Ben's original plan.", "focus": "distractor resistance", "type": "mcq" },
+          { "id": "IELTS-14-C1-Q4", "prompt": "What will students do about lunch?", "options": ["A  bring their own", "B  eat at the café by the bridge", "C  buy food on the bus"], "answer": "A", "evidence": "I'd still ask people to bring their own", "reason": "The café discount is mentioned but rejected.", "focus": "distractor resistance", "type": "mcq" },
+          { "id": "IELTS-14-C1-Q5", "prompt": "Who will write each report?", "options": ["A  each student individually", "B  pairs of students", "C  the whole group together"], "answer": "B", "evidence": "Each pair writes one report", "reason": "The tutor rules out the other two options explicitly.", "focus": "explicit detail", "type": "mcq" },
+          { "id": "IELTS-14-C1-Q6", "prompt": "What does Dr Okafor say about the length of the report?", "options": ["A  Longer reports usually get better marks.", "B  About two thousand words is appropriate.", "C  There is no word limit."], "answer": "B", "evidence": "Around two thousand words", "reason": "He warns that much longer reports usually lack selection, which contradicts A.", "focus": "speaker attitude/opinion", "type": "mcq" }
         ]
       }
     ],
@@ -595,6 +328,7 @@
   "delayed_followup": "In Lesson 17 (timed Listening sections), include one Part 3 matching set and check whether learners wait for agreement before answering. Record it as a later observation.",
   "mapping_notes": "Proposed focuses use Diagnostic Bible section 7.1 construct names. Draft teaching focuses only. Items from one recording are not independent longitudinal observations.",
   "release_blockers": [
+    "IELTS-14-L1: the v2 recording for the revised script must be produced and owner approved before release (LB-05).",
     "Device, print, projector and Microsoft PowerPoint playback acceptance not yet recorded (LB-08).",
     "Student task publication and platform evidence capture remain separate, governed steps."
   ]
