@@ -116,6 +116,17 @@ export default function IeltsLearningTeacher({
     student?.id === recipientId && !!source &&
     (!["writing", "speaking"].includes(skill) || source.reviewed === true);
   const approved = selected?.approved ?? !selected?.requires_review;
+  const who = recipientName || "this student";
+  /** Say why "Confirm and assign" is off, next to the button, so teachers never face a grey button without a reason. */
+  const assignBlock = busy ? "" : !task ? "Choose a task first."
+    : !prior ? (usage.error ? "The task history could not load. Use Retry history check above." : "Checking whether this task was given before…")
+    : activeAssignment ? `Already assigned to ${who} and waiting for them to submit. You can give it again after they submit, or choose another task.`
+    : exposedCheck ? `${who} has already had this fresh check, so it can't be repeated. Choose a different check.`
+    : prior.assigned_count && !repeatConfirmed ? `${who} has done this task before. Tick "I intend to repeat this material" above to give it again.`
+    : !sourceReady ? (source ? `Share your review of ${who}'s ${skill} screener before assigning.` : `${who} needs a scored ${skill} screener before this task can be assigned.`)
+    : !approved ? "Confirm the material for the pilot first (the box above)."
+    : reason.trim().length < 10 ? "Write a short reason for the student (at least 10 characters)."
+    : "";
   async function run(action: () => Promise<void>) {
     if (busy) return;
     const school = schoolId;
@@ -336,6 +347,12 @@ export default function IeltsLearningTeacher({
                 />
               </label>
               <IeltsEmailOptions email={emailOn} onEmail={setEmailOn} label="Email this student about this task" />
+              {assignBlock && (
+                <div className="il-assign-block" role="status">
+                  <p><span aria-hidden="true">ⓘ </span>{assignBlock}</p>
+                  {activeAssignment && prior?.latest_assignment_id && <Link to={"/ielts/practice/targeted/" + prior.latest_assignment_id}>Open the current assignment →</Link>}
+                </div>
+              )}
               <button
                 disabled={
                   busy ||
