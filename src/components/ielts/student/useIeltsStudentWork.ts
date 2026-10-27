@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { learningWorkspace, type LearningAllocation } from '../../../../services/ieltsLearningService';
+import { studentLearningWorkspace, type LearningAllocation } from '../../../../services/ieltsLearningService';
 import { rpcIeltsPracticeStudentAssignments, type IeltsPracticeStudentAssignment } from '../../../../services/ieltsPracticeAssignmentService';
 
 /**
@@ -10,9 +10,11 @@ export type IeltsStudentWork = {
   tasks: LearningAllocation[] | null;
   tasksError: boolean;
   sets: IeltsPracticeStudentAssignment[] | null;
+  /** Batch tasks queued by a teacher that appear once the Listening, Reading and Writing screeners are done. */
+  waiting: number;
 };
 
-let state: IeltsStudentWork = { tasks: null, tasksError: false, sets: null };
+let state: IeltsStudentWork = { tasks: null, tasksError: false, sets: null, waiting: 0 };
 let tasksInflight: Promise<void> | null = null;
 let setsInflight: Promise<void> | null = null;
 let tasksAt = 0;
@@ -28,8 +30,8 @@ export function loadIeltsStudentWork(force = false) {
   const now = Date.now();
   if (force || (!tasksInflight && (state.tasks === null || now - tasksAt > FRESH_MS))) {
     if (force) publish({ tasks: null, tasksError: false });
-    tasksInflight = learningWorkspace()
-      .then((w) => { tasksAt = Date.now(); publish({ tasks: w.allocations, tasksError: false }); })
+    tasksInflight = studentLearningWorkspace()
+      .then((w) => { tasksAt = Date.now(); publish({ tasks: w.allocations, tasksError: false, waiting: w.waiting }); })
       .catch(() => publish({ tasks: null, tasksError: true }))
       .finally(() => { setTimeout(() => { tasksInflight = null; }, 0); });
   }

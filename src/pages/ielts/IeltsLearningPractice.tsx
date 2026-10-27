@@ -5,7 +5,7 @@ import { IeltsEmailOptions, IeltsEmailStatusLine } from "../../components/ielts/
 import { notifyIeltsStudents, type IeltsEmailQueued } from "../../../services/ieltsEmailService";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  learningWorkspace,
+  studentLearningWorkspace,
   learningDetail,
   learningAudio,
   learningIncident,
@@ -109,7 +109,7 @@ export default function IeltsLearningPractice() {
     catch { if (current.current?.id === id) setContextError("The answer key and source evidence could not load. Saved work is safe. Try loading them again."); }
   };
   const { allocationId } = useParams<{ allocationId: string }>();
-  const [workspace, setWorkspace] = useState<LearningWorkspace | null>(null),
+  const [workspace, setWorkspace] = useState<(LearningWorkspace & { waiting?: number }) | null>(null),
     [detail, setDetail] = useState<LearningDetail | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({}),
     [pending, setPending] = useState<Record<string, string> | null>(null);
@@ -164,7 +164,7 @@ export default function IeltsLearningPractice() {
     current.current = null;
     changed.current = false;
     if (!allocationId) {
-      learningWorkspace()
+      studentLearningWorkspace()
         .then((w) => {
           if (active) {
             setWorkspace(w);
@@ -511,7 +511,7 @@ export default function IeltsLearningPractice() {
           {error}
         </p>
       )}
-      {workspace && <IeltsTargetedGroups tasks={workspace.allocations} />}
+      {workspace && <IeltsTargetedGroups tasks={workspace.allocations} waiting={workspace.waiting ?? 0} />}
       {detail && (
         <>
           {detail.manager ? (<>

@@ -25,8 +25,21 @@ function TaskCard({ task, index }: { task: LearningAllocation; index: number }) 
  * Targeted practice, grouped: what to do and feedback to read stay open; work waiting for the teacher and closed work
  * fold away so the page shows only what matters now.
  */
-export function IeltsTargetedGroups({ tasks }: { tasks: LearningAllocation[] }) {
+/** Tasks a teacher assigned to the whole batch stay locked until the student's starting checks are done. */
+export function IeltsWaitingForScreeners({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <Link to="/ielts/journey" className="isn-locked">
+      <span className="isn-locked-icon" aria-hidden="true">🔒</span>
+      <span className="isn-locked-text"><strong>{count === 1 ? '1 task from your teacher is waiting' : `${count} tasks from your teacher are waiting`}</strong><small>{count === 1 ? 'It appears' : 'They appear'} here when you finish your Listening, Reading and Writing starting checks.</small></span>
+      <span className="isn-locked-go" aria-hidden="true">→</span>
+    </Link>
+  );
+}
+
+export function IeltsTargetedGroups({ tasks, waiting: locked = 0 }: { tasks: LearningAllocation[]; waiting?: number }) {
   if (tasks.length === 0) {
+    if (locked > 0) return <div className="isn-groups"><IeltsWaitingForScreeners count={locked} /></div>;
     return (
       <div className="it-task isn-empty">
         <span aria-hidden="true">🎯</span>
@@ -41,6 +54,7 @@ export function IeltsTargetedGroups({ tasks }: { tasks: LearningAllocation[] }) 
   let n = 0;
   return (
     <div className="isn-groups">
+      <IeltsWaitingForScreeners count={locked} />
       {todo.length > 0 && <IeltsCardGroup title="To do" count={todo.length} tone="todo">{todo.map((t) => <TaskCard key={t.id} task={t} index={n++} />)}</IeltsCardGroup>}
       {feedback.length > 0 && <IeltsCardGroup title="Feedback ready" count={feedback.length} tone="feedback">{feedback.map((t) => <TaskCard key={t.id} task={t} index={n++} />)}</IeltsCardGroup>}
       {todo.length === 0 && feedback.length === 0 && <p className="isn-waiting"><span aria-hidden="true">✓</span> Nothing to do here right now.</p>}

@@ -2,13 +2,14 @@ import {JSDOM,VirtualConsole} from 'jsdom';
 import test from 'node:test';import assert from 'node:assert/strict';import {build} from 'esbuild';import {randomUUID} from 'node:crypto';
 const task={id:'00000000-0000-0000-0000-000000000201',title:'Pottery workshop',skill:'listening',purpose:'guided_practice',status:'in_progress',reviewed:false,reason:'Practise checking the final confirmed detail.',due_at:null};
 const bundle=await build({stdin:{contents:`import React from 'react';import{createRoot}from'react-dom/client';import{RouterProvider,createBrowserRouter}from'./src/lib/router';import{ supabase }from'./services/supabaseClient';import Home from './src/pages/ielts/IeltsHome';import Targeted from './src/pages/ielts/IeltsLearningPractice';import Assigned from './src/pages/ielts/IeltsAssignedPractice';const user={id:'00000000-0000-0000-0000-000000000001'};supabase.auth.getSession=async()=>({data:{session:{user}}});supabase.auth.getUser=async()=>({data:{user}});supabase.auth.onAuthStateChange=()=>({data:{subscription:{unsubscribe(){}}}});createRoot(document.getElementById('root')).render(<RouterProvider router={createBrowserRouter([{path:'/ielts',element:<Home/>},{path:'/ielts/practice/targeted',element:<Targeted/>},{path:'/ielts/practice/targeted/:id',element:<h1>Task opened</h1>},{path:'/ielts/practice/assigned',element:<Assigned/>}])}/>);`,loader:'tsx',resolveDir:process.cwd()},bundle:true,format:'iife',write:false,loader:{'.css':'empty'},define:{'import.meta':JSON.stringify({env:{VITE_SUPABASE_URL:'https://test.supabase.co',VITE_SUPABASE_ANON_KEY:'test-key'}})},logLevel:'silent'});
-async function mount({path='/ielts',failPractice=false,denyCapability=false,optionalTools=false,tasks=[task]}={}){
+async function mount({path='/ielts',failPractice=false,denyCapability=false,optionalTools=false,tasks=[task],waiting=0}={}){
  const calls=[],errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
  const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost'+path,runScripts:'outside-only',pretendToBeVisual:true,virtualConsole:vc}),w=dom.window;
  Object.assign(w,{TextEncoder,TextDecoder,Request,Response,Headers});w.crypto.randomUUID=randomUUID;w.HTMLMediaElement.prototype.pause=function(){};
  w.fetch=async(url,options)=>{const name=new URL(String(url)).pathname.split('/').pop();calls.push(name);let result;
   if(name==='users')result={role:'student',is_admin:false};
   else if(name==='school_admin_get_my_allocation_capabilities')result=denyCapability?{success:false,error:'unavailable'}:{success:true,school_id:'school',user_id:'student',role:'student',can_administer:false};
+  else if(name==='rpc_ielts_learning_claim_deferred')result={released:0,waiting};
   else if(name==='rpc_ielts_learning_workspace'){if(failPractice){failPractice=false;return new Response(JSON.stringify({message:'test unavailable'}),{status:503,headers:{'Content-Type':'application/json'}});}result={manager:false,pilot_only:true,tasks:[],allocations:tasks};}
   else if(name==='rpc_ielts_starting_point_summary')return new Promise(()=>{}); // slow section must not block navigation or practice
   else if(name==='rpc_ielts_practice_student_assignments')result=[];
@@ -37,4 +38,15 @@ test('unverified school capability never opens student tasks or school administr
 
 test('optional catalogue requests stay deferred until the student chooses other practice tools',async()=>{
  const m=await mount({optionalTools:true});try{await m.wait(()=>m.w.document.body.textContent.includes(task.title));assert.equal(m.calls.includes('get_effective_tier'),false);[...m.w.document.querySelectorAll('button')].find(b=>b.textContent==='Explore other practice tools →').click();await m.wait(()=>m.w.location.search==='?view=library'&&m.calls.includes('get_effective_tier'));assert.match(m.w.document.body.textContent,/Loading your IELTS dashboard/);m.w.history.replaceState(null,'','/ielts');m.w.dispatchEvent(new m.w.PopStateEvent('popstate'));await m.wait(()=>m.w.document.body.textContent.includes(task.title));assert.deepEqual(m.errors,[]);}finally{m.dom.window.close();}
+});
+
+test('batch tasks waiting for the starting checks show as one locked card on Home and Targeted, never as a task',async()=>{
+ const m=await mount({tasks:[],waiting:2});try{const text=()=>m.w.document.body.textContent;
+  await m.wait(()=>text().includes('2 tasks from your teacher are waiting'));
+  assert.match(text(),/They appear here when you finish your Listening, Reading and Writing starting checks/);assert.equal(m.w.document.querySelector('.it-task'),null);
+  assert.ok(m.calls.indexOf('rpc_ielts_learning_claim_deferred')<m.calls.indexOf('rpc_ielts_learning_workspace'),'queued tasks are unlocked before the list is read');
+  m.w.document.querySelector('a[href="/ielts/practice/targeted"]').click();
+  await m.wait(()=>m.w.location.pathname==='/ielts/practice/targeted'&&m.w.document.querySelector('h1')?.textContent==='Targeted practice'&&m.w.document.querySelector('.isn-locked'));
+  assert.doesNotMatch(text(),/No targeted tasks yet/);m.w.document.querySelector('.isn-locked').click();await m.wait(()=>m.w.location.pathname==='/ielts/journey');assert.deepEqual(m.errors,[]);
+ }finally{m.dom.window.close();}
 });
