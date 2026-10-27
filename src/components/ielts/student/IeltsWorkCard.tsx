@@ -10,14 +10,15 @@ type Skill = (typeof SKILLS)[number];
  * One compact card for a piece of work: skill tile, a status chip, the title and one line of detail. The teacher's
  * note folds away under "Teacher's note" so the list stays short; the action is always on the card.
  */
-export default function IeltsWorkCard({ tone, chip, kicker, title, meta, note, action, skill, extra, index = 0 }: {
+export default function IeltsWorkCard({ tone, chip, kicker, title, meta, note, noteLabel = 'Teacher’s note', action, skill, extra, index = 0 }: {
+  noteLabel?: string;
   tone: IeltsWorkTone;
   chip: string;
   kicker: string;
   title: React.ReactNode;
   meta?: React.ReactNode;
   note?: string | null;
-  action?: { label: string; to: string; quiet?: boolean };
+  action?: { label: string; to?: string; onClick?: () => void; quiet?: boolean };
   skill?: string | null;
   extra?: React.ReactNode;
   index?: number;
@@ -33,12 +34,14 @@ export default function IeltsWorkCard({ tone, chip, kicker, title, meta, note, a
         {extra}
         {note && (
           <details className="isn-note">
-            <summary>Teacher’s note</summary>
+            <summary>{noteLabel}</summary>
             <p>{note}</p>
           </details>
         )}
       </div>
-      {action && <Link className={'iw-action isn-action' + (action.quiet ? ' iw-action--quiet' : '')} to={action.to}>{action.label}</Link>}
+      {action && (action.to
+        ? <Link className={'iw-action isn-action' + (action.quiet ? ' iw-action--quiet' : '')} to={action.to}>{action.label}</Link>
+        : <button type="button" className={'iw-action isn-action' + (action.quiet ? ' iw-action--quiet' : '')} onClick={action.onClick}>{action.label}</button>)}
     </article>
   );
 }
