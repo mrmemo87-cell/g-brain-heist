@@ -99,6 +99,7 @@ async function check(admin, pending = 0, manage = true) {
       };
     else if (fn === "rpc_ielts_batches") data = [];
     else if (fn === "rpc_ielts_review_queue") data = [];
+    else if (fn === "rpc_ielts_learning_workspace") data = { manager: true, pilot_only: false, tasks: [], allocations: [] };
     else throw Error("Unexpected request " + fn);
     return new Response(JSON.stringify(data), {
       status: 200,
@@ -113,60 +114,50 @@ async function check(admin, pending = 0, manage = true) {
     }
     throw Error("UI did not settle: " + w.document.body.textContent);
   };
-  await wait(() => w.document.body.textContent.includes("Everyday teaching"));
-  // Today must offer an obvious next step, followed by the core teacher flow
-  // and then the less-frequent tools. Do not render invented band metrics.
-  const today = w.document.querySelector(".ip-today");
-  assert.ok(today, "Teacher Today workspace is visible");
-  // No nested collapsible wrappers: the next decision, then everyday work, then less-frequent tools.
-  assert.equal(today.querySelectorAll(".ip-disclosure").length, 0, "Today shows its sections directly");
-  const specialist = today.querySelector(".ip-today-more");
-  if (manage) assert.ok(specialist, "Less-frequent tools stay visible in their own quiet section");
-  else assert.equal(specialist, null);
-  const primary = today.querySelector(".ip-today-priority .sp-primary");
-  assert.ok(primary);
-  assert.match(primary.textContent, pending > 0 ? /Open review desk/ : manage ? /Open lesson library/ : /View student progress/);
-  const visibleTasks = [...today.querySelectorAll(".ip-today-action-copy strong")].map(x => x.textContent);
-  assert.deepEqual(visibleTasks, manage
-    ? ["Lessons & teaching packs", "Create assignment", "Writing & Speaking reviews", "Student progress & plans"]
-    : ["Writing & Speaking reviews", "Student progress & plans"]);
-  const secondary = [...today.querySelectorAll(".ip-today-links button strong")].map(x => x.textContent);
-  if (manage) {
-    assert.deepEqual(secondary, [
-      "Targeted practice", "Practice history", "Course batches",
-      "Speaking interviews", "Exam sessions"
-    ]);
-  } else {
-    assert.deepEqual(secondary, []);
-  }
+  await wait(() => !!w.document.querySelector(".itn-today"));
+  // Today shows only what needs the teacher now, then a few shortcuts; no invented band metrics.
+  const today = w.document.querySelector(".itn-today");
+  assert.match(today.querySelector(".isn-summary").textContent, pending > 0 ? new RegExp(pending + " submissions to review") : /Nothing is waiting for you/);
+  if (pending > 0) assert.ok(today.querySelector(".itn-see-all"), "More waiting work than shown links to Reviews");
+  else assert.ok(today.querySelector(".isn-caught-up"), "An empty queue says so plainly");
+  assert.deepEqual([...today.querySelectorAll(".itn-tile strong")].map(x => x.textContent), manage
+    ? ["Prepare a lesson", "Assign to a batch", "Student progress", "Create assignment"]
+    : ["Student progress", "Reviews"]);
+  const moreTools = [...today.querySelectorAll(".isn-group")].find(g => g.textContent.includes("More tools"));
+  if (manage) { assert.ok(moreTools && !moreTools.open, "Less-frequent tools fold away"); assert.deepEqual([...moreTools.querySelectorAll(".itn-links strong")].map(x => x.textContent), ["Targeted practice", "Practice history", "Speaking interviews", "Exam sessions", "Programme team"]); }
+  else assert.equal(moreTools, undefined);
   assert.doesNotMatch(today.textContent, /average band|average score|overall band/i);
-  assert.ok(today.querySelector(".ip-today-priority").compareDocumentPosition(today.querySelector(".ip-today-teaching")) & w.Node.DOCUMENT_POSITION_FOLLOWING);
 
   const button = (label) =>
     Array.from(w.document.querySelectorAll("button")).find(
       (b) => b.textContent === label,
     );
   const nav = w.document.querySelector('[aria-label="IELTS teacher workspace"]');
-  assert.ok(nav, "Professional teacher navigation exists");
-  const tabNames = [...nav.querySelectorAll(".ip-tab > span:first-child")].map(el=>el.textContent.trim());
-  assert.deepEqual(tabNames, manage
-    ? ["Today","Review desk","Student progress","Practice & assignments","Course batches","Lessons","Exams","Programme team"]
-    : ["Today","Review desk","Student progress","Programme team"], "Every destination is a visible tab, not a dropdown");
-  assert.equal(nav.querySelectorAll("details").length, 0);
-  assert.equal(nav.querySelector('[aria-current="page"]').textContent, "Today");
-  if (pending > 0) assert.match(nav.textContent, new RegExp("Review desk" + pending));
+  assert.ok(nav, "Teacher navigation exists");
+  const tabLabel = (el) => el.querySelector(".isn-label")?.firstChild?.textContent.trim();
+  const tab = (label) => [...nav.querySelectorAll(".itn-link")].find((b) => tabLabel(b) === label);
+  assert.deepEqual([...nav.querySelectorAll(".itn-link:not(.itn-more-button)")].map(tabLabel), manage
+    ? ["Today","Reviews","Students","Batches","Lessons","Practice","Exams","Team"]
+    : ["Today","Reviews","Students","Team"], "Every destination is a tab on desktop");
+  assert.equal(!!nav.querySelector(".itn-more-button"), manage, "Phones get More only when there are extra tools");
+  assert.equal(tabLabel(nav.querySelector('[aria-current="page"]')), "Today");
+  if (pending > 0) assert.match(nav.textContent, new RegExp(`Reviews \\(${pending} waiting\\)`));
   if (manage) {
-    [...today.querySelectorAll(".ip-today-action")].find(b => b.querySelector("strong")?.textContent === "Create assignment").click();
+    nav.querySelector(".itn-more-button").click();
+    await wait(() => !!nav.querySelector(".itn-sheet"));
+    assert.deepEqual([...nav.querySelectorAll(".itn-sheet-item strong")].map(x => x.textContent), ["Lessons","Practice","Exams","Team"]);
+    [...today.querySelectorAll(".itn-tile")].find(b => b.querySelector("strong")?.textContent === "Create assignment").click();
     await wait(() => !!w.document.querySelector(".ip-assignment-entry"));
     assert.equal(w.document.querySelectorAll('input[name="ielts-assignment-scope"]').length,3);
     assert.match(w.document.querySelector(".ip-assignment-entry").textContent,/Entire class/);
     assert.match(w.document.querySelector(".ip-assignment-entry").textContent,/IELTS course batch/);
     assert.match(w.document.querySelector(".ip-assignment-entry").textContent,/Individual student/);
-    button("Today").click();
+    assert.equal(tabLabel(nav.querySelector('[aria-current="page"]')), "Practice", "Creating an assignment belongs to Practice");
+    tab("Today").click();
   } else {
     assert.equal(button("Create assignment"),undefined, "Non-managers cannot open assignment creation");
   }
-  button("Student progress").click();
+  tab("Students").click();
   await wait(() => w.document.body.textContent.includes("8 / 12 · Screener"));
   assert(w.document.body.textContent.includes("No submitted evidence"));
   assert.ok(w.document.querySelector(".isi-matrix"), "Student evidence matrix renders");
@@ -190,9 +181,9 @@ async function check(admin, pending = 0, manage = true) {
   assert.equal(calls.find((entry) => entry.fn === "rpc_ielts_learning_report_context").args.p_student, "student-a");
   w.document.querySelector(".isi-close").click();
   await wait(() => !w.document.querySelector(".isi-drawer"));
-  button("Programme team").click();
-  await wait(() => !!w.document.querySelector(".ip-section-head"));
-  assert.equal(w.document.querySelector(".ip-section-head h2").textContent, "Programme team");
+  tab("Team").click();
+  await wait(() => !!w.document.querySelector(".itn-head"));
+  assert.equal(w.document.querySelector(".itn-head h1").textContent, "Programme team");
   await wait(() => w.document.body.textContent.includes("A clear owner"));
   if (admin) {
     const select = w.document.querySelector("fieldset select");

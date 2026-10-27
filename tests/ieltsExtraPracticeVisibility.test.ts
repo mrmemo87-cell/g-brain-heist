@@ -59,9 +59,9 @@ test('IELTS staff home retires the generic control centre in favour of the share
   assert.match(home, /lazyRetry\(\(\) => import\('\.\/IeltsProgrammeWorkspace'\)/);
   assert.doesNotMatch(home, /Control Center|const adminCards/);
   assert.match(programme, /Student progress/);
-  const navigation = read('src/pages/ielts/IeltsTeacherNavigation.tsx');
-  assert.match(navigation, /Programme team/, 'Programme Team stays accessible in the shared teacher navigation');
-  assert.match(programme, /<IeltsTeacherNavigation/, 'Teacher workspace renders its professional navigation');
+  const navigation = read('src/components/ielts/teacher/IeltsTeacherNav.tsx');
+  assert.match(navigation, /label: 'Team'/, 'Programme Team stays accessible in the shared teacher navigation');
+  assert.match(programme, /<IeltsTeacherNav /, 'Teacher workspace renders its navigation');
 });
 
 test('IELTS Home renders the review queue card only behind the shared access decision', () => {

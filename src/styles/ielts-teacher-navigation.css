@@ -5,12 +5,6 @@
 .ip-page .ip-eyebrow { margin: 6px 0 2px; color: var(--bh-ielts-primary); font-size: .8rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
 .ip-page .ip-top h1 { margin: 0; color: var(--bh-ielts-foreground); font-size: clamp(1.6rem, 3vw, 2.1rem); line-height: 1.2; letter-spacing: -.02em; }
 
-/* Tabs: every destination visible; wraps into two columns on phones (no dropdowns, no hidden menu). */
-.ip-page .ip-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 24px; padding: 4px; border: 1px solid var(--bh-ielts-border); border-radius: 14px; background: var(--bh-ielts-surface); box-shadow: var(--bh-ielts-shadow-sm); }
-.ip-page .ip-tabs .ip-tab { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 14px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--bh-ielts-foreground-muted); font-size: .9rem; font-weight: 600; box-shadow: none; white-space: normal; text-align: center; }
-.ip-page .ip-tabs .ip-tab:hover:not(:disabled) { background: var(--bh-ielts-surface-muted); color: var(--bh-ielts-foreground); }
-.ip-page .ip-tabs .ip-tab-active { background: var(--bh-ielts-secondary); border-color: var(--bh-ielts-border); color: var(--bh-ielts-primary); box-shadow: inset 0 -2px var(--bh-ielts-primary); }
-.ip-page .ip-tab-count { min-width: 22px; padding: 1px 7px; border-radius: 999px; background: var(--bh-ielts-primary); color: #fff; font-size: .75rem; font-weight: 700; line-height: 1.5; }
 
 /* Section frame: one heading, one purpose line, no nested collapsible wrappers. */
 .ip-page .ip-workspace-flow { display: grid; gap: 16px; min-width: 0; }
@@ -52,8 +46,6 @@
 .ip-page .ip-assignment-footnote { font-size: .8rem; margin: 15px 0 0; }
 
 @media (max-width: 760px) {
-  .ip-page .ip-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ip-page .ip-tabs .ip-tab { font-size: .85rem; padding: 8px; }
   .ip-page .ip-waiting li { flex-wrap: wrap; }
   .ip-page .ip-waiting button { width: 100%; }
   .ip-page .ip-assignment-footer button { width: 100%; }

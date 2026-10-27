@@ -12,11 +12,16 @@ import {
 import SchoolAdminContext from "../../../components/school-admin/SchoolAdminContext";
 import IeltsStudentProgress from "./IeltsStudentProgress";
 import { rpcIeltsReviewQueue, type IeltsReviewQueueItem } from "../../../services/ieltsTeacherReviewService";
-import IeltsTeacherNavigation, { type IeltsTeacherNavKey } from "./IeltsTeacherNavigation";
+import IeltsTeacherNav, { type IeltsTeacherTab } from "../../components/ielts/teacher/IeltsTeacherNav";
+import IeltsTeacherToday, { TeacherFeedbackCard, TeacherWaitingCard, type TeacherWaitingItem } from "../../components/ielts/teacher/IeltsTeacherToday";
+import { IeltsCardGroup } from "../../components/ielts/student/IeltsStudentShell";
+import { learningWorkspace, type LearningAllocation } from "../../../services/ieltsLearningService";
 import IeltsAssignmentEntry from "./IeltsAssignmentEntry";
 import "../../styles/ielts-teacher-navigation.css";
 import "../../styles/ielts-speaking-pilot.css";
 import "../../styles/ielts-programme.css";
+import "../../styles/ielts-student-shell.css";
+import "../../styles/ielts-teacher-shell.css";
 const Practice = React.lazy(() => import("./IeltsLearningTeacher"));
 const LearningPlanDesk = React.lazy(() => import("./IeltsLearningPlanDesk"));
 const PracticeDesk = React.lazy(() => import("./IeltsTeacherPracticeDesk"));
@@ -44,11 +49,6 @@ const sections = [
   "assign",
   "batches",
 ];
-type WaitingItem = { key: string; name: string; at: string; kind: string; route: string; started: boolean };
-const formatDay = (iso: string) => {
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
-};
 export default function IeltsProgrammeWorkspace({
   embedded = false,
   schoolId,
@@ -82,6 +82,8 @@ export default function IeltsProgrammeWorkspace({
     [message, setMessage] = useState("");
   const [practiceQueue, setPracticeQueue] = useState<IeltsReviewQueueItem[] | null>(null);
   const [practiceError, setPracticeError] = useState(false);
+  const [feedback, setFeedback] = useState<LearningAllocation[] | null>(null);
+  const [feedbackError, setFeedbackError] = useState(false);
   const [planStudent, setPlanStudent] = useState<string | null>(null);
   const [planFocus, setPlanFocus] = useState<"plan" | "reports">("plan");
   useEffect(() => {
@@ -94,6 +96,15 @@ export default function IeltsProgrammeWorkspace({
     rpcIeltsReviewQueue({ schoolId: data.school_id, limit: 100 })
       .then((rows) => { if (alive) { setPracticeQueue(rows.filter((r) => r.review_status !== "finalized")); setPracticeError(false); } })
       .catch(() => { if (alive) { setPracticeQueue(null); setPracticeError(true); } });
+    return () => { alive = false; };
+  }, [data?.school_id, data?.can_manage, section, retry]);
+  // Targeted tasks students submitted that still need the teacher's feedback (Today and Reviews only).
+  useEffect(() => {
+    if (!data?.can_manage || (section !== "overview" && section !== "reviews")) return;
+    let alive = true;
+    learningWorkspace(data.school_id)
+      .then((w) => { if (alive) { setFeedback(w.allocations.filter((a) => a.status === "submitted" && !a.reviewed)); setFeedbackError(false); } })
+      .catch(() => { if (alive) { setFeedback(null); setFeedbackError(true); } });
     return () => { alive = false; };
   }, [data?.school_id, data?.can_manage, section, retry]);
   const lock = useRef(false),
@@ -168,9 +179,9 @@ export default function IeltsProgrammeWorkspace({
     window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
     open("practice");
   };
-  const teacherNavActive: IeltsTeacherNavKey =
+  const teacherNavActive: IeltsTeacherTab =
     section === "overview" ? "today" : section === "assign" ? "practice" : section;
-  const navigateTeacher = (key: IeltsTeacherNavKey) => {
+  const navigateTeacher = (key: IeltsTeacherTab) => {
     if (key === "today") open("overview");
     else if (key === "practice") openPractice("history");
     else open(key);
@@ -219,291 +230,176 @@ export default function IeltsProgrammeWorkspace({
       : `/ielts/speaking-pilot/${encodeURIComponent(id)}`;
   // One queue for everything that needs a teacher: screener essays/interviews (programme workspace)
   // and assigned practice writing/speaking (rpc_ielts_review_queue). Read-only listing; review rules unchanged.
-  const waiting: WaitingItem[] = [
+  const waiting: TeacherWaitingItem[] = [
     ...(data?.queue ?? []).map((q) => ({
-      key: `s-${q.skill}-${q.attempt_id}`, name: q.name, at: q.created_at,
+      key: `s-${q.skill}-${q.attempt_id}`, name: q.name, at: q.created_at, skill: q.skill,
       kind: q.skill === "writing" ? "Writing screener essay" : "Speaking screener interview",
       route: screenerRoute(q.skill, q.attempt_id), started: false,
     })),
     ...(practiceQueue ?? []).map((q) => ({
       key: `p-${q.skill}-${q.attempt_id}`, name: q.student_name ?? "Student", at: q.submitted_at ?? "",
+      skill: (q.skill === "writing" ? "writing" : "speaking") as TeacherWaitingItem["skill"],
       kind: `${q.skill === "writing" ? "Writing" : "Speaking"} practice${q.task_title ? ` · ${q.task_title}` : ""}`,
       route: `/ielts/reviews/${q.skill}/${encodeURIComponent(q.attempt_id)}`, started: q.review_status === "in_review",
     })),
   ].sort((x, y) => (x.at || "").localeCompare(y.at || ""));
   const waitingCount = (data?.pending_count ?? 0) + (practiceQueue?.length ?? 0);
-  const waitingList = (limit?: number) => (
-    <ul className="ip-waiting" aria-label="Work waiting for review">
-      {waiting.slice(0, limit).map((w, i) => (
-        <li key={w.key}>
-          <div>
-            <strong>{w.name}</strong>
-            <span>{w.kind}{w.at ? ` · submitted ${formatDay(w.at)}` : ""}{w.started ? " · draft saved" : ""}</span>
-          </div>
-          <button type="button" className={i === 0 ? "sp-primary" : "sp-secondary"} onClick={() => navigate(w.route)}>
-            {w.started ? "Continue review" : "Review"}
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
-  const sectionHead = (title: string, purpose: string, extra?: React.ReactNode) => (
-    <header className="ip-section-head">
-      <div><h2>{title}</h2><p>{purpose}</p></div>
-      {extra}
-    </header>
-  );
-  const queue = (
-    <div className="ip-workspace-flow">
-      {sectionHead("Review desk", "Everything your students submitted that needs a teacher. Oldest first.",
-        <span className="ip-count-pill">{waitingCount} waiting</span>)}
-      <section className="sp-card ip-panel">
-        {waiting.length ? waitingList() : (
-          <div className="ip-empty">
-            <strong>Nothing is waiting for review.</strong>
-            <p>Submitted essays and interviews appear here as soon as students send them.</p>
-          </div>
+  const feedbackCount = feedback?.length ?? 0;
+  const heads: Partial<Record<Section, [string, string, string]>> = {
+    reviews: ["Reviews", "Review desk", "Everything your students submitted that needs a teacher. Oldest first."],
+    students: ["Students", "Student progress", "Find a learner, see their four-skill evidence and open plans or reports."],
+    batches: ["Batches", "Course batches", "Group IELTS students across classes, assign practice to the whole batch and follow each student."],
+    practice: ["Practice", "Practice & assignments", "Assign practice and follow current and earlier student work."],
+    assign: ["Practice", "Create assignment", "Choose who the practice is for."],
+    lessons: ["Lessons", "Lessons & teaching packs", "Lesson plans, slides, workbooks and approved audio."],
+    exams: ["Exams", "Exams", "Schedule, launch and monitor controlled IELTS exam sessions."],
+    team: ["Team", "Programme team", "Who leads IELTS at your school and who can manage it."],
+  };
+  const head = heads[section];
+  const openFromToday = (target: IeltsTeacherTab | "assign" | "targeted" | "history" | "interviews") => {
+    if (target === "targeted" || target === "history") openPractice(target);
+    else if (target === "interviews") navigate("/ielts/speaking-interviews");
+    else if (target === "assign") open("assign");
+    else navigateTeacher(target);
+  };
+  const reviews = (
+    <div className="isn-groups">
+      <IeltsCardGroup title="Writing & Speaking to review" count={waitingCount} tone="todo" id="itn-review-queue">
+        {waiting.length ? waiting.map((w, i) => <TeacherWaitingCard key={w.key} item={w} index={i} />) : (
+          <p className="isn-waiting"><span aria-hidden="true">✓</span> Nothing is waiting for review. Submitted essays and interviews appear here as soon as students send them.</p>
         )}
-        {practiceError && <p className="ip-note-line" role="status">Assigned practice could not be checked just now. <button type="button" className="ip-link-button" onClick={() => setRetry((n) => n + 1)}>Try again</button></p>}
-        {(data?.pending_count ?? 0) > 30 && <p className="ip-note-line">The 30 oldest screener submissions are shown.</p>}
-        {data?.can_manage && (
-          <p className="ip-note-line">
-            <button type="button" className="ip-link-button" onClick={() => navigate(`/ielts/reviews?school=${data?.school_id}`)}>See reviewed and earlier work →</button>
-          </p>
-        )}
-      </section>
+        {practiceError && <p className="isn-waiting" role="status">Assigned practice could not be checked just now. <button type="button" className="ij-link" onClick={() => setRetry((n) => n + 1)}>Try again</button></p>}
+        {(data?.pending_count ?? 0) > 30 && <p className="isn-waiting">The 30 oldest screener submissions are shown.</p>}
+      </IeltsCardGroup>
       {data?.can_manage && (
-        <section className="sp-card ip-panel" aria-label="Targeted practice feedback">
-          <React.Suspense fallback={<p role="status">Loading targeted practice…</p>}>
-            <Practice schoolId={data.school_id} reviewOnly />
-          </React.Suspense>
-        </section>
+        <IeltsCardGroup title="Targeted practice feedback" count={feedback === null ? "–" : feedbackCount} tone="feedback" defaultOpen={feedbackCount > 0}>
+          {feedback?.map((t, i) => <TeacherFeedbackCard key={t.id} task={t} index={i} />)}
+          {feedback !== null && feedbackCount === 0 && <p className="isn-waiting"><span aria-hidden="true">✓</span> No targeted work is waiting for feedback.</p>}
+        </IeltsCardGroup>
+      )}
+      {data?.can_manage && (
+        <IeltsCardGroup title="All targeted practice" count="Open" defaultOpen={false}>
+          <div className="sp-page ip-page ip-embedded itn-legacy">
+            <React.Suspense fallback={<p role="status">Loading targeted practice…</p>}>
+              <Practice schoolId={data.school_id} reviewOnly />
+            </React.Suspense>
+          </div>
+        </IeltsCardGroup>
+      )}
+      {data?.can_manage && (
+        <button type="button" className="itn-see-all" onClick={() => navigate(`/ielts/reviews?school=${data?.school_id}`)}>See reviewed and earlier work →</button>
       )}
     </div>
   );
   return (
-    <main className={`sp-page ip-page ${embedded ? "ip-embedded" : ""}`}>
-      <header className="ip-top">
-        {!embedded && <a className="ip-back" href="/">← Brains Heist</a>}
-        <p className="ip-eyebrow">IELTS Programme{school?.name ? ` · ${school.name}` : ""}</p>
-        <h1>Teaching workspace</h1>
+    <div className={`isn-page itn-page ${data ? "has-nav" : ""} ${embedded ? "itn-embedded" : ""}`} data-ielts-teacher-shell="">
+      <div className="isn-glow" aria-hidden="true" />
+      <header className="isn-top">
+        {!embedded ? <a className="isn-back" href="/"><span aria-hidden="true">←</span> Brains Heist</a> : <span />}
+        <span className="isn-brand" aria-label="Brains Heist IELTS teaching"><span className="isn-mark" aria-hidden="true">IELTS</span><span className="isn-brand-text">Teaching{school?.name ? <span className="itn-brand-school"> · {school.name}</span> : null}</span></span>
       </header>
-      {error && (
-        <div className="sp-alert" role="alert">
-          {error}
-          <button
-            className="sp-secondary"
-            disabled={saving}
-            onClick={() => {
-              changeId.current = null;
-              setRetry((n) => n + 1);
-            }}
-          >
-            Refresh workspace
-          </button>
-        </div>
-      )}
-      {message && (
-        <p className="ip-message" role="status">
-          {message}
-        </p>
-      )}
-      {loading && !data ? (
-        <section className="sp-card" role="status">
-          Opening your programme workspace…
-        </section>
-      ) : !data ? (
-        <section className="sp-card">
-          <h2>No school IELTS workspace is available.</h2>
-          <p>
-            An active IELTS agreement and an authorized staff allocation are
-            required. Your school administrator can assign a programme lead in
-            School Administration → IELTS Programme.
-          </p>
-        </section>
-      ) : (
-        <>
-          {!schoolId && schools.length > 1 && (
-            <label className="ip-school">
-              School
-              <select
-                value={data.school_id}
-                disabled={saving}
-                onChange={(e) => {
-                  setSelected(e.target.value);
-                  setData(null);
-                  setPlanStudent(null);
-                  setOffset(0);
-                  setApplied("");
-                  setSearch("");
-                  setMessage("");
-                  changeId.current = null;
-                  const u = new URL(window.location.href);
-                  u.searchParams.set("school", e.target.value);
-                  window.history.replaceState({}, "", u.pathname + u.search);
-                }}
-              >
-                {schools.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-          <IeltsTeacherNavigation active={teacherNavActive} onNavigate={navigateTeacher} canManage={data.can_manage} disabled={saving} reviewCount={waitingCount} />
-          {section === "overview" && (
-            <div className="ip-today">
-              <section className="sp-card ip-panel ip-today-priority" aria-labelledby="ip-today-priority-title">
-                <div className="ip-today-priority-copy">
-                  <p className="ip-eyebrow">Needs you now</p>
-                  <h2 id="ip-today-priority-title">
-                    {waitingCount > 0
-                      ? `${waitingCount} ${waitingCount === 1 ? "piece of work is" : "pieces of work are"} waiting for your review`
-                      : data.can_manage
-                        ? "Nothing to review. Get your next lesson ready"
-                        : "Nothing to review. See how your students are doing"}
-                  </h2>
-                  {waitingCount > 0 ? waitingList(3) : (
-                    <p>{data.can_manage
-                      ? "Open the lesson pack, prepare your resources and plan the practice students will do next."
-                      : "Open student progress to see available evidence across Listening, Reading, Writing and Speaking."}</p>
-                  )}
-                  <div className="ip-today-priority-actions">
-                    <button
-                      type="button"
-                      className={waiting.length > 0 ? "sp-secondary" : "sp-primary"}
-                      onClick={() => open(waitingCount > 0 ? "reviews" : data.can_manage ? "lessons" : "students")}
-                    >
-                      {waitingCount > 0
-                        ? "Open review desk"
-                        : data.can_manage
-                          ? "Open lesson library"
-                          : "View student progress"} →
-                    </button>
-                  </div>
-                </div>
-              </section>
-
-              <section className="ip-today-teaching" aria-labelledby="ip-today-teaching-title">
-                <h2 id="ip-today-teaching-title" className="ip-subhead">Everyday teaching</h2>
-                <div className="ip-today-actions">
-                  {data.can_manage && (
-                    <button type="button" className="ip-today-action" onClick={() => open("lessons")}>
-                      <span className="ip-today-action-copy">
-                        <span className="ip-today-action-category">Prepare</span>
-                        <strong>Lessons & teaching packs</strong>
-                        <span>Lesson plans, slides, workbooks and approved audio.</span>
-                      </span>
-                      <span className="ip-today-arrow" aria-hidden="true">→</span>
-                    </button>
-                  )}
-                  {data.can_manage && (
-                    <button type="button" className="ip-today-action" onClick={() => open("assign")}>
-                      <span className="ip-today-action-copy">
-                        <span className="ip-today-action-category">Assign</span>
-                        <strong>Create assignment</strong>
-                        <span>Give practice to a class, a course batch or one student.</span>
-                      </span>
-                      <span className="ip-today-arrow" aria-hidden="true">→</span>
-                    </button>
-                  )}
-                  <button type="button" className="ip-today-action" onClick={() => open("reviews")}>
-                    <span className="ip-today-action-copy">
-                      <span className="ip-today-action-category">Review</span>
-                      <strong>Writing & Speaking reviews</strong>
-                      <span>Read submitted work and share your feedback.</span>
-                    </span>
-                    <span className="ip-today-arrow" aria-hidden="true">→</span>
-                  </button>
-                  <button type="button" className="ip-today-action" onClick={() => open("students")}>
-                    <span className="ip-today-action-copy">
-                      <span className="ip-today-action-category">Follow up</span>
-                      <strong>Student progress & plans</strong>
-                      <span>Find a learner, see their four-skill evidence and open plans or reports.</span>
-                    </span>
-                    <span className="ip-today-arrow" aria-hidden="true">→</span>
-                  </button>
-                </div>
-              </section>
-
-              {data.can_manage && (
-                <section className="ip-today-more" aria-labelledby="ip-today-more-title">
-                  <h2 id="ip-today-more-title" className="ip-subhead">More tools</h2>
-                  <div className="ip-today-links">
-                    <button type="button" onClick={() => openPractice("targeted")}>
-                      <strong>Targeted practice</strong>
-                      <span>Evidence-led work for one student</span>
-                    </button>
-                    <button type="button" onClick={() => openPractice("history")}>
-                      <strong>Practice history</strong>
-                      <span>Current and previous student work</span>
-                    </button>
-                    <button type="button" onClick={() => open("batches")}>
-                      <strong>Course batches</strong>
-                      <span>Rosters and this week's practice</span>
-                    </button>
-                    <button type="button" onClick={() => navigate("/ielts/speaking-interviews")}>
-                      <strong>Speaking interviews</strong>
-                      <span>Conduct and record interviews</span>
-                    </button>
-                    <button type="button" onClick={() => open("exams")}>
-                      <strong>Exam sessions</strong>
-                      <span>Schedule, launch and monitor exams</span>
-                    </button>
-                  </div>
-                </section>
-              )}
-              <p className="ip-note-line ip-evidence-note">
-                <strong>Evidence before estimates.</strong> Screeners show a starting point, not an official IELTS band. Missing evidence is not a weakness.
-              </p>
-              {data.platform_owner && (
-                <details className="ip-today-admin">
-                  <summary>Platform content & analytics</summary>
-                  <p>Content administration and marketing analytics are separate from school assessment evidence.</p>
-                  <button className="sp-secondary" onClick={() => navigate("/ielts/admin")}>Content administration</button>
-                  <button className="sp-secondary" onClick={() => navigate("/ielts/funnel")}>Launch analytics</button>
-                </details>
-              )}
+      {data && <IeltsTeacherNav active={teacherNavActive} onNavigate={navigateTeacher} canManage={data.can_manage} disabled={saving} reviewCount={waitingCount} />}
+      <main className="isn-main itn-main">
+        {error && (
+          <div className="isn-alert" role="alert">
+            <p>{error}</p>
+            <button className="itn-see-all" type="button" disabled={saving} onClick={() => { changeId.current = null; setRetry((n) => n + 1); }}>Refresh workspace</button>
+          </div>
+        )}
+        {message && <p className="itn-message" role="status">{message}</p>}
+        {loading && !data ? (
+          <div className="isn-skeletons" role="status" aria-label="Opening your programme workspace"><span /><span /><span /></div>
+        ) : !data ? (
+          <section className="it-task isn-empty">
+            <span aria-hidden="true">🔒</span>
+            <div>
+              <h3>No school IELTS workspace is available.</h3>
+              <p>An active IELTS agreement and an authorized staff allocation are required. Your school administrator can assign a programme lead in School Administration → IELTS Programme.</p>
             </div>
-          )}
-          {section === "lessons" && (data.can_manage ? <React.Suspense fallback={<p role="status">Opening lessons…</p>}><Lessons key={data.school_id} schoolId={data.school_id} onClose={() => open("overview")} onAssign={() => open("assign")} onProgress={() => open("students")} /></React.Suspense> : <section className="sp-card"><p>Your programme lead prepares school lessons.</p></section>)}
-          {section === "assign" && (data.can_manage ? (
-            <IeltsAssignmentEntry onBack={() => open("overview")} onContinue={(scope) => openPractice(scope === "student" ? "targeted" : "school")} />
-          ) : <section className="sp-card"><p>Your programme lead manages IELTS assignments.</p></section>)}
-          {section === "reviews" && queue}
-          {section === "students" && planStudent && (
-            <React.Suspense
-              fallback={<p role="status">Opening learning plan…</p>}
-            >
-              <LearningPlanDesk
-                key={data.school_id + planStudent}
-                schoolId={data.school_id}
-                studentId={planStudent}
-                initialFocus={planFocus}
-                onClose={() => setPlanStudent(null)}
+          </section>
+        ) : (
+          <>
+            {!schoolId && schools.length > 1 && (
+              <label className="itn-school">
+                <span>School</span>
+                <select
+                  value={data.school_id}
+                  disabled={saving}
+                  onChange={(e) => {
+                    setSelected(e.target.value);
+                    setData(null);
+                    setPlanStudent(null);
+                    setOffset(0);
+                    setApplied("");
+                    setSearch("");
+                    setMessage("");
+                    setFeedback(null);
+                    changeId.current = null;
+                    const u = new URL(window.location.href);
+                    u.searchParams.set("school", e.target.value);
+                    window.history.replaceState({}, "", u.pathname + u.search);
+                  }}
+                >
+                  {schools.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </label>
+            )}
+            {head && !(section === "students" && planStudent) && (
+              <div className="isn-head itn-head">
+                <p className="isn-eyebrow">{head[0]}</p>
+                <h1>{head[1]}</h1>
+                <p className="isn-lead">{head[2]}</p>
+              </div>
+            )}
+            {section === "overview" && (
+              <IeltsTeacherToday
+                schoolName={school?.name}
+                canManage={data.can_manage}
+                waiting={waiting}
+                waitingCount={waitingCount}
+                feedback={data.can_manage ? feedback : []}
+                feedbackError={feedbackError}
+                practiceError={practiceError}
+                students={data.total_students}
+                onOpen={openFromToday}
+                onRetry={() => setRetry((n) => n + 1)}
+                extraTools={data.platform_owner ? (
+                  <IeltsCardGroup title="Platform content & analytics" count="2" defaultOpen={false}>
+                    <p className="isn-waiting">Content administration and marketing analytics are separate from school assessment evidence.</p>
+                    <div className="itn-links">
+                      <button type="button" onClick={() => navigate("/ielts/admin")}><strong>Content administration</strong><span>Materials, releases and reviews</span></button>
+                      <button type="button" onClick={() => navigate("/ielts/funnel")}><strong>Launch analytics</strong><span>Sign-ups and conversion</span></button>
+                    </div>
+                  </IeltsCardGroup>
+                ) : undefined}
               />
-            </React.Suspense>
-          )}
-          {section === "students" && !planStudent && (
-            <IeltsStudentProgress
-              data={data}
-              search={search}
-              applied={applied}
-              offset={offset}
-              loading={loading}
-              onSearchChange={setSearch}
-              onSearch={(value) => { setApplied(value); setOffset(0); }}
-              onPage={setOffset}
-              onOpenPlan={(studentId, focus) => {
-                setPlanFocus(focus);
-                setPlanStudent(studentId);
-              }}
-            />
-          )}
-          {section === "batches" && data.can_manage && <div className="ip-workspace-flow">{sectionHead("Course batches", "Group IELTS students across classes, see this week's practice and follow each student.")}<React.Suspense fallback={<p role="status">Opening course batches…</p>}><Batches key={data.school_id} schoolId={data.school_id} onAssign={() => { const u=new URL(window.location.href);u.searchParams.set("practice","school");window.history.replaceState({},"",u.pathname+u.search);open("practice"); }} /></React.Suspense></div>}
-          {section === "team" && (
-            <div className="ip-workspace-flow">{sectionHead("Programme team", "Who leads IELTS at your school and who can manage it.")}
+            )}
+            {section === "reviews" && reviews}
+            <div className="sp-page ip-page ip-embedded itn-legacy">
+              {section === "lessons" && (data.can_manage ? <React.Suspense fallback={<p role="status">Opening lessons…</p>}><Lessons key={data.school_id} schoolId={data.school_id} onClose={() => open("overview")} onAssign={() => open("assign")} onProgress={() => open("students")} /></React.Suspense> : <section className="sp-card"><p>Your programme lead prepares school lessons.</p></section>)}
+              {section === "assign" && (data.can_manage ? (
+                <IeltsAssignmentEntry onBack={() => open("overview")} onContinue={(scope) => openPractice(scope === "student" ? "targeted" : "school")} />
+              ) : <section className="sp-card"><p>Your programme lead manages IELTS assignments.</p></section>)}
+              {section === "students" && planStudent && (
+                <React.Suspense fallback={<p role="status">Opening learning plan…</p>}>
+                  <LearningPlanDesk key={data.school_id + planStudent} schoolId={data.school_id} studentId={planStudent} initialFocus={planFocus} onClose={() => setPlanStudent(null)} />
+                </React.Suspense>
+              )}
+              {section === "students" && !planStudent && (
+                <IeltsStudentProgress
+                  data={data}
+                  search={search}
+                  applied={applied}
+                  offset={offset}
+                  loading={loading}
+                  onSearchChange={setSearch}
+                  onSearch={(value) => { setApplied(value); setOffset(0); }}
+                  onPage={setOffset}
+                  onOpenPlan={(studentId, focus) => { setPlanFocus(focus); setPlanStudent(studentId); }}
+                />
+              )}
+              {section === "batches" && data.can_manage && <React.Suspense fallback={<p role="status">Opening course batches…</p>}><Batches key={data.school_id} schoolId={data.school_id} onAssign={() => { const u=new URL(window.location.href);u.searchParams.set("practice","school");window.history.replaceState({},"",u.pathname+u.search);open("practice"); }} /></React.Suspense>}
+              {section === "team" && (
             <section className="sp-card">
               <p className="sp-eyebrow">A clear owner for your programme</p>
               <h2>
@@ -581,12 +477,8 @@ export default function IeltsProgrammeWorkspace({
                 Teacher workspace: brainsheist.com/ielts/programme →
               </a>
             </section>
-            </div>
-          )}
-          {(section === "practice" || section === "exams") && (
-            <div className="ip-workspace-flow">
-              {section === "exams" && sectionHead("Exams", "Schedule, launch and monitor controlled IELTS exam sessions.")}
-              {data.can_manage ? (
+              )}
+              {(section === "practice" || section === "exams") && (data.can_manage ? (
                 <React.Suspense fallback={<p role="status">Opening teaching tools…</p>}>
                   {section === "practice" ? (
                     <SchoolAdminContext.Provider
@@ -599,27 +491,19 @@ export default function IeltsProgrammeWorkspace({
                         addToast: (msg: string) => setMessage(msg),
                       }}
                     >
-                      <PracticeDesk
-                        key={data.school_id}
-                        schoolId={data.school_id}
-                        onOpenReviews={() => open("reviews")}
-                      />
+                      <PracticeDesk key={data.school_id} schoolId={data.school_id} onOpenReviews={() => open("reviews")} />
                     </SchoolAdminContext.Provider>
                   ) : (
-                    <Exams
-                      key={data.school_id}
-                      embedded
-                      schoolIdOverride={data.school_id}
-                    />
+                    <Exams key={data.school_id} embedded schoolIdOverride={data.school_id} />
                   )}
                 </React.Suspense>
               ) : (
                 <section className="sp-card"><p>Your programme lead manages these school tools.</p></section>
-              )}
+              ))}
             </div>
-          )}
-        </>
-      )}
-    </main>
+          </>
+        )}
+      </main>
+    </div>
   );
 }
