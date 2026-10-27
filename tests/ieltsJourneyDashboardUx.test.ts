@@ -14,8 +14,8 @@ try {
 }
 
 test('uses valid assigned practice route and never links to nonexistent /ielts/assigned', () => {
-  assert.match(page, /navigate\('\/ielts\/practice\/assigned'\)/);
   assert.doesNotMatch(page, /\/ielts\/assigned/);
+  assert.doesNotMatch(page, /practice-heading/, 'school assignments live in the Assignments tab, not in Journey');
 });
 
 test('dashboard mode uses only canonical platform or delegated administration capability', () => {
@@ -46,7 +46,6 @@ test('tier lookup failure degrades only Prime access, not the whole dashboard', 
 
 test('next action avoids fake completion phrasing', () => {
   assert.doesNotMatch(page, /Next: All tasks complete/);
-  assert.match(page, /No active school assignments right now\./);
   assert.match(page, /Open a record to see its evidence/);
 });
 
@@ -58,12 +57,11 @@ test('light theme and verified readiness section are present', () => {
 });
 
 test('status labels are humanized and no raw in_progress token appears in UI copy', () => {
-  assert.match(page, /In progress/);
   assert.doesNotMatch(page, /Status:\s*\{item\.status\b/);
 });
 
 test('assignment cards show only actual assigned skills and no Not assigned rows', () => {
-  assert.match(page, /a\.skills\s*\.filter/);
+  assert.doesNotMatch(page, /assigned_practice\.map/, 'Journey no longer repeats the assignment list; the Assignments tab owns it');
   assert.doesNotMatch(page, /Not assigned/);
 });
 

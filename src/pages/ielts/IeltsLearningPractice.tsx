@@ -27,8 +27,9 @@ import {
 } from "../../../services/ieltsAudioCheckpoint";
 import LearningSpeakingRecorder from "../../components/ielts/LearningSpeakingRecorder";
 import "../../styles/ielts-learning.css";
-import IeltsSchoolLearnerLinks from "../../components/ielts/IeltsSchoolLearnerLinks";
-import { IeltsTargetedTaskCards } from "../../components/ielts/IeltsTargetedPractice";
+import IeltsStudentShell from "../../components/ielts/student/IeltsStudentShell";
+import { invalidateIeltsStudentWork, markFeedbackSeen } from "../../components/ielts/student/useIeltsStudentWork";
+import { IeltsTargetedGroups } from "../../components/ielts/IeltsTargetedPractice";
 import TargetedStepPlayer, { TargetedResultSteps } from "../../components/ielts/TargetedStepPlayer";
 const criterionLabels: Record<string, string> = {
   task_response: "Answering and developing the task",
@@ -183,6 +184,8 @@ export default function IeltsLearningPractice() {
       .then((d) => {
         if (!active) return;
         setDetail(d);
+        if (!d.manager) invalidateIeltsStudentWork();
+        if (!d.manager && d.review) markFeedbackSeen(d.id);
         current.current = d;
         if (d.manager) void loadTeacherContext(d.id);
         setAnswers(d.answers);
@@ -501,22 +504,14 @@ export default function IeltsLearningPractice() {
                 </button>
               </div>
   ) : null;
-  return (
-    <main className="il-shell">
-      <header>
-        <p className="il-eyebrow">BRAINS HEIST · PURPOSEFUL PRACTICE</p>
-        <h1>{ieltsMaterialTitle(detail?.display_code, detail?.title ?? "Targeted practice")}<IeltsMaterialProvenance label={detail?.originality_label}/></h1>
-        <Link to={detail?.manager ? teacherRoute : "/ielts/journey"}>{detail?.manager ? "← Review desk" : "← IELTS Journey"}</Link>
-        {detail?.manager && <p className="il-eyebrow">TEACHER REVIEW{teacherContext ? " · " + teacherContext.student_name : ""}</p>}
-      </header>
-      {!detail?.manager && <IeltsSchoolLearnerLinks onNavigate={navigate} active="targeted" />}
-      {!allocationId && <p>Short tasks chosen by your teacher. Start a task, continue saved work or read your feedback.</p>}
+  const inner = (
+    <>
       {error && (
         <p role="alert" className="il-alert">
           {error}
         </p>
       )}
-      {workspace && <IeltsTargetedTaskCards tasks={workspace.allocations} />}
+      {workspace && <IeltsTargetedGroups tasks={workspace.allocations} />}
       {detail && (
         <>
           {detail.manager ? (<>
@@ -983,6 +978,38 @@ export default function IeltsLearningPractice() {
         </>
       )}
       {!workspace && !detail && <p role="status">{message}</p>}
+    </>
+  );
+  const title = <>{ieltsMaterialTitle(detail?.display_code, detail?.title ?? "Targeted practice")}<IeltsMaterialProvenance label={detail?.originality_label}/></>;
+  if (detail && !detail.manager) {
+    return (
+      <IeltsStudentShell focus={{ label: "Targeted practice", to: "/ielts/practice/targeted" }}>
+        <div className="il-shell il-shell--student">
+          <header>
+            <p className="il-eyebrow">BRAINS HEIST · PURPOSEFUL PRACTICE</p>
+            <h1>{title}</h1>
+          </header>
+          {inner}
+        </div>
+      </IeltsStudentShell>
+    );
+  }
+  if (!allocationId) {
+    return (
+      <IeltsStudentShell active="targeted" eyebrow="Chosen for you" title="Targeted practice" lead="Short tasks your teacher picked for you. Start one, continue saved work or read your feedback.">
+        <div className="il-shell il-shell--student">{inner}</div>
+      </IeltsStudentShell>
+    );
+  }
+  return (
+    <main className="il-shell">
+      <header>
+        <p className="il-eyebrow">BRAINS HEIST · PURPOSEFUL PRACTICE</p>
+        <h1>{title}</h1>
+        {detail?.manager && <Link to={teacherRoute}>← Review desk</Link>}
+        {detail?.manager && <p className="il-eyebrow">TEACHER REVIEW{teacherContext ? " · " + teacherContext.student_name : ""}</p>}
+      </header>
+      {inner}
     </main>
   );
 }

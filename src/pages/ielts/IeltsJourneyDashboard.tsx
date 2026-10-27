@@ -8,6 +8,7 @@ import { rpcIeltsSchoolStudentSnapshot, type IeltsSchoolStudentSnapshot } from '
 import { getUserTier, isIeltsPrime, updateIeltsTargetBand } from '../../../services/ieltsService';
 import { resolveMySchoolCapabilities } from '../../../services/schoolAdminService';
 import IeltsStudentJourney from './components/IeltsStudentJourney';
+import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell';
 import { fetchIeltsStartingPoint, type IeltsStartingPoint } from '../../../services/ieltsStartingPointService';
 import IeltsSchoolStudentProgressModal from './components/IeltsSchoolStudentProgressModal';
 import { friendlyIeltsAdminError } from '../../lib/schoolAdminPresentation';
@@ -179,12 +180,12 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
     return () => ctx.revert();
   }, [loadState, mode]);
 
-  return (
-    <div ref={rootRef} className="bh-ielts-page bh-ielts-journey" style={{ minHeight: embedded ? 'auto' : '100vh', background: '#f8fafc', color: '#0f172a', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <div style={{ maxWidth: embedded ? '100%' : '1120px', margin: '0 auto', padding: embedded ? '1rem' : '1.25rem 1rem 4rem', display: 'grid', gap: '1rem' }}>
+  const page = (
+    <div ref={rootRef} className="bh-ielts-page bh-ielts-journey" style={{ minHeight: embedded || mode === 'student' ? 'auto' : '100vh', background: mode === 'student' && !embedded ? 'transparent' : '#f8fafc', color: '#0f172a', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <div style={{ maxWidth: embedded ? '100%' : '1120px', margin: '0 auto', padding: embedded ? '1rem' : mode === 'student' ? '0' : '1.25rem 1rem 4rem', display: 'grid', gap: '1rem' }}>
 
         {/* Back button */}
-        {!embedded && (
+        {!embedded && mode !== 'student' && (
           <button
             type="button"
             onClick={() => navigate('/ielts')}
@@ -195,7 +196,7 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
         )}
 
         {/* Page header */}
-        <header data-anim="header" hidden={loadState === 'ready' && mode === 'student'} style={{ padding: '0.25rem 0' }}>
+        <header data-anim="header" hidden={mode === 'student'} style={{ padding: '0.25rem 0' }}>
           <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>{embedded ? 'Student IELTS Progress' : 'My IELTS Journey'}</h1>
           <p style={{ margin: '0.35rem 0 0', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.82rem' }}>{embedded ? 'Review assignments, results, readiness, and feedback for this school.' : 'Track assignments, results, and reviewed feedback.'}</p>
         </header>
@@ -321,6 +322,10 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
       />
     </div>
   );
+  if (!embedded && mode === 'student') {
+    return <IeltsStudentShell active="journey" eyebrow="Your record" title="My journey" lead="Starting checks, teacher feedback and everything you have saved.">{page}</IeltsStudentShell>;
+  }
+  return page;
 };
 
 export default IeltsJourneyDashboard;
