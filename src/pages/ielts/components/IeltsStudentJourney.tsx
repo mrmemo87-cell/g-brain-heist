@@ -13,8 +13,8 @@ import { IELTS_WRITING_CRITERIA } from '../../../../services/ieltsWritingScreene
 import { SPEAKING_CRITERIA } from '../../../../services/ieltsSpeakingPilot';
 import IeltsScreenerHub from '../../../components/ielts/IeltsScreenerHub';
 import IeltsSkillIcon from '../../../components/ielts/IeltsSkillIcon';
+import { IeltsCardGroup } from '../../../components/ielts/student/IeltsStudentShell';
 import '../../../styles/ielts-journey.css';
-import IeltsSchoolLearnerLinks from '../../../components/ielts/IeltsSchoolLearnerLinks';
 const IeltsStudentLearningPlan = React.lazy(() => import('./IeltsStudentLearningPlan'));
 const title = (s: string) => s[0].toUpperCase() + s.slice(1);
 const date = (v?: string | null) =>
@@ -89,11 +89,11 @@ export default function IeltsStudentJourney({
       <header className="ij-hero">
         <div>
           <p className="ij-eyebrow">Brains Heist · Your learning journey</p>
-          <h1>
+          <h2 className="ij-hero-title">
             {completed === 4
               ? 'Your starting point is in.'
               : 'Build your IELTS starting point.'}
-          </h1>
+          </h2>
           <p>
             {startingPoint.student_name
               ? `${startingPoint.student_name}, `
@@ -125,7 +125,6 @@ export default function IeltsStudentJourney({
           <small>{reviews.length} of 2 teacher reviews shared</small>
         </div>
       </header>
-      <IeltsSchoolLearnerLinks onNavigate={navigate} active="journey" />
       <section className="ij-next" aria-labelledby="next-step-heading">
         <div>
           <p className="ij-eyebrow">Your next step</p>
@@ -141,58 +140,9 @@ export default function IeltsStudentJourney({
           <span aria-hidden="true"> →</span>
         </button>
       </section>
-      <IeltsScreenerHub data={startingPoint} />
-      <section className="ij-band ij-panel" aria-labelledby="band-heading">
-        <div className="ij-section-heading">
-          <div>
-            <p className="ij-eyebrow">From starting point to fuller evidence</p>
-            <h2 id="band-heading">What about my estimated band?</h2>
-          </div>
-          <span className="ij-status">More evidence needed</span>
-        </div>
-        <p>
-          You have useful starting-point evidence. We cannot give a reliable
-          overall band from these checks yet.
-        </p>
-        <details>
-          <summary>What is needed for a band estimate?</summary>
-          <ul>
-            <li>
-              <strong>Listening and Reading:</strong> fuller reviewed tests with
-              a validated score-to-band method. These 12-question checks are not
-              calibrated for a band.
-            </li>
-            <li>
-              <strong>Writing:</strong> reviewed Task 1 and Task 2 work. This
-              screener covers one Task 2 essay.
-            </li>
-            <li>
-              <strong>Speaking:</strong> recorded, reviewed work rated through a
-              validated readiness method. The current interview gives teacher
-              observations.
-            </li>
-          </ul>
-          <p>
-            Your teacher can help plan the next assessments. Any future estimate
-            must show its evidence and confidence; it will not be an official
-            IELTS result.
-          </p>
-        </details>
-        <div className="ij-goal">
-          <span>
-            <strong>Your goal:</strong>{' '}
-            {journey.target_band != null
-              ? `Band ${journey.target_band.toFixed(1)}`
-              : 'Agree a target with your teacher'}
-            <small>A target is a goal, not your current level.</small>
-          </span>
-          {onSetTargetBand && (
-            <button type="button" className="ij-link" onClick={onSetTargetBand}>
-              Set target band
-            </button>
-          )}
-        </div>
-      </section>
+      <IeltsCardGroup id="checks" title="Starting checks" count={`${completed} of 4`} tone={completed === 4 ? 'done' : 'todo'} defaultOpen={completed < 4}>
+        <IeltsScreenerHub data={startingPoint} />
+      </IeltsCardGroup>
       <section
         id="teacher-feedback"
         aria-labelledby="teacher-feedback-heading"
@@ -307,69 +257,21 @@ export default function IeltsStudentJourney({
         )}
       </section>
       {startingPoint.school_managed && <React.Suspense fallback={<p>Opening learning plans…</p>}><IeltsStudentLearningPlan /></React.Suspense>}
-      <section aria-labelledby="practice-heading" className="ij-panel">
-        <div className="ij-section-heading">
+      <details aria-labelledby="learning-trail-heading" className="ij-panel isn-fold">
+        <summary className="ij-section-heading">
           <div>
-            <p className="ij-eyebrow">Purposeful practice</p>
-            <h2 id="practice-heading">School assignments</h2>
+            <p className="ij-eyebrow">Your work stays connected</p>
+            <h2 id="learning-trail-heading">Your learning trail</h2>
           </div>
-          <button
-            type="button"
-            className="ij-link"
-            onClick={() => navigate('/ielts/practice/assigned')}
-          >
-            Open assignments →
-          </button>
-        </div>
-        {journey.assigned_practice.length ? (
-          journey.assigned_practice.map((a) => (
-            <article className="ij-assignment" key={a.assignment_id}>
-              <div>
-                <h3>{a.title}</h3>
-                <p>
-                  {a.started_at ? 'In progress' : 'Assigned'}
-                  {a.skills?.length
-                    ? ` · ${a.skills
-                        .filter((s) =>
-                          startingPointSkills.includes(s as StartingPointSkill),
-                        )
-                        .map(title)
-                        .join(', ')}`
-                    : ''}
-                  {a.due_at ? ` · Due ${date(a.due_at)}` : ''}
-                </p>
-              </div>
-              <button
-                type="button"
-                className="ij-link"
-                onClick={() => navigate('/ielts/practice/assigned')}
-              >
-                {a.started_at ? 'Continue task' : 'Open task'}
-              </button>
-            </article>
-          ))
-        ) : (
-          <p>
-            {startingPoint.school_managed
-              ? 'No active school assignments right now. Finished assignments and their results stay in Assignments.'
-              : 'No assigned tasks yet. Use the teacher’s next step as a practice focus.'}
-          </p>
-        )}
-        <p className="ij-caption">
-          Completing practice records your work. A fresh, comparable task is
-          needed to check improvement.
-        </p>
-      </section>
-      <section aria-labelledby="learning-trail-heading" className="ij-panel">
-        <p className="ij-eyebrow">Your work stays connected</p>
-        <h2 id="learning-trail-heading">Your learning trail</h2>
+          <span className="ij-status">{trail.length} {trail.length === 1 ? 'record' : 'records'}</span>
+        </summary>
         <p>
           Saved checks, shared feedback and completed practice. Open a record to
           see its evidence.
         </p>
-        {trail.length ? (
+        {trail.length ? (<>
           <ol className="ij-trail">
-            {trail.map((t) => (
+            {trail.slice(0, 4).map((t) => (
               <li key={t.key}>
                 <IeltsSkillIcon skill={t.skill as StartingPointSkill} />
                 <div>
@@ -388,7 +290,25 @@ export default function IeltsStudentJourney({
               </li>
             ))}
           </ol>
-        ) : (
+          {trail.length > 4 && (
+            <details>
+              <summary>Show {trail.length - 4} older {trail.length - 4 === 1 ? 'record' : 'records'}</summary>
+              <ol className="ij-trail">
+                {trail.slice(4).map((t) => (
+                  <li key={t.key}>
+                    <IeltsSkillIcon skill={t.skill as StartingPointSkill} />
+                    <div>
+                      <strong>{title(t.skill)}</strong>
+                      <p>{t.label}</p>
+                      <time dateTime={t.occurred}>{date(t.occurred)}</time>
+                    </div>
+                    <button type="button" className="ij-link" aria-label={`Open ${t.skill} ${t.label}`} onClick={() => navigate(t.route)}>View record</button>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          )}
+        </>) : (
           <p>Your first saved check will start your learning trail.</p>
         )}
         {journey.completed_practice.length > 0 && (
@@ -471,7 +391,58 @@ export default function IeltsStudentJourney({
             shows what was observed in that task.
           </p>
         </details>
-      </section>
+      </details>
+      <details className="ij-band ij-panel isn-fold" aria-labelledby="band-heading">
+        <summary className="ij-section-heading">
+          <div>
+            <p className="ij-eyebrow">From starting point to fuller evidence</p>
+            <h2 id="band-heading">What about my estimated band?</h2>
+          </div>
+          <span className="ij-status">More evidence needed</span>
+        </summary>
+        <p>
+          You have useful starting-point evidence. We cannot give a reliable
+          overall band from these checks yet.
+        </p>
+        <details>
+          <summary>What is needed for a band estimate?</summary>
+          <ul>
+            <li>
+              <strong>Listening and Reading:</strong> fuller reviewed tests with
+              a validated score-to-band method. These 12-question checks are not
+              calibrated for a band.
+            </li>
+            <li>
+              <strong>Writing:</strong> reviewed Task 1 and Task 2 work. This
+              screener covers one Task 2 essay.
+            </li>
+            <li>
+              <strong>Speaking:</strong> recorded, reviewed work rated through a
+              validated readiness method. The current interview gives teacher
+              observations.
+            </li>
+          </ul>
+          <p>
+            Your teacher can help plan the next assessments. Any future estimate
+            must show its evidence and confidence; it will not be an official
+            IELTS result.
+          </p>
+        </details>
+        <div className="ij-goal">
+          <span>
+            <strong>Your goal:</strong>{' '}
+            {journey.target_band != null
+              ? `Band ${journey.target_band.toFixed(1)}`
+              : 'Agree a target with your teacher'}
+            <small>A target is a goal, not your current level.</small>
+          </span>
+          {onSetTargetBand && (
+            <button type="button" className="ij-link" onClick={onSetTargetBand}>
+              Set target band
+            </button>
+          )}
+        </div>
+      </details>
     </div>
   );
 }

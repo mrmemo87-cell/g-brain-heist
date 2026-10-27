@@ -76,7 +76,7 @@
     radial-gradient(ellipse at top right, #30618a, transparent 70%),
     linear-gradient(135deg, #14213e, #1d3e6b);
 }
-.ij-student .ij-hero h1 {
+.ij-student .ij-hero h1, .ij-student .ij-hero .ij-hero-title {
   color: #fff;
 }
 .ij-student .ij-hero p {

@@ -17,7 +17,8 @@ import {
   getAssignmentItemVisualStatus,
   getAssignmentProgressSummaryFromAssignment,
 } from '../../../services/ieltsAssignmentUx';
-import IeltsSchoolLearnerLinks from '../../components/ielts/IeltsSchoolLearnerLinks';
+import IeltsStudentShell, { IeltsCardGroup } from '../../components/ielts/student/IeltsStudentShell';
+import { invalidateIeltsStudentWork } from '../../components/ielts/student/useIeltsStudentWork';
 import { AssignmentItemStatusBadge, AssignmentProgressBar } from './assignmentPracticeUi';
 
 type AssignmentLoadState = 'loading' | 'ready' | 'error';
@@ -183,6 +184,7 @@ const IeltsAssignedPractice: React.FC = () => {
       }
       const progress = await rpcIeltsPracticeMarkItemStarted({ assignmentId: assignment.id, assignmentItemId: item.id });
       setAssignmentProgressById((current) => ({ ...current, [assignment.id]: progress }));
+      invalidateIeltsStudentWork();
       navigate(assignedRoute);
     } catch (startError) {
       setError(startError instanceof Error ? startError.message : 'Unable to mark assignment item as started.');
@@ -197,63 +199,7 @@ const IeltsAssignedPractice: React.FC = () => {
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   }), [assignments]);
 
-  return (
-    <div data-testid="ielts-assigned-practice-page" className="bh-ielts-page bh-ielts-assignments" style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a', padding: '1rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
-
-        {/* Back */}
-        <button
-          type="button"
-          onClick={() => navigate('/ielts')}
-          style={{ marginBottom: '1rem', color: 'var(--bh-ielts-primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem', padding: '0.25rem 0' }}
-        >
-          ← Back to IELTS Home
-        </button>
-
-        <IeltsSchoolLearnerLinks onNavigate={navigate} active="assigned" />
-        {/* Header */}
-        <header style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.25rem', marginBottom: '1rem', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <p style={{ margin: '0 0 0.35rem', color: 'var(--bh-ielts-primary)', textTransform: 'uppercase', letterSpacing: '0.16em', fontSize: '0.65rem', fontWeight: 700 }}>FROM YOUR TEACHERS</p>
-          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>Assignments</h1>
-          <p style={{ margin: '0.5rem 0 0', color: 'var(--bh-ielts-foreground-muted)', lineHeight: 1.6, fontSize: '0.82rem' }}>
-            Practice sets from your teachers. Open a set to see its tasks, results and feedback. Assignments complete automatically after all required items are finished. Short single tasks are in Targeted practice.
-          </p>
-        </header>
-
-        {/* Error */}
-        {error && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '0.875rem', borderRadius: '0.75rem', marginBottom: '1rem', fontSize: '0.875rem' }}>
-            {error}
-          </div>
-        )}
-
-        {/* Loading */}
-        {loadState === 'loading' && (
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1rem', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.875rem' }}>
-            Loading assigned IELTS practice…
-          </div>
-        )}
-
-        {/* Load error */}
-        {loadState === 'error' && (
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1rem' }}>
-            <p style={{ margin: '0 0 0.75rem', color: 'var(--bh-ielts-foreground-muted)' }}>We could not load your assigned practice.</p>
-            <button type="button" onClick={() => void loadAssignments()} style={{ background: 'var(--bh-ielts-primary)', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.55rem 1rem', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem' }}>
-              Try again
-            </button>
-          </div>
-        )}
-
-        {/* Empty */}
-        {loadState === 'ready' && sortedAssignments.length === 0 && (
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1.25rem', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.875rem', lineHeight: 1.6 }}>
-            <p>No school assignment sets right now. Your teacher may have assigned a focused task in Targeted Practice.</p>
-            <button type="button" className="ij-link" onClick={() => navigate('/ielts/practice/targeted')}>Open Targeted Practice →</button>
-          </div>
-        )}
-
-        {/* Assignment cards */}
-        {loadState === 'ready' && sortedAssignments.map((assignment) => {
+  const renderAssignment = (assignment: IeltsPracticeStudentAssignment) => {
           const assignmentProgress = assignmentProgressById[assignment.id] ?? null;
           const normalizedItems = (assignment.items && assignment.items.length > 0)
             ? assignment.items
@@ -290,13 +236,13 @@ const IeltsAssignedPractice: React.FC = () => {
                   : { bg: '#ede9fe', color: '#5b21b6', border: '#c4b5fd' };
 
           return (
-            <article key={assignment.id} data-testid={`ielts-assigned-assignment-${assignment.id}`} style={{ background: '#ffffff', border: `1px solid ${isOverdue ? '#fca5a5' : '#e2e8f0'}`, borderRadius: '1rem', padding: '1rem', marginBottom: '1rem', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <article key={assignment.id} data-testid={`ielts-assigned-assignment-${assignment.id}`} className={'isn-set' + (isOverdue ? ' is-overdue' : '') + (assignment.student_status === 'completed' ? ' is-done' : '')}>
 
               {/* Assignment header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1 }}>
                   <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>{assignment.title}</h2>
-                  {studentDescription(assignment.description) && <p style={{ margin: '0.35rem 0 0', color: 'var(--bh-ielts-foreground-muted)', lineHeight: 1.5, fontSize: '0.875rem' }}>{studentDescription(assignment.description)}</p>}
+                  {studentDescription(assignment.description) && <p className="isn-clamp" style={{ margin: '0.35rem 0 0', color: 'var(--bh-ielts-foreground-muted)', lineHeight: 1.5, fontSize: '0.875rem' }}>{studentDescription(assignment.description)}</p>}
                 </div>
                 <span style={{ background: lightBadge.bg, color: lightBadge.color, border: `1px solid ${lightBadge.border}`, borderRadius: '9999px', padding: '0.3rem 0.7rem', fontSize: '0.68rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
                   {badge.label}
@@ -441,16 +387,63 @@ const IeltsAssignedPractice: React.FC = () => {
                 <div data-testid={`ielts-assigned-closed-read-only-${assignment.id}`} style={{ marginTop: '0.85rem', border: '1px solid #fcd34d', background: '#fef9c3', color: '#92400e', borderRadius: '0.65rem', padding: '0.75rem', fontSize: '0.8rem', fontWeight: 700 }}>
                   Closed assignments are read-only. Your progress is preserved, but no new submissions are available.
                 </div>
-              ) : assignment.student_status !== 'completed' && (
-                <div style={{ marginTop: '0.85rem', border: '1px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', borderRadius: '0.65rem', padding: '0.75rem', fontSize: '0.8rem', fontWeight: 700 }}>
+              ) : assignment.student_status !== 'completed' && isExpanded && (
+                <p style={{ margin: '0.75rem 0 0', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.78rem' }}>
                   Assignment completes automatically after all required items are finished.
-                </div>
+                </p>
               )}
             </article>
           );
-        })}
+  };
+  const todoSets = sortedAssignments.filter(a => a.student_status !== 'completed' && a.status !== 'closed');
+  const closedSets = sortedAssignments.filter(a => a.student_status !== 'completed' && a.status === 'closed');
+  const doneSets = sortedAssignments.filter(a => a.student_status === 'completed');
+
+  return (
+    <IeltsStudentShell active="assigned" eyebrow="From your teachers" title="Assignments" lead="Practice sets from your teachers. Open a set to see its tasks, results and feedback. Assignments complete automatically after all required items are finished.">
+      <div data-testid="ielts-assigned-practice-page" className="bh-ielts-page bh-ielts-assignments isn-assignments">
+        {/* Error */}
+        {error && (
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '0.875rem', borderRadius: '0.75rem', marginBottom: '1rem', fontSize: '0.875rem' }}>
+            {error}
+          </div>
+        )}
+
+        {/* Loading */}
+        {loadState === 'loading' && (
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1rem', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.875rem' }}>
+            Loading assigned IELTS practice…
+          </div>
+        )}
+
+        {/* Load error */}
+        {loadState === 'error' && (
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1rem' }}>
+            <p style={{ margin: '0 0 0.75rem', color: 'var(--bh-ielts-foreground-muted)' }}>We could not load your assigned practice.</p>
+            <button type="button" onClick={() => void loadAssignments()} style={{ background: 'var(--bh-ielts-primary)', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.55rem 1rem', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem' }}>
+              Try again
+            </button>
+          </div>
+        )}
+
+        {/* Empty */}
+        {loadState === 'ready' && sortedAssignments.length === 0 && (
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1.25rem', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.875rem', lineHeight: 1.6 }}>
+            <p style={{ margin: 0 }}><span aria-hidden="true">📋 </span>No school assignment sets right now. Your teacher may have assigned a focused task in Targeted Practice.</p>
+            <button type="button" className="ij-link" onClick={() => navigate('/ielts/practice/targeted')}>Open Targeted Practice →</button>
+          </div>
+        )}
+
+        {loadState === 'ready' && sortedAssignments.length > 0 && (
+          <div className="isn-groups">
+            {todoSets.length > 0 && <IeltsCardGroup title="To do" count={todoSets.length} tone="todo">{todoSets.map(renderAssignment)}</IeltsCardGroup>}
+            {todoSets.length === 0 && <p className="isn-waiting"><span aria-hidden="true">✓</span> No open assignments right now.</p>}
+            {doneSets.length > 0 && <IeltsCardGroup title="Finished · results and feedback" count={doneSets.length} tone="done" defaultOpen={false}>{doneSets.map(renderAssignment)}</IeltsCardGroup>}
+            {closedSets.length > 0 && <IeltsCardGroup title="Closed" count={closedSets.length} tone="waiting" defaultOpen={false}>{closedSets.map(renderAssignment)}</IeltsCardGroup>}
+          </div>
+        )}
       </div>
-    </div>
+    </IeltsStudentShell>
   );
 
 };
