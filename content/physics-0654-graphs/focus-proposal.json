@@ -1,0 +1,83 @@
+[
+  {
+    "code": "science.physics.motion-forces.motion.focus.motion-state-from-graph-shape",
+    "subskillCode": "science.physics.motion-forces.motion",
+    "name": "Identify motion states from the shape of a motion graph",
+    "description": "Evidence that the learner can identify motion states from the shape of a motion graph.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.motion-forces.motion.focus.speed-from-distance-time-gradient",
+    "subskillCode": "science.physics.motion-forces.motion",
+    "name": "Calculate speed from the gradient of a distance-time graph",
+    "description": "Evidence that the learner can calculate speed from the gradient of a distance-time graph.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.motion-forces.motion.focus.average-speed-whole-journey",
+    "subskillCode": "science.physics.motion-forces.motion",
+    "name": "Calculate average speed for a whole journey including stops",
+    "description": "Evidence that the learner can calculate average speed for a whole journey including stops.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.motion-forces.motion.focus.distance-from-speed-time-area",
+    "subskillCode": "science.physics.motion-forces.motion",
+    "name": "Calculate distance from the area under a speed-time graph",
+    "description": "Evidence that the learner can calculate distance from the area under a speed-time graph.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.motion-forces.motion.focus.acceleration-from-speed-time-gradient",
+    "subskillCode": "science.physics.motion-forces.motion",
+    "name": "Calculate acceleration from the gradient of a speed-time graph",
+    "description": "Evidence that the learner can calculate acceleration from the gradient of a speed-time graph.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.motion-forces.motion.focus.deceleration-as-negative-acceleration",
+    "subskillCode": "science.physics.motion-forces.motion",
+    "name": "Express deceleration as a negative acceleration from a graph",
+    "description": "Evidence that the learner can express deceleration as a negative acceleration from a graph.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.motion-forces.motion.focus.changing-acceleration-from-curve",
+    "subskillCode": "science.physics.motion-forces.motion",
+    "name": "Interpret a curved speed-time graph as changing acceleration",
+    "description": "Evidence that the learner can interpret a curved speed-time graph as changing acceleration.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.motion-forces.forces.focus.spring-constant-from-load-extension-graph",
+    "subskillCode": "science.physics.motion-forces.forces",
+    "name": "Calculate a spring constant from a load-extension graph",
+    "description": "Evidence that the learner can calculate a spring constant from a load-extension graph.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.motion-forces.forces.focus.limit-of-proportionality-on-graph",
+    "subskillCode": "science.physics.motion-forces.forces",
+    "name": "Identify the limit of proportionality on a load-extension graph",
+    "description": "Evidence that the learner can identify the limit of proportionality on a load-extension graph.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  }
+]
