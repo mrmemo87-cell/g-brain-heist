@@ -20,10 +20,26 @@ begin
   end if;
 end $$;
 
+drop trigger if exists push_rivalry_war on public.rivalry_wars;
+drop trigger if exists push_clan_buff on public.clan_buffs;
+drop trigger if exists push_clan_join_request on public.clan_join_requests;
+drop trigger if exists push_clan_chat on public.clan_chat;
+drop function if exists private.trg_push_rivalry_war();
+drop function if exists private.push_rivalry_war(uuid, uuid, uuid, text, text, uuid, timestamptz);
+drop function if exists private.trg_push_clan_buff();
+drop function if exists private.push_clan_buff(uuid, uuid, uuid, uuid, timestamptz);
+drop function if exists private.trg_push_clan_join_request();
+drop function if exists private.push_clan_join_request(uuid, uuid, uuid, text, text, timestamptz);
+drop function if exists private.trg_push_clan_chat();
+drop function if exists private.push_clan_chat(uuid, uuid, text, timestamptz);
+drop function if exists private.clan_recipients(uuid, text[], uuid);
+drop function if exists private.player_label(uuid);
+drop function if exists private.clan_label(uuid);
 drop trigger if exists push_pvp_defence on public.pvp_attack_attempts;
 drop function if exists private.trg_push_pvp_defence();
 drop function if exists private.push_pvp_defence(uuid, uuid, jsonb, timestamptz);
 drop function if exists public.rpc_enqueue_streak_push_reminders(timestamptz);
+drop function if exists private.game_push_bucket_key(text, uuid, timestamptz, integer);
 drop function if exists private.enqueue_game_push(uuid, text, text, text, text, text, jsonb, timestamptz);
 drop function if exists private.game_push_available_at(timestamptz);
 drop table if exists public.push_preferences;

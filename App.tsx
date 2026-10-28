@@ -1073,9 +1073,11 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
         setAppMode('player');
         if (hasParentAccess) setView(profileData.role === 'student' && profileData.school_id ? 'workspace_chooser' : 'parent');
         if (!hasParentAccess && profileData.role === 'student' && !profileData.required_changes?.username && !profileData.required_changes?.avatar && new URLSearchParams(window.location.search).get('view') === 'commander') setView('commander');
-        // Push notification deep link (PvP defence alerts open the PvP screen once, then the URL is cleaned).
-        if (!hasParentAccess && profileData.role === 'student' && !profileData.required_changes?.username && !profileData.required_changes?.avatar && new URLSearchParams(window.location.search).get('view') === 'pvp') {
-          setView('pvp');
+        // Push notification deep links (PvP, clan, rivalry) open that screen once, then the URL is cleaned.
+        const pushDeepLinkView = new URLSearchParams(window.location.search).get('view');
+        if (!hasParentAccess && profileData.role === 'student' && !profileData.required_changes?.username && !profileData.required_changes?.avatar
+          && (pushDeepLinkView === 'pvp' || pushDeepLinkView === 'clan' || pushDeepLinkView === 'rivalry')) {
+          setView(pushDeepLinkView);
           try { const url = new URL(window.location.href); url.searchParams.delete('view'); window.history.replaceState({}, '', url); } catch { /* ignore */ }
         }
         loadCachedData();

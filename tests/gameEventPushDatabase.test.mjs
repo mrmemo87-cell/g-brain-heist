@@ -20,6 +20,13 @@ create table public.assignments(id uuid primary key default gen_random_uuid(), t
 create table public.student_assignments(id uuid primary key default gen_random_uuid(), assignment_id uuid, student_id uuid,
   status text default 'pending', due_at timestamptz);
 create table public.pvp_attack_attempts(request_id uuid primary key default gen_random_uuid(), attacker_id uuid, defender_id uuid, response jsonb, created_at timestamptz default now());
+create table public.clans(id uuid primary key default gen_random_uuid(), name text);
+create table public.clan_members(id uuid primary key default gen_random_uuid(), clan_id uuid, user_id uuid, role text, unique(clan_id, user_id));
+create table public.clan_chat(id uuid primary key default gen_random_uuid(), clan_id uuid, user_id uuid, username text, message text, created_at timestamptz default now());
+create table public.clan_join_requests(id uuid primary key default gen_random_uuid(), clan_id uuid, user_id uuid, status text default 'pending');
+create table public.clan_buff_templates(id uuid primary key default gen_random_uuid(), name text, duration_minutes integer);
+create table public.clan_buffs(id uuid primary key default gen_random_uuid(), clan_id uuid, template_id uuid, activated_by uuid);
+create table public.rivalry_wars(id uuid primary key default gen_random_uuid(), attacker_clan_id uuid, defender_clan_id uuid, status text, winner_clan_id uuid);
 create table public.daily_streak_rewards(user_id uuid, reward_date date, streak integer, coins_awarded integer default 100, created_at timestamptz default now(), primary key(user_id, reward_date));
 insert into auth.users values ('${ATTACKER}'),('${DEFENDER}'),('${NO_DEVICE}'),('${OPTED_OUT}'),('${STREAKER}'),('${TEACHER}');
 insert into public.users values ('${ATTACKER}','Aidai'),('${DEFENDER}','Bek'),('${NO_DEVICE}','Nurlan'),('${OPTED_OUT}','Ruslan'),('${STREAKER}','Zara'),('${TEACHER}','Jess');
@@ -124,4 +131,56 @@ test('assignment notifications still fire when the publisher cannot see student 
   try { await db.query(`update public.assignments set publish_status='published' where id=$1`, [a.id]); }
   finally { await db.exec('reset role'); }
   assert.equal((await rows(`event_type='assignment_published' and payload->>'title'='Quiz'`)).length, 1);
+});
+
+test('clans: chat, join requests, power-ups and wars reach the right members, never the actor, chat throttled', async () => {
+  const LEADER = DEFENDER, OFFICER = STREAKER, MEMBER = OPTED_OUT, JOINER = ATTACKER, RIVAL_LEAD = NO_DEVICE;
+  await db.exec(`insert into public.push_preferences(user_id, game_events) values ('${MEMBER}', true) on conflict (user_id) do update set game_events = true;
+    update public.push_preferences set game_events = true where user_id = '${LEADER}';
+    insert into public.push_subscriptions(user_id, endpoint, p256dh, auth) values ('${JOINER}','https://push.example/j','k','a'),('${RIVAL_LEAD}','https://push.example/r','k','a');`);
+  const home = (await db.query(`insert into public.clans(name) values ('Night Owls') returning id`)).rows[0].id;
+  const rival = (await db.query(`insert into public.clans(name) values ('Red Foxes') returning id`)).rows[0].id;
+  await db.query(`insert into public.clan_members(clan_id, user_id, role) values ($1,$3,'leader'),($1,$4,'officer'),($1,$5,'member'),($2,$6,'leader')`,
+    [home, rival, LEADER, OFFICER, MEMBER, RIVAL_LEAD]);
+  const ev = async (type) => (await rows(`event_type='${type}'`)).map((r) => [r.user_id, r.title, r.body]);
+
+  await db.query(`insert into public.clan_chat(clan_id, user_id, message) values ($1,$2,'Raid at 5?'),($1,$2,'second message same half hour')`, [home, MEMBER]);
+  const chat = await ev('clan_chat');
+  assert.deepEqual(chat.map((c) => c[0]).sort(), [LEADER, OFFICER].sort(), 'everyone but the sender, once each');
+  assert.deepEqual(chat[0].slice(1), ['💬 Night Owls', 'Ruslan: Raid at 5?']);
+
+  const { rows: [req] } = await db.query(`insert into public.clan_join_requests(clan_id, user_id) values ($1,$2) returning id`, [home, JOINER]);
+  assert.deepEqual((await ev('clan_join_request')).map((c) => c[0]).sort(), [LEADER, OFFICER].sort(), 'leader and officers only');
+  await db.query(`update public.clan_join_requests set status='approved' where id=$1`, [req.id]);
+  await db.query(`update public.clan_join_requests set status='approved' where id=$1`, [req.id]);
+  assert.deepEqual(await ev('clan_join_answer'), [[JOINER, '✅ Welcome to Night Owls', 'Your request was approved. Say hi in clan chat!']]);
+
+  const { rows: [tpl] } = await db.query(`insert into public.clan_buff_templates(name, duration_minutes) values ('Double Coins', 60) returning id`);
+  await db.query(`insert into public.clan_buffs(clan_id, template_id, activated_by) values ($1,$2,$3)`, [home, tpl.id, LEADER]);
+  const buffs = await ev('clan_buff');
+  assert.deepEqual(buffs.map((b) => b[0]).sort(), [OFFICER, MEMBER].sort(), 'not the player who bought it');
+  assert.equal(buffs[0][2], 'Bek powered up Night Owls for 60 minutes.');
+
+  const { rows: [war] } = await db.query(`insert into public.rivalry_wars(attacker_clan_id, defender_clan_id, status) values ($1,$2,'pending_response') returning id`, [home, rival]);
+  assert.deepEqual(await ev('rivalry_war'), [[RIVAL_LEAD, '⚔️ Night Owls declared war', 'Accept or decline the challenge in Rivalry.']]);
+  await db.query(`update public.rivalry_wars set status='prep' where id=$1`, [war.id]);
+  await db.query(`update public.rivalry_wars set status='live' where id=$1`, [war.id]);
+  await db.query(`update public.rivalry_wars set status='settled', winner_clan_id=$2 where id=$1`, [war.id, home]);
+  const wars = await ev('rivalry_war');
+  assert.ok(wars.some(([u, t]) => u === LEADER && t === '⚔️ Challenge accepted'));
+  assert.equal(wars.filter(([, t]) => t === '🔥 War is live').length, 4, 'everyone in both clans');
+  assert.ok(wars.some(([u, t]) => u === MEMBER && t === '🏆 Your clan won the war'));
+  assert.ok(wars.some(([u, t, b]) => u === RIVAL_LEAD && t === 'War over' && b === 'Night Owls won this time. Check your rewards.'));
+});
+
+test('clan writes still succeed if the push queue is broken', async () => {
+  const { rows: [c] } = await db.query(`select id from public.clans limit 1`);
+  await db.exec('alter table public.push_notification_outbox rename to push_notification_outbox_off');
+  try {
+    await db.query(`insert into public.clan_chat(clan_id, user_id, message) values ($1,$2,'still works')`, [c.id, DEFENDER]);
+    await db.query(`insert into public.clan_join_requests(clan_id, user_id) values ($1,$2)`, [c.id, TEACHER]);
+  } finally {
+    await db.exec('alter table public.push_notification_outbox_off rename to push_notification_outbox');
+  }
+  assert.equal((await db.query(`select count(*)::int n from public.clan_chat where message='still works'`)).rows[0].n, 1);
 });

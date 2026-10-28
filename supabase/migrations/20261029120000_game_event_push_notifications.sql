@@ -2,6 +2,8 @@
 --   1. PvP defence: when someone attacks you (you lost coins, or your defence held).
 --      At most one per student per 3-hour block; attacks overnight become one 07:00 message.
 --   2. Streak reminder: at 18:30–19:30 Bishkek time, if yesterday's streak will break at midnight.
+--   3. Clans: chat (throttled), join requests (to leader/officers), request answered, power-ups,
+--      rivalry wars (declared, accepted, live, finished).
 -- Game messages respect quiet hours (22:00–07:00 Asia/Bishkek) and a per-student "Game alerts"
 -- switch (push_preferences.game_events). Assignment and teacher messages are unaffected.
 -- Also hardens the assignment triggers: they run as definer and can never block an assignment write.
@@ -54,6 +56,19 @@ begin
 end $$;
 revoke all on function private.enqueue_game_push(uuid, text, text, text, text, text, jsonb, timestamptz) from public, anon, authenticated;
 
+-- Throttle key: one message per user per block of p_minutes; anything held overnight shares one key.
+create or replace function private.game_push_bucket_key(p_prefix text, p_user_id uuid, p_now timestamptz, p_minutes integer)
+returns text language sql stable set search_path = '' as $$
+  select case
+    when private.game_push_available_at(p_now) > p_now
+      then p_prefix || '-' || p_user_id::text || '-' || ((private.game_push_available_at(p_now) at time zone 'Asia/Bishkek')::date)::text || '-overnight'
+    else p_prefix || '-' || p_user_id::text || '-' || ((p_now at time zone 'Asia/Bishkek')::date)::text || '-'
+      || ((extract(hour from (p_now at time zone 'Asia/Bishkek'))::int * 60
+           + extract(minute from (p_now at time zone 'Asia/Bishkek'))::int) / greatest(p_minutes, 1))::text
+  end;
+$$;
+revoke all on function private.game_push_bucket_key(text, uuid, timestamptz, integer) from public, anon, authenticated;
+
 -- ───────────────────────────── 1. PvP defence ─────────────────────────────
 create or replace function private.push_pvp_defence(
   p_attacker uuid, p_defender uuid, p_response jsonb, p_now timestamptz default now()
@@ -62,8 +77,6 @@ declare
   v_result text := p_response->>'result';
   v_name text;
   v_loss integer;
-  v_send_at timestamptz;
-  v_local timestamp;
   v_key text;
 begin
   if p_defender is null or p_defender = p_attacker or v_result not in ('win', 'lose') then return; end if;
@@ -71,12 +84,7 @@ begin
   v_name := left(coalesce(v_name, 'Someone'), 40);
   v_loss := greatest(coalesce(nullif(p_response->'defender_deltas'->>'coins_loss', '')::numeric, 0), 0)::integer;
 
-  v_send_at := private.game_push_available_at(p_now);
-  v_local := v_send_at at time zone 'Asia/Bishkek';
-  v_key := case
-    when v_send_at > p_now then 'pvp-defence-' || p_defender::text || '-' || v_local::date::text || '-overnight'
-    else 'pvp-defence-' || p_defender::text || '-' || v_local::date::text || '-' || (extract(hour from v_local)::int / 3)::text
-  end;
+  v_key := private.game_push_bucket_key('pvp-defence', p_defender, p_now, 180);
 
   perform private.enqueue_game_push(
     p_defender, 'pvp_defence',
@@ -140,6 +148,180 @@ begin
 end $$;
 revoke all on function public.rpc_enqueue_streak_push_reminders(timestamptz) from public, anon, authenticated;
 grant execute on function public.rpc_enqueue_streak_push_reminders(timestamptz) to service_role;
+
+-- ───────────────────────────── 3. clans ─────────────────────────────
+create or replace function private.clan_label(p_clan_id uuid)
+returns text language sql stable security definer set search_path = '' as $$
+  select left(coalesce(nullif(trim(c.name), ''), 'your clan'), 40) from public.clans c where c.id = p_clan_id
+$$;
+revoke all on function private.clan_label(uuid) from public, anon, authenticated;
+
+create or replace function private.player_label(p_user_id uuid)
+returns text language sql stable security definer set search_path = '' as $$
+  select left(coalesce((select nullif(trim(u.username), '') from public.users u where u.id = p_user_id), 'Someone'), 40)
+$$;
+revoke all on function private.player_label(uuid) from public, anon, authenticated;
+
+-- Members of a clan, optionally only some roles, optionally excluding one user (the actor).
+create or replace function private.clan_recipients(p_clan_id uuid, p_roles text[] default null, p_except uuid default null)
+returns setof uuid language sql stable security definer set search_path = '' as $$
+  select m.user_id from public.clan_members m
+  where m.clan_id = p_clan_id
+    and (p_roles is null or m.role = any(p_roles))
+    and (p_except is null or m.user_id <> p_except)
+$$;
+revoke all on function private.clan_recipients(uuid, text[], uuid) from public, anon, authenticated;
+
+-- Chat: "💬 Clan · Aidai: see you at the raid". One per member per clan per 30 minutes.
+create or replace function private.push_clan_chat(p_clan_id uuid, p_sender uuid, p_message text, p_now timestamptz default now())
+returns void language plpgsql security definer set search_path = '' as $$
+declare v_member uuid; v_clan text := private.clan_label(p_clan_id); v_text text;
+begin
+  v_text := left(regexp_replace(coalesce(p_message, ''), '\s+', ' ', 'g'), 100);
+  if trim(v_text) = '' then return; end if;
+  for v_member in select * from private.clan_recipients(p_clan_id, null, p_sender) loop
+    perform private.enqueue_game_push(v_member, 'clan_chat', '💬 ' || v_clan,
+      private.player_label(p_sender) || ': ' || v_text, '/?view=clan',
+      private.game_push_bucket_key('clan-chat-' || p_clan_id::text, v_member, p_now, 30),
+      jsonb_build_object('clan_id', p_clan_id), p_now);
+  end loop;
+end $$;
+revoke all on function private.push_clan_chat(uuid, uuid, text, timestamptz) from public, anon, authenticated;
+
+create or replace function private.trg_push_clan_chat()
+returns trigger language plpgsql security definer set search_path = '' as $$
+begin
+  begin perform private.push_clan_chat(new.clan_id, new.user_id, new.message, now());
+  exception when others then raise warning 'push_clan_chat skipped: %', sqlerrm; end;
+  return new;
+end $$;
+revoke all on function private.trg_push_clan_chat() from public, anon, authenticated;
+drop trigger if exists push_clan_chat on public.clan_chat;
+create trigger push_clan_chat after insert on public.clan_chat
+  for each row execute function private.trg_push_clan_chat();
+
+-- Join requests: new → leader and officers; answered → the player who asked.
+create or replace function private.push_clan_join_request(p_request_id uuid, p_clan_id uuid, p_user_id uuid,
+  p_old_status text, p_new_status text, p_now timestamptz default now())
+returns void language plpgsql security definer set search_path = '' as $$
+declare v_member uuid; v_clan text := private.clan_label(p_clan_id);
+begin
+  if p_old_status is null and p_new_status = 'pending' then
+    for v_member in select * from private.clan_recipients(p_clan_id, array['leader', 'officer'], p_user_id) loop
+      perform private.enqueue_game_push(v_member, 'clan_join_request', '🙋 Join request',
+        private.player_label(p_user_id) || ' wants to join ' || v_clan || '.', '/?view=clan',
+        'clan-join-request-' || p_request_id::text || '-' || v_member::text,
+        jsonb_build_object('clan_id', p_clan_id, 'request_id', p_request_id), p_now);
+    end loop;
+  elsif coalesce(p_old_status, '') <> p_new_status and p_new_status in ('approved', 'rejected') then
+    perform private.enqueue_game_push(p_user_id, 'clan_join_answer',
+      case when p_new_status = 'approved' then '✅ Welcome to ' || v_clan else 'Clan request' end,
+      case when p_new_status = 'approved' then 'Your request was approved. Say hi in clan chat!'
+           else 'Your request to join ' || v_clan || ' was not accepted this time.' end,
+      '/?view=clan', 'clan-join-answer-' || p_request_id::text,
+      jsonb_build_object('clan_id', p_clan_id, 'request_id', p_request_id, 'status', p_new_status), p_now);
+  end if;
+end $$;
+revoke all on function private.push_clan_join_request(uuid, uuid, uuid, text, text, timestamptz) from public, anon, authenticated;
+
+create or replace function private.trg_push_clan_join_request()
+returns trigger language plpgsql security definer set search_path = '' as $$
+begin
+  begin
+    perform private.push_clan_join_request(new.id, new.clan_id, new.user_id,
+      case when tg_op = 'INSERT' then null else old.status end, new.status, now());
+  exception when others then raise warning 'push_clan_join_request skipped: %', sqlerrm; end;
+  return new;
+end $$;
+revoke all on function private.trg_push_clan_join_request() from public, anon, authenticated;
+drop trigger if exists push_clan_join_request on public.clan_join_requests;
+create trigger push_clan_join_request after insert or update of status on public.clan_join_requests
+  for each row execute function private.trg_push_clan_join_request();
+
+-- Power-ups: "⚡ Double Coins is on · Aidai powered up Clan for 60 minutes."
+create or replace function private.push_clan_buff(p_buff_id uuid, p_clan_id uuid, p_template_id uuid, p_actor uuid, p_now timestamptz default now())
+returns void language plpgsql security definer set search_path = '' as $$
+declare v_member uuid; v_name text; v_minutes integer; v_clan text := private.clan_label(p_clan_id);
+begin
+  select left(coalesce(nullif(trim(t.name), ''), 'A power-up'), 40), t.duration_minutes into v_name, v_minutes
+  from public.clan_buff_templates t where t.id = p_template_id;
+  v_name := coalesce(v_name, 'A power-up');
+  for v_member in select * from private.clan_recipients(p_clan_id, null, p_actor) loop
+    perform private.enqueue_game_push(v_member, 'clan_buff', '⚡ ' || v_name || ' is on',
+      private.player_label(p_actor) || ' powered up ' || v_clan
+        || case when v_minutes > 0 then ' for ' || v_minutes || ' minutes.' else '.' end,
+      '/?view=clan', 'clan-buff-' || p_buff_id::text || '-' || v_member::text,
+      jsonb_build_object('clan_id', p_clan_id, 'buff_id', p_buff_id), p_now);
+  end loop;
+end $$;
+revoke all on function private.push_clan_buff(uuid, uuid, uuid, uuid, timestamptz) from public, anon, authenticated;
+
+create or replace function private.trg_push_clan_buff()
+returns trigger language plpgsql security definer set search_path = '' as $$
+begin
+  begin perform private.push_clan_buff(new.id, new.clan_id, new.template_id, new.activated_by, now());
+  exception when others then raise warning 'push_clan_buff skipped: %', sqlerrm; end;
+  return new;
+end $$;
+revoke all on function private.trg_push_clan_buff() from public, anon, authenticated;
+drop trigger if exists push_clan_buff on public.clan_buffs;
+create trigger push_clan_buff after insert on public.clan_buffs
+  for each row execute function private.trg_push_clan_buff();
+
+-- Rivalry wars: declared → defender leader/officers; accepted (prep) → attacker leader/officers;
+-- live → everyone in both clans; settled → everyone in both clans (won / lost / draw).
+create or replace function private.push_rivalry_war(p_war_id uuid, p_attacker uuid, p_defender uuid,
+  p_old_status text, p_new_status text, p_winner uuid, p_now timestamptz default now())
+returns void language plpgsql security definer set search_path = '' as $$
+declare v_member uuid; v_clan uuid; v_other text;
+begin
+  if p_new_status is not distinct from p_old_status then return; end if;
+  if p_new_status = 'pending_response' then
+    for v_member in select * from private.clan_recipients(p_defender, array['leader', 'officer']) loop
+      perform private.enqueue_game_push(v_member, 'rivalry_war', '⚔️ ' || private.clan_label(p_attacker) || ' declared war',
+        'Accept or decline the challenge in Rivalry.', '/?view=rivalry',
+        'rivalry-' || p_war_id::text || '-declared-' || v_member::text, jsonb_build_object('war_id', p_war_id), p_now);
+    end loop;
+  elsif p_new_status = 'prep' then
+    for v_member in select * from private.clan_recipients(p_attacker, array['leader', 'officer']) loop
+      perform private.enqueue_game_push(v_member, 'rivalry_war', '⚔️ Challenge accepted',
+        private.clan_label(p_defender) || ' accepted your war. Get your clan ready!', '/?view=rivalry',
+        'rivalry-' || p_war_id::text || '-prep-' || v_member::text, jsonb_build_object('war_id', p_war_id), p_now);
+    end loop;
+  elsif p_new_status in ('live', 'settled') then
+    foreach v_clan in array array[p_attacker, p_defender] loop
+      v_other := private.clan_label(case when v_clan = p_attacker then p_defender else p_attacker end);
+      for v_member in select * from private.clan_recipients(v_clan) loop
+        perform private.enqueue_game_push(v_member, 'rivalry_war',
+          case when p_new_status = 'live' then '🔥 War is live'
+               when p_winner = v_clan then '🏆 Your clan won the war'
+               when p_winner is null then '🤝 War ended in a draw'
+               else 'War over' end,
+          case when p_new_status = 'live' then 'Fight ' || v_other || ' now in Rivalry.'
+               when p_winner = v_clan then 'You beat ' || v_other || '. Claim your rewards!'
+               when p_winner is null then 'Your war with ' || v_other || ' is over.'
+               else v_other || ' won this time. Check your rewards.' end,
+          '/?view=rivalry', 'rivalry-' || p_war_id::text || '-' || p_new_status || '-' || v_member::text,
+          jsonb_build_object('war_id', p_war_id), p_now);
+      end loop;
+    end loop;
+  end if;
+end $$;
+revoke all on function private.push_rivalry_war(uuid, uuid, uuid, text, text, uuid, timestamptz) from public, anon, authenticated;
+
+create or replace function private.trg_push_rivalry_war()
+returns trigger language plpgsql security definer set search_path = '' as $$
+begin
+  begin
+    perform private.push_rivalry_war(new.id, new.attacker_clan_id, new.defender_clan_id,
+      case when tg_op = 'INSERT' then null else old.status end, new.status, new.winner_clan_id, now());
+  exception when others then raise warning 'push_rivalry_war skipped: %', sqlerrm; end;
+  return new;
+end $$;
+revoke all on function private.trg_push_rivalry_war() from public, anon, authenticated;
+drop trigger if exists push_rivalry_war on public.rivalry_wars;
+create trigger push_rivalry_war after insert or update of status on public.rivalry_wars
+  for each row execute function private.trg_push_rivalry_war();
 
 -- ───────────────────────────── harden assignment triggers ─────────────────────────────
 -- Run as definer (so push_subscriptions RLS never hides a student's device from the check), and

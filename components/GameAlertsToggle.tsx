@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../src/contexts/LanguageContext';
 import { getGameAlertsEnabled, getPushAvailability, setGameAlertsEnabled } from '../services/pushService';
 
-/** Student switch for game notifications (PvP attacks, streak reminders). Assignment alerts are unaffected. */
+/** Student switch for game notifications (PvP, clans, rivalry wars, streak reminders). Assignment alerts are unaffected. */
 const GameAlertsToggle: React.FC = () => {
   const { t } = useLanguage();
   const [enabled, setEnabled] = useState<boolean | null>(null);
@@ -30,7 +30,7 @@ const GameAlertsToggle: React.FC = () => {
     <div className="flex items-start justify-between gap-3" data-testid="game-alerts-toggle">
       <div className="min-w-0">
         <p className="text-sm font-semibold text-gray-200">{t('Game alerts')}</p>
-        <p className="text-xs leading-5 text-gray-400">{t('When someone attacks you in PvP, and an evening reminder before your streak breaks. Never between 22:00 and 07:00.')}</p>
+        <p className="text-xs leading-5 text-gray-400">{t('PvP attacks, clan chat, join requests, power-ups and wars, and an evening reminder before your streak breaks. Never between 22:00 and 07:00.')}</p>
         {error && <p role="alert" className="text-xs text-rose-300">{t('Could not save. Please try again.')}</p>}
       </div>
       <button
