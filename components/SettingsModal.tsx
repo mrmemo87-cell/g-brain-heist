@@ -10,6 +10,7 @@ import AvatarWithFrame from './AvatarWithFrame';
 import { isFlickerThemeActive } from '../src/lib/cosmetics';
 import { supabase } from '../services/supabaseClient';
 import PushNotificationToggle from './PushNotificationToggle';
+import GameAlertsToggle from './GameAlertsToggle';
 import { openInstallGuide } from '../src/lib/installPrompt';
 
 interface SettingsModalProps {
@@ -564,6 +565,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               </h3>
               <div className="border border-gray-700 rounded-2xl p-4 space-y-4">
                 {profile.role === 'student' && <PushNotificationToggle />}
+                {profile.role === 'student' && <GameAlertsToggle />}
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="text-sm text-gray-400">{t("Use Brains Heist like an app: full screen, from your Home Screen.")}</p>
                   <button
