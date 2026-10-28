@@ -16,6 +16,7 @@ import PlayerProfileCard from './components/PlayerProfileCard';
 import TaskList from './components/TaskList';
 import MainActions from './components/MainActions';
 import StudentDashboardNavigation, { StudentDashboardBottomNavigation, type StudentDashboardDestination } from './components/StudentDashboardNavigation';
+import PushEnableCard from './components/PushEnableCard';
 import JoinSchoolCard from './components/JoinSchoolCard';
 import NewsFeed from './components/NewsFeed';
 import CapTracker from './components/CapTracker';
@@ -1974,7 +1975,12 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
       return <SectionPlaceholder title={t("Teacher assignments")} lines={3} />;
     }
 
-    return <AssignmentDesk studentId={profile.id} assignments={pendingAssignments} onOpen={handleOpenStudentAssignment} />;
+    return (
+      <>
+        <PushEnableCard />
+        <AssignmentDesk studentId={profile.id} assignments={pendingAssignments} onOpen={handleOpenStudentAssignment} />
+      </>
+    );
   };
 
   const renderCapsSection = () => {
