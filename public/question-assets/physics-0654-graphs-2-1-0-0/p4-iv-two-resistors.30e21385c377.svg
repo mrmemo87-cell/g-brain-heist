@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+  <title>Current–voltage graphs for resistors X and Y</title>
+  <rect width="640" height="360" rx="24" fill="#0f172a"/>
+  <rect x="1" y="1" width="638" height="358" rx="23" fill="none" stroke="#334155" stroke-width="2"/>
+  <text x="32.0" y="42.0" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="start">CURRENT–VOLTAGE GRAPHS FOR RESISTORS X AND Y</text>
+  <path d="M96.0 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="96.0" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">0</text>
+  <path d="M138.0 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M180.0 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="180.0" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">1</text>
+  <path d="M222.0 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M264.0 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="264.0" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">2</text>
+  <path d="M306.0 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M348.0 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="348.0" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">3</text>
+  <path d="M390.0 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M432.0 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="432.0" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">4</text>
+  <path d="M474.0 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M516.0 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="516.0" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">5</text>
+  <path d="M558.0 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M600.0 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="600.0" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">6</text>
+  <path d="M96 300.0H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="307.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">0</text>
+  <path d="M96 288.9H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 277.8H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 266.7H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 255.6H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 244.5H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="251.5" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">0.1</text>
+  <path d="M96 233.4H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 222.3H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 211.2H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 200.1H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 189.0H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="196.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">0.2</text>
+  <path d="M96 177.9H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 166.8H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 155.7H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 144.6H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 133.5H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="140.5" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">0.3</text>
+  <path d="M96 122.4H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 111.3H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 100.2H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 89.1H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 78.0H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="85.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">0.4</text>
+  <path d="M96 72V300" fill="none" stroke="#e2e8f0" stroke-width="2.5"/>
+  <path d="M96 300.0H606" fill="none" stroke="#e2e8f0" stroke-width="2.5"/>
+  <text x="348.0" y="352.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="700" text-anchor="middle">potential difference / V</text>
+  <text x="26.0" y="189.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="700" text-anchor="middle" transform="rotate(-90 26 189.0)">current / A</text>
+  <path d="M96.0 300.0L600.0 133.5" fill="none" stroke="#fbbf24" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="598.0" cy="131.5" r="14" fill="#0f172a" stroke="#fbbf24" stroke-width="2"/>
+  <text x="598.0" y="137.5" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="middle">X</text>
+  <path d="M96.0 300.0L600.0 233.4" fill="none" stroke="#fbbf24" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="14 9"/>
+  <circle cx="598.0" cy="231.4" r="14" fill="#0f172a" stroke="#fbbf24" stroke-width="2"/>
+  <text x="598.0" y="237.4" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="middle">Y</text>
+</svg>

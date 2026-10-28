@@ -1,0 +1,2218 @@
+{
+  "schemaVersion": 2,
+  "packageId": "bh-physics-0654-graphs-2",
+  "packageVersion": "1.0.0",
+  "contentVersion": "physics-0654-graphs-2-v1",
+  "registryVersion": "bh-science-core-v1",
+  "subjectCode": "physics",
+  "authority": "PENDING OWNER RELEASE - Brains Heist AI-drafted",
+  "releaseNotes": "12 original AI-drafted 0654 Physics questions: P4 current-voltage graphs and circuit diagrams, a P3 wave graph and a harder P1 speed-time graph. 5 checksum-addressed SVG visuals drawn from stored data; keys recomputed by build.mjs.",
+  "assetBaseUrl": "https://www.brainsheist.com",
+  "assetDirectory": "physics-0654-graphs-2-1-0-0",
+  "assets": [
+    {
+      "assetId": "p4-iv-two-resistors",
+      "sourceFile": "public/question-assets/physics-0654-graphs-2-1-0-0/p4-iv-two-resistors.30e21385c377.svg",
+      "publicPath": "/question-assets/physics-0654-graphs-2-1-0-0/p4-iv-two-resistors.30e21385c377.svg",
+      "publicUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p4-iv-two-resistors.30e21385c377.svg",
+      "mimeType": "image/svg+xml",
+      "sha256": "30e21385c377add81901ecd5dde0c1f60cf69f7cd70f18d408361aeebe121dff",
+      "width": 640,
+      "height": 360,
+      "altText": "Current-voltage graph with two straight lines through the origin. Line X reaches 0.30 A at 6 V. Line Y is less steep and reaches 0.12 A at 6 V.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System"
+    },
+    {
+      "assetId": "p4-circuit-series",
+      "sourceFile": "public/question-assets/physics-0654-graphs-2-1-0-0/p4-circuit-series.4154c5f3c4dc.svg",
+      "publicPath": "/question-assets/physics-0654-graphs-2-1-0-0/p4-circuit-series.4154c5f3c4dc.svg",
+      "publicUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p4-circuit-series.4154c5f3c4dc.svg",
+      "mimeType": "image/svg+xml",
+      "sha256": "4154c5f3c4dcd42b9e41f68db230f66bae4a914ee1e50eff6194cdd2d422b2bd",
+      "width": 640,
+      "height": 360,
+      "altText": "Circuit diagram. A 12 V cell, an ammeter and two resistors of 4.0 ohms and 8.0 ohms are connected in one series loop.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System"
+    },
+    {
+      "assetId": "p4-circuit-parallel",
+      "sourceFile": "public/question-assets/physics-0654-graphs-2-1-0-0/p4-circuit-parallel.4fbcfeea74ef.svg",
+      "publicPath": "/question-assets/physics-0654-graphs-2-1-0-0/p4-circuit-parallel.4fbcfeea74ef.svg",
+      "publicUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p4-circuit-parallel.4fbcfeea74ef.svg",
+      "mimeType": "image/svg+xml",
+      "sha256": "4fbcfeea74ef491c3832b4f6f14a863145b675529dc8eade10bb8a562a3eff95",
+      "width": 640,
+      "height": 360,
+      "altText": "Circuit diagram. A 6.0 V cell and ammeter A1 are in the main circuit. Two branches in parallel hold a 3.0 ohm resistor and a 6.0 ohm resistor with ammeter A2.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System"
+    },
+    {
+      "assetId": "p3-wave-displacement",
+      "sourceFile": "public/question-assets/physics-0654-graphs-2-1-0-0/p3-wave-displacement.d818ead98978.svg",
+      "publicPath": "/question-assets/physics-0654-graphs-2-1-0-0/p3-wave-displacement.d818ead98978.svg",
+      "publicUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p3-wave-displacement.d818ead98978.svg",
+      "mimeType": "image/svg+xml",
+      "sha256": "d818ead9897832b527c9f71d6e36ec14c5472fc860d6d0ee43212e3892d75144",
+      "width": 640,
+      "height": 360,
+      "altText": "Displacement-distance graph for a transverse wave from 0 to 20 cm. The wave rises to 2 cm and falls to minus 2 cm, repeating every 8 cm.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System"
+    },
+    {
+      "assetId": "p1-st-train",
+      "sourceFile": "public/question-assets/physics-0654-graphs-2-1-0-0/p1-st-train.eb2c2025c948.svg",
+      "publicPath": "/question-assets/physics-0654-graphs-2-1-0-0/p1-st-train.eb2c2025c948.svg",
+      "publicUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p1-st-train.eb2c2025c948.svg",
+      "mimeType": "image/svg+xml",
+      "sha256": "eb2c2025c94866c9c2bdf76caf17a49df206b0e34499ccf2222cbf13b1a2d35e",
+      "width": 640,
+      "height": 360,
+      "altText": "Speed-time graph for a train. Speed rises in a straight line from 10 m/s at 0 s to 30 m/s at 40 s, stays at 30 m/s until 100 s, then falls to 20 m/s at 120 s.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System"
+    }
+  ],
+  "questions": [
+    {
+      "externalId": "bh-physics-0654-graphs2-001",
+      "topic": "P4 Electricity and magnetism",
+      "questionText": "Use the graph to find the resistance of resistor X.",
+      "questionType": "multiple_choice",
+      "options": [
+        "0.050 Ω",
+        "0.80 Ω",
+        "20 Ω",
+        "50 Ω"
+      ],
+      "correctAnswer": "20 Ω",
+      "explanation": "Read one point on line X: at 4.0 V the current is 0.20 A. R = V ÷ I = 4.0 V ÷ 0.20 A = 20 Ω.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement",
+        "graph"
+      ],
+      "visualAssetId": "p4-iv-two-resistors",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p4-iv-two-resistors.30e21385c377.svg",
+      "imageAltText": "Current-voltage graph with two straight lines through the origin. Line X reaches 0.30 A at 6 V. Line Y is less steep and reaches 0.12 A at 6 V.",
+      "visualAssetSha256": "30e21385c377add81901ecd5dde0c1f60cf69f7cd70f18d408361aeebe121dff",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "current-voltage",
+        "title": "Current–voltage graphs for resistors X and Y",
+        "x": {
+          "label": "potential difference / V",
+          "min": 0,
+          "max": 6,
+          "grid": 0.5,
+          "tick": 1
+        },
+        "y": {
+          "label": "current / A",
+          "min": 0,
+          "max": 0.4,
+          "grid": 0.02,
+          "tick": 0.1
+        },
+        "series": [
+          {
+            "id": "X",
+            "style": "solid",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                6,
+                0.3
+              ]
+            ]
+          },
+          {
+            "id": "Y",
+            "style": "dashed",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                6,
+                0.12
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Current-voltage graph with two straight lines through the origin. Line X reaches 0.30 A at 6 V. Line Y is less steep and reaches 0.12 A at 6 V."
+      },
+      "curriculumObjectiveCode": "p4-2-4",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.electricity",
+          "atomicSubskillCode": "science.physics.electricity.circuits",
+          "evidenceFocusCode": "science.physics.electricity.circuits.focus.resistance-from-current-voltage-graph",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate resistance from a current-voltage graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P4.2.4.3",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-numerical-data"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P4.2.4.3; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs2-002",
+      "topic": "P4 Electricity and magnetism",
+      "questionText": "Which statement about resistors X and Y is correct?",
+      "questionType": "multiple_choice",
+      "options": [
+        "X has the larger resistance, and both resistances stay constant.",
+        "Y has the smaller resistance, and both resistances increase.",
+        "X has the smaller resistance, and both resistances increase.",
+        "X has the smaller resistance, and both resistances stay constant."
+      ],
+      "correctAnswer": "X has the smaller resistance, and both resistances stay constant.",
+      "explanation": "Both graphs are straight lines through the origin, so each resistance is constant. X carries more current for the same p.d., so X has the smaller resistance.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement",
+        "graph"
+      ],
+      "visualAssetId": "p4-iv-two-resistors",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p4-iv-two-resistors.30e21385c377.svg",
+      "imageAltText": "Current-voltage graph with two straight lines through the origin. Line X reaches 0.30 A at 6 V. Line Y is less steep and reaches 0.12 A at 6 V.",
+      "visualAssetSha256": "30e21385c377add81901ecd5dde0c1f60cf69f7cd70f18d408361aeebe121dff",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "current-voltage",
+        "title": "Current–voltage graphs for resistors X and Y",
+        "x": {
+          "label": "potential difference / V",
+          "min": 0,
+          "max": 6,
+          "grid": 0.5,
+          "tick": 1
+        },
+        "y": {
+          "label": "current / A",
+          "min": 0,
+          "max": 0.4,
+          "grid": 0.02,
+          "tick": 0.1
+        },
+        "series": [
+          {
+            "id": "X",
+            "style": "solid",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                6,
+                0.3
+              ]
+            ]
+          },
+          {
+            "id": "Y",
+            "style": "dashed",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                6,
+                0.12
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Current-voltage graph with two straight lines through the origin. Line X reaches 0.30 A at 6 V. Line Y is less steep and reaches 0.12 A at 6 V."
+      },
+      "curriculumObjectiveCode": "p4-2-4",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.electricity",
+          "atomicSubskillCode": "science.physics.electricity.circuits",
+          "evidenceFocusCode": "science.physics.electricity.circuits.focus.compare-resistances-from-current-voltage-graph",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to compare resistances using current-voltage graphs. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P4.2.4.3",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-representations"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P4.2.4.3; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs2-003",
+      "topic": "P4 Electricity and magnetism",
+      "questionText": "What is the combined resistance of the two resistors in the circuit?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2.7 Ω",
+        "4.0 Ω",
+        "8.0 Ω",
+        "12 Ω"
+      ],
+      "correctAnswer": "12 Ω",
+      "explanation": "In series, resistances add: 4.0 Ω + 8.0 Ω = 12 Ω.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core",
+        "diagram"
+      ],
+      "visualAssetId": "p4-circuit-series",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p4-circuit-series.4154c5f3c4dc.svg",
+      "imageAltText": "Circuit diagram. A 12 V cell, an ammeter and two resistors of 4.0 ohms and 8.0 ohms are connected in one series loop.",
+      "visualAssetSha256": "4154c5f3c4dcd42b9e41f68db230f66bae4a914ee1e50eff6194cdd2d422b2bd",
+      "visualSpec": {
+        "type": "diagram",
+        "kind": "circuit",
+        "layout": "series",
+        "title": "Series circuit",
+        "supply": "12 V",
+        "resistors": [
+          "4.0 Ω",
+          "8.0 Ω"
+        ],
+        "ammeters": [
+          ""
+        ],
+        "values": {
+          "supplyV": 12,
+          "resistorsOhm": [
+            4,
+            8
+          ]
+        },
+        "alt_text": "Circuit diagram. A 12 V cell, an ammeter and two resistors of 4.0 ohms and 8.0 ohms are connected in one series loop."
+      },
+      "curriculumObjectiveCode": "p4-3-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.electricity",
+          "atomicSubskillCode": "science.physics.electricity.circuits",
+          "evidenceFocusCode": "science.physics.electricity.circuits.focus.series-combined-resistance",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate the combined resistance of resistors in series. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P4.3.2.3",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-numerical-data"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P4.3.2.3; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs2-004",
+      "topic": "P4 Electricity and magnetism",
+      "questionText": "What is the reading on the ammeter?",
+      "questionType": "multiple_choice",
+      "options": [
+        "1.0 A",
+        "1.5 A",
+        "3.0 A",
+        "4.5 A"
+      ],
+      "correctAnswer": "1.0 A",
+      "explanation": "Total resistance = 4.0 Ω + 8.0 Ω = 12 Ω. I = V ÷ R = 12 V ÷ 12 Ω = 1.0 A. The current is the same everywhere in a series circuit.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core",
+        "diagram"
+      ],
+      "visualAssetId": "p4-circuit-series",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p4-circuit-series.4154c5f3c4dc.svg",
+      "imageAltText": "Circuit diagram. A 12 V cell, an ammeter and two resistors of 4.0 ohms and 8.0 ohms are connected in one series loop.",
+      "visualAssetSha256": "4154c5f3c4dcd42b9e41f68db230f66bae4a914ee1e50eff6194cdd2d422b2bd",
+      "visualSpec": {
+        "type": "diagram",
+        "kind": "circuit",
+        "layout": "series",
+        "title": "Series circuit",
+        "supply": "12 V",
+        "resistors": [
+          "4.0 Ω",
+          "8.0 Ω"
+        ],
+        "ammeters": [
+          ""
+        ],
+        "values": {
+          "supplyV": 12,
+          "resistorsOhm": [
+            4,
+            8
+          ]
+        },
+        "alt_text": "Circuit diagram. A 12 V cell, an ammeter and two resistors of 4.0 ohms and 8.0 ohms are connected in one series loop."
+      },
+      "curriculumObjectiveCode": "p4-2-4",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.electricity",
+          "atomicSubskillCode": "science.physics.electricity.circuits",
+          "evidenceFocusCode": "science.physics.electricity.circuits.focus.current-from-pd-and-total-resistance",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate circuit current from p.d. and total resistance. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P4.2.4.1",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-problem-solving"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P4.2.4.1; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs2-005",
+      "topic": "P4 Electricity and magnetism",
+      "questionText": "What is the combined resistance of the two resistors in parallel?",
+      "questionType": "multiple_choice",
+      "options": [
+        "0.50 Ω",
+        "2.0 Ω",
+        "4.5 Ω",
+        "9.0 Ω"
+      ],
+      "correctAnswer": "2.0 Ω",
+      "explanation": "1/R = 1/3.0 Ω + 1/6.0 Ω = 0.50 per Ω, so R = 2.0 Ω. The combined resistance is less than either resistor.",
+      "difficulty": "hard",
+      "points": 1,
+      "timeLimit": 120,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement",
+        "diagram"
+      ],
+      "visualAssetId": "p4-circuit-parallel",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p4-circuit-parallel.4fbcfeea74ef.svg",
+      "imageAltText": "Circuit diagram. A 6.0 V cell and ammeter A1 are in the main circuit. Two branches in parallel hold a 3.0 ohm resistor and a 6.0 ohm resistor with ammeter A2.",
+      "visualAssetSha256": "4fbcfeea74ef491c3832b4f6f14a863145b675529dc8eade10bb8a562a3eff95",
+      "visualSpec": {
+        "type": "diagram",
+        "kind": "circuit",
+        "layout": "parallel",
+        "title": "Parallel circuit",
+        "supply": "6.0 V",
+        "resistors": [
+          "3.0 Ω",
+          "6.0 Ω"
+        ],
+        "ammeters": [
+          "A1",
+          "A2"
+        ],
+        "values": {
+          "supplyV": 6,
+          "resistorsOhm": [
+            3,
+            6
+          ]
+        },
+        "alt_text": "Circuit diagram. A 6.0 V cell and ammeter A1 are in the main circuit. Two branches in parallel hold a 3.0 ohm resistor and a 6.0 ohm resistor with ammeter A2."
+      },
+      "curriculumObjectiveCode": "p4-3-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.electricity",
+          "atomicSubskillCode": "science.physics.electricity.circuits",
+          "evidenceFocusCode": "science.physics.electricity.circuits.focus.parallel-combined-resistance",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate the combined resistance of two resistors in parallel. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P4.3.2.8",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-numerical-data"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P4.3.2.8; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs2-006",
+      "topic": "P4 Electricity and magnetism",
+      "questionText": "What is the reading on ammeter A1?",
+      "questionType": "multiple_choice",
+      "options": [
+        "0.67 A",
+        "1.0 A",
+        "2.0 A",
+        "3.0 A"
+      ],
+      "correctAnswer": "3.0 A",
+      "explanation": "Each branch has the full 6.0 V. Currents: 6.0 ÷ 3.0 = 2.0 A and 6.0 ÷ 6.0 = 1.0 A. A1 measures their sum: 3.0 A.",
+      "difficulty": "hard",
+      "points": 1,
+      "timeLimit": 120,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement",
+        "diagram"
+      ],
+      "visualAssetId": "p4-circuit-parallel",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p4-circuit-parallel.4fbcfeea74ef.svg",
+      "imageAltText": "Circuit diagram. A 6.0 V cell and ammeter A1 are in the main circuit. Two branches in parallel hold a 3.0 ohm resistor and a 6.0 ohm resistor with ammeter A2.",
+      "visualAssetSha256": "4fbcfeea74ef491c3832b4f6f14a863145b675529dc8eade10bb8a562a3eff95",
+      "visualSpec": {
+        "type": "diagram",
+        "kind": "circuit",
+        "layout": "parallel",
+        "title": "Parallel circuit",
+        "supply": "6.0 V",
+        "resistors": [
+          "3.0 Ω",
+          "6.0 Ω"
+        ],
+        "ammeters": [
+          "A1",
+          "A2"
+        ],
+        "values": {
+          "supplyV": 6,
+          "resistorsOhm": [
+            3,
+            6
+          ]
+        },
+        "alt_text": "Circuit diagram. A 6.0 V cell and ammeter A1 are in the main circuit. Two branches in parallel hold a 3.0 ohm resistor and a 6.0 ohm resistor with ammeter A2."
+      },
+      "curriculumObjectiveCode": "p4-3-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.electricity",
+          "atomicSubskillCode": "science.physics.electricity.circuits",
+          "evidenceFocusCode": "science.physics.electricity.circuits.focus.parallel-junction-current",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate supply current as the sum of parallel branch currents. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P4.3.2.7",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-problem-solving"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P4.3.2.7; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs2-007",
+      "topic": "P3 Waves",
+      "questionText": "What is the amplitude of the wave?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2 cm",
+        "3 cm",
+        "4 cm",
+        "8 cm"
+      ],
+      "correctAnswer": "2 cm",
+      "explanation": "Amplitude is the maximum displacement from the rest position: 2 cm. 4 cm is crest to trough, and 8 cm is the wavelength.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core",
+        "graph"
+      ],
+      "visualAssetId": "p3-wave-displacement",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p3-wave-displacement.d818ead98978.svg",
+      "imageAltText": "Displacement-distance graph for a transverse wave from 0 to 20 cm. The wave rises to 2 cm and falls to minus 2 cm, repeating every 8 cm.",
+      "visualAssetSha256": "d818ead9897832b527c9f71d6e36ec14c5472fc860d6d0ee43212e3892d75144",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "displacement-distance",
+        "title": "Displacement–distance graph for a wave",
+        "x": {
+          "label": "distance / cm",
+          "min": 0,
+          "max": 20,
+          "grid": 1,
+          "tick": 2
+        },
+        "y": {
+          "label": "displacement / cm",
+          "min": -3,
+          "max": 3,
+          "grid": 0.5,
+          "tick": 1
+        },
+        "series": [
+          {
+            "id": "wave",
+            "style": "solid",
+            "curve": true,
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0.25,
+                0.3902
+              ],
+              [
+                0.5,
+                0.7654
+              ],
+              [
+                0.75,
+                1.1111
+              ],
+              [
+                1,
+                1.4142
+              ],
+              [
+                1.25,
+                1.6629
+              ],
+              [
+                1.5,
+                1.8478
+              ],
+              [
+                1.75,
+                1.9616
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                2.25,
+                1.9616
+              ],
+              [
+                2.5,
+                1.8478
+              ],
+              [
+                2.75,
+                1.6629
+              ],
+              [
+                3,
+                1.4142
+              ],
+              [
+                3.25,
+                1.1111
+              ],
+              [
+                3.5,
+                0.7654
+              ],
+              [
+                3.75,
+                0.3902
+              ],
+              [
+                4,
+                0
+              ],
+              [
+                4.25,
+                -0.3902
+              ],
+              [
+                4.5,
+                -0.7654
+              ],
+              [
+                4.75,
+                -1.1111
+              ],
+              [
+                5,
+                -1.4142
+              ],
+              [
+                5.25,
+                -1.6629
+              ],
+              [
+                5.5,
+                -1.8478
+              ],
+              [
+                5.75,
+                -1.9616
+              ],
+              [
+                6,
+                -2
+              ],
+              [
+                6.25,
+                -1.9616
+              ],
+              [
+                6.5,
+                -1.8478
+              ],
+              [
+                6.75,
+                -1.6629
+              ],
+              [
+                7,
+                -1.4142
+              ],
+              [
+                7.25,
+                -1.1111
+              ],
+              [
+                7.5,
+                -0.7654
+              ],
+              [
+                7.75,
+                -0.3902
+              ],
+              [
+                8,
+                0
+              ],
+              [
+                8.25,
+                0.3902
+              ],
+              [
+                8.5,
+                0.7654
+              ],
+              [
+                8.75,
+                1.1111
+              ],
+              [
+                9,
+                1.4142
+              ],
+              [
+                9.25,
+                1.6629
+              ],
+              [
+                9.5,
+                1.8478
+              ],
+              [
+                9.75,
+                1.9616
+              ],
+              [
+                10,
+                2
+              ],
+              [
+                10.25,
+                1.9616
+              ],
+              [
+                10.5,
+                1.8478
+              ],
+              [
+                10.75,
+                1.6629
+              ],
+              [
+                11,
+                1.4142
+              ],
+              [
+                11.25,
+                1.1111
+              ],
+              [
+                11.5,
+                0.7654
+              ],
+              [
+                11.75,
+                0.3902
+              ],
+              [
+                12,
+                0
+              ],
+              [
+                12.25,
+                -0.3902
+              ],
+              [
+                12.5,
+                -0.7654
+              ],
+              [
+                12.75,
+                -1.1111
+              ],
+              [
+                13,
+                -1.4142
+              ],
+              [
+                13.25,
+                -1.6629
+              ],
+              [
+                13.5,
+                -1.8478
+              ],
+              [
+                13.75,
+                -1.9616
+              ],
+              [
+                14,
+                -2
+              ],
+              [
+                14.25,
+                -1.9616
+              ],
+              [
+                14.5,
+                -1.8478
+              ],
+              [
+                14.75,
+                -1.6629
+              ],
+              [
+                15,
+                -1.4142
+              ],
+              [
+                15.25,
+                -1.1111
+              ],
+              [
+                15.5,
+                -0.7654
+              ],
+              [
+                15.75,
+                -0.3902
+              ],
+              [
+                16,
+                0
+              ],
+              [
+                16.25,
+                0.3902
+              ],
+              [
+                16.5,
+                0.7654
+              ],
+              [
+                16.75,
+                1.1111
+              ],
+              [
+                17,
+                1.4142
+              ],
+              [
+                17.25,
+                1.6629
+              ],
+              [
+                17.5,
+                1.8478
+              ],
+              [
+                17.75,
+                1.9616
+              ],
+              [
+                18,
+                2
+              ],
+              [
+                18.25,
+                1.9616
+              ],
+              [
+                18.5,
+                1.8478
+              ],
+              [
+                18.75,
+                1.6629
+              ],
+              [
+                19,
+                1.4142
+              ],
+              [
+                19.25,
+                1.1111
+              ],
+              [
+                19.5,
+                0.7654
+              ],
+              [
+                19.75,
+                0.3902
+              ],
+              [
+                20,
+                0
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Displacement-distance graph for a transverse wave from 0 to 20 cm. The wave rises to 2 cm and falls to minus 2 cm, repeating every 8 cm."
+      },
+      "curriculumObjectiveCode": "p3-1",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.waves",
+          "atomicSubskillCode": "science.physics.waves.properties",
+          "evidenceFocusCode": "science.physics.waves.properties.focus.amplitude-from-wave-graph",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to read the amplitude of a wave from a displacement-distance graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P3.1.3",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-representations"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P3.1.3; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs2-008",
+      "topic": "P3 Waves",
+      "questionText": "What is the wavelength of the wave?",
+      "questionType": "multiple_choice",
+      "options": [
+        "2 cm",
+        "4 cm",
+        "8 cm",
+        "16 cm"
+      ],
+      "correctAnswer": "8 cm",
+      "explanation": "Wavelength is the distance between two neighbouring crests. The crests are at 2 cm and 10 cm, so the wavelength is 8 cm.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core",
+        "graph"
+      ],
+      "visualAssetId": "p3-wave-displacement",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p3-wave-displacement.d818ead98978.svg",
+      "imageAltText": "Displacement-distance graph for a transverse wave from 0 to 20 cm. The wave rises to 2 cm and falls to minus 2 cm, repeating every 8 cm.",
+      "visualAssetSha256": "d818ead9897832b527c9f71d6e36ec14c5472fc860d6d0ee43212e3892d75144",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "displacement-distance",
+        "title": "Displacement–distance graph for a wave",
+        "x": {
+          "label": "distance / cm",
+          "min": 0,
+          "max": 20,
+          "grid": 1,
+          "tick": 2
+        },
+        "y": {
+          "label": "displacement / cm",
+          "min": -3,
+          "max": 3,
+          "grid": 0.5,
+          "tick": 1
+        },
+        "series": [
+          {
+            "id": "wave",
+            "style": "solid",
+            "curve": true,
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0.25,
+                0.3902
+              ],
+              [
+                0.5,
+                0.7654
+              ],
+              [
+                0.75,
+                1.1111
+              ],
+              [
+                1,
+                1.4142
+              ],
+              [
+                1.25,
+                1.6629
+              ],
+              [
+                1.5,
+                1.8478
+              ],
+              [
+                1.75,
+                1.9616
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                2.25,
+                1.9616
+              ],
+              [
+                2.5,
+                1.8478
+              ],
+              [
+                2.75,
+                1.6629
+              ],
+              [
+                3,
+                1.4142
+              ],
+              [
+                3.25,
+                1.1111
+              ],
+              [
+                3.5,
+                0.7654
+              ],
+              [
+                3.75,
+                0.3902
+              ],
+              [
+                4,
+                0
+              ],
+              [
+                4.25,
+                -0.3902
+              ],
+              [
+                4.5,
+                -0.7654
+              ],
+              [
+                4.75,
+                -1.1111
+              ],
+              [
+                5,
+                -1.4142
+              ],
+              [
+                5.25,
+                -1.6629
+              ],
+              [
+                5.5,
+                -1.8478
+              ],
+              [
+                5.75,
+                -1.9616
+              ],
+              [
+                6,
+                -2
+              ],
+              [
+                6.25,
+                -1.9616
+              ],
+              [
+                6.5,
+                -1.8478
+              ],
+              [
+                6.75,
+                -1.6629
+              ],
+              [
+                7,
+                -1.4142
+              ],
+              [
+                7.25,
+                -1.1111
+              ],
+              [
+                7.5,
+                -0.7654
+              ],
+              [
+                7.75,
+                -0.3902
+              ],
+              [
+                8,
+                0
+              ],
+              [
+                8.25,
+                0.3902
+              ],
+              [
+                8.5,
+                0.7654
+              ],
+              [
+                8.75,
+                1.1111
+              ],
+              [
+                9,
+                1.4142
+              ],
+              [
+                9.25,
+                1.6629
+              ],
+              [
+                9.5,
+                1.8478
+              ],
+              [
+                9.75,
+                1.9616
+              ],
+              [
+                10,
+                2
+              ],
+              [
+                10.25,
+                1.9616
+              ],
+              [
+                10.5,
+                1.8478
+              ],
+              [
+                10.75,
+                1.6629
+              ],
+              [
+                11,
+                1.4142
+              ],
+              [
+                11.25,
+                1.1111
+              ],
+              [
+                11.5,
+                0.7654
+              ],
+              [
+                11.75,
+                0.3902
+              ],
+              [
+                12,
+                0
+              ],
+              [
+                12.25,
+                -0.3902
+              ],
+              [
+                12.5,
+                -0.7654
+              ],
+              [
+                12.75,
+                -1.1111
+              ],
+              [
+                13,
+                -1.4142
+              ],
+              [
+                13.25,
+                -1.6629
+              ],
+              [
+                13.5,
+                -1.8478
+              ],
+              [
+                13.75,
+                -1.9616
+              ],
+              [
+                14,
+                -2
+              ],
+              [
+                14.25,
+                -1.9616
+              ],
+              [
+                14.5,
+                -1.8478
+              ],
+              [
+                14.75,
+                -1.6629
+              ],
+              [
+                15,
+                -1.4142
+              ],
+              [
+                15.25,
+                -1.1111
+              ],
+              [
+                15.5,
+                -0.7654
+              ],
+              [
+                15.75,
+                -0.3902
+              ],
+              [
+                16,
+                0
+              ],
+              [
+                16.25,
+                0.3902
+              ],
+              [
+                16.5,
+                0.7654
+              ],
+              [
+                16.75,
+                1.1111
+              ],
+              [
+                17,
+                1.4142
+              ],
+              [
+                17.25,
+                1.6629
+              ],
+              [
+                17.5,
+                1.8478
+              ],
+              [
+                17.75,
+                1.9616
+              ],
+              [
+                18,
+                2
+              ],
+              [
+                18.25,
+                1.9616
+              ],
+              [
+                18.5,
+                1.8478
+              ],
+              [
+                18.75,
+                1.6629
+              ],
+              [
+                19,
+                1.4142
+              ],
+              [
+                19.25,
+                1.1111
+              ],
+              [
+                19.5,
+                0.7654
+              ],
+              [
+                19.75,
+                0.3902
+              ],
+              [
+                20,
+                0
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Displacement-distance graph for a transverse wave from 0 to 20 cm. The wave rises to 2 cm and falls to minus 2 cm, repeating every 8 cm."
+      },
+      "curriculumObjectiveCode": "p3-1",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.waves",
+          "atomicSubskillCode": "science.physics.waves.properties",
+          "evidenceFocusCode": "science.physics.waves.properties.focus.wavelength-from-wave-graph",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to read the wavelength of a wave from a displacement-distance graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P3.1.3",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-representations"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P3.1.3; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs2-009",
+      "topic": "P3 Waves",
+      "questionText": "The wave has a frequency of 5.0 Hz. Use the graph to find the speed of the wave.",
+      "questionType": "multiple_choice",
+      "options": [
+        "0.40 m/s",
+        "10 m/s",
+        "40 m/s",
+        "63 m/s"
+      ],
+      "correctAnswer": "0.40 m/s",
+      "explanation": "v = f × λ. The wavelength is 8 cm = 0.08 m, so v = 5.0 Hz × 0.08 m = 0.40 m/s.",
+      "difficulty": "hard",
+      "points": 1,
+      "timeLimit": 120,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core",
+        "graph"
+      ],
+      "visualAssetId": "p3-wave-displacement",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p3-wave-displacement.d818ead98978.svg",
+      "imageAltText": "Displacement-distance graph for a transverse wave from 0 to 20 cm. The wave rises to 2 cm and falls to minus 2 cm, repeating every 8 cm.",
+      "visualAssetSha256": "d818ead9897832b527c9f71d6e36ec14c5472fc860d6d0ee43212e3892d75144",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "displacement-distance",
+        "title": "Displacement–distance graph for a wave",
+        "x": {
+          "label": "distance / cm",
+          "min": 0,
+          "max": 20,
+          "grid": 1,
+          "tick": 2
+        },
+        "y": {
+          "label": "displacement / cm",
+          "min": -3,
+          "max": 3,
+          "grid": 0.5,
+          "tick": 1
+        },
+        "series": [
+          {
+            "id": "wave",
+            "style": "solid",
+            "curve": true,
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0.25,
+                0.3902
+              ],
+              [
+                0.5,
+                0.7654
+              ],
+              [
+                0.75,
+                1.1111
+              ],
+              [
+                1,
+                1.4142
+              ],
+              [
+                1.25,
+                1.6629
+              ],
+              [
+                1.5,
+                1.8478
+              ],
+              [
+                1.75,
+                1.9616
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                2.25,
+                1.9616
+              ],
+              [
+                2.5,
+                1.8478
+              ],
+              [
+                2.75,
+                1.6629
+              ],
+              [
+                3,
+                1.4142
+              ],
+              [
+                3.25,
+                1.1111
+              ],
+              [
+                3.5,
+                0.7654
+              ],
+              [
+                3.75,
+                0.3902
+              ],
+              [
+                4,
+                0
+              ],
+              [
+                4.25,
+                -0.3902
+              ],
+              [
+                4.5,
+                -0.7654
+              ],
+              [
+                4.75,
+                -1.1111
+              ],
+              [
+                5,
+                -1.4142
+              ],
+              [
+                5.25,
+                -1.6629
+              ],
+              [
+                5.5,
+                -1.8478
+              ],
+              [
+                5.75,
+                -1.9616
+              ],
+              [
+                6,
+                -2
+              ],
+              [
+                6.25,
+                -1.9616
+              ],
+              [
+                6.5,
+                -1.8478
+              ],
+              [
+                6.75,
+                -1.6629
+              ],
+              [
+                7,
+                -1.4142
+              ],
+              [
+                7.25,
+                -1.1111
+              ],
+              [
+                7.5,
+                -0.7654
+              ],
+              [
+                7.75,
+                -0.3902
+              ],
+              [
+                8,
+                0
+              ],
+              [
+                8.25,
+                0.3902
+              ],
+              [
+                8.5,
+                0.7654
+              ],
+              [
+                8.75,
+                1.1111
+              ],
+              [
+                9,
+                1.4142
+              ],
+              [
+                9.25,
+                1.6629
+              ],
+              [
+                9.5,
+                1.8478
+              ],
+              [
+                9.75,
+                1.9616
+              ],
+              [
+                10,
+                2
+              ],
+              [
+                10.25,
+                1.9616
+              ],
+              [
+                10.5,
+                1.8478
+              ],
+              [
+                10.75,
+                1.6629
+              ],
+              [
+                11,
+                1.4142
+              ],
+              [
+                11.25,
+                1.1111
+              ],
+              [
+                11.5,
+                0.7654
+              ],
+              [
+                11.75,
+                0.3902
+              ],
+              [
+                12,
+                0
+              ],
+              [
+                12.25,
+                -0.3902
+              ],
+              [
+                12.5,
+                -0.7654
+              ],
+              [
+                12.75,
+                -1.1111
+              ],
+              [
+                13,
+                -1.4142
+              ],
+              [
+                13.25,
+                -1.6629
+              ],
+              [
+                13.5,
+                -1.8478
+              ],
+              [
+                13.75,
+                -1.9616
+              ],
+              [
+                14,
+                -2
+              ],
+              [
+                14.25,
+                -1.9616
+              ],
+              [
+                14.5,
+                -1.8478
+              ],
+              [
+                14.75,
+                -1.6629
+              ],
+              [
+                15,
+                -1.4142
+              ],
+              [
+                15.25,
+                -1.1111
+              ],
+              [
+                15.5,
+                -0.7654
+              ],
+              [
+                15.75,
+                -0.3902
+              ],
+              [
+                16,
+                0
+              ],
+              [
+                16.25,
+                0.3902
+              ],
+              [
+                16.5,
+                0.7654
+              ],
+              [
+                16.75,
+                1.1111
+              ],
+              [
+                17,
+                1.4142
+              ],
+              [
+                17.25,
+                1.6629
+              ],
+              [
+                17.5,
+                1.8478
+              ],
+              [
+                17.75,
+                1.9616
+              ],
+              [
+                18,
+                2
+              ],
+              [
+                18.25,
+                1.9616
+              ],
+              [
+                18.5,
+                1.8478
+              ],
+              [
+                18.75,
+                1.6629
+              ],
+              [
+                19,
+                1.4142
+              ],
+              [
+                19.25,
+                1.1111
+              ],
+              [
+                19.5,
+                0.7654
+              ],
+              [
+                19.75,
+                0.3902
+              ],
+              [
+                20,
+                0
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Displacement-distance graph for a transverse wave from 0 to 20 cm. The wave rises to 2 cm and falls to minus 2 cm, repeating every 8 cm."
+      },
+      "curriculumObjectiveCode": "p3-1",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.waves",
+          "atomicSubskillCode": "science.physics.waves.properties",
+          "evidenceFocusCode": "science.physics.waves.properties.focus.wave-speed-from-graph-and-frequency",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate wave speed from a wave graph and its frequency. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P3.1.5",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-problem-solving"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P3.1.5; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs2-010",
+      "topic": "P1 Motion, forces and energy",
+      "questionText": "Use the graph to find the distance the train travels in the first 40 s.",
+      "questionType": "multiple_choice",
+      "options": [
+        "400 m",
+        "800 m",
+        "1200 m",
+        "1600 m"
+      ],
+      "correctAnswer": "800 m",
+      "explanation": "The area from 0 s to 40 s is a trapezium: ½ × (10 m/s + 30 m/s) × 40 s = 800 m. Counting only the triangle on top gives 400 m.",
+      "difficulty": "hard",
+      "points": 1,
+      "timeLimit": 120,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core",
+        "graph"
+      ],
+      "visualAssetId": "p1-st-train",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p1-st-train.eb2c2025c948.svg",
+      "imageAltText": "Speed-time graph for a train. Speed rises in a straight line from 10 m/s at 0 s to 30 m/s at 40 s, stays at 30 m/s until 100 s, then falls to 20 m/s at 120 s.",
+      "visualAssetSha256": "eb2c2025c94866c9c2bdf76caf17a49df206b0e34499ccf2222cbf13b1a2d35e",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "speed-time",
+        "title": "Speed–time graph for a train",
+        "x": {
+          "label": "time / s",
+          "min": 0,
+          "max": 120,
+          "grid": 10,
+          "tick": 20
+        },
+        "y": {
+          "label": "speed / m/s",
+          "min": 0,
+          "max": 40,
+          "grid": 5,
+          "tick": 10
+        },
+        "series": [
+          {
+            "id": "train",
+            "style": "solid",
+            "points": [
+              [
+                0,
+                10
+              ],
+              [
+                40,
+                30
+              ],
+              [
+                100,
+                30
+              ],
+              [
+                120,
+                20
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Speed-time graph for a train. Speed rises in a straight line from 10 m/s at 0 s to 30 m/s at 40 s, stays at 30 m/s until 100 s, then falls to 20 m/s at 120 s."
+      },
+      "curriculumObjectiveCode": "p1-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.motion-forces",
+          "atomicSubskillCode": "science.physics.motion-forces.motion",
+          "evidenceFocusCode": "science.physics.motion-forces.motion.focus.distance-from-speed-time-area",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate distance from the area under a speed-time graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P1.2.7",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-problem-solving"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P1.2.7; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs2-011",
+      "topic": "P1 Motion, forces and energy",
+      "questionText": "Use the graph to find the acceleration of the train in the first 40 s.",
+      "questionType": "multiple_choice",
+      "options": [
+        "0.25 m/s²",
+        "0.50 m/s²",
+        "0.75 m/s²",
+        "2.0 m/s²"
+      ],
+      "correctAnswer": "0.50 m/s²",
+      "explanation": "Acceleration = change in speed ÷ time = (30 m/s − 10 m/s) ÷ 40 s = 0.50 m/s². The speed does not start at zero.",
+      "difficulty": "hard",
+      "points": 1,
+      "timeLimit": 120,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement",
+        "graph"
+      ],
+      "visualAssetId": "p1-st-train",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p1-st-train.eb2c2025c948.svg",
+      "imageAltText": "Speed-time graph for a train. Speed rises in a straight line from 10 m/s at 0 s to 30 m/s at 40 s, stays at 30 m/s until 100 s, then falls to 20 m/s at 120 s.",
+      "visualAssetSha256": "eb2c2025c94866c9c2bdf76caf17a49df206b0e34499ccf2222cbf13b1a2d35e",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "speed-time",
+        "title": "Speed–time graph for a train",
+        "x": {
+          "label": "time / s",
+          "min": 0,
+          "max": 120,
+          "grid": 10,
+          "tick": 20
+        },
+        "y": {
+          "label": "speed / m/s",
+          "min": 0,
+          "max": 40,
+          "grid": 5,
+          "tick": 10
+        },
+        "series": [
+          {
+            "id": "train",
+            "style": "solid",
+            "points": [
+              [
+                0,
+                10
+              ],
+              [
+                40,
+                30
+              ],
+              [
+                100,
+                30
+              ],
+              [
+                120,
+                20
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Speed-time graph for a train. Speed rises in a straight line from 10 m/s at 0 s to 30 m/s at 40 s, stays at 30 m/s until 100 s, then falls to 20 m/s at 120 s."
+      },
+      "curriculumObjectiveCode": "p1-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.motion-forces",
+          "atomicSubskillCode": "science.physics.motion-forces.motion",
+          "evidenceFocusCode": "science.physics.motion-forces.motion.focus.acceleration-from-speed-time-gradient",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate acceleration from the gradient of a speed-time graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P1.2.11",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-numerical-data"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P1.2.11; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs2-012",
+      "topic": "P1 Motion, forces and energy",
+      "questionText": "Use the graph to find the acceleration of the train between 100 s and 120 s.",
+      "questionType": "multiple_choice",
+      "options": [
+        "−10 m/s²",
+        "−1.5 m/s²",
+        "−0.50 m/s²",
+        "+0.50 m/s²"
+      ],
+      "correctAnswer": "−0.50 m/s²",
+      "explanation": "Gradient = (20 m/s − 30 m/s) ÷ (120 s − 100 s) = −0.50 m/s². The negative sign shows the train is slowing down.",
+      "difficulty": "hard",
+      "points": 1,
+      "timeLimit": 120,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement",
+        "graph"
+      ],
+      "visualAssetId": "p1-st-train",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-2-1-0-0/p1-st-train.eb2c2025c948.svg",
+      "imageAltText": "Speed-time graph for a train. Speed rises in a straight line from 10 m/s at 0 s to 30 m/s at 40 s, stays at 30 m/s until 100 s, then falls to 20 m/s at 120 s.",
+      "visualAssetSha256": "eb2c2025c94866c9c2bdf76caf17a49df206b0e34499ccf2222cbf13b1a2d35e",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "speed-time",
+        "title": "Speed–time graph for a train",
+        "x": {
+          "label": "time / s",
+          "min": 0,
+          "max": 120,
+          "grid": 10,
+          "tick": 20
+        },
+        "y": {
+          "label": "speed / m/s",
+          "min": 0,
+          "max": 40,
+          "grid": 5,
+          "tick": 10
+        },
+        "series": [
+          {
+            "id": "train",
+            "style": "solid",
+            "points": [
+              [
+                0,
+                10
+              ],
+              [
+                40,
+                30
+              ],
+              [
+                100,
+                30
+              ],
+              [
+                120,
+                20
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Speed-time graph for a train. Speed rises in a straight line from 10 m/s at 0 s to 30 m/s at 40 s, stays at 30 m/s until 100 s, then falls to 20 m/s at 120 s."
+      },
+      "curriculumObjectiveCode": "p1-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.motion-forces",
+          "atomicSubskillCode": "science.physics.motion-forces.motion",
+          "evidenceFocusCode": "science.physics.motion-forces.motion.focus.deceleration-as-negative-acceleration",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to express deceleration as a negative acceleration from a graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P1.2.12",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-numerical-data"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P1.2.12; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    }
+  ]
+}
