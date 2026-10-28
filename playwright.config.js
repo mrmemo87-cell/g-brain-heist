@@ -15,6 +15,8 @@ const config = {
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     viewport: { width: 1280, height: 720 },
+    // Local runs may reuse an already-installed Chromium instead of downloading one.
+    launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE } : undefined,
   },
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER ? undefined : {
     command: 'npm run build && npm run preview -- --host 127.0.0.1',
@@ -32,4 +34,4 @@ const config = {
   ],
 };
 
-module.exports = config;
+export default config;

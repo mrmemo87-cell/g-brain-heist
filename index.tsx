@@ -31,6 +31,7 @@ import { isAuthCallbackPath, isResumeEvent, resolvePostAuthPath, shouldUseGlobal
 import { readIeltsPracticeAssignmentContext } from './src/pages/ielts/assignmentPracticeUi';
 import { checkIeltsPracticeAccess, type IeltsPracticeSkill } from './services/ieltsService';
 import SchoolProgrammeRouteGuard from './components/SchoolProgrammeRouteGuard';
+import IosInstallGuide from './components/IosInstallGuide';
 
 // ── Lazy-loaded pages & modals (with automatic retry on stale-chunk errors) ──
 const FinishSetupModal = lazyRetry(() => import('./components/FinishSetupModal'), 'FinishSetupModal');
@@ -891,7 +892,10 @@ root.render(
       ) : (
         <QueryClientProvider client={queryClient}>
           <LightModeProvider>
-            <LanguageProvider><RouterProvider router={router} /></LanguageProvider>
+            <LanguageProvider>
+              <RouterProvider router={router} />
+              <IosInstallGuide />
+            </LanguageProvider>
           </LightModeProvider>
         </QueryClientProvider>
       )}

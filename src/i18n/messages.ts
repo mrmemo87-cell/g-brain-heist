@@ -1148,6 +1148,34 @@ export const messages = {
   "Set by your teacher": {
     "ar": "من معلمك",
     "ru": "От учителя"
+  },
+  "Add Brains Heist to your Home Screen": {
+    "ar": "أضف Brains Heist إلى الشاشة الرئيسية",
+    "ru": "Добавьте Brains Heist на экран «Домой»"
+  },
+  "Open it like an app, full screen, and stay signed in.": {
+    "ar": "افتحه كتطبيق بملء الشاشة وابقَ مسجّل الدخول.",
+    "ru": "Открывайте как приложение, на весь экран, и оставайтесь в системе."
+  },
+  "Tap the Share button": {
+    "ar": "اضغط زر المشاركة",
+    "ru": "Нажмите кнопку «Поделиться»"
+  },
+  "Choose \"Add to Home Screen\"": {
+    "ar": "اختر \"إضافة إلى الشاشة الرئيسية\"",
+    "ru": "Выберите «На экран “Домой”»"
+  },
+  "Tap \"Add\"": {
+    "ar": "اضغط \"إضافة\"",
+    "ru": "Нажмите «Добавить»"
+  },
+  "Not now": {
+    "ar": "ليس الآن",
+    "ru": "Не сейчас"
+  },
+  "Dismiss": {
+    "ar": "إغلاق",
+    "ru": "Закрыть"
   }
 } as const;
 
