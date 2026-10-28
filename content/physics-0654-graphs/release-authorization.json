@@ -1,0 +1,25 @@
+{
+  "packageId": "bh-physics-0654-graphs",
+  "packageVersion": "1.0.0",
+  "releasedAt": "2026-10-28",
+  "authorisedBy": "Brains Heist owner (chat instruction: merge, deploy and import)",
+  "importedAuthority": "Brains Heist Content Quality (AI-drafted, owner release 2026-10-28)",
+  "importedPackageHash": "eee8e8e5bc36e60b95bf03ea0c9a3f7d6b34527515e764e742b049a0da215cd9",
+  "importedPackage": "candidate-package.json with only the authority field replaced, serialised compactly",
+  "releaseId": "a8b9af02-f755-4f09-ae00-59ab41e1be34",
+  "migration": "20261028073357_registry_mcq_visual_assets",
+  "deployment": "main 6f3535c (PR #1738), Vercel production success",
+  "evidenceFocuses": 9,
+  "questions": 12,
+  "curriculumMappings": "36 approved (p1-2 or p1-5-1 in grades 9, 10 and 11 of bh-cie-igcse-0654-physics 2025-2027-v1)",
+  "postImportChecks": {
+    "imageUrlSet": 12,
+    "visualSpecSet": 12,
+    "inAiRecheckQueue": 12,
+    "contentHashIncludesImage": 12
+  },
+  "openItems": [
+    "Super admin recheck of all 12 questions before their answers count as student evidence",
+    "Confirm the five SVG URLs load on www.brainsheist.com (not reachable from the release environment)"
+  ]
+}

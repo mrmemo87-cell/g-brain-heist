@@ -1,6 +1,8 @@
 # 0654 Physics P1 graph questions (v1.0.0)
 
-Status: **built and rehearsed; not imported.** Import only after this branch is
+Status: **released 2026-10-28** (see `release-authorization.json`); all 12 questions are in the super admin AI recheck queue.
+
+Original plan, kept for reference: Import only after this branch is
 deployed, so the graph files exist at `https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/`.
 Until then a question would show with its image hidden (`QuestView` hides
 images that fail to load).
@@ -39,7 +41,7 @@ Difficulty labels are editorial, not calibrated.
 
 ## Release
 
-1. Merge and deploy this branch (migration `20261028090000_registry_mcq_visual_assets.sql`
+1. Merge and deploy this branch (migration `20261028073357_registry_mcq_visual_assets.sql`
    and the SVGs).
 2. Confirm each `publicUrl` loads.
 3. Run `focus-release.sql`, then import with

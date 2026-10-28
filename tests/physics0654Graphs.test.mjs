@@ -69,7 +69,7 @@ test('keys agree with the graph data', () => {
 });
 
 test('registry import migration accepts v2 visuals and hashes the image', () => {
-  const sql = readFileSync('supabase/migrations/20261028090000_registry_mcq_visual_assets.sql', 'utf8');
+  const sql = readFileSync('supabase/migrations/20261028073357_registry_mcq_visual_assets.sql', 'utf8');
   assert.match(sql, /schema_version in \(1, 2\)/);
   assert.match(sql, /nullif\(trim\(v_question->>'imageUrl'\),''\),\n      'multiple_choice'/);
   assert.match(sql, /registry_visuals_require_schema_v2/);
