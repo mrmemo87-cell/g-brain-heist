@@ -22,6 +22,7 @@ export function getPushAvailability(): PushAvailability {
     hasNotification: 'Notification' in window,
     permission: typeof Notification !== 'undefined' ? Notification.permission : 'unknown',
     userAgent: navigator.userAgent,
+    maxTouchPoints: navigator.maxTouchPoints || 0,
     standalone: detectStandalone(window as unknown as Parameters<typeof detectStandalone>[0]),
   });
 }

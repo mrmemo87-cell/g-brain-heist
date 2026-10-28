@@ -6,7 +6,7 @@ type Status = 'checking' | 'unavailable' | 'off' | 'on' | 'busy';
 
 /**
  * "Enable notifications" control for the student. Requests permission only on tap (iOS rule),
- * explains the Home Screen requirement on iPhone, and never shows when the browser cannot push.
+ * and explains in plain words when this device cannot receive notifications.
  */
 const PushNotificationToggle: React.FC<{ compact?: boolean; onEnabled?: () => void }> = ({ compact = false, onEnabled }) => {
   const { t } = useLanguage();
@@ -28,18 +28,13 @@ const PushNotificationToggle: React.FC<{ compact?: boolean; onEnabled?: () => vo
 
   if (status === 'checking') return null;
   if (status === 'unavailable') {
-    // iPhone in Safari: only the Home Screen app can receive notifications; say so rather than hide.
-    if (reason === 'ios_needs_home_screen') {
-      return (
-        <p className="text-sm text-gray-400" data-testid="push-ios-hint">
-          {t('To get notifications on iPhone, add Brains Heist to your Home Screen first, then open it from there.')}
-        </p>
-      );
-    }
-    if (reason === 'denied') {
-      return <p className="text-sm text-gray-400">{t('Notifications are blocked for Brains Heist in your phone settings.')}</p>;
-    }
-    return null;
+    // Never leave the section blank: say why, and what to do (see "How to install" below it in Settings).
+    const message = reason === 'denied'
+      ? t('Notifications are blocked for Brains Heist. Turn them on in iPhone Settings → Notifications → Brains Heist (Android: Settings → Apps → Brains Heist → Notifications).')
+      : reason === 'ios_needs_home_screen'
+        ? t('On iPhone, notifications only work in the Brains Heist app on your Home Screen. If the app opens inside Safari with an address bar, delete the icon and add it again.')
+        : t('This browser cannot receive notifications. Use Chrome on Android, or the Brains Heist app on your iPhone Home Screen.');
+    return <p className="text-sm text-gray-400" data-testid="push-unavailable" data-reason={reason ?? 'unsupported'}>{message}</p>;
   }
 
   const enable = async () => {

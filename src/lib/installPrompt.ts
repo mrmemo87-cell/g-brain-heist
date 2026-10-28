@@ -49,3 +49,20 @@ export function detectStandalone(win: { matchMedia?: (q: string) => { matches: b
   } catch { /* matchMedia may be missing in some WebViews. */ }
   return win.navigator?.standalone === true;
 }
+
+/** Fired by "How to install" in Settings; the guide listens and opens even if dismissed or installed. */
+export const INSTALL_GUIDE_OPEN_EVENT = 'brains-heist:open-install-guide';
+
+export function openInstallGuide(win: Pick<Window, 'dispatchEvent'> | undefined = typeof window === 'undefined' ? undefined : window): void {
+  try { win?.dispatchEvent(new Event(INSTALL_GUIDE_OPEN_EVENT)); } catch { /* Old WebViews without Event constructor. */ }
+}
+
+export type InstallGuidePlatform = 'ios' | 'android' | 'other';
+
+/** Which steps to show: iPhone/iPad (incl. "desktop website" mode), Android, or anything else. */
+export function installGuidePlatform(userAgent: string, maxTouchPoints = 0): InstallGuidePlatform {
+  const ua = userAgent || '';
+  if (/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && (/Mobile/i.test(ua) || maxTouchPoints > 1))) return 'ios';
+  if (/Android/i.test(ua)) return 'android';
+  return 'other';
+}

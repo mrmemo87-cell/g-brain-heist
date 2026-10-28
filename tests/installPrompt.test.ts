@@ -65,3 +65,14 @@ test('standalone detection accepts the display-mode media query or navigator.sta
   assert.equal(detectStandalone({ matchMedia: () => { throw new Error('no matchMedia'); }, navigator: {} }), false);
   assert.equal(detectStandalone(undefined), false);
 });
+
+test('"How to install" picks iPhone, Android or generic steps', async () => {
+  const { installGuidePlatform, openInstallGuide, INSTALL_GUIDE_OPEN_EVENT } = await import('../src/lib/installPrompt');
+  assert.equal(installGuidePlatform(IOS_SAFARI), 'ios');
+  assert.equal(installGuidePlatform('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15', 5), 'ios');
+  assert.equal(installGuidePlatform(ANDROID_CHROME), 'android');
+  assert.equal(installGuidePlatform('Mozilla/5.0 (Windows NT 10.0) Chrome/125'), 'other');
+  const fired: string[] = [];
+  openInstallGuide({ dispatchEvent: (e: Event) => { fired.push(e.type); return true; } });
+  assert.deepEqual(fired, [INSTALL_GUIDE_OPEN_EVENT]);
+});

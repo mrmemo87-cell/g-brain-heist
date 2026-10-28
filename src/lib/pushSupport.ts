@@ -12,15 +12,18 @@ export interface PushEnvironment {
   permission: 'default' | 'granted' | 'denied' | 'unknown';
   userAgent: string;
   standalone: boolean;
+  /** navigator.maxTouchPoints — iPhone/iPad in "desktop website" mode report a Mac user agent with touch. */
+  maxTouchPoints?: number;
 }
 
-const isIosDevice = (ua: string) => /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && /Mobile/i.test(ua));
+export const isIosDevice = (ua: string, maxTouchPoints = 0) =>
+  /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && (/Mobile/i.test(ua) || maxTouchPoints > 1));
 
 export function pushAvailability(env: PushEnvironment): PushAvailability {
   if (!env.secureContext) return { ok: false, reason: 'insecure_context' };
   if (env.permission === 'denied') return { ok: false, reason: 'denied' };
   // iOS exposes PushManager only inside a Home Screen app (iOS 16.4+). In Safari tabs it is absent.
-  if (isIosDevice(env.userAgent) && !env.standalone) return { ok: false, reason: 'ios_needs_home_screen' };
+  if (isIosDevice(env.userAgent, env.maxTouchPoints) && !env.standalone) return { ok: false, reason: 'ios_needs_home_screen' };
   if (!env.hasServiceWorker || !env.hasPushManager || !env.hasNotification) return { ok: false, reason: 'unsupported' };
   return { ok: true };
 }
