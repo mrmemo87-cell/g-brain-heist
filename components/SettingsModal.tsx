@@ -10,6 +10,7 @@ import AvatarWithFrame from './AvatarWithFrame';
 import { isFlickerThemeActive } from '../src/lib/cosmetics';
 import { supabase } from '../services/supabaseClient';
 import PushNotificationToggle from './PushNotificationToggle';
+import { openInstallGuide } from '../src/lib/installPrompt';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -555,12 +556,25 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
           )}
 
-          {/* Notifications (students) */}
-          {!isAdminMode && profile.role === 'student' && (
-            <div>
-              <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>{t("Notifications")}</h3>
-              <div className="border border-gray-700 rounded-2xl p-4">
-                <PushNotificationToggle />
+          {/* Notifications (students) and phone install help (everyone) */}
+          {!isAdminMode && (
+            <div data-testid="settings-phone-app">
+              <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>
+                {profile.role === 'student' ? t("Notifications") : t("App on your phone")}
+              </h3>
+              <div className="border border-gray-700 rounded-2xl p-4 space-y-4">
+                {profile.role === 'student' && <PushNotificationToggle />}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm text-gray-400">{t("Use Brains Heist like an app: full screen, from your Home Screen.")}</p>
+                  <button
+                    type="button"
+                    onClick={() => openInstallGuide()}
+                    data-testid="open-install-guide"
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-gray-600 px-4 text-sm font-semibold text-gray-200 transition hover:border-cyan-400/60"
+                  >
+                    {t("How to install")}
+                  </button>
+                </div>
               </div>
             </div>
           )}

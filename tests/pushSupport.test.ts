@@ -26,3 +26,9 @@ test('VAPID key decoding and platform labels', () => {
   assert.equal(platformLabel(ANDROID), 'android');
   assert.equal(platformLabel('Mozilla/5.0 (Windows NT 10.0) Chrome/125'), 'web');
 });
+
+test('iPhone in "desktop website" mode (Mac user agent with touch) is still treated as iPhone', () => {
+  const MAC = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Version/18.0 Safari/605.1.15';
+  assert.deepEqual(pushAvailability({ ...base, userAgent: MAC, maxTouchPoints: 5, hasPushManager: false }), { ok: false, reason: 'ios_needs_home_screen' });
+  assert.deepEqual(pushAvailability({ ...base, userAgent: MAC, maxTouchPoints: 0 }), { ok: true }, 'a real Mac is not an iPhone');
+});

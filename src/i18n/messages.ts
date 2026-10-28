@@ -1212,6 +1212,58 @@ export const messages = {
   "Could not turn on notifications. Please try again.": {
     "ar": "تعذّر تفعيل الإشعارات. حاول مرة أخرى.",
     "ru": "Не удалось включить уведомления. Попробуйте ещё раз."
+  },
+  "Open Brains Heist in Safari": {
+    "ar": "افتح Brains Heist في Safari",
+    "ru": "Откройте Brains Heist в Safari"
+  },
+  "Open Brains Heist in Chrome": {
+    "ar": "افتح Brains Heist في Chrome",
+    "ru": "Откройте Brains Heist в Chrome"
+  },
+  "Tap the ⋮ menu (top right)": {
+    "ar": "اضغط قائمة ⋮ (أعلى اليمين)",
+    "ru": "Нажмите меню ⋮ (вверху справа)"
+  },
+  "Choose \"Add to Home screen\" or \"Install app\"": {
+    "ar": "اختر \"إضافة إلى الشاشة الرئيسية\" أو \"تثبيت التطبيق\"",
+    "ru": "Выберите «Добавить на главный экран» или «Установить приложение»"
+  },
+  "Tap \"Install\"": {
+    "ar": "اضغط \"تثبيت\"",
+    "ru": "Нажмите «Установить»"
+  },
+  "Open Brains Heist on your phone (Safari on iPhone, Chrome on Android) and tap \"How to install\" in Settings there.": {
+    "ar": "افتح Brains Heist على هاتفك (Safari على iPhone وChrome على Android) واضغط \"طريقة التثبيت\" في الإعدادات هناك.",
+    "ru": "Откройте Brains Heist на телефоне (Safari на iPhone, Chrome на Android) и нажмите «Как установить» в настройках."
+  },
+  "Already added, but it opens inside Safari with an address bar? Delete the icon and add it again with these steps. Notifications only work when it opens full screen.": {
+    "ar": "أضفته من قبل لكنه يفتح داخل Safari مع شريط العنوان؟ احذف الأيقونة وأضفها من جديد بهذه الخطوات. الإشعارات تعمل فقط عندما يفتح بملء الشاشة.",
+    "ru": "Уже добавили, но приложение открывается в Safari с адресной строкой? Удалите значок и добавьте его снова по этим шагам. Уведомления работают, только когда приложение открывается на весь экран."
+  },
+  "Notifications are blocked for Brains Heist. Turn them on in iPhone Settings → Notifications → Brains Heist (Android: Settings → Apps → Brains Heist → Notifications).": {
+    "ar": "الإشعارات محظورة لـ Brains Heist. فعّلها من إعدادات iPhone ← الإشعارات ← Brains Heist (Android: الإعدادات ← التطبيقات ← Brains Heist ← الإشعارات).",
+    "ru": "Уведомления для Brains Heist заблокированы. Включите их: Настройки iPhone → Уведомления → Brains Heist (Android: Настройки → Приложения → Brains Heist → Уведомления)."
+  },
+  "On iPhone, notifications only work in the Brains Heist app on your Home Screen. If the app opens inside Safari with an address bar, delete the icon and add it again.": {
+    "ar": "على iPhone تعمل الإشعارات فقط في تطبيق Brains Heist على الشاشة الرئيسية. إذا كان يفتح داخل Safari مع شريط العنوان، احذف الأيقونة وأضفها من جديد.",
+    "ru": "На iPhone уведомления работают только в приложении Brains Heist на экране «Домой». Если оно открывается в Safari с адресной строкой, удалите значок и добавьте его снова."
+  },
+  "This browser cannot receive notifications. Use Chrome on Android, or the Brains Heist app on your iPhone Home Screen.": {
+    "ar": "هذا المتصفح لا يستقبل الإشعارات. استخدم Chrome على Android أو تطبيق Brains Heist على الشاشة الرئيسية في iPhone.",
+    "ru": "Этот браузер не получает уведомления. Используйте Chrome на Android или приложение Brains Heist на экране «Домой» iPhone."
+  },
+  "App on your phone": {
+    "ar": "التطبيق على هاتفك",
+    "ru": "Приложение на телефоне"
+  },
+  "Use Brains Heist like an app: full screen, from your Home Screen.": {
+    "ar": "استخدم Brains Heist كتطبيق: بملء الشاشة ومن الشاشة الرئيسية.",
+    "ru": "Пользуйтесь Brains Heist как приложением: на весь экран, с экрана «Домой»."
+  },
+  "How to install": {
+    "ar": "طريقة التثبيت",
+    "ru": "Как установить"
   }
 } as const;
 
