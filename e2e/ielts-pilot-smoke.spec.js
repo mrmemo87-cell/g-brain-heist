@@ -1,5 +1,5 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
+import { test, expect } from '@playwright/test';
 
 const now = '2026-05-18T08:00:00.000Z';
 
@@ -225,7 +225,21 @@ async function installSupabaseMocks(page, profile, options = {}) {
     const fn = url.pathname.split('/').pop();
     const body = route.request().postDataJSON?.() ?? {};
 
+    const isAdmin = role === 'school_admin';
     const rpc = {
+      // Server-authoritative bootstrap used by index.tsx since 2026-09 (replaces check_user_setup_status).
+      rpc_auth_bootstrap_v1: {
+        user_id: profile.id,
+        email: profile.email,
+        email_verified: true,
+        needs_setup: false,
+        is_banned: false,
+        profile,
+        school: { id: school.id, name: school.name, logo_url: school.logo_url ?? null },
+        capabilities: { user_id: profile.id, school_id: ids.school, role: isAdmin ? 'school_admin' : 'student', is_owner: isAdmin, can_administer: isAdmin, can_teach: isAdmin, has_active_teacher_allocation: false },
+        is_superadmin: false,
+        has_parent_workspace: false,
+      },
       check_user_setup_status: { authenticated: true, needs_setup: false, has_role: true, has_username: true, role, school_id: ids.school, user_id: profile.id, username: profile.username },
       get_effective_tier: 'free',
       get_school_plan_details: { success: true, plan: 'pilot', is_active: true, trial_ends_at: '2026-06-01T00:00:00.000Z', trial_expired: false, seats: { cambridge: 0, ielts: 10, game: 0 }, current_members: 2 },

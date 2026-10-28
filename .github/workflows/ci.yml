@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: ['**']
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -22,7 +23,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install
@@ -40,5 +41,48 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Web bundle fingerprint
+        # Lets later native/mobile branches prove the web bundle did not change.
+        run: |
+          find dist -type f -not -path 'dist/components/*' -print0 | sort -z | xargs -0 sha256sum > web-bundle.sha256
+          wc -l web-bundle.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-bundle-sha256-${{ github.sha }}
+          path: web-bundle.sha256
+          retention-days: 30
+
       - name: Test
         run: npm test
+
+  e2e-smoke:
+    # Manual for now: e2e/ielts-pilot-smoke.spec.js predates rpc_auth_bootstrap_v1 and the
+    # school programme guard, so its Supabase mocks need updating before it can gate merges.
+    name: Browser smoke (Playwright, Chromium) — manual
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: IELTS pilot smoke
+        run: npm run test:e2e:ielts
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-${{ github.sha }}
+          path: playwright-report
+          retention-days: 7
