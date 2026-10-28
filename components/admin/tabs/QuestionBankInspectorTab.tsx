@@ -17,6 +17,7 @@ import {
 } from '../../../services/adminQuestionBankService';
 import { useAdmin } from '../AdminContext';
 import QuestionTaxonomyReviewQueue from './QuestionTaxonomyReviewQueue';
+import AiRecheckQueue from './AiRecheckQueue';
 import './QuestionBankInspectorTab.css';
 
 const PAGE_SIZE = 24;
@@ -85,7 +86,7 @@ const escapeCsv = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""'
 
 const QuestionBankInspectorTab: React.FC = () => {
   const { addToast } = useAdmin();
-  const [workspace, setWorkspace] = useState<'vault' | 'taxonomy'>('vault');
+  const [workspace, setWorkspace] = useState<'vault' | 'taxonomy' | 'ai-recheck'>('vault');
   const [pool, setPool] = useState<AdminQuestionPool>('verified');
   const [catalog, setCatalog] = useState<AdminQuestionBankCatalog | null>(null);
   const [loading, setLoading] = useState(true);
@@ -519,6 +520,10 @@ const QuestionBankInspectorTab: React.FC = () => {
     return <QuestionTaxonomyReviewQueue onOpenVault={() => setWorkspace('vault')} />;
   }
 
+  if (workspace === 'ai-recheck') {
+    return <AiRecheckQueue onOpenVault={() => setWorkspace('vault')} />;
+  }
+
   return (
     <div className="qb-inspector">
       <header className="qb-inspector__hero">
@@ -532,6 +537,7 @@ const QuestionBankInspectorTab: React.FC = () => {
           <strong>Source content locked</strong>
           <small>Questions stay read-only · taxonomy decisions are append-only</small>
           <button type="button" onClick={() => setWorkspace('taxonomy')}>Open taxonomy review →</button>
+          <button type="button" onClick={() => setWorkspace('ai-recheck')}>Open AI recheck queue →</button>
         </div>
       </header>
 

@@ -760,3 +760,85 @@ export async function decideSuperadminQuestionTaxonomyReview(input: {
   if (!result?.success) throw new Error('The taxonomy decision returned an invalid response.');
   return result;
 }
+
+// ---------------------------------------------------------------------------
+// AI recheck queue: AI-drafted questions that are live for practice but kept
+// out of student evidence until the platform superadmin rechecks them.
+
+export interface AdminAiRecheckItem {
+  id: string;
+  subject: string | null;
+  topic_name: string | null;
+  difficulty: string | null;
+  grade: number | null;
+  eligible_grade_levels: number[] | null;
+  question_type: string | null;
+  question_text: string;
+  options: Array<string | { text?: string }> | null;
+  correct_answer: string | null;
+  accepted_answers: string[] | null;
+  explanation: string | null;
+  image_url: string | null;
+  image_alt_text: string | null;
+  curriculum_objective: string | null;
+  verified_by_authority: string | null;
+  copyright_holder: string | null;
+  is_active: boolean;
+  times_answered: number | null;
+  times_correct: number | null;
+  created_at: string | null;
+  recheck_requested_at: string | null;
+}
+
+export interface AdminAiRecheckQueue {
+  total: number;
+  items: AdminAiRecheckItem[];
+}
+
+export type AdminAiRecheckAction = 'approve' | 'retire';
+
+const aiRecheckError = (message?: string) => {
+  const value = message || '';
+  if (value.includes('platform_superadmin_access_required')) {
+    return new Error('The AI recheck queue is restricted to the platform superadmin.');
+  }
+  if (value.includes('question_not_awaiting_recheck')) {
+    return new Error('This question has already been rechecked. Refresh the queue.');
+  }
+  if (value.includes('retire_requires_reason_of_10_characters')) {
+    return new Error('Give a reason of at least 10 characters before retiring a question.');
+  }
+  if (value.includes('question_not_found')) {
+    return new Error('This question no longer exists. Refresh the queue.');
+  }
+  return new Error(value || 'The AI recheck request failed.');
+};
+
+export async function loadSuperadminAiRecheckQueue(
+  query: { subject?: string | null; limit?: number; offset?: number } = {},
+): Promise<AdminAiRecheckQueue> {
+  const { data, error } = await supabase.rpc('rpc_superadmin_ai_recheck_queue', {
+    p_subject: query.subject || null,
+    p_limit: query.limit || 20,
+    p_offset: query.offset || 0,
+  });
+  if (error) throw aiRecheckError(error.message);
+  const result = data as Partial<AdminAiRecheckQueue> | null;
+  return {
+    total: Number(result?.total || 0),
+    items: Array.isArray(result?.items) ? result.items as AdminAiRecheckItem[] : [],
+  };
+}
+
+export async function decideSuperadminAiRecheck(input: {
+  questionId: string;
+  action: AdminAiRecheckAction;
+  notes?: string;
+}): Promise<void> {
+  const { error } = await supabase.rpc('rpc_superadmin_ai_recheck_decide', {
+    p_question_id: input.questionId,
+    p_action: input.action,
+    p_notes: input.notes?.trim() || null,
+  });
+  if (error) throw aiRecheckError(error.message);
+}

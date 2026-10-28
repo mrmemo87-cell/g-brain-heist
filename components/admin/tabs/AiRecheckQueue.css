@@ -1,0 +1,34 @@
+/* AI recheck queue: reuses the taxonomy review tokens and modal. */
+.ai-recheck__back { background: none; border: 0; color: var(--tr-cyan); cursor: pointer; font-size: 0.8rem; font-weight: 700; padding: 0; margin-bottom: 0.5rem; }
+.ai-recheck__back:focus-visible { outline: 2px solid var(--tr-cyan); outline-offset: 3px; }
+.ai-recheck .taxonomy-review__hero h2 { margin: 0; font-size: clamp(1.4rem, 3vw, 2rem); }
+.ai-recheck .taxonomy-review__hero p { color: var(--tr-muted); margin: 0.5rem 0 0; max-width: 60ch; }
+.ai-recheck__count { display: grid; justify-items: end; position: relative; }
+.ai-recheck__count strong { color: var(--tr-amber); font-size: 2.6rem; font-variant-numeric: tabular-nums; line-height: 1; }
+.ai-recheck__count span { color: var(--tr-muted); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.ai-recheck__body { display: grid; gap: 1rem; }
+.ai-recheck__filter { display: grid; gap: 0.3rem; max-width: 280px; }
+.ai-recheck__filter span { color: var(--tr-muted); font-size: 0.75rem; }
+.ai-recheck__filter select { background: var(--tr-panel); border: 1px solid var(--tr-border); border-radius: 0.6rem; color: var(--tr-text); padding: 0.55rem 0.7rem; }
+.ai-recheck__cards { display: grid; gap: 1rem; }
+.ai-recheck__cards.is-refreshing { opacity: 0.6; }
+.ai-recheck__card { background: var(--tr-panel); border: 1px solid var(--tr-border); border-radius: 1rem; display: grid; gap: 0.85rem; min-width: 0; padding: 1rem; }
+.ai-recheck__card > header { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; justify-content: space-between; }
+.ai-recheck__card > header span { color: var(--tr-muted); font-size: 0.8rem; }
+.ai-recheck__card figure { margin: 0; }
+.ai-recheck__card img { border-radius: 0.75rem; display: block; height: auto; max-width: 640px; width: 100%; }
+.ai-recheck__card figcaption { color: var(--tr-muted); font-size: 0.75rem; margin-top: 0.35rem; }
+.ai-recheck__card h4 { font-size: 1.02rem; margin: 0; }
+.ai-recheck__options { display: grid; gap: 0.4rem; list-style: none; margin: 0; padding: 0; }
+.ai-recheck__options li { align-items: center; border: 1px solid var(--tr-border); border-radius: 0.6rem; display: flex; gap: 0.7rem; padding: 0.5rem 0.7rem; }
+.ai-recheck__options li > span { color: var(--tr-muted); font-weight: 700; width: 1.2em; }
+.ai-recheck__options li > p { flex: 1; margin: 0; min-width: 0; }
+.ai-recheck__options li.is-key { background: rgba(94, 231, 162, 0.1); border-color: rgba(94, 231, 162, 0.55); }
+.ai-recheck__options li.is-key > span,
+.ai-recheck__options li > em { color: var(--tr-green); }
+.ai-recheck__options li > em { font-size: 0.7rem; font-style: normal; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.ai-recheck__answer span,
+.ai-recheck__explanation span { color: var(--tr-muted); display: block; font-size: 0.72rem; letter-spacing: 0.06em; margin-bottom: 0.2rem; text-transform: uppercase; }
+.ai-recheck__answer,
+.ai-recheck__explanation { margin: 0; }
+.ai-recheck__meta { color: var(--tr-muted); font-size: 0.75rem; margin: 0; }
