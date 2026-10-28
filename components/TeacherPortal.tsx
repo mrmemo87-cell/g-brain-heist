@@ -20,6 +20,7 @@ import type { PreparedDiagnostic } from '../services/diagnosticComposerService';
 import { useAssignmentQuestionSelection } from '../src/hooks/useAssignmentQuestionSelection';
 import BackButton from './BackButton';
 import SettingsModal from './SettingsModal';
+import TeacherAnnouncementModal from './TeacherAnnouncementModal';
 import CollapsedNavTooltip from './CollapsedNavTooltip';
 const TeacherGuideHelpModal = React.lazy(() => import('./TeacherGuideHelpModal'));
 import { NotificationCenter } from './NotificationCenter';
@@ -256,6 +257,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '/BRAINS.svg');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
   const [topNavMenuOpen, setTopNavMenuOpen] = useState(false);
   const [mobileWorkspaceMenuOpen, setMobileWorkspaceMenuOpen] = useState(false);
   const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(getInitialSidebarCollapsed);
@@ -9196,6 +9198,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           <div className="relative flex items-center gap-2" ref={topNavMenuRef}>
             <button
               type="button"
+              onClick={() => setShowAnnouncementModal(true)}
+              className="hidden h-11 w-11 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/70 text-lg text-slate-200 shadow-sm shadow-slate-950/40 transition hover:border-cyan-500/60 hover:text-white sm:flex"
+              aria-label="Send a notification to students"
+              title="Send a notification to students"
+              data-testid="open-teacher-announcement"
+            >
+              📣
+            </button>
+            <button
+              type="button"
               onClick={() => {
                 setShowNotifications((prev) => !prev);
                 setUnreadCount(0);
@@ -9273,6 +9285,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 <button
                   type="button"
                   onClick={() => {
+                    setShowAnnouncementModal(true);
+                    setTopNavMenuOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60"
+                >
+                  <span className="text-lg">📣</span>
+                  Send notification
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
                     setShowSettingsModal(true);
                     setTopNavMenuOpen(false);
                   }}
@@ -9319,6 +9342,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           schoolLogoUrl={resolvedBranding.schoolLogoUrl} teacherName={profile.full_name || profile.username || 'Teacher'}
           onClose={() => setPaperAssignment(null)} onRecorded={() => { void GameService.get_teacher_assignments().then(setAssignments).catch((error) => console.warn('Assignment refresh failed:', error)); }} />
       </React.Suspense>}
+      {showAnnouncementModal && (
+        <TeacherAnnouncementModal
+          students={availableStudents as unknown as import('../src/lib/teacherAnnouncement').AnnouncementStudent[]}
+          onClose={() => setShowAnnouncementModal(false)}
+        />
+      )}
       {showSettingsModal && (
         <SettingsModal
           onClose={() => setShowSettingsModal(false)}
