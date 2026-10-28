@@ -1264,6 +1264,18 @@ export const messages = {
   "How to install": {
     "ar": "طريقة التثبيت",
     "ru": "Как установить"
+  },
+  "Game alerts": {
+    "ar": "تنبيهات اللعبة",
+    "ru": "Игровые уведомления"
+  },
+  "When someone attacks you in PvP, and an evening reminder before your streak breaks. Never between 22:00 and 07:00.": {
+    "ar": "عندما يهاجمك أحد في PvP، وتذكير مسائي قبل أن تنقطع سلسلتك. لا شيء بين 22:00 و07:00.",
+    "ru": "Когда на вас нападают в PvP, и вечернее напоминание, пока серия не прервалась. Никогда с 22:00 до 07:00."
+  },
+  "Could not save. Please try again.": {
+    "ar": "تعذّر الحفظ. حاول مرة أخرى.",
+    "ru": "Не удалось сохранить. Попробуйте ещё раз."
   }
 } as const;
 

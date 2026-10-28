@@ -88,3 +88,21 @@ export async function disablePushOnThisDevice(): Promise<void> {
     await supabase.from('push_subscriptions').delete().eq('endpoint', endpoint);
   } catch { /* Best effort: the dispatcher disables dead endpoints on 404/410. */ }
 }
+
+/** "Game alerts" (PvP and streak reminders). No saved row means on. */
+export async function getGameAlertsEnabled(): Promise<boolean> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return true;
+    const { data } = await supabase.from('push_preferences').select('game_events').eq('user_id', user.id).maybeSingle();
+    return data ? Boolean((data as { game_events: boolean }).game_events) : true;
+  } catch { return true; }
+}
+
+export async function setGameAlertsEnabled(enabled: boolean): Promise<boolean> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+  const { error } = await supabase.from('push_preferences')
+    .upsert({ user_id: user.id, game_events: enabled, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  return !error;
+}
