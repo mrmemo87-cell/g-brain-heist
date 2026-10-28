@@ -1,0 +1,23 @@
+{
+  "packageId": "bh-physics-0654-graphs-2",
+  "packageVersion": "1.0.0",
+  "releasedAt": "2026-10-28",
+  "authorisedBy": "Brains Heist owner (chat instruction: create and release graph set 2)",
+  "importedAuthority": "Brains Heist Content Quality (AI-drafted, owner release 2026-10-28)",
+  "importedPackageHash": "e413b05f31bc9e6d2694d162025f52ca0ded7f656547bc819c5a2cff05000a50",
+  "importedPackage": "candidate-package.json with only the authority field replaced, serialised compactly",
+  "releaseId": "8d01d86d-6fb8-4221-ba50-6d0ac0d9903b",
+  "deployment": "PR #1744, Vercel production success",
+  "evidenceFocuses": 9,
+  "questions": 12,
+  "curriculumMappings": "36 approved (p1-2, p3-1, p4-2-4 or p4-3-2 in grades 9, 10 and 11 of bh-cie-igcse-0654-physics 2025-2027-v1)",
+  "postImportChecks": {
+    "imageUrlSet": 12,
+    "visualSpecSet": 12,
+    "inAiRecheckQueue": 12,
+    "copyrightHolderBrainsHeistLLC": 12
+  },
+  "openItems": [
+    "Super admin recheck of all 12 questions before their answers count as student evidence"
+  ]
+}
