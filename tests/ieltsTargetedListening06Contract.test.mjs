@@ -46,6 +46,10 @@ for(const t of src.tasks)test(`${t.code} teaches first, hides the transcript unt
   else{assert.equal(q.accepted_answers.length,1);assert.ok(q.options.map(o=>o.value).includes(a),`${q.id} answer not an option`);}
  }
  assert.ok(Math.max(...Object.values(counts))<=3,'answers spread');
+ const choice=t.questions.filter(q=>q.options);
+ if(/A, B, C or D/.test(t.instructions))for(const q of choice)assert.equal(q.options.length,4,`${q.id}: instructions say A-D`);
+ if(/A, B or C/.test(t.instructions))for(const q of choice)assert.equal(q.options.length,3,`${q.id}: instructions say A-C`);
+ if(/A-F/.test(t.instructions))for(const q of choice)assert.equal(q.options.length,6,`${q.id}: instructions say A-F`);
  if(t.purpose==='independent_check')assert.match(t.instructions,/ONCE, without pausing/);
  else assert.match(t.instructions,/You may pause or replay/);
 });
