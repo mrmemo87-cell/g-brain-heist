@@ -55,3 +55,11 @@ test('install migrations are insert-only, keep review on, never release, and sto
   for(const k of ['title','version','purpose','instructions','success_description','content_sha256'])assert.equal(r[k],t[k]);}
  await db.close();
 });
+test('owner release pins exactly the 24 approved versions, records originality and changes nothing else',()=>{
+ const rel=readdirSync('supabase/migrations').filter(f=>f.endsWith('_ielts_targeted_reading_07_originality_and_release.sql'));assert.equal(rel.length,1);
+ const sql=readFileSync('supabase/migrations/'+rel[0],'utf8');
+ assert.doesNotMatch(sql,/\bupdate\b|\bdelete\b/i,'append-only');
+ for(const [i,t] of src.tasks.entries())assert.ok(sql.includes(`(${34+i},'R-${String(56+i).padStart(3,'0')}','${t.code}','${t.content_sha256}','${t.lesson.slice(6,8)}')`),`${t.code} pinned to the approved hash`);
+ assert.match(sql,/unexpected_originality_match/);assert.match(sql,/'fresh'/);assert.doesNotMatch(sql,/'variant'/,'no variant links, so each mixed check stays assignable');
+ assert.match(sql,/insert into private\.ielts_learning_releases/);assert.match(sql,/release_not_effective/);
+});
