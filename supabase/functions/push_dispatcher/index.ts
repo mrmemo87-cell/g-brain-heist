@@ -4,7 +4,20 @@
 // the header key is the credential. VAPID keys live in the same server-only config row.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.78.0";
 import webpush from "npm:web-push@3.6.7";
-import { requiredEnv, serverSupabaseKey } from "../_shared/email.ts";
+
+const requiredEnv = (name: string) => {
+  const value = Deno.env.get(name)?.trim();
+  if (!value) throw new Error(`Missing required server secret: ${name}`);
+  return value;
+};
+const serverSupabaseKey = () => {
+  const keySet = Deno.env.get("SUPABASE_SECRET_KEYS")?.trim();
+  if (keySet) {
+    const parsed = JSON.parse(keySet) as Record<string, unknown>;
+    if (typeof parsed.default === "string" && parsed.default.trim()) return parsed.default.trim();
+  }
+  return requiredEnv("SUPABASE_SERVICE_ROLE_KEY");
+};
 
 type OutboxRow = {
   id: string; user_id: string; event_type: string; title: string; body: string; url: string;

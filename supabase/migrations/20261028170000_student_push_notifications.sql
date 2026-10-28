@@ -214,18 +214,16 @@ $$;
 revoke all on function public.rpc_claim_push_notifications(integer) from public, anon, authenticated;
 grant execute on function public.rpc_claim_push_notifications(integer) to service_role;
 
+-- Recovers stale claims. Retention of sent rows is left to a later, separately reviewed migration.
 create or replace function public.rpc_push_cleanup()
 returns jsonb language plpgsql security definer set search_path = '' as $$
-declare v_recovered integer := 0; v_deleted integer := 0;
+declare v_recovered integer := 0;
 begin
   update public.push_notification_outbox
   set status = 'pending', next_attempt_at = now(), updated_at = now(), last_error = 'Recovered stale processing claim'
   where status = 'processing' and updated_at < now() - interval '10 minutes';
   get diagnostics v_recovered = row_count;
-  delete from public.push_notification_outbox
-  where status in ('sent', 'skipped', 'cancelled') and updated_at < now() - interval '30 days';
-  get diagnostics v_deleted = row_count;
-  return jsonb_build_object('recovered', v_recovered, 'deleted', v_deleted);
+  return jsonb_build_object('recovered', v_recovered);
 end $$;
 revoke all on function public.rpc_push_cleanup() from public, anon, authenticated;
 grant execute on function public.rpc_push_cleanup() to service_role;
