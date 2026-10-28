@@ -1,0 +1,1668 @@
+{
+  "schemaVersion": 2,
+  "packageId": "bh-physics-0654-graphs",
+  "packageVersion": "1.0.0",
+  "contentVersion": "physics-0654-graphs-v1",
+  "registryVersion": "bh-science-core-v1",
+  "subjectCode": "physics",
+  "authority": "PENDING OWNER RELEASE - Brains Heist AI-drafted",
+  "releaseNotes": "12 original AI-drafted 0654 Physics P1 graph questions (motion graphs and load-extension) with 5 checksum-addressed SVG graphs drawn from stored data. Keys recomputed from the graph data by build.mjs. Imported questions enter the super admin AI recheck queue and stay out of student evidence until rechecked.",
+  "assetBaseUrl": "https://www.brainsheist.com",
+  "assetDirectory": "physics-0654-graphs-1-0-0",
+  "assets": [
+    {
+      "assetId": "p1-dt-car-journey",
+      "sourceFile": "public/question-assets/physics-0654-graphs-1-0-0/p1-dt-car-journey.93f689421a62.svg",
+      "publicPath": "/question-assets/physics-0654-graphs-1-0-0/p1-dt-car-journey.93f689421a62.svg",
+      "publicUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-dt-car-journey.93f689421a62.svg",
+      "mimeType": "image/svg+xml",
+      "sha256": "93f689421a6292997e588ae8f853204ea85824671b3b7e75afcddd105ae42cc8",
+      "width": 640,
+      "height": 360,
+      "altText": "Distance-time graph for a car. The line rises from 0 m at 0 s to 20 m at 4 s, stays at 20 m until 8 s, then rises to 40 m at 10 s.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System"
+    },
+    {
+      "assetId": "p1-st-cyclist",
+      "sourceFile": "public/question-assets/physics-0654-graphs-1-0-0/p1-st-cyclist.bedb656f00cd.svg",
+      "publicPath": "/question-assets/physics-0654-graphs-1-0-0/p1-st-cyclist.bedb656f00cd.svg",
+      "publicUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-st-cyclist.bedb656f00cd.svg",
+      "mimeType": "image/svg+xml",
+      "sha256": "bedb656f00cdebb7b78bef7fb2b7a3c9a33e03ce432772cd7921657fd3974e0b",
+      "width": 640,
+      "height": 360,
+      "altText": "Speed-time graph for a cyclist. Speed rises in a straight line from 0 m/s at 0 s to 6 m/s at 3 s, stays at 6 m/s until 8 s, then falls to 0 m/s at 10 s.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System"
+    },
+    {
+      "assetId": "p1-st-runner-curve",
+      "sourceFile": "public/question-assets/physics-0654-graphs-1-0-0/p1-st-runner-curve.5c64a3a5f6f4.svg",
+      "publicPath": "/question-assets/physics-0654-graphs-1-0-0/p1-st-runner-curve.5c64a3a5f6f4.svg",
+      "publicUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-st-runner-curve.5c64a3a5f6f4.svg",
+      "mimeType": "image/svg+xml",
+      "sha256": "5c64a3a5f6f4ee6615bda959a3394028d0dda992d57071776042349cb949a65d",
+      "width": 640,
+      "height": 360,
+      "altText": "Speed-time graph for a runner from 0 to 5 s. Speed starts at 0 m/s and rises along a curve that is steep at first and becomes less steep, reaching about 7.6 m/s at 5 s.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System"
+    },
+    {
+      "assetId": "p1-dt-four-objects",
+      "sourceFile": "public/question-assets/physics-0654-graphs-1-0-0/p1-dt-four-objects.271456c480e0.svg",
+      "publicPath": "/question-assets/physics-0654-graphs-1-0-0/p1-dt-four-objects.271456c480e0.svg",
+      "publicUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-dt-four-objects.271456c480e0.svg",
+      "mimeType": "image/svg+xml",
+      "sha256": "271456c480e072d1f2158b4e54aa829deb068f5902fef833d7ba5b94bb7720d5",
+      "width": 640,
+      "height": 360,
+      "altText": "Distance-time graph with four labelled lines. P is horizontal at 10 m. Q and R are straight lines from the origin, R much steeper than Q. S curves upwards, getting steeper.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System"
+    },
+    {
+      "assetId": "p1-le-spring",
+      "sourceFile": "public/question-assets/physics-0654-graphs-1-0-0/p1-le-spring.c7780ba06aef.svg",
+      "publicPath": "/question-assets/physics-0654-graphs-1-0-0/p1-le-spring.c7780ba06aef.svg",
+      "publicUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-le-spring.c7780ba06aef.svg",
+      "mimeType": "image/svg+xml",
+      "sha256": "c7780ba06aeff65a9189a77cf9415c0b5bdc615cc61883e6623cc2630d8b6175",
+      "width": 640,
+      "height": 360,
+      "altText": "Load-extension graph for a spring with plotted points. Extension rises in a straight line from 0 cm at 0 N to 12 cm at 6 N, then curves upwards to 16 cm at 7 N and 22 cm at 8 N.",
+      "license": "Brains Heist original educational artwork",
+      "source": "Brains Heist Visual System"
+    }
+  ],
+  "questions": [
+    {
+      "externalId": "bh-physics-0654-graphs-001",
+      "topic": "P1 Motion, forces and energy",
+      "questionText": "The graph shows how the distance travelled by a car changes with time. Between which times is the car at rest?",
+      "questionType": "multiple_choice",
+      "options": [
+        "0 s and 4 s",
+        "0 s and 10 s",
+        "4 s and 8 s",
+        "8 s and 10 s"
+      ],
+      "correctAnswer": "4 s and 8 s",
+      "explanation": "A horizontal section of a distance–time graph means the distance is not changing, so the car is at rest from 4 s to 8 s.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core",
+        "graph"
+      ],
+      "visualAssetId": "p1-dt-car-journey",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-dt-car-journey.93f689421a62.svg",
+      "imageAltText": "Distance-time graph for a car. The line rises from 0 m at 0 s to 20 m at 4 s, stays at 20 m until 8 s, then rises to 40 m at 10 s.",
+      "visualAssetSha256": "93f689421a6292997e588ae8f853204ea85824671b3b7e75afcddd105ae42cc8",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "distance-time",
+        "title": "Distance–time graph for a car",
+        "x": {
+          "label": "time / s",
+          "min": 0,
+          "max": 10,
+          "grid": 1,
+          "tick": 2
+        },
+        "y": {
+          "label": "distance / m",
+          "min": 0,
+          "max": 40,
+          "grid": 5,
+          "tick": 10
+        },
+        "series": [
+          {
+            "id": "car",
+            "style": "solid",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                4,
+                20
+              ],
+              [
+                8,
+                20
+              ],
+              [
+                10,
+                40
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Distance-time graph for a car. The line rises from 0 m at 0 s to 20 m at 4 s, stays at 20 m until 8 s, then rises to 40 m at 10 s."
+      },
+      "curriculumObjectiveCode": "p1-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.motion-forces",
+          "atomicSubskillCode": "science.physics.motion-forces.motion",
+          "evidenceFocusCode": "science.physics.motion-forces.motion.focus.motion-state-from-graph-shape",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to identify motion states from the shape of a motion graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P1.2.5",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-representations"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P1.2.5; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs-002",
+      "topic": "P1 Motion, forces and energy",
+      "questionText": "Use the graph to find the speed of the car between 0 s and 4 s.",
+      "questionType": "multiple_choice",
+      "options": [
+        "0.20 m/s",
+        "5.0 m/s",
+        "10 m/s",
+        "80 m/s"
+      ],
+      "correctAnswer": "5.0 m/s",
+      "explanation": "Speed is the gradient of the distance–time graph: 20 m ÷ 4 s = 5.0 m/s.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core",
+        "graph"
+      ],
+      "visualAssetId": "p1-dt-car-journey",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-dt-car-journey.93f689421a62.svg",
+      "imageAltText": "Distance-time graph for a car. The line rises from 0 m at 0 s to 20 m at 4 s, stays at 20 m until 8 s, then rises to 40 m at 10 s.",
+      "visualAssetSha256": "93f689421a6292997e588ae8f853204ea85824671b3b7e75afcddd105ae42cc8",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "distance-time",
+        "title": "Distance–time graph for a car",
+        "x": {
+          "label": "time / s",
+          "min": 0,
+          "max": 10,
+          "grid": 1,
+          "tick": 2
+        },
+        "y": {
+          "label": "distance / m",
+          "min": 0,
+          "max": 40,
+          "grid": 5,
+          "tick": 10
+        },
+        "series": [
+          {
+            "id": "car",
+            "style": "solid",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                4,
+                20
+              ],
+              [
+                8,
+                20
+              ],
+              [
+                10,
+                40
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Distance-time graph for a car. The line rises from 0 m at 0 s to 20 m at 4 s, stays at 20 m until 8 s, then rises to 40 m at 10 s."
+      },
+      "curriculumObjectiveCode": "p1-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.motion-forces",
+          "atomicSubskillCode": "science.physics.motion-forces.motion",
+          "evidenceFocusCode": "science.physics.motion-forces.motion.focus.speed-from-distance-time-gradient",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate speed from the gradient of a distance-time graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P1.2.6",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-numerical-data"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P1.2.6; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs-003",
+      "topic": "P1 Motion, forces and energy",
+      "questionText": "Use the graph to find the average speed of the car for the whole 10 s.",
+      "questionType": "multiple_choice",
+      "options": [
+        "4.0 m/s",
+        "5.0 m/s",
+        "7.5 m/s",
+        "10 m/s"
+      ],
+      "correctAnswer": "4.0 m/s",
+      "explanation": "Average speed = total distance ÷ total time = 40 m ÷ 10 s = 4.0 m/s. The time at rest still counts.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core",
+        "graph"
+      ],
+      "visualAssetId": "p1-dt-car-journey",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-dt-car-journey.93f689421a62.svg",
+      "imageAltText": "Distance-time graph for a car. The line rises from 0 m at 0 s to 20 m at 4 s, stays at 20 m until 8 s, then rises to 40 m at 10 s.",
+      "visualAssetSha256": "93f689421a6292997e588ae8f853204ea85824671b3b7e75afcddd105ae42cc8",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "distance-time",
+        "title": "Distance–time graph for a car",
+        "x": {
+          "label": "time / s",
+          "min": 0,
+          "max": 10,
+          "grid": 1,
+          "tick": 2
+        },
+        "y": {
+          "label": "distance / m",
+          "min": 0,
+          "max": 40,
+          "grid": 5,
+          "tick": 10
+        },
+        "series": [
+          {
+            "id": "car",
+            "style": "solid",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                4,
+                20
+              ],
+              [
+                8,
+                20
+              ],
+              [
+                10,
+                40
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Distance-time graph for a car. The line rises from 0 m at 0 s to 20 m at 4 s, stays at 20 m until 8 s, then rises to 40 m at 10 s."
+      },
+      "curriculumObjectiveCode": "p1-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.motion-forces",
+          "atomicSubskillCode": "science.physics.motion-forces.motion",
+          "evidenceFocusCode": "science.physics.motion-forces.motion.focus.average-speed-whole-journey",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate average speed for a whole journey including stops. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P1.2.2",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-numerical-data"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P1.2.2; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs-004",
+      "topic": "P1 Motion, forces and energy",
+      "questionText": "Use the graph to find the distance the cyclist travels between 3 s and 8 s.",
+      "questionType": "multiple_choice",
+      "options": [
+        "1.2 m",
+        "6 m",
+        "18 m",
+        "30 m"
+      ],
+      "correctAnswer": "30 m",
+      "explanation": "Distance is the area under a speed–time graph. From 3 s to 8 s this is a rectangle: 6 m/s × 5 s = 30 m.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core",
+        "graph"
+      ],
+      "visualAssetId": "p1-st-cyclist",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-st-cyclist.bedb656f00cd.svg",
+      "imageAltText": "Speed-time graph for a cyclist. Speed rises in a straight line from 0 m/s at 0 s to 6 m/s at 3 s, stays at 6 m/s until 8 s, then falls to 0 m/s at 10 s.",
+      "visualAssetSha256": "bedb656f00cdebb7b78bef7fb2b7a3c9a33e03ce432772cd7921657fd3974e0b",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "speed-time",
+        "title": "Speed–time graph for a cyclist",
+        "x": {
+          "label": "time / s",
+          "min": 0,
+          "max": 10,
+          "grid": 1,
+          "tick": 2
+        },
+        "y": {
+          "label": "speed / m/s",
+          "min": 0,
+          "max": 8,
+          "grid": 1,
+          "tick": 2
+        },
+        "series": [
+          {
+            "id": "cyclist",
+            "style": "solid",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                3,
+                6
+              ],
+              [
+                8,
+                6
+              ],
+              [
+                10,
+                0
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Speed-time graph for a cyclist. Speed rises in a straight line from 0 m/s at 0 s to 6 m/s at 3 s, stays at 6 m/s until 8 s, then falls to 0 m/s at 10 s."
+      },
+      "curriculumObjectiveCode": "p1-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.motion-forces",
+          "atomicSubskillCode": "science.physics.motion-forces.motion",
+          "evidenceFocusCode": "science.physics.motion-forces.motion.focus.distance-from-speed-time-area",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate distance from the area under a speed-time graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P1.2.7",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-numerical-data"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P1.2.7; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs-005",
+      "topic": "P1 Motion, forces and energy",
+      "questionText": "Use the graph to find the total distance the cyclist travels in the 10 s.",
+      "questionType": "multiple_choice",
+      "options": [
+        "39 m",
+        "45 m",
+        "54 m",
+        "60 m"
+      ],
+      "correctAnswer": "45 m",
+      "explanation": "Add the areas: ½ × 3 s × 6 m/s = 9 m, then 5 s × 6 m/s = 30 m, then ½ × 2 s × 6 m/s = 6 m. Total = 45 m.",
+      "difficulty": "hard",
+      "points": 1,
+      "timeLimit": 120,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core",
+        "graph"
+      ],
+      "visualAssetId": "p1-st-cyclist",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-st-cyclist.bedb656f00cd.svg",
+      "imageAltText": "Speed-time graph for a cyclist. Speed rises in a straight line from 0 m/s at 0 s to 6 m/s at 3 s, stays at 6 m/s until 8 s, then falls to 0 m/s at 10 s.",
+      "visualAssetSha256": "bedb656f00cdebb7b78bef7fb2b7a3c9a33e03ce432772cd7921657fd3974e0b",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "speed-time",
+        "title": "Speed–time graph for a cyclist",
+        "x": {
+          "label": "time / s",
+          "min": 0,
+          "max": 10,
+          "grid": 1,
+          "tick": 2
+        },
+        "y": {
+          "label": "speed / m/s",
+          "min": 0,
+          "max": 8,
+          "grid": 1,
+          "tick": 2
+        },
+        "series": [
+          {
+            "id": "cyclist",
+            "style": "solid",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                3,
+                6
+              ],
+              [
+                8,
+                6
+              ],
+              [
+                10,
+                0
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Speed-time graph for a cyclist. Speed rises in a straight line from 0 m/s at 0 s to 6 m/s at 3 s, stays at 6 m/s until 8 s, then falls to 0 m/s at 10 s."
+      },
+      "curriculumObjectiveCode": "p1-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.motion-forces",
+          "atomicSubskillCode": "science.physics.motion-forces.motion",
+          "evidenceFocusCode": "science.physics.motion-forces.motion.focus.distance-from-speed-time-area",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate distance from the area under a speed-time graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P1.2.7",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-problem-solving"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P1.2.7; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs-006",
+      "topic": "P1 Motion, forces and energy",
+      "questionText": "Use the graph to find the acceleration of the cyclist between 0 s and 3 s.",
+      "questionType": "multiple_choice",
+      "options": [
+        "2.0 m/s²",
+        "6.0 m/s²",
+        "9.0 m/s²",
+        "18 m/s²"
+      ],
+      "correctAnswer": "2.0 m/s²",
+      "explanation": "Acceleration is the gradient of the speed–time graph: (6 m/s − 0 m/s) ÷ 3 s = 2.0 m/s².",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement",
+        "graph"
+      ],
+      "visualAssetId": "p1-st-cyclist",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-st-cyclist.bedb656f00cd.svg",
+      "imageAltText": "Speed-time graph for a cyclist. Speed rises in a straight line from 0 m/s at 0 s to 6 m/s at 3 s, stays at 6 m/s until 8 s, then falls to 0 m/s at 10 s.",
+      "visualAssetSha256": "bedb656f00cdebb7b78bef7fb2b7a3c9a33e03ce432772cd7921657fd3974e0b",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "speed-time",
+        "title": "Speed–time graph for a cyclist",
+        "x": {
+          "label": "time / s",
+          "min": 0,
+          "max": 10,
+          "grid": 1,
+          "tick": 2
+        },
+        "y": {
+          "label": "speed / m/s",
+          "min": 0,
+          "max": 8,
+          "grid": 1,
+          "tick": 2
+        },
+        "series": [
+          {
+            "id": "cyclist",
+            "style": "solid",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                3,
+                6
+              ],
+              [
+                8,
+                6
+              ],
+              [
+                10,
+                0
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Speed-time graph for a cyclist. Speed rises in a straight line from 0 m/s at 0 s to 6 m/s at 3 s, stays at 6 m/s until 8 s, then falls to 0 m/s at 10 s."
+      },
+      "curriculumObjectiveCode": "p1-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.motion-forces",
+          "atomicSubskillCode": "science.physics.motion-forces.motion",
+          "evidenceFocusCode": "science.physics.motion-forces.motion.focus.acceleration-from-speed-time-gradient",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate acceleration from the gradient of a speed-time graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P1.2.11",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-numerical-data"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P1.2.11; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs-007",
+      "topic": "P1 Motion, forces and energy",
+      "questionText": "Use the graph to find the acceleration of the cyclist between 8 s and 10 s.",
+      "questionType": "multiple_choice",
+      "options": [
+        "−12 m/s²",
+        "−6.0 m/s²",
+        "−3.0 m/s²",
+        "+3.0 m/s²"
+      ],
+      "correctAnswer": "−3.0 m/s²",
+      "explanation": "Gradient = (0 m/s − 6 m/s) ÷ (10 s − 8 s) = −3.0 m/s². The negative sign shows the cyclist is decelerating.",
+      "difficulty": "hard",
+      "points": 1,
+      "timeLimit": 120,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement",
+        "graph"
+      ],
+      "visualAssetId": "p1-st-cyclist",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-st-cyclist.bedb656f00cd.svg",
+      "imageAltText": "Speed-time graph for a cyclist. Speed rises in a straight line from 0 m/s at 0 s to 6 m/s at 3 s, stays at 6 m/s until 8 s, then falls to 0 m/s at 10 s.",
+      "visualAssetSha256": "bedb656f00cdebb7b78bef7fb2b7a3c9a33e03ce432772cd7921657fd3974e0b",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "speed-time",
+        "title": "Speed–time graph for a cyclist",
+        "x": {
+          "label": "time / s",
+          "min": 0,
+          "max": 10,
+          "grid": 1,
+          "tick": 2
+        },
+        "y": {
+          "label": "speed / m/s",
+          "min": 0,
+          "max": 8,
+          "grid": 1,
+          "tick": 2
+        },
+        "series": [
+          {
+            "id": "cyclist",
+            "style": "solid",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                3,
+                6
+              ],
+              [
+                8,
+                6
+              ],
+              [
+                10,
+                0
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Speed-time graph for a cyclist. Speed rises in a straight line from 0 m/s at 0 s to 6 m/s at 3 s, stays at 6 m/s until 8 s, then falls to 0 m/s at 10 s."
+      },
+      "curriculumObjectiveCode": "p1-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.motion-forces",
+          "atomicSubskillCode": "science.physics.motion-forces.motion",
+          "evidenceFocusCode": "science.physics.motion-forces.motion.focus.deceleration-as-negative-acceleration",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to express deceleration as a negative acceleration from a graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P1.2.12",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-numerical-data"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P1.2.12; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs-008",
+      "topic": "P1 Motion, forces and energy",
+      "questionText": "The graph shows how the speed of a runner changes during the first 5 s of a race. Which statement describes the motion?",
+      "questionType": "multiple_choice",
+      "options": [
+        "The runner speeds up, and the acceleration decreases.",
+        "The runner speeds up with constant acceleration.",
+        "The runner speeds up, and the acceleration increases.",
+        "The runner moves at constant speed."
+      ],
+      "correctAnswer": "The runner speeds up, and the acceleration decreases.",
+      "explanation": "The speed keeps rising, so the runner is accelerating. The curve becomes less steep, so the acceleration (the gradient) decreases.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement",
+        "graph"
+      ],
+      "visualAssetId": "p1-st-runner-curve",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-st-runner-curve.5c64a3a5f6f4.svg",
+      "imageAltText": "Speed-time graph for a runner from 0 to 5 s. Speed starts at 0 m/s and rises along a curve that is steep at first and becomes less steep, reaching about 7.6 m/s at 5 s.",
+      "visualAssetSha256": "5c64a3a5f6f4ee6615bda959a3394028d0dda992d57071776042349cb949a65d",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "speed-time",
+        "title": "Speed–time graph for a runner",
+        "x": {
+          "label": "time / s",
+          "min": 0,
+          "max": 5,
+          "grid": 0.5,
+          "tick": 1
+        },
+        "y": {
+          "label": "speed / m/s",
+          "min": 0,
+          "max": 8,
+          "grid": 1,
+          "tick": 2
+        },
+        "series": [
+          {
+            "id": "runner",
+            "style": "solid",
+            "curve": true,
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0.25,
+                1.1572
+              ],
+              [
+                0.5,
+                2.1471
+              ],
+              [
+                0.75,
+                2.9937
+              ],
+              [
+                1,
+                3.7179
+              ],
+              [
+                1.25,
+                4.3373
+              ],
+              [
+                1.5,
+                4.8672
+              ],
+              [
+                1.75,
+                5.3203
+              ],
+              [
+                2,
+                5.708
+              ],
+              [
+                2.25,
+                6.0395
+              ],
+              [
+                2.5,
+                6.3231
+              ],
+              [
+                2.75,
+                6.5657
+              ],
+              [
+                3,
+                6.7732
+              ],
+              [
+                3.25,
+                6.9506
+              ],
+              [
+                3.5,
+                7.1024
+              ],
+              [
+                3.75,
+                7.2323
+              ],
+              [
+                4,
+                7.3433
+              ],
+              [
+                4.25,
+                7.4383
+              ],
+              [
+                4.5,
+                7.5196
+              ],
+              [
+                4.75,
+                7.5891
+              ],
+              [
+                5,
+                7.6485
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Speed-time graph for a runner from 0 to 5 s. Speed starts at 0 m/s and rises along a curve that is steep at first and becomes less steep, reaching about 7.6 m/s at 5 s."
+      },
+      "curriculumObjectiveCode": "p1-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.motion-forces",
+          "atomicSubskillCode": "science.physics.motion-forces.motion",
+          "evidenceFocusCode": "science.physics.motion-forces.motion.focus.changing-acceleration-from-curve",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to interpret a curved speed-time graph as changing acceleration. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P1.2.10",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-representations"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P1.2.10; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs-009",
+      "topic": "P1 Motion, forces and energy",
+      "questionText": "The graph shows the motion of four objects, P, Q, R and S. Which object moves at the greatest constant speed?",
+      "questionType": "multiple_choice",
+      "options": [
+        "P",
+        "Q",
+        "R",
+        "S"
+      ],
+      "correctAnswer": "R",
+      "explanation": "A straight sloping line shows constant speed, and the steeper line is faster. R is the steepest straight line. S is curved, so its speed is changing.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core",
+        "graph"
+      ],
+      "visualAssetId": "p1-dt-four-objects",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-dt-four-objects.271456c480e0.svg",
+      "imageAltText": "Distance-time graph with four labelled lines. P is horizontal at 10 m. Q and R are straight lines from the origin, R much steeper than Q. S curves upwards, getting steeper.",
+      "visualAssetSha256": "271456c480e072d1f2158b4e54aa829deb068f5902fef833d7ba5b94bb7720d5",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "distance-time",
+        "title": "Distance–time graphs for P, Q, R and S",
+        "x": {
+          "label": "time / s",
+          "min": 0,
+          "max": 8,
+          "grid": 1,
+          "tick": 2
+        },
+        "y": {
+          "label": "distance / m",
+          "min": 0,
+          "max": 40,
+          "grid": 5,
+          "tick": 10
+        },
+        "series": [
+          {
+            "id": "P",
+            "style": "solid",
+            "points": [
+              [
+                0,
+                10
+              ],
+              [
+                8,
+                10
+              ]
+            ]
+          },
+          {
+            "id": "Q",
+            "style": "dashed",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                8,
+                16
+              ]
+            ]
+          },
+          {
+            "id": "R",
+            "style": "dotted",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                8,
+                40
+              ]
+            ]
+          },
+          {
+            "id": "S",
+            "style": "dashdot",
+            "curve": true,
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0.5,
+                0.125
+              ],
+              [
+                1,
+                0.5
+              ],
+              [
+                1.5,
+                1.125
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                2.5,
+                3.125
+              ],
+              [
+                3,
+                4.5
+              ],
+              [
+                3.5,
+                6.125
+              ],
+              [
+                4,
+                8
+              ],
+              [
+                4.5,
+                10.125
+              ],
+              [
+                5,
+                12.5
+              ],
+              [
+                5.5,
+                15.125
+              ],
+              [
+                6,
+                18
+              ],
+              [
+                6.5,
+                21.125
+              ],
+              [
+                7,
+                24.5
+              ],
+              [
+                7.5,
+                28.125
+              ],
+              [
+                8,
+                32
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Distance-time graph with four labelled lines. P is horizontal at 10 m. Q and R are straight lines from the origin, R much steeper than Q. S curves upwards, getting steeper."
+      },
+      "curriculumObjectiveCode": "p1-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.motion-forces",
+          "atomicSubskillCode": "science.physics.motion-forces.motion",
+          "evidenceFocusCode": "science.physics.motion-forces.motion.focus.motion-state-from-graph-shape",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to identify motion states from the shape of a motion graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P1.2.5",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-representations"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P1.2.5; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs-010",
+      "topic": "P1 Motion, forces and energy",
+      "questionText": "The graph shows the motion of four objects, P, Q, R and S. Which object is accelerating?",
+      "questionType": "multiple_choice",
+      "options": [
+        "P",
+        "Q",
+        "R",
+        "S"
+      ],
+      "correctAnswer": "S",
+      "explanation": "On a distance–time graph, a line that gets steeper shows increasing speed. Only S curves upwards, so S is accelerating.",
+      "difficulty": "easy",
+      "points": 1,
+      "timeLimit": 60,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "core",
+        "graph"
+      ],
+      "visualAssetId": "p1-dt-four-objects",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-dt-four-objects.271456c480e0.svg",
+      "imageAltText": "Distance-time graph with four labelled lines. P is horizontal at 10 m. Q and R are straight lines from the origin, R much steeper than Q. S curves upwards, getting steeper.",
+      "visualAssetSha256": "271456c480e072d1f2158b4e54aa829deb068f5902fef833d7ba5b94bb7720d5",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "distance-time",
+        "title": "Distance–time graphs for P, Q, R and S",
+        "x": {
+          "label": "time / s",
+          "min": 0,
+          "max": 8,
+          "grid": 1,
+          "tick": 2
+        },
+        "y": {
+          "label": "distance / m",
+          "min": 0,
+          "max": 40,
+          "grid": 5,
+          "tick": 10
+        },
+        "series": [
+          {
+            "id": "P",
+            "style": "solid",
+            "points": [
+              [
+                0,
+                10
+              ],
+              [
+                8,
+                10
+              ]
+            ]
+          },
+          {
+            "id": "Q",
+            "style": "dashed",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                8,
+                16
+              ]
+            ]
+          },
+          {
+            "id": "R",
+            "style": "dotted",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                8,
+                40
+              ]
+            ]
+          },
+          {
+            "id": "S",
+            "style": "dashdot",
+            "curve": true,
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0.5,
+                0.125
+              ],
+              [
+                1,
+                0.5
+              ],
+              [
+                1.5,
+                1.125
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                2.5,
+                3.125
+              ],
+              [
+                3,
+                4.5
+              ],
+              [
+                3.5,
+                6.125
+              ],
+              [
+                4,
+                8
+              ],
+              [
+                4.5,
+                10.125
+              ],
+              [
+                5,
+                12.5
+              ],
+              [
+                5.5,
+                15.125
+              ],
+              [
+                6,
+                18
+              ],
+              [
+                6.5,
+                21.125
+              ],
+              [
+                7,
+                24.5
+              ],
+              [
+                7.5,
+                28.125
+              ],
+              [
+                8,
+                32
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Distance-time graph with four labelled lines. P is horizontal at 10 m. Q and R are straight lines from the origin, R much steeper than Q. S curves upwards, getting steeper."
+      },
+      "curriculumObjectiveCode": "p1-2",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.motion-forces",
+          "atomicSubskillCode": "science.physics.motion-forces.motion",
+          "evidenceFocusCode": "science.physics.motion-forces.motion.focus.motion-state-from-graph-shape",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to identify motion states from the shape of a motion graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_1",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "core",
+        "syllabusReference": "P1.2.5",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-representations"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P1.2.5; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs-011",
+      "topic": "P1 Motion, forces and energy",
+      "questionText": "Use the straight part of the graph to find the spring constant of the spring.",
+      "questionType": "multiple_choice",
+      "options": [
+        "0.020 N/m",
+        "0.50 N/m",
+        "2.0 N/m",
+        "50 N/m"
+      ],
+      "correctAnswer": "50 N/m",
+      "explanation": "Spring constant k = F ÷ x. At 6 N the extension is 12 cm = 0.12 m, so k = 6 N ÷ 0.12 m = 50 N/m.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement",
+        "graph"
+      ],
+      "visualAssetId": "p1-le-spring",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-le-spring.c7780ba06aef.svg",
+      "imageAltText": "Load-extension graph for a spring with plotted points. Extension rises in a straight line from 0 cm at 0 N to 12 cm at 6 N, then curves upwards to 16 cm at 7 N and 22 cm at 8 N.",
+      "visualAssetSha256": "c7780ba06aeff65a9189a77cf9415c0b5bdc615cc61883e6623cc2630d8b6175",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "load-extension",
+        "title": "Load–extension graph for a spring",
+        "x": {
+          "label": "load / N",
+          "min": 0,
+          "max": 8,
+          "grid": 1,
+          "tick": 1
+        },
+        "y": {
+          "label": "extension / cm",
+          "min": 0,
+          "max": 24,
+          "grid": 2,
+          "tick": 4
+        },
+        "series": [
+          {
+            "id": "spring",
+            "style": "solid",
+            "markers": true,
+            "curve": true,
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                4
+              ],
+              [
+                3,
+                6
+              ],
+              [
+                4,
+                8
+              ],
+              [
+                5,
+                10
+              ],
+              [
+                6,
+                12
+              ],
+              [
+                7,
+                16
+              ],
+              [
+                8,
+                22
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Load-extension graph for a spring with plotted points. Extension rises in a straight line from 0 cm at 0 N to 12 cm at 6 N, then curves upwards to 16 cm at 7 N and 22 cm at 8 N."
+      },
+      "curriculumObjectiveCode": "p1-5-1",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.motion-forces",
+          "atomicSubskillCode": "science.physics.motion-forces.forces",
+          "evidenceFocusCode": "science.physics.motion-forces.forces.focus.spring-constant-from-load-extension-graph",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to calculate a spring constant from a load-extension graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P1.5.1.9",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-numerical-data"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P1.5.1.9; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    },
+    {
+      "externalId": "bh-physics-0654-graphs-012",
+      "topic": "P1 Motion, forces and energy",
+      "questionText": "At which load does the spring reach its limit of proportionality?",
+      "questionType": "multiple_choice",
+      "options": [
+        "4 N",
+        "6 N",
+        "7 N",
+        "8 N"
+      ],
+      "correctAnswer": "6 N",
+      "explanation": "The graph is a straight line through the origin up to 6 N. After 6 N it curves, so extension is no longer proportional to load.",
+      "difficulty": "medium",
+      "points": 1,
+      "timeLimit": 90,
+      "language": "en",
+      "eligibleGrades": [
+        9,
+        10,
+        11
+      ],
+      "curriculumPhase": "upper_secondary",
+      "tags": [
+        "Physics",
+        "Co-ordinated Sciences",
+        "0654",
+        "supplement",
+        "graph"
+      ],
+      "visualAssetId": "p1-le-spring",
+      "imageUrl": "https://www.brainsheist.com/question-assets/physics-0654-graphs-1-0-0/p1-le-spring.c7780ba06aef.svg",
+      "imageAltText": "Load-extension graph for a spring with plotted points. Extension rises in a straight line from 0 cm at 0 N to 12 cm at 6 N, then curves upwards to 16 cm at 7 N and 22 cm at 8 N.",
+      "visualAssetSha256": "c7780ba06aeff65a9189a77cf9415c0b5bdc615cc61883e6623cc2630d8b6175",
+      "visualSpec": {
+        "type": "graph",
+        "kind": "load-extension",
+        "title": "Load–extension graph for a spring",
+        "x": {
+          "label": "load / N",
+          "min": 0,
+          "max": 8,
+          "grid": 1,
+          "tick": 1
+        },
+        "y": {
+          "label": "extension / cm",
+          "min": 0,
+          "max": 24,
+          "grid": 2,
+          "tick": 4
+        },
+        "series": [
+          {
+            "id": "spring",
+            "style": "solid",
+            "markers": true,
+            "curve": true,
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                4
+              ],
+              [
+                3,
+                6
+              ],
+              [
+                4,
+                8
+              ],
+              [
+                5,
+                10
+              ],
+              [
+                6,
+                12
+              ],
+              [
+                7,
+                16
+              ],
+              [
+                8,
+                22
+              ]
+            ]
+          }
+        ],
+        "alt_text": "Load-extension graph for a spring with plotted points. Extension rises in a straight line from 0 cm at 0 N to 12 cm at 6 N, then curves upwards to 16 cm at 7 N and 22 cm at 8 N."
+      },
+      "curriculumObjectiveCode": "p1-5-1",
+      "taxonomies": [
+        {
+          "primarySkillCode": "science.physics.motion-forces",
+          "atomicSubskillCode": "science.physics.motion-forces.forces",
+          "evidenceFocusCode": "science.physics.motion-forces.forces.focus.limit-of-proportionality-on-graph",
+          "assessmentProcessCode": "BH-AO2",
+          "cognitiveProcess": "apply",
+          "evidenceStatement": "A correct response supports the ability to identify the limit of proportionality on a load-extension graph. It does not identify every reasoning step or establish mastery alone."
+        }
+      ],
+      "assessmentProfile": {
+        "providerName": "Cambridge International Education",
+        "programmeCode": "0654",
+        "sourceVersion": "2025-2027",
+        "paperComponent": "paper_2",
+        "evidenceMode": "mcq",
+        "primaryAssessmentObjective": "AO2",
+        "assessmentObjectives": [
+          "AO2"
+        ],
+        "syllabusTier": "supplement",
+        "syllabusReference": "P1.5.1.10",
+        "objectiveComponents": [
+          "BH-CIE0654-AO2-representations"
+        ],
+        "sourceReference": "Original Brains Heist question; aligned to P1.5.1.10; https://www.cambridgeinternational.org/Images/664572-2025-2027-syllabus.pdf. Not a Cambridge exam item or endorsement."
+      }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+  <title>Speed–time graph for a runner</title>
+  <rect width="640" height="360" rx="24" fill="#0f172a"/>
+  <rect x="1" y="1" width="638" height="358" rx="23" fill="none" stroke="#334155" stroke-width="2"/>
+  <text x="32.0" y="42.0" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="start">SPEED–TIME GRAPH FOR A RUNNER</text>
+  <path d="M96.0 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="96.0" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">0</text>
+  <path d="M146.4 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M196.8 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="196.8" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">1</text>
+  <path d="M247.2 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M297.6 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="297.6" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">2</text>
+  <path d="M348.0 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M398.4 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="398.4" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">3</text>
+  <path d="M448.8 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M499.2 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="499.2" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">4</text>
+  <path d="M549.6 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M600.0 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="600.0" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">5</text>
+  <path d="M96 300.0H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="307.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">0</text>
+  <path d="M96 272.3H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 244.5H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="251.5" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">2</text>
+  <path d="M96 216.8H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 189.0H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="196.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">4</text>
+  <path d="M96 161.3H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 133.5H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="140.5" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">6</text>
+  <path d="M96 105.8H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 78.0H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="85.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">8</text>
+  <path d="M96 72V300H606" fill="none" stroke="#e2e8f0" stroke-width="2.5"/>
+  <text x="348.0" y="352.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="700" text-anchor="middle">time / s</text>
+  <text x="26.0" y="189.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="700" text-anchor="middle" transform="rotate(-90 26 189.0)">speed / m/s</text>
+  <path d="M96.0 300.0L121.2 267.9L146.4 240.4L171.6 216.9L196.8 196.8L222.0 179.6L247.2 164.9L272.4 152.4L297.6 141.6L322.8 132.4L348.0 124.5L373.2 117.8L398.4 112.0L423.6 107.1L448.8 102.9L474.0 99.3L499.2 96.2L524.4 93.6L549.6 91.3L574.8 89.4L600.0 87.8" fill="none" stroke="#fbbf24" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
