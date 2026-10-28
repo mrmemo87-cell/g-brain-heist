@@ -19,7 +19,7 @@ import {
   Profile,
 } from '../types';
 import * as GameService from '../services/gameService';
-import { QuestionInputGuard, isTransientAssignmentError, setAssignmentSubmissionIntent, hasAssignmentSubmissionIntent, assignmentDraftStorage, readAssignmentDraft, writeAssignmentDraft, clearAssignmentDraft } from '../services/assignmentReliability';
+import { QuestionInputGuard, isTransientAssignmentError, setAssignmentSubmissionIntent, hasAssignmentSubmissionIntent, assignmentDraftStorage, readAssignmentDraft, writeAssignmentDraft, clearAssignmentDraft, readTypingDraft, writeTypingDraft, clearTypingDraft } from '../services/assignmentReliability';
 import { boundedRead } from '../services/boundedRead';
 import { audioService } from '../services/audioService';
 import { CoinIcon, GemIcon, XPIcon } from './icons';
@@ -952,6 +952,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
     if (currentProfile?.id) {
       for (const questionId of assignment.answered_question_ids || []) {
         clearAssignmentDraft(assignmentDraftStorage(), currentProfile.id, assignment.assignment_id, questionId);
+        clearTypingDraft(assignmentDraftStorage(), currentProfile.id, assignment.assignment_id, questionId);
       }
     }
 
@@ -1294,8 +1295,27 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
       setDraftStored(true);
       setAnswerSaveError('Your previous answer is ready to retry.');
       setAnswerRecoveryEnabled(true);
+      return;
+    }
+    // Text typed but not yet submitted survives an app switch, phone lock or page reload.
+    if (question.question_type === 'short_answer') {
+      const typed = readTypingDraft(assignmentDraftStorage(), currentProfile.id, activeAssignment.assignment_id, question.id);
+      if (typed) setFreeformAnswer(typed);
     }
   }, [mode, stage, activeAssignment?.assignment_id, currentProfile?.id, currentQuestionIndex, teacherQuestions]);
+
+  // Save short-answer text as the student types (debounced), scoped to account + assignment + question.
+  const typingDraftTimerRef = useRef<number | null>(null);
+  const persistTypingDraft = useCallback((text: string) => {
+    if (mode !== 'assignment' || !activeAssignment?.assignment_id || !currentProfile?.id) return;
+    const question = teacherQuestions[currentQuestionIndex];
+    if (!question || question.question_type !== 'short_answer') return;
+    if (typingDraftTimerRef.current) window.clearTimeout(typingDraftTimerRef.current);
+    typingDraftTimerRef.current = window.setTimeout(() => {
+      writeTypingDraft(assignmentDraftStorage(), currentProfile.id, activeAssignment.assignment_id, question.id, text);
+    }, 400);
+  }, [mode, activeAssignment?.assignment_id, currentProfile?.id, currentQuestionIndex, teacherQuestions]);
+  useEffect(() => () => { if (typingDraftTimerRef.current) window.clearTimeout(typingDraftTimerRef.current); }, []);
 
   const finalizeAssignmentSubmission = useCallback(async () => {
     if (stage !== 'completed' || mode !== 'assignment' || !activeAssignment) {
@@ -1555,7 +1575,11 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             timeTakenMs: draft.timeTakenMs,
           });
           inputGuardRef.current.finish(true);
-          if (currentProfile?.id) clearAssignmentDraft(assignmentDraftStorage(), currentProfile.id, activeAssignment.assignment_id, currentQuestion.id);
+          if (currentProfile?.id) {
+            clearAssignmentDraft(assignmentDraftStorage(), currentProfile.id, activeAssignment.assignment_id, currentQuestion.id);
+            if (typingDraftTimerRef.current) window.clearTimeout(typingDraftTimerRef.current);
+            clearTypingDraft(assignmentDraftStorage(), currentProfile.id, activeAssignment.assignment_id, currentQuestion.id);
+          }
           setDraftStored(false);
           setAssignmentAnsweredCount((count) => count + 1);
           setSoloStreak((streak) => grading.isCorrect === true ? streak + 1 : 0);
@@ -2383,7 +2407,12 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
               <span className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-200">Your answer</span>
               <textarea
                 value={freeformAnswer}
-                onChange={(event) => setFreeformAnswer(event.target.value)}
+                onChange={(event) => { setFreeformAnswer(event.target.value); persistTypingDraft(event.target.value); }}
+                onFocus={(event) => {
+                  // On phones the keyboard can cover the field; recentre once it has opened.
+                  const el = event.currentTarget;
+                  window.setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 350);
+                }}
                 disabled={isSubmitting || inputCoolingDown || !!answerSaveError || assignmentAnswerReviewStatus !== null}
                 rows={4}
                 maxLength={2000}
