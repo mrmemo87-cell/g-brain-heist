@@ -1,3 +1,5 @@
+import { detectCoarsePointer, effectiveBlurGraceMs, isFocusLossType, shouldCoalesceFocusLoss } from '../lib/examGuardPolicy';
+
 export type ExamGuardViolationType =
   | 'copy'
   | 'cut'
@@ -59,6 +61,8 @@ interface ExamGuardState {
   storedUserSelect: string | null;
   storedContentEditable: string | null | undefined;
   storedDisabled: boolean | null;
+  /** Last counted blur/hidden violation, so one app switch is one strike, not two. */
+  lastFocusLossAt: number | null;
 }
 
 const DEFAULT_MAX_VIOLATIONS = 3;
@@ -80,6 +84,7 @@ const state: ExamGuardState = {
   badgeEl: null,
   blurTimer: null,
   lastInputAt: null,
+  lastFocusLossAt: null,
   lastInputLength: 0,
   storedUserSelect: null,
   storedContentEditable: undefined,
@@ -277,8 +282,15 @@ const emitViolation = (type: ExamGuardViolationType, metadata?: Record<string, u
   if (!state.config) {
     return;
   }
-  state.violationsCount += 1;
   const timestamp = Date.now();
+  if (shouldCoalesceFocusLoss(type, timestamp, state.lastFocusLossAt)) {
+    // Same leave-the-page event already counted (blur + hidden fire together on phones).
+    return;
+  }
+  if (isFocusLossType(type)) {
+    state.lastFocusLossAt = timestamp;
+  }
+  state.violationsCount += 1;
   state.violationTimestamps.push(timestamp);
   updateSessionStorage();
 
@@ -386,7 +398,7 @@ const handleBlur = () => {
   if (!state.config) {
     return;
   }
-  const grace = state.config.blurGraceMs ?? DEFAULT_BLUR_GRACE_MS;
+  const grace = effectiveBlurGraceMs(state.config.blurGraceMs, detectCoarsePointer(window), DEFAULT_BLUR_GRACE_MS);
   if (grace <= 0) {
     emitViolation('window_blur');
     return;
@@ -496,6 +508,7 @@ export const ExamGuard = {
     restoreSessionStorage(config);
 
     state.lastInputAt = null;
+    state.lastFocusLossAt = null;
     state.lastInputLength = getEditorText(config.editor).length;
 
     state.storedUserSelect = config.promptContainer.style.userSelect;
@@ -537,6 +550,7 @@ export const ExamGuard = {
     state.config = null;
     state.blurTimer = null;
     state.lastInputAt = null;
+    state.lastFocusLossAt = null;
     state.lastInputLength = 0;
     state.storedUserSelect = null;
     state.storedContentEditable = undefined;

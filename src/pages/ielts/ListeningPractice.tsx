@@ -12,6 +12,7 @@ import { rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, t
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { buildListeningAttemptPayload, toRawScoreResult } from '../../lib/ieltsPracticeScoring';
+import { listeningPlayerPresentation, pauseMeansInterruption } from '../../lib/ieltsListeningPlayer';
 
 interface ListeningSet {
   originality_label?: string | null;
@@ -56,6 +57,9 @@ const ListeningPractice: React.FC = () => {
   const [audioPlayed, setAudioPlayed] = useState(false);
   const [audioStarted, setAudioStarted] = useState(false);
   const [audioEnded, setAudioEnded] = useState(false);
+  // Set when the phone/browser paused playback (app switch, lock screen, call). The learner
+  // resumes from the same position; the recording is still heard once and never replayed.
+  const [audioInterrupted, setAudioInterrupted] = useState(false);
   const [currentSection, setCurrentSection] = useState(0);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [audioCurrentTime, setAudioCurrentTime] = useState(0);
@@ -156,6 +160,11 @@ const ListeningPractice: React.FC = () => {
 
     const handlePause = () => {
       setIsAudioPlaying(false);
+      const state = { started: audioStarted, ended: audioEnded, interrupted: false };
+      if (pauseMeansInterruption(state, allowAutoResumeRef.current)) {
+        setAudioInterrupted(true);
+        return;
+      }
       if (audioStarted && !audioEnded && allowAutoResumeRef.current) {
         void audio.play();
       }
@@ -190,16 +199,28 @@ const ListeningPractice: React.FC = () => {
   }, [audioStarted, audioEnded]);
 
   const startAudio = async () => {
-    if (audioStarted || audioEnded) return;
+    if (audioEnded) return;
     const audio = audioRef.current;
     if (!audio) return;
+    if (audioStarted && !audioInterrupted) return;
 
     try {
+      if (audioInterrupted) {
+        // Continue from the paused position: the seeking guard keeps currentTime in place.
+        allowAutoResumeRef.current = true;
+        setAudioInterrupted(false);
+      }
       await audio.play();
     } catch (error) {
       console.error('Audio play failed:', error);
+      if (audioStarted) {
+        allowAutoResumeRef.current = false;
+        setAudioInterrupted(true);
+      }
     }
   };
+
+  const playerUi = listeningPlayerPresentation({ started: audioStarted, ended: audioEnded, interrupted: audioInterrupted });
 
   // Fetch listening set
   const { data: listeningSet, isLoading: loadingSet } = useQuery({
@@ -878,7 +899,8 @@ const ListeningPractice: React.FC = () => {
                 }}>
                   <button
                     onClick={startAudio}
-                    disabled={audioStarted || audioEnded}
+                    disabled={!playerUi.enabled}
+                    data-audio-action={playerUi.action}
                     style={{
                       width: '4.5rem',
                       height: '4.5rem',
@@ -886,21 +908,21 @@ const ListeningPractice: React.FC = () => {
                       border: 'none',
                       background: audioEnded
                         ? 'var(--bh-ielts-foreground-muted)'
-                        : audioStarted
+                        : audioStarted && !audioInterrupted
                           ? 'var(--bh-ielts-primary-hover)'
                           : 'var(--bh-ielts-primary)',
                       color: 'white',
                       fontSize: '1.75rem',
-                      cursor: audioStarted || audioEnded ? 'not-allowed' : 'pointer',
+                      cursor: playerUi.enabled ? 'pointer' : 'not-allowed',
                       boxShadow: '0 4px 14px rgba(23, 70, 176, 0.25)',
                       transition: 'transform 0.2s'
                     }}
-                    aria-label="Play listening audio"
+                    aria-label={playerUi.ariaLabel}
                   >
-                    {audioEnded ? '✓' : audioStarted ? '♪' : '▶'}
+                    {playerUi.icon}
                   </button>
-                  <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#64748b' }}>
-                    {audioEnded ? 'Recording finished. Check your answers, then submit.' : audioStarted ? 'Playing. Answer as you listen.' : 'Press play when you are ready. You hear it once.'}
+                  <div role="status" aria-live="polite" style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#64748b' }}>
+                    {playerUi.message}
                   </div>
                   <audio ref={audioRef} preload="metadata">
                     <source src={listeningSet.audio_url} type="audio/mpeg" />

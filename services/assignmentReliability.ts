@@ -64,6 +64,29 @@ export function clearAssignmentDraft(storage: DraftStorage | null, userId: strin
   try { storage?.removeItem(key(userId, assignmentId, questionId)); } catch { /* Private browsing may block storage. */ }
 }
 
+// Typing drafts: text a student is still composing (short answers). Kept separate from the
+// pre-submit draft above so an unfinished sentence never shows as "ready to retry".
+const typingKey = (userId: string, assignmentId: string, questionId: string) =>
+  `bh:assignment-typing:v1:${userId}:${assignmentId}:${questionId}`;
+export const TYPING_DRAFT_MAX_CHARS = 2000;
+export function readTypingDraft(storage: DraftStorage | null, userId: string, assignmentId: string, questionId: string): string | null {
+  try {
+    const value = storage?.getItem(typingKey(userId, assignmentId, questionId));
+    return typeof value === 'string' && value.length > 0 ? value.slice(0, TYPING_DRAFT_MAX_CHARS) : null;
+  } catch { return null; }
+}
+export function writeTypingDraft(storage: DraftStorage | null, userId: string, assignmentId: string, questionId: string, text: string): boolean {
+  try {
+    if (!storage) return false;
+    if (!text.trim()) { storage.removeItem(typingKey(userId, assignmentId, questionId)); return true; }
+    storage.setItem(typingKey(userId, assignmentId, questionId), text.slice(0, TYPING_DRAFT_MAX_CHARS));
+    return true;
+  } catch { return false; }
+}
+export function clearTypingDraft(storage: DraftStorage | null, userId: string, assignmentId: string, questionId: string) {
+  try { storage?.removeItem(typingKey(userId, assignmentId, questionId)); } catch { /* Private browsing may block storage. */ }
+}
+
 const submissionKey = (userId: string, assignmentId: string) => `bh:assignment-submit:v1:${userId}:${assignmentId}`;
 export function setAssignmentSubmissionIntent(storage: DraftStorage | null, userId: string, assignmentId: string, pending: boolean): boolean {
   try { if (!storage) return false; if (pending) storage.setItem(submissionKey(userId, assignmentId), 'pending'); else storage.removeItem(submissionKey(userId, assignmentId)); return true; } catch { return false; }
