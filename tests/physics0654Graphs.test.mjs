@@ -75,3 +75,13 @@ test('registry import migration accepts v2 visuals and hashes the image', () => 
   assert.match(sql, /registry_visuals_require_schema_v2/);
   assert.match(sql, /registry_visual_asset_link_mismatch/);
 });
+
+test('0654 profiles accept every Physics topic, P1 to P6', () => {
+  const sql = readFileSync('supabase/migrations/20261028133719_physics_0654_profile_accepts_all_topics.sql', 'utf8');
+  assert.match(sql, /\^P\[1256\]/);
+  assert.match(sql, /\^P\[1-6\]/);
+  assert.match(sql, /found % times/);
+  const pattern = /^P[1-6]([.][0-9]+){1,4}$/;
+  for (const ok of ['P1.2.6', 'P3.1.5', 'P4.2.4.1', 'P6.2.1']) assert.match(ok, pattern);
+  for (const bad of ['P7.1', 'P3', 'P99.2', 'C1.1']) assert.doesNotMatch(bad, pattern);
+});

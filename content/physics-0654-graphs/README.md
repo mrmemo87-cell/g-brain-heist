@@ -60,7 +60,7 @@ schema v1 package carrying visuals rejected.
 
 ## Known limits
 
-- The 0654 profile validator only accepts syllabus references for P1, P2, P5
+- (Resolved 2026-10-28: the 0654 profile validator now accepts P1–P6.) It used to accept only P1, P2, P5
   and P6. P3 (Waves) and P4 (Electricity) questions need that validator widened
   first.
 - Student views cap question images at 256 px high; graphs use 20 px labels so
