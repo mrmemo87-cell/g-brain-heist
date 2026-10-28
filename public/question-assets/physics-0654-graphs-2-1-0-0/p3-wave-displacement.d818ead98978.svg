@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+  <title>Displacement–distance graph for a wave</title>
+  <rect width="640" height="360" rx="24" fill="#0f172a"/>
+  <rect x="1" y="1" width="638" height="358" rx="23" fill="none" stroke="#334155" stroke-width="2"/>
+  <text x="32.0" y="42.0" fill="#67e8f9" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="start">DISPLACEMENT–DISTANCE GRAPH FOR A WAVE</text>
+  <path d="M96.0 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="96.0" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">0</text>
+  <path d="M121.2 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M146.4 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="146.4" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">2</text>
+  <path d="M171.6 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M196.8 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="196.8" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">4</text>
+  <path d="M222.0 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M247.2 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="247.2" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">6</text>
+  <path d="M272.4 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M297.6 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="297.6" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">8</text>
+  <path d="M322.8 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M348.0 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="348.0" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">10</text>
+  <path d="M373.2 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M398.4 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="398.4" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">12</text>
+  <path d="M423.6 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M448.8 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="448.8" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">14</text>
+  <path d="M474.0 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M499.2 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="499.2" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">16</text>
+  <path d="M524.4 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M549.6 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="549.6" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">18</text>
+  <path d="M574.8 78V300" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M600.0 78V300" stroke="#334155" stroke-width="1.6"/>
+  <text x="600.0" y="326.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="middle">20</text>
+  <path d="M96 300.0H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="307.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">−3</text>
+  <path d="M96 281.5H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 263.0H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="270.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">−2</text>
+  <path d="M96 244.5H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 226.0H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="233.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">−1</text>
+  <path d="M96 207.5H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 189.0H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="196.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">0</text>
+  <path d="M96 170.5H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 152.0H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="159.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">1</text>
+  <path d="M96 133.5H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 115.0H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="122.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">2</text>
+  <path d="M96 96.5H600" stroke="#1e3a5f" stroke-width="1"/>
+  <path d="M96 78.0H600" stroke="#334155" stroke-width="1.6"/>
+  <text x="86.0" y="85.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" text-anchor="end">3</text>
+  <path d="M96 72V300" fill="none" stroke="#e2e8f0" stroke-width="2.5"/>
+  <path d="M96 189.0H606" fill="none" stroke="#e2e8f0" stroke-width="2.5"/>
+  <text x="348.0" y="352.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="700" text-anchor="middle">distance / cm</text>
+  <text x="26.0" y="189.0" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="700" text-anchor="middle" transform="rotate(-90 26 189.0)">displacement / cm</text>
+  <path d="M96.0 189.0L102.3 174.6L108.6 160.7L114.9 147.9L121.2 136.7L127.5 127.5L133.8 120.6L140.1 116.4L146.4 115.0L152.7 116.4L159.0 120.6L165.3 127.5L171.6 136.7L177.9 147.9L184.2 160.7L190.5 174.6L196.8 189.0L203.1 203.4L209.4 217.3L215.7 230.1L222.0 241.3L228.3 250.5L234.6 257.4L240.9 261.6L247.2 263.0L253.5 261.6L259.8 257.4L266.1 250.5L272.4 241.3L278.7 230.1L285.0 217.3L291.3 203.4L297.6 189.0L303.9 174.6L310.2 160.7L316.5 147.9L322.8 136.7L329.1 127.5L335.4 120.6L341.7 116.4L348.0 115.0L354.3 116.4L360.6 120.6L366.9 127.5L373.2 136.7L379.5 147.9L385.8 160.7L392.1 174.6L398.4 189.0L404.7 203.4L411.0 217.3L417.3 230.1L423.6 241.3L429.9 250.5L436.2 257.4L442.5 261.6L448.8 263.0L455.1 261.6L461.4 257.4L467.7 250.5L474.0 241.3L480.3 230.1L486.6 217.3L492.9 203.4L499.2 189.0L505.5 174.6L511.8 160.7L518.1 147.9L524.4 136.7L530.7 127.5L537.0 120.6L543.3 116.4L549.6 115.0L555.9 116.4L562.2 120.6L568.5 127.5L574.8 136.7L581.1 147.9L587.4 160.7L593.7 174.6L600.0 189.0" fill="none" stroke="#fbbf24" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,83 @@
+[
+  {
+    "code": "science.physics.electricity.circuits.focus.resistance-from-current-voltage-graph",
+    "subskillCode": "science.physics.electricity.circuits",
+    "name": "Calculate resistance from a current-voltage graph",
+    "description": "Evidence that the learner can calculate resistance from a current-voltage graph.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.electricity.circuits.focus.compare-resistances-from-current-voltage-graph",
+    "subskillCode": "science.physics.electricity.circuits",
+    "name": "Compare resistances using current-voltage graphs",
+    "description": "Evidence that the learner can compare resistances using current-voltage graphs.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.electricity.circuits.focus.series-combined-resistance",
+    "subskillCode": "science.physics.electricity.circuits",
+    "name": "Calculate the combined resistance of resistors in series",
+    "description": "Evidence that the learner can calculate the combined resistance of resistors in series.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.electricity.circuits.focus.current-from-pd-and-total-resistance",
+    "subskillCode": "science.physics.electricity.circuits",
+    "name": "Calculate circuit current from p.d. and total resistance",
+    "description": "Evidence that the learner can calculate circuit current from p.d. and total resistance.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.electricity.circuits.focus.parallel-combined-resistance",
+    "subskillCode": "science.physics.electricity.circuits",
+    "name": "Calculate the combined resistance of two resistors in parallel",
+    "description": "Evidence that the learner can calculate the combined resistance of two resistors in parallel.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.electricity.circuits.focus.parallel-junction-current",
+    "subskillCode": "science.physics.electricity.circuits",
+    "name": "Calculate supply current as the sum of parallel branch currents",
+    "description": "Evidence that the learner can calculate supply current as the sum of parallel branch currents.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.waves.properties.focus.amplitude-from-wave-graph",
+    "subskillCode": "science.physics.waves.properties",
+    "name": "Read the amplitude of a wave from a displacement-distance graph",
+    "description": "Evidence that the learner can read the amplitude of a wave from a displacement-distance graph.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.waves.properties.focus.wavelength-from-wave-graph",
+    "subskillCode": "science.physics.waves.properties",
+    "name": "Read the wavelength of a wave from a displacement-distance graph",
+    "description": "Evidence that the learner can read the wavelength of a wave from a displacement-distance graph.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  },
+  {
+    "code": "science.physics.waves.properties.focus.wave-speed-from-graph-and-frequency",
+    "subskillCode": "science.physics.waves.properties",
+    "name": "Calculate wave speed from a wave graph and its frequency",
+    "description": "Evidence that the learner can calculate wave speed from a wave graph and its frequency.",
+    "applicablePhases": [
+      "upper_secondary"
+    ]
+  }
+]
