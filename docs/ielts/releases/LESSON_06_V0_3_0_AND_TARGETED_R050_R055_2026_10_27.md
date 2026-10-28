@@ -32,3 +32,20 @@ repeat-exposure checks remain.
 
 Microsoft PowerPoint playback, physical printing and projector legibility (LB-08). Nothing feeds Journey, readiness or
 band logic.
+
+## Correction, 2026-10-28: R-055 made assignable
+
+R-055 (step 6 of 6, Mixed check) is an independent check. Its 2026-10-26 originality review recorded it as a *variant* of
+R-049, its v0.1.0 draft. The allocation gate never allows a variant to be an independent check, so every attempt to assign
+R-055 failed. It had never been assigned, so no student was affected.
+
+On the owner's instruction (2026-10-28 12:15, Asia/Bishkek), migration `20261028061644` adds a new owner review that
+records R-055 as *fresh*. The migration is pinned to R-055's released content hash and to its current set of matches.
+R-055 shares questions only with R-049, which was never released or allocated, so no student can have seen them. Its
+other matches are the sibling Lesson 6 steps on the same passage.
+
+The earlier review is kept. Nothing was updated or deleted, and the release itself is unchanged.
+
+After the change:
+- R-055 is labelled "Originality reviewed", is still released, and is allowed as practice.
+- A rolled-back test insert of an R-055 assignment passed every allocation gate.
