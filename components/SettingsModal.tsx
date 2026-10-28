@@ -9,6 +9,7 @@ import { isBrainsMasterActive } from '../src/utils/premiumHelpers';
 import AvatarWithFrame from './AvatarWithFrame';
 import { isFlickerThemeActive } from '../src/lib/cosmetics';
 import { supabase } from '../services/supabaseClient';
+import PushNotificationToggle from './PushNotificationToggle';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -552,6 +553,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 {t("Premium benefits remain active regardless of badge visibility.")}</p>
             </div>
           </div>
+          )}
+
+          {/* Notifications (students) */}
+          {!isAdminMode && profile.role === 'student' && (
+            <div>
+              <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>{t("Notifications")}</h3>
+              <div className="border border-gray-700 rounded-2xl p-4">
+                <PushNotificationToggle />
+              </div>
+            </div>
           )}
 
           {/* Interface appearance */}

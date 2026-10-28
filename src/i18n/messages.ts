@@ -1176,6 +1176,42 @@ export const messages = {
   "Dismiss": {
     "ar": "إغلاق",
     "ru": "Закрыть"
+  },
+  "Enable notifications": {
+    "ar": "تفعيل الإشعارات",
+    "ru": "Включить уведомления"
+  },
+  "Turning on…": {
+    "ar": "جارٍ التفعيل…",
+    "ru": "Включаем…"
+  },
+  "Turn off": {
+    "ar": "إيقاف",
+    "ru": "Выключить"
+  },
+  "Notifications are on for this device.": {
+    "ar": "الإشعارات مفعّلة على هذا الجهاز.",
+    "ru": "Уведомления включены на этом устройстве."
+  },
+  "Get a message when your teacher posts a new assignment and the day before it is due.": {
+    "ar": "تصلك رسالة عندما ينشر معلمك واجباً جديداً وقبل يوم من موعد التسليم.",
+    "ru": "Получайте сообщение, когда учитель публикует новое задание, и за день до срока сдачи."
+  },
+  "To get notifications on iPhone, add Brains Heist to your Home Screen first, then open it from there.": {
+    "ar": "لتلقي الإشعارات على iPhone، أضف Brains Heist إلى الشاشة الرئيسية أولاً ثم افتحه من هناك.",
+    "ru": "Чтобы получать уведомления на iPhone, сначала добавьте Brains Heist на экран «Домой» и открывайте приложение оттуда."
+  },
+  "Notifications are blocked for Brains Heist in your phone settings.": {
+    "ar": "الإشعارات محظورة لـ Brains Heist في إعدادات هاتفك.",
+    "ru": "Уведомления для Brains Heist заблокированы в настройках телефона."
+  },
+  "Notifications were not allowed.": {
+    "ar": "لم يُسمح بالإشعارات.",
+    "ru": "Уведомления не были разрешены."
+  },
+  "Could not turn on notifications. Please try again.": {
+    "ar": "تعذّر تفعيل الإشعارات. حاول مرة أخرى.",
+    "ru": "Не удалось включить уведомления. Попробуйте ещё раз."
   }
 } as const;
 
