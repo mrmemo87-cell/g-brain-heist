@@ -20,7 +20,7 @@ test('two lessons, five guided steps and one check each, pilot only with review'
   assert.equal(t.purpose,i%6===5?'independent_check':'guided_practice');
   assert.match(t.title,new RegExp(`^Listening Lesson ${L} step ${i%6+1} of 6: `));
   assert.equal(t.skill,'listening');assert.equal(t.version,'0.1.0');assert.equal(t.pilot_student,GULZADA);assert.equal(t.review_record.human_review,'pending');
-  assert.equal(t.audio_path,`targeted-listening-06/${t.audio_sha256}/${t.review_record.audio_file.file}`);
+  assert.equal(t.audio_path,`targeted-listening-06/${t.audio_sha256}/${t.code.match(/-(l\d+)-v1$/)[1]}/${t.review_record.audio_file.file}`);
   assert.equal(t.review_record.audio_file.sha256,t.audio_sha256);
   assert.equal(t.review_record.audio_file.derived_from.sha256,lessonOf(t).rec.sha256,'cut from the owner-approved recording');
  }
@@ -66,4 +66,16 @@ test('install migrations are insert-only, keep review on, never release, and sto
   for(const k of ['questions','content','review_record'])assert.deepEqual(deep(r[k]),deep(t[k]),`${t.code} ${k}`);
   for(const k of ['title','version','purpose','instructions','success_description','content_sha256','audio_path','audio_sha256'])assert.equal(r[k],t[k]);}
  await db.close();
+});
+test('owner release: first step per recording fresh, later steps variants, ten guided steps released, both step-6 checks held back',()=>{
+ const rel=readdirSync('supabase/migrations').filter(f=>f.endsWith('_ielts_targeted_listening_06_originality_and_release.sql'));assert.equal(rel.length,1);
+ const sql=readFileSync('supabase/migrations/'+rel[0],'utf8');
+ assert.doesNotMatch(sql,/\bupdate\b|\bdelete\b/i,'append-only');
+ const first={};
+ for(const [i,t] of src.tasks.entries()){
+  const parent=first[t.audio_sha256];if(!parent)first[t.audio_sha256]=t.code;
+  const release=t.purpose==='guided_practice';
+  assert.ok(sql.includes(`(${15+i},'L-${String(30+i).padStart(3,'0')}','${t.code}','${t.content_sha256}','${t.audio_sha256}',${parent?`'${parent}'`:'null'},${release})`),`${t.code} pinned with its recording family`);
+ }
+ assert.match(sql,/unexpected_originality_match/);assert.match(sql,/'variant'/);assert.match(sql,/'fresh'/);assert.match(sql,/mixed_check_released/);
 });
