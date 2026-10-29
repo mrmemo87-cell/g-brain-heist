@@ -133,3 +133,23 @@ test('Commander PvP fails closed for malformed attacker or defender loadouts', (
     );
   }
 });
+
+test('Commander PvP defender power recharges on the same schedule as the attacker', () => {
+  const POWER_CODES = new Set(['death_bolt', 'chain_surge', 'rot_miasma', 'raise_dead']);
+  const enemyPowerCast = (before: any, after: any) => {
+    const seen = new Set(before.events.map((event: any) => event.id));
+    return after.events.some((event: any) => !seen.has(event.id) && event.side === 'enemy' && POWER_CODES.has(event.code));
+  };
+  let castsWhenReady = 0;
+  for (let seed = 1; seed <= 120; seed += 1) {
+    const battle = buildCommanderPvpBattle(seed, attackerLoadout(), defenderLoadout(), 'Nova');
+
+    // One turn of cooldown left at turn start: the attacker could not cast now, so neither may the defender.
+    const cooling = { ...structuredClone(battle), enemyDeathBoltCooldown: 1 };
+    assert.equal(enemyPowerCast(cooling, applyCommanderPvpTurn(cooling, { move: 'guard' })), false, `seed ${seed}`);
+
+    const ready = { ...structuredClone(battle), enemyDeathBoltCooldown: 0 };
+    if (enemyPowerCast(ready, applyCommanderPvpTurn(ready, { move: 'guard' }))) castsWhenReady += 1;
+  }
+  assert.ok(castsWhenReady > 0, 'a ready defender still uses its powers');
+});

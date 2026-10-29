@@ -34,6 +34,12 @@ type CommanderPracticeArenaProps = {
 };
 
 const sleep = (milliseconds: number) => new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
+/** Asset warming is best-effort: wait briefly for it, but never let it hold up or time out a battle. */
+const ASSET_WARM_WAIT_MS = 4_000;
+const warmAssetsBriefly = () => Promise.race([
+  Promise.all([preloadCommanderSpriteAssets(), preloadCommanderAudio()]).then(() => undefined, () => undefined),
+  sleep(ASSET_WARM_WAIT_MS),
+]);
 
 const COMMANDER_PLAYBACK_TIMING = {
   focusWindup: 550,
@@ -131,16 +137,19 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
     setRecoveryFailed(false);
     void (async () => {
       try {
-        await Promise.all([preloadCommanderSpriteAssets(), preloadCommanderAudio()]);
+        const warming = warmAssetsBriefly();
         let next = checkpoint.session;
         if (checkpoint.pending) {
           // The practice engine is deterministic and has no persistent combat
           // writes. Retrying this same signed input recovers this exact turn.
           next = await submitCommanderPracticeTurn(next.transcript, checkpoint.pending.move, checkpoint.pending.targetId, controller.signal);
+          window.clearTimeout(timeout);
           if (!alive) return;
           if (controller.signal.aborted) throw new Error('request_timeout');
           saveCheckpoint(next);
         }
+        window.clearTimeout(timeout);
+        await warming;
         if (!alive) return;
         if (controller.signal.aborted) throw new Error('request_timeout');
         setSession(next);
@@ -302,7 +311,11 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
     setBusy(true);
     setError(null);
     try {
-      const [next] = await Promise.all([startCommanderPractice(controller.signal, ownedLoadout), preloadCommanderSpriteAssets(), preloadCommanderAudio()]);
+      const warming = warmAssetsBriefly();
+      const next = await startCommanderPractice(controller.signal, ownedLoadout);
+      // The server answered: the timeout no longer applies. From here an abort only means unmount.
+      window.clearTimeout(timeout);
+      await warming;
       if (controller.signal.aborted) return;
       saveCheckpoint(next);
       setAssetsReady(true);
@@ -327,7 +340,7 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
 
   const playMove = async (move: CommanderPracticeMove) => {
     if (!introReady || !session || session.battle.status !== 'active' || pendingRequest.current || busy) return;
-    if (move !== 'guard' && !selectedTargetId) {
+    if (move !== 'guard' && move !== 'raise_dead' && !selectedTargetId) {
       setError(copy.invalidTarget);
       return;
     }
@@ -340,13 +353,12 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
     setError(null);
 
     try {
-      saveCheckpoint(session, { move, targetId: move === 'guard' ? null : selectedTargetId });
-      const next = await submitCommanderPracticeTurn(
-        session.transcript,
-        move,
-        move === 'guard' ? null : selectedTargetId,
-        controller.signal,
-      );
+      const targetId = move === 'guard' || move === 'raise_dead' ? null : selectedTargetId;
+      saveCheckpoint(session, { move, targetId });
+      const next = await submitCommanderPracticeTurn(session.transcript, move, targetId, controller.signal);
+      // The server confirmed this turn, so the timeout must not discard it during a long playback.
+      // From here an abort only means the arena unmounted.
+      window.clearTimeout(timeout);
       if (controller.signal.aborted) return;
 
       saveCheckpoint(next); // Checkpoint BEFORE playback, so refresh cannot undo damage.
