@@ -23,7 +23,17 @@ export default function IeltsApprovedTeacherPacks({schoolId}:{schoolId:string}) 
  async function download(pack:ApprovedTeacherPack,kind:Resource) {
   if(lock.current)return; lock.current=true; const run=epoch.current;setBusy(pack.lesson_code);setError('');
   try {
-   const blob=await approvedTeacherPackBlob(pack,kind);
+   let blob:Blob;
+   try { blob=await approvedTeacherPackBlob(pack,kind); }
+   catch(first) {
+    // The pack may have been re-released since this page loaded (its old file is no longer served): reload the
+    // catalogue once and use the current file for the same lesson.
+    const fresh=(await approvedTeacherPacks(schoolId)).find(p=>p.lesson_code===pack.lesson_code);
+    if(epoch.current!==run)return;
+    if(!fresh||fresh.sha256===pack.sha256)throw first;
+    setPacks(list=>list.map(p=>p.lesson_code===fresh.lesson_code?fresh:p));
+    pack=fresh; blob=await approvedTeacherPackBlob(fresh,kind);
+   }
    if(epoch.current!==run)return;
    if(kind==='zip')downloadLessonFile(blob,`${pack.lesson_code}-Teacher-Pack-v${pack.version}.zip`);
    else {
