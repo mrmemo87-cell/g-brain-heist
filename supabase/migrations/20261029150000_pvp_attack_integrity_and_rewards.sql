@@ -1,0 +1,443 @@
+-- PvP attack integrity and reward fixes (audit 2026-10-29).
+--   1. Students can no longer insert rows into pvp_attack_attempts directly.
+--      The table drives the "you were raided" push trigger, so a client insert could send
+--      fake raid alerts naming a real student. Only rpc_hack_attempt (SECURITY DEFINER) writes it.
+--      Production also granted anon/authenticated UPDATE, DELETE, TRUNCATE, REFERENCES and TRIGGER
+--      (TRUNCATE is not covered by RLS). Students keep SELECT on their own rows; anon gets nothing.
+--   2. A shield-blocked attack no longer pays +30 XP (it paid the same as a win). It now pays 0 XP.
+--   3. shield_state reports 'removed' when a cracker breaks the shield (it reported 'none').
+-- Combat odds, coin rules, cooldown, AP cost and idempotency are unchanged.
+-- Rollback: supabase/rollbacks/20261029150000_pvp_attack_integrity_and_rewards.rollback.sql
+
+-- ───────────── 1. Lock the idempotency table to the server function ─────────────
+drop policy if exists pvp_attack_attempts_owner_insert on public.pvp_attack_attempts;
+revoke all on table public.pvp_attack_attempts from public, anon, authenticated;
+grant select on table public.pvp_attack_attempts to authenticated;
+
+-- ───────────── 2 & 3. rpc_hack_attempt ─────────────
+CREATE OR REPLACE FUNCTION public.rpc_hack_attempt(p_defender_id uuid, p_request_id uuid DEFAULT NULL::uuid)
+ RETURNS json
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_attacker_id uuid := auth.uid();
+  v_now timestamptz := now();
+  v_existing_response jsonb;
+  v_response jsonb;
+  v_xp_status jsonb;
+
+  -- ====== CONFIG ======
+  c_ap_cost int := 2;                 -- AP cost per hack attempt
+  c_shield_defense_bonus int := 20;  -- Shield adds +20 defense
+  c_attack_cooldown_seconds int := 300; -- 5 minutes cooldown after being attacked
+  c_xp_win int := 30;
+  c_coins_steal_percent numeric := 0.10;  -- Steal 10% of defender's coins (MASSIVE THEFT ENABLED)
+  c_xp_loss int := -10;               -- XP penalty for a lost attack
+  c_xp_blocked int := 0;              -- A shield-blocked attack earns no XP (was +30, same as a win)
+  c_coins_loss_min int := 100;        -- Minimum coins attacker loses to defender on loss
+  c_max_steal_percent_win numeric := 0.30;  -- Can steal up to 30% of defender's total coins
+  c_coins_loss_percent numeric := 0.35; -- Attacker loses 35% of their coins on loss
+
+  -- ====== Variables ======
+  attacker record;
+  defender record;
+
+  attacker_attack int;
+  defender_defense int;
+
+  has_shield boolean := false;
+  has_cracker boolean := false;
+  shield_blocks boolean := false;
+  shield_broken boolean := false;     -- true when a cracker broke the defender's shield
+
+  win_chance numeric;
+  roll numeric;
+  is_win boolean;
+
+  xp_delta int := 0;
+  coins_delta int := 0;
+  gemstones_delta int := 0;
+  coins_stolen_from_def int := 0;
+  coins_lost_to_def int := 0;  -- Coins attacker loses to defender on loss
+
+  current_ap int;
+  pre_gemstones int;
+
+  result_kind text;
+  canonical_activity_kind text;
+  attacker_username text;
+  defender_username text;
+
+begin
+  -- Allow trusted RPC-level XP/level writes under trigger hardening.
+  perform set_config('app.allow_xp_level_write', '1', true);
+
+  if p_request_id is not null then
+    select response
+    into v_existing_response
+    from public.pvp_attack_attempts
+    where request_id = p_request_id
+      and attacker_id = v_attacker_id;
+
+    if found then
+      return v_existing_response;
+    end if;
+  end if;
+  -- ===== Validate =====
+  if v_attacker_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  if p_defender_id is null or p_defender_id = v_attacker_id then
+    raise exception 'Invalid defender';
+  end if;
+
+  -- ====== Fetch attacker profile (with row lock) ======
+  select
+    id, username, level, xp, coins, gemstones, ap_now, ap_max, last_ap_update,
+    coalesce(attack_power, 10) as attack_power,
+    coalesce(defense_power, 10) as defense_power,
+    coalesce(is_admin, false) as is_admin,
+    coalesce(role, 'student') as role,
+    coalesce(is_banned, false) as is_banned,
+    school_id
+  into attacker
+  from public.users
+  where id = v_attacker_id
+  for update;
+
+  if not found then
+    raise exception 'Attacker not found';
+  end if;
+
+  if attacker.is_admin or attacker.role <> 'student' or attacker.is_banned then
+    raise exception 'attacker_not_allowed';
+  end if;
+
+  -- Capture username NOW, before any RETURNING ... INTO overwrites the record
+  attacker_username := attacker.username;
+  pre_gemstones := attacker.gemstones;
+
+  -- Refresh AP based on regeneration before spending
+  current_ap := calculate_current_ap(attacker.ap_now, attacker.ap_max, coalesce(attacker.last_ap_update, v_now));
+
+  if current_ap <> attacker.ap_now then
+    update public.users
+    set ap_now = current_ap,
+        last_ap_update = v_now
+    where id = v_attacker_id
+    returning ap_now into attacker.ap_now;
+  else
+    attacker.ap_now := current_ap;
+  end if;
+
+  -- ====== Fetch defender profile (with row lock) ======
+  select
+    id, username, level, xp, coins,
+    coalesce(attack_power, 10) as attack_power,
+    coalesce(defense_power, 10) as defense_power,
+    last_attacked_at,
+    coalesce(is_admin, false) as is_admin,
+    coalesce(role, 'student') as role,
+    coalesce(is_banned, false) as is_banned,
+    school_id
+  into defender
+  from public.users
+  where id = p_defender_id
+  for update;
+
+  if not found then
+    raise exception 'Defender not found';
+  end if;
+
+  if defender.is_admin or defender.role <> 'student' or defender.is_banned then
+    raise exception 'defender_not_attackable';
+  end if;
+  if attacker.school_id is distinct from defender.school_id then
+    raise exception 'cross_school_attack_not_allowed';
+  end if;
+
+
+  -- Capture username NOW, before any RETURNING ... INTO could overwrite the record
+  defender_username := defender.username;
+
+  -- ====== Check attack cooldown ======
+  if defender.last_attacked_at is not null then
+    if extract(epoch from (v_now - defender.last_attacked_at)) < c_attack_cooldown_seconds then
+      raise exception 'COOLDOWN: This player was recently attacked. Try again in % seconds.',
+        c_attack_cooldown_seconds - extract(epoch from (v_now - defender.last_attacked_at))::int;
+    end if;
+  end if;
+
+  -- Spend AP only after the defender passes validation and cooldown checks
+  update public.users
+  set ap_now = ap_now - c_ap_cost,
+      last_ap_update = v_now
+  where id = v_attacker_id
+    and ap_now >= c_ap_cost
+  returning ap_now into attacker.ap_now;
+
+  if not found then
+    raise exception 'Not enough AP';
+  end if;
+
+  -- ====== Check for active shield on defender ======
+  -- Shield is active if: state='active' AND (expires_at is null OR expires_at > now)
+  select exists(
+    select 1
+    from public.inventory
+    where user_id = p_defender_id
+      and kind in ('shield', 'firewall')
+      and state = 'active'
+  and (expires_at is null or expires_at > v_now)
+  ) into has_shield;
+
+  -- ====== Check if attacker has cracker in inventory ======
+  select exists(
+    select 1
+    from public.inventory
+    where user_id = v_attacker_id
+      and kind = 'cracker'
+      and state = 'unused'
+  ) into has_cracker;
+
+  -- ====== Calculate combat stats ======
+  attacker_attack := attacker.attack_power;
+  defender_defense := defender.defense_power;
+
+  -- If defender has shield and attacker doesn't use cracker, shield adds bonus defense
+  if has_shield and not has_cracker then
+    defender_defense := defender_defense + c_shield_defense_bonus;
+    shield_blocks := true; -- Shield will block coin theft even if attacker wins
+  end if;
+
+  -- If attacker has cracker, consume it and negate shield
+  if has_shield and has_cracker then
+    -- Consume one cracker
+    update public.inventory
+    set state = 'consumed'
+    where id = (
+      select id
+      from public.inventory
+      where user_id = v_attacker_id
+        and kind = 'cracker'
+        and state = 'unused'
+      limit 1
+    );
+
+    -- Break the shield
+    update public.inventory
+  set state = 'consumed', expires_at = v_now
+    where user_id = p_defender_id
+      and kind in ('shield', 'firewall')
+      and state = 'active'
+  and (expires_at is null or expires_at > v_now);
+
+    shield_blocks := false;
+    shield_broken := true;
+    has_shield := false; -- Shield broken
+  end if;
+
+  -- ====== Calculate win probability ======
+  -- Simple formula: P(win) = attacker_attack / (attacker_attack + defender_defense)
+  win_chance := attacker_attack::numeric / (attacker_attack + defender_defense)::numeric;
+
+  -- ====== Roll for outcome ======
+  roll := random();
+  is_win := roll < win_chance;
+
+  -- ====== Apply results ======
+  if is_win then
+    -- Attacker wins
+    xp_delta := c_xp_win;
+
+    -- Calculate coins stolen from defender (10% of their balance, capped at 30% max)
+    coins_stolen_from_def := least(
+      floor(defender.coins * c_coins_steal_percent),
+      floor(defender.coins * c_max_steal_percent_win)
+    );
+
+    coins_delta := coins_stolen_from_def; -- NO BASE COINS, only what you steal
+
+    -- If shield blocked, no coin theft
+    if shield_blocks then
+      coins_stolen_from_def := 0;
+      coins_delta := 0;
+      xp_delta := c_xp_blocked;
+      result_kind := 'pvp_blocked';
+      canonical_activity_kind := 'attack_blocked';
+    else
+      result_kind := 'pvp_win';
+      canonical_activity_kind := 'attack_success';
+    end if;
+
+    -- Update attacker (including earnings tracking)
+    update public.users
+    set xp = xp + xp_delta,
+        coins = coins + coins_delta,
+        pvp_score = coalesce(pvp_score, 0) + case when result_kind = 'pvp_win' then 1 else 0 end,
+        xp_from_pvp = COALESCE(xp_from_pvp, 0) + GREATEST(0, xp_delta),
+        coins_from_pvp = COALESCE(coins_from_pvp, 0) + GREATEST(0, coins_delta)
+    where id = v_attacker_id
+    returning xp, coins, level, gemstones
+    into attacker;
+
+    -- Update defender (lose coins if not blocked, and set cooldown)
+    update public.users
+    set coins = greatest(0, coins - coins_stolen_from_def),
+        last_attacked_at = v_now
+    where id = p_defender_id;
+
+  else
+    -- Attacker loses
+    xp_delta := c_xp_loss;
+
+    -- Calculate coins lost to defender (capped at 20% of attacker balance)
+    coins_lost_to_def := greatest(
+      c_coins_loss_min,
+      floor(attacker.coins * c_coins_loss_percent)
+    );
+
+    coins_lost_to_def := least(coins_lost_to_def, attacker.coins);
+
+    coins_delta := -coins_lost_to_def;  -- Negative because attacker loses coins
+    result_kind := 'pvp_loss';
+    canonical_activity_kind := 'attack_failed';
+
+    -- Update attacker (lose XP, lose coins to defender, and lose AP)
+    update public.users
+    set xp = xp + xp_delta,
+        coins = greatest(0, coins - coins_lost_to_def)
+    where id = v_attacker_id
+    returning xp, coins, level, gemstones
+    into attacker;
+
+    -- Update defender (gains coins from failed attack, and set cooldown)
+    update public.users
+    set coins = coins + coins_lost_to_def,
+        last_attacked_at = v_now
+    where id = p_defender_id;
+  end if;
+
+  gemstones_delta := attacker.gemstones - pre_gemstones;
+
+  -- ====== Log activity ======
+  -- (attacker_username and defender_username already captured before UPDATEs)
+
+  insert into public.activities (kind, actor_id, actor_username, target_id, target_username, data, created_at)
+  values (
+    result_kind,
+    v_attacker_id,
+    attacker_username,
+    p_defender_id,
+    defender_username,
+    jsonb_build_object(
+      'details', case
+        when result_kind = 'pvp_win' then 'Stole ' || coins_stolen_from_def || ' Coins'
+        when result_kind = 'pvp_blocked' then 'Attack blocked by Shield'
+        else 'Lost ' || coins_lost_to_def || ' Coins'
+      end,
+      'attacker_attack', attacker_attack,
+      'defender_defense', defender_defense,
+      'win_chance', win_chance,
+      'roll', roll,
+      'xp_delta', xp_delta,
+      'gemstones_delta', gemstones_delta,
+      'coins_stolen', coins_stolen_from_def,
+      'coins_lost', coins_lost_to_def,
+      'defender_username', defender_username
+    ),
+    v_now
+  );
+
+  if canonical_activity_kind is not null then
+    insert into public.activities (kind, actor_id, actor_username, target_id, target_username, data, created_at)
+    values (
+      canonical_activity_kind,
+      v_attacker_id,
+      attacker_username,
+      p_defender_id,
+      defender_username,
+      jsonb_build_object(
+        'legacy_kind', result_kind,
+        'xp_delta', xp_delta,
+        'coins_delta', coins_delta,
+        'coins_stolen', coins_stolen_from_def,
+        'coins_lost', coins_lost_to_def,
+        'defender_username', defender_username
+      ),
+      v_now
+    );
+  end if;
+
+  -- ====== Notifications ======
+  -- Root cause fix:
+  -- "Under attack" notifications were never generated by rpc_hack_attempt,
+  -- so defenders had no real-time attack_incoming event to subscribe to.
+  -- Keep notification writes non-blocking so battle resolution never fails.
+  begin
+    perform public.notify_attack_incoming(
+      p_defender_id,
+      attacker_username,
+      attacker_attack
+    );
+  exception
+    when others then
+      raise warning 'notify_attack_incoming failed for defender %, attacker %: %',
+        p_defender_id, v_attacker_id, sqlerrm;
+  end;
+
+  -- ====== Return result ======
+  select to_jsonb(xp_status(p_xp => attacker.xp)) into v_xp_status;
+
+  v_response := jsonb_build_object(
+    'result', case
+      when result_kind = 'pvp_win' then 'win'
+      when result_kind = 'pvp_blocked' then 'blocked'
+      else 'lose'
+    end,
+    'attacker_deltas', json_build_object(
+      'xp', xp_delta,
+      'coins', coins_delta,
+      'gemstones', gemstones_delta
+    ),
+    'defender_deltas', json_build_object(
+      'coins_loss', case
+        when result_kind = 'pvp_loss' then -coins_lost_to_def  -- Defender gains, so negative loss
+        else coins_stolen_from_def  -- Defender loses
+      end
+    ),
+    'shield_state', case
+      when shield_broken then 'removed'
+      when has_shield then 'remaining'
+      else 'none'
+    end,
+    'final_profile_values', jsonb_build_object(
+      'xp', attacker.xp,
+      'coins', attacker.coins,
+      'level', attacker.level,
+      'gemstones', attacker.gemstones,
+      'xp_status', v_xp_status
+    ),
+    'combat_stats', json_build_object(
+      'attacker_attack', attacker_attack,
+      'defender_defense', defender_defense,
+      'win_chance', round(win_chance * 100, 1),
+      'roll', round(roll * 100, 1)
+    )
+  );
+
+  if p_request_id is not null then
+    insert into public.pvp_attack_attempts (request_id, attacker_id, defender_id, response)
+    values (p_request_id, v_attacker_id, p_defender_id, v_response);
+  end if;
+
+  return v_response;
+end;
+$function$;
+
+
+revoke all on function public.rpc_hack_attempt(uuid, uuid) from public, anon;
+grant execute on function public.rpc_hack_attempt(uuid, uuid) to authenticated;

@@ -2908,6 +2908,7 @@ export const raid_attack = async (
         },
         shield_state: (payload.shield_state ?? 'none') as RaidAttackResult['shield_state'],
         final_profile_values: payload.final_profile_values ?? undefined,
+        combat_stats: payload.combat_stats ?? undefined,
     };
 
     // Surface Supabase combat stats in debug logs to aid balancing

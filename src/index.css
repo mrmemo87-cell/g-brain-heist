@@ -3588,3 +3588,276 @@ body.sb-no-fx .sb-beam {
 @media (max-width: 600px) {
   .school-admin-ielts-tab .ielts-tools-nav { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
+
+/* ─────────────────────────── PvP battle result (game-style) ─────────────────────────── */
+.pvp-result {
+  --pvp-accent: #2de6b1;
+  --pvp-accent-2: #facc15;
+  position: relative;
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 1.25rem;
+  border-radius: 1.75rem;
+  overflow: hidden;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(12, 14, 32, 0.96), rgba(6, 7, 18, 0.98));
+  border: 1px solid color-mix(in srgb, var(--pvp-accent) 45%, transparent);
+  box-shadow: 0 0 40px color-mix(in srgb, var(--pvp-accent) 25%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  animation: pvp-card-in 380ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.pvp-result-lose { --pvp-accent: #f43f5e; --pvp-accent-2: #fb7185; }
+.pvp-result-blocked { --pvp-accent: #f59e0b; --pvp-accent-2: #fde68a; }
+
+.pvp-result-glow {
+  position: absolute;
+  inset: -40% -20% auto;
+  height: 22rem;
+  background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--pvp-accent) 45%, transparent), transparent 65%);
+  opacity: 0.55;
+  pointer-events: none;
+  animation: pvp-glow-pulse 2.4s ease-in-out infinite;
+}
+.pvp-result-win .pvp-result-glow {
+  background:
+    conic-gradient(from 0deg at 50% 55%, transparent 0 8%, rgba(250, 204, 21, 0.18) 10% 14%, transparent 16% 33%,
+      rgba(45, 230, 177, 0.18) 35% 39%, transparent 41% 58%, rgba(250, 204, 21, 0.18) 60% 64%, transparent 66% 83%,
+      rgba(45, 230, 177, 0.18) 85% 89%, transparent 91%),
+    radial-gradient(circle at 50% 55%, rgba(45, 230, 177, 0.4), transparent 60%);
+  animation: pvp-rays-spin 14s linear infinite;
+}
+
+.pvp-result-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding-top: 0.75rem;
+}
+.pvp-fighter {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  transition: filter 400ms ease, transform 400ms ease;
+}
+.pvp-fighter.is-beaten { filter: grayscale(0.9) brightness(0.65); transform: scale(0.9); }
+.pvp-fighter-name {
+  max-width: 7.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #e5e7eb;
+}
+.pvp-crown {
+  position: absolute;
+  top: -1.45rem;
+  font-size: 1.6rem;
+  z-index: 2;
+  animation: pvp-crown-drop 520ms 520ms cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.pvp-avatar { position: relative; }
+.pvp-crack {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 46%, rgba(255, 255, 255, 0.85) 47%, transparent 49%),
+    linear-gradient(60deg, transparent 52%, rgba(255, 255, 255, 0.7) 53%, transparent 55%),
+    linear-gradient(160deg, transparent 38%, rgba(255, 255, 255, 0.6) 39%, transparent 41%);
+  border-radius: 9999px;
+  mix-blend-mode: screen;
+  animation: pvp-crack-in 220ms 420ms ease-out both;
+}
+.pvp-shield-bubble {
+  position: absolute;
+  inset: -0.55rem;
+  border-radius: 9999px;
+  border: 3px solid rgba(250, 204, 21, 0.9);
+  box-shadow: 0 0 22px rgba(250, 204, 21, 0.6), inset 0 0 18px rgba(250, 204, 21, 0.35);
+  animation: pvp-shield-flash 900ms 300ms ease-out both;
+  z-index: 2;
+  pointer-events: none;
+}
+.pvp-versus {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 900;
+  font-size: 1.4rem;
+  letter-spacing: 0.08em;
+  color: var(--pvp-accent-2);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--pvp-accent-2) 70%, transparent);
+  font-style: italic;
+}
+
+.pvp-stamp-wrap { position: relative; margin-top: 1.1rem; }
+.pvp-stamp {
+  display: inline-block;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 900;
+  font-size: clamp(2.6rem, 13vw, 3.6rem);
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: linear-gradient(180deg, #fff 10%, var(--pvp-accent-2) 55%, var(--pvp-accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.55)) drop-shadow(0 0 18px color-mix(in srgb, var(--pvp-accent) 60%, transparent));
+  animation: pvp-stamp-slam 520ms 120ms cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+.pvp-result-lose .pvp-stamp { animation-name: pvp-stamp-slam, pvp-stamp-shake; animation-duration: 520ms, 360ms; animation-delay: 120ms, 640ms; }
+.pvp-stamp-line { margin-top: 0.35rem; color: #cbd5e1; font-size: 0.95rem; animation: pvp-fade-up 360ms 420ms both; }
+.pvp-shield-note { margin-top: 0.4rem; font-weight: 700; color: #fde68a; animation: pvp-fade-up 360ms 520ms both; }
+
+.pvp-rewards {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
+  flex-wrap: wrap;
+}
+.pvp-reward-chip {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  column-gap: 0.45rem;
+  align-items: center;
+  min-width: 6.25rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  animation: pvp-chip-pop 420ms cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.pvp-reward-icon { grid-row: span 2; font-size: 1.35rem; display: flex; align-items: center; }
+.pvp-reward-amount { font-family: 'IBM Plex Sans', sans-serif; font-weight: 800; font-size: 1.3rem; line-height: 1.1; text-align: left; font-variant-numeric: tabular-nums; }
+.pvp-reward-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; color: #94a3b8; text-align: left; }
+.pvp-reward-gain { border-color: rgba(45, 230, 177, 0.55); box-shadow: 0 0 16px rgba(45, 230, 177, 0.18); }
+.pvp-reward-gain .pvp-reward-amount { color: #5eead4; }
+.pvp-reward-coins.pvp-reward-gain { border-color: rgba(250, 204, 21, 0.6); box-shadow: 0 0 16px rgba(250, 204, 21, 0.22); }
+.pvp-reward-coins.pvp-reward-gain .pvp-reward-amount { color: #fde047; }
+.pvp-reward-loss { border-color: rgba(244, 63, 94, 0.55); }
+.pvp-reward-loss .pvp-reward-amount { color: #fb7185; }
+.pvp-reward-zero .pvp-reward-amount { color: #94a3b8; }
+
+.pvp-coin {
+  display: inline-block;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 30%, #fff7cc 0 18%, #fde047 30%, #eab308 62%, #a16207 100%);
+  box-shadow: inset 0 -2px 0 rgba(120, 53, 15, 0.55), 0 0 8px rgba(250, 204, 21, 0.55);
+}
+.pvp-coin-burst { position: absolute; left: 50%; top: 45%; width: 0; height: 0; pointer-events: none; z-index: 3; }
+.pvp-coin-burst .pvp-coin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  animation: pvp-coin-fly 950ms cubic-bezier(0.15, 0.8, 0.3, 1) both;
+}
+
+.pvp-odds {
+  margin-top: 1.25rem;
+  padding: 0.8rem 0.9rem 0.7rem;
+  border-radius: 1rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+  animation: pvp-fade-up 360ms 1000ms both;
+}
+.pvp-odds-head { display: flex; justify-content: space-between; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.14em; color: #94a3b8; }
+.pvp-odds-pct { color: #5eead4; font-weight: 800; }
+.pvp-odds-track {
+  position: relative;
+  height: 0.9rem;
+  margin: 1.7rem 0 0.5rem;
+  border-radius: 9999px;
+  background: repeating-linear-gradient(90deg, rgba(244, 63, 94, 0.35) 0 6px, rgba(244, 63, 94, 0.22) 6px 12px);
+}
+.pvp-odds-zone {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #14b8a6, #2de6b1);
+  box-shadow: 0 0 12px rgba(45, 230, 177, 0.55);
+  transform-origin: left center;
+  animation: pvp-zone-grow 500ms 1050ms ease-out both;
+}
+.pvp-odds-marker {
+  position: absolute;
+  top: 50%;
+  width: 4px;
+  height: 1.6rem;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+  transform: translateY(-50%);
+  animation: pvp-marker-drop 600ms 1500ms cubic-bezier(0.3, 1.7, 0.5, 1) both;
+}
+.pvp-odds-marker.is-miss { background: #fb7185; box-shadow: 0 0 10px rgba(251, 113, 133, 0.9); }
+.pvp-odds-die { position: absolute; top: -1.45rem; left: 50%; transform: translateX(-50%); font-size: 1rem; }
+.pvp-odds-caption { font-size: 0.82rem; color: #e2e8f0; animation: pvp-fade-up 300ms 1900ms both; }
+
+.pvp-next-btn {
+  position: relative;
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 0.95rem 1rem;
+  border-radius: 1.1rem;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  color: #0b0b1a;
+  background: linear-gradient(180deg, #fde68a, #f59e0b);
+  box-shadow: 0 5px 0 #b45309, 0 10px 24px rgba(245, 158, 11, 0.35);
+  transition: transform 90ms ease, box-shadow 90ms ease;
+  animation: pvp-fade-up 360ms 1300ms both;
+}
+.pvp-next-btn:hover { filter: brightness(1.06); }
+.pvp-next-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #b45309, 0 4px 12px rgba(245, 158, 11, 0.3); }
+.pvp-next-btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+@keyframes pvp-card-in { from { opacity: 0; transform: translateY(24px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes pvp-glow-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 0.7; } }
+@keyframes pvp-rays-spin { to { transform: rotate(360deg); } }
+@keyframes pvp-stamp-slam {
+  0% { opacity: 0; transform: scale(2.6) rotate(-8deg); }
+  60% { opacity: 1; transform: scale(0.92) rotate(-3deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-3deg); }
+}
+@keyframes pvp-stamp-shake {
+  0%, 100% { translate: 0 0; } 20% { translate: -6px 0; } 40% { translate: 6px 0; } 60% { translate: -4px 0; } 80% { translate: 3px 0; }
+}
+@keyframes pvp-fade-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes pvp-chip-pop { 0% { opacity: 0; transform: scale(0.4); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes pvp-crown-drop { 0% { opacity: 0; transform: translateY(-24px) rotate(-20deg); } 100% { opacity: 1; transform: none; } }
+@keyframes pvp-crack-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+@keyframes pvp-shield-flash {
+  0% { opacity: 0; transform: scale(0.6); }
+  40% { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 0.75; transform: scale(1); }
+}
+@keyframes pvp-coin-fly {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3) rotate(0); }
+  15% { opacity: 1; }
+  70% { opacity: 1; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(var(--rot)); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy) + 40px)) scale(0.8) rotate(var(--rot)); }
+}
+@keyframes pvp-zone-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes pvp-marker-drop {
+  0% { opacity: 0; transform: translateY(-260%); }
+  100% { opacity: 1; transform: translateY(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pvp-result, .pvp-result *, .pvp-result-glow { animation: none !important; }
+  .pvp-coin-burst { display: none; }
+  .pvp-odds-marker { transform: translateY(-50%); }
+}

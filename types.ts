@@ -385,6 +385,8 @@ export interface RaidAttackResult {
     coins_loss: number;
   };
   shield_state: 'removed' | 'remaining' | 'none';
+  /** Server odds for this attack: win_chance and roll are percentages (0–100). Win when roll < win_chance. */
+  combat_stats?: { attacker_attack: number; defender_defense: number; win_chance: number; roll: number };
   final_profile_values?: { xp: number; coins: number; level: number; gemstones: number; xp_status?: XpStatus };
 }
 
