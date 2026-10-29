@@ -1,7 +1,7 @@
 // Fun moments (a battle, a first reaction) are the best time to offer notifications.
 // Screens announce the moment; <PushMomentPrompt /> decides whether to show the offer.
 
-export type PushMomentReason = 'battle' | 'reaction';
+export type PushMomentReason = 'battle' | 'reaction' | 'installed';
 
 export const PUSH_MOMENT_EVENT = 'brains-heist:push-moment';
 export const PUSH_MOMENT_SNOOZE_KEY = 'brains-heist:push-moment-snooze:v1';
@@ -28,4 +28,27 @@ export function announcePushMoment(
   } catch {
     /* Old WebViews without CustomEvent: no offer, nothing breaks. */
   }
+}
+
+/** Set once the "turn on alerts" offer has been shown on the first launch from the Home Screen. */
+export const FIRST_LAUNCH_OFFER_KEY = 'brains-heist:push-first-launch-offered:v1';
+
+export interface FirstLaunchEnvironment {
+  /** Opened from the Home Screen icon (full screen). */
+  standalone: boolean;
+  /** Push can be turned on here (supported, not blocked). */
+  pushAvailable: boolean;
+  /** This device already has a subscription. */
+  pushEnabled: boolean;
+  signedIn: boolean;
+  alreadyOffered: boolean;
+  quietPath: boolean;
+}
+
+/**
+ * Right after installing, the student is most likely to say yes, and on iPhone it is the first moment it can work.
+ * Offered once per device; "Not now" afterwards still follows the usual snooze for later moments.
+ */
+export function shouldOfferOnFirstLaunch(env: FirstLaunchEnvironment): boolean {
+  return env.standalone && env.pushAvailable && !env.pushEnabled && env.signedIn && !env.alreadyOffered && !env.quietPath;
 }

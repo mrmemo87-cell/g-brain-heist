@@ -72,3 +72,25 @@ export function installGuidePlatform(userAgent: string, maxTouchPoints = 0): Ins
   if (/Android/i.test(ua)) return 'android';
   return 'other';
 }
+
+/**
+ * Where Safari's Share button lives, so the guide can point at it.
+ * - Safari 26+ on iPhone (default "Compact" tabs): Share sits inside the ⋯ menu at the bottom right.
+ * - Older iPhone Safari: Share is in the bottom toolbar, in the middle.
+ * - iPad: Share is at the top right.
+ */
+export type IosShareLayout = 'iphone-more-menu' | 'iphone-share-bar' | 'ipad-top';
+
+export function iosShareLayout(userAgent: string, maxTouchPoints = 0): IosShareLayout {
+  const ua = userAgent || '';
+  if (/iPad/i.test(ua) || (/Macintosh/i.test(ua) && (/Mobile/i.test(ua) || maxTouchPoints > 1))) return 'ipad-top';
+  const version = /Version\/(\d+)/.exec(ua);
+  return version && Number(version[1]) >= 26 ? 'iphone-more-menu' : 'iphone-share-bar';
+}
+
+/** Android browsers that offer one-tap install: show our "Install" sheet on its own (same snooze as iPhone). */
+export function shouldAutoShowNativeInstall(env: InstallEnvironment & { canInstall: boolean }): boolean {
+  if (env.standalone || env.dismissed || !env.canInstall) return false;
+  if (installGuidePlatform(env.userAgent) !== 'android') return false;
+  return !isQuietPath(env.pathname);
+}
