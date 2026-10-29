@@ -130,7 +130,7 @@ revoke all on function public.rpc_clan_deposit_coins(integer) from public, anon;
 grant execute on function public.rpc_clan_deposit_coins(integer) to authenticated;
 
 -- ───────────────────────────── 4. feed shows real moments only ─────────────────────────────
-create or replace function public.get_school_activity_feed(p_limit integer)
+create or replace function public.get_school_activity_feed(p_limit integer default 30)
 returns table(id uuid, kind text, actor_id uuid, actor_username text, target_id uuid, target_username text,
               data jsonb, reactions jsonb, created_at timestamptz, school_id uuid, actor_role text)
 language plpgsql

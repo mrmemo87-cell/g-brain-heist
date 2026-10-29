@@ -49,7 +49,7 @@ create function private.enqueue_game_push(p_user_id uuid, p_event_type text, p_t
   insert into private.pushes values (p_user_id, p_event_type, p_title, p_body, p_idempotency_key) on conflict do nothing $$;
 create function public.rpc_clan_deposit_coins(p_amount integer) returns table(new_clan_vault integer, new_user_coins integer)
   language sql security definer as $$ select 0, 0 $$;
-create function public.get_school_activity_feed(p_limit integer)
+create function public.get_school_activity_feed(p_limit integer default 30)
   returns table(id uuid, kind text, actor_id uuid, actor_username text, target_id uuid, target_username text,
                 data jsonb, reactions jsonb, created_at timestamptz, school_id uuid, actor_role text)
   language sql security definer as $$ select null::uuid, null, null::uuid, null, null::uuid, null, null::jsonb, null::jsonb, null::timestamptz, null::uuid, null where false $$;

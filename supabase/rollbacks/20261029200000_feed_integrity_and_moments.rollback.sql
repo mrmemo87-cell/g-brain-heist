@@ -14,7 +14,7 @@ drop function if exists private.trg_feed_level_up();
 drop function if exists private.feed_post(text, uuid, jsonb);
 
 -- Feed RPC without the kind filter.
-create or replace function public.get_school_activity_feed(p_limit integer)
+create or replace function public.get_school_activity_feed(p_limit integer default 30)
 returns table(id uuid, kind text, actor_id uuid, actor_username text, target_id uuid, target_username text,
               data jsonb, reactions jsonb, created_at timestamptz, school_id uuid, actor_role text)
 language plpgsql stable security definer set search_path to 'public' as $function$
