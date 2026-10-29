@@ -404,3 +404,23 @@ mark.il-step-hl { padding: 0 .15em; border-radius: .25em; color: inherit; backgr
 .il-assign-block { margin: .8rem 0 .6rem; padding: .75rem 1rem; border-radius: var(--bh-ielts-radius-md); background: #FFF6E2; border: 1px solid #F0C567; color: #6B4700; }
 .il-assign-block p { margin: 0; font-weight: 600; }
 .il-assign-block p + * { display: inline-block; margin-top: .45rem; }
+/* Targeted practice picker: skill -> lesson -> steps in teaching order (scoped to win over generic button styles) */
+.il-picker { display:grid; gap:.75rem; margin:1rem 0; }
+.il-picker .il-picker-label { margin:0; font-weight:700; }
+.il-picker .il-picker-skills { display:flex; flex-wrap:wrap; gap:.5rem; }
+.il-picker .il-picker-skills button { min-height:44px; border-radius:999px; padding:.4rem 1rem; border:1px solid var(--bh-ielts-border, #d5deea); background:var(--bh-ielts-surface, #fff); color:var(--bh-ielts-foreground, #15243a); font-weight:600; cursor:pointer; box-shadow:none; }
+.il-picker .il-picker-skills button[aria-pressed="true"] { background:var(--bh-ielts-primary); border-color:var(--bh-ielts-primary); color:var(--bh-ielts-primary-foreground, #fff); }
+.il-picker .il-picker-skills button:disabled { opacity:.45; cursor:default; }
+.il-picker .il-picker-count { font-weight:500; opacity:.8; margin-left:.25rem; }
+.il-picker .il-picker-steps { list-style:none; margin:0; padding:0; display:grid; gap:.5rem; }
+.il-picker .il-picker-steps button.il-picker-step { width:100%; text-align:left; display:grid; justify-items:start; gap:.25rem; padding:.75rem 1rem; min-height:44px; border-radius:var(--bh-ielts-radius-sm, 10px); border:1px solid var(--bh-ielts-border, #d5deea); background:var(--bh-ielts-surface, #fff); color:var(--bh-ielts-foreground, #15243a); cursor:pointer; box-shadow:none; font-weight:400; }
+.il-picker .il-picker-steps button.il-picker-step:hover { border-color:var(--bh-ielts-primary); }
+.il-picker .il-picker-steps button.il-picker-step--on { border:2px solid var(--bh-ielts-primary); background:var(--bh-ielts-surface-muted, #eef3fa); }
+.il-picker .il-picker-step-kicker { font-size:.75rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--bh-ielts-primary); }
+.il-picker .il-picker-step-title { font-weight:600; font-size:1rem; }
+.il-picker .il-picker-tags { display:flex; flex-wrap:wrap; gap:.35rem; }
+.il-picker .il-tag { font-size:.75rem; font-weight:600; padding:.1rem .55rem; border-radius:999px; background:var(--bh-ielts-surface-muted, #eef3fa); color:var(--bh-ielts-foreground, #15243a); }
+.il-picker .il-tag--check { background:#fdf0dc; color:#7a4a00; }
+.il-picker .il-tag--warn { background:#fde7e7; color:#8a1c1c; }
+.il-picker .il-tag--muted { color:var(--bh-ielts-foreground-muted, #4c6076); }
+.il-picker .il-picker-all summary { cursor:pointer; color:var(--bh-ielts-primary); font-weight:600; min-height:44px; display:flex; align-items:center; }

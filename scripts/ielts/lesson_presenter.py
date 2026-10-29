@@ -1,8 +1,9 @@
 """Classroom presenter for IELTS lesson packs (Lessons Bible LB-04).
 
 One self-contained HTML file that is the only thing on the classroom screen: slides follow the
-workbook order and headings, questions and answers appear on teacher clicks (finite 250 ms fades,
-reduced motion respected, manual Motion switch), recordings play from the slide with a teacher
+workbook order and headings, each question set shows in full on one slide (two columns when there is room)
+and its answer key appears with a single teacher click (finite 250 ms fade, reduced motion respected,
+manual Motion switch), recordings play from the slide with a teacher
 controlled player (never automatic), and stage timers count down only when started. Teacher notes
 stay hidden unless requested. No automatic advance of any kind.
 """
@@ -48,7 +49,8 @@ h1{font-size:40px;line-height:1.15;margin:4px 0 16px;letter-spacing:-.01em;flex:
 .dark .card{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.16);box-shadow:none}
 .num{flex:none;min-width:40px;height:40px;border-radius:20px;background:var(--primary);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:20px;padding:0 10px}
 .card .txt{flex:1;line-height:1.38}
-.items2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}.items2 .card{margin-bottom:10px}
+.items2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 28px;align-items:start}.items2 .card{margin:0 0 12px}
+.cards1 .card{margin:0 0 12px}.reveal-all{margin-top:4px}
 .opts{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
 .opts li{display:flex;gap:10px;align-items:baseline}
 .let{flex:none;font-weight:700;color:var(--primary);min-width:26px}
@@ -59,7 +61,7 @@ h1{font-size:40px;line-height:1.15;margin:4px 0 16px;letter-spacing:-.01em;flex:
 .passage{background:#FBFCFE;border:1px solid var(--line);border-radius:14px;padding:16px 20px;font-size:18px;line-height:1.5}
 .passage h3{margin:0 0 10px;font-size:22px}
 .passage p{margin:0 0 10px}.passage .pl{font-weight:700;color:var(--primary);margin-right:8px}
-.answer .ans{display:inline-block;background:var(--okbg);color:var(--ok);font-weight:800;border-radius:8px;padding:2px 12px;margin-left:6px}
+.answer .ans{display:inline-block;background:var(--okbg);color:var(--ok);font-weight:800;border-radius:8px;padding:2px 12px}
 .answer .q{color:var(--muted)}.answer .ev{font-style:italic;margin-top:6px}.answer .why{margin-top:6px;color:var(--muted)}
 .dark .answer .q,.dark .answer .why{color:#C9D6EA}
 .example .txt{font-size:1.02em}.discussion b{color:var(--primary)}
@@ -106,9 +108,12 @@ function fit(){const s=Math.min(innerWidth/1280,innerHeight/720);deck.style.tran
 function steps(sl){return [...sl.querySelectorAll('.step')]}
 const audios={};document.querySelectorAll('audio[data-rec]').forEach(a=>audios[a.dataset.rec]=a);
 function stopMedia(sl,nextSl){const keep=new Set([...(nextSl?nextSl.querySelectorAll('.player[data-rec]'):[])].map(p=>p.dataset.rec));[...sl.querySelectorAll('.player[data-rec]')].forEach(p=>{if(!keep.has(p.dataset.rec))audios[p.dataset.rec].pause()})}
+// Safety net: if a slide's text would not fit (fonts differ between computers), shrink it a little, never below 16 pt.
+function fitText(sl){sl.querySelectorAll('.col:not(.narrow)').forEach(c=>{let fs=parseFloat(getComputedStyle(c).fontSize);const was=fs;while(c.scrollHeight>c.clientHeight+1&&fs>21.5){fs-=1;c.style.fontSize=fs+'px';sl.dataset.shrunk=was+'>'+fs}});
+ sl.querySelectorAll('.col.narrow').forEach(c=>{const pn=c.querySelector('.panel');if(!pn)return;let fs=parseFloat(getComputedStyle(pn).fontSize);while(c.scrollHeight>c.clientHeight+1&&fs>18.5){fs-=1;pn.style.fontSize=fs+'px'}})}
 function show(n,allSteps){const prev=slides[index];const target=Math.max(0,Math.min(slides.length-1,n));if(prev)stopMedia(prev,slides[target]);index=target;
  slides.forEach((s,i)=>{s.hidden=i!==index;s.classList.remove('enter')});const cur=slides[index];
- steps(cur).forEach(e=>e.classList.toggle('on',!!allSteps));if(motion.checked)cur.classList.add('enter');
+ steps(cur).forEach(e=>e.classList.toggle('on',!!allSteps));if(motion.checked)cur.classList.add('enter');fitText(cur);
  sel.value=index;status.textContent='Slide '+(index+1)+' of '+slides.length;notes.textContent=cur.dataset.notes||'';
  document.getElementById('previous').disabled=index===0;document.getElementById('next').disabled=index===slides.length-1&&!steps(cur).some(e=>!e.classList.contains('on'))}
 function next(){const hidden=steps(slides[index]).filter(e=>!e.classList.contains('on'));if(hidden.length){hidden[0].classList.add('on');show2();return}if(index<slides.length-1)show(index+1,false)}
@@ -179,8 +184,9 @@ def _element(m, text, step):
     if t == 'item':
         return _item_html(m, step)
     if t == 'answer':
-        return (f'<div class="card answer{step}"><span class="num">{E(m["num"])}</span><div class="txt"><div class="q">{E(m["prompt"])}</div>'
-                f'<div>Answer <span class="ans">{E(m["answer"])}</span></div><div class="ev">{E(m["evidence"])}</div><div class="why">{E(m["reason"])}</div></div></div>')
+        # Number, answer and proof only; the explanation is in the speaker notes so the key stays easy to scan.
+        return (f'<div class="card answer{step}"><span class="num">{E(m["num"])}</span><div class="txt">'
+                f'<span class="ans">{E(m["answer"])}</span><div class="ev">{E(m["evidence"])}</div></div></div>')
     if t == 'example':
         return f'<div class="card example{step}"><span class="num">{E(m["num"])}</span><div class="txt">{_text(m["text"])}</div></div>'
     if t == 'discussion':
@@ -210,7 +216,7 @@ def _player(audio):
                 f'<div class="st">Not included in this pack ({E(audio["status"])}). Do not read the transcript instead.</div></div></div>')
     part = f' · questions {audio["part"]} of {audio["parts"]} (keeps playing as you move on)' if audio.get('parts', 1) > 1 else ''
     return (f'<div class="player" data-has="1" data-rec="{E(audio["id"])}"><button type="button" class="play" aria-label="Play recording">\u25B6</button>'
-            f'<div class="meta"><div class="name">Recording {E(audio["id"])}{E(part)}</div><div class="st">{E(audio["status"])} · Teacher-controlled; in the test the recording is heard once.</div>'
+            f'<div class="meta"><div class="name">Recording {E(audio["id"])}{E(part)}</div>'
             f'<div class="bar" tabindex="0" role="slider" aria-label="Recording position" aria-valuemin="0" aria-valuenow="0"><i></i></div></div>'
             f'<div class="tm">0:00 / 0:00</div></div>')
 
@@ -234,7 +240,10 @@ def render(pack, body_size):
         build = s.get('build')
         side = s.get('passage') or s.get('image') or s.get('panel')
         width = 4.9 if side else 12.1
-        size = round(_px(max(body_size('\n\n'.join(s['body']), width), 18)) * (0.7 if s.get('audio') and side else 0.8 if s.get('audio') else 0.86 if s.get('build') or s.get('reveal') else 1))
+        if s.get('size'):
+            size = round(_px(s['size']))  # question sets and answer keys are sized by the builder to fit one slide
+        else:
+            size = round(_px(max(body_size('\n\n'.join(s['body']), width), 18)) * (0.7 if s.get('audio') and side else 0.8 if s.get('audio') else 0.86 if s.get('reveal') else 1))
         top = (f'<div class="top">' + (f'<img class="slogo" src="{logo}" alt="">' if logo else '') + f'<span class="school">{E(pack.school)}</span>'
                + (f'<span class="chip">Workbook · {E(s["workbook"])}</span>' if s.get('workbook') else '<span class="chip">Brains Heist IELTS</span>')
                + (' <span class="reveal-tag">Answer reveal</span>' if s.get('reveal') else '')
@@ -243,12 +252,20 @@ def render(pack, body_size):
         for j, (txt, m) in enumerate(zip(s['body'], meta)):
             step = ' step' if build and m.get('t') not in ('instr', 'options') else ''
             els.append(_element(m, txt, step))
-        n_items = sum(1 for m in meta if m.get('t') == 'item')
-        if n_items >= 5 and not side:
-            # Five or six short gaps: two columns, so every question stays visible beside the recording player.
-            first = next(j for j, m in enumerate(meta) if m.get('t') == 'item')
-            items_html = ''.join(e for e, m in zip(els, meta) if m.get('t') == 'item')
-            els = els[:first] + [f'<div class="items2">{items_html}</div>'] + [e for e, m in list(zip(els, meta))[first:] if m.get('t') != 'item']
+        cards = [j for j, m in enumerate(meta) if m.get('t') in ('item', 'answer', 'example', 'discussion')]
+        if cards:
+            # The whole set shows at once: two text columns when the slide has no side panel. On a reveal slide one
+            # click shows every answer together.
+            first = cards[0]
+            if s.get('cols') == 2 and len(cards) >= 2:
+                k = s.get('split', (len(cards) + 1) // 2)
+                group = (f'<div class="items2"><div>{"".join(els[j] for j in cards[:k])}</div>'
+                         f'<div>{"".join(els[j] for j in cards[k:])}</div></div>')
+            else:
+                group = f'<div class="cards1">{"".join(els[j] for j in cards)}</div>'
+            if s.get('reveal_all'):
+                group = f'<div class="step reveal-all">{group}</div>'
+            els = els[:first] + [group] + [e for j, e in enumerate(els) if j > first and j not in cards]
         inner = ''.join(els)
         if kind == 'cover':
             main = (f'<div class="col" style="font-size:{_px(26)}px">{inner}</div>'
@@ -271,7 +288,7 @@ def render(pack, body_size):
                 if not rest:
                     letter, _, rest = o.strip().partition(' ')
                 lis.append(f'<div><span class="let">{E(letter)}</span>{E(rest.strip())}</div>')
-            main = (f'<div class="col narrow" style="flex-basis:40%"><div class="panel" style="font-size:{max(18, size - 2)}px"><h3>{E(pn["title"])}</h3><div class="list">{"".join(lis)}</div></div></div>'
+            main = (f'<div class="col narrow" style="flex-basis:40%"><div class="panel" style="font-size:{min(26, max(18, size - 2))}px"><h3>{E(pn["title"])}</h3><div class="list">{"".join(lis)}</div></div></div>'
                     f'<div class="col" style="font-size:{size}px">{inner}</div>')
         elif s.get('image'):
             main = (f'<div class="figure"><img src="../{E(s["image"])}" alt="{E(s.get("alt", ""))}"></div>'

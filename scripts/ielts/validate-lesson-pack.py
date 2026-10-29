@@ -153,6 +153,16 @@ def main(out):
         if q is None or a is None or a < q:
             errors.append(f"{b['id']}: question slide must precede its reveal slide")
 
+    # A task heading never sits alone at the bottom of a page, away from its instructions and first question.
+    for pdf_path in sorted((out / 'Students').glob('*.pdf')):
+        pages = [norm(pg.extract_text() or '') for pg in PdfReader(str(pdf_path)).pages]
+        for b in d['blocks']:
+            t = norm(b['title'])
+            for pi, txt in enumerate(pages):
+                at = txt.rfind(t)
+                if at >= 0 and len(re.sub(r'\b\w+-\w+-?\w* v[\d.]+ \|.*$', '', txt[at + len(t):]).strip()) < 25 and pi + 1 < len(pages):
+                    errors.append(f"{pdf_path.name} page {pi + 1}: heading '{b['title']}' is separated from its task")
+
     if any(p.suffix == '.pdf' and 'Teacher' in p.name for p in (out / 'Students').iterdir()):
         errors.append('teacher file in Students folder')
     start = (out / '01-START-HERE.html').read_text()
