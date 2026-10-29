@@ -377,7 +377,11 @@ class Pack:
             return out + [KeepTogether(chart)]
         for i, it in enumerate(b['items']):
             num = it['id'].rsplit('-Q', 1)[-1]
-            body = [self.question(num, it['prompt'])]
+            prompt = it['prompt']
+            if it['type'] == 'completion' and '___' not in prompt:
+                # Every completion question gets the same write-on line, whether or not its prompt contains the gap.
+                prompt += ('' if prompt.rstrip().endswith(('?', ':')) else ':') + ' ________'
+            body = [self.question(num, prompt)]
             opts = it.get('options', []) if it['type'] in ('mcq', 'choice') else []
             if opts and max(len(o) for o in opts) <= 22:
                 # Single-word options print on one line, as on an IELTS paper, so a set of questions fits on one page.
@@ -391,8 +395,7 @@ class Pack:
             elif it['type'] in ('matching', 'paragraph_match'):
                 body.append(self.answer_boxes(('Answer', 60)))
             elif it['type'] == 'completion':
-                if '___' not in it['prompt']:
-                    body.append(self.answer_boxes(('Answer', 200)))
+                pass  # the write-on line is in the question itself
             elif it['type'] in ('tfng', 'ynng') and st.get('type') == 'passage':
                 body.append(self.answer_boxes(('Answer', 90), ('Evidence', 280)))
             elif it['type'] in ('mcq', 'choice', 'tfng', 'ynng'):
