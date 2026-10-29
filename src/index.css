@@ -4002,3 +4002,62 @@ body:not(.performance-mode-disabled) .feed-item__sparkles { display: none; }
   .feed-item__sparkles,
   .feed-reaction__float { display: none; }
 }
+
+/* ─────────────────────────── Notification offer after a fun moment ─────────────────────────── */
+.push-moment {
+  position: fixed;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  z-index: 70;
+  margin: 0 auto;
+  max-width: 26rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 1rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  background: linear-gradient(160deg, rgba(8, 47, 73, 0.96), rgba(2, 6, 23, 0.97));
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  animation: push-moment-in 380ms cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+.push-moment__bell {
+  flex: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  transform-origin: 50% 10%;
+  animation: push-moment-ring 900ms ease-in-out 400ms 2 both;
+}
+.push-moment__body { min-width: 0; flex: 1; }
+.push-moment__title { font-weight: 800; color: white; font-size: 0.98rem; line-height: 1.3; }
+.push-moment__text { margin-top: 0.3rem; font-size: 0.8rem; line-height: 1.45; color: rgb(203, 213, 225); }
+.push-moment__error { margin-top: 0.4rem; font-size: 0.75rem; color: rgb(253, 164, 175); }
+.push-moment__actions { margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.push-moment__primary {
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 0.85rem;
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: #021018;
+  background: linear-gradient(180deg, #67e8f9, #22d3ee);
+  box-shadow: 0 4px 0 #0e7490;
+  transition: transform 90ms ease, box-shadow 90ms ease;
+}
+.push-moment__primary:active { transform: translateY(3px); box-shadow: 0 1px 0 #0e7490; }
+.push-moment__primary:disabled { opacity: 0.7; }
+.push-moment__secondary { min-height: 44px; padding: 0 0.9rem; border-radius: 0.85rem; font-size: 0.85rem; font-weight: 600; color: rgb(148, 163, 184); }
+.push-moment__primary:focus-visible, .push-moment__secondary:focus-visible { outline: 2px solid #a5f3fc; outline-offset: 2px; }
+
+@keyframes push-moment-in { from { opacity: 0; transform: translateY(24px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes push-moment-ring {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(16deg); }
+  40% { transform: rotate(-14deg); }
+  60% { transform: rotate(8deg); }
+  80% { transform: rotate(-5deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .push-moment, .push-moment__bell { animation: none !important; }
+}

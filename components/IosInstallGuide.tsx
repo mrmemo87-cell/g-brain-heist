@@ -13,7 +13,8 @@ const SHOW_DELAY_MS = 2500;
 
 /**
  * Bottom sheet explaining "Add to Home Screen".
- * Automatic: once, in iPhone/iPad Safari only — never when installed, on timed IELTS routes, or after dismissal.
+ * Automatic: in iPhone/iPad Safari only — never when installed or on timed IELTS routes. "Not now" hides it
+ * for 7 days; after 3 "not now"s it stops appearing on its own.
  * On request: "How to install" in Settings fires INSTALL_GUIDE_OPEN_EVENT and the sheet opens on any device,
  * with iPhone or Android steps and a note for icons that open inside Safari.
  */

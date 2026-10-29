@@ -45,13 +45,21 @@ test('the guide shows once, on iOS Safari, in the browser, outside quiet routes'
   assert.equal(shouldShowIosInstallGuide({ ...base, userAgent: ANDROID_CHROME }), false, 'Android has its own install prompt');
 });
 
-test('dismissal persists via storage and survives blocked storage', () => {
+test('"not now" snoozes the guide for 7 days, and it stops after 3 times; blocked storage is safe', () => {
   const store = new Map<string, string>();
   const storage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => { store.set(k, v); } };
-  assert.equal(readInstallGuideDismissed(storage), false);
-  writeInstallGuideDismissed(storage);
-  assert.equal(store.get(INSTALL_GUIDE_DISMISSED_KEY), '1');
-  assert.equal(readInstallGuideDismissed(storage), true);
+  const day = 24 * 60 * 60 * 1000;
+  const t0 = Date.UTC(2026, 9, 29);
+  assert.equal(readInstallGuideDismissed(storage, t0), false);
+  writeInstallGuideDismissed(storage, t0);
+  assert.equal(JSON.parse(store.get(INSTALL_GUIDE_DISMISSED_KEY) as string).count, 1);
+  assert.equal(readInstallGuideDismissed(storage, t0 + 6 * day), true, 'still snoozed after 6 days');
+  assert.equal(readInstallGuideDismissed(storage, t0 + 8 * day), false, 'back after a week');
+  writeInstallGuideDismissed(storage, t0 + 8 * day);
+  writeInstallGuideDismissed(storage, t0 + 16 * day);
+  assert.equal(readInstallGuideDismissed(storage, t0 + 400 * day), true, 'stops after the 3rd "not now"');
+  store.set(INSTALL_GUIDE_DISMISSED_KEY, '1');
+  assert.equal(readInstallGuideDismissed(storage, t0), false, 'old permanent dismissals get one more chance');
   const blocked = { getItem: () => { throw new Error('blocked'); }, setItem: () => { throw new Error('blocked'); } };
   assert.equal(readInstallGuideDismissed(blocked), false);
   assert.doesNotThrow(() => writeInstallGuideDismissed(blocked));

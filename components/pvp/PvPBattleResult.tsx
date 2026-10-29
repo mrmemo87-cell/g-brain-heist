@@ -4,6 +4,7 @@ import AvatarWithFrame from '../AvatarWithFrame';
 import { isFlickerThemeActive } from '../../src/lib/cosmetics';
 import { audioService } from '../../services/audioService';
 import { GemIcon } from '../icons';
+import { announcePushMoment } from '../../src/lib/pushMoment';
 
 type Outcome = 'win' | 'lose' | 'blocked';
 
@@ -160,6 +161,10 @@ const PvPBattleResult: React.FC<PvPBattleResultProps> = ({ result, attacker, def
   const gems = Number(result.attacker_deltas?.gemstones ?? 0);
   const stats = result.combat_stats;
   const playedCollect = useRef(false);
+
+  useEffect(() => {
+    announcePushMoment('battle');
+  }, []);
 
   useEffect(() => {
     try {

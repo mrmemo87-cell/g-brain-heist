@@ -1276,6 +1276,38 @@ export const messages = {
   "Could not save. Please try again.": {
     "ar": "تعذّر الحفظ. حاول مرة أخرى.",
     "ru": "Не удалось сохранить. Попробуйте ещё раз."
+  },
+  "Never miss a raid": {
+    "ar": "لا تفوّت أي هجوم",
+    "ru": "Не пропусти ни одного налёта"
+  },
+  "Show me how": {
+    "ar": "أرني كيف",
+    "ru": "Показать как"
+  },
+  "Turn on notifications": {
+    "ar": "تشغيل الإشعارات",
+    "ru": "Включить уведомления"
+  },
+  "Want to know when classmates react to you?": {
+    "ar": "هل تريد أن تعرف عندما يتفاعل زملاؤك مع منشوراتك؟",
+    "ru": "Хочешь знать, когда одноклассники реагируют на тебя?"
+  },
+  "Want to know when someone raids you?": {
+    "ar": "هل تريد أن تعرف عندما يهاجمك أحد؟",
+    "ru": "Хочешь знать, когда на тебя нападают?"
+  },
+  "You're all set! We'll ping you when something happens.": {
+    "ar": "تم! سنرسل لك تنبيهاً عندما يحدث شيء.",
+    "ru": "Готово! Мы сообщим, когда что-то произойдёт."
+  },
+  "Get a ping for raids, reactions, clan news and new assignments. Never during the night.": {
+    "ar": "تنبيهات للهجمات والتفاعلات وأخبار العشيرة والواجبات الجديدة. لا شيء أثناء الليل.",
+    "ru": "Уведомления о налётах, реакциях, новостях клана и новых заданиях. Ночью — никогда."
+  },
+  "On iPhone, add Brains Heist to your Home Screen first. Then you can get alerts for raids, reactions and new assignments.": {
+    "ar": "على iPhone، أضف Brains Heist إلى الشاشة الرئيسية أولاً. بعدها يمكنك تلقي تنبيهات الهجمات والتفاعلات والواجبات الجديدة.",
+    "ru": "На iPhone сначала добавь Brains Heist на экран «Домой». Тогда будут приходить уведомления о налётах, реакциях и новых заданиях."
   }
 } as const;
 

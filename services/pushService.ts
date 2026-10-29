@@ -2,6 +2,7 @@ import { supabase } from './supabaseClient';
 import { getEnvVar } from './env';
 import { detectStandalone } from '../src/lib/installPrompt';
 import { platformLabel, pushAvailability, urlBase64ToUint8Array, type PushAvailability } from '../src/lib/pushSupport';
+import { announcePushEnabled } from '../src/lib/pushMoment';
 
 // The VAPID public key is public by design (it is sent to the browser on subscribe).
 // VITE_VAPID_PUBLIC_KEY overrides it so the key can be rotated without a code change.
@@ -75,6 +76,7 @@ export async function enablePushOnThisDevice(): Promise<{ ok: true } | { ok: fal
     disabled_reason: null,
   }, { onConflict: 'endpoint' });
   if (error) return { ok: false, reason: error.message };
+  announcePushEnabled();
   return { ok: true };
 }
 
