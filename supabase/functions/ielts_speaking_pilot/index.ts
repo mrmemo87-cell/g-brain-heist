@@ -46,6 +46,10 @@ function validateSimple(f: any) {
       throw new Error("invalid_draft");
   }
 }
+// Failure reasons are logged as short codes only (never audio, transcripts or feedback text) so teachers' failed
+// drafts can be diagnosed.
+const why = (stage: string, detail: unknown) =>
+  console.error(JSON.stringify({ fn: "ielts_speaking_pilot", stage, detail: String(detail).slice(0, 300) }));
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers });
   if (req.method !== "POST") return reply({ error: "method_not_allowed" }, 405);
@@ -215,6 +219,7 @@ Deno.serve(async (req: Request) => {
         },
       );
       if (!response.ok) {
+        why("provider_http", `${response.status} ${(await response.text().catch(() => "")).slice(0, 200)}`);
         if (
           attempt === 0 &&
           (response.status === 429 || response.status >= 500)
@@ -225,9 +230,9 @@ Deno.serve(async (req: Request) => {
       const result = await response.json();
       try {
         if (result.choices?.[0]?.finish_reason !== "stop")
-          throw new Error("incomplete_draft");
+          throw new Error("incomplete_draft: " + result.choices?.[0]?.finish_reason);
         fields = JSON.parse(result.choices[0].message.content);
-        validateSimple(fields);
+        try { validateSimple(fields); } catch { throw new Error("wording_check_failed"); }
         // Database validation is authoritative and atomic; an invalid draft stays pending for one retry.
         const { error } = await admin.rpc("rpc_ielts_finish_speaking_ai", {
           p_draft_id: draftId,
@@ -235,10 +240,11 @@ Deno.serve(async (req: Request) => {
             p_provider_id: result.id,
             p_provider_model: result.model,
         });
-        if (error) throw new Error("invalid_draft");
+        if (error) throw new Error("db_rejected: " + error.message);
         providerId = result.id;
         break;
-      } catch {
+      } catch (e) {
+        why(`draft_attempt_${attempt}`, e instanceof Error ? e.message : e);
         fields = undefined;
         if (attempt === 1) throw new Error("invalid_draft");
       }
@@ -256,7 +262,8 @@ Deno.serve(async (req: Request) => {
       fields,
       teacher_confirmation_required: true,
     });
-  } catch {
+  } catch (e) {
+    why("request", e instanceof Error ? e.message : e);
     if (draftId)
       await admin.rpc("rpc_ielts_finish_speaking_ai", {
         p_draft_id: draftId,
