@@ -27,7 +27,7 @@ create table public.pvp_attack_attempts(request_id uuid primary key, attacker_id
   response jsonb not null, created_at timestamptz default now());
 alter table public.pvp_attack_attempts enable row level security;
 grant usage on schema public to anon, authenticated;
-grant select, insert on public.pvp_attack_attempts to authenticated;
+grant all on public.pvp_attack_attempts to anon, authenticated;
 create policy pvp_attack_attempts_owner_select on public.pvp_attack_attempts for select to authenticated
   using (attacker_id = auth.uid() or defender_id = auth.uid());
 create policy pvp_attack_attempts_owner_insert on public.pvp_attack_attempts for insert to authenticated
@@ -115,6 +115,13 @@ test('students cannot insert attack receipts directly (no spoofed raid alerts)',
       [crypto.randomUUID(), ATTACKER, DEFENDER]),
     /permission denied/i,
   );
+  for (const sql of [
+    'update public.pvp_attack_attempts set response = response',
+    'delete from public.pvp_attack_attempts',
+    'truncate public.pvp_attack_attempts',
+  ]) {
+    await assert.rejects(asStudent(ATTACKER, sql), /permission denied/i, sql);
+  }
   const visible = await asStudent(ATTACKER, 'select count(*)::int c from public.pvp_attack_attempts');
   assert.ok(visible.rows[0].c > 0, 'students can still read their own receipts');
 });

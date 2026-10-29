@@ -2,6 +2,8 @@
 --   1. Students can no longer insert rows into pvp_attack_attempts directly.
 --      The table drives the "you were raided" push trigger, so a client insert could send
 --      fake raid alerts naming a real student. Only rpc_hack_attempt (SECURITY DEFINER) writes it.
+--      Production also granted anon/authenticated UPDATE, DELETE, TRUNCATE, REFERENCES and TRIGGER
+--      (TRUNCATE is not covered by RLS). Students keep SELECT on their own rows; anon gets nothing.
 --   2. A shield-blocked attack no longer pays +30 XP (it paid the same as a win). It now pays 0 XP.
 --   3. shield_state reports 'removed' when a cracker breaks the shield (it reported 'none').
 -- Combat odds, coin rules, cooldown, AP cost and idempotency are unchanged.
@@ -9,7 +11,8 @@
 
 -- ───────────── 1. Lock the idempotency table to the server function ─────────────
 drop policy if exists pvp_attack_attempts_owner_insert on public.pvp_attack_attempts;
-revoke insert, update, delete on table public.pvp_attack_attempts from public, anon, authenticated;
+revoke all on table public.pvp_attack_attempts from public, anon, authenticated;
+grant select on table public.pvp_attack_attempts to authenticated;
 
 -- ───────────── 2 & 3. rpc_hack_attempt ─────────────
 CREATE OR REPLACE FUNCTION public.rpc_hack_attempt(p_defender_id uuid, p_request_id uuid DEFAULT NULL::uuid)

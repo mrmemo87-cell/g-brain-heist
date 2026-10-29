@@ -1,7 +1,8 @@
 -- Rollback for 20261029150000_pvp_attack_integrity_and_rewards.sql
 -- Restores the student insert policy on pvp_attack_attempts and the previous rpc_hack_attempt
 -- (blocked attacks pay +30 XP; shield_state reports 'none' after a cracker breaks a shield).
-grant insert on table public.pvp_attack_attempts to authenticated;
+grant select, insert, update, delete, truncate, references, trigger
+  on table public.pvp_attack_attempts to anon, authenticated;
 drop policy if exists pvp_attack_attempts_owner_insert on public.pvp_attack_attempts;
 create policy pvp_attack_attempts_owner_insert
   on public.pvp_attack_attempts for insert to authenticated
