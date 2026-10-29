@@ -17,6 +17,8 @@ import { materialUsageLabel } from "../../../services/ieltsTeacherPracticeServic
 import "../../styles/ielts-learning.css";
 import { IeltsEmailOptions, IeltsEmailStatusLine } from "../../components/ielts/IeltsEmailControls";
 import { notifyIeltsStudents, type IeltsEmailQueued } from "../../../services/ieltsEmailService";
+import TargetedTaskPicker from "../../components/ielts/teacher/TargetedTaskPicker";
+import { targetedCatalogue } from "../../../services/ieltsTargetedCatalogue";
 export default function IeltsLearningTeacher({
   schoolId,
   reviewOnly = false,
@@ -63,7 +65,9 @@ export default function IeltsLearningTeacher({
       .then((w) => {
         if (active) {
           setData(w);
-          setTask(w.tasks[0]?.code ?? "");
+          // Start on the first step of the first lesson, as the picker lists them.
+          const first = Object.values(targetedCatalogue(w.tasks)).flat()[0]?.tasks[0]?.task.code;
+          setTask(first ?? w.tasks[0]?.code ?? "");
           setMessage("");
         }
       })
@@ -190,32 +194,19 @@ export default function IeltsLearningTeacher({
                 <button disabled={busy || studentsLoading || studentOffset + 50 >= studentTotal} onClick={() => setStudentOffset(n => n+50)}>Next students</button></div>
               </>}
               <p className="il-muted">{released ? "Available to eligible students in your school. Select a student and review their matching evidence." : "This material is restricted to its named-student pilot."}</p>
-              <label className="il-answer bh-ielts-field-task">
-                Task
-                <select
-                  value={task}
-                  disabled={busy}
-                  onChange={(e) => {
-                    setTask(e.target.value);
-                    setRepeatConfirmed(false);
-                    setConfirmed(false);
-                    setNotes("");
-                    request.current = crypto.randomUUID();
-                  }}
-                >
-                  {data.tasks.map((t) => (
-                    <option key={t.code} value={t.code}>
-                      {t.skill ?? "listening"} · {ieltsMaterialTitle(t.display_code, t.title)}{t.originality_label?.startsWith("Variant of ") ? ` · ${t.originality_label}` : ""} ·{" "}
-                      {t.purpose === "guided_practice"
-                        ? "Guided practice"
-                        : "Fresh check"}{(() => {
-                          const u = usage.data?.find(u=>u.type==="targeted" && u.id===t.code);
-                          return u ? u.active_count ? " · Already active" : u.assigned_count ? " · Previously given" : " · No recorded assignment" : "";
-                        })()}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <TargetedTaskPicker
+                tasks={data.tasks}
+                value={task}
+                disabled={busy}
+                usageOf={(code) => usage.data?.find((u) => u.type === "targeted" && u.id === code)}
+                onChange={(code) => {
+                  setTask(code);
+                  setRepeatConfirmed(false);
+                  setConfirmed(false);
+                  setNotes("");
+                  request.current = crypto.randomUUID();
+                }}
+              />
               <div className="il-usage bh-ielts-reuse-history" aria-live="polite">
                 <strong>Previous assignments for this student</strong>
                 {usage.loading ? <p>Checking this material’s history…</p> : usage.error ? <><p>{usage.error}</p><button onClick={usage.retry}>Retry history check</button></> : prior ? <>

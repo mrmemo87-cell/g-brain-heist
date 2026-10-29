@@ -109,6 +109,12 @@ class Pack:
         s.add(ParagraphStyle('O', fontName='BHRegular', fontSize=10.5, leading=14, textColor=colors.HexColor(INK), spaceAfter=3, leftIndent=24))
         s.add(ParagraphStyle('S', fontName='BHRegular', fontSize=8.5, leading=12, textColor=colors.HexColor(MUTED), spaceAfter=5))
         s.add(ParagraphStyle('Arrow', fontName='BHBold', fontSize=13, leading=15, textColor=colors.HexColor(PRIMARY), leftIndent=184, spaceBefore=1, spaceAfter=1))
+        # Student pages: a shaded task band, bold instructions (as on an IELTS paper) and bold question numbers.
+        s.add(ParagraphStyle('Task', fontName='BHBold', fontSize=12.5, leading=16, textColor=colors.HexColor(PRIMARY)))
+        s.add(ParagraphStyle('I', fontName='BHBold', fontSize=10.5, leading=15, textColor=colors.HexColor(INK), spaceBefore=2, spaceAfter=8))
+        s.add(ParagraphStyle('Q', fontName='BHRegular', fontSize=10.5, leading=15, textColor=colors.HexColor(INK), spaceBefore=4, spaceAfter=4, leftIndent=22, firstLineIndent=-22))
+        s.add(ParagraphStyle('Opt', fontName='BHRegular', fontSize=10.5, leading=14, textColor=colors.HexColor(INK), spaceAfter=3, leftIndent=40, firstLineIndent=-16))
+        s.add(ParagraphStyle('AnsL', fontName='BHRegular', fontSize=9, leading=11, textColor=colors.HexColor(MUTED)))
         s.add(ParagraphStyle('Cell', fontName='BHRegular', fontSize=8.8, leading=11.5, textColor=colors.HexColor(INK)))
         self.st = s
 
@@ -124,6 +130,34 @@ class Pack:
         out.append(Spacer(1, 6))
         return out
 
+    def band(self, title):
+        """Shaded task heading for student pages, so each task is easy to find on the page."""
+        t = Table([[Paragraph(E(title), self.st['Task'])]], colWidths=[511], hAlign='LEFT')
+        t.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, -1), colors.HexColor(WASH)), ('LINEBEFORE', (0, 0), (0, -1), 4, colors.HexColor(PRIMARY)),
+                               ('LEFTPADDING', (0, 0), (-1, -1), 10), ('TOPPADDING', (0, 0), (-1, -1), 6), ('BOTTOMPADDING', (0, 0), (-1, -1), 7)]))
+        return t
+
+    def question(self, num, text):
+        return Paragraph(f'<font name="BHBold" color="{PRIMARY}">{E(str(num))}</font>&nbsp;&nbsp;' + E(text).replace('\n', '<br/>'), self.st['Q'])
+
+    def option(self, text):
+        letter, sep, rest = text.strip().partition(' ')
+        if len(letter) <= 2 and sep:
+            return Paragraph(f'<font name="BHBold" color="{PRIMARY}">{E(letter)}</font>&nbsp;&nbsp;{E(rest.strip())}', self.st['Opt'])
+        return self.p(text, 'O')
+
+    def answer_boxes(self, *fields):
+        """Labelled write-in boxes, e.g. ('Answer', 90), ('Evidence', 300)."""
+        row, widths, style = [], [], [('VALIGN', (0, 0), (-1, -1), 'MIDDLE'), ('LEFTPADDING', (0, 0), (-1, -1), 4), ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+                                       ('TOPPADDING', (0, 0), (-1, -1), 0), ('BOTTOMPADDING', (0, 0), (-1, -1), 0)]
+        for label, w in fields:
+            row += [Paragraph(E(label), self.st['AnsL']), '']
+            widths += [len(label) * 5 + 12, w]
+            style.append(('BOX', (len(row) - 1, 0), (len(row) - 1, 0), .7, colors.HexColor('#9FB1C7')))
+        t = Table([row], colWidths=widths, rowHeights=[22], hAlign='LEFT')
+        t.setStyle(TableStyle(style))
+        return Table([[t]], colWidths=[511], hAlign='LEFT', style=TableStyle([('LEFTPADDING', (0, 0), (-1, -1), 22), ('TOPPADDING', (0, 0), (-1, -1), 2), ('BOTTOMPADDING', (0, 0), (-1, -1), 6)]))
+
     def table(self, rows, widths, row_height=None):
         t = Table([[self.p(c, 'Cell') for c in r] for r in rows], colWidths=widths, repeatRows=1, hAlign='LEFT',
                   rowHeights=[None] + [row_height] * (len(rows) - 1) if row_height else None)
@@ -137,7 +171,8 @@ class Pack:
         for i, page in enumerate(pages):
             if i:
                 story.append(PageBreak())
-            story.append(self.p(title if i == 0 else f'{title} (continued)', 'T'))
+            if i == 0:
+                story.append(self.p(title, 'T'))  # later pages carry the lesson and document name in the page header
             story.extend(page)
 
         def header(c, doc):
@@ -297,7 +332,7 @@ class Pack:
 
     # ---------- content renderers ----------
     def student_items(self, b, number_from=None, show_hints=True):
-        out = [self.p(b['title'], 'H'), self.p(b['instructions'])]
+        out = [self.band(b['title']), self.p(b['instructions'], 'I')]
         st = b.get('stimulus') or {}
         if st.get('type') == 'passage' and not st.get('workbook_reference'):
             if normalize_title(st['title']) != normalize_title(b['title']):
@@ -308,8 +343,6 @@ class Pack:
             out.append(self.p(st['workbook_reference'], 'S'))
         elif st.get('type') == 'options_list':
             out.extend(self.table([[st['title']]] + [[x] for x in st['paragraphs']], [511]))
-        elif st.get('type') in ('transcript', 'teacher_script'):
-            out.append(self.p('Listen. The script is not printed for students.', 'S'))
         out += self.figure_flow(b, with_table=b['figure'].get('show_table', False) if b.get('figure') else False)
         if b.get('form_title'):
             out.append(self.p(b['form_title'], 'H'))
@@ -329,7 +362,7 @@ class Pack:
                 prompt = it['prompt'] if re.match(r'Questions?\s+\d', it['prompt']) else f"{num}.  {it['prompt']}"
                 out.append(self.p(prompt))
                 for option in it.get('options', []):
-                    out.append(self.p(option, 'O'))
+                    out.append(self.option(option))
             # As in the test, the whole diagram stays on one page.
             out.append(KeepTogether(self.assessment_flow_chart(b['flow_chart'])))
             return out
@@ -344,32 +377,32 @@ class Pack:
             return out + [KeepTogether(chart)]
         for i, it in enumerate(b['items']):
             num = it['id'].rsplit('-Q', 1)[-1]
-            body = [self.p(f"{num}.  {it['prompt']}")]
+            body = [self.question(num, it['prompt'])]
             opts = it.get('options', []) if it['type'] in ('mcq', 'choice') else []
             if opts and max(len(o) for o in opts) <= 22:
                 # Single-word options print on one line, as on an IELTS paper, so a set of questions fits on one page.
                 body.append(self.p(('\u00a0' * 8).join(o.replace('  ', '\u00a0\u00a0') for o in opts), 'O'))
             else:
                 for opt in opts:
-                    body.append(self.p(opt, 'O'))
+                    body.append(self.option(opt))
+            # Support hints stay in the teacher key (the teacher gives one only if a learner is stuck).
             if it['type'] in ('matching', 'paragraph_match') and st.get('type') == 'passage':
-                body.append(self.p('Answer: ______   Evidence: ________________________________________'))
+                body.append(self.answer_boxes(('Answer', 60), ('Evidence', 330)))
             elif it['type'] in ('matching', 'paragraph_match'):
-                body.append(self.p('Answer: ______'))
+                body.append(self.answer_boxes(('Answer', 60)))
             elif it['type'] == 'completion':
-                hint = f"   (support hint: {it['hint']})" if show_hints and it.get('hint') else ''
-                if '___' not in it['prompt'] or hint:
-                    body.append(self.p(('Answer: ____________________' if '___' not in it['prompt'] else '') + hint))
+                if '___' not in it['prompt']:
+                    body.append(self.answer_boxes(('Answer', 200)))
             elif it['type'] in ('tfng', 'ynng') and st.get('type') == 'passage':
-                body.append(self.p('Answer: ____________   Evidence / missing information: ________________________________'))
+                body.append(self.answer_boxes(('Answer', 90), ('Evidence', 280)))
             elif it['type'] in ('mcq', 'choice', 'tfng', 'ynng'):
-                body.append(self.p('Answer: ______'))
+                body.append(self.answer_boxes(('Answer', 90 if it['type'] in ('tfng', 'ynng') else 60)))
             elif it['type'] == 'short':
                 body += self.lines(1 if len(it['answer']) < 40 else 2)
             out.append(KeepTogether(body))
-        for key, label in [('extension', 'Extension'), ('high_band', 'High-band challenge')]:
+        for key, label in [('extension', 'Extra challenge (if you finish early)'), ('high_band', 'Stretch challenge (optional)')]:
             if b.get(key):
-                out += [self.p(f'{label}: ' + b[key], 'S')] + self.lines(2)
+                out.append(KeepTogether([self.p(f'{label}: ' + b[key], 'S')] + self.lines(2)))
         return out
 
     def student_block(self, b):
@@ -382,21 +415,25 @@ class Pack:
                     out += flat(f._content) if isinstance(f, KeepTogether) else [f]
                 return out
             return [KeepTogether(flat(flow))]  # a short question set never splits across pages (nested groups would force breaks)
-        # Keep the heading with its instructions; nested KeepTogether groups can force empty pages.
-        return [KeepTogether(flow[:2])] + flow[2:] if len(flow) > 2 else flow
+        # Keep the heading, its instructions and the first question (or first paragraph) on the same page;
+        # nested KeepTogether groups can force empty pages, so the first element is flattened.
+        if len(flow) <= 2:
+            return [KeepTogether(flow)]
+        first = flow[2]._content if isinstance(flow[2], KeepTogether) else [flow[2]]
+        return [KeepTogether(flow[:2] + list(first))] + flow[3:]
 
     def _student_block(self, b):
         k = b['kind']
         if k == 'items':
             return self.student_items(b)
         if k == 'contrast':
-            out = [self.p(b['title'], 'H'), self.p(b['instructions'])]
+            out = [self.band(b['title']), self.p(b['instructions'], 'I')]
             for i, ex in enumerate(b['examples']):
-                out += [self.p(f"{letters(len(b['examples']))[i]}.  {ex['text']}", 'P'), self.p('My notes: ______________________________________________')]
+                out += [self.question(letters(len(b['examples']))[i], ex['text']), self.p('My notes: ______________________________________________')]
             return out
         if k == 'writing':
             n = {'task2': 25 if b.get('in_class') else 30, 'paragraph': 12}.get(b.get('task'), 16)
-            out = [self.p(b['title'], 'H'), self.p(b['prompt'])] + self.figure_flow(b) + [self.p('Conditions: ' + b['conditions'], 'S')]
+            out = [self.band(b['title']), self.p(b['prompt'], 'I')] + self.figure_flow(b) + [self.p('Conditions: ' + b['conditions'], 'S')]
             if b.get('support'):
                 out.append(self.p('Support (tick if used) [ ]  ' + b['support'], 'S'))
             out += self.lines(n)
@@ -405,7 +442,7 @@ class Pack:
             out.append(KeepTogether([self.p('Criterion checklist for your review', 'H')] + [self.p('[ ]  ' + c, 'S') for c in b['checklist']]))
             return out
         if k == 'speaking':
-            out = [self.p(b['title'], 'H'), self.p(b['instructions'])] + [self.p(('•  ' if not re.match(r'^[A-Z]-?[A-Z]?\d', q) else '') + q, 'P') for q in b['prompts']]
+            out = [self.band(b['title']), self.p(b['instructions'], 'I')] + [self.p(('•  ' if not re.match(r'^[A-Z]-?[A-Z]?\d', q) else '') + q, 'P') for q in b['prompts']]
             if b.get('follow_ups'):
                 # Real Part 3 is interactive: the examiner asks short follow-ups that push for development.
                 out.append(self.p('Examiner follow-up questions (the examiner chooses one or two after each answer):', 'S'))
@@ -437,7 +474,8 @@ class Pack:
                 out += [self.p(x, 'P') for x in st['paragraphs']]
             for it in b['items']:
                 acc = f"  (also accept: {', '.join(it['accept'])})" if it.get('accept') else ''
-                out.append(KeepTogether([self.p(f"{it['id']}:  {it['answer']}{acc}", 'B'), self.p('Evidence: ' + it['evidence'], 'S'), self.p('Why: ' + it['reason'] + f"   [draft focus: {it['focus']}]", 'S')]))
+                hint = [self.p('Hint to give only if a learner is stuck: ' + it['hint'], 'S')] if it.get('hint') else []
+                out.append(KeepTogether([self.p(f"{it['id']}:  {it['answer']}{acc}", 'B'), self.p('Evidence: ' + it['evidence'], 'S'), self.p('Why: ' + it['reason'] + f"   [draft focus: {it['focus']}]", 'S')] + hint))
             for key, label in [('marking', 'Marking'), ('support', 'Support'), ('extension', 'Extension'), ('high_band', 'High band')]:
                 if b.get(key):
                     out.append(self.p(f'{label}: ' + b[key], 'S'))
@@ -481,8 +519,9 @@ class Pack:
     def block_slides(self, b, part):
         out = self._block_slides(b, part)
         if b.get('figure') and part in ('questions', 'prompt') and out:
+            # The figure (graph, plan, diagram) stays beside every question slide: learners need it to answer.
             self.figure_path(b)
-            out[0] = {**out[0], 'image': f"assets/{b['id']}.png", 'alt': b['figure']['alt']}
+            out = [{**sl, 'image': f"assets/{b['id']}.png", 'alt': b['figure']['alt']} for sl in out]
         return out
 
     def copy_audio(self):
@@ -540,33 +579,41 @@ class Pack:
             if st.get('type') == 'passage' and not st.get('workbook_reference'):
                 passage = {'title': st['title'], 'labelled': bool(st.get('labelled')), 'paragraphs': st['paragraphs']}
             audio = self.recording_for(b) if st.get('type') == 'transcript' else None
-            groups, cur, size = [], [], 0
-            short_matching = len(pre) > 1 and all(it['type'] in ('matching', 'paragraph_match') and len(it['prompt']) < 40 for it in b['items'])
-            # Short note-completion gaps (a listening form) stay on one slide, so learners see every question while the recording plays.
-            compact = len(b['items']) <= 6 and all(it['type'] == 'completion' and len(it['prompt']) < 45 for it in b['items'])
-            for it in ([] if short_matching else b['items']):
-                cost = len(it['prompt']) + (0 if shared else sum(len(o) for o in it.get('options', []) if it['type'] in ('mcq', 'choice'))) + 40
-                if cur and not compact and (size + cost > 360 or len(cur) == 4):
-                    groups.append(cur); cur, size = [], 0
-                cur.append(it); size += cost
-            if cur:
-                groups.append(cur)
-            if short_matching:
-                groups = [b['items']]
             panel = next((m for m in pre_meta if m['t'] == 'options'), None)
-            for gi, g in enumerate(groups):
-                # The option list stays beside every group of items (HTML and PowerPoint), so it is not repeated in the body.
-                body = [b['instructions']] if gi == 0 else []
-                meta = [{'t': 'instr'}] if gi == 0 else []
-                if pre[0] != b['instructions']:
-                    body, meta = ([pre[0]], [{'t': 'instr'}]) if gi == 0 else ([], [])
+            instr = pre[0]
+
+            def needs_panel(it):
+                # A shared option list (or a list of options for the whole set) applies to every question; a list of
+                # headings, speakers or features applies only to the matching questions beside it.
+                return bool(panel) and (bool(shared) or st.get('type') == 'options_list' or it['type'] in ('matching', 'paragraph_match'))
+
+            def side_for(with_panel):
+                # Width (px of the 1280 presentation) left for the questions beside a passage, figure or option list.
+                return 600 if passage else 530 if b.get('figure') else 670 if with_panel else 0
+
+            def item_text(it):
+                num = it['id'].rsplit('-Q', 1)[-1]
+                opts = it['options'] if it['type'] in ('mcq', 'choice') and it.get('options') and not shared else []
+                return f"{num}.  {it['prompt']}" + ''.join('\n      ' + o for o in opts)
+            # The whole question set goes on one slide (two columns when there is room), so learners see every
+            # question at once; it is split into parts only when the text would otherwise be too small. Questions
+            # that use an option list are kept apart from those that do not, so the list shows only where it is used.
+            segments = []
+            for it in b['items']:
+                if segments and segments[-1][0] == needs_panel(it):
+                    segments[-1][1].append(it)
+                else:
+                    segments.append((needs_panel(it), [it]))
+            groups = []
+            for si, (with_panel, items) in enumerate(segments):
+                for g in self.fit_groups(items, item_text, instr if si == 0 else '', side_for(with_panel), bool(audio), title=b['title']):
+                    groups.append((with_panel, g, self.fit_cols))
+            for gi, (with_panel, g, cols) in enumerate(groups):
+                body, meta = ([instr], [{'t': 'instr'}]) if gi == 0 else ([], [])
                 for it in g:
                     num = it['id'].rsplit('-Q', 1)[-1]
-                    line = f"{num}.  {it['prompt']}"
                     opts = it['options'] if it['type'] in ('mcq', 'choice') and it.get('options') and not shared else []
-                    if opts:
-                        line += '\n' + '\n'.join('      ' + o for o in opts)
-                    body.append(line)
+                    body.append(item_text(it))
                     meta.append({'t': 'item', 'num': num, 'prompt': it['prompt'], 'options': opts,
                                  'gap': it['type'] == 'completion', 'kind': it['type']})
                 notes = notes_base + ' Learners commit answers before the reveal.'
@@ -575,60 +622,70 @@ class Pack:
                 if st.get('type') == 'transcript':
                     notes += ' Play the approved recording from this slide only after learners have read the questions; never read the transcript as a substitute.'
                 slide = {'title': b['title'] + (f' ({gi + 1}/{len(groups)})' if len(groups) > 1 else ''), 'body': body, 'meta': meta,
-                         'notes': notes, 'workbook': wb, 'build': audio is None}
+                         'notes': notes, 'workbook': wb, 'cols': cols, 'fitted': True}
                 if passage:
                     slide['passage'] = passage
-                if panel:
+                if with_panel:
                     slide['panel'] = {'title': panel['title'], 'options': panel['options']}
                 if audio:
                     slide['audio'] = {**audio, 'part': gi + 1, 'parts': len(groups)}
                 out.append(slide)
         elif k == 'items' and part == 'answers':
             quotable = (b.get('stimulus') or {}).get('type') in ('passage', 'transcript', 'teacher_script')
-            groups, i = [], 0
-            weigh = lambda it: len(it['prompt']) + len(it['evidence']) + len(it['reason']) + sum(len(o) for o in it.get('options', []) if it['type'] in ('mcq', 'choice')) // 3
-            while i < len(b['items']):
-                take = 2 if i + 1 < len(b['items']) and weigh(b['items'][i]) + weigh(b['items'][i + 1]) <= 430 else 1
-                groups.append(b['items'][i:i + take]); i += take
-            for g in groups:
+
+            def shown(it):
+                return ' / '.join([it['answer']] + it.get('accept', []))  # accepted variants are part of the key learners check against
+
+            def ev(it):
+                return f"“{it['evidence']}”" if quotable else it['evidence']
+
+            def answer_text(it):
+                return f"{it['id'].rsplit('-Q', 1)[-1]}   {shown(it)}\n{ev(it)}"
+            # The whole key appears on one slide with a single click: number, answer and the proof. The explanation
+            # of each answer goes in the speaker notes, so the screen stays easy to check against.
+            groups = self.fit_groups(b['items'], answer_text, '', False, False, title=answers_title(b['title']))
+            for gi, g in enumerate(groups):
                 body, meta = [], []
                 for it in g:
                     num = it['id'].rsplit('-Q', 1)[-1]
-                    ev = f"“{it['evidence']}”" if quotable else it['evidence']
-                    shown = ' / '.join([it['answer']] + it.get('accept', []))  # accepted variants are part of the key learners check against
-                    body.append(f"{num}   {shown}\n{ev}\n{it['reason']}")
-                    meta.append({'t': 'answer', 'num': num, 'prompt': it['prompt'], 'answer': shown, 'evidence': ev, 'reason': it['reason']})
-                ids = ', '.join(it['id'] for it in g)
-                out.append({'title': answers_title(b['title']), 'body': body, 'meta': meta, 'reveal': True, 'build': True, 'workbook': wb,
-                            'notes': f'Reveal only after learners explain their choices. Click to show each answer. {ids}. Corrections remain guided practice.'})
+                    body.append(answer_text(it))
+                    meta.append({'t': 'answer', 'num': num, 'prompt': it['prompt'], 'answer': shown(it), 'evidence': ev(it), 'reason': it['reason']})
+                why = ' '.join(f"{it['id'].rsplit('-Q', 1)[-1]}: {it['reason']}" for it in g)
+                out.append({'title': answers_title(b['title']) + (f' ({gi + 1}/{len(groups)})' if len(groups) > 1 else ''), 'body': body, 'meta': meta,
+                            'reveal': True, 'reveal_all': True, 'cols': self.fit_cols, 'fitted': True, 'workbook': wb,
+                            'notes': f'Reveal only after learners explain their choices. One click shows every answer. Why each answer is right — {why} Corrections remain guided practice.'})
         elif k == 'contrast' and part == 'questions':
             labels = letters(len(b['examples']))
-            for i in range(0, len(b['examples']), 2):
-                body = [b['instructions']] if i == 0 else []
-                meta = [{'t': 'instr'}] if i == 0 else []
-                for j, ex in enumerate(b['examples']):
-                    if i <= j < i + 2:
-                        body.append(f"{labels[j]}.  {ex['text']}"); meta.append({'t': 'example', 'num': labels[j], 'text': ex['text']})
-                out.append({'title': b['title'], 'body': body, 'meta': meta, 'build': True, 'workbook': wb, 'notes': notes_base + ' Learners decide before the reveal.'})
+            exs = list(enumerate(b['examples']))
+            groups = self.fit_groups(exs, lambda e: f"{labels[e[0]]}.  {e[1]['text']}", b['instructions'], False, False, title=b['title'])
+            for gi, g in enumerate(groups):
+                body = [b['instructions']] if gi == 0 else []
+                meta = [{'t': 'instr'}] if gi == 0 else []
+                for j, ex in g:
+                    body.append(f"{labels[j]}.  {ex['text']}"); meta.append({'t': 'example', 'num': labels[j], 'text': ex['text']})
+                out.append({'title': b['title'] + (f' ({gi + 1}/{len(groups)})' if len(groups) > 1 else ''), 'body': body, 'meta': meta, 'cols': self.fit_cols, 'fitted': True,
+                            'workbook': wb, 'notes': notes_base + ' Learners decide before the reveal.'})
         elif k == 'contrast' and part == 'answers':
             labels = letters(len(b['examples']))
-            for i in range(0, len(b['examples']), 2):
+            exs = list(enumerate(b['examples']))
+            groups = self.fit_groups(exs, lambda e: f"{labels[e[0]]}.  {e[1]['label']}\n{e[1]['comment']}", '', False, False, title=b['title'] + ' — discussion')
+            for gi, g in enumerate(groups):
                 body, meta = [], []
-                for j, ex in enumerate(b['examples']):
-                    if i <= j < i + 2:
-                        body.append(f"{labels[j]}.  {ex['label']}\n{ex['comment']}")
-                        meta.append({'t': 'discussion', 'num': labels[j], 'label': ex['label'], 'text': ex['comment']})
-                out.append({'title': f"{b['title']} — discussion", 'body': body, 'meta': meta, 'reveal': True, 'build': True, 'workbook': wb,
-                            'notes': 'Ask learners to explain their choice before revealing each comment.'})
+                for j, ex in g:
+                    body.append(f"{labels[j]}.  {ex['label']}\n{ex['comment']}")
+                    meta.append({'t': 'discussion', 'num': labels[j], 'label': ex['label'], 'text': ex['comment']})
+                out.append({'title': f"{b['title']} — discussion" + (f' ({gi + 1}/{len(groups)})' if len(groups) > 1 else ''), 'body': body, 'meta': meta,
+                            'reveal': True, 'reveal_all': True, 'cols': self.fit_cols, 'fitted': True, 'workbook': wb,
+                            'notes': 'Ask learners to explain their choice, then click once to show every comment.'})
         elif k == 'writing' and part == 'prompt':
             out.append({'title': b['title'], 'body': [b['prompt'], b['conditions']], 'meta': [{'t': 'task'}, {'t': 'conditions'}],
                         'workbook': wb, 'timer': self.writing_minutes(b), 'notes': notes_base + ' The model is not shown until after learners write.'})
         elif k == 'writing' and part == 'checklist':
-            out.append({'title': f"{b['title']}: check", 'body': b['checklist'], 'meta': [{'t': 'goal'} for _ in b['checklist']], 'build': True, 'workbook': wb,
+            out.append({'title': f"{b['title']}: check", 'body': b['checklist'], 'meta': [{'t': 'goal'} for _ in b['checklist']], 'workbook': wb,
                         'notes': notes_base + ' Partners check against these points; the writer makes one revision and keeps the first draft.'})
         elif k == 'speaking' and part == 'routine':
             body = [b['instructions']] + ([b['support']] if b.get('support') else []) + (['Examiner follow-ups: ' + ' / '.join(b['follow_ups'])] if b.get('follow_ups') else [])
-            out.append({'title': f"{b['title']}: in pairs", 'body': body, 'meta': [{'t': 'card'} for _ in body], 'build': True, 'workbook': wb,
+            out.append({'title': f"{b['title']}: in pairs", 'body': body, 'meta': [{'t': 'card'} for _ in body], 'workbook': wb,
                         'notes': b['observation']})
         elif k == 'writing' and part == 'model':
             paras = b['model'].split('\n\n')
@@ -639,7 +696,7 @@ class Pack:
                 out.append({'title': 'Illustrative model' + (f' ({ci + 1}/{len(chunks)})' if len(chunks) > 1 else ''), 'body': body, 'meta': meta, 'reveal': True,
                             'workbook': wb, 'notes': b['model_label'] + ' Point out the argument chain. Do not ask learners to memorise it.'})
         elif k == 'speaking' and part == 'prompt':
-            out.append({'title': b['title'], 'body': b['prompts'], 'meta': [{'t': 'card'} for _ in b['prompts']], 'build': True, 'workbook': wb,
+            out.append({'title': b['title'], 'body': b['prompts'], 'meta': [{'t': 'card'} for _ in b['prompts']], 'workbook': wb,
                         'notes': b['instructions'] + ' ' + b['observation']})
         elif k == 'speaking' and part == 'model':
             for m_ in self.speaking_models(b):
@@ -663,13 +720,13 @@ class Pack:
         d = self.d
         slides = [{'title': d['title'], 'kind': 'cover', 'body': [(f"Extension lesson {self.n} · {d['placement']}" if d.get('extension') else f"Vocabulary lesson {self.n} · {d['placement']}" if d.get('vocabulary') else f"Lesson {self.n} · Week {d['week']}"), '\n'.join(o['text'] for o in d['objectives'][:2])],
                    'meta': [{'t': 'kicker'}, {'t': 'lead'}], 'dark': True, 'notes': f"{d['status']}. Confirm the reviewed version before teaching. " + d['audio']['statement']},
-                  {'title': 'Today you will', 'body': [o['text'] for o in d['objectives']], 'meta': [{'t': 'goal'} for _ in d['objectives']], 'build': True,
+                  {'title': 'Today you will', 'body': [o['text'] for o in d['objectives']], 'meta': [{'t': 'goal'} for _ in d['objectives']],
                    'notes': 'Objectives are teaching goals, not measured results.'}]
         if d.get('word_bank'):
             half = (len(d['word_bank']) + 1) // 2
             for part, chunk in enumerate((d['word_bank'][:half], d['word_bank'][half:]), 1):
                 slides.append({'title': f'Word bank ({part} of 2)', 'body': [f"{w['item']}: {w['meaning']}" for w in chunk], 'meta': [{'t': 'goal'} for _ in chunk],
-                               'build': True, 'workbook': 'Word bank', 'notes': 'Drill pronunciation and the full phrase. Learners tick items as they use them.'})
+                               'workbook': 'Word bank', 'notes': 'Drill pronunciation and the full phrase. Learners tick items as they use them.'})
         self.stage_slides = []
         for si, s in enumerate(d['stages']):
             wbs = []
@@ -692,7 +749,6 @@ class Pack:
             for i in idx:
                 if slides[i]['stage'] != last_stage:
                     slides[i] = {k: v for k, v in slides[i].items() if k != 'audio'}
-                    slides[i]['build'] = True
         exit_slide = {'title': 'Exit ticket', 'kind': 'exit', 'body': d['exit_ticket'], 'meta': [{'t': 'goal'} for _ in d['exit_ticket']], 'dark': True,
                       'workbook': 'Exit ticket', 'notes': 'Collect original work. Feedback stays scoped to today.'}
         exit_stage = next((i for i, s_ in enumerate(d['stages']) if re.match(r'exit\b', s_['title'], re.I)), None)
@@ -713,7 +769,7 @@ class Pack:
         if d.get('word_bank'):
             # Vocabulary lessons open with the target items so learners can annotate them during the lesson.
             rows = [['Word or phrase', 'Meaning / use', 'Example']] + [[f"{w['item']}\n({w['skill']})", w['meaning'], w['example']] for w in d['word_bank']]
-            pages.append([self.p('Word bank', 'H'), self.p('Tick each item when you have used it correctly in today\'s tasks. Add your own example in the margin.'),
+            pages.append([self.band('Word bank'), self.p('Tick each item when you have used it correctly in today\'s tasks. Add your own example in the margin.'),
                           *self.table(rows, [150, 150, 211]), self.p('Learn items as phrases, not single words: the collocation is what scores.', 'S')])
         if d.get('workbook_extra'):
             pages.append([])
@@ -747,11 +803,11 @@ class Pack:
             for i in range(half):
                 right = i + half + 1
                 grid.append([str(i + 1), '', str(right) if right <= n_ans else '', ''])
-            pages.append([self.p('Answer grid', 'H'), self.p('Transfer your answers here. One answer per box; for "choose TWO", write both letters. Spelling counts.'),
+            pages.append([self.band('Answer grid'), self.p('Transfer your answers here. One answer per box; for "choose TWO", write both letters. Spelling counts.'),
                           *self.table(grid, [40, 215, 40, 216], row_height=30)])
         if d.get('feedback_form'):
             rows = [['Round', 'Criterion', 'Quote: what the candidate said', 'Next step']] + [[str(r), '', '', ''] for r in (1, 1, 2, 2)]
-            pages.append([self.p('Peer feedback form', 'H'),
+            pages.append([self.band('Peer feedback form'),
                           self.p('The examiner writes two comments per round. Each comment names one criterion, quotes the candidate exactly, and gives one next step.'),
                           *self.table(rows, [44, 100, 210, 157], row_height=60),
                           self.p('Criteria: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, Pronunciation. Peer comments are practice notes, not band scores.', 'S')])
@@ -767,15 +823,15 @@ class Pack:
                           *self.table(rows, [62, 150, 150, 149], row_height=110),
                           self.p('If the evidence for a skill is missing, write "not yet observed" and plan a check instead of guessing.', 'S'),
                           self.p('Teacher comment:'), *self.lines(2)])
-        pages.append([self.p('My error log and reflection', 'H'),
+        pages.append([self.band('My error log and reflection'),
                       *self.table([['Question', 'My first answer', 'Trap or difficulty', 'What I will do next time']] + [['', '', '', ''] for _ in range(6)], [62, 100, 160, 189], row_height=26),
-                      self.p('Exit ticket', 'H'), *[x for q in d['exit_ticket'] for x in [self.p(q)] + self.lines(1)],
-                      self.p('Keep your first answers visible. Corrections and repeated tasks are practice. This workbook does not save to IELTS Journey.', 'S')])
+                      self.band('Exit ticket'), *[x for q in d['exit_ticket'] for x in [self.p(q)] + self.lines(1)],
+                      self.p('Keep your first answers visible: corrections go next to them, not over them.', 'S')])
         self.pdf('Students/Student_Workbook.pdf', f'Lesson {self.n} workbook', pages, 'student', 'Student workbook')
 
-        hw = [self.p('Name: __________________________   Due: ________________'), self.p('Homework', 'H')] + [self.p(f'{i + 1}.  {x}', 'P') for i, x in enumerate(d['homework'])]
+        hw = [self.p('Name: __________________________   Due: ________________'), self.band('Homework')] + [self.p(f'{i + 1}.  {x}', 'P') for i, x in enumerate(d['homework'])]
         essay = [b for b in d['blocks'] if is_homework_essay(b)]
-        hw_pages = [hw + [self.p('A printed instruction does not create an online assignment. Keep your original work.', 'S')]]
+        hw_pages = [hw + [self.p('Keep your original work.', 'S')]]
         for b in essay:
             if b.get('task') != 'task2':
                 hw_pages.append([self.p(b['title'], 'H'), self.p(b['prompt']), self.p('Conditions: ' + b['conditions'], 'S'), *self.lines(16),
@@ -804,7 +860,7 @@ class Pack:
                   self.p('Before class', 'H'),
                   self.p('1. Open 01-START-HERE.html and keep the extracted folder together.'),
                   self.p(f"2. Print Student_Workbook.pdf ({self.page_label('Students/Student_Workbook.pdf')}) and Homework.pdf ({self.page_label('Students/Homework.pdf')}) for each learner. Keep all Teacher-private files private."),
-                  self.p(f"3. Project Lesson_{self.n:02d}_Slides.html (the classroom presentation: recordings, timers and click-by-click reveals are built in; press F for full screen, N for notes). PowerPoint versions: Lesson_{self.n:02d}_Presentation.pptx (animated, recordings embedded) and Lesson_{self.n:02d}_Presentation_motion_free.pptx. Answers appear only on separate reveal slides."),
+                  self.p(f"3. Project Lesson_{self.n:02d}_Slides.html (the classroom presentation: recordings and timers are built in; each question set shows in full and one click reveals its answers; press F for full screen, N for notes). PowerPoint versions: Lesson_{self.n:02d}_Presentation.pptx (animated, recordings embedded) and Lesson_{self.n:02d}_Presentation_motion_free.pptx. Answers appear only on separate reveal slides."),
                   self.p('4. Arrange unfinished screeners outside this lesson. Never shorten a screener or replace it with lesson tasks.')]]
         if d['audio']['required']:
             guide[0] += [self.p('Recordings', 'H')] + [self.p(f"•  {r['id']}: {r['status']}. {r['conditions']}", 'P') for r in d['audio']['recordings']]
@@ -883,13 +939,89 @@ class Pack:
         import sys
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         from lesson_pptx import build
-        for animated, name, motion in ((True, f"Lesson_{self.n:02d}_Presentation.pptx", 'click-triggered 250 ms fade builds and fade transitions; nothing automatic'),
+        for animated, name, motion in ((True, f"Lesson_{self.n:02d}_Presentation.pptx", 'one click-triggered 250 ms fade per answer key and fade transitions; nothing automatic'),
                                        (False, f"Lesson_{self.n:02d}_Presentation_motion_free.pptx", 'none (motion-free; click to advance)')):
             dest = self.out / 'Teacher-private' / name
             total = build(self, self.body_size, animated, dest)
             self.files.append({'file': str(dest.relative_to(self.out)), 'audience': 'teacher', 'slides': total, 'motion': motion})
 
     MIN_SIZE = 20
+    GRID_MIN = 18  # smallest body size for a whole question set or answer key on one slide
+
+    @staticmethod
+    def _lines(text, px, width_px):
+        per_line = max(8, int(width_px / (px * 0.48)))
+        return sum(max(1, -(-len(line) // per_line)) for line in text.split('\n'))
+
+    def _card_heights(self, texts, size, col_w):
+        px = size * 4 / 3
+        heights = []
+        for t in texts:
+            stem, *opts = t.split('\n')
+            h = self._lines(stem, px, col_w - 92) * px * 1.36 + 42
+            h += sum(self._lines(o.strip(), px, col_w - 130) * px * 1.3 + 6 for o in opts) + (8 if opts else 0)
+            heights.append(h)
+        return heights
+
+    @staticmethod
+    def _split(heights, cols):
+        """(index of the first card in the second column, height of the taller column). Cards never split."""
+        if cols == 1 or len(heights) < 2:
+            return len(heights), sum(heights)
+        return min(((k, max(sum(heights[:k]), sum(heights[k:]))) for k in range(1, len(heights))), key=lambda x: x[1])
+
+    def grid_size(self, texts, instr, side, audio, cols=None, title=''):
+        """Largest body size (pt) at which these cards fit one slide in `cols` columns; 0 if none fits.
+        Measured against the 1280x720 presentation: cards flow down the first column, then the second."""
+        cols = cols or (1 if side else 2)
+        width = side if side else 1168
+        col_w = (width - 28 * (cols - 1)) / cols
+        title_lines = self._lines(title, 40, 1168) if title else 1
+        for size in (26, 24, 22, 20, 19, 18):
+            px = size * 4 / 3
+            room = 586 - (title_lines * 46 + 20) - ((80 if side else 104) if audio else 0)  # the player is compact beside a side panel
+            if instr:
+                room -= self._lines(instr, (size - 3) * 4 / 3, width) * (size - 3) * 4 / 3 * 1.4 + 14
+            heights = self._card_heights(texts, size, col_w)
+            need = self._split(heights, cols)[1]
+            # At the smallest size a small estimated overflow is accepted: the presentation shrinks the text slightly
+            # to fit if it must, and that is better for learners than a third slide.
+            if need <= room * (1.06 if size == self.GRID_MIN else 1):
+                return size
+        return 0
+
+    def fit_groups(self, objs, text_fn, instr, side, audio, cols=None, title=''):
+        """Split objs into the fewest in-order slides whose text stays at GRID_MIN pt or larger, as evenly as
+        possible. Without a side panel, one or two columns is chosen, whichever needs fewer slides (then larger text).
+        Sets self.fit_cols to the column count used."""
+        texts = [text_fn(o) for o in objs]
+        # Beside a passage, figure or option list, two columns only for short questions (single words or phrases).
+        options = [cols] if cols else [2, 1] if not side or max(len(t) for t in texts) < 45 else [1]
+
+        def fits(g, first, c, k):
+            t = title + (f' ({k}/{k})' if k > 1 else '')
+            return self.grid_size([texts[j] for j in g], instr if first else '', side, audio, c, t) >= self.GRID_MIN
+
+        best = None
+        for c in options:
+            # Greedy packing gives the fewest slides (the first slide also carries the instructions) ...
+            greedy, cur = [], []
+            for j in range(len(texts)):
+                if cur and not fits(cur + [j], not greedy, c, 2):
+                    greedy.append(cur); cur = []
+                cur.append(j)
+            greedy.append(cur)
+            k = len(greedy)
+            # ... then an even split with the same number of slides is used if it also fits.
+            bounds = [round(i * len(objs) / k) for i in range(k + 1)]
+            even = [list(range(bounds[i], bounds[i + 1])) for i in range(k)]
+            groups = even if all(fits(g, gi == 0, c, k) for gi, g in enumerate(even)) else greedy
+            t = title + (f' ({k}/{k})' if k > 1 else '')
+            smallest = min(self.grid_size([texts[j] for j in g], instr if gi == 0 else '', side, audio, c, t) for gi, g in enumerate(groups))
+            if best is None or (k, -smallest) < (len(best[0]), -best[2]):
+                best = (groups, c, smallest)
+        self.fit_cols = best[1]
+        return [[objs[j] for j in g] for g in best[0]]
 
     def legible(self, slides):
         """Split dense slides so body text stays at least MIN_SIZE pt; never truncate content."""
@@ -898,6 +1030,15 @@ class Pack:
             pending = [sl]
             while pending:
                 cur = pending.pop(0)
+                if cur.get('fitted'):
+                    texts = [t for t, m in zip(cur['body'], cur['meta']) if m.get('t') not in ('instr', 'options')]
+                    instr = '\n'.join(t for t, m in zip(cur['body'], cur['meta']) if m.get('t') == 'instr')
+                    side = 600 if cur.get('passage') else 530 if cur.get('image') else 670 if cur.get('panel') else 0
+                    cur['size'] = max(self.grid_size(texts, instr, side, bool(cur.get('audio')), cur.get('cols'), cur['title']), self.GRID_MIN)
+                    if cur.get('cols') == 2:
+                        # The same column break is used by the HTML presentation and both PowerPoint decks.
+                        cur['split'] = self._split(self._card_heights(texts, cur['size'], ((side or 1168) - 28) / 2), 2)[0]
+                    out.append(cur); continue
                 if self.body_size('\n\n'.join(cur['body']), 4.9 if (cur.get('image') or cur.get('panel') or cur.get('passage')) else 12.1) >= self.MIN_SIZE - (2 if (cur.get('image') or cur.get('panel') or cur.get('passage')) else 0):
                     out.append(cur); continue
                 body = cur['body']
@@ -920,6 +1061,18 @@ class Pack:
                 base = re.sub(r' \(continued\)$', '', cur['title'])
                 second = dict(cur)
                 pending[:0] = [{**cur, 'body': parts[0], 'meta': metas[0]}, {**second, 'title': base + ' (continued)', 'body': parts[1], 'meta': metas[1]}]
+        # Slides of one question set (or one answer key) share one text size, so the set reads consistently.
+        base = lambda sl: re.sub(r' \(\d+/\d+\)$', '', sl['title'])
+        i = 0
+        while i < len(out):
+            j = i
+            while j + 1 < len(out) and out[i].get('fitted') and out[j + 1].get('fitted') and base(out[j + 1]) == base(out[i]):
+                j += 1
+            if j > i:
+                low = min(sl['size'] for sl in out[i:j + 1])
+                for sl in out[i:j + 1]:
+                    sl['size'] = low
+            i = j + 1
         stages = {}
         for i, sl in enumerate(out, start=1):
             if 'stage' in sl:
