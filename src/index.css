@@ -3861,3 +3861,144 @@ body.sb-no-fx .sb-beam {
   .pvp-coin-burst { display: none; }
   .pvp-odds-marker { transform: translateY(-50%); }
 }
+
+/* ─────────────────────────── Activity feed: social polish ─────────────────────────── */
+.feed-item {
+  --feed-tone: 148, 163, 184;
+  animation: feed-enter 420ms cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+  animation-delay: var(--feed-delay, 0ms);
+}
+.feed-item--gold { --feed-tone: 251, 191, 36; }
+.feed-item--flame { --feed-tone: 251, 146, 60; }
+.feed-item--teal { --feed-tone: 45, 212, 191; }
+.feed-item--blue { --feed-tone: 96, 165, 250; }
+.feed-item--rose { --feed-tone: 244, 114, 182; }
+.feed-item--slate { --feed-tone: 148, 163, 184; }
+.feed-item::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 0.2rem;
+  background: rgb(var(--feed-tone));
+  opacity: 0.85;
+}
+.feed-item.is-celebration {
+  border-color: rgba(var(--feed-tone), 0.55);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(var(--feed-tone), 0.16), transparent 55%),
+    rgba(15, 23, 42, 0.72);
+  box-shadow: 0 0 0 1px rgba(var(--feed-tone), 0.12), 0 10px 26px rgba(var(--feed-tone), 0.12);
+}
+.feed-item__shimmer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.10) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: feed-shimmer 1.6s ease-out 0.5s 1 both;
+}
+.feed-item__sparkles { position: absolute; top: 0.4rem; right: 0.6rem; pointer-events: none; display: flex; gap: 0.15rem; }
+.feed-item__sparkles i { font-style: normal; font-size: 0.8rem; opacity: 0; animation: feed-sparkle 1.8s ease-out both; }
+.feed-item__sparkles i:nth-child(2) { animation-delay: 0.25s; font-size: 0.65rem; }
+.feed-item__sparkles i:nth-child(3) { animation-delay: 0.5s; }
+
+.feed-avatar {
+  position: relative;
+  flex: none;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(140deg, rgba(var(--feed-tone, 148, 163, 184), 0.35), rgba(15, 23, 42, 0.9));
+  box-shadow: 0 0 0 2px rgba(var(--feed-tone, 148, 163, 184), 0.45);
+}
+.feed-avatar--gold { --feed-tone: 251, 191, 36; }
+.feed-avatar--flame { --feed-tone: 251, 146, 60; }
+.feed-avatar--teal { --feed-tone: 45, 212, 191; }
+.feed-avatar--blue { --feed-tone: 96, 165, 250; }
+.feed-avatar--rose { --feed-tone: 244, 114, 182; }
+.feed-avatar--slate { --feed-tone: 148, 163, 184; }
+.feed-avatar img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+.feed-avatar__initials { font-weight: 800; font-size: 0.85rem; color: white; letter-spacing: 0.02em; }
+.feed-avatar.is-celebration { box-shadow: 0 0 0 2px rgba(var(--feed-tone), 0.9), 0 0 14px rgba(var(--feed-tone), 0.45); }
+.feed-avatar__badge {
+  position: absolute;
+  right: -0.35rem;
+  bottom: -0.3rem;
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  line-height: 1;
+  background: rgb(15, 23, 42);
+  box-shadow: 0 0 0 2px rgba(var(--feed-tone, 148, 163, 184), 0.6);
+}
+.feed-item.is-celebration .feed-avatar__badge { animation: feed-badge-pop 520ms cubic-bezier(0.3, 1.6, 0.5, 1) both; animation-delay: calc(var(--feed-delay, 0ms) + 180ms); }
+
+.feed-name { font-weight: 700; color: rgb(241, 245, 249); }
+.feed-name--gold { color: #fcd34d; }
+.feed-name--flame { color: #fdba74; }
+.feed-name--teal { color: #5eead4; }
+.feed-name--blue { color: #93c5fd; }
+.feed-name--rose { color: #f9a8d4; }
+.feed-highlight { font-weight: 800; }
+.feed-highlight--gold { color: #fde68a; }
+.feed-highlight--flame { color: #fed7aa; }
+.feed-coins { font-weight: 800; color: #fde047; }
+
+.feed-reaction { position: relative; min-width: 2.4rem; }
+.feed-reaction:not(.has-count):not(.is-active) { opacity: 0.8; }
+.feed-reaction__emoji { display: inline-block; transition: transform 160ms ease; }
+.feed-reaction:hover .feed-reaction__emoji { transform: scale(1.15) rotate(-6deg); }
+.feed-reaction__count { font-variant-numeric: tabular-nums; font-weight: 700; }
+.feed-reaction.is-popping .feed-reaction__emoji { animation: feed-react-pop 320ms cubic-bezier(0.3, 1.8, 0.5, 1); }
+.feed-reaction__float {
+  position: absolute;
+  left: 50%;
+  bottom: 70%;
+  font-size: 1.1rem;
+  pointer-events: none;
+  animation: feed-float 900ms ease-out forwards;
+}
+.feed-reactors { margin-top: 0.4rem; font-size: 0.72rem; color: rgb(148, 163, 184); animation: feed-fade 300ms ease both; }
+
+@keyframes feed-enter { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes feed-shimmer { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
+@keyframes feed-sparkle {
+  0% { opacity: 0; transform: translateY(6px) scale(0.4) rotate(-20deg); }
+  35% { opacity: 1; transform: translateY(-2px) scale(1.1) rotate(10deg); }
+  100% { opacity: 0; transform: translateY(-14px) scale(0.8) rotate(0deg); }
+}
+@keyframes feed-badge-pop { 0% { transform: scale(0.2) rotate(-30deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes feed-react-pop { 0% { transform: scale(1); } 45% { transform: scale(1.45) rotate(-8deg); } 100% { transform: scale(1); } }
+@keyframes feed-float {
+  0% { opacity: 1; transform: translate(-50%, 0) scale(0.8); }
+  100% { opacity: 0; transform: translate(-50%, -2.2rem) scale(1.35); }
+}
+@keyframes feed-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes feed-flame { 0%, 100% { transform: scale(1) rotate(0deg); } 30% { transform: scale(1.12) rotate(-6deg); } 60% { transform: scale(0.96) rotate(4deg); } }
+
+/* Ambient effects only when the student has rich visuals on (performance mode off). */
+body.performance-mode-disabled .feed-avatar__badge.is-flame { animation: feed-flame 1.8s ease-in-out infinite; }
+body:not(.performance-mode-disabled) .feed-item__shimmer,
+body:not(.performance-mode-disabled) .feed-item__sparkles { display: none; }
+
+/* Phones: let the page scroll instead of a box inside a box. */
+@media (max-width: 640px) {
+  .student-activity-feed__list { max-height: none; overflow: visible; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feed-item,
+  .feed-item__shimmer,
+  .feed-item__sparkles i,
+  .feed-avatar__badge,
+  .feed-reaction__emoji,
+  .feed-reactors { animation: none !important; transition: none !important; }
+  .feed-item__sparkles,
+  .feed-reaction__float { display: none; }
+}
