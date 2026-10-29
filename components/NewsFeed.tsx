@@ -14,6 +14,8 @@ const getEventIconAndColor = (kind: NewsEvent['kind']) => {
         case 'clan_create': return { icon: <div style={{...iconStyle, color: 'var(--ion-blue)'}}><QuestClearedIcon /></div>, color: 'var(--ion-blue)' };
         case 'purchase': return { icon: <div style={{...iconStyle, color: 'var(--success-teal)'}}><PurchaseIcon /></div>, color: 'var(--success-teal)' };
         case 'achievement_earned': return { icon: <div style={{...iconStyle, color: '#fbbf24'}}><TrophyIcon className="w-6 h-6" /></div>, color: '#fbbf24' };
+        case 'streak_milestone': return { icon: <div style={{...iconStyle, color: '#fb923c', fontSize: 22, lineHeight: 1}}>🔥</div>, color: '#fb923c' };
+        case 'clan_joined': return { icon: <div style={{...iconStyle, color: 'var(--ion-blue)', fontSize: 22, lineHeight: 1}}>🤝</div>, color: 'var(--ion-blue)' };
         default: return { icon: null, color: 'var(--mist-400)'};
     }
 };
@@ -94,6 +96,12 @@ const formatEventText = (event: NewsEvent) => {
         case 'achievement_earned':
             return <><span style={{...actorStyle, color: '#fbbf24'}}>{actorName}</span> unlocked <span className="font-bold">{event.data.achievement_icon || '🏆'} {event.data.achievement_name}</span>! 🎉</>;
         
+        case 'streak_milestone':
+            return <><span style={{...actorStyle, color: '#fb923c'}}>{actorName}</span> is on a <span className="font-bold">{(event.data as any).streak ?? event.data.details}-day streak</span>! Keep it going 🔥</>;
+
+        case 'clan_joined':
+            return <><span style={{...actorStyle, color: 'var(--ion-blue)'}}>{actorName}</span> joined the clan <span className="font-bold">{event.data.details || 'a clan'}</span>. Welcome! 🤝</>;
+
         default:
             return <><span style={actorStyle}>{actorName}</span> is up to something... 🤔</>;
     }
