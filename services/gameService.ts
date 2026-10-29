@@ -1662,46 +1662,9 @@ export const whoami = async (): Promise<Profile> => {
           }
         }
       } catch (apError) {
-        console.warn('AP regeneration function failed, using client-side fallback:', apError);
-        // Fallback to client-side calculation
-        const now = new Date();
-        const lastApUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
-        const msElapsed = now.getTime() - lastApUpdate.getTime();
-        const minutesElapsed = Math.floor(msElapsed / (1000 * 60));
-        const apToRegen = Math.floor(minutesElapsed / 10);
-        
-        console.log(`Fallback AP Regen: Last update: ${lastApUpdate.toISOString()}, Minutes elapsed: ${minutesElapsed}, AP to regen: ${apToRegen}`);
-        
-        if (apToRegen > 0 && profile.ap_now < profile.ap_max) {
-          const newAP = Math.min(profile.ap_now + apToRegen, profile.ap_max);
-          
-          // Calculate exact timestamp: set timer to when the LAST AP was earned (not now)
-          // Example: 35 minutes elapsed = 3 AP earned. Last AP was earned 5 minutes ago.
-          const remainderMinutes = minutesElapsed % 10;
-          const newLastUpdate = new Date(now.getTime() - (remainderMinutes * 60000));
-          
-          const updateData: any = { 
-            ap_now: newAP,
-            last_ap_update: newLastUpdate.toISOString()
-          };
-          
-          console.log(`Updating AP in DB: ${profile.ap_now} → ${newAP}, Timer: ${newLastUpdate.toISOString()}`);
-          
-          const { error: updateError } = await supabase
-            .from('users')
-            .update(updateData)
-            .eq('id', user.id);
-            
-          if (updateError) {
-            console.error('Failed to update AP in database:', updateError);
-          } else {
-            console.log('✅ AP regenerated successfully');
-            profile.ap_now = newAP;
-            profile.last_ap_update = newLastUpdate.toISOString();
-          }
-        } else {
-          console.log(`No AP regeneration needed: current=${profile.ap_now}, max=${profile.ap_max}, toRegen=${apToRegen}`);
-        }
+        // AP is server-authoritative (regenerate_user_ap). If the refresh fails we keep the
+        // stored value and try again on the next load; the client never writes AP itself.
+        console.warn('AP regeneration function failed; keeping stored AP until next refresh:', apError);
       }
     } else {
       // Teachers and admins don't need AP regeneration - set to max
@@ -2977,79 +2940,27 @@ export const shop_list = async (): Promise<ShopItem[]> => {
 };
 
 export const shop_buy = async (item_id: string, quantity: number): Promise<PurchaseReceipt> => {
-    const user = await getCurrentUser();
     const item = MOCK_SHOP_ITEMS.find(i => i.id === item_id);
 
     if (!item) {
         return Promise.reject({ message: 'Item not found.' });
     }
 
-    const { data: balances, error: balanceError } = await supabase
-        .from('users')
-        .select('coins, gemstones')
-        .eq('id', user.id)
-        .single();
-
-    if (balanceError || !balances) {
-        return Promise.reject({ message: 'Failed to load your balances.' });
+    if (!Number.isInteger(quantity) || quantity < 1) {
+        return Promise.reject({ message: 'Invalid quantity.' });
     }
 
-    const currentCoins = balances.coins ?? 0;
-    const currentGemstones = balances.gemstones ?? 0;
-
-    const totalCoinCost = item.price * quantity;
-    const gemstonePrice = item.gemstone_price || 0;
-    const totalGemCost = gemstonePrice * quantity;
-
-    if (totalCoinCost > currentCoins) {
-        return Promise.reject({ message: 'Not enough coins.' });
+    // Prices, balances, daily limits and the item grant are all decided on the server.
+    const { data, error } = await supabase.rpc('rpc_shop_buy', { p_item_id: item.id, p_quantity: quantity });
+    if (error || !data) {
+        return Promise.reject({ message: error?.message || 'Purchase failed.' });
     }
-
-    if (totalGemCost > currentGemstones) {
-        return Promise.reject({ message: 'Not enough gemstones.' });
-    }
-
-    // Check today's purchase count from database
-    const today = new Date().toISOString().split('T')[0];
-    const { data: todayPurchases } = await supabase
-        .from('shop_purchases')
-        .select('quantity')
-        .eq('user_id', user.id)
-        .eq('item_id', item_id)
-        .eq('purchase_date', today); // Use purchase_date column (DATE type)
-    
-    const currentPurchaseCount = todayPurchases?.reduce((sum, p) => sum + p.quantity, 0) || 0;
-    
-    if ((currentPurchaseCount + quantity) > item.daily_limit) {
-        return Promise.reject({ message: 'Daily purchase limit exceeded.' });
-    }
-
-    const newCoinBalance = currentCoins - totalCoinCost;
-    const newGemstoneBalance = currentGemstones - totalGemCost;
-
-    // Update profile balances using the authoritative values from the database
-    await updateProfile(user.id, { coins: newCoinBalance, gemstones: newGemstoneBalance });
-
-    // Add purchase record
-    await supabase.from('shop_purchases').insert({
-        user_id: user.id,
-        item_id: item.id,
-        quantity: quantity,
-        total_cost: totalCoinCost,
-    });
-
-    // Log activity for achievement tracking
-    await supabase.from('activities').insert({
-        kind: 'shop_purchase',
-        actor_id: user.id,
-        actor_username: user.email?.split('@')[0] || 'Unknown',
-        data: { 
-            item_id: item.id, 
-            item_name: item.name, 
-            quantity: quantity,
-            amount: totalCoinCost 
-        },
-    });
+    const result = data as {
+        coins_spent: number;
+        gemstones_spent: number;
+        new_balance: number;
+        new_gemstone_balance: number;
+    };
 
     // Check for shop-related achievements
     try {
@@ -3061,35 +2972,16 @@ export const shop_buy = async (item_id: string, quantity: number): Promise<Purch
         console.warn('Failed to check shop achievements:', achError);
     }
 
-    // Add items to inventory
-    const inventoryItems = [];
-    for (let i = 0; i < quantity; i++) {
-        const newItem = {
-            user_id: user.id,
-            item_id: item.id,
-            name: item.name,
-            kind: item.kind,
-            state: 'unused' as const,
-            description: item.description,
-            effect_summary: item.effect_summary,
-            attack_bonus: item.kind === 'encryption_key' ? 15 : item.kind === 'exploit_kit' ? 25 : undefined,
-            defense_bonus: item.kind === 'shield' ? 20 : item.kind === 'firewall' ? 30 : undefined,
-        };
-        inventoryItems.push(newItem);
-    }
-    
-    await supabase.from('inventory').insert(inventoryItems);
-
     const receipt: PurchaseReceipt = {
         receipt_id: `rec_${Date.now()}`,
-        coins_spent: totalCoinCost,
-        gemstones_spent: totalGemCost,
-        new_balance: newCoinBalance,
-        new_gemstone_balance: newGemstoneBalance,
+        coins_spent: result.coins_spent,
+        gemstones_spent: result.gemstones_spent,
+        new_balance: result.new_balance,
+        new_gemstone_balance: result.new_gemstone_balance,
         item: item,
         quantity: quantity
     };
-    
+
     return mockApiCall(receipt);
 };
 
@@ -3726,84 +3618,28 @@ export const clan_details = async (): Promise<Clan | null> => {
 
 export const clan_create = async (name: string, notice: string): Promise<Clan> => {
     const user = await getCurrentUser();
-    const creationFee = 1000;
-    
-    // Parallelize initial checks for speed
-    const [profileResult, membershipResult, usernameResult] = await Promise.all([
-        supabase.from('users').select('coins').eq('id', user.id).single(),
-        supabase.from('clan_members').select('clan_id').eq('user_id', user.id).maybeSingle(),
-        supabase.from('users').select('username').eq('id', user.id).single(),
-    ]);
-    
-    const profile = profileResult.data;
-    const existingMembership = membershipResult.data;
-    const username = usernameResult.data?.username || 'Unknown';
-    
-    if (!profile || profile.coins < creationFee) {
-        throw new Error('Not enough coins to create a clan.');
-    }
-    
-    if (existingMembership) {
-        throw new Error('You are already in a clan.');
-    }
-    
-    // Deduct coins and create clan in parallel-ish flow
-    await updateProfile(user.id, { coins: profile.coins - creationFee });
-    
-    // Create clan
-    const { data: newClan, error: clanError } = await supabase
-        .from('clans')
-        .insert({
-            name: name,
-            notice: notice || 'Welcome to the clan!',
-            vault_coins: 0,
-            leader_id: user.id,
-            member_count: 1,
-        })
-        .select()
-        .single();
-    
-    if (clanError) {
-        console.error('Clan creation error:', clanError);
-        throw new Error(clanError.message || 'Failed to create clan.');
-    }
-    
-    if (!newClan) {
-        throw new Error('Failed to create clan - no data returned.');
-    }
-    
-    // Add creator as leader (don't wait for activity log)
-    const { error: memberError } = await supabase.from('clan_members').insert({
-        clan_id: newClan.id,
-        user_id: user.id,
-        role: 'leader',
+
+    // The server checks membership and the name, and charges the 1,000-coin fee.
+    const { data, error } = await supabase.rpc('rpc_create_clan', {
+        p_clan_name: name.trim(),
+        p_notice: notice || null,
     });
-    
-    if (memberError) {
-        console.error('Clan member creation error:', memberError);
-        throw new Error('Failed to add you as clan leader.');
+
+    if (error) {
+        console.error('Clan creation error:', error);
+        throw new Error(error.message || 'Failed to create clan.');
     }
 
-    // Log activity in background (don't wait)
-    void (async () => {
-        try {
-            await supabase.from('activities').insert({
-                kind: 'clan_create',
-                actor_id: user.id,
-                actor_username: username,
-                data: { details: newClan.name },
-            });
-        } catch (e) {
-            console.warn('Failed to log clan_create activity:', e);
-        }
-    })();
-    
-    // Return immediate clan object without heavy clan_details() call
-    // The UI will refresh the full details on next mount
+    const result = Array.isArray(data) ? data[0] : data;
+    if (!result || !result.success || !result.clan_id) {
+        throw new Error(result?.error_message || 'Failed to create clan.');
+    }
+
+    const username: string = result.leader_username || 'Unknown';
     const immediateClan: Clan = {
-        id: newClan.id,
-        name: newClan.name,
-        notice: newClan.notice || 'Welcome to the clan!',
+        id: result.clan_id,
+        name: result.clan_name,
+        notice: (notice || '').trim() || 'Welcome to the clan!',
         crest_url: undefined,
         vault_metric: 0,
         vault_coins: 0,
@@ -3811,7 +3647,7 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
         extra_member_slots_purchased: 0,
         members: [{
             user_id: user.id,
-            username: username,
+            username,
             role: 'leader',
             contribution: 0,
             avatar_url: '',
@@ -3828,7 +3664,7 @@ export const clan_create = async (name: string, notice: string): Promise<Clan> =
         clan_total_score: 0,
         leader_id: user.id,
     };
-    
+
     return immediateClan;
 };
 
@@ -3876,78 +3712,61 @@ export const clan_chat_recent = async (clanId?: string): Promise<ClanChatMessage
     return mockApiCall(chatMessages);
 };
 
-const toxicityFilter = (message: string): string => {
-    const badWords = ['noob', 'hax', 'cheater'];
-    let cleanMessage = message;
-    badWords.forEach(word => {
-        const regex = new RegExp(`\\b${word}\\b`, 'gi');
-        cleanMessage = cleanMessage.replace(regex, '▮▮▮▮');
-    });
-    return cleanMessage;
-};
+export const clan_chat_post = async (message: string, _clanId?: string): Promise<ClanChatMessage> => {
+    // The server finds your clan, sets your real name, filters the text and rate-limits posts.
+    const { data, error } = await supabase.rpc('rpc_clan_chat_post', { p_message: message });
 
-export const clan_chat_post = async (message: string, clanId?: string): Promise<ClanChatMessage> => {
-    const user = await getCurrentUser();
-    const cleanMessage = toxicityFilter(message);
-    
-    // Get user's profile for username
-    const { data: profile } = await supabase
-        .from('users')
-        .select('username')
-        .eq('id', user.id)
-        .single();
-    
-    if (!profile) {
-        throw new Error('User profile not found.');
-    }
-    
-    let targetClanId = clanId;
-
-    if (!targetClanId) {
-        // Fallback to the player's active clan when clan id isn't provided
-        const { data: membership } = await supabase
-            .from('clan_members')
-            .select('clan_id')
-            .eq('user_id', user.id)
-            .maybeSingle();
-
-        targetClanId = membership?.clan_id;
-    }
-
-    if (!targetClanId) {
-        throw new Error('You are not in a clan.');
-    }
-    
-    // Insert chat message with username directly
-    const { data: newMessage, error } = await supabase
-        .from('clan_chat')
-        .insert({
-            clan_id: targetClanId,
-            user_id: user.id,
-            username: profile.username,
-            message: cleanMessage,
-        })
-        .select('*')
-        .single();
-    
     if (error) {
         console.error('Chat post error:', error);
         throw new Error(error.message || 'Failed to post message.');
     }
-    
-    if (!newMessage) {
+
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) {
         throw new Error('Failed to post message - no data returned.');
     }
-    
-    const chatMessage: ClanChatMessage = {
-        id: newMessage.id,
-        user: newMessage.username,
-        message: newMessage.message,
-        created_at: formatChatTimestamp(new Date()),
+
+    return mockApiCall({
+        id: row.id,
+        user: row.username,
+        message: row.message,
+        created_at: formatChatTimestamp(new Date(row.created_at ?? Date.now())),
         is_self: true,
-    };
-    
-    return mockApiCall(chatMessage);
+    });
+};
+
+export const clan_chat_report = async (messageId: string, reason = ''): Promise<void> => {
+    const { error } = await supabase.rpc('rpc_clan_chat_report', { p_message_id: messageId, p_reason: reason });
+    if (error) throw new Error(error.message || 'Failed to report message.');
+};
+
+export const clan_chat_hide = async (messageId: string): Promise<void> => {
+    const { error } = await supabase.rpc('rpc_clan_chat_hide', { p_message_id: messageId });
+    if (error) throw new Error(error.message || 'Failed to hide message.');
+};
+
+export interface StaffClanChatRow {
+    message_id: string;
+    clan_id: string;
+    clan_name: string;
+    user_id: string | null;
+    username: string;
+    message: string;
+    created_at: string;
+    hidden_at: string | null;
+    open_reports: number;
+    report_reasons: string | null;
+}
+
+export const staff_clan_chat_feed = async (onlyReported = false, limit = 150): Promise<StaffClanChatRow[]> => {
+    const { data, error } = await supabase.rpc('rpc_staff_clan_chat_feed', { p_only_reported: onlyReported, p_limit: limit });
+    if (error) throw new Error(error.message || 'Failed to load clan chat.');
+    return (data ?? []) as StaffClanChatRow[];
+};
+
+export const staff_dismiss_clan_chat_reports = async (messageId: string): Promise<void> => {
+    const { error } = await supabase.rpc('rpc_staff_dismiss_clan_chat_reports', { p_message_id: messageId });
+    if (error) throw new Error(error.message || 'Failed to dismiss reports.');
 };
 
 export const clan_get_available_buffs = async (): Promise<ClanBuffTemplate[]> => {
@@ -4248,32 +4067,13 @@ export const clan_kick_member = async (user_id: string): Promise<Clan> => {
 };
 
 export const clan_update_notice = async (notice: string): Promise<Clan> => {
-    const user = await getCurrentUser();
     const sanitized = (notice ?? '').trim();
-
-    const { data: membership } = await supabase
-        .from('clan_members')
-        .select('clan_id, role')
-        .eq('user_id', user.id)
-        .single();
-
-    if (!membership) {
-        throw new Error('You must be in a clan to edit its bio.');
-    }
-
-    if (!['leader', 'officer', 'moderator'].includes(membership.role)) {
-        throw new Error('Only clan leadership can edit the clan bio.');
-    }
-
     if (sanitized.length > 280) {
         throw new Error('Clan bio must be 280 characters or fewer.');
     }
 
-    const { error } = await supabase
-        .from('clans')
-        .update({ notice: sanitized })
-        .eq('id', membership.clan_id);
-
+    // Leader or officer only; the server checks the role and filters the text.
+    const { error } = await supabase.rpc('rpc_update_clan_notice', { p_notice: sanitized });
     if (error) {
         console.error('Failed to update clan bio:', error);
         throw new Error(error.message || 'Failed to update clan bio.');
@@ -6131,56 +5931,6 @@ export const mcq_answer_submit = async (question: Question, choice: string): Pro
 // ============================================================
 // CLAN SYSTEM - Competition Based on Total Score
 // ============================================================
-
-export const createClan = async (
-    clanName: string,
-    description?: string,
-    avatarUrl?: string
-): Promise<{ clanId: string; success: boolean; error?: string }> => {
-    try {
-        const { data, error } = await supabase.rpc('rpc_create_clan', {
-            p_clan_name: clanName,
-            p_description: description || null,
-            p_avatar_url: avatarUrl || null,
-        });
-
-        if (error || !data || data.length === 0) {
-            throw new Error(error?.message || 'Failed to create clan');
-        }
-
-        const result = data[0];
-        if (!result.success) {
-            return { clanId: '', success: false, error: result.error_message };
-        }
-
-        return { clanId: result.clan_id, success: true };
-    } catch (err) {
-        console.error('Create clan error:', err);
-        return { clanId: '', success: false, error: (err as Error).message };
-    }
-};
-
-export const joinClan = async (clanId: string): Promise<{ success: boolean; error?: string; memberCount?: number }> => {
-    try {
-        const { data, error } = await supabase.rpc('rpc_join_clan', {
-            p_clan_id: clanId,
-        });
-
-        if (error || !data || data.length === 0) {
-            throw new Error(error?.message || 'Failed to join clan');
-        }
-
-        const result = data[0];
-        return {
-            success: result.success,
-            error: result.error_message || undefined,
-            memberCount: result.member_count,
-        };
-    } catch (err) {
-        console.error('Join clan error:', err);
-        return { success: false, error: (err as Error).message };
-    }
-};
 
 export const leaveClan = async (): Promise<{ success: boolean; error?: string }> => {
     try {
