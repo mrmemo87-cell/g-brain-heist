@@ -187,8 +187,14 @@ export interface TaskClaimReward {
 
 export interface NewsEvent {
   id: string;
-  kind: 'level_up' | 'quest_cleared' | 'weekly_claim' | 'purchase' | 'pvp_win' | 'pvp_blocked' | 'pvp_loss' | 'clan_create' | 'achievement_earned';
+  kind: 'level_up' | 'quest_cleared' | 'weekly_claim' | 'purchase' | 'pvp_win' | 'pvp_blocked' | 'pvp_loss' | 'clan_create' | 'achievement_earned' | 'streak_milestone' | 'clan_joined';
   actor: string;
+  actor_id?: string;
+  actor_avatar?: string | null;
+  /** Epoch ms of the event, used to celebrate fresh moments. */
+  created_at_ms?: number;
+  /** Who reacted (you first). */
+  reactors?: Array<{ name: string; emoji: string; is_self: boolean }>;
   target?: string;
   data: {
     details?: string;
@@ -204,6 +210,8 @@ export interface NewsEvent {
     achievement_icon?: string;
     reward_xp?: number;
     reward_coins?: number;
+    level?: number;
+    streak?: number;
   };
   created_at: string;
   reactions: { [key: string]: number };

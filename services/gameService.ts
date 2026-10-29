@@ -2393,49 +2393,54 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
     const studentActivities = (activities || [])
         .filter((activity: any) => !isBotActivityEvent(activity))
         .slice(0, 20);
-    const missingUserIds = new Set<string>();
-
-    studentActivities.forEach((activity: any) => {
-        if (!activity.actor_username && activity.actor_id) {
-            missingUserIds.add(activity.actor_id);
-        }
-        if (!activity.target_username && activity.target_id) {
-            missingUserIds.add(activity.target_id);
-        }
-    });
-
-    let userLookup: Record<string, string> = {};
-    if (missingUserIds.size > 0) {
-        const { data: userRows, error: userError } = await supabase
-            .from('users')
-            .select('id, username, email')
-            .in('id', Array.from(missingUserIds));
-
-        if (userError) {
-            console.warn('Failed to resolve activity usernames:', userError);
-        } else {
-            userLookup = (userRows || []).reduce<Record<string, string>>((acc, row: any) => {
-                acc[row.id] = row.username || row.email || 'Unknown';
-                return acc;
-            }, {});
-        }
-    }
-
     const activityIds = studentActivities.map((a: any) => a.id);
 
     const { data: reactionsData } = activityIds.length
         ? await supabase
             .from('activity_reactions')
-            .select('activity_id, emoji, user_id')
+            .select('activity_id, emoji, user_id, created_at')
             .in('activity_id', activityIds)
         : { data: [] };
 
-    const reactionsByActivity: Record<string, { reactions: Record<string, number>; myReaction: string | null }> = {};
+    // One lookup for names and avatars of everyone shown: actors, targets and reactors.
+    const peopleIds = new Set<string>();
+    studentActivities.forEach((activity: any) => {
+        if (activity.actor_id) peopleIds.add(activity.actor_id);
+        if (!activity.target_username && activity.target_id) peopleIds.add(activity.target_id);
+    });
+    (reactionsData || []).forEach((reaction: any) => {
+        if (reaction.user_id) peopleIds.add(reaction.user_id);
+    });
+
+    let userLookup: Record<string, string> = {};
+    let avatarLookup: Record<string, string | null> = {};
+    if (peopleIds.size > 0) {
+        const { data: userRows, error: userError } = await supabase
+            .from('users')
+            .select('id, username, email, avatar_url')
+            .in('id', Array.from(peopleIds));
+
+        if (userError) {
+            console.warn('Failed to resolve activity usernames:', userError);
+        } else {
+            (userRows || []).forEach((row: any) => {
+                userLookup[row.id] = row.username || row.email || 'Unknown';
+                avatarLookup[row.id] = row.avatar_url || null;
+            });
+        }
+    }
+
+    const reactionsByActivity: Record<string, {
+        reactions: Record<string, number>;
+        myReaction: string | null;
+        reactors: Array<{ name: string; emoji: string; is_self: boolean }>;
+    }> = {};
 
     studentActivities.forEach((activity: any) => {
         reactionsByActivity[activity.id] = {
             reactions: { '🔥': 0, '😮': 0, '😂': 0, '❤️': 0 },
             myReaction: null,
+            reactors: [],
         };
     });
 
@@ -2449,7 +2454,16 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
             if (reaction.user_id === user.id) {
                 reactionsByActivity[reaction.activity_id].myReaction = reaction.emoji;
             }
+            reactionsByActivity[reaction.activity_id].reactors.push({
+                name: userLookup[reaction.user_id] || 'A classmate',
+                emoji: reaction.emoji,
+                is_self: reaction.user_id === user.id,
+            });
         }
+    });
+    // You first, then most recent reactors.
+    Object.values(reactionsByActivity).forEach((entry) => {
+        entry.reactors.sort((a, b) => Number(b.is_self) - Number(a.is_self));
     });
 
     const dbEvents: TimedNewsEvent[] = studentActivities.map((activity: any) => {
@@ -2461,11 +2475,15 @@ export const news_feed = async (): Promise<NewsEvent[]> => {
             id: activity.id,
             kind: activity.kind,
             actor: activity.actor_username || userLookup[activity.actor_id] || 'Unknown',
+            actor_id: activity.actor_id ?? undefined,
+            actor_avatar: activity.actor_id ? avatarLookup[activity.actor_id] ?? null : null,
             target: activity.target_username || userLookup[activity.target_id] || undefined,
             data: activity.data || {},
             created_at: timeAgo,
+            created_at_ms: createdAt.getTime(),
             reactions: activityReactions.reactions,
             my_reaction: activityReactions.myReaction,
+            reactors: activityReactions.reactors,
             timestamp: createdAt.getTime(),
         };
     });
