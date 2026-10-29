@@ -1308,6 +1308,50 @@ export const messages = {
   "On iPhone, add Brains Heist to your Home Screen first. Then you can get alerts for raids, reactions and new assignments.": {
     "ar": "على iPhone، أضف Brains Heist إلى الشاشة الرئيسية أولاً. بعدها يمكنك تلقي تنبيهات الهجمات والتفاعلات والواجبات الجديدة.",
     "ru": "На iPhone сначала добавь Brains Heist на экран «Домой». Тогда будут приходить уведомления о налётах, реакциях и новых заданиях."
+  },
+  "Installed! 🎉": {
+    "ar": "تم التثبيت! 🎉",
+    "ru": "Установлено! 🎉"
+  },
+  "Open Brains Heist from your Home Screen. One more tap there turns on raid alerts.": {
+    "ar": "افتح Brains Heist من الشاشة الرئيسية. ضغطة واحدة هناك تشغّل تنبيهات الهجمات.",
+    "ru": "Открой Brains Heist с экрана «Домой». Там одно нажатие включит уведомления о налётах."
+  },
+  "Install Brains Heist": {
+    "ar": "ثبّت Brains Heist",
+    "ru": "Установить Brains Heist"
+  },
+  "Installing…": {
+    "ar": "جارٍ التثبيت…",
+    "ru": "Устанавливаем…"
+  },
+  "Tap the ⋯ button at the bottom right of Safari": {
+    "ar": "اضغط زر ⋯ أسفل يمين Safari",
+    "ru": "Нажми кнопку ⋯ внизу справа в Safari"
+  },
+  "Tap \"Share\"": {
+    "ar": "اضغط \"مشاركة\"",
+    "ru": "Нажми «Поделиться»"
+  },
+  "Choose \"Add to Home Screen\" (tap \"View More\" if you don't see it)": {
+    "ar": "اختر \"إضافة إلى الشاشة الرئيسية\" (اضغط \"عرض المزيد\" إن لم تجده)",
+    "ru": "Выбери «На экран “Домой”» (если не видно, нажми «Ещё»)"
+  },
+  "Keep \"Open as Web App\" on, then tap \"Add\"": {
+    "ar": "أبقِ \"فتح كتطبيق ويب\" مفعّلاً، ثم اضغط \"إضافة\"",
+    "ru": "Оставь «Открыть как веб-приложение» включённым и нажми «Добавить»"
+  },
+  "(top right)": {
+    "ar": "(أعلى اليمين)",
+    "ru": "(вверху справа)"
+  },
+  "(bottom of the screen)": {
+    "ar": "(أسفل الشاشة)",
+    "ru": "(внизу экрана)"
+  },
+  "You're in! One last tap: turn on raid alerts": {
+    "ar": "أنت جاهز! ضغطة أخيرة: شغّل تنبيهات الهجمات",
+    "ru": "Готово! Последнее нажатие: включи уведомления о налётах"
   }
 } as const;
 

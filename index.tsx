@@ -33,6 +33,11 @@ import { checkIeltsPracticeAccess, type IeltsPracticeSkill } from './services/ie
 import SchoolProgrammeRouteGuard from './components/SchoolProgrammeRouteGuard';
 import IosInstallGuide from './components/IosInstallGuide';
 import PushMomentPrompt from './components/PushMomentPrompt';
+import { registerAppServiceWorker, startNativeInstallCapture } from './src/lib/nativeInstall';
+
+// Catch Android's one-tap install offer before React renders; the browser fires it only once, early.
+startNativeInstallCapture();
+registerAppServiceWorker();
 
 // ── Lazy-loaded pages & modals (with automatic retry on stale-chunk errors) ──
 const FinishSetupModal = lazyRetry(() => import('./components/FinishSetupModal'), 'FinishSetupModal');

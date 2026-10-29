@@ -1,9 +1,25 @@
-/* Brains Heist push-only service worker.
- * Deliberately has NO fetch handler: nothing is cached, so every web deploy is live immediately.
- * It only shows push notifications and opens the app when one is tapped. */
+/* Brains Heist service worker.
+ * Caches NOTHING, so every web deploy is live immediately.
+ * - Page loads go straight to the network; only when the phone is offline does it show a small "you're offline" page.
+ *   (Chrome on Android also needs this fetch handler before it offers the one-tap "Install" button.)
+ * - Shows push notifications and opens the app when one is tapped. */
 
 self.addEventListener('install', () => { self.skipWaiting(); });
 self.addEventListener('activate', (event) => { event.waitUntil(self.clients.claim()); });
+
+const OFFLINE_PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brains Heist</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#050813;color:#f8fafc;font:16px system-ui,sans-serif;text-align:center;padding:24px}
+button{margin-top:18px;min-height:48px;padding:0 22px;border:0;border-radius:14px;background:#2cf6c8;color:#021018;font-weight:800;font-size:16px}</style></head>
+<body><div><div style="font-size:48px">📡</div><h1 style="font-size:20px">You're offline</h1><p style="color:#cbd5e1">Brains Heist needs the internet. Check your Wi-Fi or data and try again.</p>
+<button onclick="location.reload()">Try again</button></div></body></html>`;
+
+self.addEventListener('fetch', (event) => {
+  // Only full page loads. Everything else (API calls, images, scripts) is left to the browser untouched.
+  if (event.request.mode !== 'navigate') return;
+  event.respondWith(
+    fetch(event.request).catch(() => new Response(OFFLINE_PAGE, { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } })),
+  );
+});
 
 self.addEventListener('push', (event) => {
   let data = { title: 'Brains Heist', body: '', url: '/', tag: undefined };
