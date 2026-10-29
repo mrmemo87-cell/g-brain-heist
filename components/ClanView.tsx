@@ -179,7 +179,7 @@ const getClanUpgradeConditions = (clan: Clan | null, isPrivileged: boolean): { c
     const reasons: string[] = [];
 
     if (!isPrivileged) {
-        reasons.push('Leader or moderator role required');
+        reasons.push('Leader or officer role required');
     }
 
     if (currentLevel >= MAX_CLAN_LEVEL) {
@@ -604,7 +604,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
   };
 
   const loadPendingJoinRequests = async () => {
-      const canApprove = myMemberInfo && ['leader', 'moderator'].includes(myMemberInfo.role);
+      const canApprove = myMemberInfo && ['leader', 'officer', 'moderator'].includes(myMemberInfo.role);
       if (!canApprove) {
           setPendingApprovals([]);
           onPendingCountChange?.(0);
@@ -1061,7 +1061,33 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
     const [newMessage, setNewMessage] = useState('');
     const [hasNewMessages, setHasNewMessages] = useState(false);
     const [userLookup, setUserLookup] = useState<Record<string, string>>({});
+    const [reportedIds, setReportedIds] = useState<Set<string>>(() => new Set());
     const chatScrollRef = useRef<HTMLDivElement>(null);
+    const canModerate = !!myMemberInfo && ['leader', 'officer'].includes(myMemberInfo.role);
+
+    const handleReport = async (messageId: string) => {
+        if (reportedIds.has(messageId)) return;
+        const reason = window.prompt('What is wrong with this message? (optional)') ?? null;
+        if (reason === null) return;
+        try {
+            await GameService.clan_chat_report(messageId, reason);
+            setReportedIds(prev => new Set(prev).add(messageId));
+            addToast('Thanks — a teacher will review this message.', 'success');
+        } catch (e) {
+            addToast((e as Error).message || 'Failed to report message.', 'error');
+        }
+    };
+
+    const handleHide = async (messageId: string) => {
+        if (!window.confirm('Hide this message for everyone in the clan?')) return;
+        try {
+            await GameService.clan_chat_hide(messageId);
+            setMessages(prev => prev.filter(m => m.id !== messageId));
+            addToast('Message hidden.', 'success');
+        } catch (e) {
+            addToast((e as Error).message || 'Failed to hide message.', 'error');
+        }
+    };
     const userLookupRef = useRef<Record<string, string>>({});
     const isAtBottomRef = useRef(true);
     const hasLoadedRef = useRef(false);
@@ -1230,8 +1256,8 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                 }
                 return deduped;
             });
-        } catch {
-            addToast("Failed to send message.", "error");
+        } catch (e) {
+            addToast((e as Error).message || "Failed to send message.", "error");
             setMessages(prev => prev.filter(m => m.id !== tempId));
         }
     };
@@ -1265,7 +1291,24 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                         {msg.created_at}
                                     </p>
                                 </div>
-                                <p className="text-white">{msg.message}</p>
+                                <p className="text-white break-words">{msg.message}</p>
+                                {!msg.is_self && !msg.id.startsWith('temp_') && (
+                                    <div className="mt-1 flex gap-3 text-[11px] text-gray-400">
+                                        <button
+                                            type="button"
+                                            onClick={() => void handleReport(msg.id)}
+                                            disabled={reportedIds.has(msg.id)}
+                                            className="hover:text-amber-300 disabled:opacity-60"
+                                        >
+                                            {reportedIds.has(msg.id) ? 'Reported' : 'Report'}
+                                        </button>
+                                        {canModerate && (
+                                            <button type="button" onClick={() => void handleHide(msg.id)} className="hover:text-red-300">
+                                                Hide
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -1282,9 +1325,13 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                     </div>
                 )}
             </div>
+            <p className="px-4 pt-2 text-[11px] text-gray-400 bg-black/30">
+                Clan chat is visible to your teachers. Be kind — use Report if something is not OK.
+            </p>
             <div className="flex p-4 bg-black/30 rounded-b-lg">
                 <input
                     type="text"
+                    maxLength={280}
                     value={newMessage}
                     onChange={e => setNewMessage(e.target.value)}
                     onKeyDown={e => {
@@ -1644,7 +1691,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                     )}
                     {activeTab === 'management' && isPrivileged && (
                          <div>
-                             {(myMemberInfo.role === 'leader' || myMemberInfo.role === 'moderator') && (
+                             {(myMemberInfo.role === 'leader' || myMemberInfo.role === 'officer' || myMemberInfo.role === 'moderator') && (
                                  <div className="mb-6">
                                      <div className="flex items-center justify-between mb-3">
                                          <h3 className="font-heading text-xl text-amber-300">Join Requests</h3>

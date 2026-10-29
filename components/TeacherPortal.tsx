@@ -63,6 +63,7 @@ const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/
 const TeacherCurriculumIntelligencePage = React.lazy(() => import('./teacher/TeacherCurriculumIntelligencePage'));
 const TeacherInterventionIntelligencePage = React.lazy(() => import('./student-progress/TeacherInterventionIntelligencePage'));
 const ClanTerritoryManager = React.lazy(() => import('../src/features/clanTerritory/ClanTerritoryManager'));
+const ClanChatOversight = React.lazy(() => import('./teacher/ClanChatOversight'));
 import { normalizePart2CommunicativeAchievement, sanitizeCommunicativeAchievementText } from '../src/lib/writingCommunicativeAchievement';
 import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
@@ -9606,6 +9607,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           )}
           {view === 'clan-wars' && (
             <React.Suspense fallback={<div className="teacher-section-loading">Preparing Clan Wars…</div>}>
+              <ClanChatOversight />
               <ClanTerritoryManager
                 onExit={() => setView('dashboard')}
                 isTeacher
