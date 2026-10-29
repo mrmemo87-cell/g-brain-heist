@@ -63,7 +63,7 @@ const PushNotificationToggle: React.FC<{ compact?: boolean; onEnabled?: () => vo
           {status === 'busy' ? t('Turning on…') : t('Enable notifications')}
         </button>
       )}
-      {!compact && <p className="text-xs text-gray-400">{t('Get a message when your teacher posts a new assignment and the day before it is due.')}</p>}
+      {!compact && <p className="text-xs text-gray-400">{t('Get a ping for raids, reactions, clan news and new assignments. Never during the night.')}</p>}
       {error && <p role="alert" className="text-xs text-rose-300">{error}</p>}
     </div>
   );

@@ -32,6 +32,7 @@ import { readIeltsPracticeAssignmentContext } from './src/pages/ielts/assignment
 import { checkIeltsPracticeAccess, type IeltsPracticeSkill } from './services/ieltsService';
 import SchoolProgrammeRouteGuard from './components/SchoolProgrammeRouteGuard';
 import IosInstallGuide from './components/IosInstallGuide';
+import PushMomentPrompt from './components/PushMomentPrompt';
 
 // ── Lazy-loaded pages & modals (with automatic retry on stale-chunk errors) ──
 const FinishSetupModal = lazyRetry(() => import('./components/FinishSetupModal'), 'FinishSetupModal');
@@ -895,6 +896,7 @@ root.render(
             <LanguageProvider>
               <RouterProvider router={router} />
               <IosInstallGuide />
+              <PushMomentPrompt />
             </LanguageProvider>
           </LightModeProvider>
         </QueryClientProvider>

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NewsEvent } from '../types';
 import { activity_reaction_toggle } from '../services/gameService';
+import { announcePushMoment } from '../src/lib/pushMoment';
 
 const EMOJIS = ['🔥', '😮', '😂', '❤️'] as const;
 
@@ -179,6 +180,7 @@ const NewsFeed: React.FC<{ news: NewsEvent[] }> = ({ news }) => {
       } catch {
         /* optional */
       }
+      announcePushMoment('reaction');
     }
 
     try {

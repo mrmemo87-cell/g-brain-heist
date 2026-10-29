@@ -1,7 +1,12 @@
-// Decides when to show the one-time "Add to Home Screen" guide.
+// Decides when to show the "Add to Home Screen" guide.
 // Pure functions only, so the rules are unit-testable without a browser.
+import { isSnoozed, readSnooze, recordSnooze } from './promptSnooze';
 
 export const INSTALL_GUIDE_DISMISSED_KEY = 'brains-heist:install-guide-dismissed:v1';
+/** "Not now" hides the guide for this many days... */
+export const INSTALL_GUIDE_SNOOZE_DAYS = 7;
+/** ...and after this many "not now"s it stops appearing on its own (Settings → How to install still works). */
+export const INSTALL_GUIDE_MAX_SNOOZES = 3;
 
 /** Routes where a sheet over the content would interrupt timed or recorded work. */
 const QUIET_PATH_PREFIXES = ['/ielts/exam/', '/ielts/session/', '/ielts/speaking', '/ielts/listening/', '/ielts/writing/', '/ielts/reading/', '/auth/', '/presentation', '/booked'];
@@ -34,12 +39,13 @@ export function shouldShowIosInstallGuide(env: InstallEnvironment): boolean {
   return !isQuietPath(env.pathname);
 }
 
-export function readInstallGuideDismissed(storage?: Pick<Storage, 'getItem'>): boolean {
-  try { return storage?.getItem(INSTALL_GUIDE_DISMISSED_KEY) === '1'; } catch { return false; }
+/** True while a "not now" is in effect (7 days), or after the student has said it 3 times. */
+export function readInstallGuideDismissed(storage?: Pick<Storage, 'getItem'>, now: number = Date.now()): boolean {
+  return isSnoozed(readSnooze(storage, INSTALL_GUIDE_DISMISSED_KEY), now, INSTALL_GUIDE_MAX_SNOOZES);
 }
 
-export function writeInstallGuideDismissed(storage?: Pick<Storage, 'setItem'>): void {
-  try { storage?.setItem(INSTALL_GUIDE_DISMISSED_KEY, '1'); } catch { /* Blocked storage: the guide may show again next visit. */ }
+export function writeInstallGuideDismissed(storage?: Pick<Storage, 'getItem' | 'setItem'>, now: number = Date.now()): void {
+  recordSnooze(storage, INSTALL_GUIDE_DISMISSED_KEY, now, INSTALL_GUIDE_SNOOZE_DAYS);
 }
 
 export function detectStandalone(win: { matchMedia?: (q: string) => { matches: boolean }; navigator?: { standalone?: boolean } } | undefined): boolean {
