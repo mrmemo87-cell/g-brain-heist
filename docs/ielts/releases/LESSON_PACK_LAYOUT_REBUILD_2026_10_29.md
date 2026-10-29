@@ -22,3 +22,6 @@ extra text; workbook page order (Lesson 7); the teacher dashboard should categor
 - Uploaded via a one-time endpoint limited to exact paths, sizes and SHA-256 (now retired, HTTP 410); swap migration
   `20261029090624_ielts_lesson_templates_layout_rebuild.sql` changed each row only from its exact previous template.
 - Mock tests M1–M3 unchanged (separate builder).
+
+## Follow-up, 15:30: write-on lines (Lessons 01, 03, 06, V1, X3)
+Completion questions without a gap in the prompt now get the same inline write-on line as the others (PR #1760). The five templates were rebuilt with identical recordings, validated, uploaded via the same retired endpoint and swapped by `20261029093124_ielts_lesson_templates_workbook_gaps.sql`.
