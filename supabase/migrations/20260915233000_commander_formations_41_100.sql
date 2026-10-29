@@ -230,7 +230,7 @@ declare
   a_evo integer := 0;
   g_steps integer;
   a_steps integer;
-  formation_id text := 'command_line';
+  v_formation_id text := 'command_line';
   formation_rank integer := 0;
   formation_ranks jsonb;
   fm jsonb;
@@ -277,7 +277,7 @@ begin
    and up.item_id = a.id;
 
   select coalesce(fs.active_formation, 'command_line')
-  into formation_id
+  into v_formation_id
   from (select 1) seed
   left join public.commander_formation_state fs
     on fs.user_id = p_user and fs.campaign_id = p_campaign;
@@ -288,15 +288,15 @@ begin
   left join public.commander_formation_progress fp
     on fp.user_id = p_user
    and fp.campaign_id = p_campaign
-   and fp.formation_id = formation_id;
+   and fp.formation_id = v_formation_id;
 
   formation_ranks := jsonb_build_object(
-    'command_line', coalesce((select doctrine_rank from public.commander_formation_progress where user_id = p_user and campaign_id = p_campaign and formation_id = 'command_line'), 0),
-    'bastion_wedge', coalesce((select doctrine_rank from public.commander_formation_progress where user_id = p_user and campaign_id = p_campaign and formation_id = 'bastion_wedge'), 0),
-    'spearhead', coalesce((select doctrine_rank from public.commander_formation_progress where user_id = p_user and campaign_id = p_campaign and formation_id = 'spearhead'), 0),
-    'arc_lattice', coalesce((select doctrine_rank from public.commander_formation_progress where user_id = p_user and campaign_id = p_campaign and formation_id = 'arc_lattice'), 0)
+    'command_line', coalesce((select doctrine_rank from public.commander_formation_progress fp where fp.user_id = p_user and fp.campaign_id = p_campaign and fp.formation_id = 'command_line'), 0),
+    'bastion_wedge', coalesce((select doctrine_rank from public.commander_formation_progress fp where fp.user_id = p_user and fp.campaign_id = p_campaign and fp.formation_id = 'bastion_wedge'), 0),
+    'spearhead', coalesce((select doctrine_rank from public.commander_formation_progress fp where fp.user_id = p_user and fp.campaign_id = p_campaign and fp.formation_id = 'spearhead'), 0),
+    'arc_lattice', coalesce((select doctrine_rank from public.commander_formation_progress fp where fp.user_id = p_user and fp.campaign_id = p_campaign and fp.formation_id = 'arc_lattice'), 0)
   );
-  fm := commander_private.formation_modifiers(formation_id, formation_rank);
+  fm := commander_private.formation_modifiers(v_formation_id, formation_rank);
 
   g_steps := greatest(0, g_rank - 1);
   a_steps := greatest(0, a_rank - 1);
@@ -384,7 +384,7 @@ begin
       'grave', coalesce((select sm.mastery_rank from public.commander_school_mastery sm where sm.user_id = p_user and sm.campaign_id = p_campaign and sm.school = 'grave'), 0)
     ),
     'formation', jsonb_build_object(
-      'activeId', formation_id,
+      'activeId', v_formation_id,
       'rank', formation_rank,
       'ranks', formation_ranks,
       'modifiers', fm

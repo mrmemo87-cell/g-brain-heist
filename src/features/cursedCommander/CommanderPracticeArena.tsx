@@ -1,4 +1,5 @@
 import { preloadCommanderSpriteAssets } from './commanderSpriteAssets';
+import { commanderXpAwardMessage } from '../../../services/commanderHeadquartersService';
 import { preloadCommanderAudio, unlockCommanderAudio, stopCommanderAudio } from './commanderBattleSound';
 import React, { useEffect, useRef, useState } from 'react';
 import { readCommanderSession, saveCommanderSession } from './commanderSessionCache';
@@ -480,6 +481,12 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
                 onMove={(move) => void playMove(move)}
                 onRestart={() => void begin()}
               />
+
+              {battle.status !== 'active' && commanderXpAwardMessage(session.xpAward) && (
+                <p role="status" className="rounded-2xl border border-amber-300/30 bg-amber-400/10 px-4 py-3 text-sm font-bold text-amber-100">
+                  ⭐ {commanderXpAwardMessage(session.xpAward)}
+                </p>
+              )}
 
               <details className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
                 <summary className="cursor-pointer font-heading text-xs font-black uppercase tracking-[0.12em] text-slate-300">📜 {copy.battleLog}</summary>

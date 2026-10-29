@@ -182,6 +182,50 @@ export const commanderHeadquartersError = (cause: unknown) => {
   );
 };
 
+export type CommanderXpAward = {
+  awarded: boolean;
+  xp: number;
+  reason: string | null;
+};
+
+export type CommanderDailyCheckin = CommanderXpAward & {
+  streak: number;
+  day: string;
+};
+
+/** Claims today's Commander login XP. Idempotent: later calls the same day award nothing. */
+export async function claimCommanderDailyCheckin(
+  signal?: AbortSignal,
+): Promise<CommanderDailyCheckin> {
+  let request = supabase.rpc("rpc_commander_daily_checkin");
+  if (signal) request = request.abortSignal(signal);
+  const { data, error } = await request;
+  if (error || !data || typeof data.awarded !== "boolean")
+    throw error ?? new Error("commander_unavailable");
+  return data as CommanderDailyCheckin;
+}
+
+/** Short player-facing line for an XP award (or why none was paid). Null when there is nothing to say. */
+export const commanderXpAwardMessage = (award: CommanderXpAward | null | undefined): string | null => {
+  if (!award) return null;
+  if (award.awarded && award.xp > 0)
+    return award.reason === "xp_cap_reached"
+      ? `+${award.xp} Commander XP (daily XP limit reached).`
+      : `+${award.xp} Commander XP.`;
+  switch (award.reason) {
+    case "already_awarded":
+      return "XP for this win was already collected today.";
+    case "opponent_rewarded_today":
+      return "No XP: you already earned XP from this opponent today. Challenge someone new.";
+    case "daily_limit_reached":
+      return "No XP: you have reached today's Player Battle XP limit.";
+    case "xp_cap_reached":
+      return "No XP: you have reached today's Commander XP limit.";
+    default:
+      return null;
+  }
+};
+
 export async function getCommanderHeadquarters(
   signal?: AbortSignal,
 ): Promise<CommanderHeadquarters> {

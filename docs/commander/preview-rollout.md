@@ -13,8 +13,10 @@ progression, looting, matchmaking and seasons are still future work.
 - Access is granted only when `public.users.role = 'student'` for the authenticated
   user ID. Teachers, admins, school admins and anonymous callers are not eligible.
 - The Edge handler uses Supabase Auth plus one read-only lookup of `public.users.role`.
-  It does not write tables or call RPCs. No Coins, XP, AP, inventory, purchases,
-  rankings, rewards or academic history are changed.
+  It does not write battle tables. No Coins, AP, inventory, purchases, rankings or
+  academic history are changed. Since the progression go-live
+  (`docs/cursed-commander/progression-go-live.md`) the first Practice victory of each
+  UTC day calls `rpc_commander_award_battle_xp` for a small, capped amount of Commander XP.
 - HMAC transcripts bind battle state to the authenticated user's ID and expire
   15 minutes after starting; turns do not extend the deadline.
 - Stateless practice allows replay/branching of a valid transcript. Never reuse

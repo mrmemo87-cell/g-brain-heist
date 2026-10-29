@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   commanderHeadquartersError,
   getCommanderHeadquarters,
+  claimCommanderDailyCheckin,
   sendCommanderCommand,
   type CommanderCatalogItem,
   type CommanderHeadquarters as Headquarters,
@@ -177,6 +178,7 @@ export default function CommanderHeadquarters({
   } | null>(null);
   const [retryPending, setRetryPending] = useState(false);
   const confirmation = useRef<HTMLDivElement>(null);
+  const checkedIn = useRef(false);
 
   const refresh = useCallback(async () => {
     if (inFlight.current || attempt.current) return;
@@ -186,6 +188,22 @@ export default function CommanderHeadquarters({
     const timer = window.setTimeout(() => controller.abort(), 15000);
     setLoading(true);
     try {
+      // Daily login XP is claimed before the HQ read so the snapshot already includes it.
+      // It is best-effort: an un-enrolled player or a network blip must not block the HQ.
+      if (!checkedIn.current) {
+        try {
+          const checkin = await claimCommanderDailyCheckin(controller.signal);
+          checkedIn.current = true;
+          if (alive.current && checkin.awarded && checkin.xp > 0)
+            setNotice(
+              checkin.streak > 1
+                ? `Day ${checkin.streak} login streak: +${checkin.xp} Commander XP.`
+                : `Daily login: +${checkin.xp} Commander XP. Come back tomorrow to start a streak.`,
+            );
+        } catch {
+          // Not enrolled yet, or offline: try again on the next refresh (the claim is idempotent).
+        }
+      }
       const next = await getCommanderHeadquarters(controller.signal);
       if (alive.current && !controller.signal.aborted) {
         setHq(next);

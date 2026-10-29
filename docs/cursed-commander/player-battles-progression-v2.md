@@ -27,7 +27,7 @@ The browser never supplies combat stats, school powers, ownership, defender equi
 - A per-attacker/per-defender cooldown is enforced from campaign rules (initially 300 seconds).
 - Active battles expire from campaign rules (initially 30 minutes).
 - Equipment changes after a battle starts do not mutate that battle's frozen snapshots.
-- Commander PvP currently transfers **no Coins and no account XP**. Reward/rating settlement must be designed separately before it is introduced.
+- Commander PvP transfers **no Coins and no account XP**. Since the progression go-live, a stored PvP victory pays capped **Commander XP** (one rewarded win per opponent per day, five per day); see `progression-go-live.md`. Ratings are still not implemented.
 - Practice remains non-persistent and is still available as a safe test arena.
 
 ## Persistence
@@ -90,7 +90,7 @@ The Player Battle lobby provides search, level-proximate ordering, current forma
    - refresh/back navigation resumes A's active battle;
    - concurrent duplicate turn submission fails closed;
    - final result appears from the correct perspective for A and B;
-   - no Commander PvP Coins/account XP are changed;
+   - no Commander PvP Coins/account XP are changed (Commander XP only, per `progression-go-live.md`);
    - practice still reports non-persistent behavior.
 5. Observe battle lengths and win-rate distributions before activating Unit Training.
 
