@@ -14,6 +14,7 @@ import { isFlickerThemeActive } from '../src/lib/cosmetics';
 import { tryConsumePilotQuota } from '../services/tierService';
 import ClickableUsername from './ClickableUsername';
 import BrainsMasterBadge from './BrainsMasterBadge';
+import PvPBattleResult from './pvp/PvPBattleResult';
 
 type PvPStage = 'loading' | 'targets' | 'cinematic' | 'result';
 type BreachPhase = 'lockon' | 'charge' | 'impact' | 'outcome';
@@ -26,6 +27,35 @@ interface BattleNarration {
 }
 
 const RAID_AP_COST = 2;
+
+/** RFC 4122 v4 UUID; the attack RPC only accepts UUID request ids. */
+const newRequestId = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const bytes = new Uint8Array(16);
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < 16; i += 1) bytes[i] = Math.floor(Math.random() * 256);
+  }
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+};
+
+/** Lost connection rather than a server decision (cooldown, AP, etc.). */
+const isTransientNetworkError = (error: unknown): boolean => {
+  const message = String((error as { message?: unknown })?.message ?? error ?? '');
+  return /failed to fetch|network|load failed|timeout|timed out|connection/i.test(message);
+};
+
+const describeAttackError = (error: unknown, targetName: string): string => {
+  const message = String((error as { message?: unknown })?.message ?? 'Unknown error');
+  if (/^COOLDOWN/i.test(message)) return `${targetName} was just attacked by someone else. Pick another target.`;
+  if (/not enough ap/i.test(message)) return 'Not enough Action Points. Regain AP before attacking again.';
+  if (isTransientNetworkError(error)) return 'Connection lost. Your battle may have finished — refresh to check your coins.';
+  return `Battle failed: ${message}`;
+};
 
 interface PvPViewProps {
   profile: Profile;
@@ -184,6 +214,7 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
   const outcomeBannerRef = useRef<HTMLDivElement | null>(null);
   const phaseStatusRef = useRef<HTMLSpanElement | null>(null);
   const autoAttackFocusRef = useRef<string | null>(null);
+  const attackInFlightRef = useRef(false);
 
   const breachStatusText = useMemo(() => {
     if (breachPhase === 'lockon') return 'LOCKING TARGET...';
@@ -401,6 +432,9 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
   };
 
   const handleAttack = async (target: RaidTarget) => {
+    // One attack at a time: a double tap must not launch a second battle.
+    if (attackInFlightRef.current) return;
+
     // Cards normally block this, but focused/deep-linked targets and stale UI
     // state can still call the handler. Keep a client guard in addition to the
     // authoritative database cooldown.
@@ -409,16 +443,26 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
       return;
     }
 
-    // Consume pilot quota if applicable
-    const quota = await tryConsumePilotQuota('pvp_battles');
-    if (!quota.proceed) {
-      addToast(quota.error || 'You\'ve reached the PvP battle limit on the Pilot plan. Upgrade to continue.', 'warning');
-      return;
-    }
-
     if (profile.ap_now < RAID_AP_COST) {
       audioService.play('wrong');
       addToast('Not enough Action Points to launch a PvP battle. Regain AP before attacking again.', 'warning');
+      return;
+    }
+
+    attackInFlightRef.current = true;
+    try {
+      await runAttack(target);
+    } finally {
+      attackInFlightRef.current = false;
+    }
+  };
+
+  const runAttack = async (target: RaidTarget) => {
+    // Consume pilot quota if applicable (after the local AP check, so a battle
+    // that cannot start does not use up quota).
+    const quota = await tryConsumePilotQuota('pvp_battles');
+    if (!quota.proceed) {
+      addToast(quota.error || 'You\'ve reached the PvP battle limit on the Pilot plan. Upgrade to continue.', 'warning');
       return;
     }
 
@@ -438,9 +482,17 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
 
     try {
       const attackStartTime = Date.now();
-      const requestId = (crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`);
-      // Call the actual attack (starts immediately but runs in parallel with animations)
-      const result = await GameService.raid_attack(target.user_id, useCracker, target, requestId);
+      // One request id per battle. If the connection drops we resend the SAME id:
+      // the server then returns the stored result instead of attacking twice.
+      const requestId = newRequestId();
+      let result: RaidAttackResult;
+      try {
+        result = await GameService.raid_attack(target.user_id, useCracker, target, requestId);
+      } catch (firstError) {
+        if (!isTransientNetworkError(firstError)) throw firstError;
+        await new Promise(resolve => window.setTimeout(resolve, 800));
+        result = await GameService.raid_attack(target.user_id, useCracker, target, requestId);
+      }
 
       console.log('Battle result received:', result); // Debug log
       
@@ -481,8 +533,10 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
 
     } catch (error) {
       console.error('Battle attack error:', error);
+      clearCinematicTimers();
+      setStage('targets');
       // Show error and go back to targets
-      addToast(`Battle failed and no action points were consumed: ${(error as Error).message}`, 'error');
+      addToast(describeAttackError(error, target.username), isTransientNetworkError(error) ? 'warning' : 'error');
       setSelectedTarget(null);
       setAttackResult(null);
       void loadTargets({ preserveTargets: true });
@@ -837,31 +891,6 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
   const renderResult = () => {
     if (!attackResult || !selectedTarget) return null;
 
-    const xpDelta = Number(attackResult.attacker_deltas?.xp ?? 0);
-    const coinsDelta = Number(attackResult.attacker_deltas?.coins ?? 0);
-    const gemstonesDelta = Number(attackResult.attacker_deltas?.gemstones ?? 0);
-
-    const resultText = {
-        win: { title: 'Victory! �', subtitle: 'Enemy systems breached', color: 'var(--success-teal)' },
-        lose: { title: 'Defeated �', subtitle: 'Attack repelled', color: 'var(--danger-red)' },
-        blocked: { title: 'Blocked by Shield 🛡️', subtitle: 'Barrier held strong', color: 'var(--amber-warn)' },
-        default: { title: 'Battle complete', subtitle: 'Result recorded', color: 'var(--ion-blue)' }
-    };
-    const normalizedResult = normalizePvpResult(attackResult.result);
-    const { title, subtitle, color } = resultText[normalizedResult] ?? resultText.default;
-
-    // Combat result messages
-    const getResultMessage = () => {
-        if (normalizedResult === 'win') {
-            return `You defeated ${selectedTarget.username}! Your superior combat skills overwhelmed their defenses! 💪`;
-        } else if (normalizedResult === 'blocked') {
-            return `${selectedTarget.username}'s shield absorbed your attack! Their protective barrier held strong! �️`;
-        } else if (normalizedResult === 'lose') {
-            return `${selectedTarget.username} defended successfully! Their combat prowess turned the tide of battle! ⚔️`;
-        }
-        return 'Battle complete. Result recorded.';
-    };
-
     const handleAttackAnother = () => {
         setSelectedTarget(null);
         setAttackResult(null);
@@ -869,44 +898,13 @@ const PvPView: React.FC<PvPViewProps> = ({ profile, focusTargetUserId, onComplet
     };
 
     return (
-        <div className="w-full px-4 sm:px-6 py-6">
-          <div className="text-center max-w-lg mx-auto">
-              <div className="flex flex-col items-center mb-6">
-                {normalizedResult === 'win' && (
-                  <div className="text-8xl mb-4 animate-bounce">🏆</div>
-                )}
-                {normalizedResult === 'blocked' && (
-                  <div className="text-8xl mb-4 animate-pulse">🛡️</div>
-                )}
-                {normalizedResult === 'lose' && (
-                  <div className="text-8xl mb-4 animate-ping">💥</div>
-                )}
-                <h2 className="font-heading text-4xl" style={{ color }}>{title}</h2>
-                <p className="text-sm text-gray-300 mt-2">{subtitle}</p>
-              </div>
-              <div className="card-glass p-6 sm:p-8" style={{borderColor: `${color}80`}}>
-                   <p className="text-lg mb-6">{getResultMessage()}</p>
-
-                  <div className="text-lg sm:text-2xl font-heading space-y-3 mb-6">
-                      <p>XP Delta: <span style={{color: xpDelta > 0 ? 'var(--ion-blue)' : 'var(--danger-red)'}}>{xpDelta >= 0 ? `+${xpDelta}` : xpDelta}</span></p>
-                      <p>Coins Delta: <span style={{color: 'var(--amber-warn)'}}>{coinsDelta >= 0 ? `+${coinsDelta}`: coinsDelta}</span></p>
-                      <p className="flex items-center justify-center gap-2">
-                        Gemstones:
-                        <span className="inline-flex items-center gap-1 text-rose-200 gem-glow">
-                          <GemIcon className="w-5 h-5" />
-                          {gemstonesDelta >= 0 ? `+${gemstonesDelta}` : gemstonesDelta}
-                        </span>
-                      </p>
-                  </div>
-
-                  <button
-                      onClick={handleAttackAnother}
-                      className="w-full bg-plasma-pink/20 hover:bg-plasma-pink/30 border border-plasma-pink text-white shadow-lg shadow-plasma-pink/20 font-heading font-bold text-lg tracking-wider p-4 rounded-2xl transition-all duration-300 transform hover:scale-105"
-                  >
-                      ⚔️ Battle Another Target
-                  </button>
-              </div>
-          </div>
+        <div className="w-full px-4 sm:px-6 py-4">
+          <PvPBattleResult
+            result={attackResult}
+            attacker={profile}
+            defender={selectedTarget}
+            onNextTarget={handleAttackAnother}
+          />
         </div>
     );
   };
