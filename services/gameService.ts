@@ -2549,44 +2549,15 @@ export const activity_reaction_toggle = async (activity_id: string, emoji: strin
     }
   }
 
-  // Check if user already has a reaction on this activity
-  const { data: existingReaction } = await supabase
-    .from('activity_reactions')
-    .select('id, emoji')
-    .eq('activity_id', activity_id)
-    .eq('user_id', user.id)
-    .single();
-  
-  if (existingReaction) {
-    if (existingReaction.emoji === emoji) {
-      // Remove the reaction (toggle off)
-      await supabase
-        .from('activity_reactions')
-        .delete()
-        .eq('id', existingReaction.id);
-      
-      return mockApiCall({ added: false });
-    } else {
-      // Update to new emoji
-      await supabase
-        .from('activity_reactions')
-        .update({ emoji: emoji })
-        .eq('id', existingReaction.id);
-      
-      return mockApiCall({ added: true });
-    }
-  } else {
-    // Add new reaction
-    await supabase
-      .from('activity_reactions')
-      .insert({
-        activity_id: activity_id,
-        user_id: user.id,
-        emoji: emoji,
-      });
-    
-    return mockApiCall({ added: true });
+  // Server toggles the reaction (one per student per post) and notifies the post's owner.
+  const { data, error } = await supabase.rpc('rpc_react_to_activity', {
+    p_activity_id: activity_id,
+    p_emoji: emoji,
+  });
+  if (error) {
+    throw new Error(error.message || 'Failed to save reaction.');
   }
+  return mockApiCall({ added: Boolean((data as { added?: boolean } | null)?.added) });
 };
 
 export interface StudentAcademicSubjectCatalog {
@@ -3828,37 +3799,7 @@ export const clan_deposit_coins = async (amount: number): Promise<{ new_clan_vau
         throw new Error('Failed to deposit coins.');
     }
 
-    void (async () => {
-        try {
-            const [{ data: membership }, { data: actorProfile }] = await Promise.all([
-                supabase
-                    .from('clan_members')
-                    .select('clan_id')
-                    .eq('user_id', user.id)
-                    .maybeSingle(),
-                supabase
-                    .from('users')
-                    .select('username')
-                    .eq('id', user.id)
-                    .maybeSingle(),
-            ]);
-
-            if (!membership?.clan_id) return;
-
-            await supabase.from('activities').insert({
-                kind: 'clan_deposit',
-                actor_id: user.id,
-                actor_username: actorProfile?.username || null,
-                data: {
-                    clan_id: membership.clan_id,
-                    amount,
-                },
-            });
-        } catch (activityError) {
-            console.warn('Failed to record clan_deposit activity:', activityError);
-        }
-    })();
-
+    // The deposit RPC records the clan_deposit feed entry on the server.
     return mockApiCall(result);
 };
 
