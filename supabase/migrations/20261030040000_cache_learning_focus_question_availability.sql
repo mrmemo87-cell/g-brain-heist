@@ -391,6 +391,11 @@ end;
 $function$
 ;
 
+revoke all on function public.rpc_teacher_student_intervention_intelligence(uuid,text)
+from public,anon,authenticated,service_role;
+grant execute on function public.rpc_teacher_student_intervention_intelligence(uuid,text)
+to authenticated,service_role;
+
 -- READ WRITE access mode under PostgREST so the cache can be written during the RPC.
 do $$
 declare
