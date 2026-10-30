@@ -23,15 +23,20 @@ export const DEFAULT_ROLLUP_EVIDENCE_THRESHOLD = 3;
 
 export type RollupReadiness = InterventionRecommendation['readiness'];
 
+/** A leaf as shown in a group. When the same atomic sub-skill is tracked under more than one key
+ *  scheme (legacy `diagnostic:` and canonical `registry:`), the leaves are merged for display and
+ *  `merged_skill_keys` lists every key that contributed. Actions still use `skill_key`. */
+export type RollupLeaf = InterventionRecommendation & { merged_skill_keys?: string[] };
+
 export interface SkillRollupGroup {
   key: string;
   subject: string;
   area: string | null;
   areaLabel: string | null;
   primarySkill: string;
-  leaves: InterventionRecommendation[];
+  leaves: RollupLeaf[];
   /** The leaf a teacher action is routed to (review modal / targeted practice). */
-  anchor: InterventionRecommendation;
+  anchor: RollupLeaf;
   readiness: RollupReadiness;
   /** True when the group is reviewable only because its leaves' evidence was pooled. */
   promotedByRollup: boolean;
@@ -69,22 +74,6 @@ const areaTaskNames: Record<string, string> = {
   speaking: 'speaking task',
 };
 
-/** `diagnostic:<scope>:<primary-skill-code>:<atomic-subskill-code>` → the primary-skill code's area segment. */
-export function skillAreaFromKey(skillKey: string): string | null {
-  if (!skillKey.startsWith('diagnostic:')) return null;
-  const primary = skillKey.split(':')[2] || '';
-  const segments = primary.split('.');
-  return segments.length >= 2 ? segments[1] : null;
-}
-
-export function describeUnlock(group: Pick<SkillRollupGroup, 'area' | 'evidenceItems'>, threshold: number): string | null {
-  const needed = threshold - group.evidenceItems;
-  if (needed <= 0) return null;
-  const task = (group.area && areaTaskNames[group.area]) || 'assessed task';
-  const items = needed === 1 ? 'One more qualifying assessed item' : `${needed} more qualifying assessed items`;
-  return `${items} in this skill — typically one more ${task} — would make this reviewable.`;
-}
-
 const bestOf = (a: InterventionRecommendation, b: InterventionRecommendation) => {
   const ra = readinessRank[a.readiness];
   const rb = readinessRank[b.readiness];
@@ -95,14 +84,81 @@ const bestOf = (a: InterventionRecommendation, b: InterventionRecommendation) =>
 
 const norm = (value?: string | null) => (value || '').trim().toLocaleLowerCase();
 
+/**
+ * Stable atomic sub-skill code behind a focus key, across key schemes:
+ *  - `diagnostic:<scope>:<primary-skill-code>:<atomic-code>` (legacy)
+ *  - `registry:<registry-version>:<atomic-code>` (canonical, see docs/academic-skill-registry.md)
+ * Returns null for keys that carry no atomic code (objective:, free-text).
+ */
+export function atomicCodeFromKey(skillKey: string): string | null {
+  const parts = skillKey.split(':');
+  if (parts[0] === 'diagnostic' && parts.length >= 4) return parts[3] || null;
+  if (parts[0] === 'registry' && parts.length >= 3) return parts[2] || null;
+  return null;
+}
+
+/** The area segment (`use-of-english`, `reading`, …) of the atomic code, e.g. `eng.reading.inference.attitude` → `reading`. */
+export function skillAreaFromKey(skillKey: string): string | null {
+  const atomic = atomicCodeFromKey(skillKey);
+  if (!atomic) return null;
+  const segments = atomic.split('.');
+  return segments.length >= 2 ? segments[1] : null;
+}
+
+/**
+ * Merge leaves that are the same atomic sub-skill under different key schemes. The strongest leaf
+ * (best readiness, then most evidence) keeps its skill_key so review/practice stay governed; the
+ * evidence count, question sets and examples are pooled for display.
+ */
+export function mergeLeavesAcrossSchemes(recommendations: InterventionRecommendation[]): RollupLeaf[] {
+  const byAtomic = new Map<string, InterventionRecommendation[]>();
+  const passthrough: RollupLeaf[] = [];
+  recommendations.forEach((item) => {
+    const atomic = atomicCodeFromKey(item.skill_key);
+    if (!atomic) { passthrough.push(item); return; }
+    const key = `${norm(item.subject)}|${atomic}`;
+    const bucket = byAtomic.get(key) || [];
+    bucket.push(item);
+    byAtomic.set(key, bucket);
+  });
+  const merged: RollupLeaf[] = [];
+  byAtomic.forEach((items) => {
+    if (items.length === 1) { merged.push(items[0]); return; }
+    const base = items.reduce(bestOf);
+    const others = items.filter((item) => item !== base);
+    merged.push({
+      ...base,
+      evidence_items: items.reduce((sum, item) => sum + (item.evidence_items || 0), 0),
+      focus_occurrences: items.reduce((sum, item) => sum + (item.focus_occurrences || 0), 0),
+      last_observed_at: items.map((item) => item.last_observed_at).sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0],
+      priority: items.some((item) => item.priority === 'high') ? 'high' : base.priority,
+      exact_question_ids: [...new Set(items.flatMap((item) => item.exact_question_ids || []))],
+      available_exact_questions: Math.max(...items.map((item) => item.available_exact_questions || 0)),
+      diagnostic_targets: [...new Set(items.flatMap((item) => item.diagnostic_targets || []))],
+      evidence_examples: [base, ...others].flatMap((item) => item.evidence_examples || []),
+      merged_skill_keys: items.map((item) => item.skill_key),
+    });
+  });
+  return [...merged, ...passthrough];
+}
+
+export function describeUnlock(group: Pick<SkillRollupGroup, 'area' | 'evidenceItems'>, threshold: number): string | null {
+  const needed = threshold - group.evidenceItems;
+  if (needed <= 0) return null;
+  const task = (group.area && areaTaskNames[group.area]) || 'assessed task';
+  const items = needed === 1 ? 'One more qualifying assessed item' : `${needed} more qualifying assessed items`;
+  return `${items} in this skill — typically one more ${task} — would make this reviewable.`;
+}
+
+
 export function rollUpRecommendations(
   recommendations: InterventionRecommendation[],
   options: { evidenceThreshold?: number } = {},
 ): SkillRollupGroup[] {
   const threshold = options.evidenceThreshold ?? DEFAULT_ROLLUP_EVIDENCE_THRESHOLD;
-  const groups = new Map<string, InterventionRecommendation[]>();
+  const groups = new Map<string, RollupLeaf[]>();
 
-  recommendations.forEach((item) => {
+  mergeLeavesAcrossSchemes(recommendations).forEach((item) => {
     // Primary skill: the topic label for diagnostic keys, else the skill itself.
     const primary = item.topic && item.topic.trim() ? item.topic : item.skill;
     const key = `${norm(item.subject)}|${norm(primary)}`;
