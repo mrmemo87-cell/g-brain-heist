@@ -10,7 +10,6 @@ const InterventionTargetedPracticeWorkspace = React.lazy(() => import('./student
 const TeacherWeeklyFollowUpsPage = React.lazy(() => import('./student-progress/TeacherWeeklyFollowUpsPage'));
 const ClassConquestTeacherPage = React.lazy(() => import('./classConquest/ClassConquestTeacherPage'));
 import type { TargetedPracticeContext } from './student-progress/TeacherInterventionIntelligencePageV2';
-import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
 
 type TeacherPortalShellProps = React.ComponentProps<typeof TeacherPortal>;
 type AcademicTool = 'academic-profiles' | 'interventions' | 'follow-ups' | 'class-conquest';
@@ -87,7 +86,6 @@ const applyCurrentYearDashboardMetrics = (
 
 const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
   const shellRef = useRef<HTMLDivElement>(null);
-  const conquestBranding = useSchoolBranding({ schoolId: props.profile.school_id, schoolName: props.profile.school_name, schoolLogoUrl: props.profile.school_logo_url });
   const [activeTool, setActiveTool] = useState<AcademicTool | null>(null);
   const [targetedPractice, setTargetedPractice] = useState<TargetedPracticeContext | null>(null);
   const [portalHost, setPortalHost] = useState<HTMLDivElement | null>(null);
@@ -246,7 +244,7 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
               : activeTool === 'academic-profiles'
                 ? <TeacherAcademicProfilesPage onBack={closeAcademicTool} />
                 : activeTool === 'class-conquest'
-                ? <ClassConquestTeacherPage onBack={closeAcademicTool} issuer={conquestBranding.schoolName ?? undefined} schoolLogoUrl={conquestBranding.schoolLogoUrl} />
+                ? <ClassConquestTeacherPage onBack={closeAcademicTool} schoolId={props.profile.school_id} issuer={props.profile.school_name ?? undefined} schoolLogoUrl={props.profile.school_logo_url} />
                 : activeTool === 'follow-ups'
                 ? <TeacherWeeklyFollowUpsPage onBack={closeAcademicTool} onPlanPractice={openInterventionsForStudent} />
                 : <TeacherInterventionIntelligencePage onBack={closeAcademicTool} onCreateTargetedPractice={openTargetedPractice} />}

@@ -6,13 +6,15 @@ import ConquestMap from './ConquestMap';
 import ConquestHistoryModal from './ConquestHistoryModal';
 import ConquestIntelModal from './ConquestIntelModal';
 import ConquestRevealStage from './ConquestRevealStage';
+import { useSchoolBranding } from '../../src/hooks/useSchoolBranding';
 import './ClassConquest.css';
 
 interface ClassConquestTeacherPageProps {
   onBack?: () => void;
-  /** School name, printed on certificates. */
+  /** Used to resolve the current school name and crest for certificates. */
+  schoolId?: string | null;
+  /** Fallbacks from the signed-in profile while the school row loads. */
   issuer?: string;
-  /** School crest for the certificate header. */
   schoolLogoUrl?: string | null;
 }
 
@@ -26,7 +28,10 @@ const REASONS: Record<string, string> = {
 
 const brandLogoUrl = () => (typeof window === 'undefined' ? null : `${window.location.origin}/logo.png`);
 
-const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onBack, issuer, schoolLogoUrl }) => {
+const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onBack, schoolId, issuer: issuerFallback, schoolLogoUrl: logoFallback }) => {
+  const branding = useSchoolBranding({ schoolId, schoolName: issuerFallback, schoolLogoUrl: logoFallback });
+  const issuer = branding.schoolName ?? issuerFallback;
+  const schoolLogoUrl = branding.schoolLogoUrl ?? logoFallback ?? null;
   const [grade, setGrade] = useState<string | null>(null);
   const [grades, setGrades] = useState<string[]>([]);
   const [data, setData] = useState<ClassConquestData | null>(null);
