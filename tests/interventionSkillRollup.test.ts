@@ -98,9 +98,34 @@ test('page keeps the roll-up behind a flag and routes actions through leaf skill
   const page = readFileSync('components/student-progress/TeacherInterventionIntelligencePageV2.tsx', 'utf8');
   assert.match(page, /bh\.intervention\.skillRollup/);
   assert.match(page, /params\.get\('rollup'\)/);
+  assert.match(page, /const ROLLUP_DEFAULT = true;/);
   assert.match(page, /rollUpRecommendations\(recommendations\)/);
   assert.match(page, /practiceRecommendationForGroup\(group\)/);
   // Non-rollup rendering path is intact.
   assert.match(page, /actionable\.map\(\(r\) => renderRecommendation\(r, 'action'\)\)/);
   assert.match(page, /watching\.map\(\(r\) => renderRecommendation\(r, 'watch'\)\)/);
+});
+
+test('the same atomic sub-skill tracked under legacy diagnostic and canonical registry keys is one leaf', async () => {
+  const { atomicCodeFromKey, mergeLeavesAcrossSchemes } = await import('../components/student-progress/interventionSkillRollup');
+  assert.equal(atomicCodeFromKey('diagnostic:english-grade-7:eng.use-of-english.noun-phrase:eng.use-of-english.noun-phrase.possession'), 'eng.use-of-english.noun-phrase.possession');
+  assert.equal(atomicCodeFromKey('registry:bh-english-core-v1:eng.use-of-english.noun-phrase.possession'), 'eng.use-of-english.noun-phrase.possession');
+  assert.equal(skillAreaFromKey('registry:bh-english-core-v1:eng.reading.inference.attitude'), 'reading');
+
+  // Live shape on 2026-10-30: 3 items under the diagnostic key (recurring), 1 under the registry key.
+  const legacy = { ...leaf({ topic: 'Noun phrase control', skill: 'Possession and noun modification', key: 'use-of-english.noun-phrase/possession', evidence_items: 3, status: 'recurring', readiness: 'review_evidence' }), skill_key: 'diagnostic:english-grade-7:eng.use-of-english.noun-phrase:eng.use-of-english.noun-phrase.possession', exact_question_ids: ['q1', 'q2'] };
+  const canonical = { ...leaf({ topic: 'Noun phrase control', skill: 'Possession and noun modification', key: 'x/y' }), skill_key: 'registry:bh-english-core-v1:eng.use-of-english.noun-phrase.possession', exact_question_ids: ['q2', 'q3'] };
+
+  const merged = mergeLeavesAcrossSchemes([legacy, canonical]);
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0].skill_key, legacy.skill_key, 'the stronger (reviewable) leaf keeps its governed key');
+  assert.equal(merged[0].evidence_items, 4);
+  assert.deepEqual(merged[0].exact_question_ids, ['q1', 'q2', 'q3']);
+  assert.deepEqual(merged[0].merged_skill_keys, [legacy.skill_key, canonical.skill_key]);
+
+  const groups = rollUpRecommendations([legacy, canonical]);
+  assert.equal(groups.length, 1);
+  assert.equal(groups[0].leaves.length, 1);
+  assert.equal(groups[0].evidenceItems, 4);
+  assert.equal(groups[0].readiness, 'review_evidence');
 });

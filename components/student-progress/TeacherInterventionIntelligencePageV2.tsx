@@ -31,15 +31,22 @@ interface TeacherInterventionIntelligencePageProps {
   onCreateTargetedPractice?: (context: TargetedPracticeContext) => void;
 }
 
-// Feature flag for the skill-level roll-up view. Off by default; `?rollup=1` or the in-page
-// toggle turns it on, and the choice is remembered per browser. Presentation only — see
-// interventionSkillRollup.ts for the gate-preserving rules.
+// Skill-level roll-up view. On by default since 2026-10-30 (owner decision after reviewing it on
+// live students); `?rollup=0` or the in-page toggle switches back to the sub-skill view, and the
+// choice is remembered per browser. Presentation only — see interventionSkillRollup.ts for the
+// gate-preserving rules.
 const ROLLUP_STORAGE_KEY = 'bh.intervention.skillRollup';
+const ROLLUP_DEFAULT = true;
 const readRollupPreference = (params: URLSearchParams): boolean => {
   const fromUrl = params.get('rollup');
   if (fromUrl === '1' || fromUrl === 'true') return true;
   if (fromUrl === '0' || fromUrl === 'false') return false;
-  try { return window.localStorage.getItem(ROLLUP_STORAGE_KEY) === '1'; } catch { return false; }
+  try {
+    const stored = window.localStorage.getItem(ROLLUP_STORAGE_KEY);
+    if (stored === '1') return true;
+    if (stored === '0') return false;
+  } catch { /* fall through to default */ }
+  return ROLLUP_DEFAULT;
 };
 const writeRollupPreference = (value: boolean) => {
   try { window.localStorage.setItem(ROLLUP_STORAGE_KEY, value ? '1' : '0'); } catch { /* best effort */ }
@@ -243,7 +250,7 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
       <h3>{group.primarySkill}</h3>
       <p className="intervention-card-summary">{summary}</p>
       <div className="intervention-signal-row"><span>{group.evidenceItems} assessed evidence item{group.evidenceItems === 1 ? '' : 's'}</span><span>{group.leaves.length} sub-skill{group.leaves.length === 1 ? '' : 's'}</span><span>Last seen {fmt(group.lastObservedAt)}</span>{group.availableExactQuestions ? <span>{group.availableExactQuestions} exact practice questions</span> : null}</div>
-      <div className="intervention-targets intervention-targets--leaves">{group.leaves.map((leaf) => <span key={leaf.skill_key} className={leaf.readiness !== 'collect_evidence' ? 'is-qualifying' : undefined} title={leaf.skill_key}>{leaf.skill} · {leaf.evidence_items}</span>)}</div>
+      <div className="intervention-targets intervention-targets--leaves">{group.leaves.map((leaf) => <span key={leaf.skill_key} className={leaf.readiness !== 'collect_evidence' ? 'is-qualifying' : undefined} title={(leaf.merged_skill_keys || [leaf.skill_key]).join('\n')}>{leaf.skill} · {leaf.evidence_items}</span>)}</div>
       {group.unlockHint ? <div className="intervention-watch-note"><strong>What would unlock this</strong><span>{group.unlockHint}</span></div> : null}
       <div className="intervention-action intervention-action--clear">
         {group.readiness === 'review_evidence' ? <><span>{group.promotedByRollup ? 'Confirm the skill-level need, or pick a sub-skill.' : 'Review the evidence, then decide.'}</span><button onClick={() => openEvidenceReview(group.promotedByRollup ? { ...anchor, diagnostic_targets: group.diagnosticTargets.length ? group.diagnosticTargets : group.leaves.map((leaf) => leaf.skill) } : anchor)}>Review evidence</button></> : null}
@@ -251,7 +258,7 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
         {group.readiness === 'open_plan' ? <><span>Support is already being tracked below.</span><strong>Plan in progress</strong></> : null}
         {group.readiness === 'collect_evidence' ? <><span>Brains Heist will keep watching future assessed work.</span><strong>Keep monitoring</strong></> : null}
       </div>
-      <details className="intervention-reference"><summary>View sub-skill details</summary>{group.leaves.map((leaf) => <div key={leaf.skill_key} className="intervention-rollup-leaf"><strong>{leaf.skill}</strong><small>{schoolStatus(leaf.status)} · {leaf.evidence_items} item{leaf.evidence_items === 1 ? '' : 's'} · {leaf.readiness === 'ready' ? 'confirmed' : leaf.readiness === 'review_evidence' ? 'reviewable' : leaf.readiness === 'open_plan' ? 'plan open' : 'collecting'}{leaf.confidence?.band ? ` · confidence ${leaf.confidence.band}` : ''}</small>{leaf.evidence_examples[0] ? <span><del>{leaf.evidence_examples[0].original || 'Original'}</del><b aria-hidden="true">→</b><ins>{leaf.evidence_examples[0].better_version || 'Correction'}</ins></span> : null}</div>)}</details>
+      <details className="intervention-reference"><summary>View sub-skill details</summary>{group.leaves.map((leaf) => <div key={leaf.skill_key} className="intervention-rollup-leaf"><strong>{leaf.skill}</strong><small>{schoolStatus(leaf.status)} · {leaf.evidence_items} item{leaf.evidence_items === 1 ? '' : 's'} · {leaf.readiness === 'ready' ? 'confirmed' : leaf.readiness === 'review_evidence' ? 'reviewable' : leaf.readiness === 'open_plan' ? 'plan open' : 'collecting'}{leaf.confidence?.band ? ` · confidence ${leaf.confidence.band}` : ''}{leaf.merged_skill_keys ? ` · evidence pooled from ${leaf.merged_skill_keys.length} tracking keys` : ''}</small>{leaf.evidence_examples[0] ? <span><del>{leaf.evidence_examples[0].original || 'Original'}</del><b aria-hidden="true">→</b><ins>{leaf.evidence_examples[0].better_version || 'Correction'}</ins></span> : null}</div>)}</details>
     </article>;
   };
 
