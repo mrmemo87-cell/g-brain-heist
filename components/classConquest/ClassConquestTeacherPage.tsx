@@ -136,8 +136,8 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
         <section className="ccq-winners" aria-labelledby="ccq-winners-title">
           <div className="ccq-winners-head">
             <div>
-              <p className="ccq-eyebrow">{last.revealed ? 'Last week' : 'Sealed · students see this Monday 07:00'} · {lastMap.flag} {lastMap.name} · {weekLabel(last.week_start)}</p>
-              <h2 id="ccq-winners-title" className="font-heading">{last.winner_label} conquered {lastMap.name}</h2>
+              <p className="ccq-eyebrow">✅ Finished week · {weekLabel(last.week_start)} · {lastMap.flag} {lastMap.name}{last.revealed ? '' : ' · students see this Monday 07:00'}</p>
+              <h2 id="ccq-winners-title" className="font-heading">Week of {weekLabel(last.week_start)}: {last.winner_label} won</h2>
               <p className="ccq-sub">
                 {last.revealed
                   ? <>Hand out the certificates and run the reveal ceremony on the projector. Every member of {last.winner_label} has the silver badge; these five have gold.</>
@@ -149,7 +149,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
                 <button type="button" className={theme === 'light' ? 'is-active' : ''} onClick={() => setTheme('light')} aria-pressed={theme === 'light'}>☀️ Light · ink-friendly</button>
                 <button type="button" className={theme === 'dark' ? 'is-active' : ''} onClick={() => setTheme('dark')} aria-pressed={theme === 'dark'}>🌙 Dark</button>
               </div>
-              <button type="button" className="ccq-present" onClick={printLastWeek} disabled={last.top_students.length === 0}>🖨 Print {last.top_students.length} certificates + class certificate</button>
+              <button type="button" className="ccq-present" onClick={printLastWeek} disabled={last.top_students.length === 0}>🖨 Print certificates for {weekLabel(last.week_start)}</button>
               {printBlocked ? <p className="ccq-modal-warn" role="alert">Your browser blocked the certificate window. Allow pop-ups for Brains Heist and try again.</p> : null}
             </div>
           </div>
@@ -166,6 +166,12 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
             </ol>
           ) : <p className="ccq-sub">Nobody in {last.winner_label} finished a mission, so there are no individual certificates this week.</p>}
         </section>
+      ) : null}
+
+      {data && !sealed && map ? (
+        <p className="ccq-locked" role="status">
+          🔒 This week ({weekLabel(data.week_start)}) is still being played. Its certificates unlock automatically when the vault seals — Saturday 00:15 — so every mission up to Friday 23:59 counts.
+        </p>
       ) : null}
 
       {data && sealed && map && nextMap ? (
