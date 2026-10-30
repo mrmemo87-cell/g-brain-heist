@@ -181,7 +181,7 @@ const ConquestWeekendCard: React.FC<ConquestWeekendCardProps> = ({ data, map, ne
           <b>{t('Next: Operation {map}', { map: nextMap.name })}</b>
           <small>{t('{count} {unit}. Missions count from Monday. Study the map before your rivals do.', { count: nextMap.territories.length, unit: t(nextMap.unit) })}</small>
         </span>
-        <button type="button" className="ccq-hof" onClick={onOpenIntel}>🗺️ {t('Intel Room')}</button>
+        <button type="button" className="ccq-hof" onClick={onOpenIntel}>🗺️ {t('Map briefing')}</button>
       </div>
       <div className="ccq-actions">
         <button type="button" className="ccq-hof" onClick={onOpenHallOfFame}>🏆 {t('Hall of Fame')}</button>

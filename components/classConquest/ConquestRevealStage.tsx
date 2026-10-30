@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { addDays, CONQUEST_COLORS, mapById, mapForWeek, roleForRank, type ConquestResult } from '../../src/lib/classConquest';
 import { conquestBadgeSvg, weekLabel } from '../../src/lib/conquestCertificates';
@@ -46,7 +47,8 @@ const ConquestRevealStage: React.FC<ConquestRevealStageProps> = ({ result, onClo
   const finale = step >= total - 1;
   const weekend = result.weekend ?? null;
 
-  return (
+  if (typeof document === 'undefined') return null;
+  return createPortal(
     <div ref={stage} className="ccq-reveal" role="dialog" aria-modal="true" aria-label={`Class Conquest reveal · ${map.name}`} onClick={next}>
       <header className="ccq-reveal-head">
         <span>{map.flag} Operation {map.name} · Grade {result.grade} · {weekLabel(result.week_start)}</span>
@@ -115,7 +117,8 @@ const ConquestRevealStage: React.FC<ConquestRevealStageProps> = ({ result, onClo
         <span>{step + 1} / {total}</span>
         <span>← → to move · Esc to close</span>
       </footer>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

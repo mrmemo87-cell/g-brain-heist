@@ -118,7 +118,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
           </label>
         ) : null}
         <div className="ccq-toolbar-actions">
-          <button type="button" className="ccq-secondary" onClick={() => setIntelOpen(true)} disabled={!data}>🗺️ Intel Room · next map</button>
+          <button type="button" className="ccq-secondary" onClick={() => setIntelOpen(true)} disabled={!data}>🗺️ Next map briefing</button>
           <button type="button" className="ccq-secondary" onClick={() => setHistoryOpen(true)} disabled={!data}>🏆 Hall of Fame</button>
           {last && last.winner_label ? (
             <button type="button" className="ccq-secondary ccq-secondary--gold" onClick={() => setRevealing(true)}>🎬 Reveal ceremony</button>
@@ -284,7 +284,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
                 <span className="ccq-next-flag" aria-hidden="true">{nextMap.flag}</span>
                 <span>
                   <b>Next week: {nextMap.name}</b>
-                  <small>{nextMap.territories.length} {nextMap.unit} to conquer. Missions count from Monday — open the Intel Room to brief the class.</small>
+                  <small>{nextMap.territories.length} {nextMap.unit} to conquer. Missions count from Monday — open the map briefing to brief the class.</small>
                 </span>
               </div>
 

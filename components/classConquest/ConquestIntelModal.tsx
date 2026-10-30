@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../src/contexts/LanguageContext';
 import type { ConquestMap } from '../../src/lib/classConquest';
@@ -42,21 +43,27 @@ const ConquestIntelModal: React.FC<ConquestIntelModalProps> = ({ open, onClose, 
     const n = map.territories.length;
     return Object.fromEntries(map.territories.map((ter, i) => [ter.zoneId, i < Math.ceil(n / 3) ? 0 : i < Math.ceil((2 * n) / 3) ? 1 : 2]));
   }, [map]);
+  // The selected territory is painted white so it stands out on every tier (the map's own
+  // selection ring is yellow, invisible on gold). Small territories like Greater London need it.
   const zones = useMemo(() => Object.fromEntries(map.territories.map((ter) => [
-    ter.zoneId, { id: ter.zoneId, influence: { [TIERS[tierOf[ter.zoneId]].id]: 1 } },
-  ])), [map, tierOf]);
-  const clans = useMemo(() => Object.fromEntries(TIERS.map((tier) => [tier.id, { id: tier.id, name: tier.id, color: tier.color }])), []);
+    ter.zoneId, { id: ter.zoneId, influence: { [ter.zoneId === selected ? 'selected' : TIERS[tierOf[ter.zoneId]].id]: 1 } },
+  ])), [map, tierOf, selected]);
+  const clans = useMemo(() => ({
+    ...Object.fromEntries(TIERS.map((tier) => [tier.id, { id: tier.id, name: tier.id, color: tier.color }])),
+    selected: { id: 'selected', name: 'selected', color: '#f8fafc' },
+  }), []);
 
   if (!open) return null;
   const current = map.territories.find((ter) => ter.zoneId === selected) ?? map.territories[0];
   const total = map.territories.reduce((sum, ter) => sum + ter.value, 0);
 
-  return (
+  if (typeof document === 'undefined') return null;
+  return createPortal(
     <div className="ccq-modal-layer" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <div className="ccq-modal ccq-modal--wide" role="dialog" aria-modal="true" aria-labelledby="ccq-intel-title">
         <header className="ccq-modal-head">
           <div>
-            <p className="ccq-eyebrow ccq-eyebrow--light">{when === 'next' ? t('Intel Room · next week') : t('Intel Room · this week')}</p>
+            <p className="ccq-eyebrow ccq-eyebrow--light">{when === 'next' ? t('Next map briefing') : t('This week’s map')}</p>
             <h2 id="ccq-intel-title" className="font-heading">{map.flag} {t('Operation {map}', { map: map.name })}</h2>
             <p className="ccq-intel-sub">{t('{count} {unit} · {total} points on the table', { count: map.territories.length, unit: t(map.unit), total })}</p>
           </div>
@@ -105,7 +112,8 @@ const ConquestIntelModal: React.FC<ConquestIntelModalProps> = ({ open, onClose, 
           </ol>
         </section>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

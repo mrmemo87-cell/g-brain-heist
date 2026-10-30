@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../src/contexts/LanguageContext';
 import { fetchClassConquestHistory, type ClassConquestHistory } from '../../services/classConquestService';
@@ -63,7 +64,8 @@ const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClo
     setPrintBlocked(!ok);
   };
 
-  return (
+  if (typeof document === 'undefined') return null;
+  return createPortal(
     <div className="ccq-modal-layer" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <div className="ccq-modal" role="dialog" aria-modal="true" aria-labelledby="ccq-hof-title">
         <header className="ccq-modal-head">
@@ -186,7 +188,8 @@ const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClo
           </>
         ) : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

@@ -173,7 +173,7 @@ const ClassConquestCard: React.FC<ClassConquestCardProps> = ({ refreshKey = 0 })
           <b>{t('Next week: {map}', { map: nextMap.name })}</b>
           <small>{t('Unlocks Monday. Top five of the winning class get certificates.')}</small>
         </span>
-        <button type="button" className="ccq-hof" onClick={() => setIntelOpen(true)}>🗺️ {t('Intel Room')}</button>
+        <button type="button" className="ccq-hof" onClick={() => setIntelOpen(true)}>🗺️ {t('Map briefing')}</button>
       </div>
       <div className="ccq-actions">
         <button type="button" className="ccq-hof" onClick={() => setHistoryOpen(true)}>🏆 {t('Hall of Fame')}</button>
