@@ -1,19 +1,20 @@
 import React, { Suspense, useMemo } from 'react';
-import type { ConquestClass } from '../../src/lib/classConquest';
+import type { ConquestClass, ConquestMap as ConquestMapDef } from '../../src/lib/classConquest';
 
-// Borrowed from Clan Wars: the same Kyrgyzstan oblast map, loaded only when needed.
+// Borrowed from Clan Wars: the same country maps (public/maps/*.svg), loaded only when needed.
 const ClanTerritoryMap = React.lazy(() =>
   import('../../src/features/clanTerritory/components/ClanTerritoryMap').then((m) => ({ default: m.ClanTerritoryMap })),
 );
 
 interface ConquestMapProps {
+  map: ConquestMapDef;
   classes: ConquestClass[];
   owners: Record<string, string | null>;
   colors: Record<string, string>;
   label: string;
 }
 
-const ConquestMap: React.FC<ConquestMapProps> = ({ classes, owners, colors, label }) => {
+const ConquestMap: React.FC<ConquestMapProps> = ({ map, classes, owners, colors, label }) => {
   const zones = useMemo(() => Object.fromEntries(Object.entries(owners).map(([zoneId, owner]) => [
     zoneId, { id: zoneId, influence: owner ? { [owner]: 1 } : {} },
   ])), [owners]);
@@ -24,7 +25,7 @@ const ConquestMap: React.FC<ConquestMapProps> = ({ classes, owners, colors, labe
   return (
     <div className="conquest-map" role="img" aria-label={label}>
       <Suspense fallback={<div className="conquest-map-loading" aria-hidden="true" />}>
-        <ClanTerritoryMap mapId="kyrgyzstan" zones={zones} clans={clans} hideHeader hideLegend />
+        <ClanTerritoryMap key={map.mapId} mapId={map.mapId} zones={zones} clans={clans} hideHeader hideLegend />
       </Suspense>
     </div>
   );

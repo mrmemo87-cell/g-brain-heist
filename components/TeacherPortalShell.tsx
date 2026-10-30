@@ -244,7 +244,7 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
               : activeTool === 'academic-profiles'
                 ? <TeacherAcademicProfilesPage onBack={closeAcademicTool} />
                 : activeTool === 'class-conquest'
-                ? <ClassConquestTeacherPage onBack={closeAcademicTool} />
+                ? <ClassConquestTeacherPage onBack={closeAcademicTool} schoolId={props.profile.school_id} issuer={props.profile.school_name ?? undefined} schoolLogoUrl={props.profile.school_logo_url} />
                 : activeTool === 'follow-ups'
                 ? <TeacherWeeklyFollowUpsPage onBack={closeAcademicTool} onPlanPractice={openInterventionsForStudent} />
                 : <TeacherInterventionIntelligencePage onBack={closeAcademicTool} onCreateTargetedPractice={openTargetedPractice} />}
