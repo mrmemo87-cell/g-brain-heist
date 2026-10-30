@@ -10,8 +10,10 @@ import './ClassConquest.css';
 
 interface ClassConquestTeacherPageProps {
   onBack?: () => void;
-  /** Printed in the certificate footer (usually the school name). */
+  /** School name, printed on certificates. */
   issuer?: string;
+  /** School crest for the certificate header. */
+  schoolLogoUrl?: string | null;
 }
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -22,7 +24,9 @@ const REASONS: Record<string, string> = {
   not_allowed: 'Class Conquest is available to teachers and school admins.',
 };
 
-const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onBack, issuer }) => {
+const brandLogoUrl = () => (typeof window === 'undefined' ? null : `${window.location.origin}/logo.png`);
+
+const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onBack, issuer, schoolLogoUrl }) => {
   const [grade, setGrade] = useState<string | null>(null);
   const [grades, setGrades] = useState<string[]>([]);
   const [data, setData] = useState<ClassConquestData | null>(null);
@@ -82,7 +86,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
 
   const printLastWeek = () => {
     if (!last) return;
-    setPrintBlocked(!openCertificatePrintWindow(buildCertificateDocument({ result: last, issuer, theme })));
+    setPrintBlocked(!openCertificatePrintWindow(buildCertificateDocument({ result: last, issuer, schoolLogoUrl, brandLogoUrl: brandLogoUrl(), theme })));
   };
   const sealed = data?.phase === 'sealed';
   const weekendLabel = (id: string | null) => weekend?.classes.find((c) => c.class_id === id)?.label ?? '';
@@ -285,7 +289,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
         </div>
       ) : null}
 
-      <ConquestHistoryModal open={historyOpen} onClose={() => setHistoryOpen(false)} grade={grade} issuer={issuer} theme={theme} />
+      <ConquestHistoryModal open={historyOpen} onClose={() => setHistoryOpen(false)} grade={grade} issuer={issuer} schoolLogoUrl={schoolLogoUrl} theme={theme} />
       {nextMap ? <ConquestIntelModal open={intelOpen} onClose={() => setIntelOpen(false)} map={nextMap} when="next" /> : null}
       {revealing && last ? <ConquestRevealStage result={last} onClose={() => setRevealing(false)} /> : null}
     </div>

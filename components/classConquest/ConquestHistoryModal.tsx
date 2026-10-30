@@ -9,8 +9,9 @@ interface ConquestHistoryModalProps {
   onClose: () => void;
   /** Teachers pick a grade; students always see their own. */
   grade?: string | null;
-  /** Shown in the certificate footer. */
+  /** School name and crest for certificates. */
   issuer?: string;
+  schoolLogoUrl?: string | null;
   theme?: CertificateTheme;
 }
 
@@ -20,7 +21,7 @@ function labelColors(results: ConquestResult[]): Record<string, string> {
   return Object.fromEntries(labels.map((label, i) => [label, CONQUEST_COLORS[i % CONQUEST_COLORS.length]]));
 }
 
-const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClose, grade = null, issuer, theme = 'light' }) => {
+const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClose, grade = null, issuer, schoolLogoUrl, theme = 'light' }) => {
   const { t } = useLanguage();
   const [history, setHistory] = useState<ClassConquestHistory | null>(null);
   const [loading, setLoading] = useState(false);
@@ -58,7 +59,7 @@ const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClo
   if (!open) return null;
 
   const print = (result: ConquestResult) => {
-    const ok = openCertificatePrintWindow(buildCertificateDocument({ result, issuer, theme }));
+    const ok = openCertificatePrintWindow(buildCertificateDocument({ result, issuer, schoolLogoUrl, brandLogoUrl: typeof window === 'undefined' ? null : `${window.location.origin}/logo.png`, theme }));
     setPrintBlocked(!ok);
   };
 

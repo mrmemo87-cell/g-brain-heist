@@ -7,7 +7,7 @@ import {
   type ConquestClass, type ConquestResult,
 } from '../src/lib/classConquest.js';
 import { CONQUEST_RULES, TERRITORY_INTEL } from '../src/lib/conquestIntel.js';
-import { buildCertificateDocument, conquestBadgeSvg, weekLabel } from '../src/lib/conquestCertificates.js';
+import { buildCertificateDocument, certificateId, conquestBadgeSvg, weekLabel } from '../src/lib/conquestCertificates.js';
 
 const team = (id: string, size: number, done: number[], mine = false): ConquestClass => ({
   class_id: id, label: id, size, is_mine: mine,
@@ -158,6 +158,14 @@ test('certificates: one page per winner plus the class page, names escaped, badg
   assert.match(html, /Test School/);
   assert.equal(weekLabel('2026-10-26'), '26 Oct – 30 Oct 2026', 'Monday to Friday');
   assert.match(buildCertificateDocument({ result: r, theme: 'light' }), /<body class="theme-light">/);
+  const branded = buildCertificateDocument({ result: r, issuer: 'Bishkek International School', schoolLogoUrl: 'https://cdn.example/crest.png', brandLogoUrl: 'https://app.example/logo.png' });
+  assert.match(branded, /<img src="https:\/\/cdn\.example\/crest\.png" alt="">/, 'school crest in the header');
+  assert.match(branded, /<img src="https:\/\/app\.example\/logo\.png" alt="Brains Heist">/, 'Brains Heist logo in the header');
+  assert.match(branded, /Class Teacher[\s\S]*Head of School/, 'two signature lines');
+  assert.match(html, /class="monogram"/, 'no crest → monogram fallback');
+  assert.equal(certificateId(r, 's1'), certificateId(r, 's1'), 'certificate numbers are stable');
+  assert.notEqual(certificateId(r, 's1'), certificateId(r, 's2'));
+  assert.match(certificateId(r, 's1'), /^BH-261026-[0-9A-Z]{7}$/);
   assert.match(html, /<body class="theme-dark">/);
   const gold = conquestBadgeSvg({ kind: 'gold', mapId: 'unitedkingdom', rank: 3 });
   assert.match(gold, /#3/);
