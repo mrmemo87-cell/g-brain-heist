@@ -1465,7 +1465,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   // Load Cambridge test scores for teacher's school (school-isolated)
-  const loadCambridgeScores = async () => {
+  const loadCambridgeScores = async (options: { silent?: boolean } = {}) => {
     setCambridgeLoading(true);
     try {
       // Use hardened RPC only (no direct table fallback)
@@ -1486,10 +1486,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       console.error('Failed to fetch Cambridge scores:', error);
       setCambridgeScores([]);
       calculateCambridgeStats([]);
-      brainsAlert(
-        'Unable to load Cambridge scores because the secure school-scoped RPC failed. Please contact your admin.',
-        'error'
-      );
+      if (!options.silent) {
+        brainsAlert(
+          'Unable to load Cambridge scores because the secure school-scoped RPC failed. Please contact your admin.',
+          'error'
+        );
+      }
     } finally {
       setCambridgeLoading(false);
     }
@@ -3448,6 +3450,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             });
         });
 
+      // Cambridge scores feed the dashboard's Class Health averages and
+      // at-risk list, so hydrate them at boot rather than only on tab open.
+      void loadCambridgeScores({ silent: true });
+
       void Promise.all([
         SchoolAdminService.getTeacherAllocatedClasses(),
         profile.school_id ? fetchTeacherTeachingGroups(profile.school_id) : Promise.resolve([] as SchoolSubjectGroup[]),
@@ -4507,28 +4513,76 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     ).length;
     const studentsWithoutClass = availableStudents.filter((student) => !student.batch).length;
 
-    const classHealthRows = myClasses.map((classCode) => {
-      const classStudents = availableStudents.filter((student) => student.batch === classCode);
-      const classAssignments = assignments.filter((assignment) => assignment.batch === classCode);
-      const totalAssigned = classAssignments.reduce((sum, assignment) => sum + (assignment.student_count || 0), 0);
-      const totalCompleted = classAssignments.reduce((sum, assignment) => sum + (assignment.completed_count || 0), 0);
+    // Class Health rows. Students, assignments and Cambridge scores are all keyed
+    // by class_code, while teaching groups are keyed by group id/name, so each
+    // row carries both: the label shown to the teacher and the set of student
+    // ids used for matching. Unmarked writing submissions are excluded from the
+    // average because their percentage is not a real score yet.
+    const LOW_COMPLETION_THRESHOLD = 60;
+    const isScoredCambridgeAttempt = (score: any) => score?.answers?.requires_marking !== true && score?.percentage !== null && score?.percentage !== undefined;
+    const isAssignmentInProgress = (assignment: { student_count?: number; completed_count?: number }) =>
+      (assignment.student_count || 0) > 0 && (assignment.completed_count || 0) < (assignment.student_count || 0);
+
+    type ClassHealthSource = { key: string; label: string; studentIds: Set<string>; assignmentsForRow: typeof assignments };
+    const classHealthSources: ClassHealthSource[] = teachingGroups.length
+      ? teachingGroups
+          .filter((group) => group.status !== 'archived')
+          .map((group) => {
+            const roster = teachingGroupRosters[group.id] || [];
+            const studentIds = new Set(roster.map((member) => member.student_id));
+            const rosterClassCodes = new Set(roster.map((member) => member.class_code).filter(Boolean));
+            if (group.registrationClassId) {
+              availableStudents.forEach((student) => {
+                const studentClassId = (student as StudentForAssignment & { class_id?: string | null }).class_id;
+                if (studentClassId && studentClassId === group.registrationClassId) studentIds.add(student.id);
+              });
+            }
+            return {
+              key: group.id,
+              label: group.name,
+              studentIds,
+              assignmentsForRow: assignments.filter((assignment) =>
+                assignment.subject_group_id
+                  ? assignment.subject_group_id === group.id
+                  : !!assignment.batch && rosterClassCodes.has(assignment.batch)
+              ),
+            };
+          })
+      : myClasses.map((classCode) => ({
+          key: classCode,
+          label: classCode,
+          studentIds: new Set(availableStudents.filter((student) => student.batch === classCode).map((student) => student.id)),
+          assignmentsForRow: assignments.filter((assignment) => assignment.batch === classCode),
+        }));
+
+    const classHealthRows = classHealthSources.map(({ key, label, studentIds, assignmentsForRow }) => {
+      const totalAssigned = assignmentsForRow.reduce((sum, assignment) => sum + (assignment.student_count || 0), 0);
+      const totalCompleted = assignmentsForRow.reduce((sum, assignment) => sum + Math.min(assignment.completed_count || 0, assignment.student_count || 0), 0);
       const completionRate = totalAssigned > 0 ? Math.round((totalCompleted / totalAssigned) * 100) : null;
 
-      const classCambridgeScores = cambridgeScores.filter((score) => (score.student_class || 'Unknown') === classCode);
+      const classCambridgeScores = cambridgeScores.filter((score) =>
+        isScoredCambridgeAttempt(score) && (
+          (score.student_id && studentIds.has(score.student_id))
+          || (!score.student_id && score.student_class === label)
+        )
+      );
       const averageScore = classCambridgeScores.length > 0
-        ? Math.round(classCambridgeScores.reduce((sum, score) => sum + (score.percentage || 0), 0) / classCambridgeScores.length)
+        ? Math.round(classCambridgeScores.reduce((sum, score) => sum + Number(score.percentage || 0), 0) / classCambridgeScores.length)
         : null;
 
       return {
-        classCode,
-        studentCount: classStudents.length,
-        assignmentsInProgress: classAssignments.filter((assignment) => assignment.completed_count < assignment.student_count).length,
+        key,
+        classCode: label,
+        studentIds,
+        studentCount: studentIds.size,
+        assignmentsInProgress: assignmentsForRow.filter(isAssignmentInProgress).length,
         completionRate,
         averageScore,
       };
     }).sort((a, b) => (a.completionRate ?? Number.POSITIVE_INFINITY) - (b.completionRate ?? Number.POSITIVE_INFINITY));
 
-    const lowCompletionClasses = classHealthRows.filter((row) => row.completionRate !== null && row.completionRate > 0 && row.completionRate < 60);
+    // 0% completion is the unhealthiest case, so it is deliberately included.
+    const lowCompletionClasses = classHealthRows.filter((row) => row.completionRate !== null && row.completionRate < LOW_COMPLETION_THRESHOLD);
 
     const studentRiskMap = new Map<string, { name: string; batch: string; reasons: string[]; riskScore: number }>();
     const markRisk = (studentId: string, name: string, batch: string, reason: string, weight: number) => {
@@ -4549,7 +4603,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     lowCompletionClasses.forEach((row) => {
       availableStudents
-        .filter((student) => student.batch === row.classCode)
+        .filter((student) => row.studentIds.has(student.id))
         .forEach((student) => {
           markRisk(
             student.id,
@@ -4581,7 +4635,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     const topIssues: string[] = [];
     if (!teacherHasClassAllocations) topIssues.push('No class allocations are configured for this teacher account.');
-    if (lowCompletionClasses.length > 0) topIssues.push(`${lowCompletionClasses.length} class(es) are below 60% assignment completion.`);
+    if (lowCompletionClasses.length > 0) topIssues.push(`${lowCompletionClasses.length} class(es) are below ${LOW_COMPLETION_THRESHOLD}% assignment completion.`);
     if (studentsWithoutClass > 0) topIssues.push(`${studentsWithoutClass} student(s) have no class mapping.`);
     if (hasAssignmentSuccess && successRate < 65) topIssues.push(`Assignment success rate is ${successRate}% (below target).`);
     if (pendingWriting > 0) topIssues.push(`${pendingWriting} Cambridge writing submission(s) still need marking.`);
@@ -4895,7 +4949,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <span>🩺</span> Class Health Dashboard
           </h3>
           {classHealthRows.length === 0 ? (
-            <p className="text-sm text-slate-500">No class health data yet. Class metrics will appear after assignments and submissions.</p>
+            <p className="text-sm text-slate-500">No classes are allocated to your account yet. Ask your school admin to add you to a teaching group, and class metrics will appear here.</p>
           ) : (
             <div className="teacher-table-container">
               <table className="teacher-table teacher-responsive-summary-table">
@@ -4910,14 +4964,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 </thead>
                 <tbody>
                   {classHealthRows.map((row) => (
-                    <tr key={row.classCode}>
+                    <tr key={row.key}>
                       <td data-label="Class" style={{ fontWeight: 600 }}>{row.classCode}</td>
                       <td data-label="Students" style={{ textAlign: 'center' }}>{row.studentCount}</td>
                       <td data-label="In progress" style={{ textAlign: 'center' }}>{row.assignmentsInProgress}</td>
                       <td data-label="Completion" style={{ textAlign: 'center' }}>
                         {row.completionRate === null
                           ? <span className="teacher-badge neutral">No data</span>
-                          : <span className={`teacher-badge ${row.completionRate >= 75 ? 'success' : row.completionRate >= 50 ? 'warning' : 'danger'}`}>
+                          : <span className={`teacher-badge ${row.completionRate >= 75 ? 'success' : row.completionRate >= LOW_COMPLETION_THRESHOLD ? 'warning' : 'danger'}`}>
                               {row.completionRate}%
                             </span>}
                       </td>
