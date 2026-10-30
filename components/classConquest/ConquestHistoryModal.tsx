@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../src/contexts/LanguageContext';
 import { fetchClassConquestHistory, type ClassConquestHistory } from '../../services/classConquestService';
 import { allTimeMasterminds, CONQUEST_COLORS, mapById, roleForRank, winStreak, type ConquestResult } from '../../src/lib/classConquest';
-import { buildCertificateDocument, conquestBadgeSvg, openCertificatePrintWindow, weekLabel } from '../../src/lib/conquestCertificates';
+import { buildCertificateDocument, conquestBadgeSvg, openCertificatePrintWindow, weekLabel, type CertificateTheme } from '../../src/lib/conquestCertificates';
 
 interface ConquestHistoryModalProps {
   open: boolean;
@@ -11,6 +11,7 @@ interface ConquestHistoryModalProps {
   grade?: string | null;
   /** Shown in the certificate footer. */
   issuer?: string;
+  theme?: CertificateTheme;
 }
 
 /** Stable colours per class label across all weeks (alphabetical, like the live map). */
@@ -19,7 +20,7 @@ function labelColors(results: ConquestResult[]): Record<string, string> {
   return Object.fromEntries(labels.map((label, i) => [label, CONQUEST_COLORS[i % CONQUEST_COLORS.length]]));
 }
 
-const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClose, grade = null, issuer }) => {
+const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClose, grade = null, issuer, theme = 'light' }) => {
   const { t } = useLanguage();
   const [history, setHistory] = useState<ClassConquestHistory | null>(null);
   const [loading, setLoading] = useState(false);
@@ -57,7 +58,7 @@ const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClo
   if (!open) return null;
 
   const print = (result: ConquestResult) => {
-    const ok = openCertificatePrintWindow(buildCertificateDocument({ result, issuer }));
+    const ok = openCertificatePrintWindow(buildCertificateDocument({ result, issuer, theme }));
     setPrintBlocked(!ok);
   };
 
@@ -84,8 +85,8 @@ const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClo
                 <h3>{t('Your badges')}</h3>
                 <ul>
                   {history.badges.map((b) => (
-                    <li key={`${b.week_start}-${b.kind}`} title={`${mapById(b.map_id).name} · ${weekLabel(b.week_start)}`}>
-                      <span dangerouslySetInnerHTML={{ __html: conquestBadgeSvg({ kind: b.kind, mapId: b.map_id, rank: b.rank, caption: b.kind === 'gold' && b.rank ? roleForRank(b.rank).toUpperCase() : (b.class_label ?? '').toUpperCase(), size: 64 }) }} />
+                    <li key={`${b.week_start}-${b.kind}`} title={`${mapById(b.map_id).name} · ${weekLabel(b.week_start)}${b.kind === 'oracle' ? ` · ${t('Oracle')}` : ''}`}>
+                      <span dangerouslySetInnerHTML={{ __html: conquestBadgeSvg({ kind: b.kind, mapId: b.map_id, rank: b.rank, caption: b.kind === 'gold' && b.rank ? roleForRank(b.rank).toUpperCase() : b.kind === 'oracle' ? 'ORACLE' : (b.class_label ?? '').toUpperCase(), size: 64 }) }} />
                     </li>
                   ))}
                 </ul>
@@ -140,6 +141,12 @@ const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClo
                                 </li>
                               ))}
                             </ol>
+                          ) : null}
+                          {r.weekend?.raid_champion_label || (r.weekend?.oracles ?? 0) > 0 ? (
+                            <p className="ccq-week-extras">
+                              {r.weekend?.raid_champion_label ? <span>⚔️ {t('Border Raid champions: {class}', { class: r.weekend.raid_champion_label })}</span> : null}
+                              {(r.weekend?.oracles ?? 0) > 0 ? <span>🔮 {t('{count} Oracles', { count: r.weekend!.oracles })}</span> : null}
+                            </p>
                           ) : null}
                           <details className="ccq-week-standings">
                             <summary>{t('Standings')}</summary>

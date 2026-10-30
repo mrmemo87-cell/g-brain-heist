@@ -141,6 +141,49 @@ export function weekStartOf(iso: string): string {
 
 export const addDays = (iso: string, days: number) => isoDate(utcDate(iso) + days * DAY_MS);
 
+/** Days that score: Monday to Friday. The vault seals Friday night; the weekend is for suspense. */
+export const SCORING_DAYS = 5;
+
+export type ConquestPhase = 'battle' | 'sealed';
+
+/** Mon–Fri the battle is on; Sat–Sun the result is sealed in the vault until Monday. */
+export function phaseFor(iso: string): ConquestPhase {
+  const dow = (new Date(utcDate(iso)).getUTCDay() + 6) % 7; // Mon = 0
+  return dow >= SCORING_DAYS ? 'sealed' : 'battle';
+}
+
+/** Monday 07:00 Bishkek after the given week — when students learn who won. */
+export const revealAtIso = (weekStart: string) => `${addDays(weekStart, 7)}T07:00:00+06:00`;
+/** Friday 23:59:59 Bishkek — when the vault seals. */
+export const sealsAtIso = (weekStart: string) => `${addDays(weekStart, SCORING_DAYS - 1)}T23:59:59+06:00`;
+
+/** "1d 14h 02m" / "03:12:44" until the vault opens. */
+export function countdownLabel(ms: number): string {
+  if (ms <= 0) return '00:00:00';
+  const total = Math.floor(ms / 1000);
+  const days = Math.floor(total / 86_400);
+  const h = Math.floor((total % 86_400) / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const two = (n: number) => String(n).padStart(2, '0');
+  return days > 0 ? `${days}d ${two(h)}h ${two(m)}m` : `${two(h)}:${two(m)}:${two(s)}`;
+}
+
+/** Preset chants for the weekend Hype Wall: no free text, so it stays safe for a grade-7 crowd. */
+export const CHEER_CODES = ['all_the_way', 'unstoppable', 'gg', 'next_map', 'respect', 'comeback', 'mastermind', 'sweating'] as const;
+export type CheerCode = (typeof CHEER_CODES)[number];
+/** English message ids for each chant; {class} is the class the chant is aimed at. */
+export const CHEER_TEXT = {
+  all_the_way: '{class} all the way! 🔥',
+  unstoppable: 'Nobody stops {class} 💪',
+  gg: 'GG {class}, good fight 🤝',
+  next_map: 'See you on the next map, {class} 🗺️',
+  respect: 'Respect to {class} 🫡',
+  comeback: 'The {class} comeback is coming 🚀',
+  mastermind: '{class} has the real Mastermind 🧠',
+  sweating: 'Vault is sealed… {class} is sweating 😅',
+} as const satisfies Record<CheerCode, string>;
+
 /** Which map a given week is fought on. Accepts any date in the week. */
 export function mapForWeek(iso: string): ConquestMap {
   const weeks = Math.round((utcDate(weekStartOf(iso)) - utcDate(SEASON_ANCHOR)) / (7 * DAY_MS));
@@ -292,6 +335,18 @@ export function classColors(classes: ConquestClass[]): Record<string, string> {
 
 export interface ConquestStanding { class_id: string; label: string; size: number; power: number; missions: number; rank: number }
 export interface ConquestWinner { student_id: string; name: string; avatar_url: string | null; missions: number; correct: number; rank: number }
+export interface RaidStanding { class_id: string; label: string; wins: number; raids: number }
+export interface ClassTally { class_id: string; label: string; count: number }
+/** What happened in the sealed weekend between Friday night and the Monday reveal. */
+export interface WeekendSnapshot {
+  raids: RaidStanding[];
+  raid_champion_class_id: string | null;
+  raid_champion_label: string | null;
+  predictions: ClassTally[];
+  cheers: ClassTally[];
+  /** Students who predicted the winner correctly. */
+  oracles: number;
+}
 export interface ConquestResult {
   week_start: string;
   map_id: string;
@@ -300,6 +355,7 @@ export interface ConquestResult {
   winner_label: string | null;
   standings: ConquestStanding[];
   top_students: ConquestWinner[];
+  weekend?: WeekendSnapshot | null;
 }
 
 /** Consecutive wins by the current champion, counting back from the latest week. */

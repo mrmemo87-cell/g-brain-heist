@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { fetchClassConquest, type ClassConquestData } from '../../services/classConquestService';
-import { buildConquest, classColors, dayPower, mapById, roleForRank } from '../../src/lib/classConquest';
-import { buildCertificateDocument, conquestBadgeSvg, openCertificatePrintWindow, weekLabel } from '../../src/lib/conquestCertificates';
+import { fetchClassConquest, fetchClassConquestWeekend, type ClassConquestData, type ClassConquestWeekend } from '../../services/classConquestService';
+import { buildConquest, CHEER_TEXT, classColors, CONQUEST_COLORS, dayPower, mapById, roleForRank } from '../../src/lib/classConquest';
+import { buildCertificateDocument, conquestBadgeSvg, openCertificatePrintWindow, weekLabel, type CertificateTheme } from '../../src/lib/conquestCertificates';
 import ConquestMap from './ConquestMap';
 import ConquestHistoryModal from './ConquestHistoryModal';
+import ConquestIntelModal from './ConquestIntelModal';
+import ConquestRevealStage from './ConquestRevealStage';
 import './ClassConquest.css';
 
 interface ClassConquestTeacherPageProps {
@@ -28,7 +30,11 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
   const [loading, setLoading] = useState(true);
   const [presenting, setPresenting] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [intelOpen, setIntelOpen] = useState(false);
+  const [revealing, setRevealing] = useState(false);
   const [printBlocked, setPrintBlocked] = useState(false);
+  const [theme, setTheme] = useState<CertificateTheme>('light');
+  const [weekend, setWeekend] = useState<ClassConquestWeekend | null>(null);
   const stage = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async (nextGrade: string | null) => {
@@ -43,6 +49,12 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
   }, []);
 
   useEffect(() => { void load(null); }, [load]);
+  useEffect(() => {
+    if (!data || data.phase !== 'sealed') { setWeekend(null); return; }
+    let cancelled = false;
+    void fetchClassConquestWeekend(data.grade).then((w) => { if (!cancelled) setWeekend(w); });
+    return () => { cancelled = true; };
+  }, [data]);
 
   useEffect(() => {
     const onChange = () => setPresenting(document.fullscreenElement === stage.current);
@@ -70,8 +82,11 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
 
   const printLastWeek = () => {
     if (!last) return;
-    setPrintBlocked(!openCertificatePrintWindow(buildCertificateDocument({ result: last, issuer })));
+    setPrintBlocked(!openCertificatePrintWindow(buildCertificateDocument({ result: last, issuer, theme })));
   };
+  const sealed = data?.phase === 'sealed';
+  const weekendLabel = (id: string | null) => weekend?.classes.find((c) => c.class_id === id)?.label ?? '';
+  const weekendColors = useMemo(() => Object.fromEntries([...(weekend?.classes ?? [])].sort((a, b) => a.label.localeCompare(b.label)).map((c, i) => [c.class_id, CONQUEST_COLORS[i % CONQUEST_COLORS.length]])), [weekend]);
 
   return (
     <div className="ccq-teacher">
@@ -80,7 +95,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
         <div>
           <p className="ccq-eyebrow">Weekly class battle · a new map every week</p>
           <h1 className="font-heading">Class Conquest</h1>
-          <p className="ccq-sub">Classes in the same grade win territory by finishing the daily mission at home. Show the map in class to start the week; on Monday the top five of the winning class get certificates and badges.</p>
+          <p className="ccq-sub">Classes in the same grade win territory by finishing the daily mission at home, Monday to Friday. The vault seals Friday night; students learn the winner Monday 07:00. Print certificates over the weekend and run the reveal ceremony on the projector Monday.</p>
         </div>
       </header>
 
@@ -94,8 +109,12 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
           </label>
         ) : null}
         <div className="ccq-toolbar-actions">
+          <button type="button" className="ccq-secondary" onClick={() => setIntelOpen(true)} disabled={!data}>🗺️ Intel Room · next map</button>
           <button type="button" className="ccq-secondary" onClick={() => setHistoryOpen(true)} disabled={!data}>🏆 Hall of Fame</button>
-          <button type="button" className="ccq-present" onClick={() => void present()} disabled={!data}>
+          {last && last.winner_label ? (
+            <button type="button" className="ccq-secondary ccq-secondary--gold" onClick={() => setRevealing(true)}>🎬 Reveal ceremony</button>
+          ) : null}
+          <button type="button" className="ccq-present" onClick={() => void present()} disabled={!data || sealed}>
             {presenting ? 'Exit projector' : 'Show on projector'}
           </button>
         </div>
@@ -108,11 +127,19 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
         <section className="ccq-winners" aria-labelledby="ccq-winners-title">
           <div className="ccq-winners-head">
             <div>
-              <p className="ccq-eyebrow">Last week · {lastMap.flag} {lastMap.name} · {weekLabel(last.week_start)}</p>
+              <p className="ccq-eyebrow">{last.revealed ? 'Last week' : 'Sealed · students see this Monday 07:00'} · {lastMap.flag} {lastMap.name} · {weekLabel(last.week_start)}</p>
               <h2 id="ccq-winners-title" className="font-heading">{last.winner_label} conquered {lastMap.name}</h2>
-              <p className="ccq-sub">Print the certificates, hand them out in class, and announce next week’s map. Every member of {last.winner_label} already has the silver badge; these five have gold.</p>
+              <p className="ccq-sub">
+                {last.revealed
+                  ? <>Hand out the certificates and run the reveal ceremony on the projector. Every member of {last.winner_label} has the silver badge; these five have gold.</>
+                  : <>Only teachers can see this until Monday. Print the certificates now so they are ready for the ceremony; students are busy predicting, raiding and cheering.</>}
+              </p>
             </div>
             <div className="ccq-winners-actions">
+              <div className="ccq-theme" role="group" aria-label="Certificate theme">
+                <button type="button" className={theme === 'light' ? 'is-active' : ''} onClick={() => setTheme('light')} aria-pressed={theme === 'light'}>☀️ Light · ink-friendly</button>
+                <button type="button" className={theme === 'dark' ? 'is-active' : ''} onClick={() => setTheme('dark')} aria-pressed={theme === 'dark'}>🌙 Dark</button>
+              </div>
               <button type="button" className="ccq-present" onClick={printLastWeek} disabled={last.top_students.length === 0}>🖨 Print {last.top_students.length} certificates + class certificate</button>
               {printBlocked ? <p className="ccq-modal-warn" role="alert">Your browser blocked the certificate window. Allow pop-ups for Brains Heist and try again.</p> : null}
             </div>
@@ -132,11 +159,70 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
         </section>
       ) : null}
 
-      {data && view && map && nextMap ? (
+      {data && sealed && map && nextMap ? (
+        <section className="ccq-pulse" aria-labelledby="ccq-pulse-title">
+          <div>
+            <p className="ccq-eyebrow">Weekend pulse · the vault is sealed</p>
+            <h2 id="ccq-pulse-title" className="font-heading">🔒 Grade {data.grade} is waiting for Monday</h2>
+            <p className="ccq-sub">Students cannot see standings until the reveal. Meanwhile they predict the winner, chant on the Hype Wall, and raid rival classes in PvP (wins against other classes count until Sunday midnight).</p>
+          </div>
+          {weekend ? (
+            <div className="ccq-pulse-grid">
+              <div className="ccq-pulse-card">
+                <h3>🔮 Predictions</h3>
+                {weekend.predictions.length === 0 ? <p className="ccq-sub">No picks yet.</p> : (
+                  <ul className="ccq-tally">
+                    {weekend.classes.map((c) => {
+                      const n = weekend.predictions.find((p) => p.class_id === c.class_id)?.count ?? 0;
+                      const total = weekend.predictions.reduce((s, p) => s + p.count, 0) || 1;
+                      return (
+                        <li key={c.class_id}>
+                          <span className="ccq-standing-label"><span className="ccq-swatch" style={{ background: weekendColors[c.class_id] }} aria-hidden="true" />{c.label}</span>
+                          <span className="ccq-bar" aria-hidden="true"><span style={{ width: `${Math.round((100 * n) / total)}%`, background: weekendColors[c.class_id] }} /></span>
+                          <span className="ccq-standing-power">{n}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+              <div className="ccq-pulse-card">
+                <h3>⚔️ Border Raids</h3>
+                {!weekend.raids || weekend.raids.classes.every((c) => c.raids === 0) ? <p className="ccq-sub">No raids yet.</p> : (
+                  <ul className="ccq-tally">
+                    {weekend.raids.classes.map((c) => (
+                      <li key={c.class_id}>
+                        <span className="ccq-standing-label"><span className="ccq-swatch" style={{ background: weekendColors[c.class_id] }} aria-hidden="true" />{c.label}</span>
+                        <span className="ccq-bar" aria-hidden="true"><span style={{ width: `${Math.round((100 * c.wins) / Math.max(1, ...weekend.raids!.classes.map((x) => x.wins)))}%`, background: weekendColors[c.class_id] }} /></span>
+                        <span className="ccq-standing-power">{c.wins} wins / {c.raids}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div className="ccq-pulse-card ccq-pulse-card--wide">
+                <h3>📣 Hype Wall · {weekend.cheers.length} recent chants</h3>
+                {weekend.cheers.length === 0 ? <p className="ccq-sub">Quiet so far.</p> : (
+                  <ul className="ccq-wall ccq-wall--light">
+                    {weekend.cheers.slice(0, 10).map((c, i) => (
+                      <li key={`${c.at}-${i}`} style={{ borderColor: weekendColors[c.class_id] }}>
+                        <b>{c.name}</b>{c.from_class_id ? <small> · {weekendLabel(c.from_class_id)}</small> : null}
+                        <span>{CHEER_TEXT[c.cheer_code].replace('{class}', weekendLabel(c.class_id))}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          ) : <div className="ccq-empty">Loading the weekend…</div>}
+        </section>
+      ) : null}
+
+      {data && view && map && nextMap && !sealed ? (
         <div ref={stage} className={presenting ? 'ccq-stage is-presenting' : 'ccq-stage'}>
           <div className="ccq-stage-title">
             <h2 className="font-heading">{map.flag} Grade {data.grade} · Operation {map.name}</h2>
-            <span>{data.days_until_reset <= 1 ? 'Final day — winners crowned tomorrow' : `${data.days_until_reset} days left · ${weekLabel(data.week_start)}`}</span>
+            <span>{data.days_left <= 1 ? 'Final day — the vault seals at midnight' : `${data.days_left} scoring days left · seals Friday 23:59`}</span>
           </div>
 
           {view.captures.length > 0 ? (
@@ -189,7 +275,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
                 <span className="ccq-next-flag" aria-hidden="true">{nextMap.flag}</span>
                 <span>
                   <b>Next week: {nextMap.name}</b>
-                  <small>{nextMap.territories.length} {nextMap.unit} to conquer. Missions count from Monday.</small>
+                  <small>{nextMap.territories.length} {nextMap.unit} to conquer. Missions count from Monday — open the Intel Room to brief the class.</small>
                 </span>
               </div>
 
@@ -199,7 +285,9 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
         </div>
       ) : null}
 
-      <ConquestHistoryModal open={historyOpen} onClose={() => setHistoryOpen(false)} grade={grade} issuer={issuer} />
+      <ConquestHistoryModal open={historyOpen} onClose={() => setHistoryOpen(false)} grade={grade} issuer={issuer} theme={theme} />
+      {nextMap ? <ConquestIntelModal open={intelOpen} onClose={() => setIntelOpen(false)} map={nextMap} when="next" /> : null}
+      {revealing && last ? <ConquestRevealStage result={last} onClose={() => setRevealing(false)} /> : null}
     </div>
   );
 };

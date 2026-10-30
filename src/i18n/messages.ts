@@ -1508,6 +1508,246 @@ export const messages = {
   "states": {
     "ar": "ولايات",
     "ru": "штатов"
+  },
+  "Final day — vault seals at midnight": {
+    "ar": "اليوم الأخير — تُقفل الخزنة عند منتصف الليل",
+    "ru": "Последний день — хранилище закроется в полночь"
+  },
+  "{count} days left · seals Friday night": {
+    "ar": "باقي {count} أيام · تُقفل ليلة الجمعة",
+    "ru": "Осталось {count} дн. · закрытие в пятницу ночью"
+  },
+  "The vault is open. Who conquered {map}?": {
+    "ar": "فُتحت الخزنة. من غزا {map}؟",
+    "ru": "Хранилище открыто. Кто захватил {map}?"
+  },
+  "Tap to reveal last week’s result": {
+    "ar": "اضغط لكشف نتيجة الأسبوع الماضي",
+    "ru": "Нажми, чтобы узнать результат прошлой недели"
+  },
+  "Border Raid champions: {class}": {
+    "ar": "أبطال غارات الحدود: {class}",
+    "ru": "Чемпионы пограничных рейдов: {class}"
+  },
+  "Intel Room": {
+    "ar": "غرفة الاستخبارات",
+    "ru": "Разведка"
+  },
+  "Oracle": {
+    "ar": "العرّاف",
+    "ru": "Оракул"
+  },
+  "{count} Oracles": {
+    "ar": "{count} عرّافين",
+    "ru": "Оракулов: {count}"
+  },
+  "Prediction locked. If you are right, the Oracle badge is yours on Monday.": {
+    "ar": "تم تثبيت توقعك. إن أصبت، شارة العرّاف لك يوم الاثنين.",
+    "ru": "Прогноз принят. Угадаешь — в понедельник получишь значок Оракула."
+  },
+  "Could not save your prediction. Try again in a moment.": {
+    "ar": "تعذّر حفظ توقعك. حاول بعد قليل.",
+    "ru": "Не удалось сохранить прогноз. Попробуй чуть позже."
+  },
+  "One chant every 30 minutes — the wall needs room for everyone.": {
+    "ar": "هتاف واحد كل 30 دقيقة — الجدار يتسع للجميع.",
+    "ru": "Одна кричалка раз в 30 минут — на стене должно хватить места всем."
+  },
+  "You have used all 20 chants this weekend. Legendary.": {
+    "ar": "استخدمت كل الهتافات الـ20 لهذا الأسبوع. أسطوري.",
+    "ru": "Все 20 кричалок за выходные потрачены. Легенда."
+  },
+  "Could not post that chant. Try again in a moment.": {
+    "ar": "تعذّر نشر الهتاف. حاول بعد قليل.",
+    "ru": "Не удалось отправить кричалку. Попробуй чуть позже."
+  },
+  "Vault sealed": {
+    "ar": "الخزنة مقفلة",
+    "ru": "Хранилище закрыто"
+  },
+  "Operation {map} is over. The result is locked in the vault.": {
+    "ar": "انتهت عملية {map}. النتيجة مقفلة في الخزنة.",
+    "ru": "Операция «{map}» завершена. Результат заперт в хранилище."
+  },
+  "Winners revealed Monday 07:00": {
+    "ar": "يُكشف الفائزون الاثنين 07:00",
+    "ru": "Победителей объявим в понедельник в 07:00"
+  },
+  "Who conquered {map}?": {
+    "ar": "من غزا {map}؟",
+    "ru": "Кто захватил {map}?"
+  },
+  "You picked {class}. {count} students have voted.": {
+    "ar": "اخترت {class}. صوّت {count} طالبًا.",
+    "ru": "Ты выбрал {class}. Проголосовали: {count}."
+  },
+  "One pick, no take-backs. Guess right and you earn the Oracle badge.": {
+    "ar": "اختيار واحد بلا تراجع. أصب تحصل على شارة العرّاف.",
+    "ru": "Один выбор, без отмены. Угадаешь — получишь значок Оракула."
+  },
+  "us": {
+    "ar": "نحن",
+    "ru": "мы"
+  },
+  "Hype Wall": {
+    "ar": "جدار الحماس",
+    "ru": "Стена кричалок"
+  },
+  "Loudest class so far: {class} ({count} chants)": {
+    "ar": "أعلى صف صوتًا حتى الآن: {class} ({count} هتاف)",
+    "ru": "Самый громкий класс: {class} ({count} кричалок)"
+  },
+  "Pick a class, pick a chant, make some noise.": {
+    "ar": "اختر صفًا، اختر هتافًا، واصنع الضجيج.",
+    "ru": "Выбери класс, выбери кричалку — и шуми."
+  },
+  "Chant for": {
+    "ar": "هتاف لـ",
+    "ru": "Кричалка для"
+  },
+  "Chant": {
+    "ar": "هتاف",
+    "ru": "Кричалка"
+  },
+  "Next chant in {time}": {
+    "ar": "الهتاف التالي بعد {time}",
+    "ru": "Следующая кричалка через {time}"
+  },
+  "Post to the wall": {
+    "ar": "انشر على الجدار",
+    "ru": "На стену!"
+  },
+  "Border Raids": {
+    "ar": "غارات الحدود",
+    "ru": "Пограничные рейды"
+  },
+  "Hack a player from a rival class in PvP. Every win counts for your class until Sunday midnight; the champions are named on Monday.": {
+    "ar": "اخترق لاعبًا من صف منافس في PvP. كل فوز يُحسب لصفك حتى منتصف ليل الأحد؛ يُعلن الأبطال يوم الاثنين.",
+    "ru": "Взломай игрока из класса-соперника в PvP. Каждая победа идёт в зачёт класса до полуночи воскресенья; чемпионов назовём в понедельник."
+  },
+  "{count} wins": {
+    "ar": "{count} انتصارات",
+    "ru": "побед: {count}"
+  },
+  "Top raiders: {list}": {
+    "ar": "أفضل المغيرين: {list}",
+    "ru": "Лучшие рейдеры: {list}"
+  },
+  "Next: Operation {map}": {
+    "ar": "التالي: عملية {map}",
+    "ru": "Дальше: операция «{map}»"
+  },
+  "{count} {unit}. Missions count from Monday. Study the map before your rivals do.": {
+    "ar": "{count} {unit}. تُحسب المهام من الاثنين. ادرس الخريطة قبل منافسيك.",
+    "ru": "{count} {unit}. Миссии идут в зачёт с понедельника. Изучи карту раньше соперников."
+  },
+  "Intel Room · next week": {
+    "ar": "غرفة الاستخبارات · الأسبوع القادم",
+    "ru": "Разведка · следующая неделя"
+  },
+  "Intel Room · this week": {
+    "ar": "غرفة الاستخبارات · هذا الأسبوع",
+    "ru": "Разведка · эта неделя"
+  },
+  "Operation {map}": {
+    "ar": "عملية {map}",
+    "ru": "Операция «{map}»"
+  },
+  "{count} {unit} · {total} points on the table": {
+    "ar": "{count} {unit} · {total} نقطة على الطاولة",
+    "ru": "{count} {unit} · {total} очков на кону"
+  },
+  "Map of {map}. Tap a territory for intel.": {
+    "ar": "خريطة {map}. اضغط على إقليم للمعلومات.",
+    "ru": "Карта {map}. Нажми на территорию для разведданных."
+  },
+  "Most valuable": {
+    "ar": "الأعلى قيمة",
+    "ru": "Самые ценные"
+  },
+  "Mid": {
+    "ar": "متوسط",
+    "ru": "Средние"
+  },
+  "Entry": {
+    "ar": "أساسي",
+    "ru": "Базовые"
+  },
+  "Territory intel": {
+    "ar": "معلومات الإقليم",
+    "ru": "Разведданные"
+  },
+  "{value} points": {
+    "ar": "{value} نقطة",
+    "ru": "{value} очков"
+  },
+  "#{rank} of {count}": {
+    "ar": "#{rank} من {count}",
+    "ru": "№{rank} из {count}"
+  },
+  "Classified. Conquer it to find out.": {
+    "ar": "سرّي. اغزُه لتعرف.",
+    "ru": "Засекречено. Захвати — узнаешь."
+  },
+  "How the week works": {
+    "ar": "كيف يسير الأسبوع",
+    "ru": "Как устроена неделя"
+  },
+  "{class} all the way! 🔥": {
+    "ar": "{class} حتى النهاية! 🔥",
+    "ru": "{class} до конца! 🔥"
+  },
+  "Nobody stops {class} 💪": {
+    "ar": "لا أحد يوقف {class} 💪",
+    "ru": "{class} не остановить 💪"
+  },
+  "GG {class}, good fight 🤝": {
+    "ar": "GG {class}، قتال جميل 🤝",
+    "ru": "GG, {class}, достойный бой 🤝"
+  },
+  "See you on the next map, {class} 🗺️": {
+    "ar": "نراكم على الخريطة التالية، {class} 🗺️",
+    "ru": "Увидимся на следующей карте, {class} 🗺️"
+  },
+  "Respect to {class} 🫡": {
+    "ar": "احترام لـ {class} 🫡",
+    "ru": "Респект {class} 🫡"
+  },
+  "The {class} comeback is coming 🚀": {
+    "ar": "عودة {class} قادمة 🚀",
+    "ru": "{class} ещё вернётся 🚀"
+  },
+  "{class} has the real Mastermind 🧠": {
+    "ar": "العقل المدبّر الحقيقي في {class} 🧠",
+    "ru": "Настоящий Mastermind — в {class} 🧠"
+  },
+  "Vault is sealed… {class} is sweating 😅": {
+    "ar": "الخزنة مقفلة… {class} يتصبب عرقًا 😅",
+    "ru": "Хранилище закрыто… {class} нервничает 😅"
+  },
+  "Monday to Friday, every daily mission you finish adds power to your class.": {
+    "ar": "من الاثنين إلى الجمعة، كل مهمة يومية تنهيها تضيف قوة لصفك.",
+    "ru": "С понедельника по пятницу каждая завершённая миссия добавляет силы твоему классу."
+  },
+  "Power each day = the share of your class that finished — a small class can beat a big one.": {
+    "ar": "قوة اليوم = نسبة صفك التي أنهت المهمة — صف صغير يمكنه هزيمة صف كبير.",
+    "ru": "Сила за день = доля класса, выполнившая миссию: маленький класс может обойти большой."
+  },
+  "Territories are shared out by power. The strongest class holds the most valuable ones.": {
+    "ar": "تُوزّع الأقاليم حسب القوة. الصف الأقوى يملك الأعلى قيمة.",
+    "ru": "Территории делятся по силе. Сильнейший класс держит самые ценные."
+  },
+  "Friday 23:59 the vault seals. Nobody sees the final scores until Monday 07:00.": {
+    "ar": "الجمعة 23:59 تُقفل الخزنة. لا أحد يرى النتائج حتى الاثنين 07:00.",
+    "ru": "В пятницу в 23:59 хранилище закрывается. Итоги никто не видит до понедельника 07:00."
+  },
+  "On the weekend: predict the winner, raid rival classes, cheer on the Hype Wall.": {
+    "ar": "في عطلة الأسبوع: توقّع الفائز، أغِر على الصفوف المنافسة، وهتف على جدار الحماس.",
+    "ru": "На выходных: предскажи победителя, устрой рейды на соперников, кричи на Стене."
+  },
+  "Monday: the winning class gets badges, its top five get heist roles and certificates.": {
+    "ar": "الاثنين: الصف الفائز يحصل على شارات، وأفضل خمسة يحصلون على أدوار وشهادات.",
+    "ru": "Понедельник: класс-победитель получает значки, его топ-5 — роли и сертификаты."
   }
 } as const;
 

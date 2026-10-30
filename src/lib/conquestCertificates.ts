@@ -6,23 +6,23 @@
  * own print dialog produces an identical A4 landscape PDF everywhere.
  */
 
-import { addDays, mapById, roleForRank, type ConquestResult, type ConquestWinner } from './classConquest';
+import { addDays, mapById, roleForRank, SCORING_DAYS, type ConquestResult, type ConquestWinner } from './classConquest';
 
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const prettyDate = (iso: string) => `${Number(iso.slice(8, 10))} ${MONTHS[Number(iso.slice(5, 7)) - 1]} ${iso.slice(0, 4)}`;
-/** "26 Oct – 1 Nov 2026" */
+/** "26 Oct – 30 Oct 2026": the scoring week, Monday to Friday. */
 export const weekLabel = (weekStart: string) => {
-  const end = addDays(weekStart, 6);
+  const end = addDays(weekStart, SCORING_DAYS - 1);
   const sameYear = weekStart.slice(0, 4) === end.slice(0, 4);
   const start = sameYear ? `${Number(weekStart.slice(8, 10))} ${MONTHS[Number(weekStart.slice(5, 7)) - 1]}` : prettyDate(weekStart);
   return `${start} – ${prettyDate(end)}`;
 };
 
 export interface BadgeOptions {
-  /** gold = top five of the winning class, silver = member of the winning class. */
-  kind: 'gold' | 'silver';
+  /** gold = top five of the winning class, silver = member of the winning class, oracle = predicted the winner. */
+  kind: 'gold' | 'silver' | 'oracle';
   mapId: string;
   /** 1–5 for gold badges; shown in the ribbon. */
   rank?: number | null;
@@ -35,10 +35,10 @@ export interface BadgeOptions {
 export function conquestBadgeSvg({ kind, mapId, rank, caption, size = 96 }: BadgeOptions): string {
   const map = mapById(mapId);
   const gold = kind === 'gold';
-  const fill = gold ? '#f5c042' : '#c7d2e0';
-  const dark = gold ? '#9a6b05' : '#5b6b80';
+  const fill = gold ? '#f5c042' : kind === 'oracle' ? '#c084fc' : '#c7d2e0';
+  const dark = gold ? '#9a6b05' : kind === 'oracle' ? '#6b21a8' : '#5b6b80';
   const rankText = gold && rank ? `#${rank}` : '';
-  const title = gold ? `${roleForRank(rank ?? 1)} · ${map.name}` : `${map.name} conqueror`;
+  const title = gold ? `${roleForRank(rank ?? 1)} · ${map.name}` : kind === 'oracle' ? `Oracle · ${map.name}` : `${map.name} conqueror`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 116" width="${size}" height="${Math.round(size * 1.16)}" role="img" aria-label="${escapeHtml(title)}">`
     + `<defs><linearGradient id="g-${kind}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${fill}"/><stop offset="1" stop-color="${dark}"/></linearGradient></defs>`
     + `<path d="M50 4 L92 18 V58 C92 84 72 102 50 112 C28 102 8 84 8 58 V18 Z" fill="url(#g-${kind})" stroke="${dark}" stroke-width="3"/>`
@@ -49,12 +49,16 @@ export function conquestBadgeSvg({ kind, mapId, rank, caption, size = 96 }: Badg
     + '</svg>';
 }
 
+export type CertificateTheme = 'dark' | 'light';
+
 export interface CertificateDocumentOptions {
   result: ConquestResult;
   /** Shown in the footer, e.g. the school's name. */
   issuer?: string;
-  /** ISO date printed as "Issued on"; defaults to the day after the week ended. */
+  /** ISO date printed as "Issued on"; defaults to the Monday after the week. */
   issuedOn?: string;
+  /** dark = the in-app look (best on good printers); light = ink-friendly cream paper with navy and gold. */
+  theme?: CertificateTheme;
 }
 
 const certificateStyles = `
@@ -94,6 +98,20 @@ const certificateStyles = `
   .top5 b { display: block; font-size: 3.9mm; line-height: 1.2; color: #fff; overflow-wrap: anywhere; hyphens: auto; }
   .top5 i { display: block; font-style: normal; font-size: 3.2mm; color: #f5c042; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; }
   @media print { .toolbar { display: none; } body { background: #fff; } .cert { margin: 0; } }
+
+  /* Light theme: cream paper, navy ink, gold accents. Same layout. */
+  .theme-light .cert { color: #0f172a; background: radial-gradient(circle at 85% 15%, rgba(245,192,66,0.28), transparent 40%), linear-gradient(160deg, #fffdf7, #fdf6e3 60%, #f8ecd0); }
+  .theme-light .frame { border-color: #b8860b; }
+  .theme-light .frame::after { border-color: rgba(184,134,11,0.45); }
+  .theme-light .brand { color: #b8860b; }
+  .theme-light .case, .theme-light .eyebrow, .theme-light .foot, .theme-light .badge small, .theme-light .stat span, .theme-light .text { color: #334155; }
+  .theme-light .name, .theme-light .text b, .theme-light .stat b, .theme-light .top5 b { color: #0f172a; }
+  .theme-light .role { color: #9a6b05; }
+  .theme-light .stamp { border-color: #b91c1c; color: #b91c1c; }
+  .theme-light .stat, .theme-light .top5 li { background: rgba(15,23,42,0.04); border-color: rgba(15,23,42,0.12); }
+  .theme-light .top5 i { color: #9a6b05; }
+  .theme-light .sign { border-color: #334155; }
+  .theme-light .watermark { opacity: 0.1; }
 `;
 
 function studentCertificate(result: ConquestResult, student: ConquestWinner, issuer: string, issuedOn: string): string {
@@ -159,7 +177,7 @@ function classCertificate(result: ConquestResult, issuer: string, issuedOn: stri
 }
 
 /** A complete, self-contained HTML document: one page per top-five student, then the class page. */
-export function buildCertificateDocument({ result, issuer = '', issuedOn }: CertificateDocumentOptions): string {
+export function buildCertificateDocument({ result, issuer = '', issuedOn, theme = 'dark' }: CertificateDocumentOptions): string {
   const map = mapById(result.map_id);
   const issued = issuedOn ?? addDays(result.week_start, 7);
   const pages = [
@@ -171,8 +189,8 @@ export function buildCertificateDocument({ result, issuer = '', issuedOn }: Cert
 <title>Class Conquest certificates · ${escapeHtml(result.winner_label ?? '')} · ${escapeHtml(map.name)}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700;900&display=swap" rel="stylesheet">
 <style>${certificateStyles}</style></head>
-<body>
-<div class="toolbar"><button type="button" onclick="window.print()">Print / Save as PDF</button><p>${result.top_students.length} student certificate${result.top_students.length === 1 ? '' : 's'} + 1 class certificate · A4 landscape</p></div>
+<body class="theme-${theme}">
+<div class="toolbar"><button type="button" onclick="window.print()">Print / Save as PDF</button><p>${result.top_students.length} student certificate${result.top_students.length === 1 ? '' : 's'} + 1 class certificate · A4 landscape · ${theme === 'light' ? 'light (ink-friendly)' : 'dark'} theme</p></div>
 ${pages}
 <script>if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function () { setTimeout(function () { window.print(); }, 150); }); }</script>
 </body></html>`;

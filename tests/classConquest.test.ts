@@ -2,9 +2,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
-  allTimeMasterminds, apportion, assignOblasts, buildConquest, CONQUEST_SEASON, dayPower, mapForWeek, OBLASTS, roleForRank,
-  UNITED_KINGDOM, weekStartOf, winStreak, type ConquestClass, type ConquestResult,
+  allTimeMasterminds, apportion, assignOblasts, buildConquest, CHEER_CODES, CHEER_TEXT, CONQUEST_SEASON, countdownLabel, dayPower,
+  mapForWeek, OBLASTS, phaseFor, revealAtIso, roleForRank, sealsAtIso, UNITED_KINGDOM, weekStartOf, winStreak,
+  type ConquestClass, type ConquestResult,
 } from '../src/lib/classConquest.js';
+import { CONQUEST_RULES, TERRITORY_INTEL } from '../src/lib/conquestIntel.js';
 import { buildCertificateDocument, conquestBadgeSvg, weekLabel } from '../src/lib/conquestCertificates.js';
 
 const team = (id: string, size: number, done: number[], mine = false): ConquestClass => ({
@@ -154,7 +156,9 @@ test('certificates: one page per winner plus the class page, names escaped, badg
   assert.match(html, /Operation Kyrgyzstan/);
   assert.match(html, /size: A4 landscape/);
   assert.match(html, /Test School/);
-  assert.equal(weekLabel('2026-10-26'), '26 Oct – 1 Nov 2026');
+  assert.equal(weekLabel('2026-10-26'), '26 Oct – 30 Oct 2026', 'Monday to Friday');
+  assert.match(buildCertificateDocument({ result: r, theme: 'light' }), /<body class="theme-light">/);
+  assert.match(html, /<body class="theme-dark">/);
   const gold = conquestBadgeSvg({ kind: 'gold', mapId: 'unitedkingdom', rank: 3 });
   assert.match(gold, /#3/);
   assert.match(gold, /🇬🇧/);
@@ -162,13 +166,45 @@ test('certificates: one page per winner plus the class page, names escaped, badg
   assert.doesNotMatch(conquestBadgeSvg({ kind: 'silver', mapId: 'kyrgyzstan' }), />#\d<\/text>/, 'silver badges carry no rank');
 });
 
+test('the week closes Friday night and the vault opens Monday morning', () => {
+  assert.equal(phaseFor('2026-10-30'), 'battle', 'Friday still scores');
+  assert.equal(phaseFor('2026-10-31'), 'sealed', 'Saturday is sealed');
+  assert.equal(phaseFor('2026-11-01'), 'sealed', 'Sunday is sealed');
+  assert.equal(phaseFor('2026-11-02'), 'battle', 'Monday: new map');
+  assert.equal(sealsAtIso('2026-10-26'), '2026-10-30T23:59:59+06:00');
+  assert.equal(revealAtIso('2026-10-26'), '2026-11-02T07:00:00+06:00');
+  assert.equal(countdownLabel(0), '00:00:00');
+  assert.equal(countdownLabel(3_724_000), '01:02:04');
+  assert.equal(countdownLabel((26 * 3600 + 5 * 60) * 1000), '1d 02h 05m');
+});
+
+test('weekend content is preset and every map has intel for every territory', () => {
+  const sql = readFileSync('supabase/migrations/20261030120000_class_conquest_seasons.sql', 'utf8');
+  for (const code of CHEER_CODES) {
+    assert.match(sql, new RegExp(`'${code}'`), `SQL accepts the ${code} chant`);
+    assert.match(CHEER_TEXT[code], /\{class\}/, 'every chant names the class');
+  }
+  assert.doesNotMatch(sql, /p_text|p_message|free_text/, 'no free-text channel for students');
+  for (const map of CONQUEST_SEASON) {
+    for (const ter of map.territories) assert.ok(TERRITORY_INTEL[map.mapId]?.[ter.zoneId], `${map.name} · ${ter.name} has intel`);
+  }
+  assert.ok(CONQUEST_RULES.length >= 5);
+  // Students never receive an unrevealed result or sealed standings.
+  assert.match(sql, /v_viewer\.role = 'teacher' or v_today >= v_result_week \+ 7/);
+  assert.match(sql, /case when v_sealed and v_viewer\.role = 'student' then '\[\]'::jsonb else v_classes end/);
+  // Pushes are held until Monday morning and the Saturday job freezes Friday's scores.
+  assert.match(sql, /\(\(p_week_start \+ 7\) \+ time '00:30'\) at time zone 'Asia\/Bishkek'\);/);
+  assert.match(sql, /'15 18 \* \* 5'/);
+  assert.match(sql, /v_week_end date := p_week_start \+ 4/);
+});
+
 test('frozen results come from the server and name only the winning class’s top five', () => {
   const sql = readFileSync('supabase/migrations/20261030120000_class_conquest_seasons.sql', 'utf8');
   assert.match(sql, /alter table public\.class_conquest_results enable row level security/);
   assert.match(sql, /where dm\.user_id = any \(v_members\)/, 'top five are drawn from the winning class only');
-  assert.match(sql, /p_week_start >= date_trunc\('week'.*\n?.*return null; -- never freeze a week that is still being played/);
+  assert.match(sql, /v_today < p_week_start \+ 5 then\n\s*return null; -- never freeze a week before its Friday is over/);
   assert.match(sql, /on conflict \(school_id, grade, week_start\) do nothing/, 'a frozen week is never rewritten');
-  for (const fn of ['rpc_finalize_class_conquest\\(date\\)', 'rpc_get_class_conquest\\(text\\)', 'rpc_get_class_conquest_history\\(text, integer\\)']) {
+  for (const fn of ['rpc_finalize_class_conquest\\(date\\)', 'rpc_get_class_conquest\\(text\\)', 'rpc_get_class_conquest_history\\(text, integer\\)', 'rpc_get_class_conquest_weekend\\(text\\)', 'rpc_class_conquest_predict\\(uuid\\)', 'rpc_class_conquest_cheer\\(uuid, text\\)']) {
     assert.match(sql, new RegExp(`revoke all on function public\\.${fn} from public, anon`));
   }
   // The live standings block still exposes aggregate counts only.

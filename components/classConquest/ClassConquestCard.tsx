@@ -6,6 +6,8 @@ import { conquestBadgeSvg } from '../../src/lib/conquestCertificates';
 import { mascotMoment } from '../../src/features/studentMascot/mascotMoments';
 import ConquestMap from './ConquestMap';
 import ConquestHistoryModal from './ConquestHistoryModal';
+import ConquestIntelModal from './ConquestIntelModal';
+import ConquestWeekendCard from './ConquestWeekendCard';
 import './ClassConquest.css';
 
 interface ClassConquestCardProps {
@@ -17,6 +19,8 @@ const ClassConquestCard: React.FC<ClassConquestCardProps> = ({ refreshKey = 0 })
   const { t } = useLanguage();
   const [data, setData] = useState<ClassConquestData | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [intelOpen, setIntelOpen] = useState(false);
+  const [vaultOpened, setVaultOpened] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,13 +45,26 @@ const ClassConquestCard: React.FC<ClassConquestCardProps> = ({ refreshKey = 0 })
     } catch { /* no storage: skip the cheer */ }
   }, [view, myCaptures.length, data?.today]);
 
-  if (!data || !view || !view.mine || !map || !nextMap) return null;
+  if (!data || !map || !nextMap) return null;
+
+  // Saturday and Sunday: the result is sealed. Predictions, hype wall, raids and the next map instead.
+  if (data.phase === 'sealed') {
+    return (
+      <>
+        <ConquestWeekendCard data={data} map={map} nextMap={nextMap} onOpenIntel={() => setIntelOpen(true)} onOpenHallOfFame={() => setHistoryOpen(true)} />
+        <ConquestIntelModal open={intelOpen} onClose={() => setIntelOpen(false)} map={nextMap} when="next" />
+        <ConquestHistoryModal open={historyOpen} onClose={() => setHistoryOpen(false)} />
+      </>
+    );
+  }
+
+  if (!view || !view.mine) return null;
 
   const mine = view.mine;
   const myHeld = view.held[mine.class_id];
   const total = map.territories.length;
   const unit = t(map.unit);
-  const finalDay = data.days_until_reset <= 1;
+  const finalDay = data.days_left <= 1;
 
   let goal: string;
   if (view.missionsToNext !== null) {
@@ -66,21 +83,42 @@ const ClassConquestCard: React.FC<ClassConquestCardProps> = ({ refreshKey = 0 })
       ? t('{class} rules all of {map}!', { class: mine.label, map: map.name })
       : t('{class} holds {count} of {total} {unit}', { class: mine.label, count: myHeld, total, unit });
 
-  const last = data.last_week;
+  const last = data.last_week && data.last_week.revealed ? data.last_week : null;
   const lastMap = last ? mapById(last.map_id) : null;
+  const revealKey = last ? `bh:ccq-reveal:${last.week_start}` : null;
+  let vaultSealed = false;
+  if (revealKey && !vaultOpened) {
+    try { vaultSealed = !localStorage.getItem(revealKey); } catch { vaultSealed = false; }
+  }
+  const openVault = () => {
+    try { if (revealKey) localStorage.setItem(revealKey, '1'); } catch { /* no storage */ }
+    setVaultOpened(true);
+    if (last?.is_my_class) mascotMoment('climb');
+  };
+  const raidChampion = last?.weekend?.raid_champion_label ?? null;
 
   return (
     <article className="student-feed-card ccq" aria-labelledby="ccq-title">
       <div className="ccq-head">
         <span className="ccq-pill">{t('Class Conquest · Grade {grade}', { grade: data.grade })}</span>
         <span className="ccq-meta">
-          {finalDay ? t('Final day — new map tomorrow') : t('Resets in {count} days', { count: data.days_until_reset })}
+          {finalDay ? t('Final day — vault seals at midnight') : t('{count} days left · seals Friday night', { count: data.days_left })}
         </span>
       </div>
       <h2 id="ccq-title" className="ccq-title font-heading">{map.flag} {headline}</h2>
 
-      {last && last.winner_label ? (
-        <div className={last.is_my_class ? 'ccq-last is-mine' : 'ccq-last'} role="status">
+      {last && last.winner_label && vaultSealed ? (
+        <button type="button" className="ccq-vault ccq-vault--button" onClick={openVault}>
+          <span className="ccq-vault-dial" aria-hidden="true">🔒</span>
+          <span>
+            <b>{t('The vault is open. Who conquered {map}?', { map: lastMap?.name ?? '' })}</b>
+            <small>{t('Tap to reveal last week’s result')}</small>
+          </span>
+        </button>
+      ) : null}
+
+      {last && last.winner_label && !vaultSealed ? (
+        <div className={`${last.is_my_class ? 'ccq-last is-mine' : 'ccq-last'}${vaultOpened ? ' is-opening' : ''}`} role="status">
           {last.my_rank ? (
             <span className="ccq-last-badge" aria-hidden="true" dangerouslySetInnerHTML={{ __html: conquestBadgeSvg({ kind: 'gold', mapId: last.map_id, rank: last.my_rank, size: 44 }) }} />
           ) : last.is_my_class ? (
@@ -92,6 +130,7 @@ const ClassConquestCard: React.FC<ClassConquestCardProps> = ({ refreshKey = 0 })
               : last.is_my_class
                 ? t('Last week {class} conquered {map}. New badge unlocked!', { class: last.winner_label, map: lastMap?.name ?? '' })
                 : t('Last week {class} conquered {map}.', { class: last.winner_label, map: lastMap?.name ?? '' })}
+            {raidChampion ? <small> ⚔️ {t('Border Raid champions: {class}', { class: raidChampion })}</small> : null}
           </span>
         </div>
       ) : null}
@@ -132,12 +171,16 @@ const ClassConquestCard: React.FC<ClassConquestCardProps> = ({ refreshKey = 0 })
         <span className="ccq-next-flag" aria-hidden="true">{nextMap.flag}</span>
         <span>
           <b>{t('Next week: {map}', { map: nextMap.name })}</b>
-          <small>{finalDay ? t('Unlocks tomorrow. Top five of the winning class get certificates.') : t('Unlocks Monday. Top five of the winning class get certificates.')}</small>
+          <small>{t('Unlocks Monday. Top five of the winning class get certificates.')}</small>
         </span>
-        <button type="button" className="ccq-hof" onClick={() => setHistoryOpen(true)}>🏆 {t('Hall of Fame')}</button>
+        <button type="button" className="ccq-hof" onClick={() => setIntelOpen(true)}>🗺️ {t('Intel Room')}</button>
       </div>
-      <p className="ccq-how">{t('Power each day = share of your class that finished the daily mission.')}</p>
+      <div className="ccq-actions">
+        <button type="button" className="ccq-hof" onClick={() => setHistoryOpen(true)}>🏆 {t('Hall of Fame')}</button>
+        <span className="ccq-how">{t('Power each day = share of your class that finished the daily mission.')}</span>
+      </div>
 
+      <ConquestIntelModal open={intelOpen} onClose={() => setIntelOpen(false)} map={nextMap} when="next" />
       <ConquestHistoryModal open={historyOpen} onClose={() => setHistoryOpen(false)} />
     </article>
   );
