@@ -1352,6 +1352,162 @@ export const messages = {
   "You're in! One last tap: turn on raid alerts": {
     "ar": "أنت جاهز! ضغطة أخيرة: شغّل تنبيهات الهجمات",
     "ru": "Готово! Последнее нажатие: включи уведомления о налётах"
+  },
+  "1 more mission from {class} today wins another territory.": {
+    "ar": "مهمة واحدة إضافية من {class} اليوم تكسب إقليمًا آخر.",
+    "ru": "Ещё 1 миссия от {class} сегодня — и ещё одна территория ваша."
+  },
+  "{count} more missions from {class} today win another territory.": {
+    "ar": "{count} مهام إضافية من {class} اليوم تكسب إقليمًا آخر.",
+    "ru": "Ещё {count} миссий от {class} сегодня — и ещё одна территория ваша."
+  },
+  "{class} holds nothing yet. Win some back!": {
+    "ar": "{class} لا يملك شيئًا بعد. استرجعوا أرضكم!",
+    "ru": "{class} пока ничего не держит. Отвоюйте территорию!"
+  },
+  "{class} rules all of {map}!": {
+    "ar": "{class} يحكم {map} بالكامل!",
+    "ru": "{class} правит всей территорией: {map}!"
+  },
+  "{class} holds {count} of {total} {unit}": {
+    "ar": "{class} يملك {count} من {total} {unit}",
+    "ru": "У {class} {count} из {total} {unit}"
+  },
+  "Final day — new map tomorrow": {
+    "ar": "اليوم الأخير — خريطة جديدة غدًا",
+    "ru": "Последний день — завтра новая карта"
+  },
+  "Last week you were the {role} of Grade {grade} — {class} conquered {map}!": {
+    "ar": "الأسبوع الماضي كنت {role} الصف {grade} — {class} غزا {map}!",
+    "ru": "На прошлой неделе ты — {role} {grade} класса: {class} захватил {map}!"
+  },
+  "Last week {class} conquered {map}. New badge unlocked!": {
+    "ar": "الأسبوع الماضي غزا {class} {map}. شارة جديدة!",
+    "ru": "На прошлой неделе {class} захватил {map}. Новый значок!"
+  },
+  "Last week {class} conquered {map}.": {
+    "ar": "الأسبوع الماضي غزا {class} {map}.",
+    "ru": "На прошлой неделе {class} захватил {map}."
+  },
+  "Map of {map} showing which class holds each territory": {
+    "ar": "خريطة {map} توضّح أي صف يملك كل إقليم",
+    "ru": "Карта {map}: какой класс держит каждую территорию"
+  },
+  "{count} {unit}": {
+    "ar": "{count} {unit}",
+    "ru": "{count} {unit}"
+  },
+  "Next week: {map}": {
+    "ar": "الأسبوع القادم: {map}",
+    "ru": "Следующая неделя: {map}"
+  },
+  "Unlocks tomorrow. Top five of the winning class get certificates.": {
+    "ar": "يُفتح غدًا. أفضل خمسة في الصف الفائز يحصلون على شهادات.",
+    "ru": "Откроется завтра. Топ-5 победившего класса получат сертификаты."
+  },
+  "Unlocks Monday. Top five of the winning class get certificates.": {
+    "ar": "يُفتح يوم الاثنين. أفضل خمسة في الصف الفائز يحصلون على شهادات.",
+    "ru": "Откроется в понедельник. Топ-5 победившего класса получат сертификаты."
+  },
+  "Hall of Fame": {
+    "ar": "قاعة المشاهير",
+    "ru": "Зал славы"
+  },
+  "Class Conquest": {
+    "ar": "غزو الصفوف",
+    "ru": "Битва классов"
+  },
+  "Hall of Fame · Grade {grade}": {
+    "ar": "قاعة المشاهير · الصف {grade}",
+    "ru": "Зал славы · {grade} класс"
+  },
+  "Opening the archive…": {
+    "ar": "جارٍ فتح الأرشيف…",
+    "ru": "Открываем архив…"
+  },
+  "No finished weeks yet. The first winners are crowned on Monday.": {
+    "ar": "لا أسابيع منتهية بعد. يُتوَّج أول الفائزين يوم الاثنين.",
+    "ru": "Завершённых недель пока нет. Первых победителей объявим в понедельник."
+  },
+  "Your badges": {
+    "ar": "شاراتك",
+    "ru": "Твои значки"
+  },
+  "{class} has won {count} weeks in a row": {
+    "ar": "{class} فاز {count} أسابيع متتالية",
+    "ru": "{class} побеждает {count} недель подряд"
+  },
+  "Weeks": {
+    "ar": "الأسابيع",
+    "ru": "Недели"
+  },
+  "All-time Masterminds": {
+    "ar": "العقول المدبّرة عبر الزمن",
+    "ru": "Лучшие за всё время"
+  },
+  "Filter by class": {
+    "ar": "تصفية حسب الصف",
+    "ru": "Фильтр по классу"
+  },
+  "All classes": {
+    "ar": "كل الصفوف",
+    "ru": "Все классы"
+  },
+  "Your browser blocked the certificate window. Allow pop-ups for Brains Heist and try again.": {
+    "ar": "حظر متصفحك نافذة الشهادات. اسمح بالنوافذ المنبثقة لـ Brains Heist وحاول مجددًا.",
+    "ru": "Браузер заблокировал окно с сертификатами. Разрешите всплывающие окна для Brains Heist и попробуйте снова."
+  },
+  "{class} conquered {map}": {
+    "ar": "{class} غزا {map}",
+    "ru": "{class} захватил {map}"
+  },
+  "No winner — nobody finished a mission": {
+    "ar": "لا فائز — لم يُنهِ أحد مهمة",
+    "ru": "Победителя нет — никто не завершил миссию"
+  },
+  "Standings": {
+    "ar": "الترتيب",
+    "ru": "Таблица"
+  },
+  "{power} power": {
+    "ar": "{power} قوة",
+    "ru": "{power} силы"
+  },
+  "Print certificates": {
+    "ar": "طباعة الشهادات",
+    "ru": "Распечатать сертификаты"
+  },
+  "No podium finishes yet.": {
+    "ar": "لا منصات تتويج بعد.",
+    "ru": "Пока никто не попадал в топ-5."
+  },
+  "{count} podiums": {
+    "ar": "{count} منصات",
+    "ru": "{count} раз в топ-5"
+  },
+  "{count}× Mastermind": {
+    "ar": "{count}× العقل المدبّر",
+    "ru": "{count}× Mastermind"
+  },
+  "oblasts": {
+    "ar": "أقاليم",
+    "ru": "областей"
+  },
+  "regions": {
+    "ar": "مناطق",
+    "ru": "регионов"
+  },
+  "prefectures": {
+    "ar": "محافظات",
+    "ru": "префектур"
+  },
+  "governorates": {
+    "ar": "محافظات",
+    "ru": "мухафаз"
+  },
+  "states": {
+    "ar": "ولايات",
+    "ru": "штатов"
   }
 } as const;
 

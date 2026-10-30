@@ -68,3 +68,85 @@
   .ccq-stage-grid { grid-template-columns: 1fr; }
   .ccq-teacher-head { flex-direction: column; }
 }
+
+/* ── Seasons: last week's result, next map teaser, Hall of Fame ───────────── */
+.ccq-last { display: flex; align-items: center; gap: 0.65rem; padding: 0.55rem 0.75rem; border-radius: 0.85rem; background: rgba(245, 192, 66, 0.1); border: 1px solid rgba(245, 192, 66, 0.35); color: #fde68a; font-size: 0.85rem; font-weight: 700; line-height: 1.35; }
+.ccq-last.is-mine { background: rgba(245, 192, 66, 0.18); color: #fff; }
+.ccq-last-badge { display: inline-flex; flex: none; }
+.ccq-last-badge svg { display: block; }
+.ccq-last-flag { font-size: 1.6rem; line-height: 1; }
+.ccq-next { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.65rem; padding: 0.6rem 0.75rem; border-radius: 0.85rem; background: rgba(15, 23, 42, 0.55); border: 1px dashed rgba(148, 163, 184, 0.45); color: #e2e8f0; }
+.ccq-next-flag { font-size: 1.9rem; line-height: 1; filter: grayscale(0.35); }
+.ccq-next b { display: block; font-size: 0.9rem; color: #fff; }
+.ccq-next small { display: block; color: #94a3b8; font-size: 0.72rem; line-height: 1.35; }
+.ccq-next--stage { grid-template-columns: auto minmax(0, 1fr); }
+.ccq-hof, .ccq-secondary, .ccq-print { min-height: 40px; padding: 0 0.9rem; border: 1px solid rgba(245, 192, 66, 0.55); border-radius: 0.75rem; background: rgba(245, 192, 66, 0.12); color: #fde68a; font-size: 0.85rem; font-weight: 800; cursor: pointer; white-space: nowrap; }
+.ccq-hof:focus-visible, .ccq-secondary:focus-visible, .ccq-print:focus-visible, .ccq-modal-close:focus-visible, .ccq-tabs button:focus-visible, .ccq-filters button:focus-visible { outline: 3px solid #a78bfa; outline-offset: 2px; }
+.ccq-toolbar-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.ccq-teacher .ccq-secondary { min-height: 48px; border-color: #f5c042; background: #fff7db; color: #92400e; }
+.ccq-eyebrow--light { color: #d8b4fe; }
+
+/* Teacher: last week's winners */
+.ccq-winners { max-width: 1200px; margin: 0 auto 1rem; padding: 1.25rem; border-radius: 1.25rem; background: linear-gradient(135deg, #fff7db, #fff); border: 1px solid #f5d98a; }
+.ccq-winners-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+.ccq-winners-head h2 { margin: 0.1rem 0; font-size: 1.5rem; }
+.ccq-winners-actions { display: grid; gap: 0.5rem; justify-items: end; }
+.ccq-winner-cards { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
+.ccq-winner-card { display: grid; justify-items: center; gap: 0.2rem; padding: 0.9rem 0.75rem; border-radius: 1rem; background: #fff; border: 1px solid #e2e8f0; text-align: center; }
+.ccq-winner-card b { font-size: 1rem; word-break: break-word; }
+.ccq-winner-role { color: #b45309; font-size: 0.75rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+.ccq-winner-card small { color: #64748b; font-size: 0.78rem; }
+.ccq-winner-badge svg { display: block; }
+
+/* Hall of Fame modal */
+.ccq-modal-layer { position: fixed; inset: 0; z-index: 80; display: flex; align-items: flex-end; justify-content: center; padding: 0; background: rgba(2, 6, 23, 0.72); backdrop-filter: blur(4px); }
+.ccq-modal { width: 100%; max-width: 760px; max-height: 92dvh; overflow: auto; padding: 1.25rem; border-radius: 1.5rem 1.5rem 0 0; background: linear-gradient(160deg, #1e1b4b, #0f172a 50%, #020617); color: #e2e8f0; box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5); display: grid; gap: 1rem; align-content: start; }
+.ccq-modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+.ccq-modal-head h2 { margin: 0.1rem 0 0; color: #fff; font-size: 1.4rem; }
+.ccq-modal-close { width: 44px; height: 44px; border: 1px solid rgba(148, 163, 184, 0.4); border-radius: 999px; background: rgba(15, 23, 42, 0.7); color: #fff; font-size: 1.5rem; line-height: 1; cursor: pointer; }
+.ccq-modal-empty { margin: 0; padding: 1.5rem 1rem; border: 1px dashed rgba(148, 163, 184, 0.4); border-radius: 1rem; color: #cbd5e1; text-align: center; }
+.ccq-modal-warn { margin: 0; padding: 0.5rem 0.75rem; border-radius: 0.75rem; background: rgba(248, 113, 113, 0.15); color: #fecaca; font-size: 0.85rem; }
+.ccq-badges h3 { margin: 0 0 0.5rem; color: #fde68a; font-size: 0.8rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+.ccq-badges ul { list-style: none; margin: 0; padding: 0.25rem 0; display: flex; gap: 0.5rem; overflow-x: auto; }
+.ccq-badges li { flex: none; }
+.ccq-badges svg { display: block; }
+.ccq-streak { margin: 0; padding: 0.5rem 0.75rem; border-radius: 0.85rem; background: rgba(249, 115, 22, 0.16); color: #fdba74; font-weight: 800; }
+.ccq-tabs { display: flex; gap: 0.35rem; padding: 0.25rem; border-radius: 0.9rem; background: rgba(15, 23, 42, 0.7); }
+.ccq-tabs button { flex: 1; min-height: 40px; border: 0; border-radius: 0.7rem; background: transparent; color: #cbd5e1; font-weight: 800; cursor: pointer; }
+.ccq-tabs button.is-active { background: #7c3aed; color: #fff; }
+.ccq-filters { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.ccq-filters button { display: inline-flex; align-items: center; gap: 0.35rem; min-height: 36px; padding: 0 0.7rem; border: 1px solid rgba(148, 163, 184, 0.4); border-radius: 999px; background: rgba(15, 23, 42, 0.6); color: #e2e8f0; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+.ccq-filters button.is-active { border-color: #a78bfa; background: rgba(168, 85, 247, 0.22); color: #fff; }
+.ccq-filters small { color: #94a3b8; }
+.ccq-weeks { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+.ccq-week { display: grid; grid-template-columns: 3.2rem minmax(0, 1fr); gap: 0.75rem; padding: 0.9rem; border-radius: 1rem; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); }
+.ccq-week-map { font-size: 2.4rem; line-height: 1; text-align: center; }
+.ccq-week-body { display: grid; gap: 0.5rem; min-width: 0; }
+.ccq-week-meta { margin: 0; color: #94a3b8; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.ccq-week-title { display: flex; align-items: center; gap: 0.45rem; margin: 0; color: #fff; font-size: 1.05rem; }
+.ccq-podium { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.ccq-podium li { display: grid; padding: 0.35rem 0.6rem; border-radius: 0.6rem; background: rgba(255, 255, 255, 0.06); font-size: 0.82rem; }
+.ccq-podium li b { color: #fde68a; margin-right: 0.2rem; }
+.ccq-podium li small { color: #94a3b8; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.ccq-podium-1 { background: rgba(245, 192, 66, 0.2) !important; }
+.ccq-week-standings summary { cursor: pointer; color: #c4b5fd; font-size: 0.82rem; font-weight: 700; }
+.ccq-week-standings ul { list-style: none; margin: 0.5rem 0 0; padding: 0; display: grid; gap: 0.35rem; }
+.ccq-week-standings li { display: grid; grid-template-columns: minmax(0, 7rem) minmax(0, 1fr) auto; align-items: center; gap: 0.5rem; font-size: 0.82rem; }
+.ccq-standing-label { display: inline-flex; align-items: center; gap: 0.35rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ccq-bar { display: block; height: 0.5rem; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.ccq-bar span { display: block; height: 100%; border-radius: 999px; }
+.ccq-standing-power { color: #c4b5fd; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ccq-print { justify-self: start; }
+.ccq-masterminds { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
+.ccq-masterminds li { display: grid; grid-template-columns: 2.2rem minmax(0, 1fr) auto auto; align-items: center; gap: 0.55rem; min-height: 2.6rem; padding: 0.35rem 0.75rem; border-radius: 0.75rem; background: rgba(15, 23, 42, 0.55); }
+.ccq-masterminds li:first-child { border: 1px solid rgba(245, 192, 66, 0.55); background: rgba(245, 192, 66, 0.12); }
+
+@media (min-width: 720px) {
+  .ccq-modal-layer { align-items: center; padding: 1.5rem; }
+  .ccq-modal { border-radius: 1.5rem; max-height: 88vh; }
+}
+@media (max-width: 520px) {
+  .ccq-next { grid-template-columns: auto minmax(0, 1fr); }
+  .ccq-hof { grid-column: 1 / -1; }
+  .ccq-week-standings li { grid-template-columns: minmax(0, 5.5rem) minmax(0, 1fr) auto; }
+}
