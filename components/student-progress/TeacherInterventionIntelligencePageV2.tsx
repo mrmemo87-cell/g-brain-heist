@@ -12,6 +12,7 @@ import {
 } from '../../services/studentInterventionService';
 import { getAcademicProgressExperienceContext, type AcademicProgressExperienceContext } from '../../services/academicProgressExperienceService';
 import { AcademicProgressHeader, AcademicStudentPicker, selectionFromStudent } from './AcademicProgressSuite';
+import { practiceRecommendationForGroup, rollUpRecommendations, type SkillRollupGroup } from './interventionSkillRollup';
 import './TeacherInterventionIntelligencePage.css';
 import './TeacherInterventionIntelligencePageV2.css';
 
@@ -29,6 +30,20 @@ interface TeacherInterventionIntelligencePageProps {
   onBack?: () => void;
   onCreateTargetedPractice?: (context: TargetedPracticeContext) => void;
 }
+
+// Feature flag for the skill-level roll-up view. Off by default; `?rollup=1` or the in-page
+// toggle turns it on, and the choice is remembered per browser. Presentation only — see
+// interventionSkillRollup.ts for the gate-preserving rules.
+const ROLLUP_STORAGE_KEY = 'bh.intervention.skillRollup';
+const readRollupPreference = (params: URLSearchParams): boolean => {
+  const fromUrl = params.get('rollup');
+  if (fromUrl === '1' || fromUrl === 'true') return true;
+  if (fromUrl === '0' || fromUrl === 'false') return false;
+  try { return window.localStorage.getItem(ROLLUP_STORAGE_KEY) === '1'; } catch { return false; }
+};
+const writeRollupPreference = (value: boolean) => {
+  try { window.localStorage.setItem(ROLLUP_STORAGE_KEY, value ? '1' : '0'); } catch { /* best effort */ }
+};
 
 const readinessRank: Record<InterventionRecommendation['readiness'], number> = {
   collect_evidence: 0,
@@ -116,6 +131,8 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
   const [reviewRationale, setReviewRationale] = useState('');
   const [modalError, setModalError] = useState<string | null>(null);
+  const [rollup, setRollup] = useState<boolean>(() => readRollupPreference(params));
+  const toggleRollup = () => setRollup((current) => { writeRollupPreference(!current); return !current; });
 
   useEffect(() => {
     let cancelled = false;
@@ -203,8 +220,40 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
     : null;
   const actionable = recommendations.filter((item) => item.readiness !== 'collect_evidence');
   const watching = recommendations.filter((item) => item.readiness === 'collect_evidence');
-  const readyCount = actionable.filter((item) => item.readiness === 'ready').length;
+  const groups = useMemo(() => rollup ? rollUpRecommendations(recommendations) : [], [recommendations, rollup]);
+  const actionableGroups = groups.filter((group) => group.readiness !== 'collect_evidence');
+  const watchingGroups = groups.filter((group) => group.readiness === 'collect_evidence');
+  const readyCount = rollup
+    ? actionableGroups.filter((group) => group.readiness === 'ready').length
+    : actionable.filter((item) => item.readiness === 'ready').length;
+  const reviewCount = rollup ? actionableGroups.filter((group) => group.readiness === 'review_evidence').length : 0;
+  const watchingCount = rollup ? watchingGroups.length : watching.length;
   const openPlans = data?.interventions.filter((item) => ['planned', 'active'].includes(item.status)).length || 0;
+
+  const renderGroup = (group: SkillRollupGroup, mode: 'action' | 'watch') => {
+    const anchor = group.anchor;
+    const readinessLabel = group.readiness === 'ready' ? 'Ready for practice' : group.readiness === 'review_evidence' ? 'Ready for review' : group.readiness === 'open_plan' ? 'Support active' : 'Gathering evidence';
+    const summary = group.readiness === 'collect_evidence'
+      ? `Brains Heist has noticed ${group.leaves.length === 1 ? 'this area' : `${group.leaves.length} parts of this skill`}, but is still building a fair evidence baseline.`
+      : group.promotedByRollup
+        ? `${group.evidenceItems} qualifying evidence items across ${group.leaves.length} sub-skills. No single sub-skill qualifies alone; together they meet the skill-level threshold.`
+        : anchor.rationale;
+    return <article key={group.key} className={`priority-${group.priority} intervention-candidate ${mode === 'watch' ? 'is-watching' : 'is-actionable'} is-rollup`}>
+      <div className="intervention-card-top"><span>{group.subject}{group.areaLabel ? ` · ${group.areaLabel}` : ''}</span><b>{readinessLabel}</b></div>
+      <h3>{group.primarySkill}</h3>
+      <p className="intervention-card-summary">{summary}</p>
+      <div className="intervention-signal-row"><span>{group.evidenceItems} assessed evidence item{group.evidenceItems === 1 ? '' : 's'}</span><span>{group.leaves.length} sub-skill{group.leaves.length === 1 ? '' : 's'}</span><span>Last seen {fmt(group.lastObservedAt)}</span>{group.availableExactQuestions ? <span>{group.availableExactQuestions} exact practice questions</span> : null}</div>
+      <div className="intervention-targets intervention-targets--leaves">{group.leaves.map((leaf) => <span key={leaf.skill_key} className={leaf.readiness !== 'collect_evidence' ? 'is-qualifying' : undefined} title={leaf.skill_key}>{leaf.skill} · {leaf.evidence_items}</span>)}</div>
+      {group.unlockHint ? <div className="intervention-watch-note"><strong>What would unlock this</strong><span>{group.unlockHint}</span></div> : null}
+      <div className="intervention-action intervention-action--clear">
+        {group.readiness === 'review_evidence' ? <><span>{group.promotedByRollup ? 'Confirm the skill-level need, or pick a sub-skill.' : 'Review the evidence, then decide.'}</span><button onClick={() => openEvidenceReview(group.promotedByRollup ? { ...anchor, diagnostic_targets: group.diagnosticTargets.length ? group.diagnosticTargets : group.leaves.map((leaf) => leaf.skill) } : anchor)}>Review evidence</button></> : null}
+        {group.readiness === 'ready' ? <><span>Individual practice for {data?.student.name || 'this student'}.</span>{onCreateTargetedPractice ? <button onClick={() => data && onCreateTargetedPractice({ student: data.student, recommendation: practiceRecommendationForGroup(group) })}>Create targeted practice</button> : <strong>Ready to make a plan</strong>}</> : null}
+        {group.readiness === 'open_plan' ? <><span>Support is already being tracked below.</span><strong>Plan in progress</strong></> : null}
+        {group.readiness === 'collect_evidence' ? <><span>Brains Heist will keep watching future assessed work.</span><strong>Keep monitoring</strong></> : null}
+      </div>
+      <details className="intervention-reference"><summary>View sub-skill details</summary>{group.leaves.map((leaf) => <div key={leaf.skill_key} className="intervention-rollup-leaf"><strong>{leaf.skill}</strong><small>{schoolStatus(leaf.status)} · {leaf.evidence_items} item{leaf.evidence_items === 1 ? '' : 's'} · {leaf.readiness === 'ready' ? 'confirmed' : leaf.readiness === 'review_evidence' ? 'reviewable' : leaf.readiness === 'open_plan' ? 'plan open' : 'collecting'}{leaf.confidence?.band ? ` · confidence ${leaf.confidence.band}` : ''}</small>{leaf.evidence_examples[0] ? <span><del>{leaf.evidence_examples[0].original || 'Original'}</del><b aria-hidden="true">→</b><ins>{leaf.evidence_examples[0].better_version || 'Correction'}</ins></span> : null}</div>)}</details>
+    </article>;
+  };
 
   const renderRecommendation = (r: InterventionRecommendation, mode: 'action' | 'watch') => {
     const example = r.evidence_examples[0];
@@ -237,16 +286,18 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
 
     {data ? <>
       {requestedFocusRecommendation ? <section className="intervention-alert" style={{ borderColor: '#a5b4fc', background: '#eef2ff', color: '#3730a3' }}><strong>Opened from Quick diagnostic:</strong> {requestedFocusRecommendation.evidence_focus_name || requestedFocusRecommendation.skill}. Review the evidence below, then create exact-focus practice only when the governed support workflow says it is ready.</section> : null}
-      <section className="intervention-student intervention-student--command"><div><span>Student support cycle</span><h2>{data.student.name}</h2><p>Grade {data.student.grade || '—'} · Class {data.student.class_name || '—'}{subject !== 'all' ? ` · ${subject}` : ''}</p></div><div className="intervention-card-top"><span><b>{readyCount}</b> ready for practice</span><span><b>{watching.length}</b> still gathering evidence</span><span><b>{openPlans}</b> support plan{openPlans === 1 ? '' : 's'}</span></div></section>
+      <section className="intervention-student intervention-student--command"><div><span>Student support cycle</span><h2>{data.student.name}</h2><p>Grade {data.student.grade || '—'} · Class {data.student.class_name || '—'}{subject !== 'all' ? ` · ${subject}` : ''}</p></div><div className="intervention-card-top"><span><b>{readyCount}</b> ready for practice</span>{rollup ? <span><b>{reviewCount}</b> ready for review</span> : null}<span><b>{watchingCount}</b> still gathering evidence</span><span><b>{openPlans}</b> support plan{openPlans === 1 ? '' : 's'}</span></div></section>
+
+      <div className="intervention-view-toggle"><label><input type="checkbox" checked={rollup} onChange={toggleRollup} /><span>Group by skill</span></label><small>{rollup ? `Showing ${groups.length} skills built from ${recommendations.length} sub-skill signals. Review and practice still act on the exact sub-skill.` : `Showing ${recommendations.length} sub-skill signals. Turn on grouping to see them by primary skill.`}</small></div>
 
       <section className="intervention-cycle" aria-label="Brains Heist support cycle"><span className="is-current">1 · Notice</span><span>2 · Verify</span><span>3 · Practise</span><span>4 · Watch</span><span>5 · Adapt</span></section>
 
       <section className="intervention-panel"><div className="intervention-heading intervention-heading--simple"><div><span>Needs attention</span><h2>What can I act on now?</h2></div><p>Only needs that are ready for teacher review, focused practice, or an active support plan appear here.</p></div>
-        <div className="intervention-recommendations intervention-recommendations--simple">{actionable.map((r) => renderRecommendation(r, 'action'))}{!actionable.length ? <div className="intervention-empty"><strong>No intervention is ready yet.</strong><span>Brains Heist will move a need here when the evidence is strong enough to act on.</span></div> : null}</div>
+        <div className="intervention-recommendations intervention-recommendations--simple">{rollup ? actionableGroups.map((group) => renderGroup(group, 'action')) : actionable.map((r) => renderRecommendation(r, 'action'))}{(rollup ? !actionableGroups.length : !actionable.length) ? <div className="intervention-empty"><strong>No intervention is ready yet.</strong><span>Brains Heist will move a need here when the evidence is strong enough to act on.</span></div> : null}</div>
       </section>
 
       <section className="intervention-panel intervention-panel--watch"><div className="intervention-heading intervention-heading--simple"><div><span>Still gathering evidence</span><h2>What is Brains Heist watching?</h2></div><p>These are signals, not lower-priority students or less important needs. More assessed evidence is required before intervention.</p></div>
-        <div className="intervention-recommendations intervention-recommendations--simple">{watching.map((r) => renderRecommendation(r, 'watch'))}{!watching.length ? <div className="intervention-empty"><strong>No unresolved signals.</strong><span>Everything currently detected is already ready for review or support.</span></div> : null}</div>
+        <div className="intervention-recommendations intervention-recommendations--simple">{rollup ? watchingGroups.map((group) => renderGroup(group, 'watch')) : watching.map((r) => renderRecommendation(r, 'watch'))}{(rollup ? !watchingGroups.length : !watching.length) ? <div className="intervention-empty"><strong>No unresolved signals.</strong><span>Everything currently detected is already ready for review or support.</span></div> : null}</div>
       </section>
 
       <section className="intervention-panel"><div className="intervention-heading intervention-heading--simple"><div><span>Support in progress</span><h2>Plans and follow-up</h2></div><p>Targeted practice helps the student rehearse the skill. Later qualifying assessed work is what shows whether the improvement transfers independently.</p></div>
