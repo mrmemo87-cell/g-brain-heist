@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchClassConquest, fetchClassConquestWeekend, type ClassConquestData, type ClassConquestWeekend } from '../../services/classConquestService';
 import { buildConquest, CHEER_TEXT, classColors, CONQUEST_COLORS, dayPower, mapById, roleForRank } from '../../src/lib/classConquest';
-import { buildCertificateDocument, conquestBadgeSvg, openCertificatePrintWindow, weekLabel, type CertificateTheme } from '../../src/lib/conquestCertificates';
+import { buildCertificateDocument, conquestBadgeSvg, openCertificatePrintWindow, planCertificatePrint, weekLabel, type CertificateTheme, type PrintSides } from '../../src/lib/conquestCertificates';
 import ConquestMap from './ConquestMap';
 import ConquestHistoryModal from './ConquestHistoryModal';
 import ConquestIntelModal from './ConquestIntelModal';
@@ -43,6 +43,13 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
   const [revealing, setRevealing] = useState(false);
   const [printBlocked, setPrintBlocked] = useState(false);
   const [theme, setTheme] = useState<CertificateTheme>('light');
+  const [printSides, setPrintSidesState] = useState<PrintSides>(() => {
+    try { return localStorage.getItem('bh:ccq-print-sides') === 'single' ? 'single' : 'double'; } catch { return 'double'; }
+  });
+  const setPrintSides = (value: PrintSides) => {
+    setPrintSidesState(value);
+    try { localStorage.setItem('bh:ccq-print-sides', value); } catch { /* no storage: keep for this visit */ }
+  };
   const [weekend, setWeekend] = useState<ClassConquestWeekend | null>(null);
   const stage = useRef<HTMLDivElement>(null);
 
@@ -91,7 +98,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
 
   const printLastWeek = () => {
     if (!last) return;
-    setPrintBlocked(!openCertificatePrintWindow(buildCertificateDocument({ result: last, issuer, schoolLogoUrl, brandLogoUrl: brandLogoUrl(), theme })));
+    setPrintBlocked(!openCertificatePrintWindow(buildCertificateDocument({ result: last, issuer, schoolLogoUrl, brandLogoUrl: brandLogoUrl(), theme, printSides })));
   };
   const sealed = data?.phase === 'sealed';
   const weekendLabel = (id: string | null) => weekend?.classes.find((c) => c.class_id === id)?.label ?? '';
@@ -149,6 +156,19 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
                 <button type="button" className={theme === 'light' ? 'is-active' : ''} onClick={() => setTheme('light')} aria-pressed={theme === 'light'}>☀️ Light · ink-friendly</button>
                 <button type="button" className={theme === 'dark' ? 'is-active' : ''} onClick={() => setTheme('dark')} aria-pressed={theme === 'dark'}>🌙 Dark</button>
               </div>
+              <label className="ccq-print-sides">
+                <span>Printer</span>
+                <select value={printSides} onChange={(event) => setPrintSides(event.target.value as PrintSides)} aria-label="Printer sides">
+                  <option value="double">Double-sided printer · add blank backs</option>
+                  <option value="single">Single-sided printer</option>
+                </select>
+              </label>
+              <p className="ccq-print-plan">
+                {(() => {
+                  const plan = planCertificatePrint(last.top_students.length + 1, printSides);
+                  return `${last.top_students.length + 1} certificates · ${plan.physicalSheets} sheets · A4 landscape · each on its own sheet${plan.blankPages ? ` (${plan.blankPages} blank backs)` : ''}`;
+                })()}
+              </p>
               <button type="button" className="ccq-present" onClick={printLastWeek} disabled={last.top_students.length === 0}>🖨 Print certificates for {weekLabel(last.week_start)}</button>
               {printBlocked ? <p className="ccq-modal-warn" role="alert">Your browser blocked the certificate window. Allow pop-ups for Brains Heist and try again.</p> : null}
             </div>
@@ -300,7 +320,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
         </div>
       ) : null}
 
-      <ConquestHistoryModal open={historyOpen} onClose={() => setHistoryOpen(false)} grade={grade} issuer={issuer} schoolLogoUrl={schoolLogoUrl} theme={theme} />
+      <ConquestHistoryModal open={historyOpen} onClose={() => setHistoryOpen(false)} grade={grade} issuer={issuer} schoolLogoUrl={schoolLogoUrl} theme={theme} printSides={printSides} />
       {nextMap ? <ConquestIntelModal open={intelOpen} onClose={() => setIntelOpen(false)} map={nextMap} when="next" /> : null}
       {revealing && last ? <ConquestRevealStage result={last} onClose={() => setRevealing(false)} /> : null}
     </div>

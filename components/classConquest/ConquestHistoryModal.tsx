@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../src/contexts/LanguageContext';
 import { fetchClassConquestHistory, type ClassConquestHistory } from '../../services/classConquestService';
 import { allTimeMasterminds, CONQUEST_COLORS, mapById, roleForRank, winStreak, type ConquestResult } from '../../src/lib/classConquest';
-import { buildCertificateDocument, conquestBadgeSvg, openCertificatePrintWindow, weekLabel, type CertificateTheme } from '../../src/lib/conquestCertificates';
+import { buildCertificateDocument, conquestBadgeSvg, openCertificatePrintWindow, weekLabel, type CertificateTheme, type PrintSides } from '../../src/lib/conquestCertificates';
 
 interface ConquestHistoryModalProps {
   open: boolean;
@@ -14,6 +14,7 @@ interface ConquestHistoryModalProps {
   issuer?: string;
   schoolLogoUrl?: string | null;
   theme?: CertificateTheme;
+  printSides?: PrintSides;
 }
 
 /** Stable colours per class label across all weeks (alphabetical, like the live map). */
@@ -22,7 +23,7 @@ function labelColors(results: ConquestResult[]): Record<string, string> {
   return Object.fromEntries(labels.map((label, i) => [label, CONQUEST_COLORS[i % CONQUEST_COLORS.length]]));
 }
 
-const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClose, grade = null, issuer, schoolLogoUrl, theme = 'light' }) => {
+const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClose, grade = null, issuer, schoolLogoUrl, theme = 'light', printSides = 'double' }) => {
   const { t } = useLanguage();
   const [history, setHistory] = useState<ClassConquestHistory | null>(null);
   const [loading, setLoading] = useState(false);
@@ -60,7 +61,7 @@ const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClo
   if (!open) return null;
 
   const print = (result: ConquestResult) => {
-    const ok = openCertificatePrintWindow(buildCertificateDocument({ result, issuer, schoolLogoUrl, brandLogoUrl: typeof window === 'undefined' ? null : `${window.location.origin}/logo.png`, theme }));
+    const ok = openCertificatePrintWindow(buildCertificateDocument({ result, issuer, schoolLogoUrl, brandLogoUrl: typeof window === 'undefined' ? null : `${window.location.origin}/logo.png`, theme, printSides }));
     setPrintBlocked(!ok);
   };
 

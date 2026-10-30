@@ -7,6 +7,7 @@
  */
 
 import { addDays, mapById, roleForRank, SCORING_DAYS, type ConquestResult, type ConquestWinner } from './classConquest';
+import { planBookletPrint, type BookletPrintPlan } from './paperScan/printBooklets';
 
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 
@@ -63,6 +64,30 @@ export interface CertificateDocumentOptions {
   issuedOn?: string;
   /** dark = the in-app look (best on good printers); light = ink-friendly cream paper with navy and gold. */
   theme?: CertificateTheme;
+  /**
+   * How the teacher's printer prints. 'double' (the default, and the safe choice) gives every
+   * certificate a blank back so no two certificates ever share a sheet; 'single' adds nothing.
+   */
+  printSides?: PrintSides;
+}
+
+export type PrintSides = 'single' | 'double';
+
+/**
+ * Smart print plan for a certificate pack, from the same planner as the classroom
+ * booklets: A4 landscape, one page per side, and every certificate kept on its own
+ * sheet of paper (on a double-sided printer each one gets a blank back).
+ */
+export function planCertificatePrint(certificates: number, printSides: PrintSides = 'double'): BookletPrintPlan {
+  return planBookletPrint(Array.from({ length: certificates }, () => 1), { keepTogether: true, duplex: printSides === 'double', pagesPerSide: 1 });
+}
+
+/** The exact settings to choose in the browser's print dialog. */
+export function certificatePrinterReminder(printSides: PrintSides): string {
+  return [
+    'Layout: Landscape', 'Paper: A4', 'Scale: 100% / Actual size', 'Margins: None', 'Headers and footers: Off',
+    'Background graphics: On', printSides === 'double' ? 'Two-sided: On' : 'Two-sided: Off', 'Pages per sheet: 1', 'Pages: All',
+  ].join(' · ');
 }
 
 const certificateStyles = `
@@ -70,13 +95,22 @@ const certificateStyles = `
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: #e2e8f0; font-family: 'IBM Plex Sans', Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; color: #0f172a; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .serif { font-family: 'Playfair Display', Georgia, 'Times New Roman', serif; }
-  .toolbar { display: flex; gap: 0.75rem; align-items: center; justify-content: center; padding: 0.75rem; background: #fff; border-bottom: 1px solid #cbd5e1; position: sticky; top: 0; z-index: 2; }
-  .toolbar button { min-height: 44px; padding: 0 1.25rem; border: 0; border-radius: 0.75rem; background: #7c3aed; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
-  .toolbar p { margin: 0; color: #475569; font-size: 0.9rem; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: center; justify-content: center; padding: 0.75rem 1rem; background: #172438; color: #fff; position: sticky; top: 0; z-index: 2; }
+  .toolbar button { min-height: 44px; padding: 0 1.25rem; border: 0; border-radius: 0.75rem; background: #fff; color: #172438; font: inherit; font-weight: 800; cursor: pointer; }
+  .toolbar button:disabled { opacity: 0.6; cursor: wait; }
+  .toolbar-copy { display: grid; gap: 0.2rem; max-width: 980px; }
+  .toolbar-copy strong { font-size: 0.95rem; }
+  .toolbar-copy span { font-size: 0.78rem; line-height: 1.5; color: #cbd5e1; }
 
-  .cert { position: relative; width: 297mm; height: 210mm; margin: 12px auto; padding: 16mm 18mm 14mm; overflow: hidden; color: #f8fafc;
-          background: radial-gradient(circle at 85% 20%, rgba(245,192,66,0.22), transparent 38%), linear-gradient(145deg, #1e1b4b, #0f172a 55%, #020617); page-break-after: always; break-after: page; }
-  .cert:last-child { page-break-after: auto; break-after: auto; }
+  .print-page { width: 297mm; height: 210mm; margin: 12px auto; break-inside: avoid; page-break-inside: avoid; break-after: page; page-break-after: always; }
+  .cert-booklet:last-of-type .print-page:last-child { break-after: auto; page-break-after: auto; }
+  .cert { position: relative; padding: 16mm 18mm 14mm; overflow: hidden; color: #f8fafc;
+          background: radial-gradient(circle at 85% 20%, rgba(245,192,66,0.22), transparent 38%), linear-gradient(145deg, #1e1b4b, #0f172a 55%, #020617); }
+  .blank-back { display: grid; place-items: center; background: #fff; border: 2px dashed #b9c4d4; color: #64748b; font-size: 4mm; text-align: center; }
+  .blank-back span { max-width: 160mm; line-height: 1.5; }
+  .cert-tools { display: flex; justify-content: center; margin: -4px auto 4px; }
+  .cert-tools button { min-height: 40px; padding: 0 1rem; border: 1px solid #c4b5fd; border-radius: 0.6rem; background: #fff; color: #5b21b6; font: inherit; font-weight: 800; cursor: pointer; }
+  .cert-tools button:disabled { opacity: 0.55; cursor: wait; }
   /* Double frame with corner ornaments */
   .frame { position: absolute; inset: 7mm; border: 1.4mm solid #f5c042; border-radius: 3mm; pointer-events: none; }
   .frame::before { content: ''; position: absolute; inset: 2.2mm; border: 0.35mm solid rgba(245,192,66,0.6); border-radius: 2mm; }
@@ -129,7 +163,17 @@ const certificateStyles = `
   .top5 li { padding: 3mm 2mm; border-radius: 2.5mm; background: rgba(255,255,255,0.08); border: 0.3mm solid rgba(245,192,66,0.45); text-align: center; }
   .top5 b { display: block; font-size: 3.9mm; line-height: 1.2; color: #fff; overflow-wrap: anywhere; hyphens: auto; }
   .top5 i { display: block; font-style: normal; font-size: 2.9mm; color: #f5c042; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1mm; }
-  @media print { .toolbar { display: none; } body { background: #fff; } .cert { margin: 0; } }
+  @media print {
+    .toolbar, .cert-tools { display: none !important; }
+    body { background: #fff; }
+    .print-page { margin: 0; }
+    .blank-back { border: 0; }
+    .blank-back span { display: none; }
+    /* "Print only this one": hide every other certificate and all blank backs. */
+    body.print-one .cert-booklet:not(.is-only) { display: none !important; }
+    body.print-one .blank-back { display: none !important; }
+    body.print-one .cert-booklet.is-only .cert { break-after: auto; page-break-after: auto; }
+  }
 
   /* Light theme: cream paper, navy ink, gold accents. Same layout. */
   .theme-light .cert { color: #0f172a; background: radial-gradient(circle at 85% 20%, rgba(245,192,66,0.3), transparent 40%), linear-gradient(160deg, #fffdf7, #fdf6e3 60%, #f8ecd0); }
@@ -144,6 +188,7 @@ const certificateStyles = `
   .theme-light .ribbon { background: #b8860b; color: #fffdf7; }
   .theme-light .sign { border-color: #334155; }
   .theme-light .watermark { opacity: 0.05; }
+  .theme-light .blank-back, .theme-dark .blank-back { background: #fff; color: #64748b; }
 `;
 
 const CORNER = `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M4 60 V4 H60" fill="none" stroke="#f5c042" stroke-width="5" stroke-linecap="round"/><path d="M14 44 V14 H44" fill="none" stroke="#f5c042" stroke-width="2.5" opacity="0.7"/><circle cx="14" cy="14" r="4" fill="#f5c042"/></svg>`;
@@ -180,7 +225,7 @@ function studentCertificate(result: ConquestResult, student: ConquestWinner, o: 
   const role = roleForRank(student.rank);
   const label = escapeHtml(result.winner_label ?? '');
   const rivals = result.standings.length - 1;
-  return `<section class="cert" aria-label="Certificate for ${escapeHtml(student.name)}">
+  return `<section class="cert print-page" aria-label="Certificate for ${escapeHtml(student.name)}">
     <div class="frame"></div>${corners()}
     <div class="watermark" aria-hidden="true">${map.flag}</div>
     ${header(result, o.issuer, o.schoolLogoUrl, o.brandLogoUrl, role)}
@@ -209,7 +254,7 @@ function classCertificate(result: ConquestResult, o: Required<Pick<CertificateDo
   const label = escapeHtml(result.winner_label ?? '');
   const rivals = result.standings.length - 1;
   const top = result.top_students.map((s) => `<li><i>${roleForRank(s.rank)}</i><b>${escapeHtml(s.name)}</b></li>`).join('');
-  return `<section class="cert" aria-label="Class certificate for ${label}">
+  return `<section class="cert print-page" aria-label="Class certificate for ${label}">
     <div class="frame"></div>${corners()}
     <div class="watermark" aria-hidden="true">${map.flag}</div>
     ${header(result, o.issuer, o.schoolLogoUrl, o.brandLogoUrl, 'Champions')}
@@ -230,22 +275,61 @@ function classCertificate(result: ConquestResult, o: Required<Pick<CertificateDo
 
 /** A complete, self-contained HTML document: one page per top-five student, then the class page. */
 export function buildCertificateDocument(options: CertificateDocumentOptions): string {
-  const { result, theme = 'dark' } = options;
+  const { result, theme = 'dark', printSides = 'double' } = options;
   const o = { ...options, issuer: options.issuer ?? '', issuedOn: options.issuedOn ?? addDays(result.week_start, 7) };
   const map = mapById(result.map_id);
-  const pages = [
-    ...result.top_students.slice(0, 5).map((s) => studentCertificate(result, s, o)),
-    classCertificate(result, o),
-  ].join('\n');
+  const certificates = [
+    ...result.top_students.slice(0, 5).map((s) => ({ label: `${roleForRank(s.rank)} · ${s.name}`, html: studentCertificate(result, s, o) })),
+    { label: `Class certificate · ${result.winner_label ?? ''}`, html: classCertificate(result, o) },
+  ];
+  const plan = planCertificatePrint(certificates.length, printSides);
+  const blank = '<section class="print-page blank-back" aria-label="Blank back"><span>Blank back · keeps the next certificate on its own sheet of paper</span></section>';
+  const booklets = certificates.map((c, i) => `<article class="cert-booklet" data-cert="${i}">
+    <div class="cert-tools"><button type="button" class="print-one" data-cert="${i}" disabled>🖨 Print only this one · ${escapeHtml(c.label)}</button></div>
+    ${c.html}${blank.repeat(plan.padding[i])}
+  </article>`).join('\n');
+  const status = `${certificates.length} certificates · ${plan.physicalSheets} sheet${plan.physicalSheets === 1 ? '' : 's'} of paper${plan.blankPages ? ` · ${plan.blankPages} blank back${plan.blankPages === 1 ? '' : 's'} added` : ''} · each certificate on its own sheet`;
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Class Conquest certificates · ${escapeHtml(result.winner_label ?? '')} · ${escapeHtml(map.name)}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 <style>${certificateStyles}</style></head>
-<body class="theme-${theme}">
-<div class="toolbar"><button type="button" onclick="window.print()">Print / Save as PDF</button><p>${result.top_students.length} student certificate${result.top_students.length === 1 ? '' : 's'} + 1 class certificate · A4 landscape · ${theme === 'light' ? 'light (ink-friendly)' : 'dark'} theme</p></div>
-${pages}
-<script>if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function () { setTimeout(function () { window.print(); }, 250); }); }</script>
+<body class="theme-${theme}" data-print-sides="${printSides}">
+<div class="toolbar"><button type="button" id="print-all" disabled>Preparing…</button><div class="toolbar-copy"><strong id="print-status" role="status">${status}</strong><span>${certificatePrinterReminder(printSides)}. Use these same settings in the printer dialog.${printSides === 'double' ? ' Two-sided stays on: the blank backs make sure no two certificates are ever printed back to back.' : ' Make sure two-sided printing is off, or certificates will be printed back to back.'}</span></div></div>
+${booklets}
+<script>
+(function () {
+  var all = document.getElementById('print-all');
+  var ones = Array.prototype.slice.call(document.querySelectorAll('.print-one'));
+  function ready() {
+    all.disabled = false; all.textContent = 'Print all / Save as PDF';
+    ones.forEach(function (b) { b.disabled = false; });
+  }
+  all.addEventListener('click', function () { document.body.classList.remove('print-one'); window.print(); });
+  ones.forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('.cert-booklet').forEach(function (a) { a.classList.toggle('is-only', a.getAttribute('data-cert') === b.getAttribute('data-cert')); });
+      document.body.classList.add('print-one');
+      window.print();
+    });
+  });
+  window.addEventListener('afterprint', function () {
+    document.body.classList.remove('print-one');
+    document.querySelectorAll('.cert-booklet.is-only').forEach(function (a) { a.classList.remove('is-only'); });
+  });
+  // Logos and fonts must finish loading before printing; a logo that cannot load is dropped, not printed broken.
+  var images = Array.prototype.slice.call(document.images).map(function (img) {
+    return new Promise(function (resolve) {
+      var done = function () { resolve(); };
+      if (img.complete && img.naturalWidth) return resolve();
+      img.addEventListener('load', done); img.addEventListener('error', function () { img.remove(); done(); });
+      setTimeout(done, 10000);
+    });
+  });
+  var fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+  Promise.all(images.concat([fonts])).then(ready, ready);
+})();
+</script>
 </body></html>`;
 }
 

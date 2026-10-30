@@ -7,7 +7,7 @@ import {
   type ConquestClass, type ConquestResult,
 } from '../src/lib/classConquest.js';
 import { CONQUEST_RULES, TERRITORY_INTEL } from '../src/lib/conquestIntel.js';
-import { buildCertificateDocument, certificateId, conquestBadgeSvg, weekLabel } from '../src/lib/conquestCertificates.js';
+import { buildCertificateDocument, certificateId, certificatePrinterReminder, conquestBadgeSvg, planCertificatePrint, weekLabel } from '../src/lib/conquestCertificates.js';
 
 const team = (id: string, size: number, done: number[], mine = false): ConquestClass => ({
   class_id: id, label: id, size, is_mine: mine,
@@ -147,7 +147,7 @@ test('hall of fame: win streaks and all-time masterminds', () => {
 test('certificates: one page per winner plus the class page, names escaped, badge carries the rank', () => {
   const r = result('2026-10-26', '7B', [['s1', 'Aigerim <Z>'], ['s2', 'Бек'], ['s3', 'Dan'], ['s4', 'Eli'], ['s5', 'Fin']]);
   const html = buildCertificateDocument({ result: r, issuer: 'Test School' });
-  assert.equal((html.match(/<section class="cert"/g) ?? []).length, 6);
+  assert.equal((html.match(/<section class="cert print-page"/g) ?? []).length, 6);
   assert.match(html, /Aigerim &lt;Z&gt;/);
   assert.doesNotMatch(html, /Aigerim <Z>/);
   assert.match(html, /Бек/);
@@ -157,7 +157,7 @@ test('certificates: one page per winner plus the class page, names escaped, badg
   assert.match(html, /size: A4 landscape/);
   assert.match(html, /Test School/);
   assert.equal(weekLabel('2026-10-26'), '26 Oct – 30 Oct 2026', 'Monday to Friday');
-  assert.match(buildCertificateDocument({ result: r, theme: 'light' }), /<body class="theme-light">/);
+  assert.match(buildCertificateDocument({ result: r, theme: 'light' }), /<body class="theme-light"[ >]/);
   const branded = buildCertificateDocument({ result: r, issuer: 'Bishkek International School', schoolLogoUrl: 'https://cdn.example/crest.png', brandLogoUrl: 'https://app.example/logo.png' });
   assert.match(branded, /<img src="https:\/\/cdn\.example\/crest\.png" alt="">/, 'school crest in the header');
   assert.match(branded, /<img src="https:\/\/app\.example\/logo\.png" alt="Brains Heist">/, 'Brains Heist logo in the header');
@@ -166,7 +166,7 @@ test('certificates: one page per winner plus the class page, names escaped, badg
   assert.equal(certificateId(r, 's1'), certificateId(r, 's1'), 'certificate numbers are stable');
   assert.notEqual(certificateId(r, 's1'), certificateId(r, 's2'));
   assert.match(certificateId(r, 's1'), /^BH-261026-[0-9A-Z]{7}$/);
-  assert.match(html, /<body class="theme-dark">/);
+  assert.match(html, /<body class="theme-dark"[ >]/);
   const gold = conquestBadgeSvg({ kind: 'gold', mapId: 'unitedkingdom', rank: 3 });
   assert.match(gold, /#3/);
   assert.match(gold, /🇬🇧/);
@@ -218,4 +218,40 @@ test('frozen results come from the server and name only the winning class’s to
   // The live standings block still exposes aggregate counts only.
   const live = sql.slice(sql.indexOf("'is_mine', t.class_id = v_viewer.my_class"), sql.indexOf('into v_classes'));
   assert.doesNotMatch(live, /username|full_name|student_id/);
+});
+
+test('certificates print on the smart print system: landscape, one per sheet, never back to back', () => {
+  const r = result('2026-10-26', '7B', [['s1', 'A'], ['s2', 'B'], ['s3', 'C'], ['s4', 'D'], ['s5', 'E']]);
+  // Double-sided printer: each certificate gets a blank back, except the last one.
+  const duplex = planCertificatePrint(6, 'double');
+  assert.equal(duplex.physicalSheets, 6, 'six certificates, six sheets of paper');
+  assert.equal(duplex.blankPages, 5);
+  assert.deepEqual(duplex.padding, [1, 1, 1, 1, 1, 0]);
+  // Single-sided printer: nothing to pad.
+  const simplex = planCertificatePrint(6, 'single');
+  assert.equal(simplex.physicalSheets, 6);
+  assert.equal(simplex.blankPages, 0);
+
+  const html = buildCertificateDocument({ result: r, printSides: 'double' });
+  assert.match(html, /@page \{ size: A4 landscape; margin: 0; \}/);
+  assert.equal((html.match(/class="print-page blank-back"/g) ?? []).length, 5);
+  assert.equal((html.match(/<article class="cert-booklet"/g) ?? []).length, 6);
+  // Page order: certificate, blank back, certificate, … — two certificates are never adjacent.
+  const order = [...html.matchAll(/class="(cert print-page|print-page blank-back)"/g)].map((m) => (m[1].startsWith('cert') ? 'C' : 'B')).join('');
+  assert.equal(order, 'CBCBCBCBCBC');
+  assert.doesNotMatch(order, /CC/);
+  assert.match(html, /6 certificates · 6 sheets of paper · 5 blank backs added · each certificate on its own sheet/);
+  assert.match(html, /class="print-one" data-cert="0"/, 'each certificate can be printed on its own');
+  assert.doesNotMatch(html, /setTimeout\(function \(\) \{ window\.print\(\); \}/, 'no surprise auto-print; the teacher presses Print');
+
+  const single = buildCertificateDocument({ result: r, printSides: 'single' });
+  assert.equal((single.match(/class="print-page blank-back"/g) ?? []).length, 0);
+  assert.match(single, /two-sided printing is off/);
+  assert.match(certificatePrinterReminder('double'), /Layout: Landscape.*Background graphics: On.*Two-sided: On.*Pages per sheet: 1/);
+});
+
+test('the pre-season week can never be frozen or shown', () => {
+  const sql = readFileSync('supabase/migrations/20261030160000_class_conquest_season_start.sql', 'utf8');
+  assert.match(sql, /if p_week_start < date '2026-10-26' then\n\s*return null;/);
+  assert.equal((sql.match(/r\.week_start >= date '2026-10-26'/g) ?? []).length, 3, 'live card, Hall of Fame and badges all ignore it');
 });
