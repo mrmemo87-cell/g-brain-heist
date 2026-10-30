@@ -250,6 +250,14 @@ Example:
 
 Evidence from several different questions can therefore accumulate into one focus state.
 
+Since 2026-10-30 the registry key is the only live identity for verified-assignment evidence. The
+pre-registry `diagnostic:<scope>:<skill>:<atomic>` lane ran in parallel from 2026-09-28 and produced
+a second focus state per sub-skill; migration `20261030060000_retire_legacy_diagnostic_evidence_lane`
+backfilled the registry lane for the few assignments it had missed, marked every legacy observation
+`superseded_by_scheme = 'registry'` (rows and keys preserved, `contributes_to_focus_state = false`),
+refreshed derived states, and removed the legacy lane from both ingest entry points. Legacy focus
+states remain in the table at `insufficient_evidence` for audit and are not shown as active needs.
+
 Historical taxonomy is not overwritten. When old taxonomy is canonicalised:
 - insert a new approved taxonomy row,
 - link it with `supersedes_taxonomy_id`,
