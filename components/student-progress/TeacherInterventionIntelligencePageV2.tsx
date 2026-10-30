@@ -31,15 +31,22 @@ interface TeacherInterventionIntelligencePageProps {
   onCreateTargetedPractice?: (context: TargetedPracticeContext) => void;
 }
 
-// Feature flag for the skill-level roll-up view. Off by default; `?rollup=1` or the in-page
-// toggle turns it on, and the choice is remembered per browser. Presentation only — see
-// interventionSkillRollup.ts for the gate-preserving rules.
+// Skill-level roll-up view. On by default since 2026-10-30 (owner decision after reviewing it on
+// live students); `?rollup=0` or the in-page toggle switches back to the sub-skill view, and the
+// choice is remembered per browser. Presentation only — see interventionSkillRollup.ts for the
+// gate-preserving rules.
 const ROLLUP_STORAGE_KEY = 'bh.intervention.skillRollup';
+const ROLLUP_DEFAULT = true;
 const readRollupPreference = (params: URLSearchParams): boolean => {
   const fromUrl = params.get('rollup');
   if (fromUrl === '1' || fromUrl === 'true') return true;
   if (fromUrl === '0' || fromUrl === 'false') return false;
-  try { return window.localStorage.getItem(ROLLUP_STORAGE_KEY) === '1'; } catch { return false; }
+  try {
+    const stored = window.localStorage.getItem(ROLLUP_STORAGE_KEY);
+    if (stored === '1') return true;
+    if (stored === '0') return false;
+  } catch { /* fall through to default */ }
+  return ROLLUP_DEFAULT;
 };
 const writeRollupPreference = (value: boolean) => {
   try { window.localStorage.setItem(ROLLUP_STORAGE_KEY, value ? '1' : '0'); } catch { /* best effort */ }

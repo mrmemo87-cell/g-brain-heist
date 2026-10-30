@@ -98,6 +98,7 @@ test('page keeps the roll-up behind a flag and routes actions through leaf skill
   const page = readFileSync('components/student-progress/TeacherInterventionIntelligencePageV2.tsx', 'utf8');
   assert.match(page, /bh\.intervention\.skillRollup/);
   assert.match(page, /params\.get\('rollup'\)/);
+  assert.match(page, /const ROLLUP_DEFAULT = true;/);
   assert.match(page, /rollUpRecommendations\(recommendations\)/);
   assert.match(page, /practiceRecommendationForGroup\(group\)/);
   // Non-rollup rendering path is intact.
