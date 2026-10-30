@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import type { CommanderXpAward } from './commanderHeadquartersService';
 import { getEnvVar } from './env.js';
 import type {
   CommanderPracticeBattle,
@@ -70,6 +71,8 @@ export type CommanderPvpSession = {
   opponent: CommanderPvpOpponent;
   battle: CommanderPracticeBattle;
   persistentWrites: true;
+  /** Set on the turn that wins the battle. */
+  xpAward?: CommanderXpAward | null;
 };
 
 type PvpApiResponse = {
@@ -82,6 +85,7 @@ type PvpApiResponse = {
   opponent?: CommanderPvpOpponent;
   battle?: CommanderPracticeBattle;
   persistentWrites?: boolean;
+  xpAward?: CommanderXpAward | null;
 };
 
 type PvpRequestBody =
@@ -159,6 +163,7 @@ const requireSession = (data: PvpApiResponse): CommanderPvpSession => {
     opponent: data.opponent,
     battle: data.battle,
     persistentWrites: true,
+    xpAward: data.xpAward ?? null,
   };
 };
 

@@ -100,3 +100,15 @@ test('Commander battle turns confirmed by the server are not discarded by the re
     assert.ok(response > 0 && clear > response && clear < playback, `${file} clears the timeout before playback`);
   }
 });
+
+test('Commander battle wins request XP from the database only after the server resolved the win', () => {
+  const pvp = read('supabase/functions/commander_pvp/index.ts');
+  assert.match(pvp, /next\.status === "victory" \? await awardVictoryXp\(user\.id, row\.id\) : null/);
+  assert.match(pvp, /p_source: "pvp_victory"/);
+  const practice = read('supabase/functions/commander_practice/index.ts');
+  assert.match(practice, /if \(state\.status === "victory" && admin\)/);
+  assert.match(practice, /p_source: "practice_victory"/);
+  const sql = read('supabase/migrations/20261030090000_commander_progression_go_live.sql');
+  assert.match(sql, /grant execute on function public\.rpc_commander_award_battle_xp\(uuid, text, uuid\) to service_role;/);
+  assert.doesNotMatch(sql, /rpc_commander_award_battle_xp\(uuid, text, uuid\) to authenticated/);
+});

@@ -229,6 +229,19 @@ serve(async (req) => {
       const payload = await verifyTranscript(transcriptToken, user.id);
       const state = applyPracticeTurn(payload.state, { move, targetId });
       const transcript = await signTranscript({ ...payload, state });
+      // Transcripts can be replayed, so the database pays only the first Practice win of the day.
+      let xpAward: unknown = null;
+      if (state.status === "victory" && admin) {
+        try {
+          const { data, error } = await admin.rpc("rpc_commander_award_battle_xp", {
+            p_user_id: user.id,
+            p_source: "practice_victory",
+          });
+          xpAward = error ? null : data ?? null;
+        } catch {
+          xpAward = null;
+        }
+      }
       return json(200, {
         ok: true,
         version: FUNCTION_VERSION,
@@ -238,6 +251,7 @@ serve(async (req) => {
         expiresAt: new Date(payload.exp).toISOString(),
         transcript,
         battle: state,
+        xpAward,
       });
     }
 

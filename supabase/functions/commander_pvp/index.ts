@@ -103,6 +103,26 @@ type BattleRow = {
  */
 const publicBattleState = (state: CommanderPvpBattleState): CommanderPvpBattleState => ({ ...state, seed: 0 });
 
+type XpAward = { awarded: boolean; xp: number; reason: string | null };
+
+/**
+ * Award Commander XP for a win this function just stored. The database re-checks the stored
+ * battle, limits, and caps; a failure here never undoes the finished battle.
+ */
+const awardVictoryXp = async (userId: string, battleId: string): Promise<XpAward | null> => {
+  if (!admin) return null;
+  try {
+    const { data, error } = await admin.rpc("rpc_commander_award_battle_xp", {
+      p_user_id: userId,
+      p_source: "pvp_victory",
+      p_battle_id: battleId,
+    });
+    return error || !data ? null : data as XpAward;
+  } catch {
+    return null;
+  }
+};
+
 const battleResponse = async (row: BattleRow) => ({
   ok: true,
   version: FUNCTION_VERSION,
@@ -308,7 +328,8 @@ serve(async (req) => {
         .maybeSingle();
       if (updateError) throw new Error("commander_pvp_turn_failed");
       if (!updated) throw new Error("commander_pvp_stale_turn");
-      return json(200, await battleResponse(updated as BattleRow));
+      const xpAward = next.status === "victory" ? await awardVictoryXp(user.id, row.id) : null;
+      return json(200, { ...(await battleResponse(updated as BattleRow)), xpAward });
     }
 
     if (action === "cancel") {

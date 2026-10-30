@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import type { CommanderXpAward } from './commanderHeadquartersService';
 
 export type CommanderPracticeSide = 'player' | 'enemy';
 export type CommanderPracticeStatus = 'active' | 'victory' | 'defeat' | 'draw';
@@ -66,6 +67,8 @@ export type CommanderPracticeSession = {
   transcript: string;
   expiresAt: string;
   battle: CommanderPracticeBattle;
+  /** Set on the turn that wins the battle. */
+  xpAward?: CommanderXpAward | null;
 };
 
 type PracticeApiResponse = {
@@ -74,6 +77,7 @@ type PracticeApiResponse = {
   transcript?: string;
   expiresAt?: string;
   battle?: CommanderPracticeBattle;
+  xpAward?: CommanderXpAward | null;
 };
 
 const extractFunctionError = async (error: unknown, data: PracticeApiResponse | null) => {
@@ -107,6 +111,7 @@ const requireSession = async (
     transcript: data.transcript,
     expiresAt: data.expiresAt,
     battle: data.battle,
+    xpAward: data.xpAward ?? null,
   };
 };
 

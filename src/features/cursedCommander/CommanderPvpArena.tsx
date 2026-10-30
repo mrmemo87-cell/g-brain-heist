@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { commanderXpAwardMessage } from '../../../services/commanderHeadquartersService';
 import { preloadCommanderSpriteAssets } from './commanderSpriteAssets';
 import { preloadCommanderAudio, stopCommanderAudio, unlockCommanderAudio } from './commanderBattleSound';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -376,6 +377,12 @@ const CommanderPvpArena: React.FC<Props> = ({ launch, onClose }) => {
                 onMove={(move) => void playMove(move)}
                 onRestart={onClose}
               />
+
+              {battle.status !== 'active' && commanderXpAwardMessage(session.xpAward) && (
+                <p role="status" className="rounded-2xl border border-amber-300/30 bg-amber-400/10 px-4 py-3 text-sm font-bold text-amber-100">
+                  ⭐ {commanderXpAwardMessage(session.xpAward)}
+                </p>
+              )}
 
               <details className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
                 <summary className="cursor-pointer font-heading text-xs font-black uppercase tracking-[0.12em] text-slate-300">📜 Battle log</summary>

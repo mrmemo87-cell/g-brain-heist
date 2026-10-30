@@ -57,6 +57,8 @@ const CommanderHelpGuide: React.FC = () => (
         <ul className="list-disc space-y-1 pl-5 text-sm text-gray-300 sm:text-base">
           <li>Commander purchases and training use your <strong className="text-white">shared Brains Heist Coins</strong>.</li>
           <li><strong className="text-white">Commander XP</strong> and Commander level are separate from your normal account XP.</li>
+          <li>Earn Commander XP by <strong className="text-white">opening Headquarters each day</strong> (100 XP, rising to 250 XP on a 7-day streak), <strong className="text-white">winning Player Battles</strong> (60 XP, up to 5 different opponents a day) and your <strong className="text-white">first Practice win each day</strong> (40 XP).</li>
+          <li>Higher Commander levels unlock stat training, Unit Training (Level 11) and Formations (Level 41).</li>
           <li>Pin a unit or item as a <strong className="text-white">goal</strong> to track how many Coins you still need.</li>
           <li>Your <strong className="text-white">Records</strong> show confirmed upgrades, deployments, and balance changes.</li>
         </ul>
@@ -151,7 +153,7 @@ const CommanderHelpGuide: React.FC = () => (
     <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3 sm:p-4">
       <h3 className="mb-2 text-base font-bold text-yellow-300 sm:text-lg">🛡️ Practice safely</h3>
       <p className="text-sm leading-6 text-gray-300 sm:text-base">
-        Practice uses your equipped army, costs no battle resources, and has no ranked losses. A practice win, defeat, or draw does not change your live progress, so experiment with builds before committing more Coins to training or gear.
+        Practice uses your equipped army, costs no battle resources, and has no ranked losses. Only your first Practice win each day earns a little Commander XP; otherwise a practice win, defeat, or draw does not change your live progress, so experiment with builds before committing more Coins to training or gear.
       </p>
     </div>
 

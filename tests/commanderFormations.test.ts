@@ -154,8 +154,8 @@ test("Formation migration keeps progression private, atomic, idempotent, and loa
   assert.match(sql, /'formation_train'/);
   assert.match(sql, /'formation_set'/);
   assert.match(sql, /'formation', jsonb_build_object/);
-  assert.match(sql, /'activeId', formation_id/);
-  assert.match(sql, /commander_private\.formation_modifiers\(formation_id, formation_rank\)/);
+  assert.match(sql, /'activeId', v_formation_id/);
+  assert.match(sql, /commander_private\.formation_modifiers\(v_formation_id, formation_rank\)/);
   assert.match(sql, /greatest\(1,/);
   assert.match(sql, /return commander_private\.snapshot\(u\)/);
   assert.match(sql, /revoke all on function commander_private\.formation_modifiers/);
