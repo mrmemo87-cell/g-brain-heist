@@ -82,3 +82,21 @@ test('Commander PvP interrupted battles have explicit resume, expiry, and abando
   assert.match(lobby, /Disconnecting does not decide the battle/);
   assert.doesNotMatch(lobby, /FINISH ACTIVE BATTLE/);
 });
+
+test('Commander PvP never sends the battle seed to the browser', () => {
+  const fn = read('supabase/functions/commander_pvp/index.ts');
+  assert.match(fn, /const publicBattleState = \(state: CommanderPvpBattleState\): CommanderPvpBattleState => \(\{ \.\.\.state, seed: 0 \}\)/);
+  assert.match(fn, /battle: publicBattleState\(row\.battle_state\)/);
+  assert.doesNotMatch(fn, /battle: row\.battle_state/);
+});
+
+test('Commander battle turns confirmed by the server are not discarded by the request timeout', () => {
+  for (const file of ['src/features/cursedCommander/CommanderPracticeArena.tsx', 'src/features/cursedCommander/CommanderPvpArena.tsx']) {
+    const arena = read(file);
+    const playMove = arena.slice(arena.indexOf('const playMove = async'));
+    const response = playMove.indexOf('controller.signal');
+    const clear = playMove.indexOf('window.clearTimeout(timeout);');
+    const playback = playMove.indexOf('await playConfirmedSteps(');
+    assert.ok(response > 0 && clear > response && clear < playback, `${file} clears the timeout before playback`);
+  }
+});

@@ -97,6 +97,12 @@ type BattleRow = {
   expires_at: string;
 };
 
+/**
+ * Every roll is derived from the seed, so a client that knew it could predict the
+ * defender's moves and damage before choosing its own. The seed stays in the database.
+ */
+const publicBattleState = (state: CommanderPvpBattleState): CommanderPvpBattleState => ({ ...state, seed: 0 });
+
 const battleResponse = async (row: BattleRow) => ({
   ok: true,
   version: FUNCTION_VERSION,
@@ -106,7 +112,7 @@ const battleResponse = async (row: BattleRow) => ({
   battleId: row.id,
   expiresAt: row.expires_at,
   opponent: await loadOpponent(row.defender_id),
-  battle: row.battle_state,
+  battle: publicBattleState(row.battle_state),
 });
 
 const loadBattle = async (battleId: string) => {

@@ -391,7 +391,12 @@ const performUnitAttacks = (
   }
 };
 
-const performEnemyCommanderMove = (state: CommanderPvpBattleState) => {
+/**
+ * `powerReady` is the defender's cooldown at the START of the turn, matching how the
+ * attacker's power is validated. Checking after this turn's tick would recharge the
+ * AI-driven defender one turn faster than the human attacker with the same loadout.
+ */
+const performEnemyCommanderMove = (state: CommanderPvpBattleState, powerReady: boolean) => {
   const actor = commander(state, "enemy");
   const targets = living(state, "player");
   if (!actor || actor.hp <= 0 || !targets.length) return;
@@ -401,11 +406,11 @@ const performEnemyCommanderMove = (state: CommanderPvpBattleState) => {
   const decision = roll(state, "enemy:commander:move", 100);
   const powers = powersFor(state, "enemy");
 
-  if (cooldownFor(state, "enemy") === 0 && powers.includes("raise_dead") && decision < 20) {
+  if (powerReady && powers.includes("raise_dead") && decision < 20) {
     if (performRaiseDead(state, "enemy", actor, false)) return;
   }
 
-  if (cooldownFor(state, "enemy") === 0 && decision < 48) {
+  if (powerReady && decision < 48) {
     const offensive = powers.filter((power) => power !== "raise_dead");
     const power = offensive[roll(state, "enemy:commander:power", offensive.length)] ?? "death_bolt";
     performPower(state, "enemy", actor, power, target, false);
@@ -432,6 +437,7 @@ export const applyCommanderPvpTurn = (
   }
 
   const state = clone(currentState);
+  const enemyPowerReady = currentState.enemyDeathBoltCooldown === 0;
   state.playerDeathBoltCooldown = Math.max(0, state.playerDeathBoltCooldown - 1);
   state.enemyDeathBoltCooldown = Math.max(0, state.enemyDeathBoltCooldown - 1);
 
@@ -444,7 +450,7 @@ export const applyCommanderPvpTurn = (
   performUnitAttacks(state, "player", "enemy", preferredEnemyTarget ?? null);
   if (state.status !== "active") return state;
 
-  performEnemyCommanderMove(state);
+  performEnemyCommanderMove(state, enemyPowerReady);
   if (resolveOutcome(state)) return state;
 
   performUnitAttacks(state, "enemy", "player", state.enemyFocusTarget);

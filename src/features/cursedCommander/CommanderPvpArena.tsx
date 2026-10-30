@@ -236,11 +236,14 @@ const CommanderPvpArena: React.FC<Props> = ({ launch, onClose }) => {
       setAssetsReady(true);
       setBattlePresentationKey((value) => value + 1);
     } catch (cause) {
+      // A request cancelled by cleanup must not overwrite the state of the request that replaced it.
+      if (controller.signal.aborted && pendingRequest.current !== controller) return;
       setError(commanderPvpError(cause));
     } finally {
       window.clearTimeout(timeout);
-      if (pendingRequest.current === controller) pendingRequest.current = null;
-      setBusy(false);
+      const isCurrent = pendingRequest.current === controller;
+      if (isCurrent) pendingRequest.current = null;
+      if (isCurrent || !pendingRequest.current) setBusy(false);
     }
   };
 
@@ -250,6 +253,8 @@ const CommanderPvpArena: React.FC<Props> = ({ launch, onClose }) => {
       stopCommanderAudio();
       playbackRun.current += 1;
       pendingRequest.current?.abort();
+      // Release the guard now so a StrictMode/dev re-run (or a new launch) can start its own request.
+      pendingRequest.current = null;
     };
     // launch identifies a single battle entry; do not restart on presentation toggles.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -275,6 +280,9 @@ const CommanderPvpArena: React.FC<Props> = ({ launch, onClose }) => {
         move === 'guard' || move === 'raise_dead' ? null : selectedTargetId,
         controller.signal,
       );
+      // The server confirmed this turn, so the timeout must not discard it during a long playback.
+      // From here an abort only means the arena unmounted.
+      window.clearTimeout(timeout);
       if (controller.signal.aborted) return;
       const confirmedEvents = next.battle.events.filter((event) => !previousEventIds.has(event.id));
       await playConfirmedSteps(buildCommanderCinematicSteps(confirmedEvents), next.battle);

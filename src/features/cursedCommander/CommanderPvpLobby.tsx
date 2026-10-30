@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   cancelCommanderPvp,
   commanderPvpError,
@@ -53,23 +53,38 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
   const [abandoning, setAbandoning] = useState(false);
   const [confirmAbandon, setConfirmAbandon] = useState(false);
 
+  // Only the newest request may update the lobby, so a slow older search cannot overwrite newer results.
+  const latestRequest = useRef(0);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
   const load = useCallback(async (query = '') => {
+    const request = ++latestRequest.current;
     setLoading(true);
     setError('');
     try {
-      setLobby(await getCommanderPvpLobby(query, 48));
+      const next = await getCommanderPvpLobby(query, 48);
+      if (mounted.current && request === latestRequest.current) setLobby(next);
     } catch (cause) {
-      setError(commanderPvpError(cause));
+      if (mounted.current && request === latestRequest.current) setError(commanderPvpError(cause));
     } finally {
-      setLoading(false);
+      if (mounted.current && request === latestRequest.current) setLoading(false);
     }
   }, []);
 
+  // Load immediately on open, then debounce later search edits.
+  const firstSearch = useRef(true);
   useEffect(() => {
-    void load();
-  }, [load]);
-
-  useEffect(() => {
+    if (firstSearch.current) {
+      firstSearch.current = false;
+      void load(search);
+      return undefined;
+    }
     const timer = window.setTimeout(() => void load(search), 300);
     return () => window.clearTimeout(timer);
   }, [load, search]);
@@ -239,7 +254,7 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
                   placeholder="Search username"
                   className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400/50 sm:w-64"
                 />
-                <button type="button" onClick={() => void load(search)} disabled={loading} className="rounded-xl border border-slate-700 px-3 py-2 text-sm font-bold text-slate-300 hover:border-cyan-400/40 hover:text-white disabled:opacity-50">↻</button>
+                <button type="button" onClick={() => void load(search)} disabled={loading} aria-label="Refresh opponents" title="Refresh opponents" className="rounded-xl border border-slate-700 px-3 py-2 text-sm font-bold text-slate-300 hover:border-cyan-400/40 hover:text-white disabled:opacity-50"><span aria-hidden>↻</span></button>
               </div>
             </div>
 
