@@ -1,0 +1,117 @@
+name: Demo environment
+
+# Builds and refreshes the isolated "Try the demo" database (Supabase project
+# brains-heist-demo, ref lvkmkgjpcbdyzdkbqcgc).
+#
+# Production is only ever READ (pg_dump / supabase db dump). Every write goes to the demo project.
+#
+# Required repository secrets (Settings -> Secrets and variables -> Actions):
+#   BH_PROD_DB_URL  session-pooler connection string of the production project (sozodkxwhubespiedgxm)
+#   BH_DEMO_DB_URL  session-pooler connection string of the demo project (lvkmkgjpcbdyzdkbqcgc)
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'clone = copy schema + content from production, then seed. reset = re-seed the demo school only.'
+        type: choice
+        options: [reset, clone]
+        default: reset
+  schedule:
+    # Nightly demo reset at 02:20 Asia/Bishkek (20:20 UTC)
+    - cron: '20 20 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: demo-environment
+  cancel-in-progress: false
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PROD_DB_URL: ${{ secrets.BH_PROD_DB_URL }}
+      DEMO_DB_URL: ${{ secrets.BH_DEMO_DB_URL }}
+      MODE: ${{ github.event.inputs.mode || 'reset' }}
+      PGOPTIONS: '-c app.demo_target=brains-heist-demo'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Safety check on connection strings
+        run: |
+          set -euo pipefail
+          [[ -n "${DEMO_DB_URL}" ]] || { echo "BH_DEMO_DB_URL secret is missing"; exit 1; }
+          [[ "${DEMO_DB_URL}" == *lvkmkgjpcbdyzdkbqcgc* ]] || { echo "BH_DEMO_DB_URL is not the demo project"; exit 1; }
+          [[ "${DEMO_DB_URL}" != *sozodkxwhubespiedgxm* ]] || { echo "BH_DEMO_DB_URL points at production"; exit 1; }
+          if [[ "${MODE}" == "clone" ]]; then
+            [[ "${PROD_DB_URL}" == *sozodkxwhubespiedgxm* ]] || { echo "BH_PROD_DB_URL is not the production project"; exit 1; }
+          fi
+
+      - name: Install PostgreSQL 17 client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      - uses: supabase/setup-cli@v1
+        if: env.MODE == 'clone'
+        with:
+          version: latest
+
+      - name: Refuse to clone over an existing demo schema
+        if: env.MODE == 'clone'
+        run: |
+          set -euo pipefail
+          exists=$(psql "$DEMO_DB_URL" -tAc "select to_regclass('public.users') is not null")
+          if [[ "$exists" == "t" ]]; then
+            echo "Demo project already has the schema. Use mode=reset, or wipe the demo project first."
+            exit 1
+          fi
+
+      - name: Dump production schema (read-only)
+        if: env.MODE == 'clone'
+        run: |
+          set -euo pipefail
+          mkdir -p dump
+          supabase db dump --db-url "$PROD_DB_URL" -f dump/schema.sql
+          wc -c dump/schema.sql
+
+      - name: Dump production content tables (read-only)
+        if: env.MODE == 'clone'
+        run: |
+          set -euo pipefail
+          args=()
+          while IFS= read -r t; do
+            t="${t%%#*}"; t="$(echo "$t" | xargs)"
+            [[ -z "$t" ]] && continue
+            args+=(--table="$t")
+          done < supabase/demo/content-tables.txt
+          pg_dump "$PROD_DB_URL" --data-only --no-owner --no-privileges "${args[@]}" -f dump/content.sql
+          wc -c dump/content.sql
+
+      - name: Restore schema + content into demo
+        if: env.MODE == 'clone'
+        run: |
+          set -euo pipefail
+          psql "$DEMO_DB_URL" --single-transaction -v ON_ERROR_STOP=1 \
+            --file dump/schema.sql \
+            --command 'SET session_replication_role = replica' \
+            --file dump/content.sql
+
+      - name: Isolate demo (no outbound email/push/http) and schedule engine jobs
+        if: env.MODE == 'clone'
+        run: psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 --file supabase/demo/post-restore.sql
+
+      - name: Seed the demo school
+        run: |
+          set -euo pipefail
+          if [[ -f supabase/demo/seed-demo-school.sql ]]; then
+            psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 --file supabase/demo/seed-demo-school.sql
+          else
+            echo "No seed file yet; skipping."
+          fi
