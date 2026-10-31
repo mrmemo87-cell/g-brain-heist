@@ -184,7 +184,7 @@ test("Headquarters routes Formation commands through the dedicated RPC and profe
   assert.match(headquarters, /<CommanderFormationPanel/);
   assert.match(headquarters, /operation: "formation_train"/);
   assert.match(headquarters, /operation: "formation_set"/);
-  assert.match(headquarters, /existing Player Battles keep their frozen snapshots/);
+  assert.match(headquarters, /Team style changed\. Your next battles use it\./);
 
   assert.match(panel, /FORMATION COMMAND · LEVELS 41–100/);
   assert.match(panel, /CURRENT DOCTRINE EFFECT/);

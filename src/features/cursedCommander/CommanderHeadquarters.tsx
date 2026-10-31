@@ -28,6 +28,14 @@ import CommanderFormationPanel from "./CommanderFormationPanel";
 import CommanderCatalogCards from "./CommanderCatalogCards";
 import CommanderElixirsPanel from "./CommanderElixirsPanel";
 import CommanderHelpGuide from "../../../components/CommanderHelpGuide";
+import CommanderCelebration, { type CommanderCelebrationData } from "./CommanderCelebration";
+import {
+  commanderUiSoundEnabled,
+  onCommanderUiSoundChange,
+  playCommanderUi,
+  setCommanderUiSound,
+} from "./commanderUiSound";
+import "./commanderJuice.css";
 import "./commanderHeadquarters.css";
 import "./commanderHeadquartersCommandCenter.css";
 
@@ -171,6 +179,17 @@ export default function CommanderHeadquarters({
   const [practice, setPractice] = useState<"owned" | "fixed" | null>(null);
   const [pvpOpen, setPvpOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [celebration, setCelebration] = useState<CommanderCelebrationData | null>(null);
+  const [xpFloat, setXpFloat] = useState<string | null>(null);
+  const [soundOn, setSoundOn] = useState(commanderUiSoundEnabled);
+  const lastLevel = useRef<number | null>(null);
+  useEffect(() => onCommanderUiSoundChange(setSoundOn), []);
+  useEffect(() => {
+    if (!xpFloat) return undefined;
+    const timer = window.setTimeout(() => setXpFloat(null), 1800);
+    return () => window.clearTimeout(timer);
+  }, [xpFloat]);
+  const closeCelebration = useCallback(() => setCelebration(null), []);
   const [pvpLaunch, setPvpLaunch] = useState<CommanderPvpLaunch | null>(null);
   const request = useRef<AbortController | null>(null);
   const alive = useRef(true);
@@ -198,6 +217,10 @@ export default function CommanderHeadquarters({
         try {
           const checkin = await claimCommanderDailyCheckin(controller.signal);
           checkedIn.current = true;
+          if (alive.current && checkin.awarded && checkin.xp > 0) {
+            playCommanderUi("xp");
+            setXpFloat(`+${checkin.xp} XP`);
+          }
           if (alive.current && checkin.awarded && checkin.xp > 0)
             setNotice(
               checkin.streak > 1
@@ -266,24 +289,25 @@ export default function CommanderHeadquarters({
       setRetryPending(false);
       setHq(next);
       setChoice(null);
+      celebrateCommand(action.choice, next);
       setNotice(
         action.choice.operation === "buy"
-          ? "Added to your collection. Equip it when you are ready."
+          ? "Added to your army. Tap \"Equip\" to use it in battle."
           : action.choice.operation === "equip"
-            ? "Army updated. The new loadout will be used in your next battle."
+            ? "Team updated. Your next battle uses it."
             : action.choice.operation === "unit_train"
-              ? "Unit training complete. The upgraded stats apply to new Practice and Player Battles."
+              ? "Training done! This fighter is stronger in your next battles."
               : action.choice.operation === "formation_train"
-                ? "Formation doctrine advanced. Trusted combat stats are updated for future Practice and Player Battles."
+                ? "Team style is stronger now."
                 : action.choice.operation === "formation_set"
-                  ? "Active formation updated. New battles will use this doctrine; existing Player Battles keep their frozen snapshots."
+                  ? "Team style changed. Your next battles use it."
                   : action.choice.operation === "train"
-                    ? "Training complete. Your army stats are updated."
+                    ? "Training done! Your Commander is stronger."
                     : action.choice.operation === "enroll"
-                      ? "Your expedition begins. Your starter squad is ready."
+                      ? "Your free team is ready. Try a Practice battle!"
                       : action.choice.target
-                        ? "Goal pinned to headquarters."
-                        : "Goal cleared.",
+                        ? "Goal saved. We show it on the Headquarters page."
+                        : "Goal removed.",
       );
     } catch (cause) {
       if (!alive.current) return;
@@ -293,6 +317,7 @@ export default function CommanderHeadquarters({
           "code" in cause &&
           ["P0001", "42501", "23505"].includes(String(cause.code)),
       );
+      playCommanderUi("error");
       if (definite) {
         attempt.current = null;
         setRetryPending(false);
@@ -313,6 +338,51 @@ export default function CommanderHeadquarters({
     }
   };
 
+  /** Sound and celebration for a confirmed command. Level-ups are handled by the effect below. */
+  const celebrateCommand = (choice: Choice, next: Headquarters) => {
+    const op = choice.operation;
+    if (op === "enroll") {
+      playCommanderUi("fanfare");
+      setCelebration({ tone: "cyan", icon: "🎉", title: "Your team is ready!", subtitle: "Try a Practice battle to learn the moves." });
+    } else if (op === "buy") {
+      playCommanderUi("coin");
+      const item = next.catalog.find((entry) => entry.id === choice.target);
+      if (item) {
+        const tone = item.rarity === "legendary" ? "gold" : item.rarity === "epic" ? "violet" : item.rarity === "rare" ? "cyan" : "emerald";
+        setCelebration({
+          tone,
+          icon: item.kind === "weapon" ? "⚔️" : "🛡️",
+          art: item.kind === "unit" ? sprite(item.slot as SquadSlot, item.id) : undefined,
+          title: item.kind === "unit" ? "New fighter!" : "New gear!",
+          subtitle: `${item.name} joined your army. Tap "Equip" to use it.`,
+        });
+      }
+    } else if (op === "equip") playCommanderUi("equip");
+    else if (op === "train" || op === "unit_train" || op === "formation_train") playCommanderUi("train");
+    else playCommanderUi("tap");
+  };
+
+  // Any level increase (training, a battle win, the daily login) gets a level-up celebration.
+  const currentLevel = hq?.profile ? hq.profile.level : null;
+  useEffect(() => {
+    if (currentLevel === null) return;
+    const previous = lastLevel.current;
+    lastLevel.current = currentLevel;
+    if (previous !== null && currentLevel > previous) {
+      playCommanderUi("levelUp");
+      const unlock = hq ? commanderNextUnlock(currentLevel - 1, hq.campaign.rules) : null;
+      setCelebration({
+        tone: "gold",
+        icon: "⭐",
+        title: `Level ${currentLevel}!`,
+        subtitle: unlock && unlock.level === currentLevel
+          ? `New: ${unlock.label}`
+          : "You can train your Commander a little higher now.",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentLevel]);
+
   const claimStarterSquad = () =>
     void execute({
       operation: "enroll",
@@ -324,6 +394,7 @@ export default function CommanderHeadquarters({
 
   const propose = (next: Choice) => {
     if (busy || retryPending) return;
+    playCommanderUi("tap");
     setChoice(next);
     setNotice("");
   };
@@ -498,14 +569,25 @@ export default function CommanderHeadquarters({
           </span>
         </button>
 
-        <button className="cc-command-mobile-back" onClick={onClose}>← Dashboard</button>
+        <div className="cc-command-topbar-row">
+          <button className="cc-command-mobile-back" onClick={onClose}>← Dashboard</button>
+          <button
+            className="cc-command-sound-toggle"
+            onClick={() => { setCommanderUiSound(!soundOn); if (!soundOn) playCommanderUi("tap"); }}
+            aria-pressed={soundOn}
+            aria-label={soundOn ? "Turn sound off" : "Turn sound on"}
+            title={soundOn ? "Sound on" : "Sound off"}
+          >
+            {soundOn ? "🔊" : "🔇"}
+          </button>
+        </div>
 
         <nav className="cc-command-nav" aria-label="Commander sections">
           {tabs.map(([id, label]) => (
             <button
               key={id}
               aria-current={tab === id ? "page" : undefined}
-              onClick={() => selectTab(id)}
+              onClick={() => { playCommanderUi("tab"); selectTab(id); }}
             >
               <TabIcon tab={id} />
               <span>{label}</span>
@@ -537,6 +619,9 @@ export default function CommanderHeadquarters({
           </button>
         </div>
       </header>
+
+      {celebration && <CommanderCelebration data={celebration} onDone={closeCelebration} />}
+      {xpFloat && <div className="cc-xp-float" aria-hidden>{xpFloat}</div>}
 
       {helpOpen && (
         <div className="cc-command-help-overlay" role="dialog" aria-modal="true" aria-label="How to play Cursed Commander" onClick={() => setHelpOpen(false)}>

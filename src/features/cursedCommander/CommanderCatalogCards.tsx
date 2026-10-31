@@ -11,6 +11,7 @@ import { getCommanderRecruitIdentity } from "./commanderRecruitIdentity";
 import { getCommanderSpriteUrl } from "./commanderSpriteAssets";
 import { COMMANDER_VFX } from "./commanderVfxAssets";
 import "./commanderCatalogCards.css";
+import "./commanderJuice.css";
 
 type PurchaseIntent = {
   operation: "buy" | "equip";
@@ -176,6 +177,7 @@ export default function CommanderCatalogCards({
             className={`cc-hq-item cc-command-catalog-card cc-premium-card ${equipped ? "is-equipped" : ""} ${owned ? "is-owned" : ""} ${levelLocked ? "is-level-locked" : ""} ${goalSelected ? "is-goal" : ""}`}
             key={item.id}
             data-school={item.school ?? "neutral"}
+            data-rarity={item.rarity ?? "common"}
             style={{
               "--cc-accent": identity.accent,
               "--cc-accent-2": identity.accent2,
