@@ -43,11 +43,27 @@ jobs:
       - name: Safety check on connection strings
         run: |
           set -euo pipefail
-          [[ -n "${DEMO_DB_URL}" ]] || { echo "BH_DEMO_DB_URL secret is missing"; exit 1; }
-          [[ "${DEMO_DB_URL}" == *lvkmkgjpcbdyzdkbqcgc* ]] || { echo "BH_DEMO_DB_URL is not the demo project"; exit 1; }
-          [[ "${DEMO_DB_URL}" != *sozodkxwhubespiedgxm* ]] || { echo "BH_DEMO_DB_URL points at production"; exit 1; }
+          fail() { echo "::error title=Demo safety check::$1"; exit 1; }
+          shape() { # non-secret description of a connection string
+            local u="$1"
+            [[ -z "$u" ]] && { echo "empty"; return; }
+            local scheme="${u%%://*}"
+            local ref; ref=$(echo "$u" | grep -oE 'postgres\.[a-z0-9]{20}' | head -1 || true)
+            local placeholder="no"; [[ "$u" == *YOUR-PASSWORD* ]] && placeholder="yes"
+            echo "scheme=${scheme:0:12} user=${ref:-none} placeholder=${placeholder} length=${#u}"
+          }
+          echo "::notice title=BH_DEMO_DB_URL::$(shape "${DEMO_DB_URL}")"
+          echo "::notice title=BH_PROD_DB_URL::$(shape "${PROD_DB_URL}")"
+          [[ -n "${DEMO_DB_URL}" ]] || fail "BH_DEMO_DB_URL secret is missing or empty"
+          [[ "${DEMO_DB_URL}" == postgres* ]] || fail "BH_DEMO_DB_URL must be the single postgresql:// line"
+          [[ "${DEMO_DB_URL}" == *lvkmkgjpcbdyzdkbqcgc* ]] || fail "BH_DEMO_DB_URL is not the demo project"
+          [[ "${DEMO_DB_URL}" != *sozodkxwhubespiedgxm* ]] || fail "BH_DEMO_DB_URL points at production"
+          [[ "${DEMO_DB_URL}" != *YOUR-PASSWORD* ]] || fail "BH_DEMO_DB_URL still has the [YOUR-PASSWORD] placeholder"
           if [[ "${MODE}" == "clone" ]]; then
-            [[ "${PROD_DB_URL}" == *sozodkxwhubespiedgxm* ]] || { echo "BH_PROD_DB_URL is not the production project"; exit 1; }
+            [[ -n "${PROD_DB_URL}" ]] || fail "BH_PROD_DB_URL secret is missing or empty"
+            [[ "${PROD_DB_URL}" == postgres* ]] || fail "BH_PROD_DB_URL must be the single postgresql:// line"
+            [[ "${PROD_DB_URL}" == *sozodkxwhubespiedgxm* ]] || fail "BH_PROD_DB_URL is not the production project"
+            [[ "${PROD_DB_URL}" != *YOUR-PASSWORD* ]] || fail "BH_PROD_DB_URL still has the [YOUR-PASSWORD] placeholder"
           fi
 
       - name: Install PostgreSQL 17 client
