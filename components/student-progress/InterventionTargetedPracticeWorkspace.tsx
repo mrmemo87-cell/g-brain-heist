@@ -13,6 +13,7 @@ import { brainsAlert } from '../../src/utils/brainsAlert';
 import AssignmentWizard from '../teacher/AssignmentWizard';
 import type { TargetedPracticeContext } from './TeacherInterventionIntelligencePageV2';
 import './TeacherInterventionIntelligencePageV2.css';
+import { subjectsCompatible } from './subjectCompatibility';
 
 interface InterventionTargetedPracticeWorkspaceProps {
   context: TargetedPracticeContext;
@@ -100,7 +101,7 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
         if (!teacher) throw new Error('Teacher profile could not be loaded.');
         if (cancelled) return;
         setTeacherId(teacher.id);
-        const subjectQuestions = allQuestions.filter((question) => normalize(question.subject) === normalize(subject)
+        const subjectQuestions = allQuestions.filter((question) => subjectsCompatible(question.subject, subject)
           && !isReservedReassessmentQuestion(question));
         setQuestions(subjectQuestions);
         // Automatic intervention practice must be a precise remediation set. Only

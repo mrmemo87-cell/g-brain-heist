@@ -106,3 +106,18 @@ test('targeted practice stays inside the branded teacher portal shell', () => {
   assert.match(shell, /onCreateTargetedPractice=\{openTargetedPractice\}/);
   assert.match(shell, /activeNavigationSection=\{targetedPractice \? 'assignments'/);
 });
+
+test('targeted practice accepts bank questions whose subject is an alias of the class subject (ESL vs English)', async () => {
+  const { subjectsCompatible } = await import('../components/student-progress/subjectCompatibility');
+  // 2026-10-31: a confirmed ESL need had 8 exact "English" questions and the wizard opened with 0.
+  assert.equal(subjectsCompatible('English', 'ESL'), true);
+  assert.equal(subjectsCompatible('ESL', 'English'), true);
+  assert.equal(subjectsCompatible('English', 'English as a Second Language'), true);
+  assert.equal(subjectsCompatible('Maths', 'Mathematics'), true);
+  assert.equal(subjectsCompatible('English', 'Mathematics'), false);
+  assert.equal(subjectsCompatible('Physics', 'ESL'), false);
+  assert.equal(subjectsCompatible('', 'ESL'), false);
+  const workspace = readFileSync('components/student-progress/InterventionTargetedPracticeWorkspace.tsx', 'utf8');
+  assert.match(workspace, /subjectsCompatible\(question\.subject, subject\)/);
+  assert.doesNotMatch(workspace, /normalize\(question\.subject\) === normalize\(subject\)/);
+});
