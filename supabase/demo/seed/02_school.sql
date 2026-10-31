@@ -103,6 +103,18 @@ begin
     'all_grade', array[]::uuid[], v_teacher, array[v_class, v_class_b], false));
   perform private.demo_ok('confirm roster', public.rpc_school_admin_confirm_academic_roster(v_school, v_year));
 
+  -- 4b. A delegated administrator (Deputy Head) and the School Head setup checklist.
+  perform private.demo_as('deputy');
+  perform private.demo_ok('join deputy', public.join_school_by_code(v_code, 'teacher'));
+  perform private.demo_as('teacher');
+  perform private.demo_ok('deputy role', public.school_admin_transition_member_role(v_school, (select user_id from private.demo_people where key = 'deputy'), 'school_admin', false, 'Deputy Head, delegated administrator'));
+  perform private.demo_ok('identity', public.rpc_school_admin_confirm_identity(v_school, 'Demo International School',
+    'data:image/svg+xml;utf8,' || replace(replace('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><rect width="96" height="96" rx="22" fill="#0755ab"/><path d="M30 24h20c15 0 24 9 24 24s-9 24-24 24H30z" fill="none" stroke="#2cf6c8" stroke-width="9" stroke-linejoin="round"/><circle cx="72" cy="26" r="6" fill="#ffc861"/></svg>', '#', '%23'), '"', '''')));
+  set local session_replication_role = replica;
+  update public.school_head_onboarding set modules_confirmed_at = now(), modules_confirmed_by = v_teacher,
+    launch_test_confirmed_at = now(), launch_test_confirmed_by = v_teacher, requested_modules = array['core','cambridge'] where school_id = v_school;
+  set local session_replication_role = origin;
+
   insert into private.demo_state(key, value) values
     ('school_id', to_jsonb(v_school)), ('academic_year_id', to_jsonb(v_year)), ('class_id', to_jsonb(v_class)), ('class_b_id', to_jsonb(v_class_b))
   on conflict (key) do update set value = excluded.value;
@@ -121,6 +133,9 @@ begin
   update public.school_requests set created_at = v_open - interval '3 days', reviewed_at = v_open - interval '1 day', updated_at = v_open - interval '1 day' where approved_school_id = v_school;
   update public.schools set created_at = v_open - interval '1 day', updated_at = v_open where id = v_school;
   update public.school_members set joined_at = case when role_in_school = 'student' then v_term else v_open end where school_id = v_school;
+  update public.school_head_onboarding set identity_confirmed_at = v_open, modules_confirmed_at = v_open, launch_test_confirmed_at = v_open + interval '2 days', created_at = v_open, updated_at = v_open where school_id = v_school;
+  update public.school_governance_audit_log set created_at = v_open where school_id = v_school;
+  update public.school_member_role_audit set created_at = v_open where school_id = v_school;
   update public.classes set created_at = v_open where school_id = v_school;
   update public.class_students set joined_at = v_term where class_id in (select id from public.classes where school_id = v_school);
   update public.school_student_placement_history set effective_date = v_term::date, recorded_at = v_term where school_id = v_school;

@@ -60,6 +60,7 @@ revoke all on private.demo_people from public, anon, authenticated;
 insert into private.demo_people(key, user_id, full_name, email, role, story, class_code) values
   ('teacher',    'd0000000-0000-4000-8000-000000000001', 'Ms. Aigerim Sadykova', 'demo.teacher@example.com',    'teacher',  null, null),
   ('superadmin', 'd0000000-0000-4000-8000-000000000002', 'Brains Heist Demo Ops', 'demo.ops@example.com',        'teacher',  'internal: platform admin for visitor analytics', null),
+  ('deputy',     'd0000000-0000-4000-8000-000000000003', 'Mr. Daniyar Bekov',    'demo.deputy@example.com',     'teacher',  'delegated school administrator (Deputy Head)', null),
   ('s01', 'd0000000-0000-4000-8000-000000000101', 'Aibek Toktogulov',   'demo.s01@example.com', 'student', 'perfect_recovered', '7A'),
   ('s02', 'd0000000-0000-4000-8000-000000000102', 'Nurai Bekova',        'demo.s02@example.com', 'student', 'perfect_recovered', '7A'),
   ('s03', 'd0000000-0000-4000-8000-000000000103', 'Timur Asanov',        'demo.s03@example.com', 'student', 'perfect_recovered', '7A'),
