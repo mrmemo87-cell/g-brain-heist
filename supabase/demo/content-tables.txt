@@ -1,0 +1,69 @@
+# Tables whose DATA is copied from production into the demo project.
+# Only shared content (questions, curriculum, skill registry, taxonomy, catalogues).
+# Never add tables holding students, teachers, schools, answers, emails, billing,
+# notifications or any other personal / per-school data.
+# One schema-qualified table per line. Lines starting with # are ignored.
+
+# Curriculum
+public.curriculum_frameworks
+public.curriculum_framework_versions
+public.curriculum_framework_subjects
+public.curriculum_stages
+public.curriculum_scopes
+public.curriculum_nodes
+public.curriculum_objectives
+public.curriculum_objective_prerequisites
+public.curriculum_assessment_items
+public.curriculum_mapping_batches
+public.curriculum_mapping_decisions
+public.curriculum_item_objective_mappings
+private.curriculum_objective_focus_links
+
+# Academic skill registry and evidence policy
+public.academic_subjects
+public.academic_subject_aliases
+public.academic_skill_registry_versions
+public.academic_skill_registry_nodes
+public.academic_skill_registry_aliases
+public.academic_skill_registry_subject_aliases
+public.academic_skill_framework_crosswalks
+public.academic_skill_evidence_focuses
+public.academic_evidence_confidence_policies
+public.academic_progress_golden_journeys
+
+# Question bank and verified-question governance
+public.questions
+public.geometry_questions
+public.cambridge_tests
+public.verified_question_import_releases
+public.verified_question_assessment_profiles
+public.verified_question_content_repairs
+public.verified_question_diagnostic_taxonomy
+public.verified_question_duplicate_reviews
+public.verified_question_governance_events
+public.verified_question_registry_taxonomy
+public.verified_question_visual_assets
+public.verified_question_visual_links
+public.registry_verified_question_import_releases
+public.registry_diagnostic_presets
+public.registry_diagnostic_preset_items
+public.question_taxonomy_review_batches
+public.question_taxonomy_review_queue
+public.question_taxonomy_review_decisions
+public.question_pool_governance_decisions
+public.question_recheck_events
+private.question_learning_catalogue
+private.question_learning_catalogue_state
+
+# Game catalogues
+public.achievements
+public.quest_missions
+public.clan_buff_templates
+public.commander_catalog
+public.commander_elixir_catalog
+public.bh_writing_prompt_bank
+private.chat_blocked_terms
+
+# Pricing (so the demo shows real plans)
+public.billing_pricing_versions
+public.billing_price_items
