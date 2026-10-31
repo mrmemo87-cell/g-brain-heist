@@ -285,6 +285,7 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
       teacherAssignedSubjects={[subject]}
       teacherId={teacherId}
       questions={questions}
+      pinnedQuestionIds={questions.map((question) => question.id)}
       onSubmit={(event) => save(assignmentPublishStatus === 'scheduled' ? 'scheduled' : 'published', event)}
       onSaveDraft={() => save('draft')}
       onCancel={onBack}

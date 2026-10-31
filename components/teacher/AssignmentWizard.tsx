@@ -91,6 +91,10 @@ interface AssignmentWizardProps {
   allocatedClasses: TeacherAllocatedClass[];
   teacherAssignedSubjects: string[];
   teachingGroups?: SchoolSubjectGroup[];
+  /** Governed candidate questions supplied by the caller (e.g. intervention targeted practice).
+   *  They are always listed, even when their bank subject label differs from the assignment
+   *  subject (ESL vs English) or they fall outside the current server browser page. */
+  pinnedQuestionIds?: string[];
   assignmentGroupId?: string;
   setAssignmentGroupId?: (groupId: string) => void;
   teacherId?: string;
@@ -208,6 +212,7 @@ export default function AssignmentWizard({
   allocatedClasses,
   teacherAssignedSubjects,
   teachingGroups = [],
+  pinnedQuestionIds,
   assignmentGroupId = '',
   setAssignmentGroupId,
   teacherId,
@@ -361,13 +366,15 @@ export default function AssignmentWizard({
   const assignmentResourceSubject = selectedTeachingGroup?.academicSubjectName
     || subjectTeachingGroups.find((group) => group.academicSubjectName)?.academicSubjectName
     || assignmentSubject;
+  const pinnedIds = useMemo(() => new Set(pinnedQuestionIds || []), [pinnedQuestionIds]);
   const subjectQuestions = useMemo(
     () => uniqueQuestions.filter((question) => {
+      if (pinnedIds.has(question.id)) return true;
       const normalized = normalizeSubject(question.subject);
       return normalized === normalizeSubject(assignmentSubject)
         || normalized === normalizeSubject(assignmentResourceSubject);
     }),
-    [assignmentResourceSubject, assignmentSubject, uniqueQuestions],
+    [assignmentResourceSubject, assignmentSubject, pinnedIds, uniqueQuestions],
   );
 
   const audienceGrades = useMemo(() => {
@@ -443,7 +450,7 @@ export default function AssignmentWizard({
 
   const filteredQuestions = useMemo(() => {
     const matches = assignmentEligibleQuestions.filter((question) => {
-      if (!browser.questions.some((item) => item.id === question.id)) return false;
+      if (!pinnedIds.has(question.id) && !browser.questions.some((item) => item.id === question.id)) return false;
       const topic = question.topic_name || question.topic || 'General';
       const haystack = [
         question.question_text,
@@ -473,7 +480,7 @@ export default function AssignmentWizard({
       if (sort === 'difficulty') return difficultyScore[a.difficulty] - difficultyScore[b.difficulty];
       return Number(assignmentQuestionIds.includes(b.id)) - Number(assignmentQuestionIds.includes(a.id));
     });
-  }, [browser.questions, assignmentEligibleQuestions, assignmentQuestionIds, debouncedQuestionSearch, difficultyFilter, sort, topicFilter, typeFilter, xpFilter]);
+  }, [browser.questions, assignmentEligibleQuestions, assignmentQuestionIds, debouncedQuestionSearch, difficultyFilter, pinnedIds, sort, topicFilter, typeFilter, xpFilter]);
 
   useEffect(() => {
     if (!audienceGrades.length) return;
