@@ -13,7 +13,7 @@ export interface InterventionProfessionalReview {
   reviewed_at: string; diagnostic_targets: string[];
 }
 export interface InterventionRecommendation {
-  subject: string; topic?: string | null; skill: string; skill_key: string; status: string; trend: string; priority: string;
+  subject: string; topic?: string | null; skill: string; subskill?: string | null; skill_key: string; status: string; trend: string; priority: string;
   evidence_items: number; focus_occurrences: number; last_observed_at: string; days_since_evidence: number; available_questions: number;
   available_exact_questions: number; available_related_questions: number;
   available_same_subskill_questions?: number; available_broader_skill_questions?: number;
