@@ -51,9 +51,17 @@ body.light-mode [data-animation]
   display: none !important;
 }
 
-/* Simplify legacy overlay wrappers. Keep the question-bank dialog’s descendant surfaces intact. */
-body.light-mode [class*="modal"]:not([role="dialog"]):not([role="alertdialog"]):not(.qb-modal *),
-body.light-mode [class*="dialog"]:not([role="dialog"]):not([role="alertdialog"]):not(.qb-modal *) {
+/* Simplify legacy overlay wrappers (the full-screen layer behind a dialog), replacing blur with a
+   flat scrim. Only wrapper classes match: *-modal-overlay / *-modal-layer / *-modal-backdrop and the
+   dialog-* equivalents. The dialog panel itself (*-modal, *-modal-actions, *-modal-close, .modal-error …)
+   must never match — until 2026-10-31 this selector was [class*="modal"], which painted every new
+   panel navy under its own dark text. Keep the question-bank dialog's descendant surfaces intact. */
+body.light-mode :is(
+  [class*="modal-overlay"], [class*="modal-layer"], [class*="modal-backdrop"],
+  [class*="modal__overlay"], [class*="modal__layer"], [class*="modal__backdrop"],
+  [class*="dialog-overlay"], [class*="dialog-layer"], [class*="dialog-backdrop"],
+  [class*="dialog__overlay"], [class*="dialog__layer"], [class*="dialog__backdrop"]
+):not([role="dialog"]):not([role="alertdialog"]):not(.qb-modal *) {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   background-color: rgba(15, 23, 42, 0.9) !important;
