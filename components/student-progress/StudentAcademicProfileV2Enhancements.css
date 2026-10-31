@@ -242,3 +242,18 @@
 .sap-lane-detail--support{border-left-color:#e11d48}.sap-lane-detail--developing{border-left-color:#f59e0b}.sap-lane-detail--strong{border-left-color:#10b981}
 .sap-lane-detail>b{display:block;margin-top:6px}.sap-lane-detail .sap-trend-tooltip-skill{margin:2px 0 6px;color:#475569;font-size:12px}
 @media(max-width:640px){.sap-lane{grid-template-columns:1fr;gap:6px}.sap-lane--head span:not(.sap-lane-dates){display:none}.sap-lane-change{text-align:left;display:flex;gap:8px;align-items:baseline}}
+.sap-lane-dot{appearance:none;-webkit-appearance:none;box-sizing:border-box;min-height:0;min-width:0;height:16px;width:16px;line-height:0;font-size:0}
+.sap-lane-link line{stroke:#94a3b8;stroke-width:2;vector-effect:non-scaling-stroke}
+.sap-lane-change--mixed b{color:#64748b}
+.sap-lane-none{margin:4px 0 0;padding:0 10px;color:#64748b;font-size:12px}
+.sap-lane-once{margin-top:10px;border:1px solid #e8eef5;border-radius:10px;background:#f8fafc}
+.sap-lane-once>summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;padding:10px 12px;cursor:pointer;list-style:none}
+.sap-lane-once>summary::-webkit-details-marker{display:none}
+.sap-lane-once>summary::before{content:"▸";color:#64748b;font-size:11px}.sap-lane-once[open]>summary::before{content:"▾"}
+.sap-lane-once>summary b{font-size:12px}.sap-lane-once>summary small{color:#64748b;font-size:11px}
+.sap-lane-once-list{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 12px}
+.sap-lane-chip{appearance:none;display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid #e2e8f0;background:#fff;color:#0f172a;font-size:12px;line-height:1.2;cursor:pointer;min-height:0}
+.sap-lane-chip i{width:9px;height:9px;border-radius:999px;background:#94a3b8;flex:none}
+.sap-lane-chip--support i{background:#e11d48}.sap-lane-chip--developing i{background:#f59e0b}.sap-lane-chip--strong i{background:#10b981}
+.sap-lane-chip small{color:#64748b;font-size:10px}
+.sap-lane-chip:hover,.sap-lane-chip.is-active{border-color:#94a3b8;background:#f1f5f9}

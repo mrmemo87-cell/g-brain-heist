@@ -1,32 +1,29 @@
 /**
  * Leveling system utilities
- * Hard Curve Formula: Each level requires increasingly more XP
- * Level 1: 0 XP, Level 2: 100 XP, Level 3: 250 XP, Level 4: 450 XP, etc.
- * Formula: XP for level N = 50 * N * (N - 1)
- * This creates a quadratic growth curve that slows down leveling at higher levels
+ * One curve everywhere: XP for level N = 150 · (N − 1)^1.7, the same as
+ * public.xp_threshold_for_level / public.level_from_xp in the database.
  */
 /**
- * Calculate XP required to reach a specific level (hard curve)
- * Formula: 50 * level * (level - 1)
- * Level 1 = 0 XP, Level 2 = 100 XP, Level 3 = 300 XP, Level 4 = 600 XP, etc.
+ * Total XP needed to reach a level. Mirrors public.xp_threshold_for_level in
+ * the database (the single source of truth): 150 · (level − 1)^1.7.
+ * Level 1 = 0, 2 = 150, 3 = 488, 4 = 975, 5 = 1,580 …
  */
 export function xpRequiredForLevel(level) {
     if (level <= 1)
         return 0;
-    return 50 * level * (level - 1);
+    return Math.ceil(150 * Math.pow(level - 1, 1.7));
 }
 /**
- * Calculate level from total XP (hard curve)
- * Inverse of: xp = 50 * level * (level - 1)
- * Solving: level = (1 + sqrt(1 + xp/12.5)) / 2
+ * Level for a total XP. Mirrors public.level_from_xp in the database.
  */
 export function calculateLevelFromXp(xp) {
-    if (xp <= 0)
-        return 1;
-    // Solve quadratic: 50L^2 - 50L - xp = 0
-    // L = (50 + sqrt(2500 + 200*xp)) / 100 = (1 + sqrt(1 + xp/12.5)) / 2
-    const level = Math.floor((1 + Math.sqrt(1 + xp / 12.5)) / 2);
-    return Math.max(1, level);
+    const total = Math.max(0, xp || 0);
+    let level = Math.max(1, Math.floor(Math.pow(total / 150, 1 / 1.7) + 1));
+    while (level > 1 && xpRequiredForLevel(level) > total)
+        level -= 1;
+    while (xpRequiredForLevel(level + 1) <= total)
+        level += 1;
+    return level;
 }
 /**
  * Get XP progress information for a player

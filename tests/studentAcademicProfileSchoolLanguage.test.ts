@@ -38,10 +38,10 @@ test('English combines assignment and Writing Hub evidence, one lane per compara
   assert.match(source, /label: 'Assignments', tone: 'assignment'/);
   assert.match(source, /label: 'Writing Hub', tone: 'writing'/);
   assert.match(source, /subject: name, series/);
-  assert.match(source, /laneMap\.get\(point\.event\.comparableKey\)/);
+  assert.match(source, /comparableTrendSegments\(points\.map\(\(point\) => point\.event\)\)/);
   assert.match(source, /from previous comparable result/);
   assert.match(source, /sap-lane-dot--\$\{evidenceBandClass\(point\.event\.score\)\}/);
-  assert.match(source, /sap-lane-change--\$\{movement\(lane\.delta\)\}/);
+  assert.match(source, /sap-lane-change--\$\{movement\(lane\)\}/);
 });
 
 test('skill lane dots expose an interactive detail panel and semantic evidence colours', () => {
