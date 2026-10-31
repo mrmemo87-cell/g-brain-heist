@@ -29,20 +29,21 @@ test('academic profile exposes its primary dashboard while keeping methodology e
     assert.match(source, /className="when-closed">Open/);
     assert.match(source, /className="when-open">Close/);
 });
-test('English combines assignment and Writing Hub evidence in one colour-coded trend chart', () => {
+test('English combines assignment and Writing Hub evidence, one lane per comparable skill', () => {
     const source = read('components/student-progress/StudentAcademicProfileV2.tsx');
     assert.match(source, /label: 'Assignments', tone: 'assignment'/);
     assert.match(source, /label: 'Writing Hub', tone: 'writing'/);
     assert.match(source, /subject: name, series/);
-    assert.match(source, /comparableTrendSegments\(trendSeries\.events\)/);
+    assert.match(source, /laneMap\.get\(point\.event\.comparableKey\)/);
     assert.match(source, /from previous comparable result/);
-    assert.match(source, /sap-trend-point--\$\{point\.series\.tone\}/);
+    assert.match(source, /sap-lane-dot--\$\{evidenceBandClass\(point\.event\.score\)\}/);
+    assert.match(source, /sap-lane-change--\$\{movement\(lane\.delta\)\}/);
 });
-test('subject trend points expose edge-aware interactive tooltips and semantic evidence colours', () => {
+test('skill lane dots expose an interactive detail panel and semantic evidence colours', () => {
     const source = read('components/student-progress/StudentAcademicProfileV2.tsx');
     const styles = read('components/student-progress/StudentAcademicProfileV2Enhancements.css');
-    assert.match(source, /sap-trend-tooltip--\$\{horizontalEdge\}/);
-    assert.match(source, /sap-trend-tooltip--\$\{verticalEdge\}/);
+    assert.match(source, /sap-lane-detail--\$\{evidenceBandClass\(activePoint\.event\.score\)\}/);
+    assert.match(styles, /\.sap-lane--support\{border-left:4px solid #e11d48\}/);
     assert.match(source, /onMouseEnter/);
     assert.match(source, /onFocus/);
     assert.match(source, /onClick/);

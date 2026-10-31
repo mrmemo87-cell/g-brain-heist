@@ -8,7 +8,7 @@ import { getAuthBootstrap, clearAuthBootstrap } from './services/authBootstrapSe
 import { BAN_MESSAGE, storeBanMessage } from './services/banMessage';
 import App, { preloadAccountWorkspace } from './App';
 import LoginView from './components/LoginView';
-import { isDemoMode, type DemoPersona } from './services/demoMode';
+import { isDemoMode, type DemoPersona, readStoredDemoVisitor, storeDemoVisitor } from './services/demoMode';
 import { startDemoTracking, stopDemoTracking, trackDemoEvent } from './services/demoTracker';
 import ErrorBoundary from './components/ErrorBoundary';
 import ConfigErrorScreen from './components/ConfigErrorScreen';
@@ -505,6 +505,8 @@ const Main: React.FC = () => {
     setNeedsSetup(false);
     setPostSetupProfile(null);
     setPostSetupDebugSnapshot(null);
+    const visitor = readStoredDemoVisitor();
+    if (visitor) storeDemoVisitor({ ...visitor, enteredAs: persona.key });
     const { session } = await AuthService.login(persona.email, persona.password);
     await checkAuthAndSetup({ reason: 'demo-switch', session });
   }, [checkAuthAndSetup]);

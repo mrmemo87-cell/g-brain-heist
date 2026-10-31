@@ -219,3 +219,26 @@
 @media (max-width: 640px) { .sap-trend-card .sap-table { min-width: 540px; } }
 .sap-kpis:has(> article:nth-child(2):last-child) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 @media (max-width: 640px) { .sap-kpis:has(> article:nth-child(2):last-child) { grid-template-columns: 1fr; } }
+
+/* Skill lanes: one row per comparable skill instead of overlaid lines. */
+.sap-lanes{display:grid;gap:6px;margin-top:12px}
+.sap-lane{display:grid;grid-template-columns:minmax(150px,1.1fr) minmax(0,2.4fr) minmax(104px,auto);align-items:center;gap:12px;padding:8px 10px;border-radius:10px;background:#f8fafc;border:1px solid #e8eef5}
+.sap-lane--support{border-left:4px solid #e11d48}.sap-lane--developing{border-left:4px solid #f59e0b}.sap-lane--strong{border-left:4px solid #10b981}
+.sap-lane--head{background:transparent;border:0;padding:0 10px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:#64748b}
+.sap-lane-dates{display:flex;justify-content:space-between;padding:0 7px}
+.sap-lane-label{min-width:0}.sap-lane-label strong{display:block;font-size:13px;line-height:1.3;color:#0f172a}.sap-lane-label small{display:block;color:#64748b;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sap-lane-track{position:relative;height:30px;margin:0 7px}
+.sap-lane-track::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:1px dashed #cbd5e1}
+.sap-lane-link{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.sap-lane-link polyline{fill:none;stroke:#94a3b8;stroke-width:2;vector-effect:non-scaling-stroke}
+.sap-lane-dot{position:absolute;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:999px;border:3px solid #fff;box-shadow:0 0 0 1.5px #94a3b8;background:#94a3b8;cursor:pointer;padding:0;transition:transform .12s}
+.sap-lane-dot--support{background:#e11d48;box-shadow:0 0 0 1.5px #e11d48}.sap-lane-dot--developing{background:#f59e0b;box-shadow:0 0 0 1.5px #f59e0b}.sap-lane-dot--strong{background:#10b981;box-shadow:0 0 0 1.5px #10b981}
+.sap-lane-dot:hover,.sap-lane-dot.is-active,.sap-lane-dot:focus-visible{transform:scale(1.3);outline:none;z-index:1}
+.sap-lane-change{text-align:right}.sap-lane-change b{display:block;font-size:12px}.sap-lane-change small{display:block;color:#64748b;font-size:11px}
+.sap-lane-change--up b{color:#047857}.sap-lane-change--up b::before{content:"↑ "}.sap-lane-change--down b{color:#be123c}.sap-lane-change--down b::before{content:"↓ "}.sap-lane-change--flat b{color:#475569}.sap-lane-change--flat b::before{content:"→ "}.sap-lane-change--single b{color:#64748b}
+.sap-lane-key{display:flex;gap:14px;margin-top:10px;font-size:11px;color:#64748b}.sap-lane-key span{display:inline-flex;align-items:center;gap:5px}.sap-lane-key i{width:10px;height:10px;border-radius:999px;background:#94a3b8}
+.sap-lane-key .is-support i{background:#e11d48}.sap-lane-key .is-developing i{background:#f59e0b}.sap-lane-key .is-strength i{background:#10b981}
+.sap-lane-detail{margin-top:10px;padding:12px 14px;border-radius:12px;border:1px solid #e2e8f0;border-left:5px solid #94a3b8;background:#fff}
+.sap-lane-detail--support{border-left-color:#e11d48}.sap-lane-detail--developing{border-left-color:#f59e0b}.sap-lane-detail--strong{border-left-color:#10b981}
+.sap-lane-detail>b{display:block;margin-top:6px}.sap-lane-detail .sap-trend-tooltip-skill{margin:2px 0 6px;color:#475569;font-size:12px}
+@media(max-width:640px){.sap-lane{grid-template-columns:1fr;gap:6px}.sap-lane--head span:not(.sap-lane-dates){display:none}.sap-lane-change{text-align:left;display:flex;gap:8px;align-items:baseline}}
