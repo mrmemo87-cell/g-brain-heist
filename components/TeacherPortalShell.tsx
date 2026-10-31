@@ -235,7 +235,7 @@ const TeacherPortalShell: React.FC<TeacherPortalShellProps> = (props) => {
           padding: 0;
         }
       `}</style>
-      <TeacherPortal {...props} onNavigateSection={navigateSection} activeNavigationSection={targetedPractice ? 'assignments' : activeTool || undefined} academicProfilePresentation={activeTool === 'academic-profiles' && !targetedPractice} onAssignmentSummary={setDashboardAssignmentMetrics} />
+      <TeacherPortal {...props} onNavigateSection={navigateSection} activeNavigationSection={targetedPractice ? 'assignments' : activeTool || undefined} academicProfilePresentation={false} onAssignmentSummary={setDashboardAssignmentMetrics} />
       {overlayActive && portalHost
         ? createPortal(
           <Suspense fallback={<div className="p-6 text-sm text-slate-500">Preparing Brains Heist workspace…</div>}>

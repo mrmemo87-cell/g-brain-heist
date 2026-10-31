@@ -3657,7 +3657,9 @@
   font-weight: 800;
 }
 
-@media (max-width: 1024px) {
+/* Bottom/mobile navigation only on real tablets and phones. Laptop users who zoom
+   the page (e.g. 125% on a 1280px screen = 1024px) keep the desktop sidebar. */
+@media (max-width: 900px) {
   .teacher-portal-container {
     padding: 1rem 0.85rem calc(7.5rem + env(safe-area-inset-bottom, 0px));
     scroll-padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));

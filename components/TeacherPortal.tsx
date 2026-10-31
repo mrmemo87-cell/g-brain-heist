@@ -160,7 +160,8 @@ const getDefaultPointsForDifficulty = (diff: QuestionDifficulty): number => {
 const MAX_QUESTION_XP = 30;
 const TEACHER_SIDEBAR_STORAGE_KEY = 'brains-heist:teacher-sidebar-collapsed';
 const TEACHER_SIDEBAR_COMPACT_QUERY = '(max-width: 1279px)';
-const TEACHER_MOBILE_NAV_QUERY = '(max-width: 1024px)';
+// Keep in sync with the mobile navigation block in src/styles/teacher-theme.css.
+const TEACHER_MOBILE_NAV_QUERY = '(max-width: 900px)';
 
 const getInitialSidebarCollapsed = () => {
   if (typeof window === 'undefined') return false;
