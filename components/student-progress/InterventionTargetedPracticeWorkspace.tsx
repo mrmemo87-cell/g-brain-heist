@@ -6,6 +6,8 @@ import {
   createInterventionPracticeAssignment,
   createLearningIntervention,
   registerInterventionPractice,
+  reviewLearningInterventionPlan,
+  updateLearningIntervention,
 } from '../../services/studentInterventionService';
 import { FEATURE_KEYS, getEntitlements } from '../../services/entitlementService';
 import { tryConsumePilotQuota } from '../../services/tierService';
@@ -191,12 +193,37 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
         }
       }
 
+      // The teacher creating this plan is the same professional who just confirmed the evidence.
+      // Record their approval (plan snapshot, baseline hash, rationale) through the governed RPC
+      // instead of asking them to re-type it, and start the plan once the practice is live.
+      // Failures here degrade to the manual Approve / Start buttons; the practice is already saved.
+      let planState: 'pending' | 'approved' | 'active' = 'pending';
+      if (interventionId && publishStatus !== 'draft') {
+        try {
+          const reviewRationale = context.recommendation.professional_review?.rationale?.trim();
+          await reviewLearningInterventionPlan({
+            interventionId,
+            decision: 'approved',
+            rationale: `Teacher approved on creating targeted practice “${assignment.title || assignmentTitle.trim()}”.${reviewRationale ? ` Evidence review: ${reviewRationale}` : ''}`,
+          });
+          planState = 'approved';
+          if (publishStatus === 'published') {
+            await updateLearningIntervention({ interventionId, action: 'start', note: 'Started automatically when the targeted practice was published.' });
+            planState = 'active';
+          }
+        } catch (approvalError) {
+          console.error('Targeted practice was created; the support plan stays pending:', approvalError);
+        }
+      }
+
       brainsAlert(
         publishStatus === 'draft'
           ? `Targeted practice saved as a draft for ${context.student.name}.`
           : publishStatus === 'scheduled'
             ? `Targeted practice scheduled for ${context.student.name}.`
-            : `Targeted practice published to ${context.student.name}.`,
+            : planState === 'active'
+              ? `Targeted practice published to ${context.student.name}. The support plan is approved and active.`
+              : `Targeted practice published to ${context.student.name}.${interventionId ? ' Approve and start the support plan from Interventions.' : ''}`,
         'success',
       );
       onComplete();

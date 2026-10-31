@@ -196,7 +196,7 @@ export function rollUpRecommendations(
       area,
       areaLabel: area ? (areaLabels[area] || area) : null,
       primarySkill: anchor.topic && anchor.topic.trim() ? anchor.topic : anchor.skill,
-      leaves: [...leaves].sort((a, b) => (b.evidence_items - a.evidence_items) || a.skill.localeCompare(b.skill)),
+      leaves: [...leaves].sort((a, b) => (b.evidence_items - a.evidence_items) || (a.subskill || a.skill).localeCompare(b.subskill || b.skill)),
       anchor,
       readiness,
       promotedByRollup,

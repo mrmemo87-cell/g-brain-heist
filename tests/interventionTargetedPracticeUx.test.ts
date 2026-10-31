@@ -131,3 +131,24 @@ test('targeted practice pins its governed candidate set so the wizard lists it r
   assert.match(wizard, /if \(!pinnedIds\.has\(question\.id\) && !browser\.questions\.some/);
   assert.match(workspace, /pinnedQuestionIds=\{questions\.map\(\(question\) => question\.id\)\}/);
 });
+
+test('publishing targeted practice records the teacher approval and starts the plan through the governed RPCs', () => {
+  const workspace = readFileSync('components/student-progress/InterventionTargetedPracticeWorkspace.tsx', 'utf8');
+  const create = workspace.indexOf('await createLearningIntervention(');
+  const register = workspace.indexOf('await registerInterventionPractice(');
+  const approve = workspace.indexOf("await reviewLearningInterventionPlan({");
+  const start = workspace.indexOf("action: 'start'");
+  assert.ok(create > 0 && register > create && approve > register && start > approve, 'create -> register -> approve -> start');
+  assert.match(workspace, /decision: 'approved'/);
+  assert.match(workspace, /if \(interventionId && publishStatus !== 'draft'\)/);
+  assert.match(workspace, /if \(publishStatus === 'published'\)[\s\S]*?action: 'start'/);
+  // Failure degrades to the manual buttons; it never blocks the already-created practice.
+  assert.match(workspace, /the support plan stays pending/);
+});
+
+test('roll-up chips and details show the atomic sub-skill name, falling back to the skill', () => {
+  const page = readFileSync('components/student-progress/TeacherInterventionIntelligencePageV2.tsx', 'utf8');
+  const migration = readFileSync('supabase/migrations/20261031070000_intervention_recommendation_subskill.sql', 'utf8');
+  assert.match(page, /\{leaf\.subskill \|\| leaf\.skill\} · \{leaf\.evidence_items\}/);
+  assert.match(migration, /'skill', r\.skill, 'subskill', r\.subskill, 'skill_key', r\.skill_key/);
+});
