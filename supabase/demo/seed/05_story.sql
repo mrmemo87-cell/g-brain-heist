@@ -62,7 +62,7 @@ begin
       v_cut + interval '3 days' + interval '1 hour', v_cut + interval '6 days',
       'Targeted practice: present perfect', 'Read each sentence and choose the best verb form.', 'easy',
       p.user_id, v_skill, v_targets, 'homework',
-      'Asia/Bishkek', 'Short practice set chosen for you after our mini-lesson.', 'published', false, false);
+      'Europe/London', 'Short practice set chosen for you after our mini-lesson.', 'published', false, false);
     -- Creating practice records it without a plan; the workspace then links it to the plan.
     perform public.rpc_teacher_register_intervention_practice(v_practice.id, p.user_id, v_skill, v_targets, v_iid);
 
@@ -138,9 +138,9 @@ begin
     end if;
 
     set local session_replication_role = replica;
-    update public.student_learning_interventions set target_date = (v_as_of at time zone 'Asia/Bishkek')::date,
+    update public.student_learning_interventions set target_date = (v_as_of at time zone 'Europe/London')::date,
       updated_at = v_eval_at where id = v_iid;
-    update public.student_learning_intervention_checkpoints set due_at = (v_as_of at time zone 'Asia/Bishkek')::date::timestamptz,
+    update public.student_learning_intervention_checkpoints set due_at = (v_as_of at time zone 'Europe/London')::date::timestamptz,
       evaluated_at = v_eval_at where intervention_id = v_iid;
     update public.student_learning_intervention_outcome_reviews set reviewed_at = v_confirm_at where intervention_id = v_iid;
     update public.student_learning_interventions set completed_at = v_confirm_at where id = v_iid and completed_at is not null;
@@ -154,9 +154,9 @@ begin
 
   -- Aruuke's plan is still collecting evidence: review due next week.
   set local session_replication_role = replica;
-  update public.student_learning_interventions set target_date = (private.demo_today() at time zone 'Asia/Bishkek')::date + 6
+  update public.student_learning_interventions set target_date = (private.demo_today() at time zone 'Europe/London')::date + 6
     where id = private.demo_state_uuid('intervention_s04');
-  update public.student_learning_intervention_checkpoints set due_at = ((private.demo_today() at time zone 'Asia/Bishkek')::date + 6)::timestamptz
+  update public.student_learning_intervention_checkpoints set due_at = ((private.demo_today() at time zone 'Europe/London')::date + 6)::timestamptz
     where intervention_id = private.demo_state_uuid('intervention_s04') and status = 'scheduled';
   set local session_replication_role = origin;
 end $$;

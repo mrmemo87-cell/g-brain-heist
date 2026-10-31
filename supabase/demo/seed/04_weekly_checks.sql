@@ -17,21 +17,21 @@ do $$ begin
 end $$;
 
 insert into private.demo_state(key, value)
-values ('story_today', to_jsonb(date_trunc('day', now() at time zone 'Asia/Bishkek') at time zone 'Asia/Bishkek'))
+values ('story_today', to_jsonb(date_trunc('day', now() at time zone 'Europe/London') at time zone 'Europe/London'))
 on conflict (key) do update set value = excluded.value;
 
 -- Story clock: "today" is the day the seed runs. Week 8's check was set on Monday of the
--- current week, week 1's seven Mondays earlier; each at 09:00 Bishkek time.
+-- current week, week 1's seven Mondays earlier; each at 09:00 London time.
 create or replace function private.demo_today() returns timestamptz
 language sql stable as $$
   select coalesce((select (value #>> '{}')::timestamptz from private.demo_state where key = 'story_today'),
-                  date_trunc('day', now() at time zone 'Asia/Bishkek') at time zone 'Asia/Bishkek')
+                  date_trunc('day', now() at time zone 'Europe/London') at time zone 'Europe/London')
 $$;
 
 create or replace function private.demo_week_start(p_week integer) returns timestamptz
 language sql stable as $$
-  select (date_trunc('week', (private.demo_today() - interval '3 days' - make_interval(days => 7 * (8 - p_week))) at time zone 'Asia/Bishkek')
-          + interval '9 hours') at time zone 'Asia/Bishkek'
+  select (date_trunc('week', (private.demo_today() - interval '3 days' - make_interval(days => 7 * (8 - p_week))) at time zone 'Europe/London')
+          + interval '9 hours') at time zone 'Europe/London'
 $$;
 
 -- How many of a skill's 3 questions a student gets right in week k (null = did not do it).
@@ -105,7 +105,7 @@ begin
     v_at, v_at + interval '4 days',
     format('Week %s English check', p_week),
     'Answer every question. Take your time and read each sentence carefully.',
-    'medium', 'quiz', 'Asia/Bishkek', 'batch', null,
+    'medium', 'quiz', 'Europe/London', 'batch', null,
     'Weekly check covering perfect forms, subject-verb agreement, comparatives and question formation.',
     'published', false, false);
 
