@@ -119,3 +119,15 @@ test('targeted practice trusts the governed RPC question set and does not re-fil
   // Governance on the preselected set is unchanged.
   assert.match(workspace, /isOfficialVerifiedQuestion\(question, studentGrade\)/);
 });
+
+test('targeted practice pins its governed candidate set so the wizard lists it regardless of bank subject label or browser page', () => {
+  // 2026-10-31: after the subject fix the wizard still showed "0 unique questions" because it
+  // re-checked question.subject === assignment subject (English vs ESL) and required membership
+  // in the current server browser page.
+  const wizard = readFileSync('components/teacher/AssignmentWizard.tsx', 'utf8');
+  const workspace = readFileSync('components/student-progress/InterventionTargetedPracticeWorkspace.tsx', 'utf8');
+  assert.match(wizard, /pinnedQuestionIds\?: string\[\];/);
+  assert.match(wizard, /if \(pinnedIds\.has\(question\.id\)\) return true;/);
+  assert.match(wizard, /if \(!pinnedIds\.has\(question\.id\) && !browser\.questions\.some/);
+  assert.match(workspace, /pinnedQuestionIds=\{questions\.map\(\(question\) => question\.id\)\}/);
+});
