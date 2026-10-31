@@ -84,7 +84,7 @@ interface AcademicStudentPickerProps {
 }
 
 const displayGrade = (value: string) => /^\d+$/.test(value) ? `Grade ${value}` : value;
-const gradeKey = (value: string | number | null | undefined) => String(value ?? '').trim() || 'Unspecified grade';
+export const gradeKey = (value: string | number | null | undefined) => String(value ?? '').trim() || 'Unspecified grade';
 const hasUppercase = (value: string) => /[A-Z]/.test(value);
 
 export const normalizeAcademicSubjectOptions = (values: Iterable<string>): string[] => {

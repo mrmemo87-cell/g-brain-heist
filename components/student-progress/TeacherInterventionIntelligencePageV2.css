@@ -10,3 +10,16 @@
 .intervention-rollup-leaf:first-of-type { border-top: 0; }
 .intervention-rollup-leaf small { color: #5b6782; }
 .intervention-rollup-leaf span { font-size: 13px; }
+.intervention-class-subjects { max-width: 1400px; margin: 1rem auto 0; }
+.intervention-class-subjects > span { font-size: .72rem; font-weight: 800; color: #66758a; }
+.intervention-class-subjects button { padding: .4rem .7rem; border: 1px solid #dce5ef; border-radius: 999px; background: #fff; color: #273449; font: inherit; font-size: .74rem; font-weight: 700; cursor: pointer; }
+.intervention-class-subjects button.is-active { border-color: #162033; background: #162033; color: #fff; }
+@media (max-width: 950px) { .intervention-class-subjects { margin-left: .8rem; margin-right: .8rem; } }
+.plan-nudge { display: flex !important; align-items: flex-start; gap: .5rem !important; margin: .35rem 0 !important; padding: .6rem .7rem !important; border-radius: .65rem; font-size: .7rem; line-height: 1.45; }
+.plan-nudge i { flex: none; width: .55rem; height: .55rem; margin-top: .3rem; border-radius: 50%; background: currentColor; }
+.plan-nudge.is-wait { background: #f1f5f9; color: #334155; }
+.plan-nudge.is-act { background: #fff7ed; color: #9a3412; }
+.plan-nudge.is-overdue { background: #fff1f2; color: #9f1239; }
+.plan-nudge.is-act i, .plan-nudge.is-overdue i { animation: plan-nudge-pulse 2.4s ease-in-out infinite; }
+@keyframes plan-nudge-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .plan-nudge i { animation: none; } }

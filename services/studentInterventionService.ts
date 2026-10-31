@@ -228,3 +228,25 @@ export async function updateLearningIntervention(input: { interventionId: string
   });
   if (error) throw userFacingError(error, 'We could not update the support plan just now. Please try again.');
 }
+
+export interface ClassNeedStudent {
+  id: string; name: string; status: string; trend: string; evidence_items: number;
+  last_observed_at: string; confirmed: boolean; plan_open: boolean;
+}
+export interface ClassLearningNeed {
+  skill_key: string; subject: string; topic?: string | null; skill: string; subskill?: string | null;
+  student_count: number; evidence_items: number; confirmed_count: number; plan_count: number; recurring_count: number;
+  last_observed_at: string; students: ClassNeedStudent[];
+}
+export interface ClassLearningNeeds {
+  subject: string; students_considered: number; students_excluded: number;
+  needs: ClassLearningNeed[];
+  students: Array<{ id: string; name: string; need_count: number; confirmed_count: number; plan_count: number; has_evidence: boolean }>;
+}
+
+/** Shared learning needs across a class for one subject. Students the caller may not manage are dropped server-side. */
+export async function getClassLearningNeeds(studentIds: string[], subject: string): Promise<ClassLearningNeeds> {
+  const { data, error } = await supabase.rpc('rpc_teacher_class_learning_needs', { p_student_ids: studentIds, p_subject: subject });
+  if (error) throw userFacingError(error, 'We could not load this class’s learning needs just now. Please try again.');
+  return data as ClassLearningNeeds;
+}

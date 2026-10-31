@@ -1,0 +1,38 @@
+/* At-a-glance brief at the top of the academic profile. */
+.apb { --apb-ink: #162033; --apb-muted: #66758a; --apb-line: #dce5ef; --apb-accent: #4f46e5;
+  display: grid; grid-template-columns: minmax(11rem, .9fr) minmax(0, 2.4fr); gap: 1rem; margin: 1rem 0; padding: 1.1rem 1.2rem;
+  border: 1px solid var(--apb-line); border-radius: 1.1rem; background: #fff; color: var(--apb-ink); box-shadow: 0 12px 36px rgba(22, 32, 51, .06); }
+.apb.is-focus { --apb-accent: #b45309; }
+.apb.is-developing { --apb-accent: #0f766e; }
+.apb.is-strong { --apb-accent: #166534; }
+
+.apb-score { display: grid; align-content: center; gap: .15rem; padding-right: 1rem; border-right: 1px solid #eef1f6; }
+.apb-score strong { font-size: 2.8rem; font-weight: 800; line-height: 1; letter-spacing: -.03em; color: var(--apb-accent); font-variant-numeric: tabular-nums; }
+.apb-score span { font-size: .8rem; font-weight: 700; }
+.apb-score small { font-size: .68rem; color: var(--apb-muted); line-height: 1.4; }
+
+.apb-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
+.apb-fact { display: grid; align-content: start; gap: .15rem; padding: .8rem .9rem; border-radius: .9rem; background: #f8fafd; }
+.apb-fact b { font-size: 1.5rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.apb-fact > span { font-size: .72rem; font-weight: 700; color: var(--apb-muted); }
+.apb-fact p { margin: .35rem 0 0; font-size: .7rem; line-height: 1.45; color: var(--apb-muted); }
+.apb-fact ul { display: grid; gap: .3rem; margin: .45rem 0 0; padding: 0; list-style: none; }
+.apb-fact li { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; font-size: .72rem; }
+.apb-fact li span { font-weight: 700; }
+.apb-fact li small { flex: none; color: var(--apb-muted); font-size: .64rem; }
+.apb-fact li.is-more { color: var(--apb-muted); font-size: .66rem; }
+.apb-fact.is-needs { background: #fff7ed; } .apb-fact.is-needs b { color: #9a3412; }
+.apb-fact.is-watch { background: #f3f4f6; } .apb-fact.is-watch b { color: #475569; }
+.apb-fact.is-good { background: #ecfdf5; } .apb-fact.is-good b { color: #166534; }
+
+.apb-plan { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem .75rem; padding: .65rem .85rem; border-radius: .8rem; background: #f1f5f9; font-size: .76rem; font-weight: 600; color: #334155; }
+.apb-plan.is-active { background: #eef2ff; color: #3730a3; }
+.apb-plan.is-pending { background: #fffbeb; color: #92400e; }
+.apb-plan button { padding: .45rem .8rem; border: 0; border-radius: .6rem; background: var(--apb-ink); color: #fff; font: inherit; font-size: .72rem; font-weight: 700; cursor: pointer; }
+.apb-plan button:focus-visible { outline: 3px solid #a5b4fc; outline-offset: 2px; }
+
+@media (max-width: 760px) {
+  .apb { grid-template-columns: 1fr; }
+  .apb-score { padding-right: 0; padding-bottom: .8rem; border-right: 0; border-bottom: 1px solid #eef1f6; }
+  .apb-facts { grid-template-columns: 1fr; }
+}

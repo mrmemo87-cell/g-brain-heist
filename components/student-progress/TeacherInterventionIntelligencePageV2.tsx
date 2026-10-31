@@ -11,7 +11,8 @@ import {
   type LearningIntervention,
 } from '../../services/studentInterventionService';
 import { getAcademicProgressExperienceContext, type AcademicProgressExperienceContext } from '../../services/academicProgressExperienceService';
-import { AcademicProgressHeader, AcademicStudentPicker, selectionFromStudent } from './AcademicProgressSuite';
+import { AcademicProgressHeader, AcademicStudentPicker, gradeKey, normalizeAcademicSubjectOptions, selectionFromStudent } from './AcademicProgressSuite';
+import ClassLearningNeeds from './ClassLearningNeeds';
 import { practiceRecommendationForGroup, rollUpRecommendations, type SkillRollupGroup } from './interventionSkillRollup';
 import './TeacherInterventionIntelligencePage.css';
 import './TeacherInterventionIntelligencePageV2.css';
@@ -50,6 +51,28 @@ const readRollupPreference = (params: URLSearchParams): boolean => {
 };
 const writeRollupPreference = (value: boolean) => {
   try { window.localStorage.setItem(ROLLUP_STORAGE_KEY, value ? '1' : '0'); } catch { /* best effort */ }
+};
+
+// What an active plan is waiting for. Practice answers never count; only later independent assessed
+// work moves the follow-up counters, and nothing else in the product reminds the teacher of that.
+const planNudge = (plan: LearningIntervention): { tone: 'wait' | 'act' | 'overdue'; text: string } | null => {
+  if (plan.status === 'planned') {
+    return plan.approval_status === 'pending'
+      ? { tone: 'act', text: 'Waiting for your approval. Approve to start measuring.' }
+      : { tone: 'act', text: 'Approved. Start the plan so follow-ups count from today.' };
+  }
+  if (plan.status !== 'active') return null;
+  const needed = Math.max(0, (plan.target_min_followup_observations || 0) - (plan.follow_up_qualifying_observations || 0));
+  const started = plan.started_at ? new Date(plan.started_at).getTime() : NaN;
+  const daysActive = Number.isFinite(started) ? Math.floor((Date.now() - started) / 86400000) : 0;
+  const review = plan.target_date ? new Date(`${plan.target_date}T23:59:59`).getTime() : NaN;
+  const daysToReview = Number.isFinite(review) ? Math.ceil((review - Date.now()) / 86400000) : null;
+  const task = `independent task${needed === 1 ? '' : 's'} on ${(plan.skill || 'this skill').toLowerCase()}`;
+  if (needed === 0) return { tone: 'act', text: 'Enough follow-up evidence has arrived. Check progress to close the loop.' };
+  if (daysToReview !== null && daysToReview < 0) return { tone: 'overdue', text: `Review date passed. Still needs ${needed} ${task} to measure progress.` };
+  if (daysToReview !== null && daysToReview <= 3) return { tone: 'act', text: `Review in ${daysToReview} day${daysToReview === 1 ? '' : 's'}. Needs ${needed} ${task} first.` };
+  if (daysActive >= 7) return { tone: 'act', text: `${daysActive} days active with no qualifying follow-up. Set ${needed} ${task}.` };
+  return { tone: 'wait', text: `Needs ${needed} ${task} to measure progress. Practice answers do not count.` };
 };
 
 const readinessRank: Record<InterventionRecommendation['readiness'], number> = {
@@ -227,6 +250,17 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
     : null;
   const actionable = recommendations.filter((item) => item.readiness !== 'collect_evidence');
   const watching = recommendations.filter((item) => item.readiness === 'collect_evidence');
+  // Class view (no student chosen yet): the roster of the picked class and its subjects.
+  const classRoster = useMemo(() => (grade && className
+    ? students.filter((student) => gradeKey(student.grade) === grade && (student.class_name || 'Unassigned') === className)
+    : []), [className, grade, students]);
+  const classRosterIds = useMemo(() => classRoster.map((student) => student.student_id), [classRoster]);
+  const classSubjects = useMemo(() => normalizeAcademicSubjectOptions(classRoster.flatMap((student) => student.subjects || [])), [classRoster]);
+  const [classSubject, setClassSubject] = useState('');
+  useEffect(() => {
+    setClassSubject((current) => (current && classSubjects.includes(current) ? current : (classSubjects.length === 1 ? classSubjects[0] : '')));
+  }, [classSubjects]);
+
   const groups = useMemo(() => rollup ? rollUpRecommendations(recommendations) : [], [recommendations, rollup]);
   const actionableGroups = groups.filter((group) => group.readiness !== 'collect_evidence');
   const watchingGroups = groups.filter((group) => group.readiness === 'collect_evidence');
@@ -288,7 +322,16 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
     <AcademicStudentPicker students={students} grade={grade} className={className} studentId={studentId} subject={subject} onGradeChange={(value) => { setGrade(value); setClassName(''); setStudentId(''); setSubject('all'); }} onClassChange={(value) => { setClassName(value); setStudentId(''); setSubject('all'); }} onStudentChange={(value) => { setStudentId(value); setSubject('all'); }} onSubjectChange={setSubject} />
 
     {error ? <div className="intervention-alert">{error}</div> : null}
-    {!studentId ? <div className="aps-empty-state">Choose a grade, class and student to review support needs.</div> : null}
+    {!studentId && !className ? <div className="aps-empty-state">Choose a grade and class to see what the class shares, or go straight to a student.</div> : null}
+    {!studentId && className ? <>
+      {classSubjects.length > 1 ? <div className="intervention-view-toggle intervention-class-subjects" role="tablist" aria-label="Subject">
+        <span>Subject</span>
+        {classSubjects.map((value) => <button key={value} type="button" role="tab" aria-selected={classSubject === value} className={classSubject === value ? 'is-active' : undefined} onClick={() => setClassSubject(value)}>{value}</button>)}
+      </div> : null}
+      {classSubject
+        ? <ClassLearningNeeds classLabel={className} studentIds={classRosterIds} subject={classSubject} onSelectStudent={(value) => { setStudentId(value); setSubject(classSubject); }} />
+        : <div className="aps-empty-state">Choose a subject to see this class’s shared needs.</div>}
+    </> : null}
     {loading && studentId && !data ? <div className="intervention-loading">Loading student support information…</div> : null}
 
     {data ? <>
@@ -308,7 +351,7 @@ const TeacherInterventionIntelligencePageV2: React.FC<TeacherInterventionIntelli
       </section>
 
       <section className="intervention-panel"><div className="intervention-heading intervention-heading--simple"><div><span>Support in progress</span><h2>Plans and follow-up</h2></div><p>Targeted practice helps the student rehearse the skill. Later qualifying assessed work is what shows whether the improvement transfers independently.</p></div>
-        <div className="intervention-plans intervention-plans--simple">{data.interventions.map((i) => <article key={i.id}><div><span>{i.subject}</span><b>{i.status === 'active' ? 'In progress' : i.status === 'planned' ? 'Planned' : i.status === 'completed' ? 'Completed' : 'Cancelled'}</b></div><h3>{i.skill}</h3><p>{i.goal}</p>{i.teaching_action ? <div className="plan-step"><strong>Practice action</strong><span>{i.teaching_action}</span></div> : null}{i.evidence_task ? <div className="plan-step"><strong>Independent check</strong><span>{i.evidence_task}</span></div> : null}<div className="follow-up-progress"><span>{i.follow_up_qualifying_observations || 0}/{i.target_min_followup_observations} follow-ups</span><span>{i.follow_up_successful_observations || 0}/{i.target_min_successful_observations} successful</span></div>{i.system_outcome_status ? <strong>Measured progress: {schoolStatus(i.system_outcome_status)}</strong> : null}{i.outcome_status ? <strong>Teacher outcome: {schoolStatus(i.outcome_status)}</strong> : null}<div>{i.status === 'planned' && i.approval_status === 'pending' ? <button onClick={() => void act(i.id, 'approve')}>Approve plan</button> : null}{i.status === 'planned' && ['approved', 'legacy_approved'].includes(i.approval_status) ? <button onClick={() => void act(i.id, 'start')}>Start plan</button> : null}{i.status === 'active' ? <button onClick={() => void act(i.id, 'complete')}>Check progress</button> : null}{['planned', 'active'].includes(i.status) ? <button className="secondary" onClick={() => void act(i.id, 'cancel')}>Cancel</button> : null}</div><details className="intervention-reference"><summary>Technical record</summary><small>Baseline: {schoolStatus(i.baseline_status)} · {i.baseline_qualifying_observations} qualifying evidence item{i.baseline_qualifying_observations === 1 ? '' : 's'} · review {fmt(i.target_date)}</small><small>Success rule: {i.target_min_successful_observations} successful from {i.target_min_followup_observations} qualifying follow-ups.</small></details></article>)}{!data.interventions.length ? <div className="intervention-empty"><strong>No support plans yet.</strong><span>Confirm a need and create targeted practice to start the support cycle.</span></div> : null}</div>
+        <div className="intervention-plans intervention-plans--simple">{data.interventions.map((i) => <article key={i.id}><div><span>{i.subject}</span><b>{i.status === 'active' ? 'In progress' : i.status === 'planned' ? 'Planned' : i.status === 'completed' ? 'Completed' : 'Cancelled'}</b></div><h3>{i.skill}</h3><p>{i.goal}</p>{i.teaching_action ? <div className="plan-step"><strong>Practice action</strong><span>{i.teaching_action}</span></div> : null}{i.evidence_task ? <div className="plan-step"><strong>Independent check</strong><span>{i.evidence_task}</span></div> : null}<div className="follow-up-progress"><span>{i.follow_up_qualifying_observations || 0}/{i.target_min_followup_observations} follow-ups</span><span>{i.follow_up_successful_observations || 0}/{i.target_min_successful_observations} successful</span></div>{(() => { const nudge = planNudge(i); return nudge ? <div className={`plan-nudge is-${nudge.tone}`} role={nudge.tone === 'overdue' ? 'alert' : undefined}><i aria-hidden="true" /><span>{nudge.text}</span></div> : null; })()}{i.system_outcome_status ? <strong>Measured progress: {schoolStatus(i.system_outcome_status)}</strong> : null}{i.outcome_status ? <strong>Teacher outcome: {schoolStatus(i.outcome_status)}</strong> : null}<div>{i.status === 'planned' && i.approval_status === 'pending' ? <button onClick={() => void act(i.id, 'approve')}>Approve plan</button> : null}{i.status === 'planned' && ['approved', 'legacy_approved'].includes(i.approval_status) ? <button onClick={() => void act(i.id, 'start')}>Start plan</button> : null}{i.status === 'active' ? <button onClick={() => void act(i.id, 'complete')}>Check progress</button> : null}{['planned', 'active'].includes(i.status) ? <button className="secondary" onClick={() => void act(i.id, 'cancel')}>Cancel</button> : null}</div><details className="intervention-reference"><summary>Technical record</summary><small>Baseline: {schoolStatus(i.baseline_status)} · {i.baseline_qualifying_observations} qualifying evidence item{i.baseline_qualifying_observations === 1 ? '' : 's'} · review {fmt(i.target_date)}</small><small>Success rule: {i.target_min_successful_observations} successful from {i.target_min_followup_observations} qualifying follow-ups.</small></details></article>)}{!data.interventions.length ? <div className="intervention-empty"><strong>No support plans yet.</strong><span>Confirm a need and create targeted practice to start the support cycle.</span></div> : null}</div>
       </section>
     </> : null}
 

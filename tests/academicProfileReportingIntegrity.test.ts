@@ -45,7 +45,7 @@ test('academic profile and report share the trustworthy reporting vocabulary', (
   assert.match(service, /'contradictory'/);
   assert.match(service, /writing_assessment_review/);
   assert.match(profile, /Evidence to confirm/);
-  assert.match(profile, /Teacher snapshot/);
+  assert.match(profile, /<AcademicProfileBrief/); // one-glance brief replaced the teacher snapshot (2026-10-31)
   assert.match(profile, /Established strengths/);
   assert.match(report, /Evidence to confirm/);
   assert.match(report, /Established strengths/);
