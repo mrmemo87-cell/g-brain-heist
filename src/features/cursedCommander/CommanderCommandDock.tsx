@@ -71,7 +71,7 @@ const GraveIcon = () => (
   </svg>
 );
 
-const schoolLabel = (school: Exclude<CommanderPracticeSchool, 'neutral'>) => school.toUpperCase();
+const schoolLabel = (school: Exclude<CommanderPracticeSchool, 'neutral'>) => school.charAt(0).toUpperCase() + school.slice(1);
 
 const CommanderCommandDock: React.FC<Props> = ({
   copy,
@@ -108,71 +108,68 @@ const CommanderCommandDock: React.FC<Props> = ({
     },
   ];
 
-  return (
-    <div className="relative z-50 mx-auto w-full max-w-5xl px-2 pb-2 sm:px-4">
-      <div className="relative overflow-hidden rounded-[1.65rem] border border-white/10 bg-slate-950/90 p-2.5 shadow-[0_-14px_60px_rgba(2,6,23,.78)] backdrop-blur-2xl sm:p-3.5">
-        <div aria-hidden className="pointer-events-none absolute inset-x-[12%] top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent" />
-        <div aria-hidden className="pointer-events-none absolute -left-16 bottom-0 h-36 w-36 rounded-full bg-violet-500/[0.06] blur-3xl" />
-        <div aria-hidden className="pointer-events-none absolute -right-16 top-0 h-36 w-36 rounded-full bg-cyan-400/[0.06] blur-3xl" />
+  const unlockedPowers = powers.filter((power) => power.unlocked);
+  const lockedPowers = powers.filter((power) => !power.unlocked);
+  const needsTarget = !busy && !selectedTargetId;
 
-        <div className="relative mb-2.5 flex flex-wrap items-center justify-between gap-2 px-1 sm:px-2">
-          <div>
-            <span className="font-heading text-[9px] font-black uppercase tracking-[0.22em] text-slate-500">Cursed Commander</span>
-            <div className="mt-0.5 flex items-center gap-2">
-              <span className="font-heading text-xs font-black uppercase tracking-[0.14em] text-white">✦ {copy.powerMatrix}</span>
-              <span className="rounded-full border border-violet-300/20 bg-violet-400/[0.07] px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] text-violet-200">{copy.powerCore}</span>
-            </div>
-          </div>
+  return (
+    // Sticky on phones so the moves stay on screen while the student looks at the battlefield.
+    <div className="sticky bottom-0 z-50 mx-auto w-full max-w-5xl px-2 pb-2 sm:px-4" data-commander-dock="true">
+      <div className="relative overflow-hidden rounded-[1.4rem] border border-white/10 bg-slate-950/95 p-2.5 shadow-[0_-14px_60px_rgba(2,6,23,.85)] backdrop-blur-2xl sm:p-3.5">
+        <div aria-hidden className="pointer-events-none absolute inset-x-[12%] top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent" />
+
+        <div className="relative mb-2 flex items-center justify-between gap-2 px-1">
+          <span className="font-heading text-sm font-black text-white">✦ {copy.powerMatrix}</span>
           {busy ? (
-            <span className="animate-pulse rounded-full border border-cyan-300/20 bg-cyan-400/[0.06] px-2.5 py-1 text-[9px] font-bold text-cyan-100">{copy.resolving}</span>
+            <span className="animate-pulse rounded-full border border-cyan-300/20 bg-cyan-400/[0.08] px-2.5 py-1 text-xs font-bold text-cyan-100">{copy.resolving}</span>
           ) : deathBoltCooldown > 0 ? (
-            <span className="rounded-full border border-amber-300/25 bg-amber-400/[0.07] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-amber-100">◷ {copy.cooldown} {deathBoltCooldown}</span>
+            <span className="rounded-full border border-amber-300/25 bg-amber-400/[0.08] px-2.5 py-1 text-xs font-bold text-amber-100">◷ {copy.coreCooling}: {copy.cooldown} {deathBoltCooldown} {copy.rounds}</span>
           ) : (
-            <span className="rounded-full border border-emerald-300/25 bg-emerald-400/[0.07] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-emerald-100">● CORE READY</span>
+            <span className="rounded-full border border-emerald-300/25 bg-emerald-400/[0.08] px-2 py-0.5 text-[11px] font-bold text-emerald-100">● {copy.powerCore}</span>
           )}
         </div>
 
-        <div className="relative grid gap-2 lg:grid-cols-[0.72fr_2.28fr] lg:gap-3">
-          <section className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-2">
-            <p className="mb-1.5 px-1 text-[8px] font-black uppercase tracking-[0.18em] text-slate-500">{copy.tactical}</p>
-            <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
-              {[
-                { move: 'focus_target' as const, icon: <FocusIcon />, label: copy.focus, hint: copy.focusHint, target: true, cls: 'border-cyan-300/25 text-cyan-100 hover:border-cyan-200/60 hover:bg-cyan-300/[0.07]' },
-                { move: 'guard' as const, icon: <GuardIcon />, label: copy.guard, hint: copy.guardHint, target: false, cls: 'border-amber-300/25 text-amber-100 hover:border-amber-200/60 hover:bg-amber-300/[0.06]' },
-              ].map((command) => {
-                const disabled = busy || (command.target && !selectedTargetId);
-                return (
-                  <button
-                    key={command.move}
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => onMove(command.move)}
-                    title={command.hint}
-                    className={`group flex min-h-[68px] items-center gap-2 rounded-xl border bg-slate-900/55 px-2.5 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0 ${command.cls}`}
-                  >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-current/15 bg-current/[0.05] transition-transform group-hover:scale-105">{command.icon}</span>
-                    <span className="min-w-0">
-                      <strong className="block text-[10px] font-black sm:text-xs">{command.label}</strong>
-                      <span className="mt-0.5 hidden text-[8px] leading-3 text-slate-500 lg:block">{command.hint}</span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+        {needsTarget && (
+          <p role="status" className="relative mb-2 rounded-xl border border-amber-300/30 bg-amber-400/10 px-3 py-2 text-center text-sm font-bold text-amber-100">
+            👆 {copy.waiting}
+          </p>
+        )}
+
+        <div className="relative grid gap-2 lg:grid-cols-[0.8fr_2.2fr] lg:gap-3">
+          <section aria-label={copy.tactical} className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+            {[
+              { move: 'focus_target' as const, icon: <FocusIcon />, label: copy.focus, hint: copy.focusHint, target: true, cls: 'border-cyan-300/30 text-cyan-100 hover:border-cyan-200/60 hover:bg-cyan-300/[0.07]' },
+              { move: 'guard' as const, icon: <GuardIcon />, label: copy.guard, hint: copy.guardHint, target: false, cls: 'border-amber-300/30 text-amber-100 hover:border-amber-200/60 hover:bg-amber-300/[0.06]' },
+            ].map((command) => {
+              const disabled = busy || (command.target && !selectedTargetId);
+              return (
+                <button
+                  key={command.move}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => onMove(command.move)}
+                  className={`group flex min-h-[56px] items-center gap-2 rounded-xl border bg-slate-900/60 px-2 py-1.5 text-left transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${command.cls}`}
+                >
+                  <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-current/15 bg-current/[0.05] sm:flex">{command.icon}</span>
+                  <span className="min-w-0">
+                    <strong className="block text-sm font-black">{command.label}</strong>
+                    <span className="mt-0.5 block text-xs leading-4 text-slate-300">{command.hint}</span>
+                  </span>
+                </button>
+              );
+            })}
           </section>
 
-          <section className="grid grid-cols-2 gap-2 xl:grid-cols-4">
-            {powers.map((power) => {
+          <section aria-label={copy.actions} className="grid grid-cols-2 gap-2">
+            {unlockedPowers.map((power) => {
               const targetRequired = power.move !== 'raise_dead';
               const cooldown = deathBoltCooldown;
-              const disabled = busy || !power.unlocked || !power.ready || (targetRequired && !selectedTargetId) || cooldown > 0;
-              const status = !power.unlocked
-                ? `LOCKED · ${schoolLabel(power.school)}`
-                : !power.ready && power.move === 'raise_dead'
-                  ? copy.noSoulToRaise
-                  : cooldown > 0
-                    ? `${copy.cooldown} ${cooldown}`
-                    : power.badge;
+              const disabled = busy || !power.ready || (targetRequired && !selectedTargetId) || cooldown > 0;
+              const status = !power.ready && power.move === 'raise_dead'
+                ? copy.noSoulToRaise
+                : cooldown > 0
+                  ? `${copy.cooldown} ${cooldown} ${copy.rounds}`
+                  : null;
 
               return (
                 <button
@@ -180,22 +177,25 @@ const CommanderCommandDock: React.FC<Props> = ({
                   type="button"
                   disabled={disabled}
                   onClick={() => onMove(power.move)}
-                  title={!power.unlocked ? `${copy.equipToUnlock}: ${schoolLabel(power.school)}` : power.hint}
-                  className={`group relative min-h-[128px] overflow-hidden rounded-2xl border p-3 text-left transition-all duration-200 enabled:hover:-translate-y-1 disabled:cursor-not-allowed ${power.tone} ${!power.unlocked ? 'grayscale-[.65] opacity-55' : disabled && cooldown > 0 ? 'opacity-60' : disabled ? 'opacity-65' : ''}`}
+                  className={`group relative flex min-h-[56px] items-center gap-2 overflow-hidden rounded-xl border px-2 py-1.5 text-left transition-all duration-200 disabled:cursor-not-allowed ${power.tone} ${disabled ? 'opacity-50' : ''}`}
                 >
-                  <span aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(125deg,rgba(255,255,255,.06),transparent_35%,transparent_72%,rgba(255,255,255,.025))] opacity-70" />
-                  <span className="relative flex items-start justify-between gap-2">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-current/20 bg-slate-950/45 shadow-inner transition-transform duration-200 group-enabled:group-hover:scale-110">{power.icon}</span>
-                    <span className="rounded-full border border-current/20 bg-slate-950/60 px-2 py-1 text-[7px] font-black uppercase tracking-[0.16em] backdrop-blur-md">{schoolLabel(power.school)}</span>
+                  <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-current/20 bg-slate-950/45 sm:flex">{power.icon}</span>
+                  <span className="min-w-0">
+                    <strong className="block text-sm font-black text-white">{power.label}</strong>
+                    <span className="mt-0.5 block text-xs leading-4 text-slate-200/90">{power.hint}</span>
+                    {status && <span className="mt-1 block text-xs font-bold text-amber-200">◷ {status}</span>}
                   </span>
-                  <strong className="relative mt-2 block text-[11px] font-black tracking-tight text-white sm:text-xs">{power.label}</strong>
-                  <span className="relative mt-1 block text-[8px] leading-[1.35] text-slate-300/80 sm:text-[9px]">{power.hint}</span>
-                  <span className={`relative mt-2 inline-flex rounded-full border px-2 py-0.5 text-[7px] font-black uppercase tracking-[0.14em] ${!power.unlocked ? 'border-slate-500/30 bg-slate-950/60 text-slate-400' : cooldown > 0 ? 'border-amber-300/25 bg-amber-400/[0.07] text-amber-100' : 'border-current/20 bg-slate-950/45 text-current'}`}>{status}</span>
                 </button>
               );
             })}
           </section>
         </div>
+
+        {lockedPowers.length > 0 && (
+          <p className="relative mt-2 px-1 text-xs leading-5 text-slate-400">
+            🔒 {lockedPowers.map((power) => `${power.label} (${schoolLabel(power.school)})`).join(' · ')} — {copy.equipToUnlock}.
+          </p>
+        )}
       </div>
     </div>
   );

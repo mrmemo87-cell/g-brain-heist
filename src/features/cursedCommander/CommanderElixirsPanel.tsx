@@ -188,20 +188,20 @@ export default function CommanderElixirsPanel({ disabled = false }: Props) {
     <section className="cc-elixirs" aria-labelledby="cc-elixirs-title">
       <div className="cc-elixir-topbar">
         <div>
-          <span className="cc-hq-eyebrow">TACTICAL CONSUMABLES</span>
+          <span className="cc-hq-eyebrow">BATTLE BOOSTS</span>
           <h2 id="cc-elixirs-title">Commander Elixirs</h2>
-          <p>Temporary combat catalysts. Gemstones only. Permanent training ranks never change.</p>
+          <p>An elixir makes one skill stronger for 30 or 60 minutes. Buy them with Gemstones, then tap "Activate" before you battle.</p>
         </div>
         <div className="cc-elixir-wallet" title="Available Gemstones">
           <span><GemIcon /></span>
-          <div><small>GEMSTONE RESERVE</small><strong>{gems.toLocaleString("en-US")}</strong></div>
+          <div><small>YOUR GEMSTONES</small><strong>{gems.toLocaleString("en-US")}</strong></div>
         </div>
       </div>
 
       <div className="cc-elixir-rule-strip">
-        <span><strong>ONE ACTIVE</strong> combat elixir at a time</span>
-        <span><strong>NO POWER STACKING</strong> · same elixir extends time</span>
-        <span><strong>PVP SNAPSHOT</strong> freezes the boost when battle starts</span>
+        <span><strong>One at a time:</strong> only one elixir can work at once</span>
+        <span><strong>Same elixir again:</strong> adds more time, not more power</span>
+        <span><strong>Player Battles:</strong> the boost you have when the battle starts lasts the whole battle</span>
       </div>
 
       {snapshot?.active ? (
@@ -216,7 +216,7 @@ export default function CommanderElixirsPanel({ disabled = false }: Props) {
           <div className="cc-elixir-timer"><small>TIME REMAINING</small><strong>{formatDuration(activeRemaining)}</strong></div>
         </div>
       ) : (
-        <div className="cc-elixir-no-active"><span>◇</span><div><strong>No combat elixir active</strong><small>Activate one from your Supplies before entering battle.</small></div></div>
+        <div className="cc-elixir-no-active"><span>◇</span><div><strong>No elixir active</strong><small>Buy one below, then tap "Activate" before your battle.</small></div></div>
       )}
 
       {error && (

@@ -142,12 +142,11 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
           <div className="relative flex flex-wrap items-start justify-between gap-4">
             <div>
               <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-cyan-300/35 bg-cyan-300/10 px-2.5 py-1 text-[10px] font-black tracking-[0.18em] text-cyan-200">COMMANDER NETWORK</span>
-                <span className="rounded-full border border-violet-300/25 bg-violet-300/10 px-2.5 py-1 text-[10px] font-bold tracking-[0.12em] text-violet-200">SERVER-AUTHORITATIVE</span>
+                <span className="rounded-full border border-cyan-300/35 bg-cyan-300/10 px-2.5 py-1 text-[11px] font-black tracking-[0.14em] text-cyan-200">CURSED COMMANDER</span>
               </div>
               <h1 className="font-heading text-3xl font-black text-white sm:text-4xl">Player Battles</h1>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
-                Attack another enrolled Commander anywhere in Brains Heist. Their current saved army becomes the defending formation and the result is recorded.
+                Fight another student's army. You choose your moves; the computer plays their team.
               </p>
             </div>
             <button type="button" onClick={onClose} className="rounded-xl border border-slate-700 bg-slate-900/80 px-4 py-2 text-sm font-bold text-slate-200 transition hover:border-cyan-400/40 hover:text-white">← Headquarters</button>
@@ -155,19 +154,10 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
         </header>
 
         <main className="space-y-5 p-4 sm:p-6">
-          <section className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.05] p-4">
-              <span className="text-[10px] font-black tracking-[0.15em] text-cyan-300">GLOBAL MATCHING</span>
-              <strong className="mt-1 block text-sm text-white">All enrolled student Commanders</strong>
-            </div>
-            <div className="rounded-2xl border border-violet-400/15 bg-violet-400/[0.05] p-4">
-              <span className="text-[10px] font-black tracking-[0.15em] text-violet-300">DEFENDER SNAPSHOT</span>
-              <strong className="mt-1 block text-sm text-white">Real equipped units, stats and school powers</strong>
-            </div>
-            <div className="rounded-2xl border border-amber-400/15 bg-amber-400/[0.05] p-4">
-              <span className="text-[10px] font-black tracking-[0.15em] text-amber-300">FAIR PLAY</span>
-              <strong className="mt-1 block text-sm text-white">No Coins or account XP are transferred</strong>
-            </div>
+          <section className="grid gap-2 rounded-2xl border border-amber-300/25 bg-amber-400/[0.06] p-4 text-sm text-slate-200 sm:grid-cols-3">
+            <p><strong className="text-amber-200">⭐ Win: +60 XP.</strong> Up to 5 wins a day, from 5 different players.</p>
+            <p><strong className="text-emerald-200">🪙 No risk.</strong> You never lose Coins or XP, even if you lose.</p>
+            <p><strong className="text-cyan-200">💡 Tip:</strong> players near your level are shown first. Try Practice if you are new.</p>
           </section>
 
           {lobby?.activeBattle && (
@@ -177,7 +167,7 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
                   <span className="text-[10px] font-black tracking-[0.18em] text-amber-300">BATTLE IN PROGRESS</span>
                   <h2 className="mt-1 font-heading text-xl font-black text-white">Vs {lobby.activeBattle.opponent_username}</h2>
                   <p className="mt-1 text-xs leading-5 text-slate-300">
-                    Your battle is safely saved on the server. Resume from the exact saved turn, or abandon it to return to the network.
+                    Your battle is saved. Continue where you stopped, or give up this battle to choose someone else.
                   </p>
                   <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                     <span className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1.5 font-bold text-slate-300">Commander Level {lobby.activeBattle.opponent_level}</span>
@@ -243,9 +233,9 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
           <section className="rounded-3xl border border-slate-800 bg-slate-900/45 p-4 sm:p-5">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <span className="text-[10px] font-black tracking-[0.18em] text-cyan-300">TARGET NETWORK</span>
-                <h2 className="mt-1 font-heading text-xl font-black text-white">Choose a Commander</h2>
-                <p className="mt-1 text-xs text-slate-400">Targets are ordered near your Commander level first.</p>
+                <span className="text-[11px] font-black tracking-[0.14em] text-cyan-300">OPPONENTS</span>
+                <h2 className="mt-1 font-heading text-xl font-black text-white">Pick an opponent</h2>
+                <p className="mt-1 text-sm text-slate-400">Players closest to your level are at the top.</p>
               </div>
               <div className="flex w-full gap-2 sm:w-auto">
                 <input
@@ -277,7 +267,6 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
                         <h3 className="truncate font-heading text-base font-black text-white">{target.username}</h3>
                         <p className="text-xs text-slate-400">Commander Level {target.level}</p>
                       </div>
-                      <span className="rounded-full border border-violet-300/20 bg-violet-300/10 px-2 py-1 text-[9px] font-black tracking-wider text-violet-200">ENROLLED</span>
                     </div>
 
                     <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
@@ -304,7 +293,7 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
                       onClick={() => onBattle({ userId: target.user_id, username: target.username, avatarUrl: target.avatar_url, level: target.level })}
                       className="mt-4 w-full rounded-xl border border-cyan-300/35 bg-cyan-300/10 px-4 py-2.5 font-heading text-xs font-black tracking-wider text-cyan-100 transition hover:bg-cyan-300/15 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800/60 disabled:text-slate-500"
                     >
-                      {lobby?.activeBattle ? 'BATTLE IN PROGRESS' : cooldown ? `COOLDOWN · ${minutes}M` : 'ATTACK COMMANDER'}
+                      {lobby?.activeBattle ? 'Finish your other battle first' : cooldown ? `Battle again in ${minutes} min` : '⚔ Battle'}
                     </button>
                   </article>
                 );
@@ -318,8 +307,8 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
 
           <section className="rounded-3xl border border-slate-800 bg-slate-900/45 p-4 sm:p-5">
             <div>
-              <span className="text-[10px] font-black tracking-[0.18em] text-violet-300">BATTLE RECORD</span>
-              <h2 className="mt-1 font-heading text-xl font-black text-white">Recent Commander battles</h2>
+              <span className="text-[11px] font-black tracking-[0.14em] text-violet-300">HISTORY</span>
+              <h2 className="mt-1 font-heading text-xl font-black text-white">Your recent battles</h2>
             </div>
             <div className="mt-4 space-y-2">
               {(lobby?.history ?? []).map((entry) => (
@@ -331,7 +320,7 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
                   </div>
                 </div>
               ))}
-              {!lobby?.history.length && <p className="text-sm text-slate-500">Your first recorded Commander battle will appear here.</p>}
+              {!lobby?.history.length && <p className="text-sm text-slate-500">Your battles will appear here.</p>}
             </div>
           </section>
         </main>

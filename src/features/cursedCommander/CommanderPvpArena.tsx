@@ -68,22 +68,17 @@ const CommanderPvpArena: React.FC<Props> = ({ launch, onClose }) => {
   const baseCopy = COMMANDER_COPY[language];
   const copy = useMemo(() => ({
     ...baseCopy,
-    practiceOnly: 'RECORDED PLAYER BATTLE',
-    safety: 'Server-authoritative battle. The result is saved.',
-    testers: 'No Coins or account XP are transferred in Commander PvP.',
-    title: 'Commander Player Battle',
+    practiceOnly: 'PLAYER BATTLE',
+    title: 'Player Battle',
     subtitle: `Attacking ${launch.username}`,
     startTitle: `Battle ${launch.username}`,
     startBody: 'Your equipped army is fighting the opponent’s saved Commander formation.',
     start: 'Enter battle',
-    restart: 'Back to battle network',
+    restart: 'Back to opponents',
     loadout: 'Battle loadout',
     expires: 'Battle expires',
-    victory: 'Commander victory',
-    defeat: 'Commander defeat',
-    draw: 'Commander draw',
-    finishedNote: 'Battle complete. The result is recorded; no Coins or account XP were transferred.',
-    expired: 'This Commander battle expired. Return to the battle network.',
+    finishedNote: 'Battle finished. Win or lose, you never lose Coins.',
+    expired: 'This battle ran out of time. Go back and start a new one.',
     unavailable: 'Commander player battles are unavailable right now.',
     genericError: 'The Commander battle turn could not be resolved.',
   })) as unknown as CommanderCopy;
@@ -308,29 +303,26 @@ const CommanderPvpArena: React.FC<Props> = ({ launch, onClose }) => {
   return (
     <section data-no-interface-translation="true" data-commander-pvp-root="true" data-commander-speed={speed} className="w-full min-w-0 bg-slate-950 py-3 sm:py-5" lang={language} dir={direction}>
       <style>{READABILITY_STYLES}</style>
-      <div className="mx-auto w-full max-w-7xl overflow-hidden rounded-[2rem] border border-cyan-400/20 bg-slate-950 shadow-[0_0_80px_rgba(34,211,238,0.12)]">
+      <div className="mx-auto w-full max-w-7xl overflow-clip rounded-[2rem] border border-cyan-400/20 bg-slate-950 shadow-[0_0_80px_rgba(34,211,238,0.12)]">
         <header className="relative overflow-hidden border-b border-slate-800 px-4 py-4 sm:px-6">
           <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(34,211,238,0.18),transparent_34%),radial-gradient(circle_at_82%_20%,rgba(168,85,247,0.16),transparent_32%)]" />
           <div className="relative flex flex-wrap items-start justify-between gap-4">
             <div>
               <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-rose-300/40 bg-rose-400/10 px-2.5 py-1 text-[11px] font-black tracking-[0.16em] text-rose-200">RECORDED PLAYER BATTLE</span>
+                <span className="rounded-full border border-rose-300/40 bg-rose-400/10 px-2.5 py-1 text-[11px] font-black tracking-[0.16em] text-rose-200">PLAYER BATTLE</span>
                 <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-[11px] font-semibold text-cyan-100">VS {launch.username.toUpperCase()}</span>
               </div>
-              <h1 className="font-heading text-2xl font-black text-white sm:text-3xl">Commander Duel</h1>
-              <p className="mt-1 text-sm text-slate-300">Your equipped army vs. {launch.username}'s saved formation.</p>
+              <h1 className="font-heading text-2xl font-black text-white sm:text-3xl">You vs {launch.username}</h1>
+              <p className="mt-1 text-sm text-slate-300">You choose your moves. The computer plays {launch.username}'s team.</p>
             </div>
-            <button type="button" onClick={onClose} className="rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:text-white">← Battle Network</button>
+            <button type="button" onClick={onClose} className="rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:text-white">← Opponents</button>
           </div>
         </header>
 
         <main className="space-y-4 p-3 sm:p-5">
-          <section className="grid gap-2 sm:grid-cols-2">
-            <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-2 text-xs text-emerald-100"><strong className="block text-emerald-200">✓ Server-authoritative state and settlement</strong></div>
-            <div className="rounded-xl border border-violet-400/20 bg-violet-400/[0.06] px-3 py-2 text-xs text-violet-100"><strong className="block text-violet-200">◇ No Coin or account XP transfer</strong></div>
-          </section>
+          <p className="rounded-xl border border-amber-300/25 bg-amber-400/[0.06] px-3 py-2.5 text-sm font-bold text-amber-100">⭐ Win: +60 XP · Win or lose, you never lose Coins.</p>
 
-          {busy && !session && <div role="status" className="rounded-3xl border border-cyan-300/20 bg-slate-950 p-8 text-center font-heading text-sm tracking-widest text-cyan-200">LOCKING PLAYER LOADOUTS<span className="mt-2 block text-xs tracking-normal text-slate-400">Creating a persistent battle snapshot…</span></div>}
+          {busy && !session && <div role="status" className="rounded-3xl border border-cyan-300/20 bg-slate-950 p-8 text-center font-heading text-sm tracking-widest text-cyan-200">GETTING READY…<span className="mt-2 block text-xs tracking-normal text-slate-400">Loading both armies</span></div>}
 
           {error && (
             <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
@@ -342,7 +334,6 @@ const CommanderPvpArena: React.FC<Props> = ({ launch, onClose }) => {
             </div>
           )}
 
-          {session && <p className="rounded-xl border border-cyan-400/20 bg-cyan-400/5 px-3 py-2 text-xs text-cyan-100">Battle ID {session.battleId.slice(0, 8)} · Defender snapshot locked when this battle started · Equipment changes apply to your next battle.</p>}
           {session && <CommanderPvpElixirStatus battleId={session.battleId} />}
 
           {assetsReady && session && battle && (
@@ -376,13 +367,9 @@ const CommanderPvpArena: React.FC<Props> = ({ launch, onClose }) => {
                 onToggleSpeed={() => setSpeed((value) => value === 1 ? 2 : 1)}
                 onMove={(move) => void playMove(move)}
                 onRestart={onClose}
+                outcomeNote={commanderXpAwardMessage(session.xpAward)}
               />
 
-              {battle.status !== 'active' && commanderXpAwardMessage(session.xpAward) && (
-                <p role="status" className="rounded-2xl border border-amber-300/30 bg-amber-400/10 px-4 py-3 text-sm font-bold text-amber-100">
-                  ⭐ {commanderXpAwardMessage(session.xpAward)}
-                </p>
-              )}
 
               <details className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
                 <summary className="cursor-pointer font-heading text-xs font-black uppercase tracking-[0.12em] text-slate-300">📜 Battle log</summary>

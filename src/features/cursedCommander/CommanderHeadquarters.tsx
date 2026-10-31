@@ -12,6 +12,8 @@ import {
 import {
   commanderLevelXp,
   commanderMissingCoins,
+  commanderNextUnlock,
+  commanderTodayXp,
   commanderStatRank,
   commanderTrainingCost,
 } from "./commanderHeadquartersModel";
@@ -25,6 +27,7 @@ import CommanderUnitTrainingPanel from "./CommanderUnitTrainingPanel";
 import CommanderFormationPanel from "./CommanderFormationPanel";
 import CommanderCatalogCards from "./CommanderCatalogCards";
 import CommanderElixirsPanel from "./CommanderElixirsPanel";
+import CommanderHelpGuide from "../../../components/CommanderHelpGuide";
 import "./commanderHeadquarters.css";
 import "./commanderHeadquartersCommandCenter.css";
 
@@ -167,6 +170,7 @@ export default function CommanderHeadquarters({
   const [choice, setChoice] = useState<Choice | null>(null);
   const [practice, setPractice] = useState<"owned" | "fixed" | null>(null);
   const [pvpOpen, setPvpOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [pvpLaunch, setPvpLaunch] = useState<CommanderPvpLaunch | null>(null);
   const request = useRef<AbortController | null>(null);
   const alive = useRef(true);
@@ -344,6 +348,10 @@ export default function CommanderHeadquarters({
   const levelProgress = level >= 100 ? 1 : Math.max(0, (p?.xp ?? 0) - levelFloor);
   const levelSpan = level >= 100 ? 1 : Math.max(1, levelCeiling - levelFloor);
   const deployed = p ? 3 : 0;
+  const today = commanderTodayXp(hq?.history ?? []);
+  const rule = (key: string, fallback: number) => Number(hq?.campaign.rules[key] ?? fallback);
+  const pvpDailyLimit = rule("pvpVictoryDailyLimit", 5);
+  const nextUnlock = hq ? commanderNextUnlock(level, hq.campaign.rules) : null;
   const strikeOutput = loadout
     ? loadout.bolt + loadout.units.reduce((sum, unit) => sum + unit.attack, 0)
     : 0;
@@ -490,6 +498,8 @@ export default function CommanderHeadquarters({
           </span>
         </button>
 
+        <button className="cc-command-mobile-back" onClick={onClose}>← Dashboard</button>
+
         <nav className="cc-command-nav" aria-label="Commander sections">
           {tabs.map(([id, label]) => (
             <button
@@ -527,6 +537,15 @@ export default function CommanderHeadquarters({
           </button>
         </div>
       </header>
+
+      {helpOpen && (
+        <div className="cc-command-help-overlay" role="dialog" aria-modal="true" aria-label="How to play Cursed Commander" onClick={() => setHelpOpen(false)}>
+          <div className="cc-command-help-sheet" onClick={(event) => event.stopPropagation()}>
+            <button className="cc-command-help-close" onClick={() => setHelpOpen(false)} aria-label="Close how to play">✕</button>
+            <CommanderHelpGuide />
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="cc-hq-message cc-hq-message--error" role="alert">
@@ -580,55 +599,108 @@ export default function CommanderHeadquarters({
                 style={{ backgroundImage: `url(${COMMANDER_VFX.headquarters})` }}
               >
                 <div className="cc-command-hero-copy">
-                  <span className="cc-hq-eyebrow">DEPLOYMENT OVERVIEW</span>
-                  <h1 id="cc-hq-title">Your Field Command</h1>
-                  <p>Lead the formation. Upgrade with intent. Make every deployment count.</p>
+                  <div className="cc-command-hero-topline">
+                    <span className="cc-hq-eyebrow">CURSED COMMANDER</span>
+                    <button className="cc-command-help-button" onClick={() => setHelpOpen(true)}>❓ How to play</button>
+                  </div>
+                  <h1 id="cc-hq-title">{p ? "Your army" : "Welcome, Commander"}</h1>
+                  <p>
+                    {p
+                      ? "Win battles to earn XP. Level up to unlock stronger units."
+                      : "Get a free team of three fighters. Then win battles to earn XP and level up."}
+                  </p>
 
-                  <div className="cc-command-metrics" aria-label="Deployment summary">
+                  {p && (
+                    <div className="cc-command-level-card" aria-label="Your level">
+                      <div>
+                        <strong>Level {level}</strong>
+                        <span>
+                          {level >= 100
+                            ? "Highest level reached!"
+                            : `${format(Math.max(0, commanderLevelXp(level + 1) - (p.xp ?? 0)))} XP to Level ${level + 1}`}
+                        </span>
+                      </div>
+                      <progress max={levelSpan} value={Math.min(levelProgress, levelSpan)} aria-label="XP progress to the next level" />
+                      {nextUnlock && (
+                        <small>🔓 Level {nextUnlock.level}: {nextUnlock.label}</small>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="cc-command-metrics" aria-label="Army summary">
                     <div>
                       <span aria-hidden>♟</span>
                       <strong>{deployed} / 3</strong>
-                      <small>Active force</small>
+                      <small>Fighters</small>
                     </div>
                     <div>
                       <span aria-hidden>⚔</span>
                       <strong>{strikeOutput || "—"}</strong>
-                      <small>Strike output</small>
+                      <small>Attack</small>
                     </div>
                     <div>
                       <span aria-hidden>⬡</span>
                       <strong>{shieldReserve || "—"}</strong>
-                      <small>Shield reserve</small>
+                      <small>Shield</small>
                     </div>
                     <div>
-                      <span aria-hidden>✦</span>
-                      <strong>Level {level}</strong>
-                      <small>Command rank</small>
+                      <span aria-hidden>◉</span>
+                      <strong>{format(coins)}</strong>
+                      <small>Coins</small>
                     </div>
                   </div>
                 </div>
 
                 <div className="cc-command-hero-side">
-                  <p className="cc-command-doctrine-quote">“A stronger army starts with a sharper command.”</p>
                   {p ? (
                     <>
-                      <button className="cc-command-hero-action is-primary" onClick={() => setPvpOpen(true)}>
-                        <span className="cc-command-action-icon" aria-hidden>⚔</span>
-                        <span><strong>Player Battles</strong><small>Challenge another Commander army</small></span>
-                        <b aria-hidden>→</b>
-                      </button>
-                      <button className="cc-command-hero-action" onClick={() => selectTab("army")}>
-                        <span className="cc-command-action-icon" aria-hidden>♜</span>
-                        <span><strong>Manage Army</strong><small>Recruit, train and deploy</small></span>
-                        <b aria-hidden>→</b>
-                      </button>
+                      <div className="cc-command-today" aria-label="Earn XP today">
+                        <strong>Earn XP today</strong>
+                        <ul>
+                          <li data-done={today.login || undefined}>
+                            <span aria-hidden>{today.login ? "✓" : "○"}</span>
+                            Open Headquarters{today.streak > 1 ? ` (day ${today.streak} streak)` : ""}
+                            <b>+{rule("dailyLoginXp", 100)}{today.streak > 1 ? "+" : ""} XP</b>
+                          </li>
+                          <li data-done={today.practiceWin || undefined}>
+                            <span aria-hidden>{today.practiceWin ? "✓" : "○"}</span>
+                            Win 1 Practice battle
+                            <b>+{rule("practiceVictoryXp", 40)} XP</b>
+                          </li>
+                          <li data-done={today.pvpWins >= pvpDailyLimit || undefined}>
+                            <span aria-hidden>{today.pvpWins >= pvpDailyLimit ? "✓" : "○"}</span>
+                            Win Player Battles ({today.pvpWins}/{pvpDailyLimit})
+                            <b>+{rule("pvpVictoryXp", 60)} XP each</b>
+                          </li>
+                        </ul>
+                      </div>
                       <button
-                        className="cc-command-hero-action"
+                        className="cc-command-hero-action is-primary"
                         disabled={unavailable}
                         onClick={() => setPractice("owned")}
                       >
                         <span className="cc-command-action-icon" aria-hidden>◎</span>
-                        <span><strong>Practice</strong><small>Test this formation without a recorded result</small></span>
+                        <span>
+                          <strong>Practice battle</strong>
+                          <small>
+                            {today.practiceWin
+                              ? "Free. Try new moves against the computer."
+                              : `Free. Win once today for +${rule("practiceVictoryXp", 40)} XP.`}
+                          </small>
+                        </span>
+                        <b aria-hidden>→</b>
+                      </button>
+                      <button className="cc-command-hero-action" onClick={() => setPvpOpen(true)}>
+                        <span className="cc-command-action-icon" aria-hidden>⚔</span>
+                        <span>
+                          <strong>Player Battles</strong>
+                          <small>Fight another student's army. Win for +{rule("pvpVictoryXp", 60)} XP.</small>
+                        </span>
+                        <b aria-hidden>→</b>
+                      </button>
+                      <button className="cc-command-hero-action" onClick={() => selectTab("army")}>
+                        <span className="cc-command-action-icon" aria-hidden>♜</span>
+                        <span><strong>My army</strong><small>Get new fighters and make them stronger</small></span>
                         <b aria-hidden>→</b>
                       </button>
                     </>
@@ -639,7 +711,7 @@ export default function CommanderHeadquarters({
                       onClick={claimStarterSquad}
                     >
                       <span className="cc-command-action-icon" aria-hidden>✦</span>
-                      <span><strong>Claim Starter Squad</strong><small>Begin your Commander expedition</small></span>
+                      <span><strong>Get your free team</strong><small>3 fighters, ready to battle. Costs nothing.</small></span>
                       <b aria-hidden>→</b>
                     </button>
                   )}
@@ -648,11 +720,11 @@ export default function CommanderHeadquarters({
 
               <div className="cc-command-section-heading">
                 <div>
-                  <span className="cc-hq-eyebrow">ACTIVE FORMATION</span>
-                  <h2>Your deployed squad</h2>
-                  <p>Each role has a job. Read the doctrine, track the real combat stats, and deploy with purpose.</p>
+                  <span className="cc-hq-eyebrow">YOUR TEAM</span>
+                  <h2>Your three fighters</h2>
+                  <p>Your Commander fights in the middle. The frontline fighter protects, the ranged fighter attacks from the back.</p>
                 </div>
-                <button className="cc-hq-text-button" onClick={() => selectTab("army")}>Full roster ↗</button>
+                <button className="cc-hq-text-button" onClick={() => selectTab("army")}>All fighters ↗</button>
               </div>
 
               <div className="cc-command-squad" aria-label="Current Commander formation">
@@ -725,8 +797,8 @@ export default function CommanderHeadquarters({
 
               <div className="cc-hq-overview-bottom cc-command-secondary-grid">
                 <article className="cc-hq-panel cc-command-support-card">
-                  <span className="cc-hq-eyebrow">NEXT ACQUISITION</span>
-                  <h2>{goal?.name ?? "Choose your next edge"}</h2>
+                  <span className="cc-hq-eyebrow">SAVING UP</span>
+                  <h2>{goal?.name ?? "Save for a new fighter"}</h2>
                   {goal ? (
                     <>
                       <p>{format(goal.price)} Coins · Your balance: {format(coins)}</p>
@@ -742,33 +814,32 @@ export default function CommanderHeadquarters({
                     </>
                   ) : (
                     <>
-                      <p>Pin a unit or equipment item to keep its price and your remaining balance in view.</p>
-                      <button className="cc-hq-secondary" onClick={() => selectTab("armory")}>Explore armory ↗</button>
+                      <p>Pick a fighter or item you want. We will show how many Coins you still need.</p>
+                      <button className="cc-hq-secondary" onClick={() => selectTab("army")}>Browse fighters ↗</button>
                     </>
                   )}
                 </article>
 
                 <article className="cc-hq-panel cc-command-support-card">
-                  <span className="cc-hq-eyebrow">COMMANDER PROGRESSION</span>
-                  <h2>Level {level}</h2>
-                  <p>
-                    {level === 100
-                      ? "Maximum Commander level reached."
-                      : `${format(Math.max(0, commanderLevelXp(level + 1) - (p?.xp ?? 0)))} XP to the next level`}
-                  </p>
-                  <progress max={levelSpan} value={Math.min(levelProgress, levelSpan)} aria-label="Commander level progress" />
-                  <p>
-                    Commander training limit: rank {p?.rankCap ?? 5} · {level >= (hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11)
-                      ? `Unit training cap: rank ${p?.unitRankCap ?? 1}`
-                      : `Unit Training unlocks at Level ${hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11}`}
-                  </p>
-                  <button className="cc-hq-secondary" onClick={() => selectTab(level >= (hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11) ? "army" : "training")}>
-                    {level >= (hq.campaign.rules["formationUnlockLevel"] ?? 41)
-                      ? "Open Formation Command ↗"
-                      : level >= (hq.campaign.rules["unitTrainingUnlockLevel"] ?? 11)
-                        ? "Open unit development ↗"
-                        : "Open training ↗"}
-                  </button>
+                  <span className="cc-hq-eyebrow">LEVEL UP TO UNLOCK</span>
+                  <h2>What you unlock</h2>
+                  <ul className="cc-command-roadmap">
+                    {[
+                      { at: 1, label: "Train your Commander's stats (higher level = higher limit)", tab: "training" as Tab },
+                      { at: rule("unitTrainingUnlockLevel", 11), label: "Unit Training", tab: "army" as Tab },
+                      { at: rule("unitEvolutionUnlockLevel", 21), label: "Evolution", tab: "army" as Tab },
+                      { at: rule("schoolMasteryUnlockLevel", 31), label: "Mastery", tab: "army" as Tab },
+                      { at: rule("formationUnlockLevel", 41), label: "Formations", tab: "army" as Tab },
+                    ].map((step) => (
+                      <li key={step.label} data-open={level >= step.at || undefined}>
+                        <span aria-hidden>{level >= step.at ? "✓" : "🔒"}</span>
+                        <span>{step.at > 1 ? `Level ${step.at}: ` : ""}{step.label}</span>
+                        {level >= step.at && (
+                          <button className="cc-hq-text-button" onClick={() => selectTab(step.tab)}>Open ↗</button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                 </article>
               </div>
             </>
@@ -778,7 +849,7 @@ export default function CommanderHeadquarters({
             <>
               <div className="cc-command-subpage-banner">
                 <button className="cc-command-back-overview" onClick={() => selectTab("overview")}>← Headquarters</button>
-                <span>{hq.campaign.title}</span>
+                <span>{tabs.find(([id]) => id === tab)?.[1]}</span>
                 <span>{tab === "supplies" ? "Gemstones only" : `${format(coins)} Coins`}</span>
               </div>
 
@@ -806,49 +877,72 @@ export default function CommanderHeadquarters({
                   <>
                     <div className="cc-hq-section-title">
                       <div>
-                        <span className="cc-hq-eyebrow">THE BARRACKS</span>
-                        <h2>Build a squad with a purpose</h2>
-                        <p>One frontline unit. One ranged unit. Recruit alternatives, develop the soldiers you own, and deploy the pair that fits your plan.</p>
+                        <span className="cc-hq-eyebrow">YOUR FIGHTERS</span>
+                        <h2>Choose your team</h2>
+                        <p>Your team has one frontline fighter (protects) and one ranged fighter (attacks from the back). Buy new fighters with Coins, then tap "Equip" to put them in your team.</p>
                       </div>
                     </div>
                     {catalogCards(hq.catalog.filter((item) => item.kind === "unit"))}
-                    <CommanderUnitTrainingPanel
-                      hq={hq}
-                      coins={coins}
-                      disabled={unavailable}
-                      onTrain={(item, cost) =>
-                        propose({
-                          operation: "unit_train",
-                          target: item.id,
-                          title: `Train ${item.name}?`,
-                          cost,
-                          detail: "Permanent unit development for this expedition. The trained stats are server-calculated and will apply to future Practice and Player Battles.",
-                        })
-                      }
-                    />
-                    <CommanderFormationPanel
-                      hq={hq}
-                      coins={coins}
-                      disabled={unavailable}
-                      onAdvance={(formation, cost) =>
-                        propose({
-                          operation: "formation_train",
-                          target: formation.id,
-                          title: `Advance ${formation.name} doctrine?`,
-                          cost,
-                          detail: "Permanent Formation Command progression. The server calculates the exact strengths and trade-offs from the formation ID and doctrine rank; future Practice and Player Battles receive only the trusted composed loadout.",
-                        })
-                      }
-                      onActivate={(formation) =>
-                        propose({
-                          operation: "formation_set",
-                          target: formation.id,
-                          title: `Activate ${formation.name}?`,
-                          cost: 0,
-                          detail: "Sets this doctrine for future Practice and Player Battles. Any Player Battle already in progress keeps the trusted loadout snapshot captured when that battle started.",
-                        })
-                      }
-                    />
+                    {level >= rule("unitTrainingUnlockLevel", 11) - 2 ? (
+                      <CommanderUnitTrainingPanel
+                        hq={hq}
+                        coins={coins}
+                        disabled={unavailable}
+                        onTrain={(item, cost) =>
+                          propose({
+                            operation: "unit_train",
+                            target: item.id,
+                            title: `Train ${item.name}?`,
+                            cost,
+                            detail: "This makes the fighter stronger forever. You pay the Coins once.",
+                          })
+                        }
+                      />
+                    ) : null}
+                    {level >= rule("formationUnlockLevel", 41) - 3 ? (
+                      <CommanderFormationPanel
+                        hq={hq}
+                        coins={coins}
+                        disabled={unavailable}
+                        onAdvance={(formation, cost) =>
+                          propose({
+                            operation: "formation_train",
+                            target: formation.id,
+                            title: `Make ${formation.name} stronger?`,
+                            cost,
+                            detail: "This team style becomes stronger forever. You pay the Coins once.",
+                          })
+                        }
+                        onActivate={(formation) =>
+                          propose({
+                            operation: "formation_set",
+                            target: formation.id,
+                            title: `Use ${formation.name} in battles?`,
+                            cost: 0,
+                            detail: "Your next battles will use this team style. A battle you already started does not change.",
+                          })
+                        }
+                      />
+                    ) : null}
+                    {level < rule("formationUnlockLevel", 41) - 3 && (
+                      <section className="cc-hq-panel cc-command-support-card cc-command-coming-later" aria-label="Unlocks later">
+                        <span className="cc-hq-eyebrow">COMING LATER</span>
+                        <h2>Level up to unlock more</h2>
+                        <ul className="cc-command-roadmap">
+                          {[
+                            { at: rule("unitTrainingUnlockLevel", 11), label: "Unit Training: make each fighter stronger" },
+                            { at: rule("unitEvolutionUnlockLevel", 21), label: "Evolution: upgrade a fully trained fighter" },
+                            { at: rule("schoolMasteryUnlockLevel", 31), label: "Mastery: power up your magic types" },
+                            { at: rule("formationUnlockLevel", 41), label: "Formations: choose a team battle style" },
+                          ].filter((step) => level < step.at).map((step) => (
+                            <li key={step.label}>
+                              <span aria-hidden>🔒</span>
+                              <span>Level {step.at}: {step.label}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    )}
                   </>
                 )}
 
@@ -869,9 +963,9 @@ export default function CommanderHeadquarters({
                   <>
                     <div className="cc-hq-section-title">
                       <div>
-                        <span className="cc-hq-eyebrow">COMMANDER TRAINING</span>
-                        <h2>Commit to your strengths</h2>
-                        <p>Permanent for this expedition. Training uses your Brains Heist Coins.</p>
+                        <span className="cc-hq-eyebrow">TRAIN YOUR COMMANDER</span>
+                        <h2>Make your Commander stronger</h2>
+                        <p>Training costs Coins and lasts forever. Each new level lets you train a little higher.</p>
                       </div>
                     </div>
                     <p role="status">Available: {format(coins)} Brains Heist Coins.</p>
@@ -988,8 +1082,8 @@ export default function CommanderHeadquarters({
           )}
 
           <footer className="cc-hq-footer cc-command-footer">
-            <span>DISCIPLINE BUILDS LEGENDS.</span>
-            <span>Practice is safe · Player Battles record the result · Unit development, Formation Command, and Elixirs are server-authoritative · No Commander PvP Coin or account XP transfer.</span>
+            <span>PLAY FAIR, LEVEL UP.</span>
+            <span>Battles never cost Coins. You spend Coins only when you buy or train. Commander XP is separate from your normal Brains Heist XP.</span>
           </footer>
         </>
       )}

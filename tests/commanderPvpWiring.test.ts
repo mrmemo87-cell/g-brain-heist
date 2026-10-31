@@ -64,10 +64,12 @@ test('Commander PvP client exposes a recorded battle network instead of practice
   const lobby = read('src/features/cursedCommander/CommanderPvpLobby.tsx');
   const arena = read('src/features/cursedCommander/CommanderPvpArena.tsx');
   assert.match(lobby, /Player Battles/);
-  assert.match(lobby, /ATTACK COMMANDER/);
+  assert.match(lobby, /⚔ Battle/);
+  assert.match(lobby, /Win: \+60 XP/);
   assert.match(lobby, /Resume Battle/);
-  assert.match(arena, /RECORDED PLAYER BATTLE/);
-  assert.match(arena, /persistent/i);
+  assert.match(arena, /PLAYER BATTLE/);
+  assert.match(arena, /startCommanderPvp/);
+  assert.doesNotMatch(arena, /No Coin or account XP transfer/);
   assert.match(arena, /submitCommanderPvpTurn/);
 });
 

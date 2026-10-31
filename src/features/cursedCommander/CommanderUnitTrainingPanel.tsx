@@ -314,7 +314,7 @@ export default function CommanderUnitTrainingPanel({
         </div>
       )}
 
-      {hq.profile && (
+      {hq.profile && level >= masteryUnlockLevel - 2 && (
         <section className="cc-school-mastery" aria-labelledby="cc-school-mastery-title">
           <div className="cc-school-mastery-heading">
             <div>
@@ -424,14 +424,6 @@ export default function CommanderUnitTrainingPanel({
         </section>
       )}
 
-      <div className="cc-unit-training-doctrine">
-        <strong>Controlled power curve</strong>
-        <span>
-          Rank training handles Levels 11–20, Evolution handles 21–30, and School Mastery begins
-          at 31. Mastery strengthens the existing Void, Storm, Rot, and Grave powers rather than
-          adding another combat slot, currency, or PvP farming loop.
-        </span>
-      </div>
     </section>
   );
 }

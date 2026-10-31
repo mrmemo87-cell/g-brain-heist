@@ -62,8 +62,8 @@ test('Commander Supplies client exposes purchase, activation, inventory and time
   assert.match(service, /rpc_commander_elixirs/);
   assert.match(service, /rpc_commander_elixir_purchase/);
   assert.match(service, /rpc_commander_elixir_activate/);
-  assert.match(panel, /Gemstones only/i);
-  assert.match(panel, /ONE ACTIVE/i);
+  assert.match(panel, /Buy them with Gemstones/i);
+  assert.match(panel, /One at a time/i);
   assert.match(panel, /Extend \+\$\{item\.durationMinutes\}m/);
   assert.match(panel, /formatDuration\(activeRemaining\)/);
 });
