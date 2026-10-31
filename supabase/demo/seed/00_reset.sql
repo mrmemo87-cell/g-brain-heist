@@ -41,4 +41,7 @@ begin
   if to_regclass('private.demo_state') is not null then
     delete from private.demo_state;
   end if;
+
+  -- "set local" lasts until the end of the whole transaction; switch triggers back on.
+  set local session_replication_role = origin;
 end $$;

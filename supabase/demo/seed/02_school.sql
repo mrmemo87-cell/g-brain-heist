@@ -123,4 +123,5 @@ begin
   update public.school_curriculum_scope_mappings set created_at = v_open, confirmed_at = v_open, updated_at = v_open where school_id = v_school;
   update public.school_subjects set created_at = v_open, updated_at = v_open where school_id = v_school;
   update public.school_subject_offerings set created_at = v_open, updated_at = v_open where school_id = v_school;
+  set local session_replication_role = origin;
 end $$;
