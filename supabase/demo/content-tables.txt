@@ -64,6 +64,7 @@ public.commander_elixir_catalog
 public.bh_writing_prompt_bank
 private.chat_blocked_terms
 
-# Pricing (so the demo shows real plans)
+# Pricing and the plan -> feature catalogue (no school data; the app's feature gates read it)
 public.billing_pricing_versions
 public.billing_price_items
+public.billing_entitlements
