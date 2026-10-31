@@ -273,24 +273,31 @@ const SubjectTrendChart: React.FC<{ subject: string; series: TrendSeries[] }> = 
     <div className="ap-table-wrap"><table className="ap-table"><thead><tr><th>Skill</th><th>Result</th><th>Assessment</th><th>Date</th></tr></thead><tbody>{allEvents.map(({ event, series: source }) => <tr key={event.key}><td><strong>{event.label}</strong></td><td>{event.result}</td><td>{source.label} · {event.detail}</td><td>{formatDate(event.observedAt)}</td></tr>)}</tbody></table></div>
   </article>;
 
+  // One lane per skill label. Links only join results with the same comparable key
+  // (same focus), and the change is judged by band, not by raw percentage.
   type Lane = { key: string; label: string; series: TrendSeries; points: typeof plottedPoints };
   const laneMap = new Map<string, Lane>();
   plottedPoints.forEach((point) => {
-    const lane = laneMap.get(point.event.comparableKey) || { key: point.event.comparableKey, label: point.event.label, series: point.series, points: [] };
+    const laneKey = `${point.series.key}|${point.event.label.toLowerCase()}`;
+    const lane = laneMap.get(laneKey) || { key: laneKey, label: point.event.label, series: point.series, points: [] };
     lane.points.push(point);
-    laneMap.set(point.event.comparableKey, lane);
+    laneMap.set(laneKey, lane);
   });
   const bandRank = { support: 0, developing: 1, strong: 2 } as const;
   const lanes = [...laneMap.values()].map((lane) => {
     const points = [...lane.points].sort((a, b) => a.event.observedAt.localeCompare(b.event.observedAt));
-    const first = points[0].event;
-    const last = points[points.length - 1].event;
-    const comparable = points.length > 1 && calendarDayKey(first.observedAt) !== calendarDayKey(last.observedAt);
-    const delta = comparable ? last.score - first.score : null;
-    return { ...lane, points, first, last, delta, band: evidenceBandClass(last.score) };
-  }).sort((a, b) => bandRank[a.band] - bandRank[b.band] || (a.delta ?? 0) - (b.delta ?? 0) || a.label.localeCompare(b.label));
-  const movement = (delta: number | null) => delta == null ? 'single' : delta >= 10 ? 'up' : delta <= -10 ? 'down' : 'flat';
-  const movementText = (delta: number | null) => delta == null ? 'One result' : delta >= 10 ? 'Improving' : delta <= -10 ? 'Slipping' : 'Steady';
+    const segments = comparableTrendSegments(points.map((point) => point.event));
+    const links = segments.map(([a, b]) => [points.find((point) => point.event === a)!, points.find((point) => point.event === b)!] as const);
+    const comparable = segments.length ? [segments[0][0], segments[segments.length - 1][1]] : null;
+    const first = comparable ? comparable[0] : points[0].event;
+    const last = comparable ? comparable[1] : points[points.length - 1].event;
+    const bandDelta = comparable ? bandRank[evidenceBandClass(last.score)] - bandRank[evidenceBandClass(first.score)] : null;
+    return { ...lane, points, links, first, last, bandDelta, band: evidenceBandClass(last.score) };
+  }).sort((a, b) => bandRank[a.band] - bandRank[b.band] || (a.bandDelta ?? 0) - (b.bandDelta ?? 0) || a.label.localeCompare(b.label));
+  const trackedLanes = lanes.filter((lane) => lane.points.length > 1);
+  const onceLanes = lanes.filter((lane) => lane.points.length === 1);
+  const movement = (lane: typeof lanes[number]) => lane.bandDelta == null ? (lane.points.length > 1 ? 'mixed' : 'single') : lane.bandDelta > 0 ? 'up' : lane.bandDelta < 0 ? 'down' : 'flat';
+  const movementText = (lane: typeof lanes[number]) => ({ single: 'One result', mixed: 'Not comparable yet', up: 'Improving', down: 'Slipping', flat: 'Steady' })[movement(lane)];
   const pointLeft = (x: number) => `${((x - left) / usableWidth) * 100}%`;
   const bandWord = (score: number) => score >= 80 ? 'Strong' : score >= 60 ? 'Developing' : 'Needs support';
 
@@ -306,11 +313,11 @@ const SubjectTrendChart: React.FC<{ subject: string; series: TrendSeries[] }> = 
           <span className="sap-lane-dates" role="columnheader">{firstEvent ? <time>{formatDate(firstEvent.observedAt)}</time> : null}{lastEvent && lastEvent !== firstEvent ? <time>{formatDate(lastEvent.observedAt)}</time> : null}</span>
           <span role="columnheader">Change</span>
         </div>
-        {lanes.map((lane) => <div key={lane.key} className={`sap-lane sap-lane--${lane.band}`} role="row">
+        {trackedLanes.map((lane) => <div key={lane.key} className={`sap-lane sap-lane--${lane.band}`} role="row">
           <div className="sap-lane-label" role="cell"><strong>{lane.label}</strong><small>{lane.points.length} {lane.points.length === 1 ? 'result' : 'results'} · {lane.series.label}</small></div>
           <div className="sap-lane-track" role="cell">
-            {lane.points.length > 1 ? <svg className="sap-lane-link" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
-              <polyline points={lane.points.map((point) => `${((point.x - left) / usableWidth) * 100},5`).join(' ')} />
+            {lane.links.length ? <svg className="sap-lane-link" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
+              {lane.links.map(([a, b]) => <line key={`${a.key}-${b.key}`} x1={((a.x - left) / usableWidth) * 100} y1="5" x2={((b.x - left) / usableWidth) * 100} y2="5" />)}
             </svg> : null}
             {lane.points.map((point) => <button
               key={point.key}
@@ -324,12 +331,25 @@ const SubjectTrendChart: React.FC<{ subject: string; series: TrendSeries[] }> = 
               onClick={() => setActiveKey((current) => current === point.key ? null : point.key)}
             />)}
           </div>
-          <div className={`sap-lane-change sap-lane-change--${movement(lane.delta)}`} role="cell">
-            <b>{movementText(lane.delta)}</b>
-            <small>{lane.delta == null ? bandWord(lane.last.score) : `${bandWord(lane.first.score)} → ${bandWord(lane.last.score)}`}</small>
+          <div className={`sap-lane-change sap-lane-change--${movement(lane)}`} role="cell">
+            <b>{movementText(lane)}</b>
+            <small>{lane.bandDelta == null ? `${lane.points.length} results` : `${bandWord(lane.first.score)} → ${bandWord(lane.last.score)}`}</small>
           </div>
         </div>)}
+        {!trackedLanes.length ? <p className="sap-lane-none">No skill has been assessed twice yet, so there is no progress to show. Results so far:</p> : null}
       </div>
+      {onceLanes.length ? <details className="sap-lane-once" open={!trackedLanes.length}>
+        <summary><b>Assessed once · {onceLanes.length} {onceLanes.length === 1 ? 'skill' : 'skills'}</b><small>Needs another assessment date before progress can be judged</small></summary>
+        <div className="sap-lane-once-list">
+          {onceLanes.map((lane) => { const point = lane.points[0]; return <button
+            key={lane.key}
+            type="button"
+            className={`sap-lane-chip sap-lane-chip--${lane.band}${activeKey === point.key ? ' is-active' : ''}`}
+            aria-pressed={activeKey === point.key}
+            onClick={() => setActiveKey((current) => current === point.key ? null : point.key)}
+          ><i aria-hidden="true"/>{lane.label}<small>{formatDate(point.event.observedAt)}</small></button>; })}
+        </div>
+      </details> : null}
       <div className="sap-lane-key" aria-hidden="true"><span className="is-support"><i/>Needs support</span><span className="is-developing"><i/>Developing</span><span className="is-strength"><i/>Strong</span></div>
       {activePoint ? <div className={`sap-lane-detail sap-lane-detail--${evidenceBandClass(activePoint.event.score)}`} role="status">
         <div className="sap-trend-tooltip-head"><strong>{formatDate(activePoint.event.observedAt)}</strong><span className={`sap-trend-source-pill sap-trend-source-pill--${activePoint.series.tone}`}>{activePoint.series.label}</span></div>
