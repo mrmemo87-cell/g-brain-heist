@@ -20,6 +20,14 @@
   --paper-50: #eef4ff;
 }
 
+/* Comfortable reading size on laptops and desktops: teachers found 100% too small and
+   zoomed to 110%. Scaling the root font size (rem) enlarges text and rem-based spacing
+   without shrinking the CSS viewport, so layouts keep their desktop breakpoints.
+   Phones and tablets are unchanged. */
+@media (min-width: 1100px) {
+  html { font-size: 110%; }
+}
+
 body {
   position: relative;
   font-family: 'IBM Plex Sans', sans-serif;
