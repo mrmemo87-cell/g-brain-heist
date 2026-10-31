@@ -1,0 +1,126 @@
+-- Demo seed 02: the school, built only through the app's own flows:
+-- school application -> superadmin approval -> plan/seats -> academic year/terms ->
+-- class -> students join by invite code and set up their class -> English provisioned ->
+-- academic roster confirmed.
+
+do $$ begin
+  if to_regclass('private.demo_environment') is null then raise exception 'demo only'; end if;
+end $$;
+
+-- Act as a demo user for the rest of the transaction (auth.uid() reads these claims).
+create or replace function private.demo_as(p_key text) returns uuid
+language plpgsql security definer set search_path = '' as $$
+declare v_id uuid;
+begin
+  if to_regclass('private.demo_environment') is null then raise exception 'demo only'; end if;
+  select user_id into v_id from private.demo_people where key = p_key;
+  if v_id is null then raise exception 'unknown demo person %', p_key; end if;
+  perform set_config('request.jwt.claims',
+    jsonb_build_object('sub', v_id, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claim.sub', v_id::text, true);
+  return v_id;
+end $$;
+revoke all on function private.demo_as(text) from public, anon, authenticated;
+
+create table if not exists private.demo_state (key text primary key, value jsonb not null);
+revoke all on private.demo_state from public, anon, authenticated;
+
+create or replace function private.demo_state_uuid(p_key text) returns uuid
+language sql stable security definer set search_path = '' as $$
+  select (value #>> '{}')::uuid from private.demo_state where key = p_key
+$$;
+
+create or replace function private.demo_ok(p_step text, p_result jsonb) returns jsonb
+language plpgsql as $$
+begin
+  if not coalesce((p_result->>'success')::boolean, false) then
+    raise exception 'demo seed step "%" failed: %', p_step, p_result;
+  end if;
+  return p_result;
+end $$;
+
+do $$
+declare
+  v_teacher uuid := (select user_id from private.demo_people where key = 'teacher');
+  v_english_academic_subject constant uuid := '0a919668-59b4-4954-aa8d-9bf70c416000'; -- English
+  v_english_grade7_scope constant uuid := 'ed716eb5-eb43-679e-936d-547256bdf967';     -- English · Grade 7
+  v_request uuid; v_school uuid; v_year uuid; v_class uuid; v_code text;
+  r jsonb; p record;
+begin
+  -- 1. School application, approved by the (internal) demo superadmin.
+  insert into public.school_requests(
+    requested_name, normalized_name, requested_by, requester_email, requester_role, status,
+    contact_email, city, country, decision_maker_name, decision_maker_title,
+    applicant_authority_confirmed, estimated_students, estimated_teachers, requested_modules
+  ) values (
+    'Demo International School', public.normalize_school_name('Demo International School'),
+    v_teacher, 'demo.teacher@example.com', 'teacher', 'pending',
+    'demo.teacher@example.com', 'Bishkek', 'Kyrgyzstan', 'Ms. Aigerim Sadykova', 'Head of English',
+    true, 24, 1, array['core','cambridge']
+  ) returning id into v_request;
+
+  perform private.demo_as('superadmin');
+  r := private.demo_ok('approve school',
+    public.admin_review_school_request(v_request, 'approve', 'Demo school for prospective teachers'));
+  v_school := (r->>'school_id')::uuid;
+  perform private.demo_ok('plan', public.admin_set_school_plan(v_school, 'enterprise'));
+  perform private.demo_ok('cambridge seats', public.admin_configure_school_programme_seats(v_school, 'cambridge', 60));
+  update public.schools set time_zone = 'Asia/Bishkek' where id = v_school;
+
+  -- 2. The demo teacher is the School Head and also teaches English.
+  perform private.demo_as('teacher');
+  perform public.rpc_school_admin_set_teaching_staff_status(v_school, v_teacher, true);
+
+  perform public.rpc_school_admin_upsert_academic_year(v_school, null, '2026/2027', date '2026-09-01', date '2027-06-30', 'current');
+  select id into v_year from public.school_academic_years where school_id = v_school and name = '2026/2027';
+  perform public.rpc_school_admin_upsert_academic_term(v_school, v_year, null, 'Term 1', 1::smallint, date '2026-09-01', date '2026-12-25');
+  perform public.rpc_school_admin_upsert_academic_term(v_school, v_year, null, 'Term 2', 2::smallint, date '2027-01-11', date '2027-03-19');
+  perform public.rpc_school_admin_upsert_academic_term(v_school, v_year, null, 'Term 3', 3::smallint, date '2027-03-29', date '2027-06-25');
+
+  perform public.school_admin_save_class(v_school, null, '7A', '7A', 7, true);
+  select id into v_class from public.classes where school_id = v_school and class_code = '7A';
+
+  -- 3. Students join with the invite code and pick their class, like real students.
+  select invite_code into v_code from public.schools where id = v_school;
+  for p in select key from private.demo_people where role = 'student' order by key loop
+    perform private.demo_as(p.key);
+    perform private.demo_ok('join ' || p.key, public.join_school_by_code(v_code, 'student'));
+    perform private.demo_ok('class ' || p.key, to_jsonb(public.rpc_setup_school_class_enrollment('7', 'A')));
+  end loop;
+
+  -- 4. English for Grade 7, taught by the demo teacher to 7A; roster confirmed.
+  perform private.demo_as('teacher');
+  perform private.demo_ok('provision English', public.rpc_school_admin_provision_subject(
+    v_school, v_year, 'English', 'ENG', v_english_academic_subject, '7', v_english_grade7_scope,
+    'all_grade', null, v_teacher, array[v_class]));
+  perform private.demo_ok('confirm roster', public.rpc_school_admin_confirm_academic_roster(v_school, v_year));
+
+  insert into private.demo_state(key, value) values
+    ('school_id', to_jsonb(v_school)), ('academic_year_id', to_jsonb(v_year)), ('class_id', to_jsonb(v_class))
+  on conflict (key) do update set value = excluded.value;
+end $$;
+
+-- 5. Real flows stamp "now". Put the setup where it belongs in the story: the school was
+--    set up the week before term and students were placed on the first day. This matters:
+--    teacher workspaces ignore evidence from before a student's current placement.
+do $$
+declare
+  v_school uuid := private.demo_state_uuid('school_id');
+  v_open timestamptz := timestamptz '2026-08-24 10:00 Asia/Bishkek';
+  v_term timestamptz := timestamptz '2026-09-01 08:30 Asia/Bishkek';
+begin
+  set local session_replication_role = replica;
+  update public.school_requests set created_at = v_open - interval '3 days', reviewed_at = v_open - interval '1 day', updated_at = v_open - interval '1 day' where approved_school_id = v_school;
+  update public.schools set created_at = v_open - interval '1 day', updated_at = v_open where id = v_school;
+  update public.school_members set joined_at = case when role_in_school = 'student' then v_term else v_open end where school_id = v_school;
+  update public.classes set created_at = v_open where school_id = v_school;
+  update public.class_students set joined_at = v_term where class_id = private.demo_state_uuid('class_id');
+  update public.school_student_placement_history set effective_date = v_term::date, recorded_at = v_term where school_id = v_school;
+  update public.student_academic_enrolments set starts_on = v_term::date, created_at = v_term, updated_at = v_term where school_id = v_school;
+  update public.school_academic_years set created_at = v_open, updated_at = v_open where school_id = v_school;
+  update public.school_academic_terms set created_at = v_open, updated_at = v_open where school_id = v_school;
+  update public.school_module_entitlements set created_at = v_open, starts_at = v_open, updated_at = v_open where school_id = v_school;
+  update public.school_curriculum_scope_mappings set created_at = v_open, confirmed_at = v_open, updated_at = v_open where school_id = v_school;
+  update public.school_subjects set created_at = v_open, updated_at = v_open where school_id = v_school;
+  update public.school_subject_offerings set created_at = v_open, updated_at = v_open where school_id = v_school;
+end $$;

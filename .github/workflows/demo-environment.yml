@@ -123,11 +123,23 @@ jobs:
         if: env.MODE == 'clone'
         run: psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 --file supabase/demo/post-restore.sql
 
-      - name: Seed the demo school
+      - name: Reset and seed the demo school (one transaction)
         run: |
           set -euo pipefail
-          if [[ -f supabase/demo/seed-demo-school.sql ]]; then
-            psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 --file supabase/demo/seed-demo-school.sql
-          else
-            echo "No seed file yet; skipping."
+          {
+            echo "create table if not exists private.demo_content_tables(name text primary key);"
+            echo "revoke all on private.demo_content_tables from public, anon, authenticated;"
+            while IFS= read -r t; do
+              t="${t%%#*}"; t="$(echo "$t" | xargs)"
+              [[ -z "$t" ]] && continue
+              echo "insert into private.demo_content_tables(name) values ('$t') on conflict do nothing;"
+            done < supabase/demo/content-tables.txt
+          } > /tmp/content_list.sql
+          args=(-v ON_ERROR_STOP=1 --single-transaction -c 'set statement_timeout = 0' -f /tmp/content_list.sql)
+          for f in supabase/demo/seed/*.sql; do args+=(-f "$f"); done
+          if ! psql "$DEMO_DB_URL" "${args[@]}" > /tmp/seed.out 2> /tmp/seed.err; then
+            msg=$(grep -E "ERROR|CONTEXT|psql:" /tmp/seed.err | head -c 1800 | tr '\n' ' ')
+            echo "::error title=Demo seed failed (nothing was changed)::${msg}"
+            exit 1
           fi
+          echo "::notice title=Demo seed::Demo school rebuilt for $(TZ=Asia/Bishkek date +%F)"
