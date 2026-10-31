@@ -17,6 +17,10 @@ on:
         type: choice
         options: [reset, clone]
         default: reset
+      stop_after:
+        description: 'Development only: run seed files up to and including this prefix (e.g. 04). Empty = all.'
+        type: string
+        default: ''
   schedule:
     # Nightly demo reset at 02:20 Asia/Bishkek (20:20 UTC)
     - cron: '20 20 * * *'
@@ -36,6 +40,7 @@ jobs:
       PROD_DB_URL: ${{ secrets.BH_PROD_DB_URL }}
       DEMO_DB_URL: ${{ secrets.BH_DEMO_DB_URL }}
       MODE: ${{ github.event.inputs.mode || 'reset' }}
+      STOP_AFTER: ${{ github.event.inputs.stop_after || '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -136,7 +141,10 @@ jobs:
             done < supabase/demo/content-tables.txt
           } > /tmp/content_list.sql
           args=(-v ON_ERROR_STOP=1 --single-transaction -c 'set statement_timeout = 0' -f /tmp/content_list.sql)
-          for f in supabase/demo/seed/*.sql; do args+=(-f "$f"); done
+          for f in supabase/demo/seed/*.sql; do
+            args+=(-f "$f")
+            if [[ -n "${STOP_AFTER}" && "$(basename "$f")" == "${STOP_AFTER}"* ]]; then break; fi
+          done
           if ! psql "$DEMO_DB_URL" "${args[@]}" > /tmp/seed.out 2> /tmp/seed.err; then
             msg=$(grep -E "ERROR|CONTEXT|psql:" /tmp/seed.err | head -c 1800 | tr '\n' ' ')
             echo "::error title=Demo seed failed (nothing was changed)::${msg}"
