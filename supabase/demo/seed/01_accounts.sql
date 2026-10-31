@@ -108,7 +108,7 @@ insert into private.demo_people(key, user_id, full_name, email, role, story, cla
   ('s44', 'd0000000-0000-4000-8000-000000000144', 'Kofi Mensah',    'demo.s44@example.com', 'student', 'steady', '7B'),
   ('s45', 'd0000000-0000-4000-8000-000000000145', 'Sara Lindqvist',    'demo.s45@example.com', 'student', 'steady', '7B'),
   ('s46', 'd0000000-0000-4000-8000-000000000146', 'Alexander Ivanov',     'demo.s46@example.com', 'student', 'steady', '7B')
-on conflict (key) do nothing;
+on conflict (key) do update set full_name = excluded.full_name, email = excluded.email, role = excluded.role, story = excluded.story, class_code = excluded.class_code;
 update private.demo_people set class_code = '7A' where role = 'student' and class_code is null;
 
 -- Accounts were "created" at the start of term so nothing looks freshly made.
