@@ -64,8 +64,8 @@ begin
   end if;
 
   if v_story = 'strong' then return case when v_noise < 40 then 2 else 3 end; end if;
-  -- steady and everyone's other skills: mostly 2-3, an occasional 1
-  return case when v_noise < 18 then 1 when v_noise < 120 then 2 else 3 end;
+  -- steady and everyone's other skills: 2 or 3 of 3, so only the story's needs get flagged
+  return case when v_noise < 110 then 2 else 3 end;
 end $$;
 
 create or replace function private.demo_wrong_option(p_snapshot jsonb) returns text
