@@ -1,0 +1,470 @@
+/* Cursed Commander "juice": rarity colours, idle motion, celebrations and feedback.
+   Everything that moves is switched off for students who ask for reduced motion. */
+
+/* ---------- Rarity themes for shop cards ---------- */
+.cc-premium-card[data-rarity] {
+  --cc-rarity: #5eead4;
+  --cc-rarity-2: #0f766e;
+  --cc-rarity-glow: rgba(45, 212, 191, 0.25);
+}
+.cc-premium-card[data-rarity="rare"] {
+  --cc-rarity: #60a5fa;
+  --cc-rarity-2: #1d4ed8;
+  --cc-rarity-glow: rgba(59, 130, 246, 0.35);
+}
+.cc-premium-card[data-rarity="epic"] {
+  --cc-rarity: #c084fc;
+  --cc-rarity-2: #7e22ce;
+  --cc-rarity-glow: rgba(168, 85, 247, 0.4);
+}
+.cc-premium-card[data-rarity="legendary"] {
+  --cc-rarity: #fbbf24;
+  --cc-rarity-2: #b45309;
+  --cc-rarity-glow: rgba(251, 191, 36, 0.45);
+}
+
+.cc-hq.cc-command-center .cc-premium-card[data-rarity] {
+  border-color: color-mix(in srgb, var(--cc-rarity) 55%, transparent) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--cc-rarity) 25%, transparent), 0 14px 40px var(--cc-rarity-glow) !important;
+}
+
+.cc-hq.cc-command-center .cc-premium-card[data-rarity] .cc-command-rarity {
+  border-color: var(--cc-rarity) !important;
+  background: linear-gradient(135deg, var(--cc-rarity-2), color-mix(in srgb, var(--cc-rarity) 70%, #000)) !important;
+  color: #fff !important;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+/* A light sweep across epic and legendary cards. */
+.cc-premium-card[data-rarity="epic"] .cc-premium-hero::after,
+.cc-premium-card[data-rarity="legendary"] .cc-premium-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.16) 45%, transparent 60%);
+  transform: translateX(-100%);
+  animation: ccJuiceSweep 3.6s ease-in-out infinite;
+}
+
+.cc-premium-card .cc-premium-hero {
+  position: relative;
+  background: radial-gradient(circle at 50% 70%, var(--cc-rarity-glow), transparent 65%);
+}
+
+/* Fighters gently float, like they are alive. */
+.cc-premium-card .cc-premium-art,
+.cc-command-squad-card img,
+.cc-celebration-art {
+  animation: ccJuiceFloat 3.2s ease-in-out infinite;
+}
+
+.cc-premium-card:nth-child(2n) .cc-premium-art {
+  animation-delay: -1.6s;
+}
+
+/* "You can buy this now" glow on the buy button. */
+.cc-hq.cc-command-center .cc-premium-primary.is-purchase:not(:disabled) {
+  background: linear-gradient(135deg, #facc15, #f97316) !important;
+  color: #1c1003 !important;
+  border-color: #fde68a !important;
+  animation: ccJuicePulse 1.8s ease-in-out infinite;
+}
+
+.cc-hq.cc-command-center .cc-premium-primary.is-deploy:not(:disabled) {
+  background: linear-gradient(135deg, #22d3ee, #6366f1) !important;
+  color: #04111d !important;
+}
+
+/* Tactile press feedback everywhere in the Commander menus. */
+.cc-hq.cc-command-center button:not(:disabled) {
+  transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.2s ease;
+}
+.cc-hq.cc-command-center button:not(:disabled):active {
+  transform: scale(0.96);
+  filter: brightness(1.15);
+}
+
+/* ---------- Compact two-column shop on phones ---------- */
+@media (max-width: 620px) {
+  .cc-hq.cc-command-center .cc-premium-catalog {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding: 0 10px 16px !important;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-card {
+    min-width: 0;
+    border-radius: 18px !important;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-card-header {
+    padding: 8px 8px 0 !important;
+    gap: 4px;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-role-icon,
+  .cc-hq.cc-command-center .cc-premium-role small,
+  .cc-hq.cc-command-center .cc-premium-sigil,
+  .cc-hq.cc-command-center .cc-premium-sigil-fallback,
+  .cc-hq.cc-command-center .cc-premium-description,
+  .cc-hq.cc-command-center .cc-command-doctrine,
+  .cc-hq.cc-command-center .cc-command-codename,
+  .cc-hq.cc-command-center .cc-premium-context-panel,
+  .cc-hq.cc-command-center .cc-premium-requirement-row.is-met,
+  .cc-hq.cc-command-center .cc-premium-stat small,
+  .cc-hq.cc-command-center .cc-premium-goal-link {
+    display: none !important;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-role strong {
+    font-size: 10px;
+  }
+
+  .cc-hq.cc-command-center .cc-command-rarity {
+    padding: 2px 6px !important;
+    font-size: 8px !important;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-hero {
+    height: 150px !important;
+    min-height: 0 !important;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-art {
+    max-height: 140px !important;
+    width: auto !important;
+    object-fit: contain;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-state-chip {
+    left: 6px !important;
+    bottom: 6px !important;
+    padding: 3px 7px !important;
+    font-size: 10px !important;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-body {
+    padding: 8px !important;
+    gap: 6px !important;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-identity h3 {
+    font-size: 15px !important;
+    line-height: 1.15;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-stat {
+    min-height: 0 !important;
+    padding: 5px 4px !important;
+    text-align: center;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-stat dt {
+    justify-content: center;
+    font-size: 8px !important;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-stat dt svg {
+    display: none;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-stat dd {
+    font-size: 15px !important;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-requirements {
+    gap: 4px !important;
+    padding: 6px !important;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-requirement-row,
+  .cc-hq.cc-command-center .cc-premium-coin-row {
+    font-size: 11px !important;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-coin-row > span:last-child {
+    display: none;
+  }
+
+  .cc-hq.cc-command-center .cc-premium-primary {
+    min-height: 40px !important;
+    padding: 6px 8px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* ---------- Headquarters ambience ---------- */
+.cc-command-hero {
+  position: relative;
+}
+
+.cc-command-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(2px 2px at 12% 30%, rgba(103, 232, 249, 0.8), transparent),
+    radial-gradient(2px 2px at 78% 18%, rgba(244, 114, 182, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 40% 70%, rgba(250, 204, 21, 0.8), transparent),
+    radial-gradient(2px 2px at 88% 62%, rgba(167, 139, 250, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 24% 86%, rgba(110, 231, 183, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 60% 40%, rgba(255, 255, 255, 0.7), transparent);
+  animation: ccJuiceDrift 9s linear infinite;
+  opacity: 0.8;
+}
+
+.cc-command-level-card progress::-webkit-progress-bar {
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 999px;
+}
+.cc-command-level-card progress::-webkit-progress-value {
+  border-radius: 999px;
+  background: linear-gradient(90deg, #22d3ee, #a855f7, #22d3ee);
+  background-size: 200% 100%;
+  animation: ccJuiceShimmer 2.4s linear infinite;
+}
+.cc-command-level-card progress::-moz-progress-bar {
+  border-radius: 999px;
+  background: linear-gradient(90deg, #22d3ee, #a855f7);
+}
+
+.cc-command-today li[data-done] span:first-child {
+  display: inline-block;
+  animation: ccJuicePop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.cc-command-hero-action.is-primary:not(:disabled) {
+  animation: ccJuicePulse 2.2s ease-in-out infinite;
+}
+
+.cc-command-sound-toggle {
+  min-width: 40px;
+  min-height: 36px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.8);
+  color: #e2e8f0;
+  font-size: 16px;
+}
+
+/* Floating "+100 XP" after a daily login or reward. */
+.cc-xp-float {
+  position: fixed;
+  left: 50%;
+  top: 30%;
+  z-index: 180;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  border: 1px solid rgba(250, 204, 21, 0.6);
+  border-radius: 999px;
+  background: rgba(66, 32, 6, 0.9);
+  color: #fde68a;
+  font-weight: 900;
+  font-size: 20px;
+  pointer-events: none;
+  animation: ccJuiceXpFloat 1.8s ease-out forwards;
+}
+
+/* ---------- Celebration overlay ---------- */
+.cc-celebration {
+  --tone: #fbbf24;
+  --tone-glow: rgba(251, 191, 36, 0.45);
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(3px);
+  overflow: hidden;
+  cursor: pointer;
+}
+.cc-celebration.is-cyan { --tone: #22d3ee; --tone-glow: rgba(34, 211, 238, 0.45); }
+.cc-celebration.is-violet { --tone: #c084fc; --tone-glow: rgba(168, 85, 247, 0.45); }
+.cc-celebration.is-emerald { --tone: #34d399; --tone-glow: rgba(52, 211, 153, 0.45); }
+
+.cc-celebration-burst {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, var(--tone-glow) 0deg 10deg, transparent 10deg 24deg);
+  mask-image: radial-gradient(circle, #000 20%, transparent 70%);
+  animation: ccJuiceSpin 8s linear infinite;
+}
+
+.cc-celebration-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  max-width: 320px;
+  padding: 22px 26px;
+  border: 2px solid var(--tone);
+  border-radius: 24px;
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.96));
+  box-shadow: 0 0 60px var(--tone-glow);
+  text-align: center;
+  animation: ccJuicePop 0.55s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.cc-celebration-icon {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.cc-celebration-art {
+  max-height: 150px;
+  width: auto;
+  filter: drop-shadow(0 0 18px var(--tone-glow));
+}
+
+.cc-celebration-card strong {
+  color: var(--tone);
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.cc-celebration-card p {
+  margin: 0;
+  color: #e2e8f0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.cc-celebration-card small {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.cc-celebration-confetti span {
+  position: absolute;
+  top: -12px;
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+  background: hsl(calc(var(--i) * 47deg) 90% 62%);
+  animation: ccJuiceConfetti calc(1.6s + (var(--i) * 0.05s)) cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
+  animation-delay: calc(var(--i) * 0.025s);
+}
+
+/* Battle result card pops in. */
+[data-commander-result] {
+  animation: ccJuicePop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes ccJuiceFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes ccJuiceSweep {
+  0%, 55% { transform: translateX(-100%); }
+  85%, 100% { transform: translateX(100%); }
+}
+@keyframes ccJuicePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.25), 0 0 22px rgba(250, 204, 21, 0.35); }
+}
+@keyframes ccJuiceShimmer {
+  from { background-position: 0% 0; }
+  to { background-position: 200% 0; }
+}
+@keyframes ccJuiceDrift {
+  0% { transform: translateY(0); opacity: 0.5; }
+  50% { opacity: 0.9; }
+  100% { transform: translateY(-24px); opacity: 0.5; }
+}
+@keyframes ccJuicePop {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes ccJuiceSpin {
+  to { transform: rotate(360deg); }
+}
+@keyframes ccJuiceConfetti {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(105vh) rotate(720deg); opacity: 0.2; }
+}
+@keyframes ccJuiceXpFloat {
+  0% { transform: translate(-50%, 12px) scale(0.7); opacity: 0; }
+  20% { transform: translate(-50%, 0) scale(1.08); opacity: 1; }
+  70% { transform: translate(-50%, -28px) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -60px) scale(1); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-premium-card .cc-premium-art,
+  .cc-command-squad-card img,
+  .cc-celebration-art,
+  .cc-premium-card .cc-premium-hero::after,
+  .cc-hq.cc-command-center .cc-premium-primary.is-purchase,
+  .cc-command-hero::after,
+  .cc-command-hero-action.is-primary,
+  .cc-command-level-card progress::-webkit-progress-value,
+  .cc-celebration-burst,
+  .cc-celebration-confetti span,
+  .cc-celebration-card,
+  .cc-xp-float,
+  [data-commander-result] {
+    animation: none !important;
+  }
+
+  .cc-celebration-confetti {
+    display: none;
+  }
+}
+
+.cc-command-topbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .cc-command-topbar-row {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 620px) {
+  /* The glowing Recruit button already says "you can buy this"; skip the duplicate box. */
+  .cc-hq.cc-command-center .cc-premium-requirements:has(.cc-premium-coin-row.is-ready):not(:has(.is-locked)) {
+    display: none !important;
+  }
+}
+
+/* Colourful headline on the Headquarters page. */
+.cc-hq.cc-command-center .cc-command-hero h1 {
+  background: linear-gradient(90deg, #67e8f9, #c084fc, #f9a8d4, #67e8f9);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  animation: ccJuiceShimmer 6s linear infinite;
+}
+
+.cc-command-today {
+  box-shadow: 0 0 24px rgba(250, 204, 21, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-hq.cc-command-center .cc-command-hero h1 {
+    animation: none;
+  }
+}

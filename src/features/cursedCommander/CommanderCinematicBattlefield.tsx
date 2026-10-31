@@ -1,3 +1,4 @@
+import "./commanderJuice.css";
 import { TacticalBackdrop, TacticalTargetReticle, ImpactBurst, DeathBoltCharge, AegisShield, StormDischarge } from './CommanderBattleEffects';
 import { COMMANDER_VFX } from './commanderVfxAssets';
 import { getCommanderPresentationPoint, commanderProjectileAngle } from './commanderPresentationLayout';
@@ -498,7 +499,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
 
         {outcomeLabel && !activeStep && (
           <div className="absolute inset-0 z-[100] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-[2px]">
-            <div role="status" className="w-full max-w-sm rounded-3xl border border-white/10 bg-slate-950/90 p-5 text-center shadow-2xl">
+            <div role="status" data-commander-result="true" className="w-full max-w-sm rounded-3xl border border-white/10 bg-slate-950/90 p-5 text-center shadow-2xl">
               <div className="text-5xl" aria-hidden>{status === 'victory' ? '🏆' : status === 'defeat' ? '☠️' : '⚖️'}</div>
               <div className={`mt-2 font-heading text-3xl font-black sm:text-4xl ${status === 'victory' ? 'text-emerald-300' : status === 'defeat' ? 'text-red-300' : 'text-amber-300'}`}>{outcomeLabel}</div>
               {outcomeNote && <p className="mt-3 rounded-xl border border-amber-300/30 bg-amber-400/10 px-3 py-2 text-sm font-bold text-amber-100">⭐ {outcomeNote}</p>}

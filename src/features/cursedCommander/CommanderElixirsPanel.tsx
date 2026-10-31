@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { playCommanderUi } from "./commanderUiSound";
 import {
   activateCommanderElixir,
   commanderElixirError,
@@ -163,7 +164,8 @@ export default function CommanderElixirsPanel({ disabled = false }: Props) {
         : await activateCommanderElixir(current.elixirId, current.requestId);
       setSnapshot(next);
       setNow(Date.now());
-      setNotice(current.kind === "purchase" ? "Elixir added to Supplies." : "Combat elixir activated. Future battles will use the boosted trusted loadout.");
+      playCommanderUi(current.kind === "purchase" ? "coin" : "equip");
+      setNotice(current.kind === "purchase" ? "Elixir added. Tap \"Activate\" before your battle." : "Elixir active! Your next battles get the boost.");
       pending.current = null;
     } catch (cause) {
       setError(commanderElixirError(cause));
