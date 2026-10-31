@@ -50,7 +50,7 @@ begin
     when p_student in ('s08','s09','s10') then 'strong'
     else 'steady' end;
 
-  if v_story = 'low_data' and p_week not in (1, 8) then return null; end if;
+  if v_story = 'low_data' and p_week <> 8 then return null; end if;          -- joined late: one check only
 
   if p_skill = 'P' and v_story like 'perfect_%' then
     if p_week <= 3 then return (array[1,0,1])[p_week]; end if;          -- focus x3 -> intervention
