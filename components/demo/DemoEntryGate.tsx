@@ -10,19 +10,8 @@ interface DemoEntryGateProps {
   onLogin: (email: string, password: string) => Promise<void>;
 }
 
-const ROLES = ['Teacher', 'Head of department', 'Deputy head / Principal', 'School owner / Director', 'Parent', 'Other'];
-const CLASS_SIZES = ['Under 100 students', '100–300 students', '300–800 students', '800+ students'];
-const INTERESTS = [
-  'Finding struggling students early', 'Support plans that prove they worked', 'Cambridge-aligned assessments',
-  'Class Conquest & classroom battles', 'Student motivation (missions, streaks, clans)', 'School Head dashboards',
-  'Reports for parents', 'Replacing paper tests',
-];
-
-const HIGHLIGHTS: Array<{ title: string; text: string; icon: string }> = [
-  { icon: '🎯', title: 'Spots the gap in week 3', text: 'Three weekly checks flag five students on the present perfect. One review, one plan, one targeted practice set.' },
-  { icon: '📈', title: 'Proves it worked by week 8', text: 'Frozen baseline, five follow-up checks, three recoveries confirmed, one honest “no change” waiting for the teacher.' },
-  { icon: '🏆', title: 'Students actually want to play', text: '46 students, 800 daily missions this month, a 12-day streak, four clans, 97 battles and a Class Conquest map.' },
-];
+const ROLES = ['Teacher', 'Head of department', 'Principal', 'School owner', 'Other'];
+const SIZES = ['< 100', '100–300', '300–800', '800+'];
 
 const detectDevice = (): string => {
   const ua = navigator.userAgent;
@@ -55,66 +44,68 @@ const fetchGeo = async (): Promise<Record<string, string | null>> => {
   }
 };
 
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
 const DemoEntryGate: React.FC<DemoEntryGateProps> = ({ onLogin }) => {
   const personas = useMemo(() => getDemoPersonas(), []);
   const countries = useMemo(() => getDemoCountryOptions(), []);
   const returning = useMemo(() => readStoredDemoVisitor(), []);
 
+  const [step, setStep] = useState<1 | 2 | 3>(returning ? 3 : 1);
   const [fullName, setFullName] = useState(returning?.name ?? '');
   const [email, setEmail] = useState(returning?.email ?? '');
   const [school, setSchool] = useState('');
   const [role, setRole] = useState('Teacher');
   const [country, setCountry] = useState('');
-  const [classSize, setClassSize] = useState('');
-  const [interests, setInterests] = useState<string[]>([]);
-  const [message, setMessage] = useState('');
-  const [consent, setConsent] = useState(false);
-  const [persona, setPersona] = useState<DemoPersona['key']>('teacher');
+  const [size, setSize] = useState('');
+  const [consent, setConsent] = useState(!!returning);
   const [busy, setBusy] = useState<DemoPersona['key'] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(!returning);
 
   useEffect(() => {
-    // Guess the country from the browser locale so most visitors only confirm it.
     try {
       const region = new Intl.Locale(navigator.language).maximize().region;
       const match = region ? countries.find((item) => item.code === region) : undefined;
-      if (match && !country) setCountry(match.name);
+      if (match) setCountry((current) => current || match.name);
     } catch { /* ignore */ }
-  }, [countries, country]);
+  }, [countries]);
 
-  const toggleInterest = (value: string) => setInterests((current) => (
-    current.includes(value) ? current.filter((item) => item !== value) : [...current, value].slice(0, 5)
-  ));
+  const next = () => {
+    setError(null);
+    if (step === 1) {
+      if (fullName.trim().length < 2) { setError('Your name, please.'); return; }
+      if (!EMAIL_RE.test(email.trim())) { setError('That email doesn’t look right.'); return; }
+      setStep(2);
+    } else if (step === 2) {
+      if (!school.trim()) { setError('Your school’s name, please.'); return; }
+      setStep(3);
+    }
+  };
 
-  const enter = async (key: DemoPersona['key'], register: boolean) => {
+  const enter = async (key: DemoPersona['key']) => {
     const chosen = personas.find((item) => item.key === key);
     if (!chosen || busy) return;
     setError(null);
+    if (!consent) { setError('Please tick the box first.'); return; }
     setBusy(key);
     try {
       let visitorId = returning?.id ?? null;
-      if (register || !visitorId) {
-        if (fullName.trim().length < 2) throw new Error('Please tell us your name.');
-        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) throw new Error('Please enter a valid email address.');
-        if (!consent) throw new Error('Please confirm you are happy for us to record your demo visit.');
+      if (!returning) {
         const geo = await fetchGeo();
         const { data, error: rpcError } = await supabase.rpc('rpc_demo_register_visitor', {
           p: {
-            full_name: fullName.trim(), email: email.trim(), school: school.trim(), role, country, class_size: classSize,
-            interests, message: message.trim(), consent: true, entered_as: key,
-            locale: navigator.language, user_agent: navigator.userAgent, referrer: document.referrer || null,
-            utm: readUtm(), screen: `${window.screen.width}x${window.screen.height}`, device: detectDevice(), ...geo,
+            full_name: fullName.trim(), email: email.trim(), school: school.trim(), role, country, class_size: size,
+            consent: true, entered_as: key, locale: navigator.language, user_agent: navigator.userAgent,
+            referrer: document.referrer || null, utm: readUtm(), screen: `${window.screen.width}x${window.screen.height}`,
+            device: detectDevice(), ...geo,
           },
         });
-        if (rpcError) throw new Error('We could not register your visit just now. Please try again.');
+        if (rpcError) throw new Error('Couldn’t register your visit. Please try again.');
         const payload = data as { ok?: boolean; visitor_id?: string; error?: string } | null;
-        if (!payload?.ok || !payload.visitor_id) throw new Error(payload?.error || 'We could not register your visit just now.');
+        if (!payload?.ok || !payload.visitor_id) throw new Error(payload?.error || 'Couldn’t register your visit.');
         visitorId = payload.visitor_id;
-        storeDemoVisitor({ id: visitorId, name: fullName.trim(), email: email.trim(), enteredAs: key, registeredAt: new Date().toISOString() });
-      } else {
-        storeDemoVisitor({ ...returning!, enteredAs: key });
       }
+      storeDemoVisitor({ id: visitorId!, name: fullName.trim(), email: email.trim(), enteredAs: key, registeredAt: returning?.registeredAt ?? new Date().toISOString() });
       await onLogin(chosen.email, chosen.password);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Something went wrong. Please try again.');
@@ -122,124 +113,92 @@ const DemoEntryGate: React.FC<DemoEntryGateProps> = ({ onLogin }) => {
     }
   };
 
+  const restart = () => { clearStoredDemoVisitor(); setConsent(false); setStep(1); };
+
   return (
     <div className="demo-gate">
       <div className="demo-gate-glow" aria-hidden="true" />
-      <header className="demo-gate-top">
-        <div className="demo-gate-brand">
-          <img src="/logo.png" alt="" width={40} height={40} />
-          <div><strong>Brains Heist</strong><span>Interactive school demo</span></div>
-        </div>
-        <a className="demo-gate-toplink" href="https://www.brainsheist.com/booked" target="_blank" rel="noreferrer">Book a guided demo ↗</a>
-      </header>
+      <div className="demo-gate-wrap">
+        <header className="demo-gate-brand">
+          <img src="/logo.png" alt="" width={36} height={36} />
+          <strong>Brains Heist</strong>
+        </header>
 
-      <main className="demo-gate-main">
-        <section className="demo-gate-hero">
-          <p className="demo-gate-eyebrow">Demo International School · Grade 7 · live data, real engine</p>
-          <h1>Walk into a school where every struggling student was caught in week 3.</h1>
-          <p className="demo-gate-lede">
-            This is a complete Brains Heist school, not a slideshow: two Grade 7 classes, eight weeks of weekly checks,
-            800 daily missions, a Class Conquest map, clans and battles. Every chart you will see was computed by the same
-            engine real schools use. Click anything. It resets every night.
-          </p>
-          <div className="demo-gate-highlights">
-            {HIGHLIGHTS.map((item) => (
-              <div key={item.title} className="demo-gate-highlight">
-                <span className="demo-gate-highlight-icon" aria-hidden="true">{item.icon}</span>
-                <strong>{item.title}</strong>
-                <p>{item.text}</p>
+        <h1>See a school where no student slips through.</h1>
+        <p className="demo-gate-lede">A real Grade 7 school: 46 students, 8 weeks of data, Class Conquest, clans and battles. Resets nightly.</p>
+
+        <section className="demo-gate-card" aria-live="polite">
+          {!returning ? (
+            <ol className="demo-gate-steps" aria-label="Progress">
+              {[1, 2, 3].map((n) => <li key={n} className={n === step ? 'is-now' : n < step ? 'is-done' : ''} aria-current={n === step ? 'step' : undefined}>{n}</li>)}
+            </ol>
+          ) : null}
+
+          {step === 1 ? (
+            <form className="demo-gate-form" onSubmit={(event) => { event.preventDefault(); next(); }}>
+              <h2>Hi! Who are you?</h2>
+              <input value={fullName} onChange={(event) => setFullName(event.target.value)} autoComplete="name" placeholder="Your name" aria-label="Your name" autoFocus />
+              <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" placeholder="Work email" aria-label="Work email" />
+              {error ? <div className="demo-gate-error" role="alert">{error}</div> : null}
+              <button type="submit" className="demo-gate-cta">Next →</button>
+            </form>
+          ) : null}
+
+          {step === 2 ? (
+            <form className="demo-gate-form" onSubmit={(event) => { event.preventDefault(); next(); }}>
+              <h2>Your school</h2>
+              <input value={school} onChange={(event) => setSchool(event.target.value)} autoComplete="organization" placeholder="School name" aria-label="School name" autoFocus />
+              <div className="demo-gate-chips" role="radiogroup" aria-label="Your role">
+                {ROLES.map((item) => <button type="button" key={item} role="radio" aria-checked={role === item} className={role === item ? 'is-on' : ''} onClick={() => setRole(item)}>{item}</button>)}
               </div>
-            ))}
-          </div>
-          <ul className="demo-gate-stats" aria-label="What is inside the demo">
-            <li><b>46</b><span>students in 7A and 7B</span></li>
-            <li><b>16</b><span>weekly checks, all verified questions</span></li>
-            <li><b>5</b><span>support plans, three confirmed recoveries</span></li>
-            <li><b>1</b><span>Class Conquest trophy (7A, week of 26 Oct)</span></li>
-          </ul>
-        </section>
-
-        <section className="demo-gate-card" aria-labelledby="demo-gate-form-title">
-          {returning && !showForm ? (
-            <div className="demo-gate-welcome">
-              <p className="demo-gate-eyebrow">Welcome back</p>
-              <h2 id="demo-gate-form-title">Good to see you again, {returning.name.split(' ')[0]}.</h2>
-              <p className="demo-gate-muted">Pick how you want to look around today. The school has been rebuilt since your last visit.</p>
-              <button type="button" className="demo-gate-link" onClick={() => { clearStoredDemoVisitor(); setShowForm(true); }}>Not you? Register as someone else</button>
-            </div>
-          ) : (
-            <div className="demo-gate-form-head">
-              <p className="demo-gate-eyebrow">Step 1 of 2 · Tell us who you are</p>
-              <h2 id="demo-gate-form-title">Open the demo school</h2>
-              <p className="demo-gate-muted">Takes 30 seconds. We use this to send you your own pilot setup afterwards.</p>
-            </div>
-          )}
-
-          {showForm ? (
-            <form className="demo-gate-form" onSubmit={(event) => { event.preventDefault(); void enter(persona, true); }}>
-              <label><span>Your name</span><input value={fullName} onChange={(event) => setFullName(event.target.value)} autoComplete="name" required maxLength={120} placeholder="e.g. Aigerim Sadykova" /></label>
-              <label><span>Work email</span><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required maxLength={160} placeholder="you@school.edu" /></label>
-              <label><span>School</span><input value={school} onChange={(event) => setSchool(event.target.value)} autoComplete="organization" maxLength={160} placeholder="School name" /></label>
-              <div className="demo-gate-row">
-                <label><span>Your role</span>
-                  <select value={role} onChange={(event) => setRole(event.target.value)}>{ROLES.map((item) => <option key={item} value={item}>{item}</option>)}</select>
-                </label>
-                <label><span>Country</span>
-                  <select value={country} onChange={(event) => setCountry(event.target.value)}>
-                    <option value="">Choose country</option>
-                    {countries.map((item) => <option key={item.code} value={item.name}>{item.name}</option>)}
-                  </select>
-                </label>
+              <select value={country} onChange={(event) => setCountry(event.target.value)} aria-label="Country">
+                <option value="">Country</option>
+                {countries.map((item) => <option key={item.code} value={item.name}>{item.name}</option>)}
+              </select>
+              <div className="demo-gate-chips" role="radiogroup" aria-label="Number of students">
+                {SIZES.map((item) => <button type="button" key={item} role="radio" aria-checked={size === item} className={size === item ? 'is-on' : ''} onClick={() => setSize(item)}>{item} students</button>)}
               </div>
-              <label><span>School size</span>
-                <select value={classSize} onChange={(event) => setClassSize(event.target.value)}>
-                  <option value="">Choose</option>
-                  {CLASS_SIZES.map((item) => <option key={item} value={item}>{item}</option>)}
-                </select>
-              </label>
-              <fieldset className="demo-gate-chips">
-                <legend>What matters most to you? <small>(pick up to 5)</small></legend>
-                {INTERESTS.map((item) => (
-                  <button type="button" key={item} className={interests.includes(item) ? 'is-on' : ''} onClick={() => toggleInterest(item)} aria-pressed={interests.includes(item)}>{item}</button>
-                ))}
-              </fieldset>
-              <label><span>Anything you want to see? <small>(optional)</small></span>
-                <textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={500} rows={2} placeholder="e.g. We run IGCSE in Year 10 and need parent reports." />
-              </label>
-              <label className="demo-gate-consent">
-                <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
-                <span>I’m happy for Brains Heist to record my details and how I use the demo, and to contact me about a pilot for my school.</span>
-              </label>
-              <p className="demo-gate-eyebrow demo-gate-step2">Step 2 of 2 · Choose your seat</p>
-              <div className="demo-gate-personas" role="radiogroup" aria-label="Enter the demo as">
+              {error ? <div className="demo-gate-error" role="alert">{error}</div> : null}
+              <div className="demo-gate-nav">
+                <button type="button" className="demo-gate-back" onClick={() => setStep(1)}>← Back</button>
+                <button type="submit" className="demo-gate-cta">Next →</button>
+              </div>
+            </form>
+          ) : null}
+
+          {step === 3 ? (
+            <div className="demo-gate-form">
+              <h2>{returning ? `Welcome back, ${returning.name.split(' ')[0]}. Pick a seat.` : 'Pick your seat'}</h2>
+              <div className="demo-gate-personas" role="group" aria-label="Enter the demo as">
                 {personas.map((item) => (
-                  <button type="button" key={item.key} role="radio" aria-checked={persona === item.key} className={persona === item.key ? 'is-selected' : ''} onClick={() => setPersona(item.key)}>
-                    <strong>{item.title}</strong><span>{item.description}</span>
+                  <button type="button" key={item.key} disabled={busy !== null} onClick={() => void enter(item.key)}>
+                    <span className="demo-gate-persona-icon" aria-hidden="true">{item.key === 'teacher' ? '👩‍🏫' : '🎒'}</span>
+                    <strong>{busy === item.key ? 'Opening…' : item.key === 'teacher' ? 'Teacher & School Head' : 'Student'}</strong>
+                    <span>{item.key === 'teacher' ? 'Classes, evidence, support plans, dashboards' : 'Missions, Class Conquest, clans, battles'}</span>
                   </button>
                 ))}
               </div>
+              {!returning ? (
+                <label className="demo-gate-consent">
+                  <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
+                  <span>Brains Heist may record my demo visit and contact me about a pilot.</span>
+                </label>
+              ) : null}
               {error ? <div className="demo-gate-error" role="alert">{error}</div> : null}
-              <button type="submit" className="demo-gate-cta" disabled={busy !== null}>
-                {busy ? 'Opening your seat…' : persona === 'teacher' ? 'Enter as the teacher →' : 'Enter as a student →'}
-              </button>
-              <p className="demo-gate-fineprint">Shared demo account · anything you change is wiped at the nightly rebuild · emails, push notifications and AI feedback are switched off in the demo.</p>
-            </form>
-          ) : (
-            <div className="demo-gate-personas demo-gate-personas--big" role="group" aria-label="Enter the demo as">
-              {personas.map((item) => (
-                <button type="button" key={item.key} disabled={busy !== null} onClick={() => void enter(item.key, false)}>
-                  <strong>{busy === item.key ? 'Opening…' : item.title}</strong><span>{item.description}</span>
-                </button>
-              ))}
-              {error ? <div className="demo-gate-error" role="alert">{error}</div> : null}
+              <div className="demo-gate-nav">
+                {returning
+                  ? <button type="button" className="demo-gate-back" onClick={restart}>Not {returning.name.split(' ')[0]}?</button>
+                  : <button type="button" className="demo-gate-back" onClick={() => setStep(2)}>← Back</button>}
+              </div>
             </div>
-          )}
+          ) : null}
         </section>
-      </main>
-      <footer className="demo-gate-foot">
-        <span>Brains Heist LLC · Bishkek, Kyrgyzstan · <a href="https://www.brainsheist.com" target="_blank" rel="noreferrer">brainsheist.com</a></span>
-        <span>Names and results in this school are fictional. The engine is real.</span>
-      </footer>
+
+        <footer className="demo-gate-foot">
+          <a href="https://www.brainsheist.com/booked" target="_blank" rel="noreferrer">Prefer a guided demo? Book one ↗</a>
+          <span>Shared demo · names are fictional · emails and AI are off</span>
+        </footer>
+      </div>
     </div>
   );
 };
