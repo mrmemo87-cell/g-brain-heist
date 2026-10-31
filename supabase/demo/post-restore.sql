@@ -3,10 +3,22 @@
 
 \set ON_ERROR_STOP on
 
+-- Demo marker: this table exists ONLY in the demo database. It is created by the
+-- first post-restore run (when the database has no schools/users yet) and every
+-- demo script refuses to run where it is missing. Production never has it.
 do $$
 begin
-  if current_setting('app.demo_target', true) is distinct from 'brains-heist-demo' then
-    raise exception 'post-restore.sql must only run against the demo project (set app.demo_target)';
+  if to_regclass('private.demo_environment') is null then
+    if exists (select 1 from public.schools) or exists (select 1 from public.users) then
+      raise exception 'Refusing: this database has real schools/users and no demo marker';
+    end if;
+    create table private.demo_environment (
+      singleton boolean primary key default true check (singleton),
+      project_ref text not null,
+      marked_at timestamptz not null default now()
+    );
+    revoke all on private.demo_environment from public, anon, authenticated;
+    insert into private.demo_environment(project_ref) values ('lvkmkgjpcbdyzdkbqcgc');
   end if;
 end $$;
 

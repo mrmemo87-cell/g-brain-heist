@@ -36,7 +36,6 @@ jobs:
       PROD_DB_URL: ${{ secrets.BH_PROD_DB_URL }}
       DEMO_DB_URL: ${{ secrets.BH_DEMO_DB_URL }}
       MODE: ${{ github.event.inputs.mode || 'reset' }}
-      PGOPTIONS: '-c app.demo_target=brains-heist-demo'
     steps:
       - uses: actions/checkout@v4
 
