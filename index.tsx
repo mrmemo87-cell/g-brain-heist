@@ -8,6 +8,8 @@ import { getAuthBootstrap, clearAuthBootstrap } from './services/authBootstrapSe
 import { BAN_MESSAGE, storeBanMessage } from './services/banMessage';
 import App, { preloadAccountWorkspace } from './App';
 import LoginView from './components/LoginView';
+import { isDemoMode, type DemoPersona } from './services/demoMode';
+import { startDemoTracking, stopDemoTracking, trackDemoEvent } from './services/demoTracker';
 import ErrorBoundary from './components/ErrorBoundary';
 import ConfigErrorScreen from './components/ConfigErrorScreen';
 import * as AuthService from './services/authService';
@@ -46,6 +48,9 @@ const SetupWizard = lazyRetry(() => import('./components/onboarding/SetupWizard'
 const EmailVerificationScreen = lazyRetry(() => import('./components/EmailVerificationScreen'), 'EmailVerificationScreen');
 const IELTSApp = lazyRetry(() => import('./components/ielts/IELTSApp'), 'IELTSApp');
 const IELTSLoginView = lazyRetry(() => import('./components/ielts/IELTSLoginView'), 'IELTSLoginView');
+const DemoEntryGate = lazyRetry(() => import('./components/demo/DemoEntryGate'), 'DemoEntryGate');
+const DemoBanner = lazyRetry(() => import('./components/demo/DemoBanner'), 'DemoBanner');
+const DemoVisitorsPage = lazyRetry(() => import('./src/pages/DemoVisitorsPage'), 'DemoVisitorsPage');
 const PasswordResetPage = lazyRetry(() => import('./components/PasswordResetPage'), 'PasswordResetPage');
 const AuthCallback = lazyRetry(() => import('./src/pages/auth/callback'), 'AuthCallback');
 const IeltsHome = lazyRetry(() => import('./src/pages/ielts/IeltsHome'), 'IeltsHome');
@@ -221,6 +226,16 @@ const MIN_RESUME_REFRESH_INTERVAL_MS = 60_000;
 const RESUME_DEBOUNCE_MS = 300;
 const SESSION_EXPIRY_WINDOW_MS = 5 * 60_000;
 const PROFILE_STALE_MS = 5 * 60_000;
+
+// Demo site only: records the visitor's activity for the Brains Heist team and shows
+// the floating demo controls. Mounted once the visitor is inside the school.
+const DemoSession: React.FC<{ onSwitchPersona: (persona: DemoPersona) => Promise<void> }> = ({ onSwitchPersona }) => {
+  useEffect(() => {
+    startDemoTracking();
+    trackDemoEvent('workspace_open', document.title.slice(0, 80));
+  }, []);
+  return <DemoBanner onSwitchPersona={onSwitchPersona} />;
+};
 
 const Main: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -481,7 +496,21 @@ const Main: React.FC = () => {
     } finally { loginInFlightRef.current = false; }
   }, [checkAuthAndSetup]);
 
+  // Demo site: swap between the teacher and the student seat without the entry form.
+  const switchDemoPersona = useCallback(async (persona: DemoPersona) => {
+    stopDemoTracking();
+    ++authSequenceRef.current; clearAuthBootstrap(); setBootstrap(null); setInitError(null);
+    await AuthService.logout();
+    setIsAuthenticated(false);
+    setNeedsSetup(false);
+    setPostSetupProfile(null);
+    setPostSetupDebugSnapshot(null);
+    const { session } = await AuthService.login(persona.email, persona.password);
+    await checkAuthAndSetup({ reason: 'demo-switch', session });
+  }, [checkAuthAndSetup]);
+
   const handleLogout = useCallback(async () => {
+    if (isDemoMode()) stopDemoTracking();
     ++authSequenceRef.current; clearAuthBootstrap(); setBootstrap(null); setInitError(null);
     await AuthService.logout();
     // Immediately set to false - the auth state change will confirm
@@ -600,6 +629,13 @@ const Main: React.FC = () => {
   }
 
   if (!isAuthenticated) {
+    if (isDemoMode()) {
+      return (
+        <Suspense fallback={<MinimalFallback />}>
+          <DemoEntryGate onLogin={handleLogin} />
+        </Suspense>
+      );
+    }
     return <LoginView onLogin={handleLogin} />;
   }
 
@@ -636,6 +672,11 @@ const Main: React.FC = () => {
 
   return (
     <>
+      {isDemoMode() ? (
+        <Suspense fallback={null}>
+          <DemoSession onSwitchPersona={switchDemoPersona} />
+        </Suspense>
+      ) : null}
       {isOnboardingDebugEnabled() && postSetupDebugSnapshot && (
         <details className="fixed bottom-3 left-3 z-[100000] max-w-[min(28rem,calc(100vw-1.5rem))] rounded-xl border border-cyan-300/40 bg-slate-950/95 p-3 text-xs text-cyan-50 shadow-2xl shadow-cyan-950/40">
           <summary className="cursor-pointer font-semibold">FTUE setup debug snapshot</summary>
@@ -714,6 +755,10 @@ const router = createBrowserRouter([
   {
     path: '/booked',
     element: <Suspense fallback={<BrainsLoader message="Preparing your school demo…" />}><BookedDemoPage /></Suspense>,
+  },
+  {
+    path: '/demo/visitors',
+    element: <Suspense fallback={<MinimalFallback />}><DemoVisitorsPage /></Suspense>,
   },
   {
     path: '/auth/callback',

@@ -137,6 +137,9 @@ jobs:
           v=$(psql "$PROD_DB_URL" -tAc "select max(version) from supabase_migrations.schema_migrations")
           psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 -c "create table if not exists private.demo_applied_migrations(version text primary key, name text, applied_at timestamptz not null default now()); revoke all on private.demo_applied_migrations from public, anon, authenticated; insert into private.demo_applied_migrations(version, name) values ('$v', 'baseline: schema copy') on conflict do nothing;"
 
+      - name: Demo visitor analytics (schema + RPCs, idempotent)
+        run: psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 --file supabase/demo/analytics.sql
+
       - name: Apply new production database changes to the demo (reads production only)
         run: |
           python3 -m pip install --quiet --break-system-packages "psycopg[binary]>=3.2"

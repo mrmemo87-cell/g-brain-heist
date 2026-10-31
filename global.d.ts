@@ -9,6 +9,11 @@ declare module 'react/jsx-runtime' {
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string;
   readonly VITE_SUPABASE_ANON_KEY: string;
+  readonly VITE_DEMO_MODE?: string;
+  readonly VITE_DEMO_TEACHER_EMAIL?: string;
+  readonly VITE_DEMO_TEACHER_PASSWORD?: string;
+  readonly VITE_DEMO_STUDENT_EMAIL?: string;
+  readonly VITE_DEMO_STUDENT_PASSWORD?: string;
   readonly DEV: boolean;
 }
 
