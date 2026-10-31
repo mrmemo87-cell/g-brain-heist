@@ -5,25 +5,29 @@ const read = (relative) => fs.readFileSync(relative, 'utf8');
 test('Student Academic Profile uses school language and source-specific evidence', () => {
     const source = read('components/student-progress/StudentAcademicProfileV2.tsx');
     assert.match(source, /What should we work on\?/);
-    assert.match(source, /How is the student moving over time\?/);
-    assert.match(source, /sap-source-badge/);
-    assert.match(source, /item\.source_type === 'assignment_result'/);
+    assert.match(source, /Each assignment, then each skill/);
+    assert.match(source, /sap-assessment-detail/);
+    assert.match(source, /isAcademicAssignmentSource\(item\.source_type\)/);
+    assert.match(read('services/studentAcademicProfileService.ts'), /source === 'registry_verified_assignment'/);
     assert.match(source, /item\.source_type === 'writing_attempt'/);
     assert.match(source, /corrections/);
-    assert.match(source, /From the student's work/);
+    assert.match(source, /assessment_items/);
     assert.match(source, /SubjectTrendChart/);
-    assert.match(source, /How this profile works/);
+    assert.match(source, /How this is worked out/);
     assert.match(source, /Technical reporting terminology/);
 });
-test('secondary academic profile sections use one closed-by-default disclosure system', () => {
+test('academic profile exposes its primary dashboard while keeping methodology expandable', () => {
     const source = read('components/student-progress/StudentAcademicProfileV2.tsx');
-    const disclosures = source.match(/<ProfileDisclosure/g) || [];
-    assert.equal(disclosures.length, 7);
-    assert.match(source, /Evidence to confirm/);
-    assert.match(source, /sap-profile-disclosure/);
+    assert.equal((source.match(/<ProfileStat /g) || []).length, 0); // replaced by AcademicProfileBrief (2026-10-31)
+    assert.equal((source.match(/<AcademicProfileBrief/g) || []).length, 1);
+    assert.equal((source.match(/<ProfileDisclosure /g) || []).length, 1);
+    for (const title of ['Results over time', 'Skill results', 'Needs support now', 'Being watched', 'Evidence by assignment', 'Assignments']) {
+        assert.ok(source.includes(`<ProfileSection title="${title}"`), `${title} must be a visible dashboard section`);
+    }
+    assert.doesNotMatch(source, /className="ap-snapshot"/);
+    assert.match(source, /ProfilePreview/);
     assert.match(source, /className="when-closed">Open/);
     assert.match(source, /className="when-open">Close/);
-    assert.doesNotMatch(source, /<details[^>]*\sopen(?:\s|>)/);
 });
 test('English combines assignment and Writing Hub evidence in one colour-coded trend chart', () => {
     const source = read('components/student-progress/StudentAcademicProfileV2.tsx');
@@ -61,7 +65,8 @@ test('academic subject options are deduplicated case-insensitively', () => {
     const profile = read('components/student-progress/StudentAcademicProfileV2.tsx');
     assert.match(picker, /normalizeAcademicSubjectOptions/);
     assert.match(picker, /toLocaleLowerCase\(\)/);
-    assert.match(profile, /normalizeAcademicSubjectOptions\(values\)/);
+    assert.match(profile, /normalizeAcademicSubjectOptions\(values\.map/);
+    assert.match(profile, /academicProfileSubjectName\(name, profile\?\.scope\.subject_aliases\)/);
 });
 test('Individual report has explicit React and portal imports', () => {
     const source = read('components/student-progress/IndividualStudentAcademicReportV2.tsx');

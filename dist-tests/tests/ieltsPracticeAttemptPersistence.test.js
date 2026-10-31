@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { buildListeningAttemptPayload, buildReadingAttemptPayload, buildSpeakingAttemptPayload, buildWritingAttemptPayload, estimateIeltsBandFromPercent, normalizeIeltsRawScore, } from '../src/lib/ieltsPracticeScoring.js';
+import { buildListeningAttemptPayload, buildReadingAttemptPayload, buildSpeakingAttemptPayload, buildWritingAttemptPayload, normalizeIeltsRawScore, } from '../src/lib/ieltsPracticeScoring.js';
 test('reading attempt persistence payload includes normalized score fields', () => {
     const payload = buildReadingAttemptPayload({
         user_id: 'student-1',
@@ -20,21 +20,20 @@ test('reading attempt persistence payload includes normalized score fields', () 
         raw_score: 3,
         total_questions: 4,
         percent: 75,
-        est_band: 6.5,
     });
 });
-test('listening attempt persistence payload derives numeric percent and displayed estimate defensively', () => {
+test('listening attempt persistence derives raw score and percent without inventing an IELTS band', () => {
     const payload = buildListeningAttemptPayload({
         user_id: 'student-1',
         set_id: 7,
         answers: { 10: 'coffee' },
         time_spent_seconds: 1200,
         completed_at: '2026-05-18T00:00:00.000Z',
-    }, { rawScore: 8, totalQuestions: 10, percent: Number.NaN, estBand: null });
+    }, { rawScore: 8, totalQuestions: 10, percent: Number.NaN });
     assert.equal(payload['raw_score'], 8);
     assert.equal(payload['total_questions'], 10);
     assert.equal(payload['percent'], 80);
-    assert.equal(payload['est_band'], estimateIeltsBandFromPercent(80));
+    assert.equal('est_band' in payload, false);
 });
 test('writing and speaking payload builders persist available rubric bands without inventing grades', () => {
     assert.deepEqual(buildWritingAttemptPayload({ user_id: 'student-1', task_id: 1, answer_text: 'Essay', word_count: 250 }, { bandOverall: 6.74 }), { review_status: 'pending', user_id: 'student-1', task_id: 1, answer_text: 'Essay', word_count: 250, band_overall: 6.5 });
@@ -43,13 +42,12 @@ test('writing and speaking payload builders persist available rubric bands witho
     assert.equal('band_overall' in buildWritingAttemptPayload({ user_id: 'student-1', task_id: 1 }, { bandOverall: Number.NaN }), false);
     assert.equal('band_overall' in buildSpeakingAttemptPayload({ user_id: 'student-1', task_id: 2 }), false);
 });
-test('readiness engine compatibility fields are populated from raw-score normalization', () => {
+test('raw-score normalization never invents an IELTS readiness band', () => {
     const normalized = normalizeIeltsRawScore({ rawScore: 27, totalQuestions: 40 });
     assert.deepEqual(normalized, {
         raw_score: 27,
         total_questions: 40,
         percent: 67.5,
-        est_band: 5.5,
     });
 });
 test('listening practice renders optional set-level instructions and example metadata without answer-key coupling', () => {
@@ -94,4 +92,8 @@ test('speaking submit upload preserves mime/content type and persists duration_s
     const source = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/SpeakingPractice.tsx'), 'utf8');
     assert.match(source, /contentType:\s*blobType/, 'speaking upload must preserve blob MIME type');
     assert.match(source, /duration_seconds:\s*recordingDuration > 0 \? recordingDuration : null/, 'speaking submit must persist measured duration_seconds when available');
+});
+test('practice scoring contains no generic percent-to-band ladder', () => {
+    const source = fs.readFileSync(path.join(process.cwd(), 'src/lib/ieltsPracticeScoring.ts'), 'utf8');
+    assert.doesNotMatch(source, /estimateIeltsBandFromPercent|est_band|bandScore/i, 'practice scoring must not manufacture IELTS bands from percentages');
 });

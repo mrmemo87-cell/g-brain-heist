@@ -1,0 +1,171 @@
+import { responseCoverage } from './ieltsResponseCoverage.js';
+import { supabase } from './supabaseClient.js';
+import { parseIeltsScreenerCatalog, } from './ieltsScreenerLaunchService.js';
+export const startingPointSkills = [
+    'listening',
+    'reading',
+    'writing',
+    'speaking',
+];
+const uuid = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
+const validDate = (v) => typeof v === 'string' && Number.isFinite(Date.parse(v));
+export function parseStartingPoint(value) {
+    const v = value;
+    const fail = () => {
+        throw new Error('We could not confirm your saved checks. Please try again.');
+    };
+    if (!v ||
+        v.confidence !== 'low' ||
+        v.readiness_available !== false ||
+        v.band_estimate !== null ||
+        typeof v.school_managed !== 'boolean' ||
+        typeof v.speaking_available !== 'boolean' ||
+        !(v.student_name === null || typeof v.student_name === 'string') ||
+        !v.results ||
+        typeof v.results !== 'object' ||
+        Array.isArray(v.results))
+        fail();
+    const catalog = parseIeltsScreenerCatalog(v.catalog);
+    for (const skill of startingPointSkills) {
+        const e = v.results[skill];
+        if (!e)
+            continue;
+        if (!uuid.test(e.attempt_id) ||
+            !validDate(e.occurred_at) ||
+            typeof e.conditions_need_review !== 'boolean')
+            fail();
+        if (skill === 'listening' || skill === 'reading') {
+            if (!Number.isInteger(e.raw_score) ||
+                !Number.isInteger(e.total) ||
+                e.total < 1 ||
+                e.raw_score < 0 ||
+                e.raw_score > e.total)
+                fail();
+            if (e.items_answered !== undefined && responseCoverage(e.items_answered, e.total) === 'unknown')
+                fail();
+        }
+        else {
+            if (skill === 'writing' &&
+                (!Number.isInteger(e.word_count) || e.word_count < 0))
+                fail();
+            if (skill === 'speaking' &&
+                !['in_progress', 'submitted'].includes(e.status ?? ''))
+                fail();
+            const r = e.review;
+            if (r &&
+                (!uuid.test(r.id) ||
+                    !validDate(r.reviewed_at) ||
+                    typeof r.reviewer_name !== 'string' ||
+                    typeof r.next_step !== 'string' ||
+                    typeof r.conditions_note !== 'string' ||
+                    !r.observations ||
+                    Array.isArray(r.observations) ||
+                    Object.values(r.observations).some((o) => !o ||
+                        !['observed', 'developing', 'insufficient_evidence'].includes(o.status) ||
+                        typeof o.comment !== 'string')))
+                fail();
+            if (skill === 'speaking' && e.status !== 'submitted' && r)
+                fail();
+        }
+    }
+    return { ...v, catalog };
+}
+export async function fetchIeltsStartingPoint() {
+    const { data, error } = await supabase.rpc('rpc_ielts_starting_point_summary');
+    if (error)
+        throw new Error('We could not open your learning record. Your saved work is safe. Check your connection and try again.');
+    return parseStartingPoint(data);
+}
+export function startingPointEntry(data, skill) {
+    return data.catalog.find((e) => e.code === `bh-${skill}-screener-a`);
+}
+export function startingPointRoute(skill, evidence) {
+    if (!evidence)
+        return skill === 'speaking'
+            ? '/ielts/speaking-pilot'
+            : `/ielts/${skill}-screener`;
+    const id = encodeURIComponent(evidence.attempt_id);
+    return skill === 'speaking'
+        ? `/ielts/speaking-pilot/${id}`
+        : skill === 'writing'
+            ? `/ielts/writing-screener/reviews/${id}`
+            : `/ielts/screener-result/${id}`;
+}
+export function startingPointCompleted(data, skill) {
+    return skill === 'speaking'
+        ? data.results.speaking?.status === 'submitted'
+        : skill === 'reading' || skill === 'listening'
+            ? startingPointEntry(data, skill)?.status === 'completed'
+                && responseCoverage(data.results[skill]?.items_answered, data.results[skill]?.total) === 'complete'
+                && !data.results[skill]?.conditions_need_review
+            : startingPointEntry(data, skill)?.status === 'completed';
+}
+export function journeyNextStep(data, journey) {
+    const active = startingPointSkills.find((skill) => skill === 'speaking'
+        ? data.results.speaking?.status === 'in_progress'
+        : ['in_progress', 'expired'].includes(startingPointEntry(data, skill)?.status ?? ''));
+    if (active) {
+        const e = startingPointEntry(data, active);
+        return {
+            title: e?.status === 'expired' ? 'Review your timed-out check' : 'Continue your saved work',
+            description: active === 'speaking'
+                ? 'Your interview is in progress. Continue with your teacher.'
+                : e?.status === 'expired'
+                    ? `Your ${active} timer has ended. Open the saved attempt to confirm its saved status, then ask your teacher about a fresh check.`
+                    : `Your ${active} attempt is saved. Open it to continue or finish saving.`,
+            label: active === 'speaking' ? 'Open saved interview' : 'Open saved attempt',
+            route: active === 'speaking'
+                ? startingPointRoute(active, data.results[active])
+                : `/ielts/exam/${e.exam_event_id}`,
+        };
+    }
+    const assignment = journey.assigned_practice.find((a) => !['completed', 'void', 'cancelled'].includes(a.status));
+    if (assignment)
+        return {
+            title: 'Your next practice task',
+            description: `Your teacher has assigned “${assignment.title}”. Use your feedback as you work.`,
+            label: 'Open assigned practice',
+            route: '/ielts/practice/assigned',
+        };
+    // Gather other available skills before sending a student back to an exposed form.
+    const missing = startingPointSkills.find(s => !startingPointCompleted(data, s)
+        && (s === 'speaking' ? !data.results.speaking : startingPointEntry(data, s)?.status !== 'completed'));
+    if (missing) {
+        const e = startingPointEntry(data, missing);
+        const available = missing === 'speaking' ? data.speaking_available : e?.status === 'ready';
+        return {
+            title: `Your ${missing[0].toUpperCase() + missing.slice(1)} starting point`,
+            description: missing === 'speaking'
+                ? 'Arrange a recorded interview with your teacher. Your feedback will appear after review.'
+                : available
+                    ? 'Complete this short check to add another part of your starting point.'
+                    : 'This check is not ready to start. Open it to check availability.',
+            label: missing === 'speaking' ? 'Open Speaking interview' : 'Open check',
+            route: startingPointRoute(missing),
+        };
+    }
+    const incomplete = ['listening', 'reading'].find(skill => !startingPointCompleted(data, skill));
+    if (incomplete)
+        return {
+            title: 'A fresh check needs teacher help',
+            description: `Your ${incomplete} record needs a review of response coverage or assessment conditions. Ask your teacher to arrange a supervised fresh check. Repeating the same form is practice, not independent evidence.`,
+            label: 'View saved work',
+            route: startingPointRoute(incomplete, data.results[incomplete]),
+        };
+    const pending = ['writing', 'speaking'].find((s) => !data.results[s]?.review);
+    if (pending)
+        return {
+            title: 'Your teacher review is next',
+            description: `Your ${pending === 'writing' ? 'essay' : 'interview'} is saved. Teacher feedback will help you choose what to practise.`,
+            label: 'View saved work',
+            route: startingPointRoute(pending, data.results[pending]),
+        };
+    return {
+        title: 'Turn your feedback into practice',
+        description: data.school_managed
+            ? 'Read your teacher’s next steps below. Agree on one focus with your teacher; your assigned tasks will appear here.'
+            : 'Read your next steps below. Choose one focus to practise, then arrange a fresh check with a teacher.',
+        label: 'Read teacher feedback',
+        route: '#teacher-feedback',
+    };
+}

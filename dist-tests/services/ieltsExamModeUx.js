@@ -79,6 +79,10 @@ export const formatIeltsCountdown = (seconds) => {
         return `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     return `${minutes}:${String(secs).padStart(2, '0')}`;
 };
+/** The event's availability window is never the student's attempt allowance. */
+export const getIeltsAttemptTimeMessage = (hasAttempt, remainingSeconds) => (hasAttempt
+    ? `Time remaining: ${formatIeltsCountdown(remainingSeconds)}.`
+    : 'Ready when you are.');
 export const getIeltsAttemptOperationalLabel = (status, hasConnectionIssue = false) => {
     if (hasConnectionIssue)
         return 'Possible connection issue';
@@ -109,13 +113,13 @@ export const canStartIeltsExamAttempt = ({ allowed, assignmentId, eventStatus, h
     && !isPaused);
 export const isIeltsExamEventPaused = (eventStatus, reason) => (normalizeExamStatus(eventStatus) === 'paused' || normalizeExamStatus(reason) === 'exam_paused');
 export const isIeltsTerminalAttemptStatus = (status) => (['submitted', 'auto_submitted', 'force_submitted', 'void', 'voided', 'locked', 'not_in_progress'].includes(normalizeExamStatus(status)));
-export const isIeltsTeacherSubmittedStatus = (status) => (['submitted', 'auto_submitted', 'force_submitted'].includes(normalizeExamStatus(status)));
+export const isIeltsSubmittedAttemptStatus = (status) => (['submitted', 'auto_submitted', 'force_submitted'].includes(normalizeExamStatus(status)));
 export const isIeltsVoidedAttemptStatus = (status, reason) => (['void', 'voided'].includes(normalizeExamStatus(status)) || normalizeExamStatus(reason) === 'assignment_void');
 export const resolveIeltsStudentExamSyncState = (attemptStatus, eventStatus, reason) => {
     if (isIeltsVoidedAttemptStatus(attemptStatus, reason))
         return 'voided';
-    if (isIeltsTeacherSubmittedStatus(attemptStatus))
-        return 'teacher_submitted';
+    if (isIeltsSubmittedAttemptStatus(attemptStatus))
+        return 'submitted';
     if (normalizeExamStatus(attemptStatus) === 'not_in_progress' || normalizeExamStatus(attemptStatus) === 'locked')
         return 'not_in_progress';
     if (isIeltsExamEventPaused(eventStatus, reason))
@@ -125,8 +129,8 @@ export const resolveIeltsStudentExamSyncState = (attemptStatus, eventStatus, rea
     return 'active';
 };
 export const getIeltsStudentExamSyncMessage = (state) => {
-    if (state === 'teacher_submitted')
-        return 'Your exam has been submitted by your teacher.';
+    if (state === 'submitted')
+        return 'Your assessment has been submitted. Your answers are saved.';
     if (state === 'voided')
         return 'This attempt was voided by the teacher.';
     if (state === 'paused')

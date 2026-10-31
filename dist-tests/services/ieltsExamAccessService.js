@@ -69,6 +69,15 @@ export const checkIeltsExamModeAdminAccess = async (client = supabase) => {
         // access available when the capability RPC is unavailable.
     }
     try {
+        const { data: programme, error: programmeError } = await client.rpc('rpc_ielts_programme_access');
+        if (!programmeError && Array.isArray(programme?.schools) && programme.schools.some((s) => s.can_manage === true)) {
+            return { allowed: true, reason: 'programme_lead' };
+        }
+    }
+    catch {
+        // Existing exam scope is still checked if the programme lookup is unavailable.
+    }
+    try {
         const manageableExams = await rpcIeltsListManageableExams(client);
         if (manageableExams.length === 0 && (profileError || !capabilityResolved)) {
             return { allowed: false, reason: 'verification_error' };

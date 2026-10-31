@@ -44,7 +44,7 @@ declare
   v_teacher uuid := (select user_id from private.demo_people where key = 'teacher');
   v_english_academic_subject constant uuid := '0a919668-59b4-4954-aa8d-9bf70c416000'; -- English
   v_english_grade7_scope constant uuid := 'ed716eb5-eb43-679e-936d-547256bdf967';     -- English · Grade 7
-  v_request uuid; v_school uuid; v_year uuid; v_class uuid; v_code text;
+  v_request uuid; v_school uuid; v_year uuid; v_class uuid; v_class_b uuid; v_code text;
   r jsonb; p record;
 begin
   -- 1. School application, approved by the (internal) demo superadmin.
@@ -68,7 +68,9 @@ begin
   -- Fixed, memorable invite code. (Approval can generate a code containing '=', which
   -- join_school_by_code strips before matching, so roughly 1 in 20 generated codes
   -- cannot be used to join; a fixed code also keeps the demo deterministic.)
-  update public.schools set time_zone = 'Asia/Bishkek', invite_code = 'DEMO7A2026' where id = v_school;
+  update public.schools set time_zone = 'Asia/Bishkek', invite_code = 'DEMO7A2026',
+    settings = coalesce(settings, '{}'::jsonb) || jsonb_build_object('daily_mission_academic_subject_id', v_english_academic_subject)
+  where id = v_school;
 
   -- 2. The demo teacher is the School Head and also teaches English.
   perform private.demo_as('teacher');
@@ -81,14 +83,16 @@ begin
   perform public.rpc_school_admin_upsert_academic_term(v_school, v_year, null, 'Term 3', 3::smallint, date '2027-03-29', date '2027-06-25');
 
   perform public.school_admin_save_class(v_school, null, '7A', '7A', 7, true);
+  perform public.school_admin_save_class(v_school, null, '7B', '7B', 7, true);
   select id into v_class from public.classes where school_id = v_school and class_code = '7A';
+  select id into v_class_b from public.classes where school_id = v_school and class_code = '7B';
 
   -- 3. Students join with the invite code and pick their class, like real students.
   select invite_code into v_code from public.schools where id = v_school;
-  for p in select key from private.demo_people where role = 'student' order by key loop
+  for p in select key, class_code from private.demo_people where role = 'student' order by key loop
     perform private.demo_as(p.key);
     perform private.demo_ok('join ' || p.key, public.join_school_by_code(v_code, 'student'));
-    perform private.demo_ok('class ' || p.key, to_jsonb(public.rpc_setup_school_class_enrollment('7', 'A')));
+    perform private.demo_ok('class ' || p.key, to_jsonb(public.rpc_setup_school_class_enrollment('7', right(p.class_code, 1))));
   end loop;
 
   -- 4. English for Grade 7, taught by the demo teacher to 7A (the School Subjects screen's
@@ -96,11 +100,11 @@ begin
   perform private.demo_as('teacher');
   perform private.demo_ok('save English', public.rpc_school_admin_save_school_subject(
     v_school, 'English', null, 'ENG', v_english_academic_subject, v_year, '7', v_english_grade7_scope,
-    'all_grade', array[]::uuid[], v_teacher, array[v_class], false));
+    'all_grade', array[]::uuid[], v_teacher, array[v_class, v_class_b], false));
   perform private.demo_ok('confirm roster', public.rpc_school_admin_confirm_academic_roster(v_school, v_year));
 
   insert into private.demo_state(key, value) values
-    ('school_id', to_jsonb(v_school)), ('academic_year_id', to_jsonb(v_year)), ('class_id', to_jsonb(v_class))
+    ('school_id', to_jsonb(v_school)), ('academic_year_id', to_jsonb(v_year)), ('class_id', to_jsonb(v_class)), ('class_b_id', to_jsonb(v_class_b))
   on conflict (key) do update set value = excluded.value;
 end $$;
 
@@ -118,7 +122,7 @@ begin
   update public.schools set created_at = v_open - interval '1 day', updated_at = v_open where id = v_school;
   update public.school_members set joined_at = case when role_in_school = 'student' then v_term else v_open end where school_id = v_school;
   update public.classes set created_at = v_open where school_id = v_school;
-  update public.class_students set joined_at = v_term where class_id = private.demo_state_uuid('class_id');
+  update public.class_students set joined_at = v_term where class_id in (select id from public.classes where school_id = v_school);
   update public.school_student_placement_history set effective_date = v_term::date, recorded_at = v_term where school_id = v_school;
   update public.student_academic_enrolments set starts_on = v_term::date, created_at = v_term, updated_at = v_term where school_id = v_school;
   update public.school_academic_years set created_at = v_open, updated_at = v_open where school_id = v_school;

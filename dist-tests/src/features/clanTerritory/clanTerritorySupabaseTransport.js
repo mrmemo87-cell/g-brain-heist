@@ -1,0 +1,524 @@
+import { supabase } from "../../../services/supabaseClient.js";
+import { clanTerritoryReducer, INITIAL_STATE } from "./clanTerritoryEngine.js";
+export class SupabaseClanTerritoryTransport {
+    constructor() {
+        this.discoveryChannels = [];
+        this.tickInterval = null;
+        this.clientClockInterval = null;
+        this.visibilityListener = null;
+        this.scheduledBroadcastTimer = null;
+        this.state = INITIAL_STATE;
+        this.isHost = false;
+        this.allowClanlessPlayers = false;
+        this.arenaMode = "official";
+        this.schoolId = null;
+        this.teacherName = null;
+        this.classCodes = [];
+        this.allowedClanIds = [];
+        this.scheduledStartAt = null;
+        this.onStateUpdate = null;
+        // Used to detect state changes even if reducer mutates in place
+        this.lastStateSignature = "";
+        this.lastBroadcastAtMs = 0;
+        this.broadcastInFlight = false;
+        this.broadcastDirty = false;
+    }
+    // ---- utilities ----
+    computeStateSignature(s) {
+        // Keep it cheap + stable. We only need to detect meaningful changes.
+        const zoneKeys = Object.keys(s.zones || {}).sort();
+        const zonesSig = zoneKeys
+            .map((zid) => {
+            const z = s.zones[zid];
+            if (!z)
+                return `${zid}:_`;
+            const inflKeys = Object.keys(z.influence || {}).sort();
+            const infl = inflKeys
+                .map((cid) => `${cid}:${z.influence[cid] ?? 0}`)
+                .join(",");
+            return `${zid}[${infl}]`;
+        })
+            .join("|");
+        const playerKeys = Object.keys(s.players || {}).sort();
+        const playersSig = playerKeys
+            .map((pid) => {
+            const p = s.players[pid];
+            if (!p)
+                return `${pid}:_`;
+            // Only the bits that affect UI/state sync
+            return `${pid}:${p.selectedZoneId ?? ""}:${p.battleScore ?? 0}:${p.streak ?? 0}:${p.questionsAnswered ?? 0}`;
+        })
+            .join("|");
+        const clansKeys = Object.keys(s.clans || {}).sort();
+        const clansSig = clansKeys
+            .map((cid) => `${cid}:${s.clans[cid]?.color ?? ""}`)
+            .join("|");
+        return [
+            `phase=${s.phase}`,
+            `timer=${s.timer}`,
+            `start=${s.gameStartTime ?? ""}`,
+            `end=${s.gameEndTime ?? ""}`,
+            `map=${s.mapId ?? ""}`,
+            `arenaMode=${s.arenaMode}`,
+            `officialSchool=${s.officialSchoolId ?? ""}`,
+            `officialClasses=${(s.officialClassCodes ?? []).join(",")}`,
+            `allowClanless=${s.allowClanlessPlayers ? "1" : "0"}`,
+            `allowedClans=${(s.allowedClanIds ?? []).join(",")}`,
+            `zones=${zonesSig}`,
+            `players=${playersSig}`,
+            `clans=${clansSig}`,
+            `q=${(s.questions || []).length}`,
+        ].join(";");
+    }
+    commitStateIfChanged(next, reason) {
+        const normalized = this.reconcileStateWithWallClock(next);
+        const sig = this.computeStateSignature(normalized);
+        if (sig === this.lastStateSignature) {
+            // No meaningful change (even if object reference differs)
+            return;
+        }
+        this.state = normalized;
+        this.lastStateSignature = sig;
+        if (this.onStateUpdate)
+            this.onStateUpdate(this.state);
+        if (this.isHost) {
+            // Schedule a deferred broadcast so that if multiple actions arrive in the
+            // same event-loop turn we coalesce them into one outbound message.
+            // This avoids the 30ms throttle silently swallowing mid-burst state changes.
+            if (this.scheduledBroadcastTimer === null) {
+                this.scheduledBroadcastTimer = setTimeout(() => {
+                    this.scheduledBroadcastTimer = null;
+                    this.broadcastState(true);
+                }, 0);
+            }
+        }
+    }
+    reconcileStateWithWallClock(state) {
+        if (state.phase !== "ACTIVE" || typeof state.gameEndTime !== "number") {
+            return state;
+        }
+        const remaining = Math.max(0, Math.floor((state.gameEndTime - Date.now()) / 1000));
+        const shouldEnd = remaining <= 0;
+        const nextPhase = shouldEnd ? "ENDED" : "ACTIVE";
+        const nextReason = shouldEnd ? state.endReason ?? "TIME_UP" : state.endReason;
+        if (state.timer === remaining && state.phase === nextPhase && state.endReason === nextReason) {
+            return state;
+        }
+        return {
+            ...state,
+            timer: remaining,
+            phase: nextPhase,
+            endReason: nextReason,
+        };
+    }
+    // ---- public API ----
+    async createRoom(options) {
+        const roomId = Math.floor(1000 + Math.random() * 9000).toString();
+        this.isHost = true;
+        this.arenaMode = options?.arenaMode ?? "official";
+        this.allowClanlessPlayers = Boolean(options?.allowClanlessPlayers);
+        this.schoolId = options?.schoolId || null;
+        this.teacherName = options?.teacherName || null;
+        this.classCodes = options?.classCodes || [];
+        this.allowedClanIds = options?.allowedClanIds || [];
+        this.scheduledStartAt = options?.scheduledStartAt || null;
+        this.state = {
+            ...INITIAL_STATE,
+            arenaMode: this.arenaMode,
+            officialSchoolId: this.arenaMode === "official" ? this.schoolId ?? undefined : undefined,
+            officialClassCodes: this.arenaMode === "official" ? this.classCodes : undefined,
+            allowClanlessPlayers: this.allowClanlessPlayers,
+        };
+        this.lastStateSignature = this.computeStateSignature(this.state);
+        this.setupChannel(roomId);
+        this.startBroadcastingDiscovery(roomId);
+        return roomId;
+    }
+    async resumeRoom(roomId, options) {
+        this.isHost = true;
+        this.arenaMode = options?.arenaMode ?? "official";
+        this.allowClanlessPlayers = Boolean(options?.allowClanlessPlayers);
+        this.schoolId = options?.schoolId || null;
+        this.teacherName = options?.teacherName || null;
+        this.classCodes = options?.classCodes || [];
+        this.allowedClanIds = options?.allowedClanIds || [];
+        this.scheduledStartAt = options?.scheduledStartAt || null;
+        const restoredState = options?.state
+            ? {
+                ...options.state,
+                arenaMode: options.state.arenaMode ?? this.arenaMode,
+                officialSchoolId: (options.state.arenaMode ?? this.arenaMode) === "official"
+                    ? (options.state.officialSchoolId ?? this.schoolId ?? undefined)
+                    : undefined,
+                officialClassCodes: (options.state.arenaMode ?? this.arenaMode) === "official"
+                    ? (options.state.officialClassCodes ?? this.classCodes)
+                    : undefined,
+            }
+            : {
+                ...INITIAL_STATE,
+                arenaMode: this.arenaMode,
+                officialSchoolId: this.arenaMode === "official" ? this.schoolId ?? undefined : undefined,
+                officialClassCodes: this.arenaMode === "official" ? this.classCodes : undefined,
+                allowClanlessPlayers: this.allowClanlessPlayers,
+            };
+        this.state = restoredState;
+        this.lastStateSignature = this.computeStateSignature(this.state);
+        this.setupChannel(roomId);
+        this.startBroadcastingDiscovery(roomId);
+    }
+    startDiscovery(schoolId, onRoomFound) {
+        const channelNames = schoolId
+            ? [
+                `clan-territory-discovery:${schoolId}`,
+                "clan-territory-discovery:global",
+            ]
+            : ["clan-territory-discovery:global"];
+        this.discoveryChannels = channelNames.map((channelName) => supabase.channel(channelName));
+        this.discoveryChannels.forEach((channel) => {
+            channel
+                .on("broadcast", { event: "room_open" }, (payload) => {
+                const roomPayload = payload.payload ?? {};
+                const discoveredMode = roomPayload.arenaMode === "open" ? "open" : "official";
+                if (discoveredMode === "official" && schoolId && roomPayload.schoolId && roomPayload.schoolId !== schoolId)
+                    return;
+                onRoomFound(roomPayload.roomId, {
+                    allowClanlessPlayers: roomPayload.allowClanlessPlayers,
+                    arenaMode: discoveredMode,
+                    teacherName: roomPayload.teacherName,
+                    classCodes: roomPayload.classCodes,
+                    allowedClanIds: roomPayload.allowedClanIds,
+                    scheduledStartAt: roomPayload.scheduledStartAt,
+                    phase: roomPayload.phase,
+                    timer: roomPayload.timer,
+                    gameEndTime: roomPayload.gameEndTime,
+                });
+            })
+                .subscribe();
+        });
+    }
+    stopDiscovery() {
+        if (this.discoveryChannels.length > 0) {
+            this.discoveryChannels.forEach((channel) => supabase.removeChannel(channel));
+            this.discoveryChannels = [];
+        }
+    }
+    async joinRoom(roomId, playerName, clanId, clanName, options) {
+        const playerId = options?.playerId ?? crypto.randomUUID();
+        this.isHost = false;
+        this.setupChannel(roomId);
+        // Wait for join
+        await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                clearInterval(check);
+                reject(new Error("Connection timeout: Unable to join room. Please try again."));
+            }, 10000);
+            const check = setInterval(() => {
+                if (this.channel && this.channel.state === "joined") {
+                    clearInterval(check);
+                    clearTimeout(timeout);
+                    resolve();
+                }
+            }, 100);
+        });
+        // Fetch clan color if missing
+        let clanColor = options?.clanColor;
+        if (!clanColor) {
+            try {
+                const { data: clan, error } = await supabase
+                    .from("clans")
+                    .select("color")
+                    .eq("id", clanId)
+                    .single();
+                if (!error && clan?.color)
+                    clanColor = clan.color;
+            }
+            catch (e) {
+                console.error("Failed to fetch clan color:", e);
+            }
+        }
+        await this.sendAction(roomId, {
+            type: "JOIN",
+            payload: {
+                player: {
+                    id: playerId,
+                    name: playerName,
+                    clanId,
+                    clanName,
+                    clanColor,
+                    schoolId: options?.schoolId ?? null,
+                    classCodes: options?.classCodes ?? [],
+                    batch: options?.batch ?? null,
+                },
+            },
+        });
+        // Verify host accepted JOIN (official arenas may reject by school/class eligibility).
+        await this.sendAction(roomId, { type: "REQUEST_STATE" });
+        await new Promise((resolve, reject) => {
+            const started = Date.now();
+            const timer = setInterval(() => {
+                if (this.state.players[playerId]) {
+                    clearInterval(timer);
+                    resolve();
+                    return;
+                }
+                if (Date.now() - started > 3000) {
+                    clearInterval(timer);
+                    reject(new Error("Join rejected: this room has eligibility restrictions."));
+                }
+            }, 150);
+        });
+        return playerId;
+    }
+    onGameState(roomId, callback) {
+        this.onStateUpdate = callback;
+        // Hydrate immediately
+        callback(this.state);
+        if (!this.isHost) {
+            void this.sendAction(roomId, { type: "REQUEST_STATE" });
+        }
+        return () => this.cleanup();
+    }
+    cleanup() {
+        this.broadcastDirty = false;
+        this.broadcastInFlight = false;
+        this.lastBroadcastAtMs = 0;
+        if (this.scheduledBroadcastTimer !== null) {
+            clearTimeout(this.scheduledBroadcastTimer);
+            this.scheduledBroadcastTimer = null;
+        }
+        if (this.tickInterval) {
+            clearInterval(this.tickInterval);
+            this.tickInterval = null;
+        }
+        if (this.clientClockInterval) {
+            clearInterval(this.clientClockInterval);
+            this.clientClockInterval = null;
+        }
+        if (this.visibilityListener) {
+            document.removeEventListener("visibilitychange", this.visibilityListener);
+            this.visibilityListener = null;
+        }
+        if (this.channel) {
+            supabase.removeChannel(this.channel);
+            this.channel = null;
+        }
+        if (this.isHost) {
+            this.stopBroadcastingDiscovery();
+        }
+        this.onStateUpdate = null;
+    }
+    async ensureChannelJoined(roomId) {
+        if (!this.channel) {
+            this.setupChannel(roomId);
+        }
+        const waitForJoined = async (timeoutMs) => new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                clearInterval(check);
+                reject(new Error("Channel subscription timeout: Unable to send action"));
+            }, timeoutMs);
+            const check = setInterval(() => {
+                if (this.channel && this.channel.state === "joined") {
+                    clearInterval(check);
+                    clearTimeout(timeout);
+                    resolve();
+                }
+            }, 100);
+        });
+        try {
+            await waitForJoined(5000);
+        }
+        catch (error) {
+            // Rebuild the channel once if the previous socket is stale after long background periods.
+            if (this.channel) {
+                supabase.removeChannel(this.channel);
+                this.channel = null;
+            }
+            this.setupChannel(roomId);
+            await waitForJoined(5000);
+        }
+    }
+    async sendAction(roomId, action) {
+        await this.ensureChannelJoined(roomId);
+        if (this.channel && this.channel.state === "joined") {
+            if (this.isHost && action.type === "DISMISS_ARENA") {
+                const next = clanTerritoryReducer(this.state, action);
+                this.commitStateIfChanged(next, action.type);
+            }
+            await this.channel.send({
+                type: "broadcast",
+                event: "game_action",
+                payload: action,
+            });
+        }
+    }
+    // ---- tick loop ----
+    startTickLoop() {
+        if (this.tickInterval) {
+            clearInterval(this.tickInterval);
+            this.tickInterval = null;
+        }
+        if (!this.isHost) {
+            // Clients do not tick. Host is authoritative.
+            if (this.clientClockInterval) {
+                clearInterval(this.clientClockInterval);
+            }
+            this.clientClockInterval = setInterval(() => {
+                this.commitStateIfChanged(this.state, "CLIENT_CLOCK");
+            }, 1000);
+            return;
+        }
+        const tick = () => {
+            if (this.state.phase === "ACTIVE") {
+                const next = clanTerritoryReducer(this.state, { type: "TICK" });
+                this.commitStateIfChanged(next, "TICK");
+            }
+        };
+        this.tickInterval = setInterval(tick, 1000);
+        // Force an immediate update when tab becomes visible again
+        if (this.visibilityListener) {
+            document.removeEventListener("visibilitychange", this.visibilityListener);
+        }
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                tick();
+                this.broadcastState();
+            }
+        };
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        this.visibilityListener = handleVisibilityChange;
+    }
+    // ---- realtime wiring ----
+    setupChannel(roomId) {
+        if (this.channel)
+            return;
+        this.channel = supabase.channel(`clan-territory:${roomId}`, {
+            config: {
+                broadcast: { self: true },
+            },
+        });
+        this.channel
+            .on("broadcast", { event: "game_action" }, (payload) => {
+            const action = payload.payload;
+            if (this.isHost) {
+                if (action.type === "REQUEST_STATE") {
+                    // Request the latest snapshot; bursts share a bounded trailing send.
+                    this.broadcastState(true);
+                    if (this.onStateUpdate)
+                        this.onStateUpdate(this.state);
+                    return;
+                }
+                // HOST ONLY applies reducer
+                const next = clanTerritoryReducer(this.state, action);
+                this.commitStateIfChanged(next, action.type);
+            }
+            else {
+                // CLIENTS IGNORE game_action (prevents double simulation / flicker)
+                // They only update from authoritative "game_state".
+                return;
+            }
+        })
+            .on("broadcast", { event: "game_state" }, (payload) => {
+            if (this.isHost)
+                return;
+            const incoming = payload.payload;
+            // Guard against invalid/partial payloads
+            if (!incoming || typeof incoming !== "object")
+                return;
+            if (!incoming.phase || !incoming.zones || !incoming.players || !incoming.clans) {
+                return;
+            }
+            this.commitStateIfChanged(incoming, "GAME_STATE");
+        })
+            .subscribe((status) => {
+            if (status === "SUBSCRIBED") {
+                // Start tick only on host
+                this.startTickLoop();
+                // Host broadcasts initial state
+                this.broadcastState();
+            }
+        });
+    }
+    broadcastState(_force = false) {
+        if (!this.channel || !this.isHost || this.channel.state !== "joined")
+            return;
+        this.broadcastDirty = true;
+        if (this.broadcastInFlight || this.scheduledBroadcastTimer !== null)
+            return;
+        const delay = Math.max(0, 125 - (Date.now() - this.lastBroadcastAtMs));
+        if (delay > 0) {
+            this.scheduledBroadcastTimer = setTimeout(() => {
+                this.scheduledBroadcastTimer = null;
+                this.broadcastState();
+            }, delay);
+            return;
+        }
+        const channel = this.channel;
+        this.broadcastDirty = false;
+        this.broadcastInFlight = true;
+        this.lastBroadcastAtMs = Date.now();
+        // Eight snapshots/second leaves room for discovery on the shared 10/s client.
+        // At most one send in flight and one latest-state snapshot waiting. Host
+        // reducer/UI updates remain immediate; intermediate network snapshots merge.
+        void Promise.resolve().then(() => channel.send({
+            type: "broadcast",
+            event: "game_state",
+            payload: this.state,
+        })).catch(() => {
+            // Reconnect/request-state/tick will request another authoritative snapshot.
+        }).finally(() => {
+            if (this.channel !== channel)
+                return;
+            this.broadcastInFlight = false;
+            if (this.broadcastDirty)
+                this.broadcastState();
+        });
+    }
+    // --- Discovery Logic ---
+    startBroadcastingDiscovery(roomId) {
+        const channelNames = this.schoolId
+            ? [`clan-territory-discovery:${this.schoolId}`, "clan-territory-discovery:global"]
+            : ["clan-territory-discovery:global"];
+        this.discoveryChannels = channelNames.map((channelName) => supabase.channel(channelName, {
+            config: { broadcast: { ack: false } },
+        }));
+        this.discoveryChannels.forEach((channel) => {
+            channel.subscribe((status) => {
+                if (status === "SUBSCRIBED" && !this.discoveryBroadcastInterval) {
+                    this.discoveryBroadcastInterval = setInterval(() => {
+                        this.discoveryChannels.forEach((activeChannel) => {
+                            if (activeChannel && activeChannel.state === "joined") {
+                                activeChannel.send({
+                                    type: "broadcast",
+                                    event: "room_open",
+                                    payload: {
+                                        roomId,
+                                        allowClanlessPlayers: this.allowClanlessPlayers,
+                                        arenaMode: this.arenaMode,
+                                        schoolId: this.schoolId,
+                                        teacherName: this.teacherName,
+                                        classCodes: this.classCodes,
+                                        allowedClanIds: this.allowedClanIds,
+                                        scheduledStartAt: this.scheduledStartAt,
+                                        phase: this.state.phase,
+                                        timer: this.state.timer,
+                                        gameEndTime: this.state.gameEndTime,
+                                    },
+                                });
+                            }
+                        });
+                    }, 2000);
+                }
+            });
+        });
+    }
+    stopBroadcastingDiscovery() {
+        if (this.discoveryBroadcastInterval) {
+            clearInterval(this.discoveryBroadcastInterval);
+            this.discoveryBroadcastInterval = null;
+        }
+        if (this.discoveryChannels.length > 0) {
+            this.discoveryChannels.forEach((channel) => supabase.removeChannel(channel));
+            this.discoveryChannels = [];
+        }
+    }
+}

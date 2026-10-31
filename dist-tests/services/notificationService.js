@@ -3,26 +3,12 @@ import { audioService } from './audioService.js';
 class NotificationService {
     constructor() {
         this.listeners = [];
-        this.setupRealtimeSubscription();
     }
-    // Setup real-time subscription to notifications
-    setupRealtimeSubscription() {
-        supabase.auth.getUser().then(({ data: { user } }) => {
-            if (!user)
-                return;
-            supabase
-                .channel('notifications')
-                .on('postgres_changes', {
-                event: 'INSERT',
-                schema: 'public',
-                table: 'notifications',
-                filter: `user_id=eq.${user.id}`,
-            }, (payload) => {
-                const notification = payload.new;
-                this.handleNewNotification(notification);
-            })
-                .subscribe();
-        });
+    // App connects after its authoritative bootstrap has rendered. No auth request
+    // during module import, and each account disconnects when its shell unmounts.
+    connect(userId) {
+        const channel = supabase.channel(`notifications:${userId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, payload => this.handleNewNotification(payload.new)).subscribe();
+        return () => { void supabase.removeChannel(channel); };
     }
     // Handle incoming notification
     handleNewNotification(notification) {
@@ -59,6 +45,7 @@ class NotificationService {
             new_submission: 'notification',
             class_milestone: 'tada',
             school_head_decision: 'notification',
+            teacher_reminder: 'notification',
         };
         const sound = soundMap[type];
         if (sound) {
@@ -181,6 +168,7 @@ class NotificationService {
             new_submission: { emoji: '📬', color: 'text-purple-400', bgColor: 'bg-purple-500/20' },
             class_milestone: { emoji: '🎯', color: 'text-yellow-400', bgColor: 'bg-yellow-500/20' },
             school_head_decision: { emoji: '🏫', color: 'text-cyan-500', bgColor: 'bg-cyan-500/20' },
+            teacher_reminder: { emoji: '📌', color: 'text-blue-400', bgColor: 'bg-blue-500/20' },
         };
         return styles[type];
     }
@@ -211,6 +199,7 @@ class NotificationService {
             student_improvement: { label: 'View Progress', view: 'teacher' },
             new_submission: { label: 'Review', view: 'teacher' },
             class_milestone: { label: 'View Class', view: 'teacher' },
+            teacher_reminder: { label: 'Start Practising', view: 'dashboard' },
         };
         return actions[type];
     }

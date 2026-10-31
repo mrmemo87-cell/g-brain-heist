@@ -1,6 +1,18 @@
+export const SERVER_TIMEOUT_MESSAGE = 'This is taking longer than expected on our side. Please wait a moment and try again. If it keeps happening, let your school administrator know.';
+function isServerSideTimeout(raw, lower) {
+    // Postgres/PostgREST statement timeout (SQLSTATE 57014). The request reached the server fine;
+    // the query itself was too slow. Must not be reported as a connection problem.
+    const code = String(raw?.code || '').toUpperCase();
+    return code === '57014'
+        || lower.includes('statement timeout')
+        || lower.includes('canceling statement')
+        || lower.includes('cancelling statement');
+}
 export function userFacingError(raw, fallback) {
     const message = raw instanceof Error ? raw.message : String(raw?.message || raw || '');
     const lower = message.toLowerCase();
+    if (isServerSideTimeout(raw, lower))
+        return new Error(SERVER_TIMEOUT_MESSAGE);
     if (lower.includes('invalid login credentials'))
         return new Error('That email and password do not match. Please try again or use Google sign-in.');
     if (lower.includes('email not confirmed'))

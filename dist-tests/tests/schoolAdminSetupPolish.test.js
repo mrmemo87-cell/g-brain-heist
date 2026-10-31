@@ -20,7 +20,7 @@ test('new school overview excludes admin-only accounts and unused local labels f
     assert.doesNotMatch(dashboard, /local.*labels.*available/);
     assert.match(dashboard, /No teaching staff have joined yet/);
 });
-test('academic setup guides a valid year, known systems, grade subjects, and default class creation', () => {
+test('academic setup guides year and curriculum coverage without duplicating class or subject management', () => {
     assert.match(academicSetup, /previous} — closed/);
     assert.match(academicSetup, /current} — available/);
     assert.match(academicSetup, /The end date must be later than the start date/);
@@ -29,15 +29,16 @@ test('academic setup guides a valid year, known systems, grade subjects, and def
         assert.match(academicSetup, new RegExp(system.replace(/[()]/g, '\\$&')));
     }
     assert.doesNotMatch(academicSetup, /Not published yet/);
-    assert.match(academicSetup, /ensureGradeClass/);
-    assert.match(academicSetup, /Save Grade \$\{activeGrade\} plan/);
-    assert.match(academicSetup, /This does not create student accounts/);
-    assert.match(academicSetup, /Find registered student/);
+    assert.match(academicSetup, /Curriculum coverage/);
+    assert.match(academicSetup, /School Subjects is the source of truth/);
+    assert.doesNotMatch(academicSetup, /ensureGradeClass|saveSubjectOfferings|setStudentElective/);
+    assert.match(academicSetup, /Nothing on this screen changes student access or teacher allocation/);
 });
-test('class and placement UX follows the academic plan and hides repair tooling by default', () => {
-    assert.match(classes, /fetchSchoolAcademicSetup/);
+test('class creation works before subject setup and hides repair tooling by default', () => {
+    assert.match(classes, /useSchoolSubjectOfferings/);
     assert.match(classes, /class-creation-wizard/);
-    assert.match(classes, /Only grade levels configured/);
+    assert.match(classes, /create a class before adding subjects or students/);
+    assert.doesNotMatch(classes, /Only grade levels configured|No configured grade levels/);
     assert.match(classes, /Ready for enrolment/);
     assert.match(organisation, /1\. Class setup/);
     assert.match(organisation, /2\. Student placement/);
@@ -72,6 +73,11 @@ test('school identity is immutable to school admins and the supporting portal ta
 test('the repository consistently uses the Brains Heist product name', () => {
     const pattern = new RegExp('\\bBrain ' + 'Heist\\b');
     const matches = [];
+    const historicalBrandingExceptions = new Set([
+        'supabase/migrations/20260924043545_create_multisubject_cambridge_skill_registries_v1.sql',
+        'supabase/migrations/20260924045426_refine_multisubject_cambridge_crosswalk_scope.sql',
+        'supabase/migrations/20260930110000_add_economics_igcse_registry_v1.sql',
+    ]);
     function scanDir(dir) {
         let entries;
         try {
@@ -89,6 +95,8 @@ test('the repository consistently uses the Brains Heist product name', () => {
                 scanDir(full);
             }
             else {
+                if (historicalBrandingExceptions.has(full.replace(/\\/g, '/')))
+                    continue;
                 const content = readFileSync(full, 'utf8');
                 const lines = content.split('\n');
                 lines.forEach((line, idx) => {

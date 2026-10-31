@@ -57,10 +57,12 @@ test('Commander PvP client exposes a recorded battle network instead of practice
     const lobby = read('src/features/cursedCommander/CommanderPvpLobby.tsx');
     const arena = read('src/features/cursedCommander/CommanderPvpArena.tsx');
     assert.match(lobby, /Player Battles/);
-    assert.match(lobby, /ATTACK COMMANDER/);
+    assert.match(lobby, /⚔ Battle/);
+    assert.match(lobby, /Win: \+60 XP/);
     assert.match(lobby, /Resume Battle/);
-    assert.match(arena, /RECORDED PLAYER BATTLE/);
-    assert.match(arena, /persistent/i);
+    assert.match(arena, /PLAYER BATTLE/);
+    assert.match(arena, /startCommanderPvp/);
+    assert.doesNotMatch(arena, /No Coin or account XP transfer/);
     assert.match(arena, /submitCommanderPvpTurn/);
 });
 test('Commander PvP interrupted battles have explicit resume, expiry, and abandon UX', () => {
@@ -73,4 +75,31 @@ test('Commander PvP interrupted battles have explicit resume, expiry, and abando
     assert.match(lobby, /Cancel this battle\?/);
     assert.match(lobby, /Disconnecting does not decide the battle/);
     assert.doesNotMatch(lobby, /FINISH ACTIVE BATTLE/);
+});
+test('Commander PvP never sends the battle seed to the browser', () => {
+    const fn = read('supabase/functions/commander_pvp/index.ts');
+    assert.match(fn, /const publicBattleState = \(state: CommanderPvpBattleState\): CommanderPvpBattleState => \(\{ \.\.\.state, seed: 0 \}\)/);
+    assert.match(fn, /battle: publicBattleState\(row\.battle_state\)/);
+    assert.doesNotMatch(fn, /battle: row\.battle_state/);
+});
+test('Commander battle turns confirmed by the server are not discarded by the request timeout', () => {
+    for (const file of ['src/features/cursedCommander/CommanderPracticeArena.tsx', 'src/features/cursedCommander/CommanderPvpArena.tsx']) {
+        const arena = read(file);
+        const playMove = arena.slice(arena.indexOf('const playMove = async'));
+        const response = playMove.indexOf('controller.signal');
+        const clear = playMove.indexOf('window.clearTimeout(timeout);');
+        const playback = playMove.indexOf('await playConfirmedSteps(');
+        assert.ok(response > 0 && clear > response && clear < playback, `${file} clears the timeout before playback`);
+    }
+});
+test('Commander battle wins request XP from the database only after the server resolved the win', () => {
+    const pvp = read('supabase/functions/commander_pvp/index.ts');
+    assert.match(pvp, /next\.status === "victory" \? await awardVictoryXp\(user\.id, row\.id\) : null/);
+    assert.match(pvp, /p_source: "pvp_victory"/);
+    const practice = read('supabase/functions/commander_practice/index.ts');
+    assert.match(practice, /if \(state\.status === "victory" && admin\)/);
+    assert.match(practice, /p_source: "practice_victory"/);
+    const sql = read('supabase/migrations/20261030090000_commander_progression_go_live.sql');
+    assert.match(sql, /grant execute on function public\.rpc_commander_award_battle_xp\(uuid, text, uuid\) to service_role;/);
+    assert.doesNotMatch(sql, /rpc_commander_award_battle_xp\(uuid, text, uuid\) to authenticated/);
 });

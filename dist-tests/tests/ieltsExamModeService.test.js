@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { rpcIeltsExamWhoami, rpcIeltsStartAttempt, rpcIeltsAutosaveAttempt, rpcIeltsSubmitAttempt, rpcIeltsLogIncident, rpcIeltsExamMonitoring, rpcIeltsPauseExam, rpcIeltsResumeExam, rpcIeltsExtendAttempt, rpcIeltsForceSubmitAttempt, rpcIeltsVoidAttempt, rpcIeltsCreateExamEvent, rpcIeltsCreateExamForm, rpcIeltsAssignExamToClass, rpcIeltsAssignExamToStudents, rpcIeltsListManageableExams, rpcIeltsGetExamAdminDetail, validateExamJsonText, payloadContainsAnswerKey, sanitizePublicFormPayload, } from '../services/ieltsExamModeService.js';
+import { rpcIeltsExamWhoami, rpcIeltsExamStatus, rpcIeltsStartAttempt, rpcIeltsAutosaveAttempt, rpcIeltsSubmitAttempt, rpcIeltsLogIncident, rpcIeltsExamMonitoring, rpcIeltsPauseExam, rpcIeltsResumeExam, rpcIeltsExtendAttempt, rpcIeltsForceSubmitAttempt, rpcIeltsVoidAttempt, rpcIeltsCreateExamEvent, rpcIeltsCreateExamForm, rpcIeltsAssignExamToClass, rpcIeltsAssignExamToStudents, rpcIeltsListManageableExams, rpcIeltsGetExamAdminDetail, validateExamJsonText, payloadContainsAnswerKey, sanitizePublicFormPayload, } from '../services/ieltsExamModeService.js';
 const createClient = (handler) => ({
     rpc: ((name, params) => Promise.resolve({ data: handler(name, params), error: null })),
 });
@@ -221,4 +221,11 @@ test('IELTS start attempt pgcrypto repair migration keeps lock tokens secure and
     assert.doesNotMatch(migration, /(^|[^.])\bgen_random_bytes\s*\(/i, 'repair migration must not call gen_random_bytes without the extensions schema');
     assert.doesNotMatch(migration, /answer_key/i, 'start attempt repair must not expose answer keys');
     assert.doesNotMatch(migration, /rpc_is_ielts_admin|ielts_teachers|is_ielts_admin/i, 'start attempt repair must not reintroduce legacy IELTS admin dependencies');
+});
+test('status uses the compact RPC and never hydrates form or drafts', async () => {
+    const client = createClient((name, params) => { assert.equal(name, 'rpc_ielts_exam_status'); assert.deepEqual(params, { p_exam_event_id: 'exam-1' }); return { allowed: true, reason: 'ok', attempt_status: 'in_progress', form_public_payload: { writing_payload: { questions: [] } }, drafts: [{ section: 'writing', payload: { essay: 'private' } }] }; });
+    const result = await rpcIeltsExamStatus('exam-1', client);
+    assert.equal(result.attempt_status, 'in_progress');
+    assert.equal('drafts' in result, false);
+    assert.equal('form_public_payload' in result, false);
 });

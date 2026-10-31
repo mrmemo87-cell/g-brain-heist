@@ -39,8 +39,8 @@ test('registration rules fail closed before student or teacher membership is cre
 });
 test('teacher allocation keeps its full workflow and links skip code entry after validation', () => {
     assert.match(teachers, /<InvitesTab showRotate=\{false\}/);
-    assert.match(teachers, /allocationClasses|selectedFilterGrade|admin-table-scroll/);
-    assert.match(teachers, /handleAllocateTeacher/);
+    assert.match(teachers, /allocationGroups|allocationSubjectId|admin-table-scroll/);
+    assert.match(teachers, /setSchoolSubjectGroupTeacher/);
     assert.match(invites, /searchParams\.set\('schoolInvite', school\.invite_code\)/);
     assert.match(invites, /Send invitation link/);
     assert.match(setup, /get\('schoolInvite'\)/);
@@ -87,7 +87,7 @@ test('School Head and School Admin switch dashboards from matching header action
     assert.match(headStyles, /button:not\(\.school-head-signout\):not\(\.school-head-workspace-switch\)/);
 });
 test('all detected account roles are offered in the post-sign-in workspace chooser', () => {
-    assert.match(app, /getGuardianChildren/);
+    assert.match(app, /bootstrap\.has_parent_workspace/);
     assert.match(app, /hasParentWorkspace/);
     assert.match(app, /profile\.role === 'student' && Boolean\(profile\.school_id\)/);
     assert.match(app, /canOpenTeacherWorkspace/);

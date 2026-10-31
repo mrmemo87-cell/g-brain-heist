@@ -42,6 +42,11 @@ begin
     delete from private.demo_state;
   end if;
 
+  -- Content hygiene (idempotent; see post-restore.sql).
+  delete from public.questions q where q.pool_scope = 'school';
+  update public.questions q set teacher_id = null where teacher_id is not null;
+  update public.questions q set verified_by = null where verified_by is not null;
+
   -- "set local" lasts until the end of the whole transaction; switch triggers back on.
   set local session_replication_role = origin;
 end $$;

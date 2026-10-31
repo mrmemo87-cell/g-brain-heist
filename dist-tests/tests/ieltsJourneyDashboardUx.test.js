@@ -7,14 +7,14 @@ const dashboardPath = path.join(process.cwd(), 'src/pages/ielts/IeltsJourneyDash
 assert.ok(fs.existsSync(dashboardPath), 'Expected IeltsJourneyDashboard.tsx to exist before reading test source');
 let page = '';
 try {
-    page = fs.readFileSync(dashboardPath, 'utf8');
+    page = (fs.readFileSync(dashboardPath, 'utf8') + fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/components/IeltsStudentJourney.tsx'), 'utf8')).replace(/\s+/g, ' ');
 }
 catch (error) {
     assert.fail(`Failed to read ${dashboardPath}: ${error instanceof Error ? error.message : String(error)}`);
 }
 test('uses valid assigned practice route and never links to nonexistent /ielts/assigned', () => {
-    assert.match(page, /navigate\('\/ielts\/practice\/assigned'\)/);
     assert.doesNotMatch(page, /\/ielts\/assigned/);
+    assert.doesNotMatch(page, /practice-heading/, 'school assignments live in the Assignments tab, not in Journey');
 });
 test('dashboard mode uses only canonical platform or delegated administration capability', () => {
     const noMembership = { status: 'ready', capabilities: null };
@@ -41,21 +41,19 @@ test('tier lookup failure degrades only Prime access, not the whole dashboard', 
 });
 test('next action avoids fake completion phrasing', () => {
     assert.doesNotMatch(page, /Next: All tasks complete/);
-    assert.match(page, /No active IELTS assignments right now\./);
-    assert.match(page, /View your latest results and feedback\./);
+    assert.match(page, /Open a record to see its evidence/);
 });
-test('light theme and band readiness section are present', () => {
+test('light theme and verified readiness section are present', () => {
     assert.match(page, /background:\s*'#f8fafc'/);
-    assert.match(page, /Readiness overview/);
+    assert.match(page, /What about my estimated band/);
     assert.match(page, /Overall/);
-    assert.match(page, /Not enough data yet/);
+    assert.match(page, /cannot give a reliable overall band/);
 });
 test('status labels are humanized and no raw in_progress token appears in UI copy', () => {
-    assert.match(page, /In progress/);
     assert.doesNotMatch(page, /Status:\s*\{item\.status\b/);
 });
 test('assignment cards show only actual assigned skills and no Not assigned rows', () => {
-    assert.match(page, /orderedSkills\.filter\(\(skill\) => \(item\.skills \?\? \[\]\)\.includes\(skill\)\)/);
+    assert.doesNotMatch(page, /assigned_practice\.map/, 'Journey no longer repeats the assignment list; the Assignments tab owns it');
     assert.doesNotMatch(page, /Not assigned/);
 });
 test('result and feedback CTA gating exists for objective vs productive skills', () => {

@@ -1,7 +1,10 @@
-const STUDENT_GATES = ['pvp', 'raids', 'clans', 'shop', 'inventory', 'leaderboard', 'upgrade_prompts'];
-const SOLO_GATES = ['pvp', 'raids', 'clans', 'leaderboard', 'upgrade_prompts'];
-const TEACHER_GATES = ['pvp', 'raids', 'clans', 'shop', 'inventory', 'leaderboard', 'upgrade_prompts'];
-const ADMIN_GATES = ['pvp', 'raids', 'clans', 'shop', 'inventory', 'leaderboard'];
+const STUDENT_GATES = ['pvp', 'clans', 'shop', 'inventory', 'leaderboard', 'upgrade_prompts'];
+const SOLO_GATES = ['pvp', 'clans', 'leaderboard', 'upgrade_prompts'];
+const TEACHER_GATES = ['pvp', 'clans', 'shop', 'inventory', 'leaderboard', 'upgrade_prompts'];
+const ADMIN_GATES = ['pvp', 'clans', 'shop', 'inventory', 'leaderboard'];
+// Registration owns the required identity, school and class details. Once it
+// finishes, optional introductions must not block entry or resume on refresh.
+export const hasCompletedStudentSetup = (profile) => profile?.role === 'student' && profile.needs_setup === false;
 const isMissingSchoolPlacement = (profile) => {
     if (!profile || profile.role !== 'student' || !profile.school_id)
         return false;
@@ -177,7 +180,7 @@ export const resolveOnboarding = (input) => {
         };
     }
     const segmentResult = resolveSegment(input);
-    const complete = hasCompletedState(input) || hasLegacyCompletion(input);
+    const complete = hasCompletedStudentSetup(input.profile) || hasCompletedState(input) || hasLegacyCompletion(input);
     const nextStep = complete ? 'complete' : deriveNextStep(input, segmentResult.segment);
     const revealLevel = complete
         ? 'normal_dashboard'

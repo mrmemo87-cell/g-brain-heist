@@ -51,6 +51,7 @@ const makeQuestion = (item, section, index, prefix) => {
         prompt: prefix ? `${prefix}: ${prompt}` : prompt,
         type: textFromKeys(row, ['type', 'question_type', 'answer_type'], section === 'writing' ? 'essay' : 'text'),
         options: optionsFrom(row),
+        ...(typeof row['passage_id'] === 'string' ? { passageId: row['passage_id'] } : {}),
     };
 };
 const taskPrefix = (task, taskIndex) => textFromKeys(task, ['title', 'name', 'heading'], textFromKeys(task, ['passage_title'], `Task ${taskIndex + 1}`));

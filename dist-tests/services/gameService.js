@@ -1,4 +1,7 @@
-import * as RaidFeatureService from '../src/features/raids/raidService.js';
+import { touchPresence as touchPlayerPresence } from './presenceService.js';
+import { fetchQuestionPage, fetchStudentQuestionSummary } from './questionBrowserService.js';
+import { economicsDisplayOptions, questionGameXp } from './economicsOptionPresentation.js';
+import { retryAssignmentOperation, isTransientAssignmentError } from './assignmentReliability.js';
 import { saveToStorage, loadFromStorage, STORAGE_KEYS, addPlayerToSharedList, addActivityEvent, getActivityFeed, getTaskProgress, incrementPvPWin, incrementWeeklyTaskCompleted } from './storageService.js';
 import { supabase } from './supabaseClient.js';
 import { fetchNeonFrameOwners, fetchFlickerThemeOwners, fetchGlitchEffectOwners } from './cosmeticService.js';
@@ -16,22 +19,59 @@ const formatLocalDateKey = (date) => {
     return `${year}-${month}-${day}`;
 };
 let pendingDailyStreakReward = null;
-const recordDailyStreakForProfile = async (profile) => {
+let dailyStreakInFlight = null;
+let dailyStreakRecorded = null;
+const bishkekDateKey = () => new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString().slice(0, 10);
+const requestDailyStreak = async (userId) => {
+    const today = bishkekDateKey();
+    if (dailyStreakRecorded?.userId === userId && dailyStreakRecorded.date === today) {
+        return { data: dailyStreakRecorded.data, initiator: false };
+    }
+    if (dailyStreakInFlight?.userId === userId) {
+        const shared = await dailyStreakInFlight.promise;
+        return shared ? { data: shared, initiator: false } : null;
+    }
+    const promise = (async () => {
+        const { data, error } = await supabase.rpc('rpc_record_daily_streak');
+        if (error) {
+            console.warn('[whoami] Daily streak reward could not be recorded:', error.message);
+            return null; // Not remembered: the next profile load retries.
+        }
+        if (!data)
+            return null;
+        dailyStreakRecorded = { userId, date: today, data: data };
+        return data;
+    })();
+    const inFlight = { userId, promise };
+    dailyStreakInFlight = inFlight;
+    try {
+        const data = await promise;
+        return data ? { data, initiator: true } : null;
+    }
+    finally {
+        if (dailyStreakInFlight === inFlight)
+            dailyStreakInFlight = null;
+    }
+};
+export const recordDailyStreakForProfile = async (profile) => {
     if ((profile.role ?? 'student') !== 'student')
         return;
-    const { data, error } = await supabase.rpc('rpc_record_daily_streak');
-    if (error) {
-        console.warn('[whoami] Daily streak reward could not be recorded:', error.message);
+    if (!profile.id)
         return;
-    }
-    if (!data)
+    const result = await requestDailyStreak(profile.id);
+    if (!result)
         return;
+    const { data, initiator } = result;
     const receipt = {
-        claimed: data.claimed === true,
+        // Only the request that actually reached the server may report a fresh
+        // claim, so a shared or remembered answer never re-opens the celebration.
+        claimed: initiator && data.claimed === true,
         reward_date: String(data.reward_date ?? formatLocalDateKey(new Date())),
-        streak: Number(data.streak ?? profile.streak ?? 0),
+        // A remembered answer's totals may be stale (the daily mission can also
+        // change them), so prefer the freshly loaded profile values in that case.
+        streak: initiator ? Number(data.streak ?? profile.streak ?? 0) : Number(profile.streak ?? data.streak ?? 0),
         coins_awarded: Number(data.coins_awarded ?? 0),
-        coins: Number(data.coins ?? profile.coins ?? 0),
+        coins: initiator ? Number(data.coins ?? profile.coins ?? 0) : Number(profile.coins ?? data.coins ?? 0),
     };
     if (receipt.claimed)
         pendingDailyStreakReward = receipt;
@@ -113,6 +153,7 @@ const SUBJECT_ID_LOOKUP = {
     'German Language': 'german_language',
     Geography: 'geography',
     'Global Perspective': 'global_perspective',
+    Economics: 'economics',
     'Travel & Tourism': 'travel_tourism',
     ICT: 'ict',
 };
@@ -203,7 +244,7 @@ const normalizeTeacherQuestionPayload = (question) => {
     return {
         ...question,
         topic_name: normalizeTopicName(question.topic_name ?? undefined, question.topic ?? undefined),
-        options: coerceQuestionOptions(question.options, question.question_type),
+        options: economicsDisplayOptions(question.id, coerceQuestionOptions(question.options, question.question_type), question.option_order_policy),
         time_limit: resolvedTimeLimit,
         points: resolvedPoints,
     };
@@ -630,7 +671,7 @@ const getCurrentUser = async (maxRetries = 3) => {
             lastError = err;
             if (attempt < maxRetries) {
                 // Exponential backoff: 500ms, 1000ms, 2000ms
-                await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+                await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 400)));
                 console.warn(`getCurrentUser attempt ${attempt} failed, retrying...`, err);
             }
         }
@@ -721,7 +762,7 @@ const updateProfile = async (userId, updates, maxRetries = 3) => {
             lastError = err;
             if (attempt < maxRetries) {
                 // Exponential backoff: 500ms, 1000ms, 2000ms
-                await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+                await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 400)));
                 console.warn(`[updateProfile] Attempt ${attempt} failed, retrying...`, err);
             }
         }
@@ -975,80 +1016,19 @@ const getTotalDefensePower = (profile, inventory) => {
     });
     return total;
 };
-const getActiveCosmeticFrame = async (userId) => {
-    const { data, error } = await supabase
-        .from('inventory')
-        .select('item_id, kind, state')
-        .eq('user_id', userId)
-        .eq('state', 'active');
-    if (error) {
-        console.warn('Failed to load active cosmetics:', error.message);
-        return null;
-    }
-    const activeCosmetics = (data || []).filter(item => item.kind === 'cosmetic');
-    const hasNeonFrame = activeCosmetics.some(item => item.item_id === 'item_cosmetic_frame');
-    const frameValue = hasNeonFrame ? 'neon' : null;
-    // Sync to users table for better visibility across queries
-    try {
-        await supabase
-            .from('users')
-            .update({ active_cosmetic_frame: frameValue })
-            .eq('id', userId);
-    }
-    catch (syncError) {
-        console.warn('Failed to sync cosmetic frame to users table:', syncError);
-    }
-    return frameValue;
-};
-const getActiveCosmeticTheme = async (userId) => {
-    const { data, error } = await supabase
-        .from('inventory')
-        .select('item_id, kind, state')
-        .eq('user_id', userId)
-        .eq('state', 'active');
-    if (error) {
-        console.warn('Failed to load active cosmetics:', error.message);
-        return null;
-    }
-    const activeCosmetics = (data || []).filter(item => item.kind === 'cosmetic');
-    const hasFlickerTheme = activeCosmetics.some(item => item.item_id === 'item_cosmetic_theme');
-    const themeValue = hasFlickerTheme ? 'flicker' : null;
-    // Sync to users table for better visibility across queries
-    try {
-        await supabase
-            .from('users')
-            .update({ active_cosmetic_theme: themeValue })
-            .eq('id', userId);
-    }
-    catch (syncError) {
-        console.warn('Failed to sync cosmetic theme to users table:', syncError);
-    }
-    return themeValue;
-};
-const getActiveCosmeticEffect = async (userId) => {
-    const { data, error } = await supabase
-        .from('inventory')
-        .select('item_id, kind, state')
-        .eq('user_id', userId)
-        .eq('state', 'active');
-    if (error) {
-        console.warn('Failed to load active cosmetics:', error.message);
-        return null;
-    }
-    const activeCosmetics = (data || []).filter(item => item.kind === 'cosmetic');
-    const hasGlitchEffect = activeCosmetics.some(item => item.item_id === 'item_cosmetic_glitch');
-    const effectValue = hasGlitchEffect ? 'glitch' : null;
-    // Sync to users table for better visibility across queries
-    try {
-        await supabase
-            .from('users')
-            .update({ active_cosmetic_effect: effectValue })
-            .eq('id', userId);
-    }
-    catch (syncError) {
-        console.warn('Failed to sync cosmetic effect to users table:', syncError);
-    }
-    return effectValue;
+// Reading a profile must not emit users UPDATE events. Activation/deactivation
+// already synchronizes these fields on the server/mutation path.
+const getActiveCosmetics = async (userId) => {
+    const { data, error } = await supabase.from('inventory')
+        .select('item_id').eq('user_id', userId).eq('state', 'active').eq('kind', 'cosmetic');
+    if (error)
+        throw error;
+    const ids = new Set((data || []).map(item => item.item_id));
+    return {
+        active_cosmetic_frame: ids.has('item_cosmetic_frame') ? 'neon' : null,
+        active_cosmetic_theme: ids.has('item_cosmetic_theme') ? 'flicker' : null,
+        active_cosmetic_effect: ids.has('item_cosmetic_glitch') ? 'glitch' : null,
+    };
 };
 // Clean up expired items from inventory
 const cleanupExpiredItems = () => {
@@ -1127,7 +1107,7 @@ export const whoamiTeacher = async () => {
         catch { /* non-critical */ }
     }
     // Update presence without mutating profile metadata.
-    void supabase.rpc('rpc_touch_last_seen').then(() => { }, () => { });
+    void touchPlayerPresence();
     return profile;
 };
 /**
@@ -1168,7 +1148,35 @@ export const whoamiFast = async () => {
     }
     await streakRewardPromise;
     // Presence must never delay the dashboard.
-    void supabase.rpc('rpc_touch_last_seen').then(() => { }, () => { });
+    void touchPlayerPresence();
+    return profile;
+};
+/** Routine dashboard/realtime refresh: no streak claim, clan hydration or cosmetic writes. */
+export const refresh_player_snapshot = async (current, regenerateAp = false) => {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || sessionData.session?.user.id !== current.id)
+        throw new Error('Account changed.');
+    const lastApUpdate = Date.parse(current.last_ap_update || '');
+    if (regenerateAp && current.role === 'student' && current.ap_now < current.ap_max
+        && (!Number.isFinite(lastApUpdate) || Date.now() - lastApUpdate >= 10 * 60_000)) {
+        const { error } = await regenerateUserAp(current.id);
+        if (error)
+            throw error; // Keep AP awards server-authoritative; retry on the next refresh.
+    }
+    const { data, error } = await supabase.from('users').select('*').eq('id', current.id).single();
+    if (error || !data)
+        throw error || new Error('Profile unavailable.');
+    const profile = { ...current, ...data };
+    profile.is_banned = isBannedFlag(profile.is_banned);
+    if (profile.is_banned) {
+        storeBanMessage(BAN_MESSAGE);
+        await supabase.auth.signOut();
+        throw new Error(BAN_MESSAGE);
+    }
+    profile.total_score = calculateTotalScore(profile.xp ?? 0, profile.pvp_score ?? 0);
+    if (profile.xp_status?.xp !== profile.xp || profile.xp_status?.level !== profile.level) {
+        profile.xp_status = await fetchMyXpStatus(supabase, { xp: profile.xp, level: profile.level });
+    }
     return profile;
 };
 export const whoami = async () => {
@@ -1202,7 +1210,7 @@ export const whoami = async () => {
             }
             catch (err) {
                 if (attempt < 3) {
-                    await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+                    await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 400)));
                     console.warn(`[whoami] Attempt ${attempt} failed, retrying...`, err);
                 }
                 else {
@@ -1297,41 +1305,9 @@ export const whoami = async () => {
                 }
             }
             catch (apError) {
-                console.warn('AP regeneration function failed, using client-side fallback:', apError);
-                // Fallback to client-side calculation
-                const now = new Date();
-                const lastApUpdate = profile.last_ap_update ? new Date(profile.last_ap_update) : now;
-                const msElapsed = now.getTime() - lastApUpdate.getTime();
-                const minutesElapsed = Math.floor(msElapsed / (1000 * 60));
-                const apToRegen = Math.floor(minutesElapsed / 10);
-                console.log(`Fallback AP Regen: Last update: ${lastApUpdate.toISOString()}, Minutes elapsed: ${minutesElapsed}, AP to regen: ${apToRegen}`);
-                if (apToRegen > 0 && profile.ap_now < profile.ap_max) {
-                    const newAP = Math.min(profile.ap_now + apToRegen, profile.ap_max);
-                    // Calculate exact timestamp: set timer to when the LAST AP was earned (not now)
-                    // Example: 35 minutes elapsed = 3 AP earned. Last AP was earned 5 minutes ago.
-                    const remainderMinutes = minutesElapsed % 10;
-                    const newLastUpdate = new Date(now.getTime() - (remainderMinutes * 60000));
-                    const updateData = {
-                        ap_now: newAP,
-                        last_ap_update: newLastUpdate.toISOString()
-                    };
-                    console.log(`Updating AP in DB: ${profile.ap_now} → ${newAP}, Timer: ${newLastUpdate.toISOString()}`);
-                    const { error: updateError } = await supabase
-                        .from('users')
-                        .update(updateData)
-                        .eq('id', user.id);
-                    if (updateError) {
-                        console.error('Failed to update AP in database:', updateError);
-                    }
-                    else {
-                        console.log('✅ AP regenerated successfully');
-                        profile.ap_now = newAP;
-                        profile.last_ap_update = newLastUpdate.toISOString();
-                    }
-                }
-                else {
-                    console.log(`No AP regeneration needed: current=${profile.ap_now}, max=${profile.ap_max}, toRegen=${apToRegen}`);
-                }
+                // AP is server-authoritative (regenerate_user_ap). If the refresh fails we keep the
+                // stored value and try again on the next load; the client never writes AP itself.
+                console.warn('AP regeneration function failed; keeping stored AP until next refresh:', apError);
             }
         }
         else {
@@ -1451,25 +1427,11 @@ export const whoami = async () => {
         }
         profile.defense_power_effective = (profile.defense_power_effective ?? profile.defense_power) + activeShieldDefense;
         try {
-            profile.active_cosmetic_frame = await getActiveCosmeticFrame(profile.id);
+            Object.assign(profile, await getActiveCosmetics(profile.id));
         }
         catch (cosmeticError) {
-            console.warn('Failed to attach cosmetic frame to profile:', cosmeticError);
-            profile.active_cosmetic_frame = null;
-        }
-        try {
-            profile.active_cosmetic_theme = await getActiveCosmeticTheme(profile.id);
-        }
-        catch (cosmeticError) {
-            console.warn('Failed to attach cosmetic theme to profile:', cosmeticError);
-            profile.active_cosmetic_theme = null;
-        }
-        try {
-            profile.active_cosmetic_effect = await getActiveCosmeticEffect(profile.id);
-        }
-        catch (cosmeticError) {
-            console.warn('Failed to attach cosmetic effect to profile:', cosmeticError);
-            profile.active_cosmetic_effect = null;
+            // Preserve the persisted values if the optional inventory read fails.
+            console.warn('Failed to attach active cosmetics to profile:', cosmeticError);
         }
         // Fetch school info for display (name and logo)
         if (profile.school_id) {
@@ -1549,7 +1511,7 @@ export const kickOffNonCriticalBootLoads = ({ signal, targets, timeoutsMs, onTas
         promises.push(runNonCritical('news', () => news_feed(), timeouts.news, signal, onNews, onError));
     }
     if (shouldRun('assignment')) {
-        promises.push(runNonCritical('assignment', () => get_student_pending_assignments(), timeouts.assignment, signal, onAssignment, onError));
+        promises.push(runNonCritical('assignment', () => get_student_assignment_summaries(), timeouts.assignment, signal, onAssignment, onError));
     }
     if (shouldRun('sessionStatus')) {
         promises.push(runNonCritical('sessionStatus', () => session_status(), timeouts.sessionStatus, signal, onSessionStatus, onError));
@@ -1584,7 +1546,7 @@ export const getPublicProfile = async (userId) => {
         catch (err) {
             fetchError = err;
             if (attempt < 3) {
-                await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+                await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 400)));
                 console.warn(`getPublicProfile attempt ${attempt} failed, retrying...`, err);
             }
         }
@@ -1963,43 +1925,48 @@ export const news_feed = async () => {
     const studentActivities = (activities || [])
         .filter((activity) => !isBotActivityEvent(activity))
         .slice(0, 20);
-    const missingUserIds = new Set();
-    studentActivities.forEach((activity) => {
-        if (!activity.actor_username && activity.actor_id) {
-            missingUserIds.add(activity.actor_id);
-        }
-        if (!activity.target_username && activity.target_id) {
-            missingUserIds.add(activity.target_id);
-        }
-    });
-    let userLookup = {};
-    if (missingUserIds.size > 0) {
-        const { data: userRows, error: userError } = await supabase
-            .from('users')
-            .select('id, username, email')
-            .in('id', Array.from(missingUserIds));
-        if (userError) {
-            console.warn('Failed to resolve activity usernames:', userError);
-        }
-        else {
-            userLookup = (userRows || []).reduce((acc, row) => {
-                acc[row.id] = row.username || row.email || 'Unknown';
-                return acc;
-            }, {});
-        }
-    }
     const activityIds = studentActivities.map((a) => a.id);
     const { data: reactionsData } = activityIds.length
         ? await supabase
             .from('activity_reactions')
-            .select('activity_id, emoji, user_id')
+            .select('activity_id, emoji, user_id, created_at')
             .in('activity_id', activityIds)
         : { data: [] };
+    // One lookup for names and avatars of everyone shown: actors, targets and reactors.
+    const peopleIds = new Set();
+    studentActivities.forEach((activity) => {
+        if (activity.actor_id)
+            peopleIds.add(activity.actor_id);
+        if (!activity.target_username && activity.target_id)
+            peopleIds.add(activity.target_id);
+    });
+    (reactionsData || []).forEach((reaction) => {
+        if (reaction.user_id)
+            peopleIds.add(reaction.user_id);
+    });
+    let userLookup = {};
+    let avatarLookup = {};
+    if (peopleIds.size > 0) {
+        const { data: userRows, error: userError } = await supabase
+            .from('users')
+            .select('id, username, email, avatar_url')
+            .in('id', Array.from(peopleIds));
+        if (userError) {
+            console.warn('Failed to resolve activity usernames:', userError);
+        }
+        else {
+            (userRows || []).forEach((row) => {
+                userLookup[row.id] = row.username || row.email || 'Unknown';
+                avatarLookup[row.id] = row.avatar_url || null;
+            });
+        }
+    }
     const reactionsByActivity = {};
     studentActivities.forEach((activity) => {
         reactionsByActivity[activity.id] = {
             reactions: { '🔥': 0, '😮': 0, '😂': 0, '❤️': 0 },
             myReaction: null,
+            reactors: [],
         };
     });
     (reactionsData || []).forEach(reaction => {
@@ -2011,7 +1978,16 @@ export const news_feed = async () => {
             if (reaction.user_id === user.id) {
                 reactionsByActivity[reaction.activity_id].myReaction = reaction.emoji;
             }
+            reactionsByActivity[reaction.activity_id].reactors.push({
+                name: userLookup[reaction.user_id] || 'A classmate',
+                emoji: reaction.emoji,
+                is_self: reaction.user_id === user.id,
+            });
         }
+    });
+    // You first, then most recent reactors.
+    Object.values(reactionsByActivity).forEach((entry) => {
+        entry.reactors.sort((a, b) => Number(b.is_self) - Number(a.is_self));
     });
     const dbEvents = studentActivities.map((activity) => {
         const createdAt = new Date(activity.created_at);
@@ -2021,11 +1997,15 @@ export const news_feed = async () => {
             id: activity.id,
             kind: activity.kind,
             actor: activity.actor_username || userLookup[activity.actor_id] || 'Unknown',
+            actor_id: activity.actor_id ?? undefined,
+            actor_avatar: activity.actor_id ? avatarLookup[activity.actor_id] ?? null : null,
             target: activity.target_username || userLookup[activity.target_id] || undefined,
             data: activity.data || {},
             created_at: timeAgo,
+            created_at_ms: createdAt.getTime(),
             reactions: activityReactions.reactions,
             my_reaction: activityReactions.myReaction,
+            reactors: activityReactions.reactors,
             timestamp: createdAt.getTime(),
         };
     });
@@ -2100,42 +2080,15 @@ export const activity_reaction_toggle = async (activity_id, emoji) => {
             return mockApiCall({ added });
         }
     }
-    // Check if user already has a reaction on this activity
-    const { data: existingReaction } = await supabase
-        .from('activity_reactions')
-        .select('id, emoji')
-        .eq('activity_id', activity_id)
-        .eq('user_id', user.id)
-        .single();
-    if (existingReaction) {
-        if (existingReaction.emoji === emoji) {
-            // Remove the reaction (toggle off)
-            await supabase
-                .from('activity_reactions')
-                .delete()
-                .eq('id', existingReaction.id);
-            return mockApiCall({ added: false });
-        }
-        else {
-            // Update to new emoji
-            await supabase
-                .from('activity_reactions')
-                .update({ emoji: emoji })
-                .eq('id', existingReaction.id);
-            return mockApiCall({ added: true });
-        }
+    // Server toggles the reaction (one per student per post) and notifies the post's owner.
+    const { data, error } = await supabase.rpc('rpc_react_to_activity', {
+        p_activity_id: activity_id,
+        p_emoji: emoji,
+    });
+    if (error) {
+        throw new Error(error.message || 'Failed to save reaction.');
     }
-    else {
-        // Add new reaction
-        await supabase
-            .from('activity_reactions')
-            .insert({
-            activity_id: activity_id,
-            user_id: user.id,
-            emoji: emoji,
-        });
-        return mockApiCall({ added: true });
-    }
+    return mockApiCall({ added: Boolean(data?.added) });
 };
 const ACADEMIC_CODE_BY_LEGACY_ID = {
     subj_math: 'mathematics',
@@ -2160,11 +2113,26 @@ const academicCodeForSubject = (value) => {
         return 'global-perspectives';
     return normalized.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 };
-const fetchStudentAcademicSubjectCatalog = async () => {
-    const { data, error } = await supabase.rpc('rpc_student_academic_subjects', { p_student_id: null });
-    if (error)
-        throw error;
-    return (data || { success: true, ready: false, subjects: [] });
+let studentAcademicSubjectCatalogInFlight = null;
+export const fetchStudentAcademicSubjectCatalog = async () => {
+    if (studentAcademicSubjectCatalogInFlight) {
+        return studentAcademicSubjectCatalogInFlight;
+    }
+    const request = (async () => {
+        const { data, error } = await supabase.rpc('rpc_student_academic_subjects', { p_student_id: null });
+        if (error)
+            throw error;
+        return (data || { success: true, ready: false, subjects: [] });
+    })();
+    studentAcademicSubjectCatalogInFlight = request;
+    try {
+        return await request;
+    }
+    finally {
+        if (studentAcademicSubjectCatalogInFlight === request) {
+            studentAcademicSubjectCatalogInFlight = null;
+        }
+    }
 };
 const fetchStudentLearningCatalog = async (subject, limit) => {
     const { data, error } = await supabase.rpc('rpc_student_learning_catalog', {
@@ -2193,10 +2161,10 @@ export const mcq_questions_get = async (subject_id, limit = 5) => {
     return catalog.questions.map(q => ({
         id: q.id,
         body: q.question_text,
-        options: q.options || [],
+        options: economicsDisplayOptions(q.id, q.options || []),
         correct_answer: q.correct_answer, // Include correct answer for validation
-        reward_xp: q.points || 20,
-        reward_coins: Math.floor((q.points || 20) * 1.5),
+        reward_xp: questionGameXp(q),
+        reward_coins: Math.floor(questionGameXp(q) * 1.5),
         explanation: q.explanation,
         image_url: q.image_url || null, // Include question image
         image_alt_text: q.image_alt_text || null,
@@ -2211,212 +2179,29 @@ export const mcq_questions_get = async (subject_id, limit = 5) => {
  * This is USER-SPECIFIC progress, not global question bank size
  */
 export const get_student_subject_progress = async () => {
-    try {
-        const user = await getCurrentUser();
-        // Get all subjects
-        const subjects = await mcq_subjects_list();
-        // Get DISTINCT question_ids answered by THIS student (not duplicate attempts)
-        // This prevents counting the same question multiple times
-        let attemptCounts = [];
-        try {
-            const { data, error: attemptError } = await supabase
-                .from('question_attempts')
-                .select('question_id')
-                .eq('student_id', user.id);
-            if (attemptError) {
-                console.error('Error fetching student attempts:', attemptError);
-            }
-            else {
-                attemptCounts = data || [];
-            }
-        }
-        catch (err) {
-            console.warn('Failed to fetch attempt counts:', err);
-        }
-        const questionData = (await get_public_questions()).map(({ id, subject }) => ({ id, subject }));
-        // Build a map of question_id -> subject
-        const questionSubjectMap = {};
-        const totalBySubject = {};
-        for (const q of questionData) {
-            if (q.id && q.subject) {
-                questionSubjectMap[q.id] = q.subject;
-                totalBySubject[q.subject] = (totalBySubject[q.subject] || 0) + 1;
-            }
-        }
-        // Build answer counts by subject using UNIQUE question_ids only
-        // Use a Set to track which questions have been answered per subject
-        const answeredQuestionsPerSubject = {};
-        for (const attempt of attemptCounts) {
-            const subject = questionSubjectMap[attempt.question_id];
-            if (subject) {
-                if (!answeredQuestionsPerSubject[subject]) {
-                    answeredQuestionsPerSubject[subject] = new Set();
-                }
-                answeredQuestionsPerSubject[subject].add(attempt.question_id);
-            }
-        }
-        // Convert Sets to counts
-        const answeredBySubject = {};
-        for (const [subject, questionSet] of Object.entries(answeredQuestionsPerSubject)) {
-            answeredBySubject[subject] = questionSet.size;
-        }
-        // Map to result with subject names (case-insensitive matching for robustness)
-        return subjects.map(s => {
-            // Try exact match first, then case-insensitive
-            let answered = answeredBySubject[s.name] || 0;
-            let total = totalBySubject[s.name] || 0;
-            // If no match, try case-insensitive
-            if (answered === 0 && total === 0) {
-                const lowerName = s.name.toLowerCase();
-                for (const [subject, count] of Object.entries(answeredBySubject)) {
-                    if (subject.toLowerCase() === lowerName) {
-                        answered = count;
-                        break;
-                    }
-                }
-                for (const [subject, count] of Object.entries(totalBySubject)) {
-                    if (subject.toLowerCase() === lowerName) {
-                        total = count;
-                        break;
-                    }
-                }
-            }
-            return {
-                id: s.id,
-                name: s.name,
-                answeredCount: answered,
-                totalAvailable: total,
-            };
-        });
-    }
-    catch (error) {
-        console.error('get_student_subject_progress failed:', error);
-        // Return empty progress as fallback
-        const subjects = await mcq_subjects_list();
-        return subjects.map(s => ({
-            id: s.id,
-            name: s.name,
-            answeredCount: 0,
-            totalAvailable: 0,
-        }));
-    }
+    const progress = await get_student_subject_progress_with_difficulty();
+    return progress.map(({ id, name, answeredCount, totalAvailable }) => ({ id, name, answeredCount, totalAvailable }));
 };
 /**
  * Get student subject progress with difficulty breakdown
  * Returns progress per subject, split by easy/medium/hard
  */
-export const get_student_subject_progress_with_difficulty = async () => {
-    try {
-        const user = await getCurrentUser();
-        console.log('[Progress] Fetching progress for user:', user.id);
-        // Get all subjects
-        const subjects = await mcq_subjects_list();
-        // Get student's answered question IDs - using RLS to filter by student_id
-        let attemptCounts = [];
-        try {
-            // Note: RLS policy filters by auth.uid() = student_id automatically
-            // We don't need to manually filter, but we do for explicit clarity
-            const { data, error: attemptError } = await supabase
-                .from('question_attempts')
-                .select('question_id')
-                .eq('student_id', user.id);
-            if (attemptError) {
-                console.error('[Progress] Error fetching student attempts:', attemptError);
+export const get_student_subject_progress_with_difficulty = async (knownSubjects) => {
+    const [subjects, summary] = await Promise.all([knownSubjects ? Promise.resolve(knownSubjects) : mcq_subjects_list(), fetchStudentQuestionSummary()]);
+    return subjects.map((subject) => {
+        const rows = summary.filter((row) => academicCodeForSubject(row.subject) === academicCodeForSubject(subject.name));
+        const difficulties = { easy: { total: 0, completed: 0 }, medium: { total: 0, completed: 0 }, hard: { total: 0, completed: 0 } };
+        rows.forEach((row) => {
+            const difficulty = row.difficulty === 'med' ? 'medium' : row.difficulty;
+            if (difficulty in difficulties) {
+                const item = difficulties[difficulty];
+                item.total += row.count;
+                item.completed += row.answered || 0;
             }
-            else {
-                attemptCounts = data || [];
-                console.log(`[Progress] Found ${attemptCounts.length} question attempts for user`);
-            }
-        }
-        catch (err) {
-            console.warn('[Progress] Failed to fetch attempt counts:', err);
-        }
-        // Build set of answered question IDs
-        const answeredQuestionIds = new Set(attemptCounts.map(a => a.question_id));
-        const questionData = (await get_public_questions()).map(({ id, subject, difficulty }) => ({ id, subject, difficulty }));
-        // Normalize difficulty values (db uses 'med' but UI uses 'medium')
-        const normalizeDifficulty = (d) => {
-            if (!d)
-                return 'easy'; // Default to easy if no difficulty set
-            const lower = d.toLowerCase();
-            if (lower === 'easy')
-                return 'easy';
-            if (lower === 'med' || lower === 'medium')
-                return 'medium';
-            if (lower === 'hard')
-                return 'hard';
-            return 'easy'; // Default fallback
-        };
-        // Build progress per subject with difficulty breakdown
-        const subjectProgress = {};
-        for (const q of questionData) {
-            if (!q.subject)
-                continue;
-            const subjectKey = q.subject;
-            const difficulty = normalizeDifficulty(q.difficulty);
-            const isAnswered = answeredQuestionIds.has(q.id);
-            if (!subjectProgress[subjectKey]) {
-                subjectProgress[subjectKey] = {
-                    total: 0,
-                    answered: 0,
-                    difficulties: {
-                        easy: { total: 0, completed: 0 },
-                        medium: { total: 0, completed: 0 },
-                        hard: { total: 0, completed: 0 }
-                    }
-                };
-            }
-            subjectProgress[subjectKey].total++;
-            subjectProgress[subjectKey].difficulties[difficulty].total++;
-            if (isAnswered) {
-                subjectProgress[subjectKey].answered++;
-                subjectProgress[subjectKey].difficulties[difficulty].completed++;
-            }
-        }
-        // Map subjects to results with case-insensitive matching
-        return subjects.map(s => {
-            // Try exact match first
-            let progress = subjectProgress[s.name];
-            // If no match, try case-insensitive
-            if (!progress) {
-                const lowerName = s.name.toLowerCase();
-                for (const [subject, prog] of Object.entries(subjectProgress)) {
-                    if (subject.toLowerCase() === lowerName) {
-                        progress = prog;
-                        break;
-                    }
-                }
-            }
-            const defaultDifficulties = {
-                easy: { total: 0, completed: 0 },
-                medium: { total: 0, completed: 0 },
-                hard: { total: 0, completed: 0 }
-            };
-            return {
-                id: s.id,
-                name: s.name,
-                answeredCount: progress?.answered || 0,
-                totalAvailable: progress?.total || 0,
-                difficulties: progress?.difficulties || defaultDifficulties
-            };
         });
-    }
-    catch (error) {
-        console.error('get_student_subject_progress_with_difficulty failed:', error);
-        // Return empty progress as fallback
-        const subjects = await mcq_subjects_list();
-        return subjects.map(s => ({
-            id: s.id,
-            name: s.name,
-            answeredCount: 0,
-            totalAvailable: 0,
-            difficulties: {
-                easy: { total: 0, completed: 0 },
-                medium: { total: 0, completed: 0 },
-                hard: { total: 0, completed: 0 }
-            }
-        }));
-    }
+        return { id: subject.id, name: subject.name, totalAvailable: rows.reduce((sum, row) => sum + row.count, 0),
+            answeredCount: rows.reduce((sum, row) => sum + (row.answered || 0), 0), difficulties };
+    });
 };
 export const raid_targets = async () => {
     const user = await getCurrentUser();
@@ -2489,31 +2274,6 @@ export const raid_targets = async () => {
     // Competitive targets must be real server-returned players only.
     return prioritizedTargets;
 };
-// Raid system integration -------------------------------------------------
-export const getActiveRaidStatus = () => {
-    return RaidFeatureService.getActiveRaid();
-};
-export const getRaidStatusById = (raidId) => {
-    return RaidFeatureService.getRaidStatus(raidId);
-};
-export const getBossUnlockState = (userId) => {
-    return RaidFeatureService.getBossUnlockState(userId);
-};
-export const startRaidEncounter = (bossId) => {
-    return RaidFeatureService.startRaid(bossId);
-};
-export const joinRaid = (raidId, username, userId) => {
-    return RaidFeatureService.joinRaid(raidId, username, userId);
-};
-export const submitRaidWaveAnswer = (payload, wave, participant) => {
-    return RaidFeatureService.submitRaidAnswer(payload, wave, participant);
-};
-export const finalizeRaidEncounter = (raidId, participants) => {
-    return RaidFeatureService.finalizeRaid(raidId, participants);
-};
-export const getRaidWaveQuestions = (request) => {
-    return RaidFeatureService.getRaidWaveQuestions(request);
-};
 export const raid_attack = async (defender_id, _use_cracker, _target, requestId) => {
     const { data, error } = await performHackAttempt(defender_id, requestId);
     if (error) {
@@ -2545,6 +2305,7 @@ export const raid_attack = async (defender_id, _use_cracker, _target, requestId)
         },
         shield_state: (payload.shield_state ?? 'none'),
         final_profile_values: payload.final_profile_values ?? undefined,
+        combat_stats: payload.combat_stats ?? undefined,
     };
     // Surface Supabase combat stats in debug logs to aid balancing
     if (payload.combat_stats) {
@@ -2602,65 +2363,19 @@ export const shop_list = async () => {
     return mockApiCall(itemsWithRealCounts);
 };
 export const shop_buy = async (item_id, quantity) => {
-    const user = await getCurrentUser();
     const item = MOCK_SHOP_ITEMS.find(i => i.id === item_id);
     if (!item) {
         return Promise.reject({ message: 'Item not found.' });
     }
-    const { data: balances, error: balanceError } = await supabase
-        .from('users')
-        .select('coins, gemstones')
-        .eq('id', user.id)
-        .single();
-    if (balanceError || !balances) {
-        return Promise.reject({ message: 'Failed to load your balances.' });
+    if (!Number.isInteger(quantity) || quantity < 1) {
+        return Promise.reject({ message: 'Invalid quantity.' });
     }
-    const currentCoins = balances.coins ?? 0;
-    const currentGemstones = balances.gemstones ?? 0;
-    const totalCoinCost = item.price * quantity;
-    const gemstonePrice = item.gemstone_price || 0;
-    const totalGemCost = gemstonePrice * quantity;
-    if (totalCoinCost > currentCoins) {
-        return Promise.reject({ message: 'Not enough coins.' });
+    // Prices, balances, daily limits and the item grant are all decided on the server.
+    const { data, error } = await supabase.rpc('rpc_shop_buy', { p_item_id: item.id, p_quantity: quantity });
+    if (error || !data) {
+        return Promise.reject({ message: error?.message || 'Purchase failed.' });
     }
-    if (totalGemCost > currentGemstones) {
-        return Promise.reject({ message: 'Not enough gemstones.' });
-    }
-    // Check today's purchase count from database
-    const today = new Date().toISOString().split('T')[0];
-    const { data: todayPurchases } = await supabase
-        .from('shop_purchases')
-        .select('quantity')
-        .eq('user_id', user.id)
-        .eq('item_id', item_id)
-        .eq('purchase_date', today); // Use purchase_date column (DATE type)
-    const currentPurchaseCount = todayPurchases?.reduce((sum, p) => sum + p.quantity, 0) || 0;
-    if ((currentPurchaseCount + quantity) > item.daily_limit) {
-        return Promise.reject({ message: 'Daily purchase limit exceeded.' });
-    }
-    const newCoinBalance = currentCoins - totalCoinCost;
-    const newGemstoneBalance = currentGemstones - totalGemCost;
-    // Update profile balances using the authoritative values from the database
-    await updateProfile(user.id, { coins: newCoinBalance, gemstones: newGemstoneBalance });
-    // Add purchase record
-    await supabase.from('shop_purchases').insert({
-        user_id: user.id,
-        item_id: item.id,
-        quantity: quantity,
-        total_cost: totalCoinCost,
-    });
-    // Log activity for achievement tracking
-    await supabase.from('activities').insert({
-        kind: 'shop_purchase',
-        actor_id: user.id,
-        actor_username: user.email?.split('@')[0] || 'Unknown',
-        data: {
-            item_id: item.id,
-            item_name: item.name,
-            quantity: quantity,
-            amount: totalCoinCost
-        },
-    });
+    const result = data;
     // Check for shop-related achievements
     try {
         const newlyEarned = await check_achievements();
@@ -2671,29 +2386,12 @@ export const shop_buy = async (item_id, quantity) => {
     catch (achError) {
         console.warn('Failed to check shop achievements:', achError);
     }
-    // Add items to inventory
-    const inventoryItems = [];
-    for (let i = 0; i < quantity; i++) {
-        const newItem = {
-            user_id: user.id,
-            item_id: item.id,
-            name: item.name,
-            kind: item.kind,
-            state: 'unused',
-            description: item.description,
-            effect_summary: item.effect_summary,
-            attack_bonus: item.kind === 'encryption_key' ? 15 : item.kind === 'exploit_kit' ? 25 : undefined,
-            defense_bonus: item.kind === 'shield' ? 20 : item.kind === 'firewall' ? 30 : undefined,
-        };
-        inventoryItems.push(newItem);
-    }
-    await supabase.from('inventory').insert(inventoryItems);
     const receipt = {
         receipt_id: `rec_${Date.now()}`,
-        coins_spent: totalCoinCost,
-        gemstones_spent: totalGemCost,
-        new_balance: newCoinBalance,
-        new_gemstone_balance: newGemstoneBalance,
+        coins_spent: result.coins_spent,
+        gemstones_spent: result.gemstones_spent,
+        new_balance: result.new_balance,
+        new_gemstone_balance: result.new_gemstone_balance,
         item: item,
         quantity: quantity
     };
@@ -3219,73 +2917,24 @@ export const clan_details = async () => {
 };
 export const clan_create = async (name, notice) => {
     const user = await getCurrentUser();
-    const creationFee = 1000;
-    // Parallelize initial checks for speed
-    const [profileResult, membershipResult, usernameResult] = await Promise.all([
-        supabase.from('users').select('coins').eq('id', user.id).single(),
-        supabase.from('clan_members').select('clan_id').eq('user_id', user.id).maybeSingle(),
-        supabase.from('users').select('username').eq('id', user.id).single(),
-    ]);
-    const profile = profileResult.data;
-    const existingMembership = membershipResult.data;
-    const username = usernameResult.data?.username || 'Unknown';
-    if (!profile || profile.coins < creationFee) {
-        throw new Error('Not enough coins to create a clan.');
-    }
-    if (existingMembership) {
-        throw new Error('You are already in a clan.');
-    }
-    // Deduct coins and create clan in parallel-ish flow
-    await updateProfile(user.id, { coins: profile.coins - creationFee });
-    // Create clan
-    const { data: newClan, error: clanError } = await supabase
-        .from('clans')
-        .insert({
-        name: name,
-        notice: notice || 'Welcome to the clan!',
-        vault_coins: 0,
-        leader_id: user.id,
-        member_count: 1,
-    })
-        .select()
-        .single();
-    if (clanError) {
-        console.error('Clan creation error:', clanError);
-        throw new Error(clanError.message || 'Failed to create clan.');
-    }
-    if (!newClan) {
-        throw new Error('Failed to create clan - no data returned.');
-    }
-    // Add creator as leader (don't wait for activity log)
-    const { error: memberError } = await supabase.from('clan_members').insert({
-        clan_id: newClan.id,
-        user_id: user.id,
-        role: 'leader',
+    // The server checks membership and the name, and charges the 1,000-coin fee.
+    const { data, error } = await supabase.rpc('rpc_create_clan', {
+        p_clan_name: name.trim(),
+        p_notice: notice || null,
     });
-    if (memberError) {
-        console.error('Clan member creation error:', memberError);
-        throw new Error('Failed to add you as clan leader.');
+    if (error) {
+        console.error('Clan creation error:', error);
+        throw new Error(error.message || 'Failed to create clan.');
     }
-    // Log activity in background (don't wait)
-    void (async () => {
-        try {
-            await supabase.from('activities').insert({
-                kind: 'clan_create',
-                actor_id: user.id,
-                actor_username: username,
-                data: { details: newClan.name },
-            });
-        }
-        catch (e) {
-            console.warn('Failed to log clan_create activity:', e);
-        }
-    })();
-    // Return immediate clan object without heavy clan_details() call
-    // The UI will refresh the full details on next mount
+    const result = Array.isArray(data) ? data[0] : data;
+    if (!result || !result.success || !result.clan_id) {
+        throw new Error(result?.error_message || 'Failed to create clan.');
+    }
+    const username = result.leader_username || 'Unknown';
     const immediateClan = {
-        id: newClan.id,
-        name: newClan.name,
-        notice: newClan.notice || 'Welcome to the clan!',
+        id: result.clan_id,
+        name: result.clan_name,
+        notice: (notice || '').trim() || 'Welcome to the clan!',
         crest_url: undefined,
         vault_metric: 0,
         vault_coins: 0,
@@ -3293,7 +2942,7 @@ export const clan_create = async (name, notice) => {
         extra_member_slots_purchased: 0,
         members: [{
                 user_id: user.id,
-                username: username,
+                username,
                 role: 'leader',
                 contribution: 0,
                 avatar_url: '',
@@ -3347,66 +2996,45 @@ export const clan_chat_recent = async (clanId) => {
     })).reverse(); // Reverse to show oldest first
     return mockApiCall(chatMessages);
 };
-const toxicityFilter = (message) => {
-    const badWords = ['noob', 'hax', 'cheater'];
-    let cleanMessage = message;
-    badWords.forEach(word => {
-        const regex = new RegExp(`\\b${word}\\b`, 'gi');
-        cleanMessage = cleanMessage.replace(regex, '▮▮▮▮');
-    });
-    return cleanMessage;
-};
-export const clan_chat_post = async (message, clanId) => {
-    const user = await getCurrentUser();
-    const cleanMessage = toxicityFilter(message);
-    // Get user's profile for username
-    const { data: profile } = await supabase
-        .from('users')
-        .select('username')
-        .eq('id', user.id)
-        .single();
-    if (!profile) {
-        throw new Error('User profile not found.');
-    }
-    let targetClanId = clanId;
-    if (!targetClanId) {
-        // Fallback to the player's active clan when clan id isn't provided
-        const { data: membership } = await supabase
-            .from('clan_members')
-            .select('clan_id')
-            .eq('user_id', user.id)
-            .maybeSingle();
-        targetClanId = membership?.clan_id;
-    }
-    if (!targetClanId) {
-        throw new Error('You are not in a clan.');
-    }
-    // Insert chat message with username directly
-    const { data: newMessage, error } = await supabase
-        .from('clan_chat')
-        .insert({
-        clan_id: targetClanId,
-        user_id: user.id,
-        username: profile.username,
-        message: cleanMessage,
-    })
-        .select('*')
-        .single();
+export const clan_chat_post = async (message, _clanId) => {
+    // The server finds your clan, sets your real name, filters the text and rate-limits posts.
+    const { data, error } = await supabase.rpc('rpc_clan_chat_post', { p_message: message });
     if (error) {
         console.error('Chat post error:', error);
         throw new Error(error.message || 'Failed to post message.');
     }
-    if (!newMessage) {
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) {
         throw new Error('Failed to post message - no data returned.');
     }
-    const chatMessage = {
-        id: newMessage.id,
-        user: newMessage.username,
-        message: newMessage.message,
-        created_at: formatChatTimestamp(new Date()),
+    return mockApiCall({
+        id: row.id,
+        user: row.username,
+        message: row.message,
+        created_at: formatChatTimestamp(new Date(row.created_at ?? Date.now())),
         is_self: true,
-    };
-    return mockApiCall(chatMessage);
+    });
+};
+export const clan_chat_report = async (messageId, reason = '') => {
+    const { error } = await supabase.rpc('rpc_clan_chat_report', { p_message_id: messageId, p_reason: reason });
+    if (error)
+        throw new Error(error.message || 'Failed to report message.');
+};
+export const clan_chat_hide = async (messageId) => {
+    const { error } = await supabase.rpc('rpc_clan_chat_hide', { p_message_id: messageId });
+    if (error)
+        throw new Error(error.message || 'Failed to hide message.');
+};
+export const staff_clan_chat_feed = async (onlyReported = false, limit = 150) => {
+    const { data, error } = await supabase.rpc('rpc_staff_clan_chat_feed', { p_only_reported: onlyReported, p_limit: limit });
+    if (error)
+        throw new Error(error.message || 'Failed to load clan chat.');
+    return (data ?? []);
+};
+export const staff_dismiss_clan_chat_reports = async (messageId) => {
+    const { error } = await supabase.rpc('rpc_staff_dismiss_clan_chat_reports', { p_message_id: messageId });
+    if (error)
+        throw new Error(error.message || 'Failed to dismiss reports.');
 };
 export const clan_get_available_buffs = async () => {
     try {
@@ -3455,36 +3083,7 @@ export const clan_deposit_coins = async (amount) => {
     if (!result) {
         throw new Error('Failed to deposit coins.');
     }
-    void (async () => {
-        try {
-            const [{ data: membership }, { data: actorProfile }] = await Promise.all([
-                supabase
-                    .from('clan_members')
-                    .select('clan_id')
-                    .eq('user_id', user.id)
-                    .maybeSingle(),
-                supabase
-                    .from('users')
-                    .select('username')
-                    .eq('id', user.id)
-                    .maybeSingle(),
-            ]);
-            if (!membership?.clan_id)
-                return;
-            await supabase.from('activities').insert({
-                kind: 'clan_deposit',
-                actor_id: user.id,
-                actor_username: actorProfile?.username || null,
-                data: {
-                    clan_id: membership.clan_id,
-                    amount,
-                },
-            });
-        }
-        catch (activityError) {
-            console.warn('Failed to record clan_deposit activity:', activityError);
-        }
-    })();
+    // The deposit RPC records the clan_deposit feed entry on the server.
     return mockApiCall(result);
 };
 export const clan_buy_buff = async (buffCode) => {
@@ -3641,26 +3240,12 @@ export const clan_kick_member = async (user_id) => {
     return await clan_details();
 };
 export const clan_update_notice = async (notice) => {
-    const user = await getCurrentUser();
     const sanitized = (notice ?? '').trim();
-    const { data: membership } = await supabase
-        .from('clan_members')
-        .select('clan_id, role')
-        .eq('user_id', user.id)
-        .single();
-    if (!membership) {
-        throw new Error('You must be in a clan to edit its bio.');
-    }
-    if (!['leader', 'officer', 'moderator'].includes(membership.role)) {
-        throw new Error('Only clan leadership can edit the clan bio.');
-    }
     if (sanitized.length > 280) {
         throw new Error('Clan bio must be 280 characters or fewer.');
     }
-    const { error } = await supabase
-        .from('clans')
-        .update({ notice: sanitized })
-        .eq('id', membership.clan_id);
+    // Leader or officer only; the server checks the role and filters the text.
+    const { error } = await supabase.rpc('rpc_update_clan_notice', { p_notice: sanitized });
     if (error) {
         console.error('Failed to update clan bio:', error);
         throw new Error(error.message || 'Failed to update clan bio.');
@@ -4271,10 +3856,48 @@ export const create_question = async (questionData) => {
         throw error;
     return data;
 };
+export const get_teacher_academic_skill_registry = async (subject, gradeLevel, phase = null) => {
+    const { data, error } = await supabase.rpc('rpc_academic_skill_registry_for_generation', {
+        p_subject_key: subject,
+        p_grade_level: gradeLevel,
+        p_phase: phase,
+    });
+    if (error)
+        throw error;
+    const result = (data || {});
+    return {
+        ...result,
+        skills: Array.isArray(result.skills) ? result.skills : [],
+        frameworkAlignments: Array.isArray(result.frameworkAlignments) ? result.frameworkAlignments : [],
+    };
+};
+export const get_teacher_academic_evidence_focuses = async (subject, gradeLevel, atomicSubskillCode, phase) => {
+    const { data, error } = await supabase.rpc('rpc_academic_evidence_focuses_for_subskill', {
+        p_subject_key: subject,
+        p_grade_level: gradeLevel,
+        p_atomic_subskill_code: atomicSubskillCode,
+        ...(phase ? { p_phase: phase } : {}),
+    });
+    if (error)
+        throw error;
+    const result = (data || {});
+    return Array.isArray(result.focuses) ? result.focuses : [];
+};
+export const submit_manual_question_for_governance = async (questionId, primarySkillCode, atomicSubskillCode, evidenceFocusCode) => {
+    const { data, error } = await supabase.rpc('rpc_teacher_submit_manual_question_for_governance', {
+        p_question_id: questionId,
+        p_primary_skill_code: primarySkillCode,
+        p_atomic_subskill_code: atomicSubskillCode,
+        p_evidence_focus_code: evidenceFocusCode,
+    });
+    if (error)
+        throw error;
+    return data;
+};
 /**
  * Get all questions created by the current teacher
  */
-export const get_my_questions = async () => {
+export const get_my_questions = async (filters) => {
     const teacher = await get_teacher_profile();
     if (!teacher)
         throw new Error('User is not a teacher');
@@ -4284,7 +3907,9 @@ export const get_my_questions = async () => {
         .eq('teacher_id', teacher.id)
         .eq('content_origin', 'teacher')
         .eq('pool_scope', 'teacher')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .range(Math.max(filters?.offset ?? 0, 0), Math.max(filters?.offset ?? 0, 0) + Math.max(1, Math.min(filters?.limit ?? 100, 100)) - 1);
     if (error)
         throw error;
     const questions = (data || []);
@@ -4308,6 +3933,7 @@ export const get_my_questions = async () => {
             curriculum_skill: item.skill,
             curriculum_subskill: item.subskill,
             curriculum_objective: item.objective,
+            registry_mappings: item.registryMappings || [],
             eligible_grade_levels: item.eligibleGradeLevels || [],
             curriculum_review_status: item.reviewStatus,
         };
@@ -4319,38 +3945,14 @@ export const get_my_questions = async () => {
  * own private Teacher Pool questions.
  */
 export const get_all_questions = async (filters) => {
-    const { data, error } = await supabase.rpc('get_all_active_questions', {
-        p_subject: filters?.subject || null,
-        p_difficulty: filters?.difficulty || null,
-        p_teacher_id: filters?.teacherId || null,
-        p_limit: filters?.limit || 500,
-        p_offset: filters?.offset || 0
-    });
-    if (error)
-        throw error;
-    const questions = (data || []);
-    if (!questions.length)
-        return questions;
-    const { data: metadata, error: metadataError } = await supabase.rpc('rpc_question_curriculum_metadata', {
-        p_question_ids: questions.map((question) => question.id),
-    });
-    if (metadataError) {
-        console.warn('Question curriculum metadata could not be loaded:', metadataError);
-        return questions;
+    if (filters?.teacherId) {
+        const teacher = await get_teacher_profile();
+        if (teacher?.id !== filters.teacherId)
+            throw new Error('Cannot browse another teacher pool.');
     }
-    const byQuestion = new Map((metadata || []).map((item) => [item.questionId, item]));
-    return questions.map((question) => {
-        const item = byQuestion.get(question.id);
-        return item ? {
-            ...question,
-            curriculum_strand: item.strand,
-            curriculum_skill: item.skill,
-            curriculum_subskill: item.subskill,
-            curriculum_objective: item.objective,
-            eligible_grade_levels: item.eligibleGradeLevels || [],
-            curriculum_review_status: item.reviewStatus,
-        } : question;
-    });
+    const page = await fetchQuestionPage({ subject: filters?.subject, difficulty: filters?.difficulty,
+        limit: filters?.limit ?? 100, offset: filters?.offset ?? 0 });
+    return page.questions.map(normalizeTeacherQuestionPayload);
 };
 /**
  * Get a single question by ID
@@ -4364,6 +3966,32 @@ export const get_question = async (questionId) => {
     if (error)
         throw error;
     return data;
+};
+/** Load only the governed intervention candidates, independent of catalogue size. */
+export const get_teacher_questions_by_ids = async (questionIds) => {
+    const uniqueIds = [...new Set(questionIds)];
+    const questions = [];
+    for (let start = 0; start < uniqueIds.length; start += 100) {
+        const ids = uniqueIds.slice(start, start + 100);
+        const { data, error } = await supabase.rpc('rpc_teacher_questions_by_ids', { p_question_ids: ids, p_limit: ids.length });
+        if (error)
+            throw error;
+        const chunk = (data || []);
+        if (!chunk.length)
+            continue;
+        const { data: metadata, error: metadataError } = await supabase.rpc('rpc_question_curriculum_metadata', { p_question_ids: chunk.map((q) => q.id) });
+        if (metadataError)
+            throw metadataError;
+        const byId = new Map((metadata || []).map((item) => [item.questionId, item]));
+        questions.push(...chunk.map((question) => {
+            const item = byId.get(question.id);
+            return item ? { ...question, curriculum_strand: item.strand, curriculum_skill: item.skill,
+                curriculum_subskill: item.subskill, curriculum_objective: item.objective,
+                registry_mappings: item.registryMappings || [], eligible_grade_levels: item.eligibleGradeLevels || [],
+                curriculum_review_status: item.reviewStatus } : question;
+        }));
+    }
+    return questions.map(normalizeTeacherQuestionPayload);
 };
 /**
  * Update a question
@@ -4465,48 +4093,16 @@ export const delete_question = async (questionId) => {
  * Get public questions (for students to browse)
  */
 export const get_public_questions = async (subject, difficulty) => {
-    const subjectCatalog = await fetchStudentAcademicSubjectCatalog();
-    const requestedSubjects = subject
-        ? subjectCatalog.subjects.filter((item) => academicCodeForSubject(item.name) === academicCodeForSubject(subject))
-        : subjectCatalog.subjects;
-    const catalogs = await Promise.all(requestedSubjects.map((item) => fetchStudentLearningCatalog(item.code, 500)));
-    return catalogs.flatMap((catalog) => catalog.questions)
-        .filter((question) => !difficulty || question.difficulty === difficulty);
+    const page = await fetchQuestionPage({ audience: 'student', subject, difficulty });
+    return page.questions.map(normalizeTeacherQuestionPayload);
 };
 /**
  * Get student's progress on public questions for a specific subject
  * Returns count of unique questions answered out of total available
  */
 export const get_subject_question_progress = async (subject) => {
-    try {
-        const user = await getCurrentUser();
-        const questions = await get_public_questions(subject);
-        const questionIds = questions.map(q => q.id);
-        const totalCount = questionIds.length;
-        if (totalCount === 0) {
-            return { answeredCount: 0, totalCount: 0 };
-        }
-        // Get student's attempts for these questions
-        const { data: attempts, error: attemptsError } = await supabase
-            .from('question_attempts')
-            .select('question_id')
-            .eq('student_id', user.id)
-            .in('question_id', questionIds);
-        if (attemptsError) {
-            console.error('Error fetching attempts for progress:', attemptsError);
-            return { answeredCount: 0, totalCount };
-        }
-        // Count unique question_ids answered
-        const uniqueAnswered = new Set((attempts || []).map(a => a.question_id));
-        return {
-            answeredCount: uniqueAnswered.size,
-            totalCount
-        };
-    }
-    catch (error) {
-        console.error('get_subject_question_progress failed:', error);
-        return { answeredCount: 0, totalCount: 0 };
-    }
+    const rows = (await fetchStudentQuestionSummary()).filter((row) => academicCodeForSubject(row.subject) === academicCodeForSubject(subject));
+    return { answeredCount: rows.reduce((sum, row) => sum + (row.answered || 0), 0), totalCount: rows.reduce((sum, row) => sum + row.count, 0) };
 };
 /**
  * Submit an answer to a teacher question
@@ -4613,6 +4209,7 @@ export const create_assignment = async (payload) => {
         p_description: payload.description ?? null,
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
+        p_delivery_mode: payload.delivery_mode ?? 'online',
         p_assignment_category: payload.assignment_category ?? null,
         p_client_timezone: payload.client_timezone ?? (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
         p_assignment_mode: mode,
@@ -4627,6 +4224,22 @@ export const create_assignment = async (payload) => {
     if (!assignment) {
         throw new Error('Assignment could not be created');
     }
+    if (payload.subject_group_id) {
+        const schoolId = payload.school_id || assignment.school_id;
+        if (!schoolId)
+            throw new Error('School context is required for a teaching-group assignment');
+        const { error: groupError } = await supabase.rpc('rpc_teacher_attach_assignment_group', {
+            p_assignment_id: assignment.id,
+            p_school_id: schoolId,
+            p_group_id: payload.subject_group_id,
+        });
+        if (groupError) {
+            // Do not leave a published audience detached from its teaching-group identity.
+            await rpcDeleteTeacherAssignment(assignment.id);
+            throw new Error(groupError.message || 'Failed to attach assignment to teaching group');
+        }
+        assignment.subject_group_id = payload.subject_group_id;
+    }
     return assignment;
 };
 const mergeAssignmentCategoryContext = (assignments, contextRows) => {
@@ -4637,11 +4250,12 @@ const mergeAssignmentCategoryContext = (assignments, contextRows) => {
         return extra ? { ...assignment, ...extra } : assignment;
     });
 };
-const enrichStudentAssignmentsWithCategoryContext = async (assignments) => {
+const enrichStudentAssignmentsWithCategoryContext = async (assignments, signal) => {
     const ids = assignments.map((assignment) => assignment.assignment_id).filter(Boolean);
     if (!ids.length)
         return assignments;
-    const { data, error } = await supabase.rpc('rpc_my_assignment_category_context', { p_assignment_ids: ids });
+    const request = supabase.rpc('rpc_my_assignment_category_context', { p_assignment_ids: ids });
+    const { data, error } = await (signal ? request.abortSignal(signal) : request);
     if (error)
         throw new Error(error.message || 'Failed to load assignment category context');
     return mergeAssignmentCategoryContext(assignments, data || []);
@@ -4658,10 +4272,31 @@ export const get_teacher_assignments = async (teacherId) => {
     if (error)
         throw new Error(error.message || 'Failed to load assignments');
     const assignments = data || [];
-    const { data: contextData, error: contextError } = await supabase.rpc('rpc_teacher_assignment_category_context', { p_teacher_id: resolvedTeacherId });
+    const [{ data: contextData, error: contextError }, { data: groupContextData, error: groupContextError }, { data: deliveryContext, error: deliveryError }] = await Promise.all([
+        supabase.rpc('rpc_teacher_assignment_category_context', { p_teacher_id: resolvedTeacherId }),
+        supabase.rpc('rpc_teacher_assignment_group_context', { p_teacher_id: resolvedTeacherId }),
+        supabase.rpc('rpc_teacher_assignment_delivery_context', { p_assignment_ids: assignments.map((a) => a.id) }),
+    ]);
     if (contextError)
         throw new Error(contextError.message || 'Failed to load assignment category context');
-    return mergeAssignmentCategoryContext(assignments, contextData || []);
+    if (groupContextError)
+        throw new Error(groupContextError.message || 'Failed to load assignment teaching-group context');
+    if (deliveryError)
+        throw new Error('Assignment delivery could not be loaded. Please retry.');
+    const deliveryById = new Map((deliveryContext || []).map((row) => [row.id, row.delivery_mode]));
+    assignments.forEach((assignment) => { assignment.delivery_mode = deliveryById.get(assignment.id) || 'online'; });
+    const withCategory = mergeAssignmentCategoryContext(assignments, contextData || []);
+    const groupContext = new Map((groupContextData || []).map((row) => [row.assignment_id, row]));
+    return withCategory.map((assignment) => {
+        const extra = groupContext.get(assignment.id);
+        return extra ? {
+            ...assignment,
+            school_id: extra.school_id ?? undefined,
+            school_subject_id: extra.school_subject_id ?? undefined,
+            subject_group_id: extra.subject_group_id ?? undefined,
+            subject_group_name: extra.subject_group_name ?? undefined,
+        } : assignment;
+    });
 };
 export const delete_teacher_assignment = async (assignmentId) => {
     if (!assignmentId)
@@ -4696,6 +4331,7 @@ export const update_teacher_assignment = async (assignmentId, payload) => {
         p_description: payload.description ?? null,
         p_instructions: payload.instructions ?? null,
         p_difficulty: payload.difficulty ?? null,
+        p_delivery_mode: payload.delivery_mode ?? 'online',
         p_assignment_category: payload.assignment_category ?? null,
         p_client_timezone: payload.client_timezone ?? (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
         p_assignment_mode: mode,
@@ -4709,6 +4345,19 @@ export const update_teacher_assignment = async (assignmentId, payload) => {
     const assignment = (Array.isArray(data) ? data[0] : data);
     if (!assignment)
         throw new Error('Assignment could not be updated');
+    if (payload.subject_group_id && !assignment.subject_group_id) {
+        const schoolId = payload.school_id;
+        if (!schoolId)
+            throw new Error('School context is required for a teaching-group assignment');
+        const { error: groupError } = await supabase.rpc('rpc_teacher_attach_assignment_group', {
+            p_assignment_id: assignment.id,
+            p_school_id: schoolId,
+            p_group_id: payload.subject_group_id,
+        });
+        if (groupError)
+            throw new Error(groupError.message || 'Failed to attach assignment to teaching group');
+        assignment.subject_group_id = payload.subject_group_id;
+    }
     return assignment;
 };
 export const get_teacher_assignment_success_summary = async () => {
@@ -4717,6 +4366,10 @@ export const get_teacher_assignment_success_summary = async () => {
         throw new Error(error.message || 'Failed to load assignment success');
     const row = (Array.isArray(data) ? data[0] : data);
     return {
+        assignment_count: Number(row?.assignment_count || 0),
+        active_assignment_count: Number(row?.active_assignment_count || 0),
+        followup_count: Number(row?.followup_count || 0),
+        followups: Array.isArray(row?.followups) ? row.followups : [],
         submission_count: Number(row?.submission_count || 0),
         answered_question_count: Number(row?.answered_question_count || 0),
         correct_answer_count: Number(row?.correct_answer_count || 0),
@@ -4806,9 +4459,26 @@ export const brains_master_toggle_badge = async (show) => {
     const user = await getCurrentUser();
     await updateProfile(user.id, { brains_master_show_badge: show });
 };
-export const get_student_pending_assignments = async () => {
+export const get_student_assignment_summaries = async (signal) => {
+    const request = supabase.rpc('rpc_get_student_assignment_summaries', {});
+    const { data, error } = await (signal ? request.abortSignal(signal) : request);
+    if (error)
+        throw new Error(error.message || 'Failed to load assignments');
+    return enrichStudentAssignmentsWithCategoryContext((data || []), signal);
+};
+export const get_student_assignment_detail = async (assignmentId, signal) => {
+    const request = supabase.rpc('rpc_get_student_assignment_detail', { p_assignment_id: assignmentId });
+    const { data, error } = await (signal ? request.abortSignal(signal) : request);
+    if (error)
+        throw new Error(error.message || 'Failed to load assignment');
+    const row = data?.[0];
+    if (!row)
+        throw new Error('Assignment is no longer available.');
+    return { ...row, questions: (row.questions || []).map(normalizeTeacherQuestionPayload) };
+};
+export const get_student_pending_assignments = async (signal) => {
     console.log('[gameService] Calling rpc_get_student_pending_assignments...');
-    const { data, error } = await rpcGetStudentPendingAssignments();
+    const { data, error } = await rpcGetStudentPendingAssignments(undefined, signal);
     if (error) {
         console.error('[gameService] Error from rpc_get_student_pending_assignments:', error);
         throw new Error(error.message || 'Failed to load assignments');
@@ -4826,16 +4496,21 @@ export const get_student_pending_assignments = async () => {
             questions: normalizedQuestions,
         };
     });
-    return enrichStudentAssignmentsWithCategoryContext(normalizedAssignments);
+    return enrichStudentAssignmentsWithCategoryContext(normalizedAssignments, signal);
 };
 export const submit_assignment_result = async (payload) => {
-    const { data, error } = await rpcSubmitAssignmentResult({
-        p_assignment_id: payload.assignmentId,
-        p_correct: payload.correct,
-        p_incorrect: payload.incorrect,
-        p_accuracy: payload.accuracy,
-        p_score: payload.score,
-        p_time_taken: payload.timeTakenSeconds,
+    const { data, error } = await retryAssignmentOperation(async () => {
+        const response = await rpcSubmitAssignmentResult({
+            p_assignment_id: payload.assignmentId,
+            p_correct: payload.correct,
+            p_incorrect: payload.incorrect,
+            p_accuracy: payload.accuracy,
+            p_score: payload.score,
+            p_time_taken: payload.timeTakenSeconds,
+        });
+        if (response.error && isTransientAssignmentError(response.error))
+            throw response.error;
+        return response;
     });
     if (error) {
         const message = error.message || 'Failed to submit assignment';
@@ -4854,6 +4529,8 @@ export const submit_assignment_result = async (payload) => {
         throw new Error(message);
     }
     const result = (data || {});
+    if (result['success'] !== true)
+        throw new Error('The save was not confirmed. Please retry.');
     return {
         status: 'submitted',
         correct: Number.isFinite(Number(result['correct'])) ? Number(result['correct']) : undefined,
@@ -4875,7 +4552,11 @@ export const get_teacher_assignment_report = async (assignmentId) => {
     });
     if (error)
         throw new Error(error.message || 'Failed to load report');
-    return data || [];
+    const { data: context, error: contextError } = await supabase.rpc('rpc_teacher_assignment_delivery_context', { p_assignment_ids: [assignmentId] });
+    if (contextError)
+        throw new Error('Completion details could not be loaded. Please retry.');
+    const completions = new Map((context?.[0]?.completions || []).map((row) => [row.student_id, row]));
+    return (data || []).map((row) => ({ ...row, ...completions.get(row.student_id) }));
 };
 /**
  * Get reports for ALL assignments belonging to the current teacher.
@@ -4921,20 +4602,27 @@ export const get_all_assignment_reports = async (assignmentIds) => {
  * This enables detailed analysis for teachers.
  */
 export const submit_assignment_answer = async (payload) => {
-    const { data, error } = await rpcSubmitAssignmentAnswer({
-        p_assignment_id: payload.assignmentId,
-        p_question_id: payload.questionId,
-        p_question_text: payload.questionText,
-        p_correct_answer: payload.correctAnswer,
-        p_student_answer: payload.studentAnswer,
-        p_is_correct: payload.isCorrect,
-        p_time_taken_ms: payload.timeTakenMs || 0,
+    const { data, error } = await retryAssignmentOperation(async () => {
+        const response = await rpcSubmitAssignmentAnswer({
+            p_assignment_id: payload.assignmentId,
+            p_question_id: payload.questionId,
+            p_question_text: payload.questionText,
+            p_correct_answer: payload.correctAnswer,
+            p_student_answer: payload.studentAnswer,
+            p_is_correct: payload.isCorrect,
+            p_time_taken_ms: payload.timeTakenMs || 0,
+        });
+        if (response.error && isTransientAssignmentError(response.error))
+            throw response.error;
+        return response;
     });
     if (error) {
         console.error('Failed to submit assignment answer:', error);
         throw new Error(error.message || 'Failed to save assignment answer');
     }
     const result = (data || {});
+    if (result['success'] !== true)
+        throw new Error('The save was not confirmed. Please retry.');
     const isCorrect = typeof result['is_correct'] === 'boolean' ? result['is_correct'] : null;
     const gradingStatus = result['grading_status'] === 'under_review'
         ? 'under_review'
@@ -4984,10 +4672,12 @@ export const get_assignment_question_analysis = async (assignmentId) => {
 /**
  * Get student's completed assignments for achievement display
  */
-export const get_student_completed_assignments = async () => {
+export const get_student_completed_assignments = async (options = {}) => {
     const { data, error } = await rpcGetStudentCompletedAssignments();
     if (error) {
         console.error('Failed to load completed assignments:', error);
+        if (options.throwOnError)
+            throw new Error(error.message || 'Failed to load completed assignments');
         return [];
     }
     // Map SQL response to include computed fields
@@ -5047,6 +4737,9 @@ export const mcq_answer_submit = async (question, choice) => {
             ? question.explanation || 'Well done, agent!'
             : `Incorrect. ${question.explanation || 'The correct answer was: ' + correctAnswer}`,
     };
+    if (payload?.reward_capped && !isDuplicate) {
+        response.explanation = 'Correct! Your daily or weekly reward limit reduced this payout. ' + response.explanation;
+    }
     if (isDuplicate) {
         response.explanation = '✓ Correct! But you already earned rewards for this question. Try new questions to earn more!';
     }
@@ -5055,47 +4748,6 @@ export const mcq_answer_submit = async (question, choice) => {
 // ============================================================
 // CLAN SYSTEM - Competition Based on Total Score
 // ============================================================
-export const createClan = async (clanName, description, avatarUrl) => {
-    try {
-        const { data, error } = await supabase.rpc('rpc_create_clan', {
-            p_clan_name: clanName,
-            p_description: description || null,
-            p_avatar_url: avatarUrl || null,
-        });
-        if (error || !data || data.length === 0) {
-            throw new Error(error?.message || 'Failed to create clan');
-        }
-        const result = data[0];
-        if (!result.success) {
-            return { clanId: '', success: false, error: result.error_message };
-        }
-        return { clanId: result.clan_id, success: true };
-    }
-    catch (err) {
-        console.error('Create clan error:', err);
-        return { clanId: '', success: false, error: err.message };
-    }
-};
-export const joinClan = async (clanId) => {
-    try {
-        const { data, error } = await supabase.rpc('rpc_join_clan', {
-            p_clan_id: clanId,
-        });
-        if (error || !data || data.length === 0) {
-            throw new Error(error?.message || 'Failed to join clan');
-        }
-        const result = data[0];
-        return {
-            success: result.success,
-            error: result.error_message || undefined,
-            memberCount: result.member_count,
-        };
-    }
-    catch (err) {
-        console.error('Join clan error:', err);
-        return { success: false, error: err.message };
-    }
-};
 export const leaveClan = async () => {
     try {
         const { data, error } = await supabase.rpc('rpc_leave_clan');
@@ -5263,7 +4915,7 @@ const normalizeQuestRunState = (payload) => {
     }
     return {
         ...state,
-        route: normalizedRoute,
+        route: normalizedRoute.map(node => ({ ...node, options: Array.isArray(node.options) ? economicsDisplayOptions(node.question_id, node.options) : node.options })),
     };
 };
 export const claim_ftue_training_reward = async () => {

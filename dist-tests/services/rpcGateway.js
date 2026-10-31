@@ -42,7 +42,7 @@ export const recordQuestionAttempt = (payload, client) => {
     return execute('record_question_attempt', payload, client);
 };
 export const createAssignment = (payload, client) => {
-    return execute('rpc_create_assignment', payload, client);
+    return payload['p_delivery_mode'] ? execute('rpc_create_assignment_classroom', { p_payload: payload, p_delivery_mode: payload['p_delivery_mode'] }, client) : execute('rpc_create_assignment', payload, client);
 };
 export const getAssignmentsForTeacher = (payload, client) => {
     return execute('rpc_get_assignments_for_teacher', payload, client);
@@ -51,7 +51,7 @@ export const deleteTeacherAssignment = (assignmentId, client) => {
     return execute('rpc_delete_teacher_assignment', { p_assignment_id: assignmentId }, client);
 };
 export const updateTeacherAssignment = (assignmentId, payload, client) => {
-    return execute('rpc_update_teacher_assignment', { p_assignment_id: assignmentId, ...payload }, client);
+    return payload['p_delivery_mode'] ? execute('rpc_update_assignment_classroom', { p_payload: { p_assignment_id: assignmentId, ...payload }, p_delivery_mode: payload['p_delivery_mode'] }, client) : execute('rpc_update_teacher_assignment', { p_assignment_id: assignmentId, ...payload }, client);
 };
 export const getTeacherAssignmentSuccessSummary = (client) => {
     return execute('rpc_teacher_assignment_success_summary', {}, client);
@@ -62,8 +62,9 @@ export const getStudentsForAssignment = (payload, client) => {
 export const getStudentActiveAssignment = (client) => {
     return execute('rpc_get_student_active_assignment_v2', {}, client);
 };
-export const getStudentPendingAssignments = (client) => {
-    return execute('rpc_get_student_pending_assignments_v2', {}, client);
+export const getStudentPendingAssignments = (client, signal) => {
+    const request = withClient(client).rpc('rpc_get_student_pending_assignments_v2', {});
+    return (signal ? request.abortSignal(signal) : request);
 };
 export const submitAssignmentResult = (payload, client) => {
     return execute('rpc_submit_assignment_result_v2', payload, client);
@@ -100,26 +101,6 @@ export const getStudentCompletedAssignments = (client) => {
 };
 export const checkAssignmentAchievements = (userId, client) => {
     return execute('check_assignment_achievements', { p_user_id: userId }, client);
-};
-export const createRaidSession = (bossId, waveInfo, client) => {
-    return execute('create_raid', { p_boss_id: bossId, p_wave_info: waveInfo }, client);
-};
-export const joinRaidSession = (raidId, client) => {
-    return execute('join_raid', { p_raid_id: raidId }, client);
-};
-export const submitRaidAnswer = (payload, client) => {
-    return execute('submit_raid_answer', {
-        p_raid_id: payload.raid_id,
-        p_question_id: payload.question_id,
-        p_answer: payload.answer,
-        p_time: payload.time_spent,
-    }, client);
-};
-export const finalizeRaidSession = (raidId, client) => {
-    return execute('finalize_raid', { p_raid_id: raidId }, client);
-};
-export const fetchRaidStatus = (raidId, client) => {
-    return execute('get_raid_status', { p_raid_id: raidId }, client);
 };
 export const getMyAssignmentAnswers = (assignmentId, client) => {
     return execute('rpc_get_my_assignment_answers_v2', { p_assignment_id: assignmentId }, client);

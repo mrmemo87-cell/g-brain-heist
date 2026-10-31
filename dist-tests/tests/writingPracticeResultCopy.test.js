@@ -21,6 +21,7 @@ test('writing result hides review link until finalized and distinguishes assignm
     assert.match(writingPractice, /lastAttemptId && hasFinalizedReview/, 'review button must be gated by finalized review availability');
     assert.match(writingPractice, /Teacher feedback will appear here after finalization\./, 'non-finalized state must show waiting message');
     assert.match(writingPractice, /Assignment completion minimum:\s*\{MIN_MEANINGFUL_WORDS\}/, 'summary must show assignment completion minimum explicitly');
-    assert.match(writingPractice, /IELTS Task 2 target/, 'summary must show IELTS recommendation separately');
+    assert.match(writingPractice, /Recommended target words/, 'summary must show the selected task target separately');
+    assert.match(writingPractice, /task\.minimum_words\?\?/, 'reviewed guided tasks use their approved word target rather than assuming every task is Task 2');
     assert.doesNotMatch(writingPractice, /Minimum:\s*250/i, '250 must not be labeled as minimum completion threshold');
 });

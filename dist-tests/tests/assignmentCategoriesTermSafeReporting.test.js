@@ -5,7 +5,7 @@ const types = readFileSync('types.ts', 'utf8');
 const wizard = readFileSync('components/teacher/AssignmentWizard.tsx', 'utf8');
 const portal = readFileSync('components/TeacherPortal.tsx', 'utf8');
 const gameService = readFileSync('services/gameService.ts', 'utf8');
-const studentApp = readFileSync('App.tsx', 'utf8');
+const studentApp = readFileSync('components/student/AssignmentDesk.tsx', 'utf8');
 const report = readFileSync('components/CollectiveAssignmentReport.tsx', 'utf8');
 const reportCss = readFileSync('components/CollectiveAssignmentReport.css', 'utf8');
 const emailDispatcher = readFileSync('supabase/functions/school_email_dispatcher/index.ts', 'utf8');
@@ -46,12 +46,13 @@ test('category edits stay outside the existing content-reset path', () => {
 });
 test('student assignment cards expose a readable category badge', () => {
     assert.match(gameService, /rpc_my_assignment_category_context/);
-    assert.match(studentApp, /getAssignmentCategoryMeta\(assignment\.assignment_category\)/);
-    assert.match(studentApp, /assignmentCategoryBadgeStyle\(assignment\.assignment_category\)/);
-    assert.match(studentApp, /categoryMeta\.label/);
+    assert.match(studentApp, /getAssignmentCategoryMeta\(row\.assignment_category\)/);
+    assert.match(studentApp, /assignmentCategoryBadgeStyle\(row\.assignment_category\)/);
+    assert.match(studentApp, /getAssignmentCategoryMeta\(row\.assignment_category\)\.label/);
 });
 test('collective report requires one class and defaults to school academic calendar scope', () => {
-    assert.match(report, /fetchSchoolAcademicSetup/);
+    assert.match(report, /fetchSchoolReportCalendar/);
+    assert.doesNotMatch(report, /fetchSchoolAcademicSetup/);
     assert.match(report, /status === 'current'/);
     assert.match(report, /selectedAcademicYearId/);
     assert.match(report, /selectedTermId/);
@@ -88,5 +89,5 @@ test('all assignment emails display assignment category without replacing remind
 test('legacy assignments remain valid and uncategorized rather than being guessed', () => {
     assert.match(migration, /assignment_category is null/);
     assert.doesNotMatch(migration, /update public\.assignments set assignment_category = 'classwork'/i);
-    assert.match(studentApp, /categoryMeta\.label/);
+    assert.match(studentApp, /getAssignmentCategoryMeta\(row\.assignment_category\)\.label/);
 });

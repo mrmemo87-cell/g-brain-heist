@@ -6,10 +6,11 @@ const bank = readFileSync('components/teacher/QuestionBank.tsx', 'utf8');
 const report = readFileSync('components/CollectiveAssignmentReport.tsx', 'utf8');
 const preview = readFileSync('components/teacher/QuestionPreviewModal.tsx', 'utf8');
 const reportStyles = readFileSync('components/CollectiveAssignmentReport.css', 'utf8');
+const toolbar = readFileSync('components/teacher/AssignmentToolbar.tsx', 'utf8');
 const gameService = readFileSync('services/gameService.ts', 'utf8');
 test('assignment workspace is one dated group with subject and progress categories', () => {
-    assert.match(portal, />Subject<\/legend>/);
-    assert.match(portal, />Progress<\/legend>/);
+    assert.match(toolbar, />Subject<\/span>/);
+    assert.match(toolbar, /aria-label="Assignment progress"/);
     assert.match(portal, /All assignments/);
     assert.match(portal, />Created<\/dt>/);
     assert.doesNotMatch(portal, /assignmentsByGroup/);

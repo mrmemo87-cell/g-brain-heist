@@ -79,3 +79,16 @@ select cron.schedule('school-head-decision-center', '*/2 * * * *',
   'call private.run_school_head_refresh_worker();');
 select cron.schedule('class-conquest-finalize', '15 18 * * 5',
   'select public.rpc_finalize_class_conquest();');
+
+-- 5. Content hygiene. The question bank is copied whole; references to production people
+--    and another school's private pool must not survive in the demo.
+do $$
+begin
+  set local session_replication_role = replica;
+  delete from public.questions q where q.pool_scope = 'school';                  -- a real school's private questions
+  update public.questions q set teacher_id = null
+   where teacher_id is not null and not exists (select 1 from public.teachers t where t.id = q.teacher_id);
+  update public.questions q set verified_by = null
+   where verified_by is not null and not exists (select 1 from auth.users u where u.id = q.verified_by);
+  set local session_replication_role = origin;
+end $$;

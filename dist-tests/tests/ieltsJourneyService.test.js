@@ -73,50 +73,46 @@ test('IELTS journey objective result links use attempt tables and latest student
 test('IELTS journey route, home link, and page use the journey service safely', () => {
     const routes = fs.readFileSync(path.join(process.cwd(), 'index.tsx'), 'utf8');
     const home = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsHome.tsx'), 'utf8');
-    const page = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsJourneyDashboard.tsx'), 'utf8');
+    const page = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsJourneyDashboard.tsx'), 'utf8') + fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/components/IeltsStudentJourney.tsx'), 'utf8');
     assert.match(routes, /path:\s*'\/ielts\/journey'/, 'IELTS journey route must be registered');
     assert.match(home, /navigate\('\/ielts\/journey'\)/, 'IELTS home should link to journey dashboard');
     assert.match(page, /rpcIeltsStudentJourney/, 'journey page must use the journey RPC service');
     assert.match(page, /My IELTS Journey/, 'journey page should include title');
-    assert.match(page, /Current assignments/, 'journey page should include current assignments section');
-    assert.match(page, /Completed assignments/, 'journey page should include completed assignments section');
-    assert.match(page, /Results & Feedback/, 'journey page should include results and feedback section');
-    assert.match(page, /Next action/, 'journey page should include next action section');
-    assert.match(page, /No current IELTS assignments\./, 'journey page should include current empty state');
-    assert.match(page, /No completed IELTS assignments yet\./, 'journey page should include completed empty state');
-    assert.match(page, /No reviewed feedback yet\./, 'journey page should include reviewed feedback empty state');
-    assert.match(page, /No results available yet\./, 'journey page should include results empty state');
+    assert.doesNotMatch(page, /School assignments/, 'assignments live in their own tab, not in Journey');
+    assert.match(page, /Your learning trail/, 'saved screeners and reviews must be included');
+    assert.match(page, /Teacher feedback/, 'shared comments must be clearly attributed');
+    assert.match(page, /Your next step/, 'there must be a useful next action');
+    assert.match(page, /Your feedback will appear here/, 'pending feedback must not become a zero score');
+    assert.match(page, /What about my estimated band/, 'band eligibility must be explained');
     assert.doesNotMatch(page, /\.from\(['"]ielts_/i, 'journey page must not query raw IELTS tables directly');
     assert.doesNotMatch(page, /answer_key/i, 'journey page must not expose protected answer data');
 });
-test('IELTS readiness engine SQL normalizes safe skill readiness defensively', () => {
-    const migration = fs.readFileSync(path.join(process.cwd(), 'supabase/migrations/20260518130000_ielts_readiness_engine_foundation.sql'), 'utf8');
-    assert.match(migration, /ielts_latest_skill_readiness\(p_student_id uuid\)/i, 'readiness helper must expose latest skill readiness rows');
-    assert.match(migration, /returns table\s*\([\s\S]*skill text[\s\S]*estimated_band numeric[\s\S]*source_type text[\s\S]*source_id text[\s\S]*confidence text[\s\S]*last_activity_at timestamptz/i, 'helper must return the readiness contract');
-    assert.match(migration, /to_regclass\('public\.ielts_reading_attempts'\)[\s\S]*information_schema\.columns/i, 'helper must defensively check reading schema');
-    assert.match(migration, /public\.ielts_estimated_readiness_band\(%4\$s, %5\$s, %6\$s\)/i, 'reading estimates should be calculated when percent or raw score data exists');
-    assert.match(migration, /when pct >= 65 then 6\.0/i, 'raw score mapping should use a conservative readiness band ladder');
-    assert.match(migration, /band_overall[\s\S]*band_score[\s\S]*estimated_band[\s\S]*rubric_band/i, 'writing and speaking must use existing rubric or band fields only');
-    assert.doesNotMatch(migration, /openai|chatgpt|ask AI|AI to grade/i, 'readiness foundation must not introduce AI grading');
-    assert.doesNotMatch(migration, /answer_key/i, 'readiness foundation must not expose protected answer data');
+test('IELTS Bible alignment migration fails closed on legacy readiness sources', () => {
+    const migration = fs.readFileSync(path.join(process.cwd(), 'supabase/migrations/20261005111500_ielts_diagnostic_bible_alignment.sql'), 'utf8');
+    assert.match(migration, /revoke all on function public\.ielts_estimated_readiness_band\(numeric,numeric,numeric\) from public, anon, authenticated/i, 'generic percentage-to-band helper must not be callable by browser users');
+    assert.match(migration, /create or replace function public\.ielts_latest_skill_readiness\(p_student_id uuid\)[\s\S]*where false;/i, 'legacy practice evidence must fail closed instead of becoming readiness');
+    assert.match(migration, /grant execute on function public\.ielts_latest_skill_readiness\(uuid\) to service_role/i, 'readiness bridge must stay server-only');
+    assert.match(migration, /'reading', null[\s\S]*'listening', null[\s\S]*'writing', null[\s\S]*'speaking', null[\s\S]*'overall', null/i, 'student journey must suppress unverified per-skill and overall readiness');
+    assert.match(migration, /item - 'estimated_band'/i, 'completed practice cards must strip legacy estimated-band metadata');
+    assert.match(migration, /'\{latest_overall_estimate\}', 'null'::jsonb/i, 'school results must suppress unverified overall readiness');
+    assert.match(migration, /'\{summary,average_estimated_overall\}',[\s\S]*'null'::jsonb/i, 'school summary must not average partial or legacy readiness');
 });
-test('IELTS journey RPC uses readiness helper and averages available skills only', () => {
-    const migration = fs.readFileSync(path.join(process.cwd(), 'supabase/migrations/20260518130000_ielts_readiness_engine_foundation.sql'), 'utf8');
-    assert.match(migration, /from public\.ielts_latest_skill_readiness\(v_student_id\)/i, 'journey must use the readiness helper');
-    assert.match(migration, /from \(values \(v_reading\), \(v_listening\), \(v_writing\), \(v_speaking\)\) estimates\(value\)[\s\S]*where value is not null/i, 'overall readiness must average only available skill values');
-    assert.match(migration, /'estimated_band', estimated_band/i, 'recent practice rows should use estimated readiness fields');
-    assert.doesNotMatch(migration, /official\s+IELTS\s+(score|band)/i, 'RPC must not overclaim official IELTS scores');
+test('IELTS journey public contract keeps practice separate from verified readiness', () => {
+    const migration = fs.readFileSync(path.join(process.cwd(), 'supabase/migrations/20261005111500_ielts_diagnostic_bible_alignment.sql'), 'utf8');
+    assert.match(migration, /private\.actor_can_access_school_programme\(v_school_id, 'ielts', false\)/i, 'student journey must preserve school programme access checks');
+    assert.match(migration, /v_result := public\.rpc_ielts_student_journey_entitlement_internal\(v_student_id\)/i, 'public wrapper must retain the authorized internal journey source');
+    assert.match(migration, /'\{confidence_level\}', to_jsonb\('low'::text\)/i, 'confidence must fail closed while verified readiness evidence is unavailable');
+    assert.match(migration, /'\{weak_skill\}', 'null'::jsonb/i, 'a tested or practised skill must not automatically become the weak skill');
+    assert.doesNotMatch(migration, /avg\([^)]*latest_(?:reading|listening|writing|speaking)_estimate/i, 'Bible alignment must not derive an overall score from partial skill estimates');
 });
-test('IELTS mission card clarifies target band and score source labels', () => {
+test('IELTS mission card keeps practice separate from verified readiness', () => {
     const missionCard = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/components/IeltsMissionCard.tsx'), 'utf8');
     assert.match(missionCard, /No target set/i, 'target band empty state should read No target set');
     assert.match(missionCard, /Set target band/i, 'target band empty state should include CTA to set target');
     assert.match(missionCard, /href="\/ielts\/prime"/i, 'target band CTA should navigate to IELTS Prime setup flow');
-    assert.match(missionCard, /Based on your latest completed results and finalized feedback\./i, 'mission card should explain score derivation basis');
-    assert.match(missionCard, /reading:\s*'Latest result'/i, 'reading source label should be shown');
-    assert.match(missionCard, /listening:\s*'Latest result'/i, 'listening source label should be shown');
-    assert.match(missionCard, /writing:\s*'Latest reviewed feedback'/i, 'writing source label should be shown');
-    assert.match(missionCard, /speaking:\s*'Latest reviewed feedback'/i, 'speaking source label should be shown');
+    assert.match(missionCard, /Readiness appears only when verified evidence meets the required skill coverage/i, 'mission card must explain readiness evidence gating');
+    assert.equal((missionCard.match(/Verified readiness pending/g) || []).length, 4, 'each skill must fail closed until verified readiness exists');
+    assert.doesNotMatch(missionCard, /reading:\s*'Latest result'|listening:\s*'Latest result'/i, 'practice results must not masquerade as readiness sources');
 });
 test('IELTS mission card separates current assignment progress from completed practice history', () => {
     const missionCard = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/components/IeltsMissionCard.tsx'), 'utf8');
