@@ -22,12 +22,6 @@ interface InterventionTargetedPracticeWorkspaceProps {
 
 type TargetedPracticeAssignmentCategory = 'classwork' | 'homework' | 'quiz' | 'term_exam';
 
-const normalize = (value?: string | null) => (value || '')
-  .normalize('NFKC')
-  .toLocaleLowerCase()
-  .replace(/[^a-z0-9]+/g, ' ')
-  .trim();
-
 const isOfficialVerifiedQuestion = (question: TeacherQuestion, grade: number) => {
   const gradeEligible = Number.isInteger(grade)
     && grade > 0
@@ -100,8 +94,13 @@ const InterventionTargetedPracticeWorkspace: React.FC<InterventionTargetedPracti
         if (!teacher) throw new Error('Teacher profile could not be loaded.');
         if (cancelled) return;
         setTeacherId(teacher.id);
-        const subjectQuestions = allQuestions.filter((question) => normalize(question.subject) === normalize(subject)
-          && !isReservedReassessmentQuestion(question));
+        // The candidate ids come from private.verified_questions_for_learning_focus, which has
+        // already resolved the school's subject label to the registry subject through
+        // academic_skill_registry_subject_aliases (e.g. "ESL" -> English) and applied pool,
+        // verification and grade governance. The browser must not re-check subject by label:
+        // doing so discarded every question whenever the school's label differed from the
+        // bank's and sent teachers into the wizard with 0 questions (2026-10-31).
+        const subjectQuestions = allQuestions.filter((question) => !isReservedReassessmentQuestion(question));
         setQuestions(subjectQuestions);
         // Automatic intervention practice must be a precise remediation set. Only
         // exact governed atomic-subskill matches are preselected. Broader primary-

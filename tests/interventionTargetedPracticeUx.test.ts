@@ -106,3 +106,16 @@ test('targeted practice stays inside the branded teacher portal shell', () => {
   assert.match(shell, /onCreateTargetedPractice=\{openTargetedPractice\}/);
   assert.match(shell, /activeNavigationSection=\{targetedPractice \? 'assignments'/);
 });
+
+test('targeted practice trusts the governed RPC question set and does not re-filter by subject label', () => {
+  // 2026-10-31: a confirmed ESL need had 8 exact verified questions filed under "English"; a
+  // byte-equal subject check in the browser dropped them all and the wizard opened with 0.
+  // The RPC already resolves subject aliases via academic_skill_registry_subject_aliases.
+  const workspace = readFileSync('components/student-progress/InterventionTargetedPracticeWorkspace.tsx', 'utf8');
+  assert.doesNotMatch(workspace, /normalize\(question\.subject\)/);
+  assert.doesNotMatch(workspace, /subjectsCompatible/);
+  assert.match(workspace, /academic_skill_registry_subject_aliases/);
+  assert.match(workspace, /!isReservedReassessmentQuestion\(question\)\)/);
+  // Governance on the preselected set is unchanged.
+  assert.match(workspace, /isOfficialVerifiedQuestion\(question, studentGrade\)/);
+});
