@@ -33,9 +33,8 @@ const DemoBanner: React.FC<DemoBannerProps> = ({ onSwitchPersona }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [switching, setSwitching] = useState(false);
-  const visitor = readStoredDemoVisitor();
   const personas = getDemoPersonas();
-  const current = visitor?.enteredAs === 'student' ? 'student' : 'teacher';
+  const [current, setCurrent] = useState<DemoPersona['key']>(() => (readStoredDemoVisitor()?.enteredAs === 'student' ? 'student' : 'teacher'));
   const other = personas.find((item) => item.key !== current) ?? personas[0];
 
   useEffect(() => {
@@ -48,7 +47,7 @@ const DemoBanner: React.FC<DemoBannerProps> = ({ onSwitchPersona }) => {
     if (switching || !other) return;
     setSwitching(true);
     trackDemoEvent('switch_persona', other.key);
-    try { await onSwitchPersona(other); } finally { setSwitching(false); }
+    try { await onSwitchPersona(other); setCurrent(other.key); } finally { setSwitching(false); }
   };
 
   if (collapsed) {

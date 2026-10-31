@@ -111,6 +111,13 @@ insert into private.demo_people(key, user_id, full_name, email, role, story, cla
 on conflict (key) do update set full_name = excluded.full_name, email = excluded.email, role = excluded.role, story = excluded.story, class_code = excluded.class_code;
 update private.demo_people set class_code = '7A' where role = 'student' and class_code is null;
 
+-- Student usernames look like the ones real students pick: first name + surname initial.
+create or replace function private.demo_username(p_key text, p_name text, p_role text) returns text language sql immutable as $$
+  select case when p_role = 'student'
+    then lower(translate(split_part(p_name, ' ', 1), 'ÁÉÍÓÚÜÑÖáéíóúüñöç', 'AEIOUUNOaeiouunoc')) || '_' || lower(left(regexp_replace(split_part(p_name, ' ', 2), '[^A-Za-z]', '', 'g'), 1))
+    else 'demo_' || p_key end
+$$;
+
 -- Accounts were "created" at the start of term so nothing looks freshly made.
 select private.demo_create_auth_user(
   p.user_id, p.email,
@@ -118,13 +125,13 @@ select private.demo_create_auth_user(
        when p.key = 'superadmin' then coalesce(nullif(:'ops_password', ''), encode(extensions.gen_random_bytes(24), 'base64'))
        else encode(extensions.gen_random_bytes(24), 'base64') end,
   case when p.role = 'student'
-    then jsonb_build_object('role','student','username', 'demo_' || p.key, 'grade', '7', 'batch', p.class_code, 'full_name', p.full_name)
+    then jsonb_build_object('role','student','username', private.demo_username(p.key, p.full_name, p.role), 'grade', '7', 'batch', p.class_code, 'full_name', p.full_name)
     else jsonb_build_object('role', p.role, 'username', 'demo_' || p.key, 'full_name', p.full_name) end,
   date_trunc('day', now()) - interval '60 days'
 ) from private.demo_people p;
 
 update public.users u set
-  full_name = p.full_name, needs_setup = false, tutorial_completed = true,
+  full_name = p.full_name, username = private.demo_username(p.key, p.full_name, p.role), needs_setup = false, tutorial_completed = true,
   created_at = date_trunc('day', now()) - interval '60 days'
 from private.demo_people p where p.user_id = u.id;
 

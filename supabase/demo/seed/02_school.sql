@@ -65,6 +65,8 @@ begin
   v_school := (r->>'school_id')::uuid;
   perform private.demo_ok('plan', public.admin_set_school_plan(v_school, 'enterprise'));
   perform private.demo_ok('cambridge seats', public.admin_configure_school_programme_seats(v_school, 'cambridge', 60));
+  perform private.demo_ok('ielts seats', public.admin_configure_school_programme_seats(v_school, 'ielts', 60));
+  perform private.demo_ok('writing seats', public.admin_configure_school_programme_seats(v_school, 'writing', 60));
   -- Fixed, memorable invite code. (Approval can generate a code containing '=', which
   -- join_school_by_code strips before matching, so roughly 1 in 20 generated codes
   -- cannot be used to join; a fixed code also keeps the demo deterministic.)
@@ -102,6 +104,10 @@ begin
     v_school, 'English', null, 'ENG', v_english_academic_subject, v_year, '7', v_english_grade7_scope,
     'all_grade', array[]::uuid[], v_teacher, array[v_class, v_class_b], false));
   perform private.demo_ok('confirm roster', public.rpc_school_admin_confirm_academic_roster(v_school, v_year));
+  -- Every demo student gets a Cambridge, IELTS and Writing Hub seat so all three programmes open.
+  perform private.demo_ok('seats ' || m, public.school_head_bulk_assign_programme_seats(v_school, m,
+    (select array_agg(user_id) from private.demo_people where role = 'student')))
+  from unnest(array['cambridge', 'ielts', 'writing']) m;
 
   -- 4b. A delegated administrator (Deputy Head) and the School Head setup checklist.
   perform private.demo_as('deputy');

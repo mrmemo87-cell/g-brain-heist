@@ -33,6 +33,7 @@ import {
 import './StudentAcademicProfile.css';
 import './StudentAcademicConfidence.css';
 import './AcademicProfilePremium.css';
+import './StudentAcademicProfileV2Enhancements.css';
 
 interface StudentAcademicProfileProps {
   studentId?: string | null;
@@ -272,60 +273,75 @@ const SubjectTrendChart: React.FC<{ subject: string; series: TrendSeries[] }> = 
     <div className="ap-table-wrap"><table className="ap-table"><thead><tr><th>Skill</th><th>Result</th><th>Assessment</th><th>Date</th></tr></thead><tbody>{allEvents.map(({ event, series: source }) => <tr key={event.key}><td><strong>{event.label}</strong></td><td>{event.result}</td><td>{source.label} · {event.detail}</td><td>{formatDate(event.observedAt)}</td></tr>)}</tbody></table></div>
   </article>;
 
+  type Lane = { key: string; label: string; series: TrendSeries; points: typeof plottedPoints };
+  const laneMap = new Map<string, Lane>();
+  plottedPoints.forEach((point) => {
+    const lane = laneMap.get(point.event.comparableKey) || { key: point.event.comparableKey, label: point.event.label, series: point.series, points: [] };
+    lane.points.push(point);
+    laneMap.set(point.event.comparableKey, lane);
+  });
+  const bandRank = { support: 0, developing: 1, strong: 2 } as const;
+  const lanes = [...laneMap.values()].map((lane) => {
+    const points = [...lane.points].sort((a, b) => a.event.observedAt.localeCompare(b.event.observedAt));
+    const first = points[0].event;
+    const last = points[points.length - 1].event;
+    const comparable = points.length > 1 && calendarDayKey(first.observedAt) !== calendarDayKey(last.observedAt);
+    const delta = comparable ? last.score - first.score : null;
+    return { ...lane, points, first, last, delta, band: evidenceBandClass(last.score) };
+  }).sort((a, b) => bandRank[a.band] - bandRank[b.band] || (a.delta ?? 0) - (b.delta ?? 0) || a.label.localeCompare(b.label));
+  const movement = (delta: number | null) => delta == null ? 'single' : delta >= 10 ? 'up' : delta <= -10 ? 'down' : 'flat';
+  const movementText = (delta: number | null) => delta == null ? 'One result' : delta >= 10 ? 'Improving' : delta <= -10 ? 'Slipping' : 'Steady';
+  const pointLeft = (x: number) => `${((x - left) / usableWidth) * 100}%`;
+  const bandWord = (score: number) => score >= 80 ? 'Strong' : score >= 60 ? 'Developing' : 'Needs support';
+
   return <article className="ap-skill-trend-card">
     <header>
       <div><span className="sap-trend-eyebrow">Subject trend</span><h3>{subject}</h3></div>
       <strong>{trendText}</strong>
     </header>
-    {activeSeries.length > 1 ? <div className="sap-trend-legend" aria-label={`${subject} evidence sources`}>
-      {activeSeries.map((trendSeries) => <span key={trendSeries.key} className={`sap-trend-legend-item sap-trend-legend-item--${trendSeries.tone}`}><i aria-hidden="true"/>{trendSeries.label}</span>)}
-    </div> : null}
     {allEvents.length ? <>
-      <div className="sap-trend-chart-wrap">
-        <svg className="sap-trend-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${subject} learning evidence trend over the selected period`}>
-          {[25, 60, 90].map((value) => <g key={value}><line x1={left} y1={yAt(value)} x2={width - right} y2={yAt(value)} className="sap-trend-guide"/><text x={left - 10} y={yAt(value) + 4} textAnchor="end" className="sap-trend-axis">{value === 25 ? 'Needs support' : value === 60 ? 'Developing' : 'Strong'}</text></g>)}
-          {activeSeries.flatMap((trendSeries) => comparableTrendSegments(trendSeries.events).map(([start, end], index) => <line
-            key={`${trendSeries.key}:segment:${index}`}
-            x1={xAt(start)}
-            y1={yAt(start.score)}
-            x2={xAt(end)}
-            y2={yAt(end.score)}
-            className={`sap-trend-line sap-trend-line--${trendSeries.tone}`}
-          />))}
-          {plottedPoints.map((point) => <circle
-            key={point.key}
-            cx={point.x}
-            cy={point.y}
-            r="6"
-            className={`sap-trend-point sap-trend-point--${point.series.tone}`}
-            tabIndex={0}
-            aria-label={`${formatDate(point.event.observedAt)}, ${point.series.label}, ${point.event.detail}, ${point.event.label}, ${trendPositionLabel(point.event.score)}`}
-            onMouseEnter={() => setActiveKey(point.key)}
-            onMouseLeave={() => setActiveKey(null)}
-            onFocus={() => setActiveKey(point.key)}
-            onBlur={() => setActiveKey(null)}
-            onClick={() => setActiveKey((current) => current === point.key ? null : point.key)}
-          />)}
-          {firstEvent ? <text x={left} y={height - 8} className="sap-trend-date">{formatDate(firstEvent.observedAt)}</text> : null}
-          {lastEvent ? <text x={width - right} y={height - 8} textAnchor="end" className="sap-trend-date">{formatDate(lastEvent.observedAt)}</text> : null}
-        </svg>
-        {activePoint ? <div
-          className={`sap-trend-tooltip sap-trend-tooltip--${horizontalEdge} sap-trend-tooltip--${verticalEdge} sap-trend-tooltip--series-${activePoint.series.tone}`}
-          role="status"
-          style={{ left: `${xPercent}%`, top: `${yPercent}%` }}
-        >
-          <div className="sap-trend-tooltip-head"><strong>{formatDate(activePoint.event.observedAt)}</strong><span className={`sap-trend-source-pill sap-trend-source-pill--${activePoint.series.tone}`}>{activePoint.series.label}</span></div>
-          <b>{activePoint.event.detail}</b>
-          <p className="sap-trend-tooltip-skill">{activePoint.event.label}</p>
-          <div className="sap-trend-tooltip-position"><span>{activePoint.event.result}</span><strong className={`sap-evidence-position sap-evidence-position--${evidenceBandClass(activePoint.event.score)}`}>{trendPositionLabel(activePoint.event.score)}</strong>{pointDelta == null ? null : <em className={pointDelta >= 0 ? 'is-up' : 'is-down'}>{pointDelta >= 0 ? '↑' : '↓'} {Math.abs(pointDelta)} from previous comparable result</em>}</div>
-          <div className="sap-trend-evidence-mix" aria-label="Evidence mix">
-            <span className="is-support"><i aria-hidden="true"/><span>Needs support</span><b>{activePoint.event.focusCount}</b></span>
-            <span className="is-developing"><i aria-hidden="true"/><span>Developing</span><b>{activePoint.event.developingCount}</b></span>
-            <span className="is-strength"><i aria-hidden="true"/><span>Positive evidence</span><b>{activePoint.event.strengthCount}</b></span>
+      <div className="sap-lanes" role="table" aria-label={`${subject} skill results over the selected period, one row per skill`}>
+        <div className="sap-lane sap-lane--head" role="row">
+          <span role="columnheader">Skill</span>
+          <span className="sap-lane-dates" role="columnheader">{firstEvent ? <time>{formatDate(firstEvent.observedAt)}</time> : null}{lastEvent && lastEvent !== firstEvent ? <time>{formatDate(lastEvent.observedAt)}</time> : null}</span>
+          <span role="columnheader">Change</span>
+        </div>
+        {lanes.map((lane) => <div key={lane.key} className={`sap-lane sap-lane--${lane.band}`} role="row">
+          <div className="sap-lane-label" role="cell"><strong>{lane.label}</strong><small>{lane.points.length} {lane.points.length === 1 ? 'result' : 'results'} · {lane.series.label}</small></div>
+          <div className="sap-lane-track" role="cell">
+            {lane.points.length > 1 ? <svg className="sap-lane-link" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
+              <polyline points={lane.points.map((point) => `${((point.x - left) / usableWidth) * 100},5`).join(' ')} />
+            </svg> : null}
+            {lane.points.map((point) => <button
+              key={point.key}
+              type="button"
+              className={`sap-lane-dot sap-lane-dot--${evidenceBandClass(point.event.score)}${activeKey === point.key ? ' is-active' : ''}`}
+              style={{ left: pointLeft(point.x) }}
+              aria-label={`${formatDate(point.event.observedAt)}, ${point.event.label}, ${point.event.detail}, ${trendPositionLabel(point.event.score)}`}
+              aria-pressed={activeKey === point.key}
+              onMouseEnter={() => setActiveKey(point.key)}
+              onFocus={() => setActiveKey(point.key)}
+              onClick={() => setActiveKey((current) => current === point.key ? null : point.key)}
+            />)}
           </div>
-        </div> : null}
+          <div className={`sap-lane-change sap-lane-change--${movement(lane.delta)}`} role="cell">
+            <b>{movementText(lane.delta)}</b>
+            <small>{lane.delta == null ? bandWord(lane.last.score) : `${bandWord(lane.first.score)} → ${bandWord(lane.last.score)}`}</small>
+          </div>
+        </div>)}
       </div>
-      <small>Tap a point for detail. Assignment and Writing Hub results use different colours.</small>
+      <div className="sap-lane-key" aria-hidden="true"><span className="is-support"><i/>Needs support</span><span className="is-developing"><i/>Developing</span><span className="is-strength"><i/>Strong</span></div>
+      {activePoint ? <div className={`sap-lane-detail sap-lane-detail--${evidenceBandClass(activePoint.event.score)}`} role="status">
+        <div className="sap-trend-tooltip-head"><strong>{formatDate(activePoint.event.observedAt)}</strong><span className={`sap-trend-source-pill sap-trend-source-pill--${activePoint.series.tone}`}>{activePoint.series.label}</span></div>
+        <b>{activePoint.event.detail}</b>
+        <p className="sap-trend-tooltip-skill">{activePoint.event.label}</p>
+        <div className="sap-trend-tooltip-position"><span>{activePoint.event.result}</span><strong className={`sap-evidence-position sap-evidence-position--${evidenceBandClass(activePoint.event.score)}`}>{trendPositionLabel(activePoint.event.score)}</strong>{pointDelta == null ? null : <em className={pointDelta >= 0 ? 'is-up' : 'is-down'}>{pointDelta >= 0 ? '↑' : '↓'} {Math.abs(pointDelta)} from previous comparable result</em>}</div>
+        <div className="sap-trend-evidence-mix" aria-label="Evidence mix">
+          <span className="is-support"><i aria-hidden="true"/><span>Needs support</span><b>{activePoint.event.focusCount}</b></span>
+          <span className="is-developing"><i aria-hidden="true"/><span>Developing</span><b>{activePoint.event.developingCount}</b></span>
+          <span className="is-strength"><i aria-hidden="true"/><span>Positive evidence</span><b>{activePoint.event.strengthCount}</b></span>
+        </div>
+      </div> : <small>Each row is one skill, oldest result on the left. Tap a dot for the assessment behind it.</small>}
     </> : <div className="sap-empty">No scored skill results in this period. Open Evidence activity for qualitative feedback.</div>}
   </article>;
 };
