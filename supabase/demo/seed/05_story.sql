@@ -24,7 +24,6 @@ declare
   v_cut timestamptz := private.demo_week_start(3) + interval '4 days' + interval '6 hours'; -- Friday 15:00
   v_teacher_profile uuid := (select t.id from public.teachers t join private.demo_people p on p.user_id = t.user_id and p.key = 'teacher');
   p record; r jsonb; v_iid uuid; v_targets jsonb; v_practice public.assignments; q record; v_n integer; v_i integer;
-  v_story_review_date date;
 begin
   for p in select key, user_id, full_name from private.demo_people where key in ('s01','s02','s03','s04','s05') order by key loop
     perform private.demo_as('teacher');
@@ -62,8 +61,9 @@ begin
       (select question_ids from private.demo_question_sets where skill = 'P' and set_no = 9),
       v_cut + interval '3 days' + interval '1 hour', v_cut + interval '6 days',
       'Targeted practice: present perfect', 'Read each sentence and choose the best verb form.', 'easy',
-      p.user_id, v_skill, (select jsonb_agg(x) from jsonb_array_elements_text(v_targets) x), 'homework',
+      p.user_id, v_skill, v_targets, 'homework',
       'Asia/Bishkek', 'Short practice set chosen for you after our mini-lesson.', 'published', false, false);
+    -- Creating practice records it without a plan; the workspace then links it to the plan.
     perform public.rpc_teacher_register_intervention_practice(v_practice.id, p.user_id, v_skill, v_targets, v_iid);
 
     perform private.demo_as(p.key);
@@ -85,12 +85,12 @@ begin
     update public.student_learning_interventions set baseline_cutoff_at = v_cut, created_at = v_cut,
       approved_at = v_cut + interval '5 minutes', started_at = v_cut + interval '3 days', updated_at = v_cut + interval '3 days'
       where id = v_iid;
-    update public.student_learning_intervention_approvals set created_at = v_cut + interval '5 minutes' where intervention_id = v_iid;
+    update public.student_learning_intervention_approvals set decided_at = v_cut + interval '5 minutes' where intervention_id = v_iid;
     update public.student_learning_intervention_events set created_at = case event_type
         when 'created' then v_cut when 'approved' then v_cut + interval '5 minutes' else v_cut + interval '3 days' end
       where intervention_id = v_iid;
     update public.student_learning_intervention_checkpoints set created_at = v_cut where intervention_id = v_iid;
-    update public.student_learning_intervention_evidence_snapshots set created_at = v_cut where intervention_id = v_iid;
+    update public.student_learning_intervention_evidence_snapshots set captured_at = v_cut where intervention_id = v_iid;
     update public.student_learning_intervention_practice_assignments set created_at = v_cut + interval '3 days', linked_at = v_cut + interval '3 days'
       where intervention_id = v_iid;
     update public.assignments set created_at = v_cut + interval '3 days', updated_at = v_cut + interval '3 days' + interval '1 hour',
@@ -116,8 +116,10 @@ call private.demo_run_week(8);
 -- This week: evaluate four plans against their baselines; confirm the three recoveries.
 do $$
 declare
-  v_as_of timestamptz := least(now(), private.demo_today()) - interval '1 hour';
+  -- Evaluated Thursday 16:00 after week 8's check; outcomes confirmed Friday 10:00.
+  v_as_of timestamptz := least(private.demo_week_start(8) + interval '3 days 7 hours', now() - interval '2 hours');
   v_eval_at timestamptz;
+  v_confirm_at timestamptz := least(private.demo_week_start(8) + interval '4 days 1 hour', now() - interval '30 minutes');
   k text; v_iid uuid; r jsonb; v_checkpoint uuid; v_outcome text;
 begin
   perform private.demo_as('teacher');
@@ -132,7 +134,7 @@ begin
     v_eval_at := v_as_of + interval '10 minutes';
     if k <> 's05' and v_outcome in ('improved','resolved') then
       perform public.rpc_teacher_confirm_learning_intervention_outcome(v_checkpoint, 'confirmed', v_outcome,
-        'Two independent weekly checks after the mini-lesson show secure use of the present perfect.');
+        'Five independent weekly checks since the mini-lesson show secure use of the present perfect.');
     end if;
 
     set local session_replication_role = replica;
@@ -140,13 +142,13 @@ begin
       updated_at = v_eval_at where id = v_iid;
     update public.student_learning_intervention_checkpoints set due_at = (v_as_of at time zone 'Asia/Bishkek')::date::timestamptz,
       evaluated_at = v_eval_at where intervention_id = v_iid;
-    update public.student_learning_intervention_outcome_reviews set created_at = v_eval_at + interval '1 day' where intervention_id = v_iid;
-    update public.student_learning_interventions set completed_at = v_eval_at + interval '1 day' where id = v_iid and completed_at is not null;
+    update public.student_learning_intervention_outcome_reviews set reviewed_at = v_confirm_at where intervention_id = v_iid;
+    update public.student_learning_interventions set completed_at = v_confirm_at where id = v_iid and completed_at is not null;
     update public.student_learning_intervention_events set created_at = case
-        when event_type = 'checkpoint_evaluated' then v_eval_at else v_eval_at + interval '1 day' end
+        when event_type = 'checkpoint_evaluated' then v_eval_at else v_confirm_at end
       where intervention_id = v_iid and created_at > v_as_of;
-    update public.student_learning_intervention_evidence_snapshots set created_at = v_eval_at
-      where intervention_id = v_iid and created_at > v_as_of;
+    update public.student_learning_intervention_evidence_snapshots set captured_at = v_eval_at
+      where intervention_id = v_iid and captured_at > v_as_of;
     set local session_replication_role = origin;
   end loop;
 
