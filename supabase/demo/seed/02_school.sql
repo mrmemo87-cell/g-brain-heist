@@ -88,11 +88,12 @@ begin
     perform private.demo_ok('class ' || p.key, to_jsonb(public.rpc_setup_school_class_enrollment('7', 'A')));
   end loop;
 
-  -- 4. English for Grade 7, taught by the demo teacher to 7A; roster confirmed.
+  -- 4. English for Grade 7, taught by the demo teacher to 7A (the School Subjects screen's
+  --    save call: subject + curriculum mapping + grade offering + teaching group); roster confirmed.
   perform private.demo_as('teacher');
-  perform private.demo_ok('provision English', public.rpc_school_admin_provision_subject(
-    v_school, v_year, 'English', 'ENG', v_english_academic_subject, '7', v_english_grade7_scope,
-    'all_grade', null, v_teacher, array[v_class]));
+  perform private.demo_ok('save English', public.rpc_school_admin_save_school_subject(
+    v_school, 'English', null, 'ENG', v_english_academic_subject, v_year, '7', v_english_grade7_scope,
+    'all_grade', array[]::uuid[], v_teacher, array[v_class], false));
   perform private.demo_ok('confirm roster', public.rpc_school_admin_confirm_academic_roster(v_school, v_year));
 
   insert into private.demo_state(key, value) values
@@ -123,5 +124,6 @@ begin
   update public.school_curriculum_scope_mappings set created_at = v_open, confirmed_at = v_open, updated_at = v_open where school_id = v_school;
   update public.school_subjects set created_at = v_open, updated_at = v_open where school_id = v_school;
   update public.school_subject_offerings set created_at = v_open, updated_at = v_open where school_id = v_school;
+  update public.school_subject_groups set created_at = v_open, updated_at = v_open where school_id = v_school;
   set local session_replication_role = origin;
 end $$;
