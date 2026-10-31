@@ -65,7 +65,10 @@ begin
   v_school := (r->>'school_id')::uuid;
   perform private.demo_ok('plan', public.admin_set_school_plan(v_school, 'enterprise'));
   perform private.demo_ok('cambridge seats', public.admin_configure_school_programme_seats(v_school, 'cambridge', 60));
-  update public.schools set time_zone = 'Asia/Bishkek' where id = v_school;
+  -- Fixed, memorable invite code. (Approval can generate a code containing '=', which
+  -- join_school_by_code strips before matching, so roughly 1 in 20 generated codes
+  -- cannot be used to join; a fixed code also keeps the demo deterministic.)
+  update public.schools set time_zone = 'Asia/Bishkek', invite_code = 'DEMO7A2026' where id = v_school;
 
   -- 2. The demo teacher is the School Head and also teaches English.
   perform private.demo_as('teacher');
