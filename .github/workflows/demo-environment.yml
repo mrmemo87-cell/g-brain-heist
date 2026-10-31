@@ -63,6 +63,7 @@ jobs:
           [[ "${DEMO_DB_URL}" == *lvkmkgjpcbdyzdkbqcgc* ]] || fail "BH_DEMO_DB_URL is not the demo project"
           [[ "${DEMO_DB_URL}" != *sozodkxwhubespiedgxm* ]] || fail "BH_DEMO_DB_URL points at production"
           [[ "${DEMO_DB_URL}" != *YOUR-PASSWORD* ]] || fail "BH_DEMO_DB_URL still has the [YOUR-PASSWORD] placeholder"
+          [[ -n "${PROD_DB_URL}" ]] || fail "BH_PROD_DB_URL secret is missing or empty (needed to sync database changes)"
           if [[ "${MODE}" == "clone" ]]; then
             [[ -n "${PROD_DB_URL}" ]] || fail "BH_PROD_DB_URL secret is missing or empty"
             [[ "${PROD_DB_URL}" == postgres* ]] || fail "BH_PROD_DB_URL must be the single postgresql:// line"
@@ -126,7 +127,17 @@ jobs:
 
       - name: Isolate demo (no outbound email/push/http) and schedule engine jobs
         if: env.MODE == 'clone'
-        run: psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 --file supabase/demo/post-restore.sql
+        run: |
+          set -euo pipefail
+          psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 --file supabase/demo/post-restore.sql
+          # Record which production migration the copied schema corresponds to.
+          v=$(psql "$PROD_DB_URL" -tAc "select max(version) from supabase_migrations.schema_migrations")
+          psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 -c "create table if not exists private.demo_applied_migrations(version text primary key, name text, applied_at timestamptz not null default now()); revoke all on private.demo_applied_migrations from public, anon, authenticated; insert into private.demo_applied_migrations(version, name) values ('$v', 'baseline: schema copy') on conflict do nothing;"
+
+      - name: Apply new production database changes to the demo (reads production only)
+        run: |
+          python3 -m pip install --quiet --break-system-packages "psycopg[binary]>=3.2"
+          python3 supabase/demo/sync_migrations.py
 
       - name: Reset and seed the demo school (one transaction)
         run: |
