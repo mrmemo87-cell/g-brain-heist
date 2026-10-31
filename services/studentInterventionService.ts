@@ -4,6 +4,8 @@ import { userFacingError } from './userFacingError';
 export type InterventionType = 'targeted_question_practice' | 'writing_practice' | 'reassessment' | 'teacher_support' | 'custom';
 export interface InterventionEvidenceExample {
   original?: string | null; better_version?: string | null; issue?: string | null; weakness_tag?: string | null;
+  /** 'assignment_item' when built from the student's own wrong answer on a verified assignment; absent for Writing-hub feedback. */
+  source?: 'assignment_item' | string | null;
 }
 export interface InterventionConfidence {
   score?: number | null; band?: string | null; assessment_state?: string | null; decision_eligible: boolean;
