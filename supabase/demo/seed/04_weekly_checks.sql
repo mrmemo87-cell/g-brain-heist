@@ -42,6 +42,7 @@ declare
   v_noise integer := ('x' || substr(md5(p_student || p_skill || p_week), 1, 2))::bit(8)::integer; -- 0..255
 begin
   v_story := case
+    when p_student in ('s25','s26','s27') then 'strong'           -- 7B
     when p_student in ('s01','s02','s03') then 'perfect_recovered'
     when p_student = 's04' then 'perfect_still_measuring'
     when p_student = 's05' then 'perfect_no_change'
@@ -75,7 +76,15 @@ language sql immutable as $$
   order by md5(o) limit 1
 $$;
 
+-- One weekly check per class (7A and 7B get the same questions on the same Monday).
 create or replace procedure private.demo_run_week(p_week integer)
+language plpgsql as $$
+begin
+  call private.demo_run_week_class(p_week, '7A');
+  call private.demo_run_week_class(p_week, '7B');
+end $$;
+
+create or replace procedure private.demo_run_week_class(p_week integer, p_class text)
 language plpgsql as $$
 declare
   v_teacher_profile uuid := (select id from public.teachers where user_id = (select user_id from private.demo_people where key = 'teacher'));
@@ -92,7 +101,7 @@ begin
 
   perform private.demo_as('teacher');
   select * into v_assignment from public.rpc_create_assignment(
-    v_teacher_profile, 'english', 'English', 'Grammar check', '7A', v_questions,
+    v_teacher_profile, 'english', 'English', 'Grammar check', p_class, v_questions,
     v_at, v_at + interval '4 days',
     format('Week %s English check', p_week),
     'Answer every question. Take your time and read each sentence carefully.',
@@ -100,7 +109,7 @@ begin
     'Weekly check covering perfect forms, subject-verb agreement, comparatives and question formation.',
     'published', false, false);
 
-  for st in select key, user_id from private.demo_people where role = 'student' order by key loop
+  for st in select key, user_id from private.demo_people where role = 'student' and class_code = p_class order by key loop
     if private.demo_correct(st.key, 'P', p_week) is null then continue; end if;
     perform private.demo_as(st.key);
     v_total := 0;
@@ -129,7 +138,7 @@ begin
     assigned_at = v_at, published_at = v_at, due_at = v_at + interval '4 days'
   where id = v_assignment.id;
   update public.assignment_students set added_at = v_at where assignment_id = v_assignment.id;
-  for st in select p.key, p.user_id from private.demo_people p where p.role = 'student' loop
+  for st in select p.key, p.user_id from private.demo_people p where p.role = 'student' and p.class_code = p_class loop
     -- each student finishes 1-2 days after it is set, at a slightly different time
     v_done := v_at + interval '1 day' + make_interval(mins => (('x' || substr(md5(st.key || p_week), 1, 3))::bit(12)::integer % 1800));
     update public.student_assignment_answers a set answered_at = v_done - make_interval(secs => 30 * (12 - x.rn)::integer),
@@ -152,6 +161,6 @@ begin
     perform private.ingest_verified_assignment_registry_evidence(v_assignment.id, st.user_id);
   end loop;
 
-  insert into private.demo_state(key, value) values ('week_' || p_week, to_jsonb(v_assignment.id))
+  insert into private.demo_state(key, value) values ('week_' || p_week || '_' || p_class, to_jsonb(v_assignment.id))
   on conflict (key) do update set value = excluded.value;
 end $$;

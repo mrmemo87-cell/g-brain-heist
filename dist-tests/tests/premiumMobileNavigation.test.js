@@ -22,7 +22,8 @@ test('smart mobile navigation tracks scroll for two thirds before a velocity-mat
     assert.match(hook, /return \{ navigationRef, revealNavigation \}/);
 });
 test('teacher and student bottom navigation share the premium reveal pattern', () => {
-    assert.match(teacherPortal, /TEACHER_MOBILE_NAV_QUERY = '\(max-width: 1024px\)'/);
+    // Teacher bottom navigation starts at 900px so zoomed laptops (e.g. 1280px at 125%) keep the sidebar.
+    assert.match(teacherPortal, /TEACHER_MOBILE_NAV_QUERY = '\(max-width: 900px\)'/);
     assert.match(teacherPortal, /useSmartCollapsedNavigation\(view, TEACHER_MOBILE_NAV_QUERY\)/);
     assert.match(teacherPortal, /ref=\{mobileNavigationRef\}/);
     assert.match(teacherPortal, /aria-label="Show teacher navigation"/);

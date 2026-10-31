@@ -15,6 +15,7 @@ export const SCHOOL_ADMIN_TABS = [
     'guardians',
 ];
 export const SCHOOL_ADMIN_IELTS_TABS = [
+    'ielts-overview',
     'ielts-exams',
     'ielts-practice',
     'ielts-reviews',
@@ -24,7 +25,7 @@ export const SCHOOL_ADMIN_IELTS_TABS = [
 ];
 const DEFAULT_STATE = {
     adminTab: 'dashboard',
-    ieltsTab: 'ielts-exams',
+    ieltsTab: 'ielts-overview',
     review: null,
     monitorExamId: null,
 };

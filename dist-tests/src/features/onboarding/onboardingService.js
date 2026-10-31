@@ -46,28 +46,73 @@ export const getCurrentOnboardingUserId = async () => {
         return null;
     return data.user.id;
 };
-export const getOnboardingState = async (userId) => {
-    const resolvedUserId = userId ?? await getCurrentOnboardingUserId();
-    if (!resolvedUserId)
-        return null;
+// Several dashboard pieces read this row on every mount. Share concurrent reads
+// and keep a successful answer for a minute. This tab's own writes refresh the
+// cached copy, and writes always start from a fresh read.
+const ONBOARDING_STATE_TTL_MS = 60_000;
+const onboardingStateCache = new Map();
+const onboardingStateInFlight = new Map();
+const rememberOnboardingState = (userId, state) => {
+    onboardingStateCache.set(userId, { state, expires: Date.now() + ONBOARDING_STATE_TTL_MS });
+};
+export const invalidateOnboardingStateCache = (userId) => {
+    if (userId) {
+        onboardingStateCache.delete(userId);
+        onboardingStateInFlight.delete(userId);
+    }
+    else {
+        onboardingStateCache.clear();
+        onboardingStateInFlight.clear();
+    }
+};
+const readOnboardingStateFromDatabase = async (userId) => {
     const { data, error } = await supabase
         .from(ONBOARDING_TABLE)
         .select('*')
-        .eq('user_id', resolvedUserId)
+        .eq('user_id', userId)
         .maybeSingle();
     if (error) {
         if (!isMissingTableError(error)) {
             console.warn('[onboarding] failed to fetch state:', error.message);
         }
-        return null;
+        return { state: null, ok: false }; // Not cached: the next read retries.
     }
-    return data ? normalizeState(data) : null;
+    return { state: data ? normalizeState(data) : null, ok: true };
+};
+const readOnboardingState = async (userId, fresh) => {
+    if (!fresh) {
+        const cached = onboardingStateCache.get(userId);
+        if (cached && cached.expires > Date.now())
+            return cached.state;
+        const pending = onboardingStateInFlight.get(userId);
+        if (pending)
+            return (await pending).state;
+    }
+    const request = readOnboardingStateFromDatabase(userId);
+    onboardingStateInFlight.set(userId, request);
+    try {
+        const result = await request;
+        // Ignore a response that an invalidation or newer read has superseded.
+        if (result.ok && onboardingStateInFlight.get(userId) === request)
+            rememberOnboardingState(userId, result.state);
+        return result.state;
+    }
+    finally {
+        if (onboardingStateInFlight.get(userId) === request)
+            onboardingStateInFlight.delete(userId);
+    }
+};
+export const getOnboardingState = async (userId) => {
+    const resolvedUserId = userId ?? await getCurrentOnboardingUserId();
+    if (!resolvedUserId)
+        return null;
+    return readOnboardingState(resolvedUserId, false);
 };
 export const updateOnboardingState = async (patch, userId) => {
     const resolvedUserId = userId ?? await getCurrentOnboardingUserId();
     if (!resolvedUserId)
         return null;
-    const existing = await getOnboardingState(resolvedUserId);
+    const existing = await readOnboardingState(resolvedUserId, true);
     const now = new Date().toISOString();
     const nextCompletedSteps = patch.completed_steps ?? existing?.completed_steps ?? [];
     const nextMetadata = {
@@ -93,18 +138,23 @@ export const updateOnboardingState = async (patch, userId) => {
         .select('*')
         .single();
     if (error) {
+        invalidateOnboardingStateCache(resolvedUserId);
         if (!isMissingTableError(error)) {
             console.warn('[onboarding] failed to update state:', error.message);
         }
         return null;
     }
-    return data ? normalizeState(data) : null;
+    const nextState = data ? normalizeState(data) : null;
+    invalidateOnboardingStateCache(resolvedUserId);
+    if (nextState)
+        rememberOnboardingState(resolvedUserId, nextState);
+    return nextState;
 };
 export const markOnboardingStepComplete = async (step, options = {}, userId) => {
     const resolvedUserId = userId ?? await getCurrentOnboardingUserId();
     if (!resolvedUserId)
         return null;
-    const existing = await getOnboardingState(resolvedUserId);
+    const existing = await readOnboardingState(resolvedUserId, true);
     const completedSteps = Array.from(new Set([...(existing?.completed_steps ?? []), step]));
     const now = new Date().toISOString();
     const nextState = await updateOnboardingState({
@@ -140,6 +190,7 @@ export const resetOnboarding = async (userId) => {
         .from(ONBOARDING_TABLE)
         .delete()
         .eq('user_id', resolvedUserId);
+    invalidateOnboardingStateCache(resolvedUserId);
     if (error && !isMissingTableError(error)) {
         console.warn('[onboarding] failed to reset state:', error.message);
     }

@@ -45,9 +45,11 @@ test('school administration and executive UX reserve assignment for academic wor
     assert.match(teacherAllocationTab, /Allocate teacher|Allocating…|Date allocated/);
     assert.match(schoolHeadPortal, /With active allocations/);
 });
-test('teacher workspace calls classes allocations but keeps academic work as assignments', () => {
+test('teacher workspace prefers teaching groups while retaining legacy class compatibility', () => {
+    assert.match(teacherPortal, /fetchTeacherTeachingGroups/);
     assert.match(teacherPortal, /getTeacherAllocatedClasses/);
-    assert.match(teacherPortal, /Your Allocated Classes/);
+    assert.match(teacherPortal, /Your teaching groups/);
+    assert.match(assignmentWizard, /Choose the teaching group this assignment belongs to/);
     assert.match(assignmentWizard, /Create an assignment/);
     assert.match(assignmentWizard, /Assignment title/);
 });

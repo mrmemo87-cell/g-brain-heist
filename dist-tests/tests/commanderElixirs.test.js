@@ -32,7 +32,7 @@ test('combat elixir formulas mirror Commander training effects', () => {
     assert.match(migration, /\{attack\}.*\+ v_boost/i);
 });
 test('only one active elixir is allowed and identical elixirs extend duration', () => {
-    assert.match(migration, /primary key \(user_id\)/i);
+    assert.match(migration, /user_id uuid primary key/i);
     assert.match(migration, /v_active\.elixir_id <> p_elixir_id/i);
     assert.match(migration, /commander_elixir_other_active/i);
     assert.match(migration, /greatest\(v_active\.expires_at, now\(\)\)/i);
@@ -49,8 +49,8 @@ test('Commander Supplies client exposes purchase, activation, inventory and time
     assert.match(service, /rpc_commander_elixirs/);
     assert.match(service, /rpc_commander_elixir_purchase/);
     assert.match(service, /rpc_commander_elixir_activate/);
-    assert.match(panel, /Gemstones only/i);
-    assert.match(panel, /ONE ACTIVE/i);
+    assert.match(panel, /Buy them with Gemstones/i);
+    assert.match(panel, /One at a time/i);
     assert.match(panel, /Extend \+\$\{item\.durationMinutes\}m/);
     assert.match(panel, /formatDuration\(activeRemaining\)/);
 });

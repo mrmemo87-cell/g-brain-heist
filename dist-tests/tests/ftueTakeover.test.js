@@ -8,7 +8,7 @@ const flags = {
     teacher_ftue_enabled: true,
     admin_ftue_enabled: true,
 };
-test('active learner FTUE predicate suppresses legacy tutorial for new learners', () => {
+test('registered learners do not fall back to the legacy tutorial', () => {
     assert.equal(shouldSuppressLegacyTutorialForFtue({
         flags,
         profile: {
@@ -21,7 +21,7 @@ test('active learner FTUE predicate suppresses legacy tutorial for new learners'
         },
     }), true);
 });
-test('legacy tutorial remains available when global FTUE flag is disabled', () => {
+test('disabling FTUE does not reintroduce the legacy tutorial for registered students', () => {
     assert.equal(shouldSuppressLegacyTutorialForFtue({
         flags: { ...flags, ftue_enabled: false },
         profile: {
@@ -32,7 +32,7 @@ test('legacy tutorial remains available when global FTUE flag is disabled', () =
             needs_setup: false,
             tutorial_completed: false,
         },
-    }), false);
+    }), true);
 });
 test('legacy tutorial is not suppressed for non-learner FTUE segments', () => {
     assert.equal(shouldSuppressLegacyTutorialForFtue({

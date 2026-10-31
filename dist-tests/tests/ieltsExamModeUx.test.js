@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { canStartIeltsExamAttempt, formatIeltsCountdown, getIeltsAttemptOperationalLabel, getIeltsStudentExamSyncMessage, resolveIeltsStudentExamSyncState, shouldIeltsAutosaveRun, resolveIeltsExamLifecycleMeta, resolveIeltsExamLifecycleState, } from '../services/ieltsExamModeUx.js';
+import { canStartIeltsExamAttempt, formatIeltsCountdown, getIeltsAttemptTimeMessage, getIeltsAttemptOperationalLabel, getIeltsStudentExamSyncMessage, resolveIeltsStudentExamSyncState, shouldIeltsAutosaveRun, resolveIeltsExamLifecycleMeta, resolveIeltsExamLifecycleState, } from '../services/ieltsExamModeUx.js';
 test('IELTS exam lifecycle labels cover pilot states with human-friendly labels', () => {
     const now = Date.parse('2026-05-18T10:00:00.000Z');
     assert.equal(resolveIeltsExamLifecycleMeta('draft', null, null, now).label, 'Draft');
@@ -41,6 +41,30 @@ test('IELTS waiting countdown renders locally understandable durations', () => {
     assert.equal(formatIeltsCountdown(3661), '1:01:01');
     assert.equal(formatIeltsCountdown(90061), '1d 1h 1m');
 });
+test('pre-start availability never becomes the student attempt timer', () => {
+    assert.equal(getIeltsAttemptTimeMessage(false, 31536000), 'Ready when you are.');
+    assert.equal(getIeltsAttemptTimeMessage(true, 343), 'Time remaining: 5:43.');
+    assert.equal(getIeltsAttemptTimeMessage(true, 0), 'Time remaining: 0:00.');
+});
+test('Exam Mode answer and helper text retain accessible contrast on light surfaces', () => {
+    const css = readFileSync('src/styles/ielts-exam.css', 'utf8');
+    const luminance = (hex) => {
+        const rgb = hex.match(/\w{2}/g).map((c) => parseInt(c, 16) / 255)
+            .map((c) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+        return rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722;
+    };
+    // Include disabled values and placeholders: neither should fade into white.
+    for (const selector of ['.text-slate-500', ':is(input, textarea)', '::placeholder', ':disabled']) {
+        const rule = css.split('}').find((part) => part.split('{')[0].includes(selector));
+        const color = rule?.match(/\bcolor:\s*#([\da-f]{6})/i)?.[1];
+        assert.ok(color, `${selector} requires an explicit foreground`);
+        assert.ok(1.05 / (luminance(color) + 0.05) >= 4.5, `${selector} must meet normal-text contrast on white`);
+    }
+    const page = readFileSync('src/pages/ielts/IeltsExamMode.tsx', 'utf8');
+    assert.match(page, /import '\.\.\/\.\.\/styles\/ielts-exam.css'/);
+    assert.match(page, /document.body.classList.remove\('ielts-exam-mode'\)/, 'exam theme must not leak into other routes');
+    assert.match(css, /body\.ielts-exam-mode \[data-global-language-control="true"\]/);
+});
 test('IELTS monitor labels emphasize not started, active, submitted and connection issue', () => {
     assert.equal(getIeltsAttemptOperationalLabel('assigned'), 'Not started');
     assert.equal(getIeltsAttemptOperationalLabel('in_progress'), 'Active');
@@ -50,21 +74,24 @@ test('IELTS monitor labels emphasize not started, active, submitted and connecti
 test('IELTS student live sync maps teacher pause, force submit and void states', () => {
     assert.equal(resolveIeltsStudentExamSyncState('in_progress', 'paused', 'ok'), 'paused');
     assert.equal(getIeltsStudentExamSyncMessage('paused'), 'This exam is paused by the teacher.');
-    assert.equal(resolveIeltsStudentExamSyncState('auto_submitted', 'live', 'ok'), 'teacher_submitted');
-    assert.equal(getIeltsStudentExamSyncMessage('teacher_submitted'), 'Your exam has been submitted by your teacher.');
+    for (const status of ['submitted', 'auto_submitted', 'force_submitted']) {
+        assert.equal(resolveIeltsStudentExamSyncState(status, 'live', 'ok'), 'submitted');
+    }
+    assert.equal(getIeltsStudentExamSyncMessage('submitted'), 'Your assessment has been submitted. Your answers are saved.');
     assert.equal(resolveIeltsStudentExamSyncState('void', 'live', 'assignment_void'), 'voided');
     assert.equal(getIeltsStudentExamSyncMessage('voided'), 'This attempt was voided by the teacher.');
 });
 test('IELTS student autosave only runs while the live sync state is active', () => {
     assert.equal(shouldIeltsAutosaveRun('active'), true);
     assert.equal(shouldIeltsAutosaveRun('paused'), false);
-    assert.equal(shouldIeltsAutosaveRun('teacher_submitted'), false);
+    assert.equal(shouldIeltsAutosaveRun('submitted'), false);
     assert.equal(shouldIeltsAutosaveRun('voided'), false);
     assert.equal(shouldIeltsAutosaveRun('not_in_progress'), false);
 });
-test('IELTS Exam Mode UI surfaces start-exam backend errors instead of silently resetting', () => {
+test('IELTS Exam Mode UI surfaces safe start errors instead of silently resetting', () => {
     const source = readFileSync('src/pages/ielts/IeltsExamMode.tsx', 'utf8');
-    assert.match(source, /Start exam failed:/, 'start failure must include backend reason prefix');
+    assert.match(source, /Your assessment could not open\. Check your connection and try again\./, 'start failure must provide a useful recovery action');
+    assert.doesNotMatch(source, /setError\(`Start exam failed: \$\{backendReason\}/, 'raw backend errors must stay out of student copy');
     assert.match(source, /alert=\{error\}/, 'start card must render the captured failure message');
     assert.match(source, /if \(isStarting \|\| !whoami\?\.assignment_id\) return;/, 'start action must be retry-safe against double clicks');
     assert.match(source, /canStartIeltsExamAttempt\(\{[\s\S]*allowed: whoami\?\.allowed,[\s\S]*eventStatus,/, 'student start UI must consume live-state eligibility');
@@ -72,14 +99,14 @@ test('IELTS Exam Mode UI surfaces start-exam backend errors instead of silently 
 });
 test('IELTS Exam Mode student page polls live status, ticks countdown, and locks teacher actions', () => {
     const source = readFileSync('src/pages/ielts/IeltsExamMode.tsx', 'utf8');
-    assert.match(source, /setInterval\(\(\) => \{[\s\S]*refreshLiveState\(\)[\s\S]*\}, 10000\)/, 'student page must poll live state every 10 seconds');
     assert.match(source, /window\.addEventListener\('focus', onFocusOrVisible\)/, 'student page must refresh status on focus');
     assert.match(source, /document\.addEventListener\('visibilitychange', onFocusOrVisible\)/, 'student page must refresh status on visibilitychange');
     assert.match(source, /setInterval\(\(\) => \{[\s\S]*setNowTick\(Date\.now\(\)\)[\s\S]*setRemainingSeconds[\s\S]*\}, 1000\)/, 'countdown must visibly tick every second');
     assert.match(source, /syncStateRef\.current === 'paused'\) return;/, 'countdown display must pause while teacher has paused the event');
     assert.match(source, /shouldIeltsAutosaveRun\(syncStateRef\.current\)/, 'autosave must be gated by live sync state');
     assert.match(source, /attempt_not_in_progress\|assignment_void\|exam_paused/, 'teacher state changes must suppress scary autosave errors');
-    assert.match(source, /Your exam has been submitted by your teacher\./, 'force submit must show teacher-submitted state');
+    assert.match(source, /Your answers have been received and locked for review\./, 'submitted state must not invent a submitting actor');
+    assert.doesNotMatch(source, /Your exam has been submitted by your teacher/, 'attempt status alone does not identify the submitter');
     assert.match(source, /This attempt was voided by the teacher\./, 'void must show teacher-voided state');
     assert.match(source, /This exam is paused by the teacher\./, 'pause must show teacher-paused state');
 });

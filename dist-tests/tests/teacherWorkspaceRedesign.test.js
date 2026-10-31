@@ -14,8 +14,8 @@ test('teacher navigation uses the requested labels and order', () => {
     assert.doesNotMatch(portal, /label: 'My Students'/);
     assert.match(portal, /<th>Subject<\/th>\s*<th>Title<\/th>\s*<th>Topic<\/th>/);
 });
-test('writing hub is limited to English teachers', () => {
-    assert.match(portal, /const teachesEnglish = teacherAssignedSubjects\.some/);
+test('writing hub follows the academic resource map of allocated school subjects', () => {
+    assert.match(portal, /const teachesEnglish = teacherResourceSubjects\.some/);
     assert.match(portal, /profile\.role === 'admin' \|\| teachesEnglish/);
     assert.doesNotMatch(portal, /profile\.role === 'teacher' && teachesEnglish/);
 });
@@ -24,6 +24,11 @@ test('assignment wizard follows the subject-first light workflow', () => {
     assert.match(wizard, /\{ id: 2, short: 'Audience', question: 'Who is this for\?'/);
     assert.match(wizard, /question: 'Add Title and Description'/);
     assert.match(wizard, /Brains Heist Verified/);
+    assert.match(wizard, /School Verified/);
+    assert.match(wizard, /My Pool/);
+    assert.match(wizard, /isSchoolPoolQuestion/);
+    assert.match(wizard, /isVerifiedProfileQuestion/);
+    assert.match(wizard, /School Verified · Profile evidence/);
     assert.match(wizard, />Select all</);
     assert.match(wizard, /Available questions/);
     assert.match(wizard, /Selected questions/);
@@ -51,7 +56,9 @@ test('question bank separates global, school-verified, and teacher-owned pools',
     assert.match(questionBank, /pools\['brains-heist'\]\.length > 0/);
     assert.match(questionBank, /pools\.school\.length > 0[\s\S]*'school'[\s\S]*pools\.mine\.length > 0[\s\S]*'mine'/);
     assert.doesNotMatch(portal, /Error loading global question bank:[\s\S]{0,160}setQuestions\(\[\]\)/);
-    assert.match(portal, /currently loaded questions have been kept/);
+    assert.match(portal, /mergeLoadedQuestions/);
+    assert.match(questionBank, /onQuestionsLoaded/);
+    assert.match(questionBank, /browser\.retry/);
 });
 test('desktop navigation can collapse to create more workspace', () => {
     assert.match(portal, /desktopSidebarCollapsed/);
@@ -64,7 +71,10 @@ test('desktop navigation can collapse to create more workspace', () => {
     assert.match(portal, /data-label=\{tab\.label\}/);
 });
 test('teacher navigation has a clean tablet breakpoint and an independently scrollable sidebar', () => {
-    assert.match(teacherTheme, /\.teacher-sidebar\s*\{[^}]*max-height: calc\(100dvh - \d+px\);[^}]*overflow-y: auto;[^}]*overscroll-behavior: contain;/s);
+    assert.match(teacherTheme, /\.teacher-portal\s*\{[^}]*overflow-x: clip;/s);
+    assert.match(teacherTheme, /\.teacher-sidebar\s*\{[^}]*max-height: min\(calc\(100dvh - 24px\), var\(--teacher-sidebar-available-height/);
+    assert.match(teacherTheme, /\.teacher-sidebar \.teacher-nav-grid--sidebar\s*\{[^}]*min-height: 0;[^}]*overflow-y: auto;[^}]*overscroll-behavior: contain;/s);
+    assert.match(portal, /ref=\{desktopSidebarRef\}/);
     assert.match(teacherTheme, /\.teacher-sidebar-toggle\s*\{[^}]*position: sticky;[^}]*top: 0;[^}]*z-index: 6;/s);
     assert.match(teacherTheme, /@media \(max-width: 1024px\)\s*\{[\s\S]*?\.teacher-desktop-sidebar\s*\{\s*display: none;\s*\}/);
     assert.doesNotMatch(teacherTheme, /@media \(max-width: 1023px\)\s*\{\s*\.teacher-portal-container/);

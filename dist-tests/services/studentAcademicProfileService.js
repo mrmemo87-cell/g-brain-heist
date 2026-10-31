@@ -98,3 +98,6 @@ export const formatLearningStatus = (status) => {
         case 'consistent_strength': return 'Established strength';
     }
 };
+/** Governed school labels supplied by the authorized profile RPC. */
+export const academicProfileSubjectName = (value, aliases) => aliases?.[value.trim().toLowerCase()] || value;
+export const isAcademicAssignmentSource = (source) => source === 'assignment_result' || source === 'registry_verified_assignment';

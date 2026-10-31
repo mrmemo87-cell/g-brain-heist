@@ -30,7 +30,7 @@ test('IELTS practice content catalog service maps RPC names and parameters', asy
     };
     const rows = await rpcIeltsPracticeContentCatalog({ skill: 'reading', search: 'Reading', limit: 25 }, client);
     assert.deepEqual(calls, [
-        { name: 'rpc_ielts_practice_content_catalog', params: { p_skill: 'reading', p_search: 'Reading', p_limit: 25 } },
+        { name: 'rpc_ielts_practice_content_catalog_with_provenance', params: { p_skill: 'reading', p_search: 'Reading', p_limit: 25 } },
     ]);
     assert.equal(rows[0].content_type, 'ielts_reading_set');
     assert.equal(rows[0].content_id, '42');
@@ -378,7 +378,7 @@ test('IELTS Practice content picker polish prevents duplicates and renders selec
 test('IELTS Practice content picker exposes safe filters, grouped catalog, and manual fallback', () => {
     const tab = fs.readFileSync(path.join(process.cwd(), 'components/school-admin/tabs/IeltsPracticeTab.tsx'), 'utf8');
     assert.match(tab, /Skill filter/, 'picker should include a simple skill filter');
-    assert.match(tab, /Title search/, 'picker should include title search');
+    assert.match(tab, /Title or task code/, 'picker should include title and task-code search');
     assert.match(tab, /groupedContentCatalog/, 'catalog content should be grouped by skill');
     assert.match(tab, /Difficulty:/, 'picker should show difficulty display only');
     assert.match(tab, /Band \{content\.band\}/, 'picker should show band display only');
@@ -405,24 +405,10 @@ test('IELTS Practice picker and safe catalog fields do not expose protected solu
     const service = fs.readFileSync(path.join(process.cwd(), 'services/ieltsPracticeContentService.ts'), 'utf8');
     assert.match(service, /content_type[\s\S]*content_id[\s\S]*title[\s\S]*skill[\s\S]*description[\s\S]*difficulty[\s\S]*band/, 'catalog service type should model only safe picker metadata fields');
 });
-test('IELTS Practice production UI includes readiness, status helper text, and empty states', () => {
+test('IELTS Practice production UI puts assignments first and preserves guided creation and recovery', () => {
     const tab = fs.readFileSync(path.join(process.cwd(), 'components/school-admin/tabs/IeltsPracticeTab.tsx'), 'utf8');
-    assert.match(tab, /Assignment readiness/, 'admin practice tab should show a short readiness panel');
-    for (const phrase of [
-        /Assignments created/,
-        /Content selected/,
-        /Class assigned/,
-        /Progress visible/,
-        /Results visible/,
-    ]) {
-        assert.match(tab, phrase, `readiness checklist should include ${phrase}`);
-    }
-    assert.match(tab, /Active = students can work/, 'status helper should explain active assignments');
-    assert.match(tab, /Closed = read-only, no new submissions/, 'status helper should explain closed assignments');
-    assert.match(tab, /Archived = hidden from active view, history preserved/, 'status helper should explain archived assignments');
-    assert.match(tab, /No content found in picker/, 'content picker should have a clear no-content empty state');
-    assert.match(tab, /No students in this class/, 'class selection should warn when no students are enrolled');
-    assert.match(tab, /Assignment has no items/, 'assignment list/progress should call out assignments with no items');
+    for (const phrase of ['New assignment', 'Filter assignments by class', 'Assign to class', 'Choose recipients & instructions', 'Choose practice materials', 'Review & assign', 'Retry class allocation', 'Active = students can work', 'Closed = read-only, no new submissions', 'Archived = hidden from active view, history preserved', 'No content found in picker', 'No students in this class', 'Assignment has no items'])
+        assert.ok(tab.includes(phrase), phrase);
 });
 test('IELTS practice submission/completion migration adds submitted state metadata and RPC', () => {
     const migration = fs.readFileSync(path.join(process.cwd(), 'supabase/migrations/20260521120000_ielts_practice_submission_meaningful_completion.sql'), 'utf8');

@@ -67,18 +67,15 @@ function writingGuidedReviewSpotlightSyncPlugin() {
     };
 }
 export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
-    const geminiKey = env['GEMINI_API_KEY'];
+    // Env vars are read through import.meta.env (services/env.ts). No server-side
+    // keys are defined into the client bundle; AI calls live in Supabase Edge Functions.
+    loadEnv(mode, '.', '');
     return {
         server: {
             port: 3000,
             host: '0.0.0.0',
         },
         plugins: [writingGuidedReviewSpotlightSyncPlugin(), react(), teacherAcademicWorkspacePlugin(), copyBiologyQuestionAssetsPlugin()],
-        define: {
-            'process.env.API_KEY': JSON.stringify(geminiKey),
-            'process.env.GEMINI_API_KEY': JSON.stringify(geminiKey)
-        },
         build: {
             chunkSizeWarningLimit: 800,
             rollupOptions: {

@@ -1,14 +1,13 @@
-import { resolveOnboarding } from './onboardingResolver.js';
+import { hasCompletedStudentSetup, resolveOnboarding } from './onboardingResolver.js';
 import { logOnboardingDebug } from './featureFlags.js';
 export const isLearnerSegment = (segment) => segment === 'school_student' || segment === 'solo_learner';
 export const isActiveLearnerFtue = (resolution) => (Boolean(resolution?.eligible)
     && !resolution?.isComplete
     && isLearnerSegment(resolution?.segment));
 /**
- * Returns true when the new learner FTUE should own onboarding and the legacy
- * tutorial must stay unmounted. This intentionally uses the same resolver and
- * active-learner predicate as OnboardingRouteGate so rollback stays controlled
- * by ftue_enabled=false and non-eligible segments keep legacy behavior.
+ * Suppress the legacy tutorial during active learner onboarding and after
+ * student registration. Registered students enter their dashboard directly,
+ * independently of the optional FTUE flag; other roles keep legacy behavior.
  */
 export const getLegacyTutorialSuppressionDebugSnapshot = (source, { flags, profile, onboardingState = null, inviteToken, hasActiveAssignment, }) => {
     const resolution = resolveOnboarding({
@@ -18,7 +17,9 @@ export const getLegacyTutorialSuppressionDebugSnapshot = (source, { flags, profi
         inviteToken,
         hasActiveAssignment,
     });
-    const suppress = isActiveLearnerFtue(resolution);
+    // Removing the optional introduction must not expose the older tutorial,
+    // including when the FTUE flag is disabled.
+    const suppress = hasCompletedStudentSetup(profile) || isActiveLearnerFtue(resolution);
     return {
         source,
         suppress,

@@ -154,19 +154,37 @@ const documentCss = `
   .school-document__page-footer{position:absolute;inset:auto 15mm 7mm;border-top:1px solid var(--doc-line);padding-top:2.5mm;display:flex;justify-content:space-between;gap:8mm;color:var(--doc-muted);font-size:7.5px}.school-document__page-footer span:last-child{text-align:right}
   .school-document__draft-watermark{display:none}.school-document[data-status="draft"] .school-document__draft-watermark{display:block;position:fixed;z-index:0;inset:42% 0 auto;transform:rotate(-26deg);text-align:center;font-size:80px;font-weight:900;letter-spacing:.18em;color:rgba(154,103,0,.08);pointer-events:none}
   body.ink-saver{--doc-accent:#1f2937;--doc-accent-dark:#111827;--doc-soft:#fff}.ink-saver .school-document__body tbody tr:nth-child(even){background:#fff}.ink-saver .school-document__body th{background:#fff;color:#111;border-width:1.5px}.ink-saver .school-document__badge,.ink-saver .school-document__meta-item,.ink-saver .document-callout{background:#fff}
-  @media(max-width:900px){body{padding:68px 0 0}.school-document__toolbar{align-items:flex-start}.school-document__toolbar>div:first-child{display:none}.school-document__toolbar-actions{justify-content:flex-start}.school-document{width:100%!important;min-height:0!important;box-shadow:none;padding-left:16px;padding-right:16px}.school-document__meta{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .school-document__preview-stage{width:100%}
+  @media(max-width:900px){body{padding:68px 8px 24px;overflow-x:hidden}.school-document__toolbar{min-height:58px;padding:8px;align-items:center}.school-document__toolbar>div:first-child{display:none}.school-document__toolbar-actions{width:100%;justify-content:space-between;gap:5px;flex-wrap:nowrap}.school-document__toolbar button,.school-document__toolbar select{min-height:38px;padding:7px 8px;font-size:11px}.school-document__preview-stage{position:relative;margin:0 auto}.school-document{margin:0;transform-origin:top left}.school-document__meta{grid-template-columns:repeat(4,minmax(0,1fr))}}
   @media print{
-    html,body{background:#fff!important}.school-document__toolbar{display:none!important}body{padding:0!important}.school-document{width:auto!important;min-height:0!important;margin:0!important;box-shadow:none!important;padding:0!important}.school-document__print-frame{display:table!important;width:100%!important;border-collapse:collapse!important;table-layout:fixed!important}.school-document__print-frame>thead{display:table-header-group!important}.school-document__print-frame>tbody{display:table-row-group!important}.school-document__print-frame>tfoot{display:table-footer-group!important}.school-document__print-frame>thead>tr,.school-document__print-frame>tbody>tr,.school-document__print-frame>tfoot>tr{display:table-row!important}.school-document__print-frame>thead>tr>td,.school-document__print-frame>tbody>tr>td,.school-document__print-frame>tfoot>tr>td{display:table-cell!important;width:auto!important;border:0!important}.school-document__print-frame>thead>tr>td{padding:0 0 4mm!important}.school-document__print-frame>tbody>tr>td{padding:0!important}.school-document__print-frame>tfoot>tr>td{padding:4mm 0 0!important}.school-document__repeating-header{position:static;inset:auto;height:auto;min-height:15mm;padding:2mm 0 3mm;border-bottom:1px solid var(--doc-line);background:#fff;z-index:auto}.school-document__page-footer{position:static;inset:auto;min-height:7mm;padding-top:2mm;background:#fff;z-index:auto}.school-document__hero,.school-document__meta{break-inside:avoid-page;page-break-inside:avoid}.school-document__draft-watermark{position:fixed}.school-document__body a{color:inherit;text-decoration:none}.no-print{display:none!important}
+    html,body{background:#fff!important}.school-document__toolbar{display:none!important}body{padding:0!important}.school-document{width:auto!important;min-height:0!important;margin:0!important;box-shadow:none!important;padding:0!important}.school-document__print-frame{display:table!important;width:100%!important;border-collapse:collapse!important;table-layout:fixed!important}.school-document__print-frame>thead{display:table-header-group!important}.school-document__print-frame>tbody{display:table-row-group!important}.school-document__print-frame>tfoot{display:table-footer-group!important}.school-document__print-frame>thead>tr,.school-document__print-frame>tbody>tr,.school-document__print-frame>tfoot>tr{display:table-row!important}.school-document__print-frame>thead>tr>td,.school-document__print-frame>tbody>tr>td,.school-document__print-frame>tfoot>tr>td{display:table-cell!important;width:auto!important;border:0!important}.school-document__print-frame>thead>tr>td{padding:0 0 4mm!important}.school-document__print-frame>tbody>tr>td{padding:0!important}.school-document__print-frame>tfoot>tr>td{padding:4mm 0 0!important}.school-document__repeating-header{position:static;inset:auto;height:auto;min-height:15mm;padding:2mm 0 3mm;border-bottom:1px solid var(--doc-line);background:#fff;z-index:auto}.school-document__page-footer{position:static;inset:auto;min-height:7mm;padding-top:2mm;background:#fff;z-index:auto}.school-document__hero,.school-document__meta{break-inside:avoid-page;page-break-inside:avoid}.school-document__draft-watermark{position:fixed}.school-document__body a{color:inherit;text-decoration:none}.school-document__preview-stage{width:auto!important;height:auto!important;margin:0!important}.school-document{transform:none!important;zoom:1!important}.no-print{display:none!important}
   }
 `;
 const previewScript = `
   (() => {
     const body = document.body;
     const pageStyle = document.getElementById('school-document-page-style');
+    const documentPage = document.querySelector('.school-document');
+    const previewStage = document.querySelector('.school-document__preview-stage');
+    const syncPreviewScale = () => {
+      if (!documentPage || !previewStage) return;
+      documentPage.style.transform = '';
+      previewStage.style.width = '';
+      previewStage.style.height = '';
+      if (window.innerWidth > 900) return;
+      const availableWidth = Math.max(280, window.innerWidth - 16);
+      const naturalWidth = documentPage.offsetWidth;
+      const naturalHeight = documentPage.offsetHeight;
+      const scale = Math.min(1, availableWidth / naturalWidth);
+      documentPage.style.transform = 'scale(' + scale + ')';
+      previewStage.style.width = (naturalWidth * scale) + 'px';
+      previewStage.style.height = (naturalHeight * scale) + 'px';
+    };
     const syncPage = () => {
       const paper = body.dataset.paper || 'A4';
       const orientation = body.dataset.orientation || 'portrait';
       pageStyle.textContent = '@page{size:' + paper + ' ' + orientation + ';margin:14mm 15mm 14mm}';
+      requestAnimationFrame(syncPreviewScale);
     };
     document.getElementById('document-print')?.addEventListener('click', async () => {
       await document.fonts?.ready;
@@ -174,9 +192,11 @@ const previewScript = `
       window.print();
     });
     document.getElementById('document-ink')?.addEventListener('click', () => body.classList.toggle('ink-saver'));
-    document.getElementById('document-close')?.addEventListener('click', () => window.close());
+    document.getElementById('document-close')?.addEventListener('click', () => {\n      if (window.history.length > 1) window.history.back();\n      else window.close();\n    });
     document.getElementById('document-paper')?.addEventListener('change', (event) => { body.dataset.paper = event.target.value; syncPage(); });
     document.getElementById('document-orientation')?.addEventListener('change', (event) => { body.dataset.orientation = event.target.value; syncPage(); });
+    window.addEventListener('resize', syncPreviewScale);
+    window.addEventListener('orientationchange', syncPreviewScale);
     syncPage();
   })();
 `;
@@ -195,10 +215,10 @@ export const renderSchoolDocumentHtml = ({ meta, bodyHtml, orientation = 'portra
       <div class="school-document__toolbar-actions">
         <label><span class="sr-only">Paper size</span><select id="document-paper" aria-label="Paper size"><option value="A4"${paper === 'A4' ? ' selected' : ''}>A4</option><option value="Letter"${paper === 'Letter' ? ' selected' : ''}>Letter</option></select></label>
         <label><span class="sr-only">Orientation</span><select id="document-orientation" aria-label="Orientation"><option value="portrait"${orientation === 'portrait' ? ' selected' : ''}>Portrait</option><option value="landscape"${orientation === 'landscape' ? ' selected' : ''}>Landscape</option></select></label>
-        <button id="document-ink" type="button">Ink saver</button><button id="document-print" class="primary" type="button">Print / Save PDF</button><button id="document-close" type="button">Close</button>
+        <button id="document-ink" type="button">Ink saver</button><button id="document-print" class="primary" type="button">Print / Save PDF</button><button id="document-close" type="button">Back</button>
       </div>
     </nav>
-    <main class="school-document" data-status="${meta.status}">
+    <div class="school-document__preview-stage"><main class="school-document" data-status="${meta.status}">
       <div class="school-document__draft-watermark" aria-hidden="true">DRAFT</div>
       <table class="school-document__print-frame" role="presentation">
         <thead class="school-document__print-head"><tr><td>
@@ -218,7 +238,7 @@ export const renderSchoolDocumentHtml = ({ meta, bodyHtml, orientation = 'portra
           <footer class="school-document__page-footer"><span>${escapeSchoolDocumentHtml(safeSchoolName)} · ${escapeSchoolDocumentHtml(confidentialityLabel)}</span><span>Document reference: ${escapeSchoolDocumentHtml(meta.documentId)}</span></footer>
         </td></tr></tfoot>
       </table>
-    </main><script>${previewScript}<\/script></body></html>`;
+    </main></div><script>${previewScript}<\/script></body></html>`;
 };
 export const registerSchoolDocumentRecord = async (options) => {
     if (options.meta.schoolId) {
@@ -256,14 +276,24 @@ export const registerSchoolDocumentRecord = async (options) => {
         });
     }
 };
-export const openSchoolDocumentPreview = (options) => {
-    const preview = window.open('', '_blank');
-    if (!preview)
-        throw new Error('The document preview was blocked. Allow pop-ups for Brains Heist and try again.');
-    preview.opener = null;
-    preview.document.open();
-    preview.document.write(renderSchoolDocumentHtml(options));
-    preview.document.close();
+export const openSchoolDocumentPreview = (options, reservedWindow) => {
+    const html = renderSchoolDocumentHtml(options);
+    const preview = reservedWindow && !reservedWindow.closed ? reservedWindow : window.open('', '_blank');
+    if (preview) {
+        preview.opener = null;
+        preview.document.open();
+        preview.document.write(html);
+        preview.document.close();
+        void registerSchoolDocumentRecord(options);
+        return preview;
+    }
+    // Mobile Safari and embedded browsers commonly block script-created tabs.
+    // Fall back to same-tab rendering while preserving the exact same document HTML/CSS
+    // so printed/PDF output stays identical. The Back control uses history.back().
+    window.history.pushState({ schoolDocumentPreview: true }, '', window.location.href);
+    window.document.open();
+    window.document.write(html);
+    window.document.close();
     void registerSchoolDocumentRecord(options);
-    return preview;
+    return window;
 };

@@ -24,7 +24,9 @@ test('question bank filters and deduplicates slash variants in the UI', () => {
 test('assignment topic options only come from questions eligible for the selected audience and pool', () => {
     assert.match(wizard, /const assignmentEligibleQuestions = useMemo/);
     assert.match(wizard, /return matchesAudienceGrades && matchesPool/);
-    assert.match(wizard, /new Set\(assignmentEligibleQuestions\.map/);
+    assert.match(wizard, /fetchQuestionFacets\('', 'teacher', audienceGrades\)/);
+    assert.match(wizard, /questionFacets\.filter/);
+    assert.match(wizard, /item\.pool === questionPool/);
     assert.match(wizard, /const matches = assignmentEligibleQuestions\.filter/);
     assert.match(wizard, /if \(topicFilter !== 'all' && !topics\.includes\(topicFilter\)\) setTopicFilter\('all'\)/);
 });
@@ -44,10 +46,22 @@ test('assignment title and final review are required before publish', () => {
 test('question-bank assignments resume at audience and keep their subject consistent', () => {
     assert.match(wizard, /initialStep = 1/);
     assert.match(wizard, /lockedSubject = null/);
-    assert.match(wizard, /You already added \{lockedSubject\} questions from the Question Bank/);
+    assert.match(wizard, /You already added \$\{lockedSubject\} questions from the Question Bank/);
     assert.match(wizard, /Unavailable — \{lockedSubject\} questions selected/);
-    assert.match(portal, /initialStep=\{assignmentLockedSubject \? 2 : 1\}/);
-    assert.match(portal, /setAssignmentLockedSubject\(subject\)/);
+    assert.match(portal, /initialStep=\{preparedDiagnostic \? 3 : assignmentLockedSubject \? 2 : 1\}/);
+    assert.match(portal, /setAssignmentLockedSubject\(matchingLocalSubjects\.length === 1 \? localSubject : null\)/);
+    assert.match(portal, /setAssignmentSubject\(localSubject\)/);
+    assert.match(portal, /setAssignmentGroupId\(''\)/);
+});
+test('prepared diagnostics enter the same wizard at Questions with subject and teaching group locked', () => {
+    assert.match(wizard, /preparedDiagnostic = null/);
+    assert.match(wizard, /const diagnosticMode = Boolean\(preparedDiagnostic\)/);
+    assert.match(wizard, /Prepared diagnostic/);
+    assert.match(wizard, /setQuestionPool\('brains-heist'\)/);
+    assert.match(wizard, /setTypeFilter\('multiple_choice'\)/);
+    assert.match(portal, /setAssignmentQuestionIds\(diagnostic\.questionIds\)/);
+    assert.match(portal, /setAssignmentGroupId\(diagnostic\.groupId\)/);
+    assert.match(portal, /setAssignmentCategory\('quiz'\)/);
 });
 test('assignment due dates must be in the future in the UI and publish handler', () => {
     assert.match(wizard, /const isPastDueDate/);

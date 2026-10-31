@@ -19,7 +19,8 @@ test('direct student extra practice route access blocked when disabled', () => {
     assert.match(guard, /Extra Practice is currently disabled by your school\./, 'guard should show lock message');
     assert.match(routes, /path: '\/ielts\/trial-test'[\s\S]*?<IeltsExtraPracticeGuard>/i, '/ielts/trial-test should be wrapped by IeltsExtraPracticeGuard');
     assert.match(freeDiagnosticRoute, /<TrialListeningTask2 \/>/i, '/ielts/trial-test-2 should render the free diagnostic directly');
-    assert.doesNotMatch(freeDiagnosticRoute, /<ProtectedRoute|<IeltsExtraPracticeGuard/i, '/ielts/trial-test-2 should not require login or extra-practice route guards');
+    assert.match(freeDiagnosticRoute, /<ProtectedRoute/i, 'governed screener attempts require authentication');
+    assert.doesNotMatch(freeDiagnosticRoute, /<IeltsExtraPracticeGuard|withSchoolIeltsAccess/i, 'free screener access is scoped by its server release rather than the paid practice agreement');
     for (const route of ['/ielts/reading/:setId', '/ielts/listening/:setId', '/ielts/writing/:taskId', '/ielts/speaking/:taskId']) {
         assert.match(routes, new RegExp(`path: '${route.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'[\\s\\S]*?<IeltsPracticeRouteGuard>`, 'i'), `${route} should use assignment-aware route guard`);
     }
@@ -31,7 +32,7 @@ test('school administrators use the persistent IELTS shell and its single settin
     assert.match(home, /isIeltsAdminLandingRole = isPlatformAdmin \|\| canAdministerSchool/);
     assert.match(home, /resolveMySchoolCapabilities\(\)/, 'school administration decisions must use active membership capabilities');
     assert.doesNotMatch(home, /normalizedRole === 'school_admin'/, 'legacy profile role must not grant school administration access');
-    assert.match(home, /navigate\(schoolAdminIeltsUrl\('ielts-exams'\), \{ replace: true \}\)/, 'school administrators should enter IELTS through the persistent school shell');
+    assert.match(home, /navigate\(schoolAdminIeltsUrl\('ielts-overview'\), \{ replace: true \}\)/, 'school administrators should enter IELTS through the persistent school shell');
     assert.match(settingsTab, /Extra Practice Access/);
     assert.match(settingsTab, /updateIeltsExtraPracticeAccess\(checked\)/, 'the school setting must be written through the typed authoritative RPC');
     assert.match(settingsTab, /type="checkbox"[\s\S]*role="switch"[\s\S]*aria-label="Allow students to use Extra Practice"[\s\S]*checked=\{extraPracticeEnabled === true\}/);
@@ -40,16 +41,16 @@ test('school administrators use the persistent IELTS shell and its single settin
     assert.match(accessService, /rpc_ielts_extra_practice_access/, 'all roles must read one server-authoritative access result');
     assert.doesNotMatch(accessService, /\.from\(['"](?:users|schools)['"]\)/, 'client must not reconstruct school authority from direct table reads');
 });
-test('IELTS admin control center labels Student Progress clearly', () => {
+test('IELTS staff home retires the generic control centre in favour of the shared programme workspace', () => {
     const home = read('src/pages/ielts/IeltsHome.tsx');
-    const adminBranch = home.slice(home.indexOf('if (isIeltsAdminLandingRole) {'), home.indexOf('// GSAP entrance animation for student view'));
-    const studentBranch = home.slice(home.indexOf('// GSAP entrance animation for student view'));
-    assert.match(adminBranch, /label: 'Student Progress'/, 'admin control center should include Student Progress card');
-    assert.match(adminBranch, /desc: 'View each student’s IELTS readiness, assignments, results, and pending reviews\.'/, 'Student Progress card should describe readiness, assignments, results, and pending reviews');
-    assert.match(adminBranch, /route: '\/ielts\/journey'/, 'Student Progress card should route to IELTS journey dashboard');
-    assert.doesNotMatch(adminBranch, /label: 'Results'[^\n]*route: '\/ielts\/journey'/, 'ambiguous Results journey card should be replaced');
-    assert.doesNotMatch(adminBranch, /label: 'Student Journey'[^\n]*route: '\/ielts\/journey'/, 'duplicate Student Journey admin card should be replaced');
-    assert.doesNotMatch(studentBranch, /Student Progress/, 'student IELTS home should not show the admin Student Progress link');
+    const programme = read('src/pages/ielts/IeltsProgrammeWorkspace.tsx');
+    assert.match(home, /<React\.Suspense[^>]*>[\s\S]*?<IeltsProgrammeWorkspace \/>/);
+    assert.match(home, /lazyRetry\(\(\) => import\('\.\/IeltsProgrammeWorkspace'\)/);
+    assert.doesNotMatch(home, /Control Center|const adminCards/);
+    assert.match(programme, /Student progress/);
+    const navigation = read('src/components/ielts/teacher/IeltsTeacherNav.tsx');
+    assert.match(navigation, /label: 'Team'/, 'Programme Team stays accessible in the shared teacher navigation');
+    assert.match(programme, /<IeltsTeacherNav /, 'Teacher workspace renders its navigation');
 });
 test('IELTS Home renders the review queue card only behind the shared access decision', () => {
     const home = read('src/pages/ielts/IeltsHome.tsx');
@@ -74,8 +75,8 @@ test('Extra Practice restriction gates only the catalog and keeps the authentica
     assert.match(home, /showSchoolLinks=\{hasSchoolMembership\}/, 'Prime dashboard users should keep school assignment and journey links');
     assert.match(home, /hasSchoolMembership && <IeltsSchoolLearnerLinks onNavigate=\{navigate\} \/>/, 'non-Prime and pre-diagnostic dashboard users should keep school assignment and journey links');
     const schoolLinks = read('src/components/ielts/IeltsSchoolLearnerLinks.tsx');
-    assert.match(schoolLinks, /onNavigate\('\/ielts\/practice\/assigned'\)/, 'school dashboard links should open assigned work');
-    assert.match(schoolLinks, /onNavigate\('\/ielts\/journey'\)/, 'school dashboard links should open the student journey');
+    assert.match(schoolLinks, /route: '\/ielts\/practice\/assigned'/, 'school dashboard links should open assigned work');
+    assert.match(schoolLinks, /route: '\/ielts\/journey'/, 'school dashboard links should open the student journey');
 });
 test('IELTS Home resolves auth failures and emits one landing/dashboard view per user identity', () => {
     const home = read('src/pages/ielts/IeltsHome.tsx');

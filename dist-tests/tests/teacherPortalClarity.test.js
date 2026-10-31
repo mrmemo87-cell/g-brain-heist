@@ -20,15 +20,17 @@ test('teacher dashboard shortcuts navigate to their destinations', () => {
     assert.doesNotMatch(teacherPortal, /Review student progress, craft assignments/);
 });
 test('student alerts identify the learner, assignment, and reason for follow-up', () => {
-    assert.match(teacherPortal, /needs help with “\$\{assignmentLabel\}”/);
-    assert.match(teacherPortal, /has not completed “\$\{assignmentLabel\}”/);
-    assert.match(teacherPortal, /dashboardAssignmentReports/);
+    assert.match(teacherPortal, /needs help with “\$\{row.assignment_title\}”/);
+    assert.match(teacherPortal, /has not completed “\$\{row.assignment_title\}”/);
+    assert.match(teacherPortal, /assignmentSuccess\?\.followups/);
+    assert.doesNotMatch(teacherPortal, /get_all_assignment_reports/);
     assert.doesNotMatch(teacherPortal, /Current success rate is \$\{successRate\}%\. Consider intervention\./);
 });
 test('teacher portal exposes assigned students and assignment metadata', () => {
     assert.match(teacherPortal, /const renderStudents/);
-    assert.match(teacherPortal, />🏫 My Classes</);
-    assert.match(teacherPortal, /Every assigned class, subject, and student in one organised view/);
+    assert.match(teacherPortal, />My Classes</);
+    assert.match(teacherPortal, /Each teaching group stays separate, including custom groups such as ESL/);
+    assert.match(teacherPortal, /fetchTeacherTeachingGroupRoster/);
     assert.match(teacherPortal, />Created<\/dt>/);
     assert.match(teacherPortal, />Questions<\/dt>/);
     assert.match(teacherPortal, />Students<\/dt>/);

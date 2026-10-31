@@ -2,11 +2,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 const portal = readFileSync('components/TeacherPortal.tsx', 'utf8');
+const card = readFileSync('components/teacher/AssignmentCard.tsx', 'utf8');
 const wizard = readFileSync('components/teacher/AssignmentWizard.tsx', 'utf8');
 const gateway = readFileSync('services/rpcGateway.ts', 'utf8');
 const migration = readFileSync('supabase/migrations/20260810083000_teacher_assignment_editing_publication.sql', 'utf8');
-test('assignment cards expose edit beside delete and deletion uses one confirmation', () => {
-    assert.match(portal, /Edit assignment/);
+test('assignment cards expose edit and delete in options and deletion uses one confirmation', () => {
+    assert.match(card, /Edit assignment/);
+    assert.match(card, /Delete assignment/);
+    assert.match(portal, /onEdit=\{\(\) => handleEditAssignment\(assignment\)\}/);
     const handler = portal.slice(portal.indexOf('const handleDeleteAssignment'), portal.indexOf('const renderAssignments'));
     assert.ok((handler.match(/await brainsConfirm/g) ?? []).length >= 1);
 });

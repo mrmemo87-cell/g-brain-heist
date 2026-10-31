@@ -1,0 +1,33 @@
+import { supabase } from './supabaseClient.js';
+import { parseWritingScreenerResult } from './ieltsWritingScreener.js';
+export async function fetchWritingScreenerResult(attemptId) {
+    const { data, error } = await supabase.rpc('rpc_ielts_writing_screener_result', { p_attempt_id: attemptId });
+    if (error)
+        throw new Error('Your essay is saved. We could not open the feedback. Check your access and connection, then try again.');
+    return parseWritingScreenerResult(data);
+}
+export async function fetchWritingScreenerReviewQueue() {
+    const { data, error } = await supabase.rpc('rpc_ielts_writing_screener_review_queue');
+    if (error || !Array.isArray(data))
+        throw new Error('We could not load the essays available to you. Please try again.');
+    return data;
+}
+export async function submitWritingScreenerReview(input) {
+    const { data, error } = await supabase.rpc(input.aiDraftId ? 'rpc_ielts_submit_ai_assisted_writing_review' : 'rpc_ielts_submit_writing_screener_review', {
+        p_attempt_id: input.attemptId, p_review_id: input.reviewId, p_expected_review_id: input.expectedReviewId,
+        p_response_sha256: input.responseHash, p_criterion_observations: input.observations,
+        p_next_step: input.nextStep, p_delivery_comment: input.deliveryComment,
+        ...(input.aiDraftId ? { p_ai_draft_id: input.aiDraftId, p_teacher_confirmed: input.teacherConfirmed === true } : {}),
+    });
+    if (error)
+        throw new Error('The review could not be confirmed. Check that every observation refers to the original essay, or reload if another reviewer has saved changes.');
+    return parseWritingScreenerResult(data);
+}
+export async function saveWritingScreenerRevision(input) {
+    const { data, error } = await supabase.rpc('rpc_ielts_save_writing_screener_revision', {
+        p_attempt_id: input.attemptId, p_revision_id: input.revisionId, p_source_review_id: input.sourceReviewId, p_response_text: input.text,
+    });
+    if (error)
+        throw new Error('Your practice revision could not save. Keep this page open and try again. Your original essay is safe.');
+    return parseWritingScreenerResult(data);
+}

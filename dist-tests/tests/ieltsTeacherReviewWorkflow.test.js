@@ -42,12 +42,16 @@ test('IELTS review queue is discoverable only from school admin workflows', () =
     assert.match(schoolPracticeTab, /without leaving School Administration/i, 'School Admin IELTS Practice must keep reviews in the portal shell');
     assert.doesNotMatch(teacherPortal, /IELTS Reviews|\/ielts\/reviews/i, 'Teacher Portal must not expose IELTS review navigation');
 });
-test('IELTS review queue defaults to pending writing submissions with a clear empty state', () => {
+// UX pass 2026-10-19: waiting work lives on the Programme review desk; this page lists all practice reviews.
+test('IELTS all-reviews page lists every status with clear filters and empty state', () => {
     const queue = read('src/pages/ielts/IeltsReviewQueue.tsx');
-    assert.match(queue, /useState<IeltsReviewSkill \| ''>\('writing'\)/, 'queue skill filter must default to writing');
-    assert.match(queue, /useState\('pending'\)/, 'queue status filter must default to pending');
-    assert.match(queue, /Pending writing submissions are shown first/i, 'queue UI must document the default filters');
-    assert.match(queue, /No submissions waiting for review/i, 'queue empty state must be clear');
+    const programme = read('src/pages/ielts/IeltsProgrammeWorkspace.tsx');
+    assert.match(queue, /useState<IeltsReviewSkill \| ''>\(''\)/, 'queue skill filter shows writing and speaking');
+    assert.match(queue, /useState\(''\)/, 'queue status filter shows every status');
+    assert.match(queue, /Waiting for review/, 'statuses use plain labels');
+    assert.match(queue, /No submissions match these filters/i, 'queue empty state must be clear');
+    assert.match(programme, /rpcIeltsReviewQueue\(/, 'review desk lists waiting practice submissions');
+    assert.match(programme, /review_status !== "finalized"/, 'review desk counts only work that still needs a teacher');
 });
 test('IELTS writing submissions are inserted as pending review attempts', () => {
     const scoring = read('src/lib/ieltsPracticeScoring.ts');
@@ -55,12 +59,12 @@ test('IELTS writing submissions are inserted as pending review attempts', () => 
     assert.match(scoring, /review_status: 'pending'/i, 'writing attempt payloads must explicitly mark new submissions pending');
     assert.match(writingPractice, /buildWritingAttemptPayload\([\s\S]*user_id:[\s\S]*task_id:[\s\S]*answer_text:[\s\S]*word_count:/i, 'WritingPractice must submit attempts through the pending-aware payload builder');
 });
-test('IELTS finalized reviews update readiness-compatible productive skill bands', () => {
+test('IELTS finalized reviews preserve task-level productive skill bands without making readiness claims', () => {
     const sql = migration();
-    assert.match(sql, /alter table if exists public\.ielts_writing_attempts add column if not exists band_overall numeric/i, 'writing attempts must have readiness-compatible overall band column');
-    assert.match(sql, /alter table if exists public\.ielts_speaking_attempts add column if not exists band_overall numeric/i, 'speaking attempts must have readiness-compatible overall band column');
-    assert.match(sql, /if p_skill = 'writing' and p_finalize[\s\S]*update public\.ielts_writing_attempts[\s\S]*band_overall = v_review\.overall_band/i, 'finalized writing reviews must update readiness source band');
-    assert.match(sql, /elsif p_skill = 'speaking' and p_finalize[\s\S]*update public\.ielts_speaking_attempts[\s\S]*band_overall = v_review\.overall_band/i, 'finalized speaking reviews must update readiness source band');
+    assert.match(sql, /alter table if exists public\.ielts_writing_attempts add column if not exists band_overall numeric/i, 'writing attempts must preserve a task-level reviewed band column');
+    assert.match(sql, /alter table if exists public\.ielts_speaking_attempts add column if not exists band_overall numeric/i, 'speaking attempts must preserve a task-level reviewed band column');
+    assert.match(sql, /if p_skill = 'writing' and p_finalize[\s\S]*update public\.ielts_writing_attempts[\s\S]*band_overall = v_review\.overall_band/i, 'finalized writing reviews must update the reviewed task band');
+    assert.match(sql, /elsif p_skill = 'speaking' and p_finalize[\s\S]*update public\.ielts_speaking_attempts[\s\S]*band_overall = v_review\.overall_band/i, 'finalized speaking reviews must update the reviewed task band');
     assert.match(sql, /grant execute on function public\.ielts_latest_skill_readiness\(uuid\) to authenticated/i, 'readiness helper remains callable after review finalization');
 });
 test('IELTS review RPCs do not expose protected answer keys and hide private notes from students', () => {
@@ -82,7 +86,7 @@ test('IELTS review frontend maps queue/detail/submit RPCs and exposes student re
     assert.match(service, /functions\/v1\/ielts_ai_review_draft/i, 'service must call secure AI review edge function');
     assert.match(service, /task_achievement[\s\S]*coherence_cohesion[\s\S]*lexical_resource[\s\S]*grammar/i, 'writing rubric keys must be modeled');
     assert.match(service, /fluency[\s\S]*lexical_resource[\s\S]*grammar[\s\S]*pronunciation/i, 'speaking rubric keys must be modeled');
-    assert.match(queue, /IELTS Review Queue/i, 'queue UI must exist');
+    assert.match(queue, /All practice reviews/i, 'queue UI must exist');
     assert.match(review, /Writing Review|Speaking Review/i, 'review screens must support writing and speaking');
     assert.match(review, /Student answer[\s\S]*Word count/i, 'writing review must show answer and word count');
     assert.match(review, /Speaking evidence[\s\S]*Duration[\s\S]*audio/i, 'speaking review must show duration and audio area');
@@ -91,11 +95,14 @@ test('IELTS review frontend maps queue/detail/submit RPCs and exposes student re
     assert.match(review, /Audio unavailable\./i, 'speaking review must show a clear fallback when audio cannot be loaded');
     assert.match(review, /Strengths[\s\S]*Improvements[\s\S]*Next steps[\s\S]*Private notes/i, 'review feedback fields must be present');
     assert.match(review, /AI check/i, 'review page must expose AI check button');
-    assert.match(review, /AI suggestion — review before finalizing\./i, 'AI draft warning copy must be shown');
-    assert.match(review, /AI feedback can make mistakes\. Review before finalizing\./i, 'reviewer safety copy must be present');
-    assert.match(review, /Transcript may contain errors\. Check audio if unsure\./i, 'speaking transcript caveat must be present');
+    assert.match(review, /Assistant suggestion — verify before finalizing\./i, 'automated draft warning copy must be shown');
+    assert.match(review, /Automated feedback can make mistakes\. Verify the evidence before finalizing\./i, 'reviewer safety copy must be present');
+    assert.match(review, /Listen to the audio before finalizing Speaking criteria, especially pronunciation\./i, 'speaking audio-review requirement must be present');
     assert.match(review, /Finalize review/i, 'finalization flow must still expose explicit finalize action');
-    assert.match(result, /Reviewed band[\s\S]*Rubric breakdown[\s\S]*Teacher feedback/i, 'student result must show finalized review fields');
+    assert.match(review, /Task-level reviewed band/i, 'productive-skill review must label the score as task-level');
+    assert.match(review, /Reviewer record/i, 'private print copy must be a reviewer record');
+    assert.doesNotMatch(review, /Examiner record|Private examiner notes|Confidential examiner copy/i, 'school review language must not present reviewers as IELTS examiners');
+    assert.match(result, /Reviewed task band[\s\S]*Rubric breakdown[\s\S]*Teacher feedback/i, 'student result must show finalized task-level review fields');
     assert.match(routes, /path:\s*'\/ielts\/reviews',[\s\S]*?<IeltsReviewAdminGuard>[\s\S]*?<IeltsReviewQueue \/>[\s\S]*?<\/IeltsReviewAdminGuard>/i, 'queue route must be school-admin guarded');
     assert.match(routes, /path:\s*'\/ielts\/reviews\/:skill\/:attemptId',[\s\S]*?<IeltsReviewAdminGuard>[\s\S]*?<IeltsSubmissionReview \/>[\s\S]*?<\/IeltsReviewAdminGuard>/i, 'review detail route must be school-admin guarded');
     assert.match(routes, /path:\s*'\/ielts\/review-result\/:skill\/:attemptId'/i, 'student result route must be registered');
@@ -113,6 +120,11 @@ test('IELTS AI review edge function enforces reviewer roles and draft-only seman
     assert.match(edge, /if \(!transcript\) \{[\s\S]*Transcript unavailable for this draft/i, 'speaking AI flow must handle missing transcript with a confidence caveat');
     assert.match(edge, /band_estimate[\s\S]*task_response[\s\S]*coherence[\s\S]*lexical_resource[\s\S]*grammar/i, 'writing AI schema keys must be requested');
     assert.match(edge, /band_estimate[\s\S]*fluency[\s\S]*lexical_resource[\s\S]*grammar[\s\S]*pronunciation_note/i, 'speaking AI schema keys must be requested');
+    assert.match(edge, /Set band_estimate to null/i, 'transcript-only speaking AI must not invent a complete band');
+    assert.match(edge, /Do NOT score pronunciation from transcript text/i, 'transcript-only speaking AI must not score pronunciation');
+    assert.match(edge, /human reviewer must listen to the audio/i, 'Speaking finalization must require human audio review');
+    assert.match(edge, /task-specific draft[\s\S]*not an official IELTS score[\s\S]*must not be presented as a complete Writing readiness band/i, 'Writing AI must remain task-specific and provisional');
+    assert.doesNotMatch(edge, /You are an IELTS (?:Writing|Speaking) reviewer/i, 'AI prompt must not present the model as an IELTS examiner/reviewer authority');
 });
 test('IELTS review guard reuses shared access helper and blocks teacher/student roles', () => {
     const guard = read('components/ielts/IeltsReviewAdminGuard.tsx');

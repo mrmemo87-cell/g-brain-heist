@@ -8,6 +8,8 @@ name: Demo environment
 # Required repository secrets (Settings -> Secrets and variables -> Actions):
 #   BH_PROD_DB_URL  session-pooler connection string of the production project (sozodkxwhubespiedgxm)
 #   BH_DEMO_DB_URL  session-pooler connection string of the demo project (lvkmkgjpcbdyzdkbqcgc)
+#   BH_DEMO_OPS_PASSWORD (optional) password for the demo platform-admin login demo.ops@example.com,
+#                   which sees the visitor analytics. Unset = random, unknown password.
 
 on:
   workflow_dispatch:
@@ -41,6 +43,7 @@ jobs:
       DEMO_DB_URL: ${{ secrets.BH_DEMO_DB_URL }}
       MODE: ${{ github.event.inputs.mode || 'reset' }}
       STOP_AFTER: ${{ github.event.inputs.stop_after || '' }}
+      BH_DEMO_OPS_PASSWORD: ${{ secrets.BH_DEMO_OPS_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -134,6 +137,9 @@ jobs:
           v=$(psql "$PROD_DB_URL" -tAc "select max(version) from supabase_migrations.schema_migrations")
           psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 -c "create table if not exists private.demo_applied_migrations(version text primary key, name text, applied_at timestamptz not null default now()); revoke all on private.demo_applied_migrations from public, anon, authenticated; insert into private.demo_applied_migrations(version, name) values ('$v', 'baseline: schema copy') on conflict do nothing;"
 
+      - name: Demo visitor analytics (schema + RPCs, idempotent)
+        run: psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 --file supabase/demo/analytics.sql
+
       - name: Apply new production database changes to the demo (reads production only)
         run: |
           python3 -m pip install --quiet --break-system-packages "psycopg[binary]>=3.2"
@@ -151,7 +157,7 @@ jobs:
               echo "insert into private.demo_content_tables(name) values ('$t') on conflict do nothing;"
             done < supabase/demo/content-tables.txt
           } > /tmp/content_list.sql
-          args=(-v ON_ERROR_STOP=1 --single-transaction -c 'set statement_timeout = 0' -f /tmp/content_list.sql)
+          args=(-v ON_ERROR_STOP=1 --single-transaction -c 'set statement_timeout = 0' -v "ops_password=${BH_DEMO_OPS_PASSWORD}" -f /tmp/content_list.sql)
           for f in supabase/demo/seed/*.sql; do
             args+=(-f "$f")
             if [[ -n "${STOP_AFTER}" && "$(basename "$f")" == "${STOP_AFTER}"* ]]; then break; fi

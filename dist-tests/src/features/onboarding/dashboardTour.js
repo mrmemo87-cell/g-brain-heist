@@ -1,4 +1,5 @@
 import { isLearnerSegment } from './ftueTakeover.js';
+import { hasCompletedStudentSetup } from './onboardingResolver.js';
 export const DASHBOARD_TOUR_STEPS = [
     'base_unlocked',
     'profile_progress',
@@ -45,6 +46,8 @@ export const getNextDashboardTourStep = (step) => {
 };
 export const appendDashboardTourCompletedStep = (completedSteps, step) => Array.from(new Set([...(completedSteps ?? []), step]));
 export const shouldShowDashboardTour = ({ profile, state, ftueEnabled, }) => {
+    if (hasCompletedStudentSetup(profile))
+        return false;
     if (!ftueEnabled)
         return false;
     if (!profile || (profile.role && profile.role !== 'student'))

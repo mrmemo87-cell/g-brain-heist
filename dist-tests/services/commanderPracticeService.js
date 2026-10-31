@@ -29,6 +29,7 @@ const requireSession = async (data, error) => {
         transcript: data.transcript,
         expiresAt: data.expiresAt,
         battle: data.battle,
+        xpAward: data.xpAward ?? null,
     };
 };
 export async function startCommanderPractice(signal, ownedLoadout = false) {

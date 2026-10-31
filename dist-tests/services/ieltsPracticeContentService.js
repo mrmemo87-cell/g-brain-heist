@@ -10,10 +10,10 @@ const assertNoRpcError = (name, data, error) => {
     return data;
 };
 export const rpcIeltsPracticeContentCatalog = async (params = {}, client) => {
-    const { data, error } = await withClient(client).rpc('rpc_ielts_practice_content_catalog', {
+    const { data, error } = await withClient(client).rpc('rpc_ielts_practice_content_catalog_with_provenance', {
         p_skill: params.skill ?? null,
         p_search: params.search?.trim() || null,
         p_limit: params.limit ?? 50,
     });
-    return assertNoRpcError('rpc_ielts_practice_content_catalog', data, error);
+    return assertNoRpcError('rpc_ielts_practice_content_catalog_with_provenance', data, error);
 };

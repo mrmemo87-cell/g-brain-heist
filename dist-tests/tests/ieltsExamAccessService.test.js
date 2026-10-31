@@ -86,14 +86,15 @@ test('IELTS Exam Mode access preserves manageable-exam fallback when capability 
     });
     const result = await checkIeltsExamModeAdminAccess(client);
     assert.deepEqual(result, { allowed: true, reason: 'manageable_exam_scope' });
-    assert.deepEqual(calls, ['school_admin_get_my_allocation_capabilities', 'rpc_ielts_list_manageable_exams']);
+    assert.deepEqual(calls, ['school_admin_get_my_allocation_capabilities', 'rpc_ielts_programme_access', 'rpc_ielts_list_manageable_exams']);
 });
 test('IELTS Exam Mode guard hides previously authorized content during every recheck', () => {
     const guard = fs.readFileSync(path.join(process.cwd(), 'components/ielts/IeltsExamModeAdminGuard.tsx'), 'utf8');
     assert.match(guard, /const requestIdRef = useRef\(0\)/, 'guard must version overlapping authorization checks');
     assert.match(guard, /const requestId = \+\+requestIdRef\.current;\s*setState\('loading'\)/, 'every recheck must hide protected children first');
     assert.match(guard, /requestId !== requestIdRef\.current/, 'stale authorization responses must be ignored');
-    assert.match(guard, /requestIdRef\.current \+= 1;\s*subscription\.unsubscribe\(\)/, 'unmount must invalidate pending checks');
+    assert.match(guard, /requestIdRef\.current \+= 1;\s*unsubscribe\(\)/, 'unmount must invalidate pending checks');
+    assert.match(guard, /subscribeToAccountChanges\(/, 'rechecks follow account changes, not token refreshes on tab return');
     assert.match(guard, /result\.reason === 'verification_error' \? 'error' : 'denied'/, 'verification failures must not masquerade as permission denials');
     assert.match(guard, /role="status" aria-live="polite"/, 'exam access verification must be announced politely');
     const reviewGuard = fs.readFileSync(path.join(process.cwd(), 'components/ielts/IeltsReviewAdminGuard.tsx'), 'utf8');
@@ -147,4 +148,15 @@ test('Phase 0 IELTS Exam Mode SQL keeps managers school-scoped and teachers moni
     assert.doesNotMatch(migration, /role_in_school\s+in\s*\([^\)]*'teacher'/i, 'teachers must not be included in create/manage roles');
     assert.match(migration, /case\s+when\s+v_is_manager\s+then\s+to_jsonb\(f\)\s+else\s+to_jsonb\(f\)\s+-\s+'answer_key'\s+end/i, 'monitor-only detail responses must omit answer_key');
     assert.match(migration, /public\.can_assign_ielts_exam_class\(p_exam_event_id uuid, p_class_id uuid\)[\s\S]*public\.can_manage_ielts_exam\(p_exam_event_id\)/i, 'class assignment writes must require exam manager permissions');
+});
+test('IELTS programme lead can open exam management before an exam exists', async () => {
+    const calls = [];
+    const client = authenticatedAccessClient(async (name) => {
+        calls.push(name);
+        return { data: name === 'rpc_ielts_programme_access'
+                ? { schools: [{ id: 'school-1', can_manage: true }] }
+                : { success: true, school_id: 'school-1', role: 'teacher', is_owner: false, can_administer: false, can_teach: true }, error: null };
+    });
+    assert.deepEqual(await checkIeltsExamModeAdminAccess(client), { allowed: true, reason: 'programme_lead' });
+    assert.deepEqual(calls, ['school_admin_get_my_allocation_capabilities', 'rpc_ielts_programme_access']);
 });

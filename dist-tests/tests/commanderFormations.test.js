@@ -129,8 +129,8 @@ test("Formation migration keeps progression private, atomic, idempotent, and loa
     assert.match(sql, /'formation_train'/);
     assert.match(sql, /'formation_set'/);
     assert.match(sql, /'formation', jsonb_build_object/);
-    assert.match(sql, /'activeId', formation_id/);
-    assert.match(sql, /commander_private\.formation_modifiers\(formation_id, formation_rank\)/);
+    assert.match(sql, /'activeId', v_formation_id/);
+    assert.match(sql, /commander_private\.formation_modifiers\(v_formation_id, formation_rank\)/);
     assert.match(sql, /greatest\(1,/);
     assert.match(sql, /return commander_private\.snapshot\(u\)/);
     assert.match(sql, /revoke all on function commander_private\.formation_modifiers/);
@@ -150,7 +150,7 @@ test("Headquarters routes Formation commands through the dedicated RPC and profe
     assert.match(headquarters, /<CommanderFormationPanel/);
     assert.match(headquarters, /operation: "formation_train"/);
     assert.match(headquarters, /operation: "formation_set"/);
-    assert.match(headquarters, /existing Player Battles keep their frozen snapshots/);
+    assert.match(headquarters, /Team style changed\. Your next battles use it\./);
     assert.match(panel, /FORMATION COMMAND · LEVELS 41–100/);
     assert.match(panel, /CURRENT DOCTRINE EFFECT/);
     assert.match(panel, /NEXT RANK DELTA/);

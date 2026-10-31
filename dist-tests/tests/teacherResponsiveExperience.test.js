@@ -87,3 +87,15 @@ test('Game Settings presents a focused four-step wizard on desktop and mobile', 
     assert.match(globalStyles, /\.clan-setup-progress[\s\S]*grid-template-columns: repeat\(4/);
     assert.match(globalStyles, /@media \(max-width: 640px\)[\s\S]*\.clan-setup-progress/);
 });
+test('teacher assignment navigation uses its canonical label on phones', () => {
+    assert.match(teacherPortal, /teacherMobileLabel\(tab\.id, tab\.label\)/);
+    assert.doesNotMatch(teacherPortal, /\? 'Tasks'/);
+    assert.match(teacherPortal, /label: 'Assignments'/);
+});
+test('short desktop sidebars scroll content-sized navigation rows without compressing labels', () => {
+    const grid = teacherTheme.match(/\.teacher-sidebar \.teacher-nav-grid--sidebar\s*\{([^}]+)\}/)?.[1] ?? '';
+    assert.match(grid, /grid-auto-rows: max-content/);
+    assert.match(grid, /align-content: start/);
+    assert.match(grid, /overflow-y: auto/);
+    assert.match(teacherTheme, /\.teacher-sidebar \.teacher-nav-btn\s*\{[^}]*min-height: 56px;[^}]*height: auto;[^}]*flex-shrink: 0;/);
+});

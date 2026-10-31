@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 const app = readFileSync('App.tsx', 'utf8');
+const workspace = readFileSync('src/lib/accountWorkspace.ts', 'utf8');
 const schoolAdminPortal = readFileSync('components/SchoolAdminPortal.tsx', 'utf8');
 const teacherPortal = readFileSync('components/TeacherPortal.tsx', 'utf8');
 const supabaseClient = readFileSync('services/supabaseClient.ts', 'utf8');
@@ -10,9 +11,9 @@ const privateDocuments = readFileSync('supabase/migrations/20260802133000_privat
 test('dual-role workspace preference is isolated by school and restricted to authorised portals', () => {
     assert.match(app, /localStorage\.setItem\(`school_workspace:\$\{schoolCapabilities\.school_id\}`,[\s\S]*?nextView\)/);
     assert.match(app, /localStorage\.getItem\(`school_workspace:\$\{schoolId\}`\)/);
-    assert.match(app, /available\.push\('school_admin'\)/);
-    assert.match(app, /available\.push\('teacher'\)/);
-    assert.match(app, /available\.includes\(requested\)/);
+    assert.match(workspace, /available\.push\('school_admin'\)/);
+    assert.match(workspace, /available\.push\('teacher'\)/);
+    assert.match(workspace, /available\.includes\(requested as AccountWorkspace\)/);
     assert.match(app, /const allowedSchoolAdminViews = \['school_admin', 'cambridge', 'ielts'\]/);
 });
 test('teacher desktop navigation remains persistent, accessible, and user-collapsible', () => {

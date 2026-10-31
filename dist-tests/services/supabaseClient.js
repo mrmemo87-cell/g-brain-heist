@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { getEnvVar } from './env.js';
+import { rememberAuthenticatedAccount } from './rememberedAccount.js';
 // Supabase configuration from environment variables
 // Use getEnvVar (non-throwing) so the app can render a friendly error screen
 // instead of hard-crashing with a white page when vars are missing.
@@ -18,12 +19,20 @@ if (isMissingSupabaseConfig) {
 // Create Supabase client instance with enhanced settings
 // (client is still created with empty strings so downstream imports don't blow up;
 //  all runtime calls will be gated behind the isMissingSupabaseConfig check.)
+const browserAuthStorage = (() => {
+    try {
+        return typeof window !== 'undefined' ? window.localStorage : undefined;
+    }
+    catch {
+        return undefined;
+    } // Let the SDK fall back when browser storage is blocked.
+})();
 export const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnonKey || 'placeholder', {
     auth: {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
-        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        storage: browserAuthStorage,
     },
     global: {
         // Set fetch options for better connection handling
@@ -61,6 +70,11 @@ export const supabase = createClient(supabaseUrl || 'https://placeholder.supabas
     db: {
         schema: 'public',
     },
+});
+// Local display hints only: no extra auth requests and no async work inside the callback.
+supabase.auth.onAuthStateChange((_event, session) => {
+    if (session?.user)
+        rememberAuthenticatedAccount(session.user);
 });
 // Helper function to get current user
 export const getCurrentUser = async () => {

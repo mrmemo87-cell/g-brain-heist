@@ -26,7 +26,7 @@ test('the shared profile shows smart evidence confidence and curriculum coverage
     const profile = read('components/student-progress/StudentAcademicProfileV2.tsx');
     assert.match(service, /rpc_student_academic_confidence/);
     assert.match(service, /year\.status === 'current'/);
-    assert.match(profile, /How this profile works/);
+    assert.match(profile, /How this is worked out/);
     assert.match(profile, /How complete, recent and consistent the evidence is/);
     assert.match(profile, /Qualified evidence/);
     assert.match(profile, /need teacher review/);
