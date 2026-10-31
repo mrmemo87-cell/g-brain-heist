@@ -394,27 +394,28 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
       dir={direction}
     >
       <style>{COMMANDER_READABILITY_STYLES}</style>
-      <div className="mx-auto w-full max-w-7xl overflow-hidden rounded-[2rem] border border-cyan-400/20 bg-slate-950 shadow-[0_0_80px_rgba(34,211,238,0.12)]">
+      <div className="mx-auto w-full max-w-7xl overflow-clip rounded-[2rem] border border-cyan-400/20 bg-slate-950 shadow-[0_0_80px_rgba(34,211,238,0.12)]">
         <header className="relative overflow-hidden border-b border-slate-800 px-4 py-4 sm:px-6">
           <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(34,211,238,0.18),transparent_34%),radial-gradient(circle_at_82%_20%,rgba(168,85,247,0.16),transparent_32%)]" />
           <div className="relative flex flex-wrap items-start justify-between gap-4">
             <div>
               <div className="mb-2 flex flex-wrap items-center gap-2">
                 <span className="rounded-full border border-amber-300/40 bg-amber-400/10 px-2.5 py-1 text-[11px] font-black tracking-[0.16em] text-amber-200">{copy.practiceOnly}</span>
-                <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-[11px] font-semibold text-cyan-100">COMMANDER · TACTICAL PREVIEW</span>
               </div>
-              <h1 id="commander-preview-title" className="font-heading text-2xl font-black text-white sm:text-3xl">{ownedLoadout ? 'Field practice' : copy.title}</h1>
-              <p className="mt-1 text-sm text-slate-300">{ownedLoadout ? 'Your army. Your decisions.' : copy.subtitle}</p>
+              <h1 id="commander-preview-title" className="font-heading text-2xl font-black text-white sm:text-3xl">{copy.startTitle}</h1>
+              <p className="mt-1 text-sm text-slate-300">{copy.subtitle}</p>
             </div>
             <button type="button" onClick={onClose} className="rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:text-white">← {copy.back}</button>
           </div>
         </header>
 
         <main className="space-y-4 p-3 sm:p-5">
-          <section className="grid gap-2 sm:grid-cols-2">
-            <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-2 text-xs text-emerald-100"><strong className="block text-emerald-200">✓ {copy.safety}</strong></div>
-            <div className="rounded-xl border border-violet-400/20 bg-violet-400/[0.06] px-3 py-2 text-xs text-violet-100"><strong className="block text-violet-200">🎓 {copy.testers}</strong></div>
-          </section>
+          {!session && (
+            <section className="grid gap-2 sm:grid-cols-2">
+              <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-2.5 text-sm text-emerald-100"><strong className="block text-emerald-200">✓ {copy.safety}</strong></div>
+              <div className="rounded-xl border border-violet-400/20 bg-violet-400/[0.06] px-3 py-2.5 text-sm leading-6 text-violet-100"><strong className="block text-violet-200">🎮 {copy.testers}</strong></div>
+            </section>
+          )}
 
           {!session && (
             <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5 sm:p-7">
@@ -422,21 +423,20 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
                 <div>
                   <span aria-hidden className="text-5xl">🧠⚔️</span>
                   <h2 className="mt-4 font-heading text-xl font-bold text-white sm:text-2xl">{copy.startTitle}</h2>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{ownedLoadout ? 'Test your equipped army against the practice squad. No Coins, Action Points, or injuries are at stake.' : copy.startBody}</p>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{copy.startBody}</p>
                   <button type="button" onClick={() => void begin()} disabled={busy} className="mt-5 rounded-2xl bg-gradient-to-r from-cyan-300 via-sky-400 to-violet-400 px-5 py-3 font-heading text-sm font-black text-slate-950 shadow-lg shadow-cyan-500/10 transition hover:brightness-110 disabled:cursor-wait disabled:opacity-60">{busy ? copy.resolving : copy.start}</button>
                 </div>
                 <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-4">
                   <span className="text-xs font-bold uppercase tracking-[0.14em] text-cyan-300">{copy.loadout}</span>
-                  <p className="mt-2 text-sm font-semibold text-white">{battle?.loadoutLabel ?? (ownedLoadout ? 'Your equipped army · locked when the battle starts' : copy.loadoutValue)}</p>
+                  <p className="mt-2 text-sm font-semibold text-white">{ownedLoadout ? 'Your own team' : copy.loadoutValue}</p>
                   <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs text-slate-300"><span className="rounded-xl bg-slate-900 px-2 py-3">🎯 {copy.focus}</span><span className="rounded-xl bg-slate-900 px-2 py-3">☄️ {copy.bolt}</span><span className="rounded-xl bg-slate-900 px-2 py-3">🛡️ {copy.guard}</span></div>
                 </div>
               </div>
             </section>
           )}
 
-          {busy && !introReady && <div role="status" className="rounded-3xl border border-cyan-300/20 bg-slate-950 p-8 text-center font-heading text-sm tracking-widest text-cyan-200">BATTLE INITIALIZING<span className="mt-2 block text-xs tracking-normal text-slate-400">Preparing battlefield and units…</span></div>}
+          {busy && !introReady && <div role="status" className="rounded-3xl border border-cyan-300/20 bg-slate-950 p-8 text-center font-heading text-sm tracking-widest text-cyan-200">GETTING READY…<span className="mt-2 block text-xs tracking-normal text-slate-400">Loading the battlefield and your fighters</span></div>}
 
-          {battle?.loadoutLabel && <p className="rounded-xl border border-cyan-400/20 bg-cyan-400/5 px-3 py-2 text-xs text-cyan-100">Battle loadout: {battle.loadoutLabel} · Army version {battle.loadoutVersion}. Equipment changes apply to your next battle.</p>}
           {storageFailed && <p role="status" className="text-sm text-amber-200">{copy.storageUnavailable}</p>}
           {recoveryFailed && <button type="button" onClick={() => setRecoveryVersion(value => value + 1)} className="rounded-xl border border-cyan-300 px-4 py-3 text-cyan-100">{copy.recoveryRetry}</button>}
           {recoveryFailed && <button type="button" onClick={() => void begin()} disabled={busy} className="ml-3 rounded-xl border border-slate-600 px-4 py-3 text-slate-200">{copy.restart}</button>}
@@ -480,13 +480,10 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
                 onToggleSpeed={() => setSpeed((value) => value === 1 ? 2 : 1)}
                 onMove={(move) => void playMove(move)}
                 onRestart={() => void begin()}
+                outcomeNote={commanderXpAwardMessage(session.xpAward)}
+                onExit={onClose}
               />
 
-              {battle.status !== 'active' && commanderXpAwardMessage(session.xpAward) && (
-                <p role="status" className="rounded-2xl border border-amber-300/30 bg-amber-400/10 px-4 py-3 text-sm font-bold text-amber-100">
-                  ⭐ {commanderXpAwardMessage(session.xpAward)}
-                </p>
-              )}
 
               <details className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
                 <summary className="cursor-pointer font-heading text-xs font-black uppercase tracking-[0.12em] text-slate-300">📜 {copy.battleLog}</summary>

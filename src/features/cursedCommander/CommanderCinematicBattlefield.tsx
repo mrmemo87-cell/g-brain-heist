@@ -61,6 +61,11 @@ type Props = {
   onToggleSpeed: () => void;
   onMove: (move: CommanderPracticeMove) => void;
   onRestart: () => void;
+  /** Shown on the result screen, e.g. the Commander XP the win earned. */
+  outcomeNote?: string | null;
+  /** Second result-screen button, e.g. back to Headquarters. */
+  onExit?: () => void;
+  exitLabel?: string;
 };
 
 type CombatFloatTone = 'damage' | 'shieldDamage' | 'shieldGain' | 'restore' | 'ko';
@@ -252,8 +257,12 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
   onToggleSpeed,
   onMove,
   onRestart,
+  outcomeNote,
+  onExit,
+  exitLabel,
 }) => {
   const intro = useCommanderIntro(combatants, onIntroReady, soundOn, animationsOn, skipOpening);
+  const selectedName = combatants.find((combatant) => combatant.id === selectedTargetId && combatant.hp > 0)?.name ?? null;
   const boardRef = useRef<HTMLDivElement>(null);
   const [boardSize, setBoardSize] = useState({ width: 0, height: 0 });
   const compact = boardSize.width ? boardSize.width < 900 : window.innerWidth < 900;
@@ -417,7 +426,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
   };
 
   return (
-    <section data-cc-animated={animationsOn} className={`relative overflow-hidden rounded-[2rem] border border-cyan-400/24 bg-[#020617] shadow-[0_0_70px_rgba(34,211,238,.1)] ${isDeathBoltImpact && animationsOn ? 'cc-stage-arena-hit' : ''}`}>
+    <section data-cc-animated={animationsOn} className={`relative overflow-clip rounded-[2rem] border border-cyan-400/24 bg-[#020617] shadow-[0_0_70px_rgba(34,211,238,.1)] ${isDeathBoltImpact && animationsOn ? 'cc-stage-arena-hit' : ''}`}>
       <style>{`
         @keyframes ccOpeningFade{from{opacity:1}to{opacity:0}}
         .cc-opening-black{animation:ccOpeningFade 450ms ease-out forwards}
@@ -458,17 +467,16 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
       `}</style>
 
       <div className="relative z-[90] flex flex-wrap items-center justify-between gap-2 border-b border-white/5 bg-slate-950/54 px-3 py-2.5 backdrop-blur-md sm:px-4">
-        <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold">
-          <span className="font-heading text-cyan-100">⚔ {copy.turn} {turn} {copy.of} {maxTurns}</span>
-          <span className="text-slate-400">⏱ {copy.expires}: {expiry}</span>
-          <span className={`rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] ${targetable ? 'bg-cyan-400/10 text-cyan-200' : 'bg-violet-400/10 text-violet-200'}`}>{busy ? copy.resolving : targetable ? copy.waiting : outcomeLabel ?? copy.waiting}</span>
+        <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+          <span className="font-heading text-sm text-cyan-100">⚔ {copy.turn} {turn} {copy.of} {maxTurns}</span>
+          <span className="hidden text-slate-400 sm:inline">⏱ {copy.expires}: {expiry}</span>
         </div>
         <div className="flex items-center gap-1.5" dir="ltr">
-          <button type="button" onClick={onToggleAnimations} className={`rounded-full border px-2 py-1 text-[9px] font-bold ${animationsOn ? 'border-emerald-400/30 text-emerald-200' : 'border-slate-700 text-slate-500'}`}>{animationsOn ? '●' : '○'} {copy.animations}</button>
-          <button type="button" onClick={onToggleEffects} className={`rounded-full border px-2 py-1 text-[9px] font-bold ${effectsOn ? 'border-cyan-400/30 text-cyan-200' : 'border-slate-700 text-slate-500'}`}>✦ {copy.effects}</button>
-          <button type="button" onClick={toggleSound} aria-pressed={soundOn} aria-label={copy.sound} title={copy.sound} className={`flex items-center gap-1 rounded-full border px-2 py-1 text-[9px] font-bold ${soundOn ? 'border-sky-400/30 text-sky-200' : 'border-slate-700 text-slate-500'}`}><SoundGlyph enabled={soundOn} /><span className="hidden sm:inline">{copy.sound}</span></button>
-          <button type="button" onClick={onToggleSpeed} className="rounded-full border border-violet-400/30 px-2 py-1 text-[9px] font-bold text-violet-200">{speed}×</button>
-          <button type="button" onClick={onRestart} disabled={busy || !intro.done} className="rounded-full border border-slate-700 px-2 py-1 text-[9px] font-bold text-slate-300 disabled:opacity-40">↻</button>
+          <button type="button" onClick={onToggleAnimations} className={`rounded-full border px-2 py-1 text-[11px] font-bold ${animationsOn ? 'border-emerald-400/30 text-emerald-200' : 'border-slate-700 text-slate-500'}`}>{animationsOn ? '●' : '○'} {copy.animations}</button>
+          <button type="button" onClick={onToggleEffects} className={`rounded-full border px-2 py-1 text-[11px] font-bold ${effectsOn ? 'border-cyan-400/30 text-cyan-200' : 'border-slate-700 text-slate-500'}`}>✦ {copy.effects}</button>
+          <button type="button" onClick={toggleSound} aria-pressed={soundOn} aria-label={copy.sound} title={copy.sound} className={`flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-bold ${soundOn ? 'border-sky-400/30 text-sky-200' : 'border-slate-700 text-slate-500'}`}><SoundGlyph enabled={soundOn} /><span className="hidden sm:inline">{copy.sound}</span></button>
+          <button type="button" onClick={onToggleSpeed} className="rounded-full border border-violet-400/30 px-2 py-1 text-[11px] font-bold text-violet-200">{speed}×</button>
+          <button type="button" onClick={onRestart} disabled={busy || !intro.done} aria-label={copy.restart} title={copy.restart} className="rounded-full border border-slate-700 px-2 py-1 text-[11px] font-bold text-slate-300 disabled:opacity-40">↻</button>
         </div>
       </div>
 
@@ -483,14 +491,23 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
         {!intro.done && <div aria-hidden className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,.7))]" />}
         {!intro.done && intro.team && <div aria-hidden className={`pointer-events-none absolute inset-y-0 w-1/2 ${intro.team === 'player' ? 'left-0 bg-cyan-400/5' : 'right-0 bg-fuchsia-400/5'}`} />}
         {effectsOn && <><span aria-hidden className="pointer-events-none absolute left-[7%] top-[28%] h-40 w-40 rounded-full bg-cyan-400/[0.06] blur-3xl" /><span aria-hidden className="pointer-events-none absolute right-[7%] top-[28%] h-40 w-40 rounded-full bg-fuchsia-500/[0.06] blur-3xl" /></>}
-        <div className="pointer-events-none absolute inset-x-0 top-3 z-20 flex justify-between px-4 text-[8px] font-black uppercase tracking-[0.2em] sm:px-6 sm:text-[10px]"><span className="text-cyan-300">● {copy.you}</span><span className="text-fuchsia-300">{targetable ? `◎ ${copy.selectTarget}` : `● ${copy.enemy}`}</span></div>
+        <div className="pointer-events-none absolute inset-x-0 top-3 z-20 flex justify-between px-4 text-[11px] font-black uppercase tracking-[0.14em] sm:px-6 sm:text-xs"><span className="text-cyan-300">● {copy.you}</span><span className={targetable && !selectedName ? 'animate-pulse text-amber-200' : 'text-fuchsia-300'}>{targetable ? (selectedName ? `🎯 ${selectedName}` : `👆 ${copy.selectTarget}`) : `● ${copy.enemy}`}</span></div>
         <EventBanner step={activeStep} combatants={combatants} language={language} copy={copy} />
         {combatants.map(unit)}
         {effectsOn && animationsOn && <ProjectilePath step={activeStep} phase={phase} combatants={combatants} speed={speed} compact={compact} boardSize={boardSize} />}
 
         {outcomeLabel && !activeStep && (
-          <div className="pointer-events-none absolute inset-0 z-[100] flex items-center justify-center bg-slate-950/30 backdrop-blur-[1px]">
-            <div className="text-center"><div className="text-5xl" aria-hidden>{status === 'victory' ? '🏆' : status === 'defeat' ? '☠️' : '⚖️'}</div><div className={`mt-2 font-heading text-2xl font-black sm:text-4xl ${status === 'victory' ? 'text-emerald-300' : status === 'defeat' ? 'text-red-300' : 'text-amber-300'}`}>{outcomeLabel}</div><p className="mt-1 text-xs text-slate-300">{copy.finishedNote}</p></div>
+          <div className="absolute inset-0 z-[100] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-[2px]">
+            <div role="status" className="w-full max-w-sm rounded-3xl border border-white/10 bg-slate-950/90 p-5 text-center shadow-2xl">
+              <div className="text-5xl" aria-hidden>{status === 'victory' ? '🏆' : status === 'defeat' ? '☠️' : '⚖️'}</div>
+              <div className={`mt-2 font-heading text-3xl font-black sm:text-4xl ${status === 'victory' ? 'text-emerald-300' : status === 'defeat' ? 'text-red-300' : 'text-amber-300'}`}>{outcomeLabel}</div>
+              {outcomeNote && <p className="mt-3 rounded-xl border border-amber-300/30 bg-amber-400/10 px-3 py-2 text-sm font-bold text-amber-100">⭐ {outcomeNote}</p>}
+              <p className="mt-2 text-sm text-slate-300">{copy.finishedNote}</p>
+              <div className="mt-4 grid gap-2">
+                <button type="button" onClick={onRestart} className="rounded-2xl bg-gradient-to-r from-cyan-300 via-sky-400 to-violet-400 px-4 py-3 font-heading text-sm font-black text-slate-950">{copy.restart}</button>
+                {onExit && <button type="button" onClick={onExit} className="rounded-2xl border border-slate-600 px-4 py-3 text-sm font-bold text-slate-200">{exitLabel ?? copy.back}</button>}
+              </div>
+            </div>
           </div>
         )}
       </div>

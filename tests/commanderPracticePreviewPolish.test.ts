@@ -5,11 +5,14 @@ import test from 'node:test';
 const arena = readFileSync('src/features/cursedCommander/CommanderPracticeArena.tsx', 'utf8');
 const copy = readFileSync('src/features/cursedCommander/commanderPracticeCopy.ts', 'utf8');
 
-test('Commander preview copy matches student-wide access and hides backend version branding', () => {
-  assert.match(copy, /Open to authenticated student accounts\./);
-  assert.match(copy, /متاح لحسابات الطلاب المسجلين\./);
-  assert.match(copy, /Доступно авторизованным аккаунтам учеников\./);
-  assert.match(arena, /COMMANDER · TACTICAL PREVIEW/);
+test('Commander practice copy teaches the game in plain words and hides backend branding', () => {
+  // Every language explains how to play instead of describing account access.
+  assert.match(copy, /How to play: 1\) Tap an enemy\./);
+  assert.match(copy, /طريقة اللعب:/);
+  assert.match(copy, /Как играть:/);
+  // Practice now pays daily XP, so no language may claim progress never changes.
+  assert.doesNotMatch(copy, /your progress stays the same/);
+  assert.doesNotMatch(arena, /TACTICAL PREVIEW/);
   assert.doesNotMatch(arena, /COMMANDER · V1 PREVIEW/);
   assert.doesNotMatch(copy, /Server-authorized preview testers only\./);
 });

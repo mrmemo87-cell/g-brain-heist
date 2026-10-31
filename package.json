@@ -11,6 +11,7 @@
     "dev": "node scripts/materialize_commander_elixirs.mjs && vite",
     "build": "node scripts/materialize_commander_elixirs.mjs && python3 scripts/materialize_assignment_edit_feature.py && vite build",
     "preview": "vite preview",
+    "dev:commander-fixture": "node scripts/materialize_commander_elixirs.mjs && vite --config e2e/vite.commander-fixture.config.ts",
     "typecheck": "node scripts/materialize_commander_elixirs.mjs && python3 scripts/materialize_assignment_edit_feature.py && tsc --noEmit -p tsconfig.ci.json",
     "lint": "npm run typecheck",
     "guard:school-admin-portal": "node scripts/check-school-admin-portal-integrity.mjs",

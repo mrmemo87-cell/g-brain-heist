@@ -485,3 +485,35 @@ export const commanderUnitNextEvolutionGain = (
     attack: next.attack - current.attack,
   };
 };
+
+/** XP the player has already collected today (UTC, matching the server's daily limits). */
+export type CommanderTodayXp = { login: boolean; streak: number; practiceWin: boolean; pvpWins: number };
+
+export const commanderTodayXp = (
+  history: CommanderHeadquarters["history"],
+  now: Date = new Date(),
+): CommanderTodayXp => {
+  const today = now.toISOString().slice(0, 10);
+  const rewards = history.filter((row) => row.operation === "reward" && row.created_at.slice(0, 10) === today);
+  const login = rewards.find((row) => row.payload?.source === "daily_login");
+  return {
+    login: Boolean(login),
+    streak: Number(login?.payload?.streak ?? 0),
+    practiceWin: rewards.some((row) => row.payload?.source === "practice_victory"),
+    pvpWins: rewards.filter((row) => row.payload?.source === "pvp_victory").length,
+  };
+};
+
+/** The next thing a higher Commander level unlocks, in plain words for students. */
+export const commanderNextUnlock = (
+  level: number,
+  rules: Record<string, number>,
+): { level: number; label: string } | null => {
+  const unlocks: Array<{ level: number; label: string }> = [
+    { level: rules["unitTrainingUnlockLevel"] ?? 11, label: "Unit Training: make each unit stronger" },
+    { level: rules["unitEvolutionUnlockLevel"] ?? 21, label: "Evolution: upgrade a fully trained unit" },
+    { level: rules["schoolMasteryUnlockLevel"] ?? 31, label: "Mastery: power up your magic types" },
+    { level: rules["formationUnlockLevel"] ?? 41, label: "Formations: choose a team battle style" },
+  ];
+  return unlocks.find((unlock) => unlock.level > level) ?? null;
+};

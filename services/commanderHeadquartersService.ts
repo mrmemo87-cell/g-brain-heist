@@ -114,7 +114,8 @@ export type CommanderHeadquarters = {
   loadout: CommanderOwnedLoadout | null;
   history: Array<{
     operation: string;
-    payload: { target?: string | null };
+    /** Reward rows also carry the XP source (daily_login, practice_victory, pvp_victory). */
+    payload: { target?: string | null; source?: string; streak?: number };
     coins_delta: number;
     xp_delta: number;
     created_at: string;
