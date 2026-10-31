@@ -24,7 +24,7 @@ export const getDemoPersonas = (): DemoPersona[] => {
       key: 'teacher',
       email: teacherEmail,
       password: teacherPassword,
-      title: 'Ms. Sadykova · Teacher & School Head',
+      title: 'Ms. Mitchell · Teacher & School Head',
       description: 'Two Grade 7 classes, eight weeks of evidence, support plans in every stage, School Head dashboards.',
     },
     {

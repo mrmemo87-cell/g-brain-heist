@@ -55,7 +55,7 @@ begin
   ) values (
     'Demo International School', public.normalize_school_name('Demo International School'),
     v_teacher, 'demo.teacher@example.com', 'teacher', 'pending',
-    'demo.teacher@example.com', 'Bishkek', 'Kyrgyzstan', 'Ms. Aigerim Sadykova', 'Head of English',
+    'demo.teacher@example.com', 'London', 'United Kingdom', 'Ms. Sarah Mitchell', 'Head of English',
     true, 24, 1, array['core','cambridge']
   ) returning id into v_request;
 
@@ -68,7 +68,7 @@ begin
   -- Fixed, memorable invite code. (Approval can generate a code containing '=', which
   -- join_school_by_code strips before matching, so roughly 1 in 20 generated codes
   -- cannot be used to join; a fixed code also keeps the demo deterministic.)
-  update public.schools set time_zone = 'Asia/Bishkek', invite_code = 'DEMO7A2026',
+  update public.schools set time_zone = 'Europe/London', invite_code = 'DEMO7A2026',
     settings = coalesce(settings, '{}'::jsonb) || jsonb_build_object('daily_mission_academic_subject_id', v_english_academic_subject)
   where id = v_school;
 
@@ -126,8 +126,8 @@ end $$;
 do $$
 declare
   v_school uuid := private.demo_state_uuid('school_id');
-  v_open timestamptz := timestamptz '2026-08-24 10:00 Asia/Bishkek';
-  v_term timestamptz := timestamptz '2026-09-01 08:30 Asia/Bishkek';
+  v_open timestamptz := timestamptz '2026-08-24 10:00 Europe/London';
+  v_term timestamptz := timestamptz '2026-09-01 08:30 Europe/London';
 begin
   set local session_replication_role = replica;
   update public.school_requests set created_at = v_open - interval '3 days', reviewed_at = v_open - interval '1 day', updated_at = v_open - interval '1 day' where approved_school_id = v_school;

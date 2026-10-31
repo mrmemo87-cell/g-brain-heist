@@ -78,7 +78,7 @@ declare
   v_mission public.daily_missions;
   v_q record; v_answer text; v_correct integer := 0;
   v_since timestamptz := clock_timestamp();
-  v_at timestamptz := (p_day + time '16:30') at time zone 'Asia/Bishkek'
+  v_at timestamptz := (p_day + time '16:30') at time zone 'Europe/London'
     + make_interval(mins => floor(private.demo_rand(p_key || p_day || 'time') * 300)::int);
   v_i integer := 0;
 begin
@@ -117,7 +117,7 @@ begin
 end $$;
 
 do $$
-declare p record; d date; v_today date := (private.demo_today() at time zone 'Asia/Bishkek')::date;
+declare p record; d date; v_today date := (private.demo_today() at time zone 'Europe/London')::date;
 begin
   for d in select generate_series(v_today - 27, v_today - 1, interval '1 day')::date loop
     for p in select key from private.demo_people where role = 'student' order by key loop
@@ -138,7 +138,7 @@ end $$;
 do $$
 declare v_school uuid := private.demo_state_uuid('school_id'); p record; r jsonb;
   v_a uuid := private.demo_state_uuid('class_id'); v_b uuid := private.demo_state_uuid('class_b_id');
-  v_week date := date_trunc('week', (private.demo_today() at time zone 'Asia/Bishkek'))::date;
+  v_week date := date_trunc('week', (private.demo_today() at time zone 'Europe/London'))::date;
 begin
   -- Freeze every finished week since the season start (the app does this lazily).
   perform private.class_conquest_finalize_week(v_school, '7', w::date)
@@ -164,12 +164,12 @@ end $$;
 do $$
 declare
   v_since timestamptz; v_at timestamptz; r record; j record; k text; v_clan uuid; m text; v_i integer;
-  v_today date := (private.demo_today() at time zone 'Asia/Bishkek')::date;
+  v_today date := (private.demo_today() at time zone 'Europe/London')::date;
   clans text[][] := array[
     array['Night Owls',     's08', 'Late-night grammar raids. Bring snacks.'],
     array['Byte Bandits',   's25', '7B represent. We take the map this week.'],
     array['Quantum Foxes',  's01', 'Clever, curious, quick. Missions every day.'],
-    array['Steppe Wolves',  's30', 'Pack hunts at 5pm. No mission left behind.']
+    array['Arctic Wolves',  's30', 'Pack hunts at 5pm. No mission left behind.']
   ];
   members text[][] := array[
     array['s09','s10','s02','s11','s12','s13'],
@@ -180,13 +180,13 @@ declare
   chat text[] := array[
     'Who finished today''s mission already?', 'Me! 5/5 😎', 'Present perfect is finally making sense',
     'We need 3 more missions to beat 7B', 'On it after football', 'Deposited 200 coins to the vault 💰',
-    'Ms. Sadykova said the next map is the UK!', 'Everyone do the mission before dinner', 'gg last week',
+    'Ms. Mitchell said the next map is the UK!', 'Everyone do the mission before dinner', 'gg last week',
     'Shield up, someone keeps hacking me', 'That was me 😂', 'Clan buff tomorrow?'
   ];
 begin
   for v_i in 1..4 loop
     v_since := clock_timestamp();
-    v_at := ((v_today - 18 + v_i) + time '17:00') at time zone 'Asia/Bishkek';
+    v_at := ((v_today - 18 + v_i) + time '17:00') at time zone 'Europe/London';
     perform private.demo_as(clans[v_i][2]);
     select * into r from public.rpc_create_clan(clans[v_i][1], clans[v_i][3]);
     if not r.success then raise notice 'clan % skipped: %', clans[v_i][1], r.error_message; continue; end if;
@@ -215,7 +215,7 @@ end $$;
 -- ---------------------------------------------------------------------------
 do $$
 declare
-  v_today date := (private.demo_today() at time zone 'Asia/Bishkek')::date;
+  v_today date := (private.demo_today() at time zone 'Europe/London')::date;
   v_since timestamptz; v_at timestamptz; d date; a record; v_def uuid; n integer; r json;
 begin
   for d in select generate_series(v_today - 13, v_today, interval '1 day')::date loop
@@ -227,7 +227,7 @@ begin
       where role = 'student' and key <> a.key and class_code = a.class_code
       order by md5(key || a.key || d) limit 1;
       v_since := clock_timestamp();
-      v_at := (d + time '18:00') at time zone 'Asia/Bishkek' + make_interval(mins => floor(private.demo_rand(a.key || d || 'hm') * 240)::int);
+      v_at := (d + time '18:00') at time zone 'Europe/London' + make_interval(mins => floor(private.demo_rand(a.key || d || 'hm') * 240)::int);
       set local session_replication_role = replica;
       update public.users set ap_now = greatest(coalesce(ap_now, 0), 6), ap_max = greatest(coalesce(ap_max, 0), 10), last_ap_update = now() where id = a.user_id;
       update public.users set last_attacked_at = null where id = v_def;
@@ -251,7 +251,7 @@ end $$;
 -- E. Shop: shields for the cautious, attack boosts for the bold.
 -- ---------------------------------------------------------------------------
 do $$
-declare p record; v_since timestamptz; v_today date := (private.demo_today() at time zone 'Asia/Bishkek')::date;
+declare p record; v_since timestamptz; v_today date := (private.demo_today() at time zone 'Europe/London')::date;
 begin
   for p in select key from private.demo_people where role = 'student' order by key loop
     if private.demo_rand(p.key || 'shop') > 0.5 then continue; end if;
@@ -260,7 +260,7 @@ begin
     begin
       perform public.rpc_shop_buy(case when private.demo_rand(p.key || 'item') < 0.6 then 'item_shield' else 'item_encryption_key' end, 1);
     exception when others then null; end;
-    call private.demo_backdate(v_since, ((v_today - 1 - floor(private.demo_rand(p.key || 'sd') * 12)::int) + time '19:10') at time zone 'Asia/Bishkek');
+    call private.demo_backdate(v_since, ((v_today - 1 - floor(private.demo_rand(p.key || 'sd') * 12)::int) + time '19:10') at time zone 'Europe/London');
   end loop;
 end $$;
 
