@@ -31,7 +31,7 @@ concurrency:
 jobs:
   demo:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     env:
       PROD_DB_URL: ${{ secrets.BH_PROD_DB_URL }}
       DEMO_DB_URL: ${{ secrets.BH_DEMO_DB_URL }}
@@ -114,10 +114,11 @@ jobs:
         if: env.MODE == 'clone'
         run: |
           set -euo pipefail
-          psql "$DEMO_DB_URL" --single-transaction -v ON_ERROR_STOP=1 \
-            --file dump/schema.sql \
-            --command 'SET session_replication_role = replica' \
-            --file dump/content.sql
+          # The demo database is far from the GitHub runner, so statement-by-statement
+          # psql is latency bound (~1 h). Send the schema as ONE simple-query batch
+          # and the data with COPY, all inside a single transaction.
+          python3 -m pip install --quiet --break-system-packages "psycopg[binary]>=3.2"
+          python3 supabase/demo/restore.py dump/schema.sql dump/content.sql
 
       - name: Isolate demo (no outbound email/push/http) and schedule engine jobs
         if: env.MODE == 'clone'
