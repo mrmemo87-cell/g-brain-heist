@@ -7,7 +7,7 @@ const read = (relative: string) => fs.readFileSync(relative, 'utf8');
 test('Student Academic Profile uses school language and source-specific evidence', () => {
   const source = read('components/student-progress/StudentAcademicProfileV2.tsx');
   assert.match(source, /What should we work on\?/);
-  assert.match(source, /Assessment results and progress/);
+  assert.match(source, /Each assignment, then each skill/);
   assert.match(source, /sap-assessment-detail/);
   assert.match(source, /isAcademicAssignmentSource\(item\.source_type\)/);
   assert.match(read('services/studentAcademicProfileService.ts'), /source === 'registry_verified_assignment'/);
@@ -15,18 +15,19 @@ test('Student Academic Profile uses school language and source-specific evidence
   assert.match(source, /corrections/);
   assert.match(source, /assessment_items/);
   assert.match(source, /SubjectTrendChart/);
-  assert.match(source, /How this profile works/);
+  assert.match(source, /How this is worked out/);
   assert.match(source, /Technical reporting terminology/);
 });
 
 test('academic profile exposes its primary dashboard while keeping methodology expandable', () => {
   const source = read('components/student-progress/StudentAcademicProfileV2.tsx');
-  assert.equal((source.match(/<ProfileStat /g) || []).length, 4);
+  assert.equal((source.match(/<ProfileStat /g) || []).length, 0); // replaced by AcademicProfileBrief (2026-10-31)
+  assert.equal((source.match(/<AcademicProfileBrief/g) || []).length, 1);
   assert.equal((source.match(/<ProfileDisclosure /g) || []).length, 1);
-  for (const title of ['Learning trends', 'Assessment results', 'Priority support', 'Evidence to confirm', 'Detailed evidence', 'Assessment record']) {
+  for (const title of ['Results over time', 'Skill results', 'Needs support now', 'Being watched', 'Evidence by assignment', 'Assignments']) {
     assert.ok(source.includes(`<ProfileSection title="${title}"`), `${title} must be a visible dashboard section`);
   }
-  assert.match(source, /className="ap-snapshot" aria-label="Teacher snapshot"/);
+  assert.doesNotMatch(source, /className="ap-snapshot"/);
   assert.match(source, /ProfilePreview/);
   assert.match(source, /className="when-closed">Open/);
   assert.match(source, /className="when-open">Close/);
