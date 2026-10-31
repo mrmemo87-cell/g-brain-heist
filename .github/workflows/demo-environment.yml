@@ -31,12 +31,11 @@ concurrency:
 jobs:
   demo:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     env:
       PROD_DB_URL: ${{ secrets.BH_PROD_DB_URL }}
       DEMO_DB_URL: ${{ secrets.BH_DEMO_DB_URL }}
       MODE: ${{ github.event.inputs.mode || 'reset' }}
-      PGOPTIONS: '-c app.demo_target=brains-heist-demo'
     steps:
       - uses: actions/checkout@v4
 
@@ -114,20 +113,33 @@ jobs:
         if: env.MODE == 'clone'
         run: |
           set -euo pipefail
-          psql "$DEMO_DB_URL" --single-transaction -v ON_ERROR_STOP=1 \
-            --file dump/schema.sql \
-            --command 'SET session_replication_role = replica' \
-            --file dump/content.sql
+          # The demo database is far from the GitHub runner, so statement-by-statement
+          # psql is latency bound (~1 h). Send the schema as ONE simple-query batch
+          # and the data with COPY, all inside a single transaction.
+          python3 -m pip install --quiet --break-system-packages "psycopg[binary]>=3.2"
+          python3 supabase/demo/restore.py dump/schema.sql dump/content.sql
 
       - name: Isolate demo (no outbound email/push/http) and schedule engine jobs
         if: env.MODE == 'clone'
         run: psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 --file supabase/demo/post-restore.sql
 
-      - name: Seed the demo school
+      - name: Reset and seed the demo school (one transaction)
         run: |
           set -euo pipefail
-          if [[ -f supabase/demo/seed-demo-school.sql ]]; then
-            psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 --file supabase/demo/seed-demo-school.sql
-          else
-            echo "No seed file yet; skipping."
+          {
+            echo "create table if not exists private.demo_content_tables(name text primary key);"
+            echo "revoke all on private.demo_content_tables from public, anon, authenticated;"
+            while IFS= read -r t; do
+              t="${t%%#*}"; t="$(echo "$t" | xargs)"
+              [[ -z "$t" ]] && continue
+              echo "insert into private.demo_content_tables(name) values ('$t') on conflict do nothing;"
+            done < supabase/demo/content-tables.txt
+          } > /tmp/content_list.sql
+          args=(-v ON_ERROR_STOP=1 --single-transaction -c 'set statement_timeout = 0' -f /tmp/content_list.sql)
+          for f in supabase/demo/seed/*.sql; do args+=(-f "$f"); done
+          if ! psql "$DEMO_DB_URL" "${args[@]}" > /tmp/seed.out 2> /tmp/seed.err; then
+            msg=$(grep -E "ERROR|CONTEXT|psql:" /tmp/seed.err | head -c 1800 | tr '\n' ' ')
+            echo "::error title=Demo seed failed (nothing was changed)::${msg}"
+            exit 1
           fi
+          echo "::notice title=Demo seed::Demo school rebuilt for $(TZ=Asia/Bishkek date +%F)"
