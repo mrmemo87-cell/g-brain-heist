@@ -53,7 +53,21 @@ export default async function handler(request: VercelRequest, response: VercelRe
     if (check.status === 401) return response.status(401).json({ ok: false, error: 'Your session has expired. Sign in again.' });
     if (!check.ok || check.payload !== true) return response.status(403).json({ ok: false, error: 'Platform administrator required.' });
 
-    // 2. Read the demo project's report and entry-page funnel.
+    // 2a. One visitor's full click-by-click timeline (?visitor=<uuid>).
+    const rawVisitor = Array.isArray(request.query['visitor']) ? request.query['visitor'][0] : request.query['visitor'];
+    if (rawVisitor !== undefined) {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawVisitor)) {
+        return response.status(400).json({ ok: false, error: 'Unknown visitor.' });
+      }
+      const timeline = await rpc(demoUrl, demoServiceKey, demoServiceKey, 'rpc_demo_visitor_timeline', { p_visitor_id: rawVisitor });
+      if (!timeline.ok) {
+        console.error('[demo-visitors] demo timeline failed', { status: timeline.status, code: timeline.payload?.code });
+        return response.status(502).json({ ok: false, error: 'Could not read this visitor\'s timeline.' });
+      }
+      return response.status(200).json({ ok: true, timeline: timeline.payload });
+    }
+
+    // 2b. Read the demo project's report and entry-page funnel.
     const rawDays = Number(Array.isArray(request.query['days']) ? request.query['days'][0] : request.query['days']);
     const days = Number.isFinite(rawDays) ? Math.min(365, Math.max(1, Math.round(rawDays))) : 30;
     const [report, funnel] = await Promise.all([

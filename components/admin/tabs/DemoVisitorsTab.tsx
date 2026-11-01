@@ -7,7 +7,15 @@ import { isDemoMode } from '../../../services/demoMode';
 // /api/demo-visitors (the demo lives in its own Supabase project); on the demo site itself
 // it is read directly.
 
-const FULL_DASHBOARD_URL = 'https://demo.brainsheist.com/demo/visitors';
+interface TimelineEvent { type: string; label: string | null; path: string | null; at: string; session?: string; meta?: Record<string, unknown> }
+
+// What each recorded event means, in plain words. Heartbeats are timing pings, not actions.
+const EVENT_TEXT: Record<string, { icon: string; text: string }> = {
+  enter: { icon: '🚪', text: 'Entered the demo as' }, section: { icon: '📍', text: 'Opened' }, click: { icon: '👆', text: 'Clicked' },
+  page: { icon: '📄', text: 'Page' }, workspace_open: { icon: '🗂️', text: 'Opened workspace' }, switch_persona: { icon: '🔁', text: 'Switched to' },
+  hidden: { icon: '💤', text: 'Left the tab while on' }, visible: { icon: '👀', text: 'Came back to' }, signout: { icon: '👋', text: 'Signed out from' },
+  exit: { icon: '👋', text: 'Closed the demo on' },
+};
 
 interface Visitor {
   id: string; created_at: string; last_seen_at: string; full_name: string; email: string; school: string | null; role: string | null;
@@ -65,6 +73,52 @@ const loadData = async (days: number): Promise<{ report: Report; funnel: Funnel 
   return { report: payload.report, funnel: payload.funnel ?? null };
 };
 
+const loadTimeline = async (visitorId: string): Promise<TimelineEvent[]> => {
+  if (isDemoMode()) {
+    const { data, error } = await supabase.rpc('rpc_demo_visitor_timeline', { p_visitor_id: visitorId });
+    if (error) throw new Error(error.message);
+    return ((data as { events?: TimelineEvent[] } | null)?.events ?? []);
+  }
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error('Your session has expired. Sign in again.');
+  const response = await fetch(`/api/demo-visitors?visitor=${encodeURIComponent(visitorId)}`, { headers: { Authorization: `Bearer ${token}` } });
+  const payload = await response.json().catch(() => null) as { ok?: boolean; error?: string; timeline?: { events?: TimelineEvent[] } } | null;
+  if (!response.ok || !payload?.ok) throw new Error(payload?.error || `Could not load the timeline (${response.status}).`);
+  return payload.timeline?.events ?? [];
+};
+
+const TimelineList: React.FC<{ events: TimelineEvent[] }> = ({ events }) => {
+  const shown = events.filter((event) => event.type !== 'heartbeat');
+  if (shown.length === 0) return <p className="text-sm text-slate-500">No activity recorded inside the demo.</p>;
+  const sessions: string[] = [];
+  shown.forEach((event) => { const key = event.session ?? 'visit'; if (!sessions.includes(key)) sessions.push(key); });
+  return (
+    <div className="space-y-4">
+      {sessions.map((session, index) => {
+        const items = shown.filter((event) => (event.session ?? 'visit') === session);
+        return (
+          <div key={session}>
+            <div className="text-xs font-bold uppercase tracking-wider text-cyan-300 mb-2">Visit {index + 1} · {when(items[0].at)} · {items.length} actions</div>
+            <ol className="space-y-1 border-l border-slate-700 pl-4">
+              {items.map((event, i) => {
+                const known = EVENT_TEXT[event.type] ?? { icon: '•', text: event.type };
+                return (
+                  <li key={`${event.at}-${i}`} className="text-sm text-slate-200 flex gap-3">
+                    <span className="text-slate-500 tabular-nums whitespace-nowrap">{new Date(event.at).toLocaleTimeString('en-GB', { timeZone: 'Asia/Bishkek', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                    <span aria-hidden="true">{known.icon}</span>
+                    <span>{known.text} <strong className="text-white">{event.label || event.path || ''}</strong></span>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 const DemoVisitorsTab: React.FC = () => {
   const [days, setDays] = useState(30);
   const [report, setReport] = useState<Report | null>(null);
@@ -72,6 +126,21 @@ const DemoVisitorsTab: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  const [openTimeline, setOpenTimeline] = useState<string | null>(null);
+  const [timelines, setTimelines] = useState<Record<string, TimelineEvent[] | 'loading' | { error: string }>>({});
+
+  const toggleTimeline = useCallback(async (visitorId: string) => {
+    if (openTimeline === visitorId) { setOpenTimeline(null); return; }
+    setOpenTimeline(visitorId);
+    if (Array.isArray(timelines[visitorId])) return;
+    setTimelines((current) => ({ ...current, [visitorId]: 'loading' }));
+    try {
+      const events = await loadTimeline(visitorId);
+      setTimelines((current) => ({ ...current, [visitorId]: events }));
+    } catch (cause) {
+      setTimelines((current) => ({ ...current, [visitorId]: { error: cause instanceof Error ? cause.message : 'Could not load the timeline.' } }));
+    }
+  }, [openTimeline, timelines]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -123,10 +192,6 @@ const DemoVisitorsTab: React.FC = () => {
               className="bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-60">
               {loading ? 'Loading…' : 'Refresh'}
             </button>
-            <a href={FULL_DASHBOARD_URL} target="_blank" rel="noreferrer"
-              className="bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400 text-white px-4 py-2 rounded-lg text-sm font-semibold">
-              Full timelines ↗
-            </a>
           </div>
         </div>
       </div>
@@ -136,7 +201,6 @@ const DemoVisitorsTab: React.FC = () => {
           <p className="font-bold">One setting is needed before demo visitors can show here.</p>
           <p className="text-sm">In Vercel, open the main Brains Heist project → Settings → Environment Variables, add <code className="text-amber-300">DEMO_SUPABASE_SERVICE_ROLE_KEY</code> with the
             service_role key of the <b>brains-heist-demo</b> Supabase project (Supabase → Project Settings → API keys), then redeploy.</p>
-          <p className="text-sm text-amber-200/80">Until then, the full dashboard is still available at <a className="underline" href={FULL_DASHBOARD_URL} target="_blank" rel="noreferrer">demo.brainsheist.com/demo/visitors</a>.</p>
         </div>
       ) : error ? (
         <div className="card-glass p-4 border border-red-400/50 text-red-200 text-sm">{error}</div>
@@ -243,12 +307,13 @@ const DemoVisitorsTab: React.FC = () => {
                   <thead>
                     <tr className="text-left text-xs uppercase tracking-wider text-slate-400 border-b border-slate-700">
                       <th className="py-2 pr-4">Visitor</th><th className="py-2 pr-4">School</th><th className="py-2 pr-4">From</th>
-                      <th className="py-2 pr-4">Last seen</th><th className="py-2 pr-4">Inside</th><th className="py-2">Looked at</th>
+                      <th className="py-2 pr-4">Last seen</th><th className="py-2 pr-4">Inside</th><th className="py-2 pr-4">Looked at</th><th className="py-2" />
                     </tr>
                   </thead>
                   <tbody>
                     {visitors.map((v) => (
-                      <tr key={v.id} className="border-b border-slate-800 align-top">
+                      <React.Fragment key={v.id}>
+                      <tr className="border-b border-slate-800 align-top">
                         <td className="py-3 pr-4">
                           <div className="font-semibold text-white">{v.full_name}</div>
                           <a className="text-cyan-300 hover:underline" href={`mailto:${v.email}`}>{v.email}</a>
@@ -261,8 +326,27 @@ const DemoVisitorsTab: React.FC = () => {
                         </td>
                         <td className="py-3 pr-4 text-slate-200 whitespace-nowrap">{when(v.last_seen_at)}{v.visits > 1 ? <div className="text-xs text-slate-400">{v.visits} visits</div> : null}</td>
                         <td className="py-3 pr-4 text-slate-200 whitespace-nowrap">{duration(v.active_seconds)}</td>
-                        <td className="py-3 text-slate-300 text-xs">{(v.sections ?? []).slice(0, 4).map((s) => s.section).join(', ') || '—'}</td>
+                        <td className="py-3 pr-4 text-slate-300 text-xs">{(v.sections ?? []).slice(0, 4).map((s) => s.section).join(', ') || '—'}</td>
+                        <td className="py-3 text-right">
+                          <button type="button" onClick={() => void toggleTimeline(v.id)} aria-expanded={openTimeline === v.id}
+                            className="bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400 text-white px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap">
+                            {openTimeline === v.id ? 'Hide timeline' : 'Timeline'}
+                          </button>
+                        </td>
                       </tr>
+                      {openTimeline === v.id ? (
+                        <tr className="border-b border-slate-800">
+                          <td colSpan={7} className="py-4 px-2 bg-slate-900/40">
+                            {(() => {
+                              const data = timelines[v.id];
+                              if (!data || data === 'loading') return <p className="text-sm text-slate-400">Loading timeline…</p>;
+                              if (!Array.isArray(data)) return <p className="text-sm text-red-300">{data.error}</p>;
+                              return <TimelineList events={data} />;
+                            })()}
+                          </td>
+                        </tr>
+                      ) : null}
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>
