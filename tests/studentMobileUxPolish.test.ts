@@ -81,18 +81,19 @@ test('activity feed uses accessible compact reactions', () => {
   assert.match(newsFeed, /student-activity-item__reactions/);
 });
 
-test('game mission cards stay compact and keep lockdown last', () => {
-  assert.match(mainActions, /const missionCardClass = 'min-h-\[10rem\] sm:min-h-\[11rem\]'/);
-  assert.doesNotMatch(mainActions, /min-h-\[18rem\]/);
+test('game tab is a compact lobby and keeps the class battle last', () => {
+  assert.match(mainActions, /data-testid="game-hub"/);
+  assert.match(mainActions, /data-testid="dashboard-start-quest"/);
+  assert.match(styles, /\.gh-dock\s*\{[^}]*grid-template-columns:\s*repeat\(3/);
+  assert.match(styles, /\.gh-dock\s*\{\s*grid-template-columns:\s*repeat\(5/);
 
-  const inventoryPosition = mainActions.indexOf('label={t("Inventory")}');
-  const achievementsPosition = mainActions.indexOf('label={t("Achievements")}');
-  const lockdownPosition = mainActions.indexOf('label={t("Lockdown Mode")}');
+  const inventoryPosition = mainActions.indexOf("key: 'inventory'");
+  const achievementsPosition = mainActions.indexOf("key: 'achievements'");
+  const lockdownPosition = mainActions.indexOf('aria-label={t("Lockdown Mode")}');
 
   assert.ok(inventoryPosition >= 0);
   assert.ok(achievementsPosition > inventoryPosition);
   assert.ok(lockdownPosition > achievementsPosition);
   assert.match(mainActions, /relative grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4/);
   assert.equal((mainActions.match(/grid grid-cols-2/g) || []).length, 1);
-  assert.match(mainActions, /Lockdown Mode[\s\S]*col-span-2 w-\[calc\(50%-0\.375rem\)\] justify-self-center/);
 });

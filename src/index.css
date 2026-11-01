@@ -4394,3 +4394,137 @@ body.install-guide-open .language-dock { z-index: 59; }
   .learn-hero__glyph { opacity: 0.8; }
   .learn-writing__pen { transform: translate(106px, 38px); }
 }
+
+/* ─────────────────────────── Student Game tab: game lobby ─────────────────────────── */
+.gh-hub { display: grid; gap: 0.85rem; }
+.gh-section {
+  margin-top: 0.35rem; display: flex; align-items: center; gap: 0.45rem;
+  font-size: 0.72rem; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: rgb(148, 163, 184);
+}
+.gh-section::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(148, 163, 184, 0.35), transparent); }
+[dir="rtl"] .gh-section::after { background: linear-gradient(270deg, rgba(148, 163, 184, 0.35), transparent); }
+
+.gh-badge {
+  position: absolute; top: 0.5rem; right: 0.5rem; z-index: 3; display: inline-flex; align-items: center; gap: 0.25rem;
+  padding: 0.12rem 0.45rem; border-radius: 999px; font-size: 0.66rem; font-weight: 900; letter-spacing: 0.06em;
+}
+.gh-badge--pro { color: #fcd34d; background: rgba(120, 53, 15, 0.75); border: 1px solid rgba(251, 191, 36, 0.5); }
+.gh-badge--quota { color: #a5f3fc; background: rgba(8, 51, 68, 0.8); border: 1px solid rgba(34, 211, 238, 0.45); }
+.gh-badge--count { min-width: 1.4rem; justify-content: center; color: white; background: #ef4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25); animation: gh-badge 1.6s ease-in-out infinite; }
+[dir="rtl"] .gh-badge { right: auto; left: 0.5rem; }
+
+/* Quest portal */
+.gh-quest {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 0.9rem;
+  width: 100%; padding: 0.9rem 1rem; border-radius: 1.5rem; text-align: start; color: white; overflow: hidden;
+  background: radial-gradient(120% 140% at 0% 50%, rgba(236, 72, 153, 0.35), transparent 60%), linear-gradient(135deg, #3b0764, #0f172a 70%);
+  border: 1px solid rgba(244, 114, 182, 0.6);
+  box-shadow: 0 6px 0 #831843, 0 18px 40px rgba(236, 72, 153, 0.28);
+  transition: transform 110ms ease, box-shadow 110ms ease;
+}
+.gh-quest:active { transform: translateY(5px); box-shadow: 0 1px 0 #831843, 0 8px 18px rgba(236, 72, 153, 0.25); }
+.gh-quest:focus-visible { outline: 3px solid #f9a8d4; outline-offset: 3px; }
+.gh-quest__portal { width: 6.4rem; height: 6.4rem; }
+.gh-portal { width: 100%; height: 100%; overflow: visible; }
+.gh-portal__ring { transform-origin: 60px 60px; }
+.gh-portal__ring--a { animation: gh-spin 9s linear infinite; }
+.gh-portal__ring--b { animation: gh-spin 6s linear infinite reverse; }
+.gh-portal__ring--c { animation: gh-spin 4.5s linear infinite; }
+.gh-portal__core { transform-origin: 60px 60px; animation: gh-breathe 2s ease-in-out infinite; }
+.gh-quest__copy { display: grid; gap: 0.15rem; min-width: 0; }
+.gh-quest__title { font-family: var(--font-heading, inherit); font-size: 2rem; font-weight: 900; line-height: 1; letter-spacing: 0.04em; text-transform: uppercase; text-shadow: 0 0 18px rgba(244, 114, 182, 0.7); }
+.gh-quest__tagline { font-size: 0.85rem; font-weight: 700; color: #fbcfe8; }
+.gh-quest__loot { margin-top: 0.35rem; display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.gh-quest__loot span { padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.72rem; font-weight: 900; color: #fdf4ff; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.15); }
+.gh-quest__pending {
+  justify-self: start; margin-bottom: 0.25rem; padding: 0.15rem 0.55rem; border-radius: 999px;
+  font-size: 0.7rem; font-weight: 900; color: #1c1002; background: #fbbf24; animation: gh-badge 1.6s ease-in-out infinite;
+}
+body.performance-mode-disabled .gh-quest::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.16) 50%, transparent 65%);
+  transform: translateX(-120%); animation: gh-shine 4.5s ease-in-out infinite;
+}
+
+/* Battle cards */
+.gh-battle { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+.gh-card {
+  position: relative; display: grid; justify-items: center; align-content: center; gap: 0.1rem; width: 100%;
+  padding: 0.6rem 0.6rem 0.85rem; border-radius: 1.3rem; overflow: hidden; color: white; text-align: center;
+  border: 1px solid var(--gh-edge); background: var(--gh-bg);
+  box-shadow: 0 5px 0 var(--gh-floor), 0 14px 30px var(--gh-glow);
+  transition: transform 110ms ease, box-shadow 110ms ease;
+}
+.gh-card:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--gh-floor), 0 6px 14px var(--gh-glow); }
+.gh-card:focus-visible { outline: 3px solid var(--gh-edge); outline-offset: 3px; }
+.gh-card--attack { --gh-edge: rgba(244, 63, 94, 0.65); --gh-floor: #881337; --gh-glow: rgba(244, 63, 94, 0.25); --gh-bg: radial-gradient(90% 70% at 50% 35%, rgba(244, 63, 94, 0.4), transparent 70%), linear-gradient(180deg, #3f0a1d, #0b0f1e); }
+.gh-card--commander { --gh-edge: rgba(192, 132, 252, 0.65); --gh-floor: #4c1d95; --gh-glow: rgba(168, 85, 247, 0.25); --gh-bg: radial-gradient(90% 70% at 50% 35%, rgba(34, 211, 238, 0.22), transparent 70%), linear-gradient(180deg, #2e1065, #0b0f1e); }
+.gh-card__stage { position: relative; display: grid; place-items: center; width: 100%; max-width: 14rem; aspect-ratio: 1 / 0.82; }
+.gh-card__stage > * { grid-area: 1 / 1; }
+.gh-burst { width: 92%; height: auto; opacity: 0; transform-origin: center; animation: gh-clash 2.4s ease-out infinite; }
+.gh-card__art { position: relative; width: 82%; height: auto; object-fit: contain; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.55)); }
+.gh-card__art--attack { animation: gh-swing 2.4s ease-in-out infinite; }
+.gh-sigil { width: 88%; height: auto; overflow: visible; }
+.gh-sigil__runes { transform-origin: 70px 70px; animation: gh-spin 16s linear infinite; }
+.gh-sigil__crown { animation: gh-float 2.6s ease-in-out infinite; }
+.gh-sigil__brain { transform-origin: 70px 78px; animation: gh-breathe 2.2s ease-in-out infinite; }
+.gh-sigil__bolt { animation: gh-flicker 2.8s steps(1) infinite; }
+.gh-sigil__bolt--b { animation-delay: 1.3s; }
+.gh-card__label { font-family: var(--font-heading, inherit); font-size: 1.08rem; font-weight: 900; line-height: 1.15; }
+.gh-card__tag { font-size: 0.74rem; font-weight: 700; color: rgba(255, 255, 255, 0.68); }
+.gh-card.is-locked .gh-card__stage, .gh-dock__item.is-locked .gh-dock__art { filter: grayscale(0.8) brightness(0.7); }
+.gh-card.is-locked .gh-burst, .gh-card.is-locked .gh-card__art--attack { animation: none; }
+
+/* Base dock */
+.gh-dock { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
+.gh-dock__item {
+  position: relative; display: grid; place-items: center; aspect-ratio: 1; border-radius: 1.15rem; overflow: hidden;
+  background: radial-gradient(70% 70% at 50% 40%, rgba(var(--gh-tone), 0.32), transparent 72%), linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(2, 6, 23, 0.95));
+  border: 1px solid rgba(var(--gh-tone), 0.5);
+  box-shadow: 0 4px 0 rgba(var(--gh-tone), 0.35), 0 10px 22px rgba(2, 6, 23, 0.5);
+  transition: transform 110ms ease, box-shadow 110ms ease;
+}
+.gh-dock__item:active { transform: translateY(4px); box-shadow: 0 0 0 rgba(var(--gh-tone), 0.35); }
+.gh-dock__item:focus-visible { outline: 3px solid rgba(var(--gh-tone), 0.9); outline-offset: 3px; }
+.gh-dock__art { width: 118%; max-width: none; height: auto; object-fit: contain; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5)); animation: gh-bob 3.2s ease-in-out infinite; animation-delay: var(--gh-delay, 0s); }
+.gh-dock__item .gh-badge { top: 0.3rem; right: 0.3rem; font-size: 0.6rem; }
+.gh-tone--shop { --gh-tone: 22, 226, 161; }
+.gh-tone--clan { --gh-tone: 96, 165, 250; }
+.gh-tone--leaderboard { --gh-tone: 250, 204, 21; }
+.gh-tone--inventory { --gh-tone: 248, 113, 113; }
+.gh-tone--achievements { --gh-tone: 244, 114, 182; }
+@media (min-width: 640px) { .gh-dock { grid-template-columns: repeat(5, minmax(0, 1fr)); } .gh-dock__item { aspect-ratio: 1.15; } .gh-dock__art { width: 82%; } }
+/* 5 items on phones: centre the last row */
+@media (max-width: 639px) {
+  .gh-dock { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .gh-dock__item { grid-column: span 2; }
+  .gh-dock__item:nth-child(4) { grid-column: 2 / span 2; }
+}
+
+/* Class battle (Lockdown / Clan Wars) */
+.gh-card--lockdown {
+  --gh-edge: rgba(251, 113, 133, 0.5); --gh-floor: #7f1d1d; --gh-glow: rgba(244, 63, 94, 0.18);
+  --gh-bg: radial-gradient(80% 120% at 0% 50%, rgba(244, 63, 94, 0.22), transparent 60%), linear-gradient(135deg, #2a0a12, #0b0f1e 70%);
+  grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; justify-items: start; gap: 0.8rem; padding: 0.75rem 0.9rem; text-align: start;
+}
+.gh-lockdown__radar { width: 4.2rem; height: 4.2rem; }
+.gh-radar { width: 100%; height: 100%; }
+.gh-radar__sweep { transform-origin: 40px 40px; animation: gh-spin 3s linear infinite; }
+.gh-radar__blip { animation: gh-blip 3s ease-out infinite; }
+.gh-lockdown__copy { display: grid; gap: 0.1rem; }
+.gh-lockdown__art { width: 4.6rem; height: auto; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5)); }
+
+@keyframes gh-spin { to { transform: rotate(360deg); } }
+@keyframes gh-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+@keyframes gh-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes gh-bob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-5px) rotate(-1.5deg); } }
+@keyframes gh-swing { 0%, 70%, 100% { transform: scale(1) rotate(0deg); } 76% { transform: scale(1.08) rotate(-4deg); } 82% { transform: scale(0.97) rotate(3deg); } 88% { transform: scale(1.02) rotate(0deg); } }
+@keyframes gh-clash { 0%, 72% { opacity: 0; transform: scale(0.5); } 78% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.25); } }
+@keyframes gh-flicker { 0%, 40%, 46%, 100% { opacity: 1; } 42%, 48% { opacity: 0.2; } }
+@keyframes gh-blip { 0%, 20% { opacity: 0; } 28% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes gh-badge { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+@keyframes gh-shine { 0%, 55% { transform: translateX(-120%); } 85%, 100% { transform: translateX(120%); } }
+@media (prefers-reduced-motion: reduce) {
+  .gh-hub *, .gh-hub *::before, .gh-hub *::after { animation: none !important; }
+  .gh-burst { opacity: 0; }
+}

@@ -2,6 +2,7 @@ import { useLanguage } from '../src/contexts/LanguageContext';
 import React, { useState, useEffect } from 'react';
 import { fetchPilotQuotas, getQuotaForFeature, QUOTA_LABELS, FEATURE_TO_QUOTA, type PilotQuotaStatus, type PilotQuota } from '../services/tierService';
 import { visualAssets, neonIcon } from './visualAssets';
+import { ClashBurst, CommanderSigil, MiniRadar, QuestPortal } from './game/GameHubArt';
 
 // Default school icon as SVG data URL
 const defaultSchoolIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjIgMTBWNkwxMiAyIDIgNnY0Yy4zNC0uMDguNjUtLjEgMS0uMWg1LjFsMi40NSAzLjA2YTEgMSAwIDAgMCAxLjU2IDBMMTQuNTUgOS45SDE5Ljljey4zNSAwIC42Ny4wMiAxIC4xWiIvPjxwYXRoIGQ9Ik0xMiAyMnYtNiIvPjxwYXRoIGQ9Ik00IDEwdjEwYzAgLjU1LjQ1IDEgMSAxaDE0Yy41NSAwIDEtLjQ1IDEtMVYxMCIvPjwvc3ZnPg==';
@@ -170,38 +171,48 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   );
 };
 
-type QuestPlayButtonProps = {
+type HubTileState = {
+  onClick: () => void;
+  locked: boolean;
+  quota: PilotQuota | null;
+  quotaLabel: string;
+};
+
+/** Small corner badges shared by every Game tab tile: PRO lock, pilot usage count, unread count. */
+const TileBadges: React.FC<{ state: HubTileState; count?: number }> = ({ state, count }) => (
+  <>
+    {state.locked && !state.quota && (
+      <span className="gh-badge gh-badge--pro"><img src={neonIcon('premium', 'accent', 'svg')} alt="" className="h-3 w-3" /> PRO</span>
+    )}
+    {state.quota && (
+      <span className="gh-badge gh-badge--quota">{state.quota.remaining}/{state.quota.limit} {state.quotaLabel}</span>
+    )}
+    {!state.locked && count ? <span className="gh-badge gh-badge--count">{Math.min(count, 99)}</span> : null}
+  </>
+);
+
+type QuestPortalCardProps = {
   onClick: () => void;
   hasPendingAssignment?: boolean;
-  className?: string;
+  title: string;
+  tagline: string;
+  pendingLabel: string;
 };
 
-const QuestPlayButton: React.FC<QuestPlayButtonProps> = ({
-  onClick,
-  hasPendingAssignment,
-  className = '',
-}) => {
-  const classes = ['quest-play-button', hasPendingAssignment ? 'quest-play-button--locked' : '', className]
-    .filter(Boolean)
-    .join(' ');
-
-  return (
-    <button type="button" onClick={onClick} className={classes} data-testid="dashboard-start-quest">
-      <div className="quest-play-button__copy">
-        <span className="quest-play-button__text">PLAY</span>
-        <span className="quest-play-button__status">
-          {hasPendingAssignment ? 'Assignments pending — choose now or play quests' : 'Launch a new quest'}
-        </span>
-      </div>
-      <span className="quest-play-button__arrow" aria-hidden>
-        ▶
+/** The big "start a quest" portal at the top of the Game tab. */
+const QuestPortalCard: React.FC<QuestPortalCardProps> = ({ onClick, hasPendingAssignment, title, tagline, pendingLabel }) => (
+  <button type="button" onClick={onClick} className="gh-quest" data-testid="dashboard-start-quest" aria-label={`${title} — ${tagline}`}>
+    <span className="gh-quest__portal"><QuestPortal /></span>
+    <span className="gh-quest__copy">
+      {hasPendingAssignment && <span className="gh-quest__pending">📋 {pendingLabel}</span>}
+      <span className="gh-quest__title">{title}</span>
+      <span className="gh-quest__tagline">{tagline}</span>
+      <span className="gh-quest__loot" aria-hidden>
+        <span>⭐ XP</span><span>🪙</span><span>💎</span>
       </span>
-      {hasPendingAssignment && (
-        <span className="quest-play-button__warning">Assignments Pending</span>
-      )}
-    </button>
-  );
-};
+    </span>
+  </button>
+);
 
 const MainActions: React.FC<MainActionsProps> = ({
   onStartQuest,
@@ -269,16 +280,33 @@ const MainActions: React.FC<MainActionsProps> = ({
   const handlePilotClick = (featureLabel: string, realHandler?: () => void) => () => {
     realHandler?.();
   };
+  const tileState = (featureLabel: string, quotaKey: string, handler: () => void): HubTileState => ({
+    onClick: locked ? handleLocked(featureLabel) : handlePilotClick(quotaKey, handler),
+    locked,
+    quota: q(quotaKey),
+    quotaLabel: ql(quotaKey),
+  });
+  const attack: HubTileState = {
+    onClick: locked ? handleLocked('Launch Attack') : handlePilotClick('Launch Attack', onStartPvp),
+    locked,
+    quota: q('Launch Attack'),
+    quotaLabel: ql('Launch Attack'),
+  };
+  const baseTiles: Array<{ key: string; label: string; art: string; state: HubTileState; count?: number }> = [
+    { key: 'shop', label: t("Visit Shop"), art: '/mission-console-images/shop.webp', state: tileState('Visit Shop', 'Visit Shop', onVisitShop) },
+    { key: 'clan', label: t("Clan"), art: '/mission-console-images/clan.webp', state: tileState('Clans', 'Clan', onGoToClan), count: clanBadgeCount },
+    { key: 'leaderboard', label: t("Leaderboard"), art: '/mission-console-images/leaderboard.webp', state: tileState('Leaderboard', 'Leaderboard', onViewLeaderboard) },
+    { key: 'inventory', label: t("Inventory"), art: '/mission-console-images/inventory.webp', state: tileState('Inventory', 'Inventory', onVisitInventory) },
+    { key: 'achievements', label: t("Achievements"), art: '/mission-console-images/achievements.webp', state: tileState('Achievements', 'Achievements', onViewAchievements) },
+  ];
   const displaySchoolName = schoolName || 'My School';
   const displaySchoolLogo = schoolLogoUrl || defaultSchoolIcon;
-  const missionCardClass = 'min-h-[10rem] sm:min-h-[11rem]';
-  const missionIconClass = 'h-24 w-24 object-contain drop-shadow-[0_0_22px_rgba(255,255,255,0.35)] brightness-110 contrast-110 saturate-125 sm:h-28 sm:w-28';
   const commanderPreviewLabel = language === 'ar' ? 'القائد الملعون' : language === 'ru' ? 'Проклятый Командир' : 'Cursed Commander';
   const commanderPreviewSubtitle = language === 'ar'
-    ? 'جهّز فريقك · ادخل المعركة'
+    ? 'معركة الفرق'
     : language === 'ru'
-      ? 'Собери отряд · выходи на арену'
-      : 'Build your squad · enter the arena';
+      ? 'Битва отрядов'
+      : 'Squad battle';
   
   return (
     <>
@@ -335,131 +363,80 @@ const MainActions: React.FC<MainActionsProps> = ({
                 className="col-span-2 sm:col-span-3"
               />
             )}
-            <QuestPlayButton
-              onClick={onStartQuest}
-              hasPendingAssignment={hasPendingAssignment}
-              className="col-span-2 sm:col-span-3"
-            />
-            <ActionButton
-              onClick={() => onOpenCommander?.()}
-              icon={<span aria-hidden className="text-4xl">🧠⚔️</span>}
-              label={commanderPreviewLabel}
-              subtitle={commanderPreviewSubtitle}
-              className="col-span-2 min-h-[8rem] sm:col-span-3"
-              color="0, 208, 232"
-              glowClass="glow-ion"
-            />
-            <ActionButton
-              onClick={locked ? handleLocked('Launch Attack') : handlePilotClick('Launch Attack', onStartPvp)}
-              icon={<img src="/mission-console-images/attack.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-              iconBare
-              label={t("Launch Attack")}
-              circleIcon
-              hideLabel
-              className={missionCardClass}
-              containerBare
-              color="255, 45, 145"
-              glowClass="glow-plasma animate-pulse-glow"
-              locked={locked}
-              quotaInfo={q('Launch Attack')}
-              quotaLabel={ql('Launch Attack')}
-            />
-            <ActionButton
-              onClick={locked ? handleLocked('Visit Shop') : handlePilotClick('Visit Shop', onVisitShop)}
-              icon={<img src="/mission-console-images/shop.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-              iconBare
-              label={t("Visit Shop")}
-              circleIcon
-              hideLabel
-              className={missionCardClass}
-              containerBare
-              color="22, 226, 161"
-              glowClass="glow-success"
-              locked={locked}
-              quotaInfo={q('Visit Shop')}
-              quotaLabel={ql('Visit Shop')}
-            />
-            <ActionButton
-              onClick={locked ? handleLocked('Leaderboard') : handlePilotClick('Leaderboard', onViewLeaderboard)}
-              icon={<img src="/mission-console-images/leaderboard.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-              iconBare
-              label={t("Leaderboard")}
-              circleIcon
-              hideLabel
-              className={missionCardClass}
-              containerBare
-              ariaLabel={t("Leaderboard")}
-              color="255, 215, 0"
-              glowClass="glow-warn"
-              locked={locked}
-              quotaInfo={q('Leaderboard')}
-              quotaLabel={ql('Leaderboard')}
-            />
-            <ActionButton
-              onClick={locked ? handleLocked('Clans') : handlePilotClick('Clan', onGoToClan)}
-              icon={<img src="/mission-console-images/clan.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-              iconBare
-              label={t("Clan")}
-              circleIcon
-              hideLabel
-              className={missionCardClass}
-              containerBare
-              ariaLabel={t("Clan")}
-              color="255, 176, 32"
-              glowClass="glow-warn"
-              badgeText={!locked && clanBadgeCount && clanBadgeCount > 0 ? String(Math.min(clanBadgeCount, 99)) : undefined}
-              locked={locked}
-              quotaInfo={q('Clan')}
-              quotaLabel={ql('Clan')}
-            />
-            <ActionButton
-              onClick={locked ? handleLocked('Inventory') : handlePilotClick('Inventory', onVisitInventory)}
-              icon={<img src="/mission-console-images/inventory.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-              iconBare
-              label={t("Inventory")}
-              circleIcon
-              hideLabel
-              className={missionCardClass}
-              containerBare
-              ariaLabel={t("Inventory")}
-              color="158, 93, 255"
-              glowClass="glow-purple"
-              locked={locked}
-              quotaInfo={q('Inventory')}
-              quotaLabel={ql('Inventory')}
-            />
-            <ActionButton
-              onClick={locked ? handleLocked('Achievements') : handlePilotClick('Achievements', onViewAchievements)}
-              icon={<img src="/mission-console-images/achievements.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-              iconBare
-              label={t("Achievements")}
-              circleIcon
-              hideLabel
-              className={missionCardClass}
-              containerBare
-              ariaLabel={t("Achievements")}
-              color="255, 100, 200"
-              glowClass="glow-plasma"
-              locked={locked}
-              quotaInfo={q('Achievements')}
-              quotaLabel={ql('Achievements')}
-            />
-            {onOpenLockdown && (
-              <ActionButton
-                onClick={handlePilotClick('Lockdown Mode', onOpenLockdown)}
-                icon={<img src="/mission-console-images/lockdown.webp" alt="" className={missionIconClass} loading="eager" decoding="sync" fetchPriority="high" aria-hidden />}
-                iconBare
-                label={t("Lockdown Mode")}
-                circleIcon
-                hideLabel
-                className={`${missionCardClass} col-span-2 w-[calc(50%-0.375rem)] justify-self-center sm:col-span-1 sm:col-start-2 sm:w-full`}
-                containerBare
-                color="255, 69, 58"
-                glowClass="glow-plasma"
-                quotaInfo={q('Lockdown Mode')}
-                quotaLabel={ql('Lockdown Mode')}
+            <div className="col-span-2 sm:col-span-3 gh-hub" data-testid="game-hub">
+              <QuestPortalCard
+                onClick={onStartQuest}
+                hasPendingAssignment={hasPendingAssignment}
+                title={t("Quest")}
+                tagline={t("Answer, win, level up")}
+                pendingLabel={t("Assignment waiting")}
               />
-            )}
+
+              <p className="gh-section"><span aria-hidden>⚔️</span> {t("Battle")}</p>
+              <div className="gh-battle">
+                <button
+                  type="button"
+                  onClick={attack.onClick}
+                  aria-label={t("Launch Attack")}
+                  className={`gh-card gh-card--attack ${attack.locked ? 'is-locked' : ''}`}
+                >
+                  <TileBadges state={attack} />
+                  <span className="gh-card__stage">
+                    <ClashBurst />
+                    <img src="/mission-console-images/attack.webp" alt="" className="gh-card__art gh-card__art--attack" loading="eager" decoding="async" aria-hidden />
+                  </span>
+                  <span className="gh-card__label">{t("Attack")}</span>
+                  <span className="gh-card__tag">{t("Raid a classmate")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onOpenCommander?.()}
+                  aria-label={commanderPreviewLabel}
+                  className="gh-card gh-card--commander"
+                >
+                  <span className="gh-card__stage"><CommanderSigil /></span>
+                  <span className="gh-card__label">{commanderPreviewLabel}</span>
+                  <span className="gh-card__tag">{commanderPreviewSubtitle}</span>
+                </button>
+              </div>
+
+              <p className="gh-section"><span aria-hidden>🏠</span> {t("Base")}</p>
+              <div className="gh-dock">
+                {baseTiles.map((tile, index) => (
+                  <button
+                    key={tile.key}
+                    type="button"
+                    onClick={tile.state.onClick}
+                    aria-label={tile.label}
+                    className={`gh-dock__item gh-tone--${tile.key} ${tile.state.locked ? 'is-locked' : ''}`}
+                    style={{ ['--gh-delay' as string]: `${index * -0.6}s` }}
+                  >
+                    <TileBadges state={tile.state} count={tile.count} />
+                    <img src={tile.art} alt="" className="gh-dock__art" loading="eager" decoding="async" aria-hidden />
+                  </button>
+                ))}
+              </div>
+
+              {onOpenLockdown && (
+                <>
+                  <p className="gh-section"><span aria-hidden>🏰</span> {t("Class battle")}</p>
+                  <button
+                    type="button"
+                    onClick={handlePilotClick('Lockdown Mode', onOpenLockdown)}
+                    aria-label={t("Lockdown Mode")}
+                    className="gh-card gh-card--lockdown"
+                  >
+                    <TileBadges state={{ onClick: () => undefined, locked: false, quota: q('Lockdown Mode'), quotaLabel: ql('Lockdown Mode') }} />
+                    <span className="gh-lockdown__radar"><MiniRadar /></span>
+                    <span className="gh-lockdown__copy">
+                      <span className="gh-card__label">{t("Clan Wars")}</span>
+                      <span className="gh-card__tag">{t("Your teacher starts it")}</span>
+                    </span>
+                    <img src="/mission-console-images/lockdown.webp" alt="" className="gh-lockdown__art" loading="lazy" decoding="async" aria-hidden />
+                  </button>
+                </>
+              )}
+            </div>
             {/* ── Admin / staff actions ── */}
             {onOpenAdminPortal && (
               <ActionButton
