@@ -78,3 +78,6 @@ public.ielts_listening_sets
 public.ielts_listening_questions
 private.ielts_material_fingerprints
 private.ielts_material_originality_reviews
+private.ielts_material_transcripts
+private.ielts_material_codes
+private.ielts_material_code_counters
