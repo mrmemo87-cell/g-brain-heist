@@ -13,7 +13,11 @@ test('locked Learn programmes use one school-admin message and a real request ac
   const expected = "You're not selected for this program. Ask your school admin if you need it.";
   assert.match(app, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   assert.match(guard, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-  assert.match(app, /Send a request to the school admin/);
+  const learnHub = readFileSync('components/student/LearnHub.tsx', 'utf8');
+  assert.match(app, /onRequest: \(\) => void handleProgrammeAccessRequest\('ielts'\)/);
+  assert.match(app, /lockMessage: schoolProgrammeLockMessage/);
+  assert.match(learnHub, /Ask your school/);
+  assert.match(learnHub, /requestState === 'sent'/);
   assert.match(requestService, /student_request_programme_access/);
   assert.match(migration, /student_request_programme_access/);
   assert.match(migration, /A request never grants programme access or capacity/);

@@ -17,6 +17,7 @@ import TaskList from './components/TaskList';
 import MainActions from './components/MainActions';
 import StudentDashboardNavigation, { StudentDashboardBottomNavigation, type StudentDashboardDestination } from './components/StudentDashboardNavigation';
 import PushEnableCard from './components/PushEnableCard';
+import LearnHub from './components/student/LearnHub';
 import JoinSchoolCard from './components/JoinSchoolCard';
 import NewsFeed from './components/NewsFeed';
 import CapTracker from './components/CapTracker';
@@ -47,7 +48,6 @@ import RetentionTrialGate from './src/features/retention/RetentionTrialGate';
 import StudentMascotDock from './src/features/studentMascot/StudentMascotDock';
 const RetentionStudentPanel = React.lazy(() => import('./src/features/retention/RetentionStudentPanel'));
 import ProgramIdentityBanner from './src/components/ProgramIdentityBanner';
-import { PROGRAM_ARTWORK } from './src/lib/programArtwork';
 
 // Lazy-loaded: only fetched when the user actually opens these views/modals
 // Uses lazyRetry to auto-recover from stale deployment chunk errors
@@ -89,81 +89,6 @@ const SchoolAdminPortal = lazyRetry(() => import('./components/SchoolAdminPortal
 const SchoolHeadPortal = lazyRetry(() => import('./components/SchoolHeadPortal'), 'SchoolHeadPortal');
 const ParentPortal = lazyRetry(() => import('./components/guardian/ParentPortal'), 'ParentPortal');
 const StudentAcademicProfile = lazyRetry(() => import('./components/student-progress/StudentAcademicProfile'), 'StudentAcademicProfile');
-
-interface StudentProgrammeCardProps {
-  programme: StudentProgrammeKey;
-  eyebrow: string;
-  title: string;
-  description: string;
-  locked: boolean;
-  lockMessage: string;
-  openLabel: string;
-  onOpen: () => void;
-  onPreload?: () => void;
-  requestState?: 'idle' | 'sending' | 'sent';
-  onRequest?: () => void;
-}
-
-const StudentProgrammeCard: React.FC<StudentProgrammeCardProps> = ({
-  programme,
-  eyebrow,
-  title,
-  description,
-  locked,
-  lockMessage,
-  openLabel,
-  onOpen,
-  onPreload,
-  requestState = 'idle',
-  onRequest,
-}) => {
-  const lockMessageId = `${programme}-programme-lock-message`;
-  return (
-    <article className={`student-feed-card student-learning-card ${locked ? 'is-locked' : ''}`}>
-      <div
-        className="student-learning-card__icon"
-        aria-hidden="true"
-        style={{
-          width: 'clamp(4.75rem, 14vw, 6rem)',
-          height: 'clamp(4.75rem, 14vw, 6rem)',
-          overflow: 'hidden',
-          padding: 0,
-        }}
-      >
-        <img
-          src={PROGRAM_ARTWORK[programme].src}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: PROGRAM_ARTWORK[programme].objectPosition }}
-        />
-      </div>
-      <div className="student-learning-card__copy">
-        <span className="student-learning-card__eyebrow">{eyebrow}</span>
-        <h2>{title}</h2>
-        <p>{description}</p>
-        {locked ? <p id={lockMessageId} className="mt-2 text-xs font-semibold text-slate-300">🔒 {lockMessage}</p> : null}
-      </div>
-      <button
-        type="button"
-        disabled={locked && (requestState === 'sending' || requestState === 'sent')}
-        aria-describedby={locked ? lockMessageId : undefined}
-        onMouseEnter={locked ? undefined : onPreload}
-        onFocus={locked ? undefined : onPreload}
-        onClick={locked ? onRequest : onOpen}
-        className="student-primary-button disabled:cursor-not-allowed disabled:bg-slate-500 disabled:text-slate-200"
-      >
-        {locked
-          ? requestState === 'sending'
-            ? 'Sending request…'
-            : requestState === 'sent'
-              ? 'Request sent to the school admin'
-              : 'Send a request to the school admin'
-          : <>{openLabel} <span aria-hidden>→</span></>}
-      </button>
-    </article>
-  );
-};
 
 interface AppProps {
   initialBootstrap: AuthBootstrap;
@@ -2581,12 +2506,14 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
                           backLabel={t("Back to Learn")}
                           onClose={() => setStudentLearningView('catalog')}
                         />
-                      ) : <div className="student-learning-grid">
-                        {isStudent && hasSchool && <article className="student-feed-card student-learning-card"><div className="student-learning-card__icon" aria-hidden>📈</div><div className="student-learning-card__copy"><span className="student-learning-card__eyebrow">{t("Your learning record")}</span><h2>{t("Academic Progress")}</h2><p>{t("See your subject performance, strengths, improvement, focus areas, evidence confidence, and curriculum coverage.")}</p></div><button type="button" onClick={() => setStudentLearningView('academic-profile')} className="student-primary-button">{t("Open Academic Progress")}<span aria-hidden>→</span></button></article>}
-                        {isStudent && <StudentProgrammeCard programme="writing" eyebrow={t("Writing coach")} title={t("Writing Hub")} description={t("Draft, repair, and improve with guided AI coaching.")} locked={hasSchool && !canUseSchoolModule('writing')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.writing} onRequest={() => void handleProgrammeAccessRequest('writing')} openLabel={t("Open Writing Hub")} onPreload={preloadWritingHub} onOpen={() => handleViewChange('writing')} />}
-                        {isStudent && hasSchool && <StudentProgrammeCard programme="ielts" eyebrow={t("Exam preparation")} title={t("IELTS Prep")} description={t("Focused preparation across reading, writing, listening, and speaking.")} locked={!canUseSchoolModule('ielts')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.ielts} onRequest={() => void handleProgrammeAccessRequest('ielts')} openLabel={t("Open IELTS Prep")} onOpen={() => { window.location.href = '/ielts'; }} />}
-                        {isStudent && hasSchool && <StudentProgrammeCard programme="cambridge" eyebrow={t("Subject practice")} title={t("Cambridge Tests")} description={t("Practice Cambridge reading, grammar, and science tests.")} locked={!canUseSchoolModule('cambridge')} lockMessage={schoolProgrammeLockMessage} requestState={programmeRequestStates.cambridge} onRequest={() => void handleProgrammeAccessRequest('cambridge')} openLabel={t("Open Cambridge Tests")} onOpen={() => handleViewChange('cambridge')} />}
-                      </div>
+                      ) : <LearnHub
+                        tiles={[
+                          ...(isStudent ? [{ key: 'writing' as const, title: t("Writing Hub"), tag: t("AI writing coach"), locked: hasSchool && !canUseSchoolModule('writing'), lockMessage: schoolProgrammeLockMessage, requestState: programmeRequestStates.writing, onRequest: () => void handleProgrammeAccessRequest('writing'), onPreload: preloadWritingHub, onOpen: () => handleViewChange('writing') }] : []),
+                          ...(isStudent && hasSchool ? [{ key: 'ielts' as const, title: t("IELTS Prep"), tag: t("4 skills"), locked: !canUseSchoolModule('ielts'), lockMessage: schoolProgrammeLockMessage, requestState: programmeRequestStates.ielts, onRequest: () => void handleProgrammeAccessRequest('ielts'), onOpen: () => { window.location.href = '/ielts'; } }] : []),
+                          ...(isStudent && hasSchool ? [{ key: 'cambridge' as const, title: t("Cambridge Tests"), tag: t("Practice tests"), locked: !canUseSchoolModule('cambridge'), lockMessage: schoolProgrammeLockMessage, requestState: programmeRequestStates.cambridge, onRequest: () => void handleProgrammeAccessRequest('cambridge'), onOpen: () => handleViewChange('cambridge') }] : []),
+                          ...(isStudent && hasSchool ? [{ key: 'progress' as const, title: t("Academic Progress"), tag: t("Your record"), locked: false, onOpen: () => setStudentLearningView('academic-profile') }] : []),
+                        ]}
+                      />
                     )}
 
                     {studentDashboardTab === 'game' && (
