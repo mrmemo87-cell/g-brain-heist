@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { Grade } from '../../../types';
 import { useAdmin } from '../AdminContext';
 import ClickableUsername from '../../ClickableUsername';
@@ -129,6 +129,12 @@ const UsersTab: React.FC = () => {
   }, [safeUsers, roleFilter, gradeFilter, schoolFilter, statusFilter, sortKey, resolveUserLabel]);
 
   const selectedUser = safeUsers.find((user) => user?.id === selectedUserId) ?? null;
+  const detailRef = useRef<HTMLElement | null>(null);
+  // Below the 2xl breakpoint the details panel sits under the table, so bring it into view on selection.
+  useEffect(() => {
+    if (!selectedUserId || typeof window === 'undefined' || window.innerWidth >= 1536) return;
+    detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [selectedUserId]);
 
   useEffect(() => {
     if (selectedUserId && !safeUsers.some((user) => user?.id === selectedUserId)) {
@@ -194,8 +200,8 @@ const UsersTab: React.FC = () => {
   };
 
   return (
-    <div className="grid min-w-0 gap-4 xl:h-[calc(100dvh-112px)] xl:min-h-[560px] xl:grid-cols-[minmax(0,1fr)_430px] xl:overflow-hidden">
-      <section className="min-w-0 rounded-2xl border border-slate-800/90 bg-[#0a1626]/88 shadow-[0_24px_70px_rgba(2,8,23,0.22)] xl:flex xl:min-h-0 xl:flex-col xl:overflow-hidden">
+    <div className="grid min-w-0 gap-4 2xl:h-[calc(100dvh-112px)] 2xl:min-h-[560px] 2xl:grid-cols-[minmax(0,1fr)_430px] 2xl:overflow-hidden">
+      <section className="min-w-0 rounded-2xl border border-slate-800/90 bg-[#0a1626]/88 shadow-[0_24px_70px_rgba(2,8,23,0.22)] 2xl:flex 2xl:min-h-0 2xl:flex-col 2xl:overflow-hidden">
         <div className="shrink-0 border-b border-slate-800/80 px-4 py-4 sm:px-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -203,7 +209,7 @@ const UsersTab: React.FC = () => {
               <p className="mt-1 text-xs text-slate-500">Search, role, grade, school, status and sorting are server-backed across the full platform dataset.</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="hidden text-xs text-slate-500 sm:inline">{safeUsers.length} loaded · page {userPage + 1}</span>
+              <span className="hidden whitespace-nowrap text-xs text-slate-500 sm:inline">{safeUsers.length} loaded · page {userPage + 1}</span>
               <button
                 type="button"
                 onClick={() => void fetchUsers(userPage, searchQuery)}
@@ -261,10 +267,10 @@ const UsersTab: React.FC = () => {
           </div>
         )}
 
-        <div className="w-full max-w-full overflow-auto overscroll-x-contain overscroll-y-contain pb-2 [scrollbar-gutter:stable] xl:min-h-0 xl:flex-1">
+        <div className="w-full max-w-full overflow-auto overscroll-x-contain overscroll-y-contain pb-2 [scrollbar-gutter:stable] 2xl:min-h-0 2xl:flex-1">
           <table className="w-max min-w-[1180px] text-left">
             <thead className="sticky top-0 z-10">
-              <tr className="border-b border-slate-800/90 bg-[#091524]/98 shadow-[0_1px_0_rgba(51,65,85,0.35)] backdrop-blur">
+              <tr className="border-b border-slate-200 bg-slate-50 shadow-[0_1px_0_rgba(203,213,225,0.9)]">
                 <th className="px-4 py-3 sm:px-5">User</th>
                 <th className="px-3 py-3">Role</th>
                 <th className="px-3 py-3">School</th>
@@ -283,11 +289,11 @@ const UsersTab: React.FC = () => {
               ))}
 
               {!usersLoading && safeUsers.length === 0 && (
-                <tr><td colSpan={8} className="px-5 py-14 text-center"><p className="text-sm font-semibold text-slate-300">No users found</p><p className="mt-1 text-xs text-slate-500">Try a different search, then refresh this list.</p></td></tr>
+                <tr><td colSpan={8} className="px-5 py-14 text-left"><p className="text-sm font-semibold text-slate-300">No users found</p><p className="mt-1 text-xs text-slate-500">Try a different search, then refresh this list.</p></td></tr>
               )}
 
               {safeUsers.length > 0 && filteredUsers.length === 0 && (
-                <tr><td colSpan={8} className="px-5 py-14 text-center"><p className="text-sm font-semibold text-slate-300">No users match these page filters</p><button type="button" onClick={clearFilters} className="mt-2 text-xs font-bold text-cyan-300">Clear filters</button></td></tr>
+                <tr><td colSpan={8} className="px-5 py-14 text-left"><p className="text-sm font-semibold text-slate-300">No users match these page filters</p><button type="button" onClick={clearFilters} className="mt-2 text-xs font-bold text-cyan-300">Clear filters</button></td></tr>
               )}
 
               {filteredUsers.map((user) => {
@@ -358,14 +364,14 @@ const UsersTab: React.FC = () => {
         </div>
       </section>
 
-      <aside className="min-w-0 xl:h-full xl:min-h-0">
+      <aside ref={detailRef} className="min-w-0 scroll-mt-24 2xl:h-full 2xl:min-h-0">
         {selectedUser ? (() => {
           const grade = userGrade(selectedUser);
           const availableBatches = grade ? (safeBatchByGrade[grade] ?? ['N/A']) : ['N/A'];
           const role = normalizedRole(selectedUser);
           const customOpen = Boolean(showCustomGrant?.[selectedUser.id]);
           return (
-            <div key={selectedUser.id} className="overflow-hidden rounded-2xl border border-slate-800/90 bg-[#0a1626]/92 shadow-[0_24px_70px_rgba(2,8,23,0.24)] xl:flex xl:h-full xl:min-h-0 xl:flex-col">
+            <div key={selectedUser.id} className="overflow-hidden rounded-2xl border border-slate-800/90 bg-[#0a1626]/92 shadow-[0_24px_70px_rgba(2,8,23,0.24)] 2xl:flex 2xl:h-full 2xl:min-h-0 2xl:flex-col">
               <div className="flex shrink-0 items-start justify-between border-b border-slate-800/80 bg-[#0a1626]/98 p-4">
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full border border-slate-700 bg-slate-800 text-sm font-black text-slate-300">
@@ -382,7 +388,7 @@ const UsersTab: React.FC = () => {
                 <button type="button" onClick={() => setSelectedUserId(null)} aria-label="Close user details" className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-slate-800 text-slate-500 transition hover:bg-slate-800 hover:text-white">×</button>
               </div>
 
-              <div className="space-y-4 p-4 xl:min-h-0 xl:flex-1 xl:overflow-y-auto xl:overscroll-contain xl:[scrollbar-gutter:stable]">
+              <div className="space-y-4 p-4 2xl:min-h-0 2xl:flex-1 2xl:overflow-y-auto 2xl:overscroll-contain 2xl:[scrollbar-gutter:stable]">
                 <div>
                   <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-600">User details</p>
                   <dl className="space-y-2 rounded-xl border border-slate-800 bg-slate-950/30 p-3 text-xs">
@@ -450,7 +456,7 @@ const UsersTab: React.FC = () => {
             </div>
           );
         })() : (
-          <div className="rounded-2xl border border-dashed border-slate-800 bg-[#0a1626]/55 p-6 text-center xl:grid xl:h-full xl:min-h-0 xl:place-items-center">
+          <div className="hidden rounded-2xl border border-dashed border-slate-800 bg-[#0a1626]/55 p-6 text-center 2xl:grid 2xl:h-full 2xl:min-h-0 2xl:place-items-center">
             <div><div className="mx-auto grid h-12 w-12 place-items-center rounded-xl border border-slate-800 bg-slate-900/60 text-slate-500"><svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="9" cy="8" r="3" /><path d="M3.5 19c.6-3.2 2.4-5 5.5-5s4.9 1.8 5.5 5" /><path d="M15 6a3 3 0 0 1 0 5" /></svg></div><p className="mt-3 text-sm font-semibold text-slate-300">Select a user</p><p className="mx-auto mt-1 max-w-[220px] text-xs leading-5 text-slate-600">Choose a row to open account details, placement controls and management actions here.</p></div>
           </div>
         )}

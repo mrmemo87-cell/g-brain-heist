@@ -115,7 +115,7 @@ const DashboardTab: React.FC = () => {
         </section>
       </div>
 
-      <section className="rounded-2xl border border-rose-500/18 bg-rose-950/[0.08] p-4 sm:p-5">
+      <section className="rounded-2xl border border-rose-200 bg-rose-50 p-4 sm:p-5">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-lg border border-rose-400/18 bg-rose-400/8 text-rose-300">!</span><h2 className="text-sm font-bold text-rose-200">Danger zone</h2></div>
@@ -125,7 +125,7 @@ const DashboardTab: React.FC = () => {
             type="button"
             onClick={resetAllProgress}
             disabled={isResettingAll}
-            className="shrink-0 rounded-xl border border-rose-500/35 bg-rose-950/30 px-4 py-2.5 text-xs font-bold text-rose-300 transition hover:bg-rose-950/50 disabled:cursor-wait disabled:opacity-50"
+            className="shrink-0 rounded-xl border border-rose-600 bg-rose-600 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-rose-700 disabled:cursor-wait disabled:opacity-50"
           >
             {isResettingAll ? 'Resetting…' : 'Reset all progress'}
           </button>
