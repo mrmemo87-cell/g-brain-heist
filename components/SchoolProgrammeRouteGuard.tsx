@@ -45,6 +45,15 @@ const SchoolProgrammeRouteGuard: React.FC<SchoolProgrammeRouteGuardProps> = ({ p
           if (active) setState({ status: 'allowed' });
           return;
         }
+        // A personal IELTS Prime subscription opens IELTS even when the learner's school has not allocated a
+        // seat (the database practice gates already allow this; see ielts_user_has_prime_access).
+        if (programme === 'ielts') {
+          const { data: prime, error: primeError } = await supabase.rpc('ielts_user_has_prime_access');
+          if (!primeError && prime === true) {
+            if (active) setState({ status: 'allowed' });
+            return;
+          }
+        }
         if (active) {
           setState({ status: 'locked', reason: entitlements.programmeAccess[programme].reason });
         }

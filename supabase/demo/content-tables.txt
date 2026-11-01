@@ -68,3 +68,13 @@ private.chat_blocked_terms
 public.billing_pricing_versions
 public.billing_price_items
 public.billing_entitlements
+
+# IELTS self-paced course and its practice content (shared content; never per-learner progress or attempts)
+public.ielts_course_units
+public.ielts_course_unit_tasks
+public.ielts_reading_sets
+public.ielts_reading_questions
+public.ielts_listening_sets
+public.ielts_listening_questions
+private.ielts_material_fingerprints
+private.ielts_material_originality_reviews
