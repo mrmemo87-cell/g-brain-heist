@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSmartCollapsedNavigation } from '../../../hooks/useSmartCollapsedNavigation';
 import { openSet, openTargeted, useIeltsStudentWork } from './useIeltsStudentWork';
+import { getEntitlements } from '../../../../services/entitlementService';
 import '../../../styles/ielts-navigation.css';
 import '../../../styles/ielts-student-shell.css';
 
@@ -10,14 +11,31 @@ const useNavMotion: typeof useSmartCollapsedNavigation = typeof window !== 'unde
   ? useSmartCollapsedNavigation
   : () => ({ navigationRef: React.useRef<HTMLElement | null>(null), revealNavigation: () => undefined }) as unknown as ReturnType<typeof useSmartCollapsedNavigation>;
 
-export type IeltsStudentTab = 'home' | 'assigned' | 'targeted' | 'journey';
+export type IeltsStudentTab = 'home' | 'course' | 'assigned' | 'targeted' | 'journey';
 
 const TABS: { id: IeltsStudentTab; route: string; label: string; icon: string; hint: string }[] = [
   { id: 'home', route: '/ielts', label: 'Home', icon: '🏠', hint: 'What is new for you' },
+  { id: 'course', route: '/ielts/course', label: 'Course', icon: '📚', hint: 'The self-paced IELTS course' },
   { id: 'assigned', route: '/ielts/practice/assigned', label: 'Assignments', icon: '📋', hint: 'Practice sets from your teachers' },
   { id: 'targeted', route: '/ielts/practice/targeted', label: 'Targeted', icon: '🎯', hint: 'Short tasks chosen for you' },
   { id: 'journey', route: '/ielts/journey', label: 'Journey', icon: '🧭', hint: 'Checks, feedback and your record' },
 ];
+
+/** Teacher assignments and targeted tasks exist only for learners whose school includes IELTS. */
+const SCHOOL_ONLY_TABS: IeltsStudentTab[] = ['assigned', 'targeted'];
+let schoolIeltsCache: boolean | null = null;
+function useSchoolIeltsLearner(): boolean {
+  const [value, setValue] = React.useState<boolean>(schoolIeltsCache ?? false);
+  React.useEffect(() => {
+    if (schoolIeltsCache !== null) return;
+    let alive = true;
+    getEntitlements()
+      .then((e) => { schoolIeltsCache = Boolean(e.schoolId && e.programmeAccess.ielts.available); if (alive) setValue(schoolIeltsCache); })
+      .catch(() => { /* keep the independent-learner tabs */ });
+    return () => { alive = false; };
+  }, []);
+  return value;
+}
 
 /**
  * The IELTS student navigation, styled like the Brains Heist student bar: a bottom bar with badges on phones and
@@ -26,23 +44,25 @@ const TABS: { id: IeltsStudentTab; route: string; label: string; icon: string; h
 function IeltsStudentNav({ active }: { active: IeltsStudentTab }) {
   const navigate = useNavigate();
   const work = useIeltsStudentWork();
+  const schoolLearner = useSchoolIeltsLearner();
+  const tabs = TABS.filter((t) => schoolLearner || t.id === active || !SCHOOL_ONLY_TABS.includes(t.id));
   const { navigationRef, revealNavigation } = useNavMotion(active, '(max-width: 1024px)');
   const badges: Partial<Record<IeltsStudentTab, number>> = {
     assigned: (work.sets ?? []).filter(openSet).length,
     targeted: (work.tasks ?? []).filter(openTargeted).length,
   };
-  const index = TABS.findIndex((t) => t.id === active);
+  const index = tabs.findIndex((t) => t.id === active);
   return (
     <nav
       ref={navigationRef}
       aria-label="IELTS navigation"
       className="isn-nav"
-      style={{ ['--isn-i' as string]: Math.max(0, index) } as React.CSSProperties}
+      style={{ ['--isn-i' as string]: Math.max(0, index), ['--isn-cols' as string]: tabs.length } as React.CSSProperties}
       onFocus={revealNavigation}
     >
       <button type="button" className="smart-mobile-nav-reveal isn-reveal" onClick={revealNavigation} aria-label="Show IELTS navigation"><span aria-hidden="true" /></button>
       <span className="isn-indicator" aria-hidden="true" />
-      {TABS.map((tab) => {
+      {tabs.map((tab) => {
         const badge = badges[tab.id] ?? 0;
         return (
           <a
