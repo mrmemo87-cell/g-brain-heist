@@ -11,6 +11,7 @@ import {
 } from '../../../services/ieltsPracticeFeedback';
 import { useIeltsAudience, type IeltsAudience } from '../../lib/ieltsAudience';
 import '../../styles/ielts-feedback.css';
+import { IeltsWorkingGlyph } from './IeltsMotion';
 
 /**
  * Practice feedback on Writing and Speaking (Diagnostic Bible 2.1.0 sections 10.5-10.6; Visual & UX Bible 13.3, 13.6).
@@ -90,7 +91,7 @@ export default function IeltsPracticeAiFeedback({ attemptId, mode, skill = 'writ
         <div className="pf-intro">
           {busy ? (
             <div className="pf-working" role="status">
-              <span className="pf-wave" aria-hidden="true">{Array.from({ length: 7 }).map((_, i) => <i key={i} style={{ animationDelay: `${i * 90}ms` }} />)}</span>
+              <IeltsWorkingGlyph variant={skill === 'speaking' ? 'speaking' : 'writing'} />
               <span>{skill === 'speaking' ? 'Listening to your recording…' : 'Reading your writing…'} This takes up to a minute.</span>
             </div>
           ) : (
