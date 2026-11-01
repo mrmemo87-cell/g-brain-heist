@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { createIeltsViewCache } from '../src/lib/ieltsViewCache';
 
 /** Self-paced IELTS course ("course path"): ordered units, each a short lesson + practice tasks. */
 
@@ -95,9 +96,17 @@ const friendly = (error: { message?: string } | null, fallback: string) => {
   return fallback;
 };
 
+const courseStateCache = createIeltsViewCache<IeltsCourseState>();
+
+/** The course state from the previous visit in this tab, so pages paint immediately and refresh quietly. */
+export function cachedIeltsCourseState(): IeltsCourseState | null {
+  return courseStateCache.get();
+}
+
 export async function fetchIeltsCourseState(): Promise<IeltsCourseState> {
   const { data, error } = await supabase.rpc('rpc_ielts_course_state');
   if (error || !data) throw new Error(friendly(error, 'The course could not load. Please retry.'));
+  courseStateCache.set(data as IeltsCourseState);
   return data as IeltsCourseState;
 }
 

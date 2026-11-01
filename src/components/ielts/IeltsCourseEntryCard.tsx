@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import '../../styles/ielts-course.css';
-import { IELTS_COURSE_ROUTE, fetchIeltsCourseState, ieltsCourseUnitRoute, type IeltsCourseState } from '../../../services/ieltsCourseService';
+import { IELTS_COURSE_ROUTE, cachedIeltsCourseState, fetchIeltsCourseState, ieltsCourseUnitRoute, type IeltsCourseState } from '../../../services/ieltsCourseService';
 
 /** Compact "continue the course" card for the IELTS home screen. Silent on error. */
 const IeltsCourseEntryCard: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
-  const [state, setState] = useState<IeltsCourseState | null>(null);
+  const [state, setState] = useState<IeltsCourseState | null>(() => cachedIeltsCourseState());
   useEffect(() => {
     let alive = true;
     fetchIeltsCourseState().then((next) => { if (alive) setState(next); }).catch(() => { /* card still renders with a generic CTA */ });
