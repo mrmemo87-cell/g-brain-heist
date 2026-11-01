@@ -11,6 +11,7 @@ import { supabase } from '../../../services/supabaseClient';
 import { ensureIeltsProfile, getUserTier, isIeltsPrime } from '../../../services/ieltsService';
 import { rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
+import { ieltsCourseUnitRoute, readIeltsCourseUnitFromSearch } from '../../../services/ieltsCourseService';
 import { notifyTeachersOfExamGuard } from '../../../services/notificationService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { ExamGuard } from '../../utils/examGuard';
@@ -41,6 +42,10 @@ const MIN_MEANINGFUL_WORDS = 50;
 const WritingPractice: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
+  // Opened from the self-paced course? Then every exit returns to that unit.
+  const courseUnitId = readIeltsCourseUnitFromSearch();
+  const exitRoute = courseUnitId ? ieltsCourseUnitRoute(courseUnitId) : '/ielts';
+  const exitLabel = courseUnitId ? 'Back to unit' : null;
   const assignmentContext = readIeltsPracticeAssignmentContext();
   const { assignmentId, assignmentItemId } = assignmentContext;
   
@@ -420,7 +425,7 @@ const WritingPractice: React.FC = () => {
         <div style={{ textAlign: 'center', color: '#1e293b' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>Task not found</h2>
           <button
-            onClick={() => navigate('/ielts')}
+            onClick={() => navigate(exitRoute)}
             style={{
               padding: '0.5rem 1.5rem',
               background: '#10b981',
@@ -431,7 +436,7 @@ const WritingPractice: React.FC = () => {
               fontWeight: 500
             }}
           >
-            Back to Home
+            {exitLabel ?? 'Back to Home'}
           </button>
         </div>
       </div>
@@ -664,7 +669,7 @@ const WritingPractice: React.FC = () => {
           )}
 
           <button
-            onClick={() => navigate('/ielts')}
+            onClick={() => navigate(exitRoute)}
             style={{
               width: '100%',
               padding: '0.875rem 2rem',
@@ -677,7 +682,7 @@ const WritingPractice: React.FC = () => {
               fontSize: '1rem'
             }}
           >
-            ← Back to IELTS Home
+            {exitLabel ? `← ${exitLabel}` : '← Back to IELTS Home'}
           </button>
         </div>
       </div>
@@ -717,7 +722,7 @@ const WritingPractice: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => navigate('/ielts')}
+              onClick={() => navigate(exitRoute)}
               style={{
                 padding: '0.5rem 1rem',
                 background: '#f1f5f9',
