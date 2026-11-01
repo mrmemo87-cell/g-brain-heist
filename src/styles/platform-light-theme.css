@@ -317,3 +317,176 @@ body:has(.superadmin-shell) [class~="fixed"][class*="inset-0"][class*="bg-black/
 .superadmin-shell button:disabled {
   opacity: 0.58 !important;
 }
+
+/* ------------------------------------------------------------------ */
+/* Superadmin readability pass v2: every label readable on light UI.  */
+/* ------------------------------------------------------------------ */
+
+/* Pastel text shades (100-400) were tuned for the old dark panel. On white
+   they disappear, so every hue maps to its 700-level ink. */
+.superadmin-shell :is([class*="text-red-100"], [class*="text-red-200"], [class*="text-red-300"], [class*="text-red-400"]) { color: #b91c1c !important; }
+.superadmin-shell :is([class*="text-rose-100"], [class*="text-rose-200"], [class*="text-rose-300"], [class*="text-rose-400"]) { color: #be123c !important; }
+.superadmin-shell :is([class*="text-pink-100"], [class*="text-pink-200"], [class*="text-pink-300"], [class*="text-pink-400"]) { color: #be185d !important; }
+.superadmin-shell :is([class*="text-fuchsia-100"], [class*="text-fuchsia-200"], [class*="text-fuchsia-300"], [class*="text-fuchsia-400"]) { color: #a21caf !important; }
+.superadmin-shell :is([class*="text-purple-100"], [class*="text-purple-200"], [class*="text-purple-300"], [class*="text-purple-400"]) { color: #7e22ce !important; }
+.superadmin-shell :is([class*="text-violet-100"], [class*="text-violet-200"], [class*="text-violet-300"], [class*="text-violet-400"]) { color: #6d28d9 !important; }
+.superadmin-shell :is([class*="text-indigo-100"], [class*="text-indigo-200"], [class*="text-indigo-300"], [class*="text-indigo-400"]) { color: #4338ca !important; }
+.superadmin-shell :is([class*="text-blue-100"], [class*="text-blue-200"], [class*="text-blue-300"], [class*="text-blue-400"]) { color: #1d4ed8 !important; }
+.superadmin-shell :is([class*="text-sky-100"], [class*="text-sky-200"], [class*="text-sky-300"], [class*="text-sky-400"]) { color: #0369a1 !important; }
+.superadmin-shell :is([class*="text-cyan-100"], [class*="text-cyan-200"], [class*="text-cyan-300"], [class*="text-cyan-400"]) { color: #0e7490 !important; }
+.superadmin-shell :is([class*="text-teal-100"], [class*="text-teal-200"], [class*="text-teal-300"], [class*="text-teal-400"]) { color: #0f766e !important; }
+.superadmin-shell :is([class*="text-emerald-100"], [class*="text-emerald-200"], [class*="text-emerald-300"], [class*="text-emerald-400"]) { color: #047857 !important; }
+.superadmin-shell :is([class*="text-green-100"], [class*="text-green-200"], [class*="text-green-300"], [class*="text-green-400"]) { color: #15803d !important; }
+.superadmin-shell :is([class*="text-lime-100"], [class*="text-lime-200"], [class*="text-lime-300"], [class*="text-lime-400"]) { color: #4d7c0f !important; }
+.superadmin-shell :is([class*="text-yellow-100"], [class*="text-yellow-200"], [class*="text-yellow-300"], [class*="text-yellow-400"]) { color: #a16207 !important; }
+.superadmin-shell :is([class*="text-amber-100"], [class*="text-amber-200"], [class*="text-amber-300"], [class*="text-amber-400"]) { color: #b45309 !important; }
+.superadmin-shell :is([class*="text-orange-100"], [class*="text-orange-200"], [class*="text-orange-300"], [class*="text-orange-400"]) { color: #c2410c !important; }
+
+/* White text is only legible on a solid saturated fill. Everywhere else in
+   the light shell (translucent tints, pale chips, light surfaces) it becomes
+   ink; the hue-tinted buttons below then pick up their own accent ink. */
+.superadmin-shell .text-white,
+.superadmin-shell [class*="text-white/"] {
+  color: var(--platform-text) !important;
+}
+
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-red-300/"], [class*="bg-red-400/"], [class*="bg-red-500/"], [class*="bg-red-600/"], [class*="bg-red-700/"]) { color: #b91c1c !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-rose-300/"], [class*="bg-rose-400/"], [class*="bg-rose-500/"], [class*="bg-rose-600/"], [class*="bg-rose-700/"]) { color: #be123c !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-pink-300/"], [class*="bg-pink-400/"], [class*="bg-pink-500/"], [class*="bg-pink-600/"], [class*="bg-pink-700/"]) { color: #be185d !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-fuchsia-300/"], [class*="bg-fuchsia-400/"], [class*="bg-fuchsia-500/"], [class*="bg-fuchsia-600/"], [class*="bg-fuchsia-700/"]) { color: #a21caf !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-purple-300/"], [class*="bg-purple-400/"], [class*="bg-purple-500/"], [class*="bg-purple-600/"], [class*="bg-purple-700/"]) { color: #7e22ce !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-violet-300/"], [class*="bg-violet-400/"], [class*="bg-violet-500/"], [class*="bg-violet-600/"], [class*="bg-violet-700/"]) { color: #6d28d9 !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-indigo-300/"], [class*="bg-indigo-400/"], [class*="bg-indigo-500/"], [class*="bg-indigo-600/"], [class*="bg-indigo-700/"]) { color: #4338ca !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-blue-300/"], [class*="bg-blue-400/"], [class*="bg-blue-500/"], [class*="bg-blue-600/"], [class*="bg-blue-700/"]) { color: #1d4ed8 !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-sky-300/"], [class*="bg-sky-400/"], [class*="bg-sky-500/"], [class*="bg-sky-600/"], [class*="bg-sky-700/"]) { color: #0369a1 !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-cyan-300/"], [class*="bg-cyan-400/"], [class*="bg-cyan-500/"], [class*="bg-cyan-600/"], [class*="bg-cyan-700/"]) { color: #0e7490 !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-teal-300/"], [class*="bg-teal-400/"], [class*="bg-teal-500/"], [class*="bg-teal-600/"], [class*="bg-teal-700/"]) { color: #0f766e !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-emerald-300/"], [class*="bg-emerald-400/"], [class*="bg-emerald-500/"], [class*="bg-emerald-600/"], [class*="bg-emerald-700/"]) { color: #047857 !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-green-300/"], [class*="bg-green-400/"], [class*="bg-green-500/"], [class*="bg-green-600/"], [class*="bg-green-700/"]) { color: #15803d !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-lime-300/"], [class*="bg-lime-400/"], [class*="bg-lime-500/"], [class*="bg-lime-600/"], [class*="bg-lime-700/"]) { color: #4d7c0f !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-yellow-300/"], [class*="bg-yellow-400/"], [class*="bg-yellow-500/"], [class*="bg-yellow-600/"], [class*="bg-yellow-700/"]) { color: #a16207 !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-amber-300/"], [class*="bg-amber-400/"], [class*="bg-amber-500/"], [class*="bg-amber-600/"], [class*="bg-amber-700/"]) { color: #b45309 !important; }
+.superadmin-shell :is(.text-white, [class*="text-white/"]):is([class*="bg-orange-300/"], [class*="bg-orange-400/"], [class*="bg-orange-500/"], [class*="bg-orange-600/"], [class*="bg-orange-700/"]) { color: #c2410c !important; }
+
+/* Solid saturated fills keep white text. */
+.superadmin-shell .text-white:is([class~="bg-red-500"], [class~="bg-red-600"], [class~="bg-red-700"], [class~="bg-red-800"], [class~="bg-red-900"], [class~="bg-rose-500"], [class~="bg-rose-600"], [class~="bg-rose-700"], [class~="bg-rose-800"], [class~="bg-rose-900"], [class~="bg-pink-500"], [class~="bg-pink-600"], [class~="bg-pink-700"], [class~="bg-pink-800"], [class~="bg-pink-900"], [class~="bg-fuchsia-500"], [class~="bg-fuchsia-600"], [class~="bg-fuchsia-700"], [class~="bg-fuchsia-800"], [class~="bg-fuchsia-900"], [class~="bg-purple-500"], [class~="bg-purple-600"], [class~="bg-purple-700"], [class~="bg-purple-800"], [class~="bg-purple-900"], [class~="bg-violet-500"], [class~="bg-violet-600"], [class~="bg-violet-700"], [class~="bg-violet-800"], [class~="bg-violet-900"], [class~="bg-indigo-500"], [class~="bg-indigo-600"], [class~="bg-indigo-700"], [class~="bg-indigo-800"], [class~="bg-indigo-900"], [class~="bg-blue-500"], [class~="bg-blue-600"], [class~="bg-blue-700"], [class~="bg-blue-800"], [class~="bg-blue-900"], [class~="bg-sky-500"], [class~="bg-sky-600"], [class~="bg-sky-700"], [class~="bg-sky-800"], [class~="bg-sky-900"], [class~="bg-cyan-500"], [class~="bg-cyan-600"], [class~="bg-cyan-700"], [class~="bg-cyan-800"], [class~="bg-cyan-900"], [class~="bg-teal-500"], [class~="bg-teal-600"], [class~="bg-teal-700"], [class~="bg-teal-800"], [class~="bg-teal-900"], [class~="bg-emerald-500"], [class~="bg-emerald-600"], [class~="bg-emerald-700"], [class~="bg-emerald-800"], [class~="bg-emerald-900"], [class~="bg-green-500"], [class~="bg-green-600"], [class~="bg-green-700"], [class~="bg-green-800"], [class~="bg-green-900"], [class~="bg-orange-500"], [class~="bg-orange-600"], [class~="bg-orange-700"], [class~="bg-orange-800"], [class~="bg-orange-900"], [class~="bg-gray-600"], [class~="bg-slate-600"], [class~="bg-gray-700"], [class~="bg-slate-700"]),
+.superadmin-shell .text-white[class*="bg-gradient-"][class*="from-"] {
+  color: #ffffff !important;
+}
+
+/* Tinted action buttons: give translucent fills a visible body and border
+   so they read as buttons on white rather than faint washes. */
+.superadmin-shell :is(button, a)[class*="bg-"][class*="-500/2"],
+.superadmin-shell :is(button, a)[class*="bg-"][class*="-600/3"] {
+  font-weight: 700;
+}
+
+/* Gradient-clipped headings become solid ink so they never vanish. */
+.superadmin-shell [class*="bg-clip-text"][class*="text-transparent"] {
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  color: var(--platform-text) !important;
+}
+
+/* Header controls never wrap into stacked one-word lines. */
+.superadmin-shell > div > header button {
+  white-space: nowrap;
+}
+
+/* Data tables: light header row everywhere, including sticky headers that
+   were painted with a dark arbitrary colour. */
+.superadmin-shell table thead tr,
+.superadmin-shell table thead th {
+  background-color: #f8fafc !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Question Bank: keep the branded hero banner, put the working area on the
+   same light surfaces as every other Superadmin section. */
+.superadmin-shell .qb-inspector__metrics,
+.superadmin-shell .qb-inspector__pool-grid,
+.superadmin-shell .qb-inspector__workspace {
+  --qb-border: #dbe3ee;
+  --qb-muted: #64748b;
+  --qb-text: #0f172a;
+  --qb-cyan: #0e7490;
+  --qb-violet: #7c3aed;
+  --qb-amber: #b45309;
+  color: #0f172a;
+}
+
+.superadmin-shell .qb-inspector__metrics article,
+.superadmin-shell .qb-inspector__pool {
+  background: #ffffff;
+  border-color: #dbe3ee;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  color: #0f172a;
+}
+
+.superadmin-shell .qb-inspector__pool:hover,
+.superadmin-shell .qb-inspector__pool:focus-visible {
+  border-color: #a78bfa;
+}
+
+.superadmin-shell .qb-inspector__pool.is-active {
+  background: #f5f3ff;
+  border-color: #7c3aed;
+  box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.25), 0 10px 26px rgba(76, 29, 149, 0.1);
+  color: #0f172a;
+}
+
+.superadmin-shell :is(.qb-inspector__pool-code, .qb-inspector__mini-code) { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
+.superadmin-shell :is(.qb-inspector__pool.is-teacher .qb-inspector__pool-code, .qb-inspector__mini-code.is-teacher) { background: #ecfeff; border-color: #a5f3fc; color: #0e7490; }
+.superadmin-shell :is(.qb-inspector__pool.is-school .qb-inspector__pool-code, .qb-inspector__mini-code.is-school) { background: #fdf4ff; border-color: #f0abfc; color: #a21caf; }
+.superadmin-shell :is(.qb-inspector__pool.is-archive .qb-inspector__pool-code, .qb-inspector__mini-code.is-archive) { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
+
+.superadmin-shell .qb-inspector__workspace {
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+}
+
+.superadmin-shell .qb-inspector__filters {
+  background: #f8fafc;
+}
+
+.superadmin-shell .qb-inspector__filters label > span { color: #334155; }
+
+.superadmin-shell .qb-inspector__filters select {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.superadmin-shell .qb-inspector__head-actions button,
+.superadmin-shell .qb-inspector__pagination button,
+.superadmin-shell .qb-inspector__error button,
+.superadmin-shell .qb-inspector__empty button {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.superadmin-shell .qb-inspector__head-actions button:hover:not(:disabled),
+.superadmin-shell .qb-inspector__pagination button:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.superadmin-shell .qb-inspector button:disabled { opacity: 0.6; }
+
+.superadmin-shell .qb-inspector th { background: #f8fafc; color: #475569; }
+.superadmin-shell .qb-inspector td { border-top-color: #e2e8f0; color: #0f172a; }
+.superadmin-shell .qb-inspector tbody tr:hover { background: #f8fbff; }
+.superadmin-shell .qb-inspector tbody tr.in-review { background: #faf5ff; }
+.superadmin-shell .qb-inspector__review-badge { background: #f5f3ff; border-color: #c4b5fd; color: #6d28d9; }
+.superadmin-shell .qb-inspector__review-badge.is-generated { background: #ecfeff; border-color: #a5f3fc; color: #0e7490; }
+.superadmin-shell .qb-inspector__integrity strong { color: #047857; }
+.superadmin-shell .qb-inspector__integrity.is-school strong { color: #a21caf; }
+.superadmin-shell .qb-inspector__error { color: #be123c; }
+.superadmin-shell .qb-inspector__empty > span { color: #cbd5e1; }
+
+/* One heading colour across sections. Legacy cards each had their own neon
+   title colour; danger headings keep red so their meaning stays obvious. */
+.superadmin-shell :is(h2, h3, h4).font-heading:not([class*="text-red-"]):not([class*="text-rose-"]) {
+  color: var(--platform-text) !important;
+}

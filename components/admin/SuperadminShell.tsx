@@ -351,7 +351,7 @@ const SuperadminShell: React.FC<SuperadminShellProps> = ({
             <button
               type="button"
               onClick={onToggleAdminVisibility}
-              className={`hidden h-10 items-center gap-2 rounded-xl border px-3 text-xs font-semibold transition xl:flex ${
+              className={`hidden h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border px-3 text-xs font-semibold transition xl:flex ${
                 adminVisible
                   ? 'border-emerald-400/20 bg-emerald-400/8 text-emerald-300 hover:bg-emerald-400/12'
                   : 'border-slate-700 bg-slate-900/70 text-slate-400 hover:border-slate-600 hover:text-slate-200'
