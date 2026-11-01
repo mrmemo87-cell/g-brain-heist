@@ -10,6 +10,7 @@ import {
 import IeltsWorkCard, { dueText, skillName } from './IeltsWorkCard';
 import { IeltsWaitingForScreeners } from '../IeltsTargetedPractice';
 import { openSet, seenFeedback, useIeltsStudentWork } from './useIeltsStudentWork';
+import { IeltsWaitingDots } from '../IeltsMotion';
 
 const greeting = () => {
   const h = new Date().getHours();
@@ -141,7 +142,7 @@ export default function IeltsStudentHome() {
       )}
 
       {waiting.length > 0 && (
-        <p className="isn-waiting"><span aria-hidden="true">⏳</span> {plural(waiting.length, 'submitted task is', 'submitted tasks are')} waiting for your teacher.</p>
+        <p className="isn-waiting"><IeltsWaitingDots /> {plural(waiting.length, 'submitted task is', 'submitted tasks are')} waiting for your teacher.</p>
       )}
 
       <p className="isn-foot"><button type="button" className="ij-link" onClick={() => navigate('/ielts?view=library')}>Explore other practice tools →</button></p>

@@ -1,0 +1,74 @@
+/* Brains Heist IELTS motion pieces. Visual-only, token-based, Visual & UX Bible 1.3.0.
+   Base styles are the FINAL state, so prefers-reduced-motion simply removes the animation. */
+
+/* ---- Loading glyphs (the only looping pieces: they accompany a visible busy message) ---- */
+.ixm-glyph { flex: none; display: block; }
+.ixm-stroke { fill: none; stroke: var(--bh-ielts-primary); stroke-width: 2.5; stroke-linejoin: round; }
+.ixm-line { stroke: var(--bh-ielts-primary); stroke-width: 2.5; stroke-linecap: round; opacity: .4; }
+.ixm-beam { transform: translateY(14px); }
+.ixm-beam-glow { fill: var(--bh-ielts-accent); opacity: .16; }
+.ixm-beam-line { stroke: var(--bh-ielts-accent); stroke-width: 2.5; stroke-linecap: round; }
+.ixm-ring { fill: none; stroke: var(--bh-ielts-primary); stroke-width: 2; opacity: .45; }
+.ixm-ring--faint { stroke-width: 1.4; opacity: .22; }
+.ixm-sweep { transform-box: view-box; transform-origin: 60px 60px; transform: rotate(40deg); }
+.ixm-wedge { fill: var(--bh-ielts-accent); opacity: .28; }
+.ixm-sweep-line { stroke: var(--bh-ielts-accent); stroke-width: 3; stroke-linecap: round; }
+.ixm-blip { fill: var(--bh-ielts-primary); opacity: .75; }
+.ixm-self { fill: var(--bh-ielts-primary); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ixm-beam { animation: ixm-scan 1.8s ease-in-out infinite alternate; }
+  .ixm-sweep { animation: ixm-spin 2.4s linear infinite; }
+  .ixm-blip { animation: ixm-blink 2.4s ease-in-out infinite; }
+  .ixm-blip--b { animation-delay: .8s; }
+  .ixm-blip--c { animation-delay: 1.6s; }
+}
+@keyframes ixm-scan { from { transform: translateY(0); } to { transform: translateY(28px); } }
+@keyframes ixm-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes ixm-blink { 0%, 100% { opacity: .2; } 15% { opacity: 1; } 40% { opacity: .2; } }
+
+/* ---- Waiting dots: finite (three hops, then at rest) ---- */
+.ixm-dots { display: inline-flex; gap: 4px; align-items: center; vertical-align: middle; margin-right: .35rem; }
+.ixm-dots i { display: block; width: 7px; height: 7px; border-radius: 50%; background: var(--bh-ielts-primary); opacity: .75; }
+@media (prefers-reduced-motion: no-preference) {
+  .ixm-dots i { animation: ixm-hop 1.1s ease-in-out 3 both; }
+  .ixm-dots i:nth-child(2) { animation-delay: .14s; }
+  .ixm-dots i:nth-child(3) { animation-delay: .28s; }
+}
+@keyframes ixm-hop { 0%, 60%, 100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-5px); opacity: 1; } }
+
+/* ---- Prime status badge: one sheen pass, one sparkle ---- */
+.ixm-sheen { position: relative; overflow: hidden; }
+.ixm-sheen::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .32) 50%, transparent 65%); transform: translateX(-130%); }
+.ixm-gem { flex: none; }
+.ixm-gem-spark { transform-box: fill-box; transform-origin: center; opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .ixm-sheen::after { animation: ixm-sheen 1.3s ease-out .5s 1 both; }
+  .ixm-gem-spark { animation: ixm-spark 1.1s ease-out .7s 1 both; }
+}
+@keyframes ixm-sheen { from { transform: translateX(-130%); } to { transform: translateX(130%); } }
+@keyframes ixm-spark { 0% { opacity: 0; transform: scale(0); } 45% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0; transform: scale(.8); } }
+
+/* ---- Plan chips: staggered entrance, check draws once ---- */
+.ixm-chip { display: inline-flex; align-items: center; gap: .4rem; padding: .45rem .75rem; border-radius: 999px; border: 1px solid var(--bh-ielts-border); background: var(--bh-ielts-secondary); color: var(--bh-ielts-secondary-foreground); font-weight: 600; font-size: .875rem; }
+.ixm-chip svg { flex: none; }
+.ixm-chip-check { fill: none; stroke: var(--bh-ielts-success); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .ixm-chip { animation: ixm-chip-in .45s ease-out both; animation-delay: calc(var(--ixm-i, 0) * 70ms); }
+  .ixm-chip-check { animation: ixm-draw .4s ease-out both; animation-delay: calc(var(--ixm-i, 0) * 70ms + 220ms); }
+}
+@keyframes ixm-chip-in { from { opacity: 0; transform: translateY(6px) scale(.96); } }
+@keyframes ixm-draw { from { stroke-dashoffset: 1; } }
+
+/* ---- Listening headphones (bars move only while the recording is actually playing) ---- */
+.ixm-hp { display: block; }
+.ixm-hp-band { fill: none; stroke: currentColor; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.ixm-hp-cup { fill: currentColor; }
+.ixm-hp-bar { fill: currentColor; opacity: .9; transform-box: fill-box; transform-origin: center; transform: scaleY(.7); }
+@media (prefers-reduced-motion: no-preference) {
+  .ixm-hp-bar { animation: ixm-bar 1.3s ease-in-out infinite; }
+  .ixm-hp-bar--2 { animation-delay: -.3s; }
+  .ixm-hp-bar--3 { animation-delay: -.6s; }
+  .ixm-hp-bar--4 { animation-delay: -.9s; }
+}
+@keyframes ixm-bar { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
