@@ -166,8 +166,8 @@ begin
         (select coalesce(jsonb_agg(s order by s.n desc), '[]'::jsonb) from (
            select e.label as section, count(*) n from demo_analytics.events e
            where e.visitor_id = v.id and e.event_type = 'section' and e.label is not null group by e.label order by 2 desc limit 6) s) as sections,
-        (select coalesce(jsonb_agg(jsonb_build_object('type', e.event_type, 'label', e.label, 'path', e.path, 'at', e.created_at, 'meta', e.meta) order by e.created_at desc), '[]'::jsonb)
-           from (select * from demo_analytics.events e where e.visitor_id = v.id and e.event_type <> 'heartbeat' order by e.created_at desc limit 40) e) as recent_events
+        (select coalesce(jsonb_agg(jsonb_build_object('type', e.event_type, 'label', e.label, 'path', e.path, 'at', coalesce(e.client_at, e.created_at), 'meta', e.meta) order by coalesce(e.client_at, e.created_at) desc, e.id desc), '[]'::jsonb)
+           from (select * from demo_analytics.events e where e.visitor_id = v.id and e.event_type <> 'heartbeat' order by coalesce(e.client_at, e.created_at) desc, e.id desc limit 40) e) as recent_events
       from demo_analytics.visitors v where v.last_seen_at >= v_since order by v.last_seen_at desc limit 500) v)
   );
 end $$;
@@ -184,8 +184,10 @@ begin
   end if;
   return jsonb_build_object(
     'visitor', (select to_jsonb(v) from demo_analytics.visitors v where v.id = p_visitor_id),
-    'events', (select coalesce(jsonb_agg(jsonb_build_object('type', e.event_type, 'label', e.label, 'path', e.path, 'at', e.created_at, 'session', e.session_id, 'meta', e.meta) order by e.created_at), '[]'::jsonb)
-      from (select * from demo_analytics.events e where e.visitor_id = p_visitor_id order by e.created_at desc limit 2000) e)
+    -- Events arrive in batches, so order and time them by when they happened in the browser (client_at),
+    -- falling back to arrival time, with the insert id as a tie-breaker.
+    'events', (select coalesce(jsonb_agg(jsonb_build_object('type', e.event_type, 'label', e.label, 'path', e.path, 'at', coalesce(e.client_at, e.created_at), 'session', e.session_id, 'meta', e.meta) order by coalesce(e.client_at, e.created_at), e.id), '[]'::jsonb)
+      from (select * from demo_analytics.events e where e.visitor_id = p_visitor_id order by coalesce(e.client_at, e.created_at) desc, e.id desc limit 2000) e)
   );
 end $$;
 revoke all on function public.rpc_demo_visitor_timeline(uuid) from public, anon;
