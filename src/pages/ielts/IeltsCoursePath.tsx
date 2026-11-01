@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/ielts-course.css';
+import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell';
 import {
   fetchIeltsCourseState,
   ieltsCourseAccessMessage,
@@ -43,12 +44,9 @@ const IeltsCoursePath: React.FC = () => {
   };
 
   return (
-    <div className="ic-page">
+    <IeltsStudentShell active="course">
+      <div className="ic-page ic-page--embedded">
       <main className="ic-main">
-        <div className="ic-topbar">
-          <button type="button" className="ic-link" onClick={() => navigate('/ielts')}>← IELTS home</button>
-          {state && <span className="ic-chip">{state.units_completed} / {state.units_total} units done</span>}
-        </div>
 
         <section className="ic-hero" aria-labelledby="ic-course-title">
           <div className="ic-eyebrow">Brains Heist IELTS</div>
@@ -139,7 +137,8 @@ const IeltsCoursePath: React.FC = () => {
           </ol>
         )}
       </main>
-    </div>
+      </div>
+    </IeltsStudentShell>
   );
 };
 

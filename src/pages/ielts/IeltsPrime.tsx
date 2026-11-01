@@ -293,7 +293,7 @@ const IeltsPrime: React.FC = () => {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <button
           type="button"
-          onClick={() => navigate('/ielts')}
+          onClick={() => navigate('/ielts/course')}
           style={{
             background: 'rgba(255,255,255,0.08)',
             color: '#dbeafe',
@@ -304,7 +304,7 @@ const IeltsPrime: React.FC = () => {
             fontWeight: 700,
           }}
         >
-          ← Back to IELTS tasks
+          ← Back to the course
         </button>
 
         <header style={{ textAlign: 'center', padding: '3rem 0 2rem' }}>

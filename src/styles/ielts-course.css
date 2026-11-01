@@ -114,3 +114,8 @@
   .ic-unit, .ic-btn, .ic-progress-bar > span { transition: none; }
   .ic-skeleton { animation: none; }
 }
+
+/* Inside the IELTS student shell (shared navigation). */
+.ic-page.ic-page--embedded { min-height: 0; background: transparent; padding: 0 0 2rem; }
+.ic-page :is(h1,h2,h3) { font-weight: 700; }
+.ic-page .ic-lesson-section h3, .ic-page .ic-card h3 { font-weight: 700; color: var(--bh-ielts-foreground); }

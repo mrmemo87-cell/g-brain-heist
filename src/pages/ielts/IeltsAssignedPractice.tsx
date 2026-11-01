@@ -135,7 +135,10 @@ const IeltsAssignedPractice: React.FC = () => {
       setLoadState('ready');
       setAssignmentProgressById({});
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load assigned IELTS practice.');
+      const raw = loadError instanceof Error ? loadError.message : '';
+      setError(/not included|agreement|seat|programme/i.test(raw)
+        ? 'Your school has not added IELTS for you yet, so there are no teacher assignments here. You can still start the self-paced course.'
+        : 'Assigned IELTS practice could not load. Please try again.');
       setLoadState('error');
     }
   };

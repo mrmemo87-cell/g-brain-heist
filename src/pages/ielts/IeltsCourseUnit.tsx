@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../styles/ielts-course.css';
+import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell';
 import {
   IELTS_COURSE_ROUTE,
   fetchIeltsCourseUnit,
@@ -74,12 +75,9 @@ const IeltsCourseUnit: React.FC = () => {
   };
 
   return (
-    <div className="ic-page">
+    <IeltsStudentShell focus={{ label: 'Course map', to: IELTS_COURSE_ROUTE }}>
+      <div className="ic-page ic-page--embedded">
       <main className="ic-main">
-        <div className="ic-topbar">
-          <button type="button" className="ic-link" onClick={() => navigate(IELTS_COURSE_ROUTE)}>← Course map</button>
-          {unit && <span className="ic-chip">Unit {unit.position} of 20</span>}
-        </div>
 
         {error && (
           <div className="ic-notice ic-notice--error" role="alert">
@@ -113,7 +111,7 @@ const IeltsCourseUnit: React.FC = () => {
         {detail && (
           <>
             <section className="ic-card" aria-labelledby="ic-unit-title">
-              <div className="ic-eyebrow">Unit {detail.position} · {detail.focus_skills.map((skill) => ieltsCourseSkillLabel[skill]).join(' + ')} · about {detail.estimated_minutes} min</div>
+              <div className="ic-eyebrow">Unit {detail.position} of 20 · {detail.focus_skills.map((skill) => ieltsCourseSkillLabel[skill]).join(' + ')} · about {detail.estimated_minutes} min</div>
               <h2 id="ic-unit-title">{detail.title}</h2>
               {detail.subtitle && <p className="ic-unit-sub">{detail.subtitle}</p>}
               <ol className="ic-steps" aria-label="Unit steps">
@@ -207,7 +205,8 @@ const IeltsCourseUnit: React.FC = () => {
           </>
         )}
       </main>
-    </div>
+      </div>
+    </IeltsStudentShell>
   );
 };
 

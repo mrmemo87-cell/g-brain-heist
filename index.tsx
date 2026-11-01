@@ -784,8 +784,8 @@ const router = createBrowserRouter([
   { path: '/ielts/practice/targeted/:allocationId', element: withSchoolIeltsAccess(<ProtectedRoute element={<IeltsLearningPractice />} />) },
   { path: '/ielts/programme', element: <ProtectedRoute element={<SchoolAdminIeltsRoute ieltsTab="ielts-overview"><IeltsProgrammeWorkspace /></SchoolAdminIeltsRoute>} /> },
   { path: '/ielts/screener-result/:attemptId', element: <ProtectedRoute element={<IeltsGovernedScreenerResult />} /> },
-  { path: '/ielts/course', element: withSchoolIeltsAccess(<ProtectedRoute element={<IeltsCoursePath />} />) },
-  { path: '/ielts/course/:unitId', element: withSchoolIeltsAccess(<ProtectedRoute element={<IeltsCourseUnit />} />) },
+  { path: '/ielts/course', element: <ProtectedRoute element={<IeltsCoursePath />} /> },
+  { path: '/ielts/course/:unitId', element: <ProtectedRoute element={<IeltsCourseUnit />} /> },
   {
     path: '/ielts/journey',
     element: withSchoolIeltsAccess(<ProtectedRoute element={<SchoolAdminIeltsRoute ieltsTab="ielts-student-progress"><IeltsJourneyDashboard /></SchoolAdminIeltsRoute>} />),

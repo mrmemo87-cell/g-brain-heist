@@ -497,7 +497,7 @@ const IeltsHome: React.FC = () => {
 
 
   if (isSchoolStudentWorkspace) {
-    return <IeltsStudentShell active="home"><IeltsStudentHome key={authUserId + '-home'} /></IeltsStudentShell>;
+    return <IeltsStudentShell active="home"><div style={{ marginBottom: '1rem' }}><IeltsCourseEntryCard onNavigate={navigate} /></div><IeltsStudentHome key={authUserId + '-home'} /></IeltsStudentShell>;
   }
 
   const formatDate = (value?: string | null) => {
@@ -524,7 +524,7 @@ const IeltsHome: React.FC = () => {
       { skill: 'speaking' as const, label: 'Speaking', benefit: 'Practise fluent answers with clear response patterns.', progress: summary.skillProgress.speaking },
     ];
     if (!summary.diagnostic.completed) {
-      return <div style={shell}><main style={{ maxWidth: 1120, margin: '0 auto', display: 'grid', gap: '1rem' }}><header><p className="text-sm font-bold uppercase tracking-widest text-teal-800">Brains Heist IELTS</p><h1 className="mt-2 text-4xl font-bold tracking-tight text-slate-950">Your IELTS workspace</h1><p className="mt-3 leading-7 text-slate-600">A clear starting point, saved results and your next study step.</p></header><IeltsCourseEntryCard onNavigate={navigate} /><IeltsScreenerHub key={authUserId} />{hasSchoolMembership && <IeltsSchoolLearnerLinks onNavigate={navigate} />}{!hasSchoolMembership && <section style={whiteCard}><h2 className="m-0 text-xl font-bold">Your study tools</h2><button type="button" onClick={() => navigate('/ielts/journey')} className="mt-3 min-h-11 font-semibold text-blue-800 underline">My IELTS Journey</button></section>}<button type="button" onClick={() => navigate('/')} className="min-h-11 text-left font-semibold text-slate-700 underline">Back to Brains Heist Game</button></main></div>;
+      return <IeltsStudentShell active="home" eyebrow="Brains Heist IELTS" title="Your IELTS home" lead="Your course, your starting checks and saved results in one place."><div style={{ display: 'grid', gap: '1rem' }}><IeltsCourseEntryCard onNavigate={navigate} /><IeltsScreenerHub key={authUserId} />{hasSchoolMembership && <IeltsSchoolLearnerLinks onNavigate={navigate} />}</div></IeltsStudentShell>;
     }
     if (activePrime) {
       return (
