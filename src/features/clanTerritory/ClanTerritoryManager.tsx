@@ -3,6 +3,7 @@ import { SupabaseClanTerritoryTransport } from "./clanTerritorySupabaseTransport
 import { ClanTerritoryTeacherView } from "./components/ClanTerritoryTeacherView";
 import { ClanTerritoryStudentView } from "./components/ClanTerritoryStudentView";
 import { QuestionSelectionModal } from "./components/QuestionSelectionModal";
+import ArenaLobby from "./components/ArenaLobby";
 import { ClanTerritoryErrorBoundary } from "./components/ClanTerritoryErrorBoundary";
 import { ClanTerritoryGameState, ClanId, getClanColor, assignSessionClanColor, getUsedSessionColors } from "./clanTerritoryTypes";
 import { INITIAL_STATE } from "./clanTerritoryEngine";
@@ -163,7 +164,6 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [scheduledStartAt, setScheduledStartAt] = useState<string>("");
   const [activeScheduledStartAt, setActiveScheduledStartAt] = useState<string | null>(null);
-  const [roomCodeInput, setRoomCodeInput] = useState("");
   const [teacherUserId, setTeacherUserId] = useState<string | null>(null);
   const [storedHostRooms, setStoredHostRooms] = useState<StoredHostRoom[]>([]);
   const [hostArenaPage, setHostArenaPage] = useState(1);
@@ -993,12 +993,6 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
   const hostArenaCardScaleClass = storedHostRooms.length > 20
     ? "p-3 text-[0.72rem]"
     : storedHostRooms.length > 10
-      ? "p-3 text-xs"
-      : "p-4 text-sm";
-
-  const liveArenaCardScaleClass = filteredRooms.length > 20
-    ? "p-3 text-[0.72rem]"
-    : filteredRooms.length > 10
       ? "p-3 text-xs"
       : "p-4 text-sm";
 
@@ -1849,150 +1843,47 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
           )}
 
           {!canHost && (
-            <div className="card-glass p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-heading text-xl text-white flex items-center gap-2">
-                  <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
-                  Live Arenas
-                </h2>
-                <span className="text-xs text-gray-400">{filteredRooms.length} available</span>
-              </div>
-              <p className="text-sm text-gray-300">
-                Start here: join any live arena from the list below or enter a room code.
-              </p>
-              {missingClanAssignment && (
-                <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-200">
-                  You are not assigned to a clan yet. You can only enter arenas that explicitly allow independent agents.
-                </div>
-              )}
-
-              {filteredRooms.length > 0 ? (
-                <>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                    {pagedLiveRooms.map((room) => {
-                      const allowIndependent = Boolean(room.allowClanlessPlayers ?? gameState.allowClanlessPlayers);
-                      const remainingSeconds = getRemainingSeconds({
-                        phase: room.phase,
-                        timer: room.timer,
-                        gameEndTime: room.gameEndTime,
-                      });
-                      return (
-                        <div key={room.id} className={`h-full rounded-xl border border-slate-700 bg-slate-900/60 space-y-2 ${liveArenaCardScaleClass}`}>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-xs uppercase tracking-wide text-gray-400">Room Code</p>
-                              <p className="text-xl font-mono font-bold text-amber-400">{room.id}</p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => void handleJoinRoom(room.id)}
-                              disabled={!allowIndependent && missingClanAssignment}
-                              className="px-3 py-1.5 font-heading font-bold rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 disabled:bg-gray-600/30 disabled:border-gray-600 disabled:cursor-not-allowed text-white transition-colors text-xs"
-                            >
-                              {!allowIndependent && missingClanAssignment
-                                ? "Clan Required"
-                                : allowIndependent && missingClanAssignment
-                                  ? "Join as Independent"
-                                  : "Enter Arena"}
-                            </button>
-                          </div>
-                          {remainingSeconds !== null && (
-                            <div className="flex items-center gap-2 text-xs text-emerald-300 font-semibold">
-                              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                              Live · {formatTimer(remainingSeconds)} remaining
-                            </div>
-                          )}
-                          <div className="text-xs text-gray-400 space-y-1">
-                            <p>
-                              Mode:{" "}
-                              <span className={room.arenaMode === "open" ? "text-cyan-300" : "text-emerald-300"}>
-                                {room.arenaMode === "open" ? "🌐 Open Arena" : "✅ Official Arena"}
-                              </span>
-                            </p>
-                            <p>Teacher: <span className="text-white">{room.teacherName || "Teacher"}</span></p>
-                            <p>Classes: <span className="text-white">{room.classCodes?.join(', ') || "—"}</span></p>
-                            <p>
-                              Access:{" "}
-                              <span className={allowIndependent ? "text-emerald-300" : "text-amber-300"}>
-                                {allowIndependent ? "Independents allowed" : "Clan members only"}
-                              </span>
-                            </p>
-                            {room.scheduledStartAt && (
-                              <p>Scheduled: <span className="text-white">{formatScheduleTime(room.scheduledStartAt)}</span></p>
-                            )}
-                            {allowIndependent && (
-                              <p className="text-emerald-300">Independent agents allowed.</p>
-                            )}
-                            {!allowIndependent && missingClanAssignment && (
-                              <p className="text-amber-300">You cannot enter this room until you join a clan.</p>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {totalLiveArenaPages > 1 && (
-                    <div className="flex items-center justify-between gap-3 pt-2">
-                      <button
-                        type="button"
-                        onClick={() => setLiveArenaPage((prev) => Math.max(1, prev - 1))}
-                        disabled={liveArenaPage === 1}
-                        className="rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-1.5 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        Previous
-                      </button>
-                      <p className="text-xs text-gray-400">Page {liveArenaPage} / {totalLiveArenaPages}</p>
-                      <button
-                        type="button"
-                        onClick={() => setLiveArenaPage((prev) => Math.min(totalLiveArenaPages, prev + 1))}
-                        disabled={liveArenaPage === totalLiveArenaPages}
-                        className="rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-1.5 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="text-center p-6 rounded-xl border border-dashed border-slate-700 bg-black/20">
-                  <div className="text-3xl mb-2">📡</div>
-                  {Object.keys(discoveredRooms).length > 0 && studentBatch ? (
-                    <>
-                      <p className="text-white font-semibold">No arenas for class {studentBatch} yet.</p>
-                      <p className="text-gray-400 text-sm">Ask your teacher to open a battle for your class.</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-white font-semibold">Scanning for signals...</p>
-                      <p className="text-gray-400 text-sm">Waiting for a teacher to open an arena.</p>
-                    </>
-                  )}
-                </div>
-              )}
-
-              <div className="pt-3 border-t border-slate-700 space-y-2">
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide">Join with Room Code</label>
-                <p className="text-xs text-slate-400">
-                  ✅ Official rooms enforce school/class eligibility. 🌐 Open rooms allow broader participation with reduced reward caps.
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={roomCodeInput}
-                    onChange={(e) => setRoomCodeInput(e.target.value)}
-                    placeholder="Enter 4-digit code"
-                    className="flex-1 rounded-xl border border-slate-700 bg-black/30 px-3 py-2 text-white"
-                  />
+            <div className="card-glass p-4 sm:p-6 space-y-4">
+              <ArenaLobby
+                rooms={pagedLiveRooms.map((room) => {
+                  const allowIndependent = Boolean(room.allowClanlessPlayers ?? gameState.allowClanlessPlayers);
+                  return {
+                    id: room.id,
+                    teacherName: room.teacherName,
+                    classCodes: room.classCodes,
+                    arenaMode: room.arenaMode,
+                    canEnter: allowIndependent || !missingClanAssignment,
+                    remainingSeconds: getRemainingSeconds({ phase: room.phase, timer: room.timer, gameEndTime: room.gameEndTime }),
+                  };
+                })}
+                otherClassesLive={Object.keys(discoveredRooms).length > 0}
+                studentBatch={studentBatch}
+                missingClan={missingClanAssignment}
+                onJoin={handleJoinRoom}
+                onGoToClan={onGoToClan}
+                formatTimer={formatTimer}
+              />
+              {totalLiveArenaPages > 1 && (
+                <div className="flex items-center justify-between gap-3 pt-2">
                   <button
                     type="button"
-                    onClick={() => void handleJoinRoom(roomCodeInput)}
-                    disabled={!roomCodeInput.trim()}
-                    className="px-4 py-2 font-heading font-bold rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 disabled:bg-gray-600/30 disabled:border-gray-600 disabled:cursor-not-allowed text-white transition-colors text-sm"
+                    onClick={() => setLiveArenaPage((prev) => Math.max(1, prev - 1))}
+                    disabled={liveArenaPage === 1}
+                    className="rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-1.5 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Join
+                    Previous
+                  </button>
+                  <p className="text-xs text-gray-400">Page {liveArenaPage} / {totalLiveArenaPages}</p>
+                  <button
+                    type="button"
+                    onClick={() => setLiveArenaPage((prev) => Math.min(totalLiveArenaPages, prev + 1))}
+                    disabled={liveArenaPage === totalLiveArenaPages}
+                    className="rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-1.5 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Next
                   </button>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
