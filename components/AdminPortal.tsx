@@ -29,6 +29,7 @@ import BillingAccessTab from './admin/tabs/BillingAccessTab';
 import GameTab from './admin/tabs/GameTab';
 import ClansTab from './admin/tabs/ClansTab';
 import AnalyticsTab from './admin/tabs/AnalyticsTab';
+import DemoVisitorsTab from './admin/tabs/DemoVisitorsTab';
 import CambridgeTab from './admin/tabs/CambridgeTab';
 import IeltsTab from './admin/tabs/IeltsTab';
 import SystemTab from './admin/tabs/SystemTab';
@@ -45,10 +46,10 @@ interface AdminPortalProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
 }
 
-type AdminTab = 'dashboard' | 'users' | 'question-bank' | 'schools' | 'applications' | 'identity-requests' | 'booked-appointments' | 'billing' | 'game' | 'clans' | 'analytics' | 'cambridge' | 'ielts' | 'system';
+type AdminTab = 'dashboard' | 'users' | 'question-bank' | 'schools' | 'applications' | 'identity-requests' | 'booked-appointments' | 'billing' | 'game' | 'clans' | 'analytics' | 'demo-visitors' | 'cambridge' | 'ielts' | 'system';
 
 const ADMIN_TABS: AdminTab[] = ['dashboard', 'users', 'schools', 'applications', 'booked-appointments', 'billing', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'];
-const SUPERADMIN_TABS: AdminTab[] = ['dashboard', 'users', 'question-bank', 'schools', 'applications', 'identity-requests', 'booked-appointments', 'billing', 'game', 'clans', 'analytics', 'cambridge', 'ielts', 'system'];
+const SUPERADMIN_TABS: AdminTab[] = ['dashboard', 'users', 'question-bank', 'schools', 'applications', 'identity-requests', 'booked-appointments', 'billing', 'game', 'clans', 'analytics', 'demo-visitors', 'cambridge', 'ielts', 'system'];
 
 const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast }) => {
   const PAGE_SIZE = 50;
@@ -1888,6 +1889,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
               {tab === 'game' && <GameTab />}
               {tab === 'clans' && <ClansTab />}
               {tab === 'analytics' && <AnalyticsTab />}
+              {tab === 'demo-visitors' && isSuperadmin && <DemoVisitorsTab />}
               {tab === 'cambridge' && <CambridgeTab />}
               {tab === 'ielts' && <IeltsTab />}
               {tab === 'system' && <SystemTab />}

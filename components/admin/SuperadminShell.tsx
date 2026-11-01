@@ -77,6 +77,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Insights',
     items: [
       { id: 'analytics', label: 'Analytics', description: 'Operational and product analytics', icon: 'analytics' },
+      { id: 'demo-visitors', label: 'Demo Visitors', description: 'Who visited the demo school and how far they got', icon: 'analytics' },
     ],
   },
   {

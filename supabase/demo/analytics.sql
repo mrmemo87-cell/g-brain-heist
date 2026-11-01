@@ -133,7 +133,10 @@ create or replace function public.rpc_demo_visitor_report(p_days integer default
 returns jsonb language plpgsql security definer set search_path = '' as $$
 declare v_since timestamptz := now() - make_interval(days => greatest(1, least(coalesce(p_days, 90), 365)));
 begin
-  if auth.uid() is null or not public.is_superadmin(auth.uid()) then raise exception 'Platform administrator required'; end if;
+  -- Platform admins signed in to the demo, or the main site's /api/demo-visitors (service role) after it has checked the caller is a superadmin.
+  if not (coalesce(auth.role(), '') = 'service_role' or (auth.uid() is not null and public.is_superadmin(auth.uid()))) then
+    raise exception 'Platform administrator required';
+  end if;
   return jsonb_build_object(
     'since', v_since,
     'totals', (select jsonb_build_object(
@@ -175,7 +178,10 @@ grant execute on function public.rpc_demo_visitor_report(integer) to authenticat
 create or replace function public.rpc_demo_visitor_timeline(p_visitor_id uuid)
 returns jsonb language plpgsql security definer set search_path = '' as $$
 begin
-  if auth.uid() is null or not public.is_superadmin(auth.uid()) then raise exception 'Platform administrator required'; end if;
+  -- Platform admins signed in to the demo, or the main site's /api/demo-visitors (service role) after it has checked the caller is a superadmin.
+  if not (coalesce(auth.role(), '') = 'service_role' or (auth.uid() is not null and public.is_superadmin(auth.uid()))) then
+    raise exception 'Platform administrator required';
+  end if;
   return jsonb_build_object(
     'visitor', (select to_jsonb(v) from demo_analytics.visitors v where v.id = p_visitor_id),
     'events', (select coalesce(jsonb_agg(jsonb_build_object('type', e.event_type, 'label', e.label, 'path', e.path, 'at', e.created_at, 'session', e.session_id, 'meta', e.meta) order by e.created_at), '[]'::jsonb)
@@ -238,7 +244,10 @@ create or replace function public.rpc_demo_landing_funnel(p_days integer default
 returns jsonb language plpgsql security definer set search_path = '' as $$
 declare v_since timestamptz := now() - make_interval(days => greatest(1, least(coalesce(p_days, 90), 365)));
 begin
-  if auth.uid() is null or not public.is_superadmin(auth.uid()) then raise exception 'Platform administrator required'; end if;
+  -- Platform admins signed in to the demo, or the main site's /api/demo-visitors (service role) after it has checked the caller is a superadmin.
+  if not (coalesce(auth.role(), '') = 'service_role' or (auth.uid() is not null and public.is_superadmin(auth.uid()))) then
+    raise exception 'Platform administrator required';
+  end if;
   return jsonb_build_object(
     'funnel', (select jsonb_build_object(
         'opened', count(*),
