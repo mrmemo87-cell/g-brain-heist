@@ -23,8 +23,13 @@ interface Report {
   visitors: Visitor[];
 }
 interface FunnelRow { opened: number; entered: number }
+interface Unfinished {
+  id: string; at: string; name: string | null; email: string; school: string | null; role: string | null;
+  country: string | null; geo_country: string | null; device: string | null; step: number; source: string | null;
+}
 interface Funnel {
-  funnel: { opened: number; gave_details: number; gave_school: number; entered: number };
+  funnel: { opened: number; gave_details: number; gave_school: number; entered: number; automated?: number };
+  unfinished?: Unfinished[];
   sources: Array<FunnelRow & { source: string }>;
   countries: Array<FunnelRow & { country: string }>;
 }
@@ -170,7 +175,7 @@ const DemoVisitorsPage: React.FC = () => {
 
           {funnel ? (
             <section className="dv-card dv-funnel" aria-label="Entry form funnel">
-              <h2>Entry form funnel <small>(everyone who opened the demo page, before and after the form)</small></h2>
+              <h2>Entry form funnel <small>(real people, from their first tap or scroll{funnel.funnel.automated ? `; ${funnel.funnel.automated} automated visit${funnel.funnel.automated === 1 ? '' : 's'} hidden` : ''})</small></h2>
               <div className="dv-funnel-steps">
                 {([
                   ['Opened the demo page', funnel.funnel.opened],
@@ -198,6 +203,20 @@ const DemoVisitorsPage: React.FC = () => {
                   <ul className="dv-list">{funnel.countries.length === 0 ? <li><span className="dv-muted">No visits yet.</span></li> : funnel.countries.map((row) => <li key={row.country}><span>{flag(row.country)} {countryName(row.country)}</span><b>{row.opened} <small>→ {row.entered} entered</small></b></li>)}</ul>
                 </div>
               </div>
+            </section>
+          ) : null}
+
+          {funnel?.unfinished && funnel.unfinished.length > 0 ? (
+            <section className="dv-card dv-funnel" aria-label="Started but did not finish">
+              <h2>Started but didn't finish <small>({funnel.unfinished.length}: gave name and email, then left before entering)</small></h2>
+              <ul className="dv-list">
+                {funnel.unfinished.map((u) => (
+                  <li key={u.id}>
+                    <span><strong>{u.name || '—'}</strong> · <a href={`mailto:${u.email}`}>{u.email}</a>{u.school ? ` · ${u.school}` : ''}{u.role ? ` · ${u.role}` : ''}</span>
+                    <b>{flag(u.geo_country)} {when(u.at)} <small>{u.step >= 3 ? 'at seat choice' : 'at school step'}</small></b>
+                  </li>
+                ))}
+              </ul>
             </section>
           ) : null}
 
