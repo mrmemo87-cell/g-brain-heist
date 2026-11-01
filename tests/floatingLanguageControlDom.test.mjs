@@ -7,7 +7,7 @@ const bundle = await build({
   stdin: { contents: `import React from 'react';import {createRoot} from 'react-dom/client';import Layer from './src/components/AppLocalizationLayer';import {useFloatingCompanion} from './src/contexts/FloatingCompanionContext';function Pilot(){const {register}=useFloatingCompanion();React.useEffect(()=>{register({name:'Gulla',palette:'violet',avatar:<span data-character>fox</span>,greet:()=>window.greetings=(window.greetings||0)+1,personalise:()=>window.personalised=true,keepsakes:()=>window.keepsakes=true,tuck:()=>window.renderScope()});return ()=>register(null)},[register]);return null}const root=createRoot(document.getElementById('root'));window.renderScope=(scope='public',hub=false)=>root.render(<Layer language="en" setLanguage={value=>window.chosenLanguage=value}><>{hub?<Pilot/>:null}<main data-ielts-route={scope==='embedded'?'embedded':undefined} className={scope==='admin'?'school-admin-ielts-tab':undefined}><p data-language-lock="en">English assessment</p></main></></Layer>);window.unmount=()=>root.unmount();window.renderScope();`, loader: 'tsx', resolveDir: process.cwd() },
   bundle: true, format: 'iife', write: false, loader: { '.css': 'empty' }, logLevel: 'silent',
 });
-const key = 'brains-heist-language-dock-v1';
+const key = 'brains-heist-language-dock-v2';
 async function mount(path = '/', saved = null, blocked = false, reduced = true) {
   const errors = [], console = new VirtualConsole();
   console.on('jsdomError', error => errors.push(error.message));
@@ -44,34 +44,42 @@ test('a tap opens native language choices, selects language and restores focus',
   } finally { m.close(); }
 });
 
-test('drag follows the pointer freely, docks to nearest edge and suppresses the release click', async () => {
+test('with no saved position the mascot sits in the bottom-right corner', async () => {
   const m = await mount(); try {
+    assert.deepEqual(m.point(), [948, 692]);
+    assert.ok(m.button().querySelector('.language-dock-mascot'));
+    assert.equal(m.button().querySelector('.language-dock-badge').textContent, 'EN');
+  } finally { m.close(); }
+});
+
+test('drag follows the pointer freely, docks to nearest edge and suppresses the release click', async () => {
+  const m = await mount('/', { side: 'left', ratio: .5 }); try {
     const start = m.point(); await m.pointer('pointerdown', 30, 380);
     await m.pointer('pointermove', 600, 300);
     assert.deepEqual(m.point(), [start[0] + 570, start[1] - 80]);
     assert.match(m.control().className, /is-dragging/);
     await m.pointer('pointerup', 600, 300); m.button().click();
     await m.wait(() => !m.control().classList.contains('is-dragging'));
-    assert.equal(m.point()[0], 958); assert.equal(m.point()[1], start[1] - 80);
+    assert.equal(m.point()[0], 948); assert.equal(m.point()[1], start[1] - 80);
     assert.equal(m.w.document.querySelector('.language-dock-panel'), null);
     const saved = JSON.parse(m.w.localStorage.getItem(key)); assert.equal(saved.side, 'right'); assert.ok(saved.ratio > 0 && saved.ratio < 1);
     m.w.renderScope('embedded'); await m.wait(() => !m.control());
-    m.w.renderScope(); await m.wait(() => m.control()); assert.equal(m.point()[0], 958); assert.equal(m.point()[1], start[1] - 80);
+    m.w.renderScope(); await m.wait(() => m.control()); assert.equal(m.point()[0], 948); assert.equal(m.point()[1], start[1] - 80);
   } finally { m.close(); }
 });
 
 test('touch drag clamps to visible bounds and cancellation never leaves the control dragging', async () => {
-  const m = await mount(); try {
+  const m = await mount('/', { side: 'left', ratio: .5 }); try {
     await m.pointer('pointerdown', 30, 380, { pointerType: 'touch' });
     await m.pointer('pointermove', -500, -500, { pointerType: 'touch' }); assert.deepEqual(m.point(), [12, 12]);
     await m.pointer('pointercancel', -500, -500, { pointerType: 'touch' }); assert.doesNotMatch(m.control().className, /is-dragging/);
-    await m.pointer('pointerdown', 30, 30); await m.pointer('pointermove', 3000, 3000); assert.deepEqual(m.point(), [958, 702]);
+    await m.pointer('pointerdown', 30, 30); await m.pointer('pointermove', 3000, 3000); assert.deepEqual(m.point(), [948, 692]);
     await m.pointer('pointerup', 3000, 3000); assert.equal(JSON.parse(m.w.localStorage.getItem(key)).side, 'right');
   } finally { m.close(); }
 });
 
 test('secondary pointers cannot move an active primary drag', async () => {
-  const m = await mount(); try {
+  const m = await mount('/', { side: 'left', ratio: .5 }); try {
     const start = m.point(); await m.pointer('pointerdown', 30, 380);
     await m.pointer('pointerdown', 90, 500, { id: 2, primary: false });
     await m.pointer('pointermove', 800, 600, { id: 2 }); assert.deepEqual(m.point(), start);
@@ -82,10 +90,10 @@ test('secondary pointers cannot move an active primary drag', async () => {
 
 test('keyboard docking remains usable with storage disabled and Escape closes the menu', async () => {
   const m = await mount('/', null, true); try {
-    await m.keyboard('ArrowRight'); assert.equal(m.point()[0], 958);
+    await m.keyboard('ArrowRight'); assert.equal(m.point()[0], 948);
     await m.keyboard('Home'); assert.equal(m.point()[1], 12);
     await m.keyboard('ArrowDown'); assert.equal(m.point()[1], 36);
-    await m.keyboard('End'); assert.equal(m.point()[1], 702);
+    await m.keyboard('End'); assert.equal(m.point()[1], 692);
     await m.keyboard('ArrowLeft'); assert.equal(m.point()[0], 12);
     m.button().click(); await m.wait(() => m.w.document.querySelector('.language-dock-panel'));
     m.w.document.activeElement.dispatchEvent(new m.w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
@@ -96,14 +104,14 @@ test('keyboard docking remains usable with storage disabled and Escape closes th
 test('saved docking adapts to mobile resizing and a moving visual viewport', async () => {
   const m = await mount('/', { side: 'right', ratio: 1 }); try {
     Object.defineProperties(m.w, { innerWidth: { value: 375, configurable: true }, innerHeight: { value: 667, configurable: true } });
-    m.w.dispatchEvent(new m.w.Event('resize')); await m.wait(() => m.point()[0] === 309); assert.deepEqual(m.point(), [309, 601]);
+    m.w.dispatchEvent(new m.w.Event('resize')); await m.wait(() => m.point()[0] === 299); assert.deepEqual(m.point(), [299, 591]);
     // Mount again so viewport listeners bind to the browser viewport object.
     m.w.renderScope('embedded'); await m.wait(() => !m.control());
     const viewport = new m.w.EventTarget(); Object.assign(viewport, { width: 320, height: 400, offsetLeft: 20, offsetTop: 60 });
     Object.defineProperty(m.w, 'visualViewport', { value: viewport, configurable: true });
-    m.w.renderScope(); await m.wait(() => m.control()); assert.deepEqual(m.point(), [274, 394]);
+    m.w.renderScope(); await m.wait(() => m.control()); assert.deepEqual(m.point(), [264, 384]);
     viewport.height = 300; viewport.offsetTop = 80; viewport.dispatchEvent(new m.w.Event('resize'));
-    await m.wait(() => m.point()[1] === 314); assert.deepEqual(m.point(), [274, 314]);
+    await m.wait(() => m.point()[1] === 304); assert.deepEqual(m.point(), [264, 304]);
   } finally { m.close(); }
 });
 
@@ -142,7 +150,7 @@ test('pilot hub adapts to keyboard viewport, cleans up in IELTS and restores the
  const m=await mount('/',{side:'right',ratio:1});try{
   const viewport=new m.w.EventTarget();Object.assign(viewport,{width:375,height:667,offsetLeft:20,offsetTop:40});Object.defineProperty(m.w,'visualViewport',{value:viewport,configurable:true});
   m.w.renderScope('public',true);await m.wait(()=>m.control()?.classList.contains('is-companion'));assert.deepEqual(m.point(),[287,527]);
-  viewport.height=300;viewport.dispatchEvent(new m.w.Event('resize'));await m.wait(()=>!m.control().classList.contains('is-companion'));assert.deepEqual(m.point(),[329,274]);
+  viewport.height=300;viewport.dispatchEvent(new m.w.Event('resize'));await m.wait(()=>!m.control().classList.contains('is-companion'));assert.deepEqual(m.point(),[319,264]);
   viewport.height=600;viewport.dispatchEvent(new m.w.Event('resize'));await m.wait(()=>m.control().classList.contains('is-companion'));assert.deepEqual(m.point(),[287,460]);
   m.w.renderScope('embedded',true);await m.wait(()=>!m.control());m.w.renderScope('public',true);await m.wait(()=>m.control()?.classList.contains('is-companion'));
   m.button().click();await m.wait(()=>m.button().getAttribute('aria-expanded')==='true');await m.keyboard('Escape');assert.equal(m.button().getAttribute('aria-expanded'),'false');
