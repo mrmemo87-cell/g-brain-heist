@@ -19,8 +19,13 @@ interface Report {
   totals: { visitors: number; visits: number; countries: number; schools: number; avg_minutes: number; today: number; this_week: number };
   visitors: Visitor[];
 }
+interface Unfinished {
+  id: string; at: string; name: string | null; email: string; school: string | null; role: string | null;
+  country: string | null; geo_country: string | null; device: string | null; step: number; source: string | null;
+}
 interface Funnel {
-  funnel: { opened: number; gave_details: number; gave_school: number; entered: number };
+  funnel: { opened: number; gave_details: number; gave_school: number; entered: number; automated?: number };
+  unfinished?: Unfinished[];
   sources: Array<{ source: string; opened: number; entered: number }>;
   countries: Array<{ country: string; opened: number; entered: number }>;
 }
@@ -155,7 +160,8 @@ const DemoVisitorsTab: React.FC = () => {
             <section className="card-glass p-6 border border-cyan-400/30 space-y-5" aria-label="Entry form funnel">
               <div>
                 <h4 className="text-lg font-bold text-white">Entry form funnel</h4>
-                <p className="text-xs text-slate-400">Counted from the moment the demo page opens, before anyone types. Anonymous until they enter.</p>
+                <p className="text-xs text-slate-400">Real people only: counted from their first tap, click or scroll on the demo page.
+                  {funnel.funnel.automated ? ` ${funnel.funnel.automated} automated visit${funnel.funnel.automated === 1 ? '' : 's'} (page checks, link scanners, crawlers) hidden.` : ''}</p>
               </div>
               <div className="space-y-3">
                 {steps.map(([label, n]) => (
@@ -185,6 +191,42 @@ const DemoVisitorsTab: React.FC = () => {
                     ))}</ul>
                   )}
                 </div>
+              </div>
+            </section>
+          ) : null}
+
+          {funnel?.unfinished && funnel.unfinished.length > 0 ? (
+            <section className="card-glass p-6 border border-amber-400/40 space-y-4" aria-label="Started but did not finish">
+              <div>
+                <h4 className="text-lg font-bold text-amber-200">Started but didn't finish <span className="text-slate-400 font-medium">({funnel.unfinished.length})</span></h4>
+                <p className="text-xs text-slate-400">They gave their name and email, then left before entering the demo. Your warmest follow-ups.</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-xs uppercase tracking-wider text-slate-400 border-b border-slate-700">
+                      <th className="py-2 pr-4">Person</th><th className="py-2 pr-4">School</th><th className="py-2 pr-4">From</th><th className="py-2 pr-4">Stopped at</th><th className="py-2">When</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {funnel.unfinished.map((u) => (
+                      <tr key={u.id} className="border-b border-slate-800 align-top">
+                        <td className="py-3 pr-4">
+                          <div className="font-semibold text-white">{u.name || '—'}</div>
+                          <a className="text-cyan-300 hover:underline" href={`mailto:${u.email}`}>{u.email}</a>
+                          {u.role ? <div className="text-xs text-slate-400">{u.role}</div> : null}
+                        </td>
+                        <td className="py-3 pr-4 text-slate-200">{u.school || '—'}</td>
+                        <td className="py-3 pr-4 text-slate-200">{flag(u.geo_country)} {countryName(u.geo_country)}
+                          {u.country && u.country !== countryName(u.geo_country) ? <div className="text-xs text-slate-400">says: {u.country}</div> : null}
+                          {u.source ? <div className="text-xs text-slate-400">via {u.source}</div> : null}
+                        </td>
+                        <td className="py-3 pr-4 text-slate-200">{u.step >= 3 ? 'Choosing teacher or student' : 'School details'}{u.device ? <div className="text-xs text-slate-400">{u.device}</div> : null}</td>
+                        <td className="py-3 text-slate-200 whitespace-nowrap">{when(u.at)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </section>
           ) : null}

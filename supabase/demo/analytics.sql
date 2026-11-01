@@ -191,10 +191,14 @@ end $$;
 revoke all on function public.rpc_demo_visitor_timeline(uuid) from public, anon;
 grant execute on function public.rpc_demo_visitor_timeline(uuid) to authenticated, service_role;
 
--- Entry-page funnel: one anonymous row per browser session that opens the demo entry form,
--- recorded before anyone types anything. No name, email or IP address: only the country
--- (from the edge), device, language and where the visit came from. The row is linked to the
--- visitor record once they register, so the dashboard can show where people drop off.
+-- Entry-page funnel: one row per browser session that opens the demo entry form.
+-- On open (before anyone types) only country (from the edge), device, language, user agent
+-- and referring site are stored: no name, email or IP address. As the visitor moves through
+-- the form the row records how far they got. After step 1 the form tells them that their
+-- name and email are saved, and they are stored here so unfinished sign-ups can be followed up.
+-- "interacted" is set on the first real tap, click, key press or scroll; rows with no
+-- interaction (deploy checks, link scanners, crawlers) or a headless browser are treated as
+-- automated and kept out of the funnel numbers.
 create table if not exists demo_analytics.landings (
   id uuid primary key default gen_random_uuid(),
   created_at timestamptz not null default now(),
@@ -207,62 +211,93 @@ create table if not exists demo_analytics.landings (
   device text,
   locale text
 );
+alter table demo_analytics.landings add column if not exists interacted boolean not null default false;
+alter table demo_analytics.landings add column if not exists automated boolean not null default false;
+alter table demo_analytics.landings add column if not exists user_agent text;
+alter table demo_analytics.landings add column if not exists lead_name text;
+alter table demo_analytics.landings add column if not exists lead_email text;
+alter table demo_analytics.landings add column if not exists lead_school text;
+alter table demo_analytics.landings add column if not exists lead_role text;
+alter table demo_analytics.landings add column if not exists lead_country text;
 create index if not exists landings_created_idx on demo_analytics.landings (created_at desc);
 revoke all on demo_analytics.landings from public, anon, authenticated;
 
 create or replace function public.rpc_demo_landing_open(p jsonb)
 returns jsonb language plpgsql security definer set search_path = '' as $$
-declare v_id uuid;
+declare v_id uuid; v_ua text := left(nullif(p->>'user_agent', ''), 400);
 begin
   if to_regclass('demo_analytics.landings') is null then return jsonb_build_object('ok', false); end if;
-  insert into demo_analytics.landings(geo_country, referrer_host, utm, device, locale)
+  insert into demo_analytics.landings(geo_country, referrer_host, utm, device, locale, user_agent, automated)
   values (left(nullif(p->>'geo_country', ''), 8), left(nullif(p->>'referrer_host', ''), 120),
     case when jsonb_typeof(p->'utm') = 'object' then p->'utm' else '{}'::jsonb end,
-    left(nullif(p->>'device', ''), 20), left(nullif(p->>'locale', ''), 20))
+    left(nullif(p->>'device', ''), 20), left(nullif(p->>'locale', ''), 20), v_ua,
+    coalesce((p->>'automated')::boolean, false)
+      or coalesce(v_ua, '') ~* '(headless|bot|crawler|spider|preview|scanner|lighthouse|vercel|python|curl|wget)')
   returning id into v_id;
   return jsonb_build_object('ok', true, 'id', v_id);
 end $$;
 revoke all on function public.rpc_demo_landing_open(jsonb) from public;
 grant execute on function public.rpc_demo_landing_open(jsonb) to anon, authenticated, service_role;
 
-create or replace function public.rpc_demo_landing_step(p_id uuid, p_step integer, p_visitor_id uuid default null)
+drop function if exists public.rpc_demo_landing_step(uuid, integer, uuid);
+create or replace function public.rpc_demo_landing_step(p_id uuid, p_step integer, p_visitor_id uuid default null, p_details jsonb default null)
 returns jsonb language plpgsql security definer set search_path = '' as $$
+declare v_email text := lower(trim(coalesce(p_details->>'email', '')));
 begin
   if to_regclass('demo_analytics.landings') is null or p_id is null then return jsonb_build_object('ok', false); end if;
   update demo_analytics.landings l set
     furthest_step = greatest(l.furthest_step, least(greatest(coalesce(p_step, 1), 1), 4)),
+    interacted = true,
     visitor_id = coalesce((select v.id from demo_analytics.visitors v where v.id = p_visitor_id), l.visitor_id),
+    lead_name = coalesce(left(nullif(trim(p_details->>'full_name'), ''), 120), l.lead_name),
+    lead_email = case when v_email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then left(v_email, 200) else l.lead_email end,
+    lead_school = coalesce(left(nullif(trim(p_details->>'school'), ''), 200), l.lead_school),
+    lead_role = coalesce(left(nullif(trim(p_details->>'role'), ''), 60), l.lead_role),
+    lead_country = coalesce(left(nullif(trim(p_details->>'country'), ''), 80), l.lead_country),
     updated_at = now()
   where l.id = p_id and l.created_at > now() - interval '1 day';
   return jsonb_build_object('ok', found);
 end $$;
-revoke all on function public.rpc_demo_landing_step(uuid, integer, uuid) from public;
-grant execute on function public.rpc_demo_landing_step(uuid, integer, uuid) to anon, authenticated, service_role;
+revoke all on function public.rpc_demo_landing_step(uuid, integer, uuid, jsonb) from public;
+grant execute on function public.rpc_demo_landing_step(uuid, integer, uuid, jsonb) to anon, authenticated, service_role;
 
--- Platform admin: how many opened the entry page, how far they got, and where they came from.
+-- Platform admin: how many real people opened the entry page, how far they got, where they
+-- came from, and who started but did not finish.
 create or replace function public.rpc_demo_landing_funnel(p_days integer default 90)
 returns jsonb language plpgsql security definer set search_path = '' as $$
 declare v_since timestamptz := now() - make_interval(days => greatest(1, least(coalesce(p_days, 90), 365)));
 begin
-  -- Platform admins signed in to the demo, or the main site's /api/demo-visitors (service role) after it has checked the caller is a superadmin.
   if not (coalesce(auth.role(), '') = 'service_role' or (auth.uid() is not null and public.is_superadmin(auth.uid()))) then
     raise exception 'Platform administrator required';
   end if;
-  return jsonb_build_object(
-    'funnel', (select jsonb_build_object(
-        'opened', count(*),
-        'gave_details', count(*) filter (where furthest_step >= 2),
-        'gave_school', count(*) filter (where furthest_step >= 3),
-        'entered', count(*) filter (where furthest_step >= 4))
-      from demo_analytics.landings where created_at >= v_since),
-    'sources', (select coalesce(jsonb_agg(jsonb_build_object('source', s, 'opened', o, 'entered', e) order by o desc), '[]'::jsonb)
-      from (select coalesce(nullif(utm->>'utm_source', ''), referrer_host, 'Direct / unknown') s, count(*) o,
-                   count(*) filter (where furthest_step >= 4) e
-            from demo_analytics.landings where created_at >= v_since group by 1 order by 2 desc limit 12) x),
-    'countries', (select coalesce(jsonb_agg(jsonb_build_object('country', c, 'opened', o, 'entered', e) order by o desc), '[]'::jsonb)
-      from (select coalesce(geo_country, 'Unknown') c, count(*) o, count(*) filter (where furthest_step >= 4) e
-            from demo_analytics.landings where created_at >= v_since group by 1 order by 2 desc limit 12) x)
-  );
+  return (with l as (
+      select *, (not automated and (interacted or furthest_step >= 2)) as is_real
+      from demo_analytics.landings where created_at >= v_since
+    )
+    select jsonb_build_object(
+      'funnel', (select jsonb_build_object(
+          'opened', count(*) filter (where is_real),
+          'gave_details', count(*) filter (where is_real and furthest_step >= 2),
+          'gave_school', count(*) filter (where is_real and furthest_step >= 3),
+          'entered', count(*) filter (where is_real and furthest_step >= 4),
+          'automated', count(*) filter (where not is_real))
+        from l),
+      'sources', (select coalesce(jsonb_agg(jsonb_build_object('source', s, 'opened', o, 'entered', e) order by o desc), '[]'::jsonb)
+        from (select coalesce(nullif(utm->>'utm_source', ''), referrer_host, 'Direct / unknown') s, count(*) o,
+                     count(*) filter (where furthest_step >= 4) e
+              from l where is_real group by 1 order by 2 desc limit 12) x),
+      'countries', (select coalesce(jsonb_agg(jsonb_build_object('country', c, 'opened', o, 'entered', e) order by o desc), '[]'::jsonb)
+        from (select coalesce(geo_country, 'Unknown') c, count(*) o, count(*) filter (where furthest_step >= 4) e
+              from l where is_real group by 1 order by 2 desc limit 12) x),
+      'unfinished', (select coalesce(jsonb_agg(jsonb_build_object(
+            'id', id, 'at', updated_at, 'name', lead_name, 'email', lead_email, 'school', lead_school, 'role', lead_role,
+            'country', lead_country, 'geo_country', geo_country, 'device', device, 'step', furthest_step,
+            'source', coalesce(nullif(utm->>'utm_source', ''), referrer_host)) order by updated_at desc), '[]'::jsonb)
+        from (select * from l where lead_email is not null and furthest_step < 4
+                and lower(lead_email) not in (select lower(v.email) from demo_analytics.visitors v)
+              order by updated_at desc limit 100) u)
+    )
+    from (select 1) one);
 end $$;
 revoke all on function public.rpc_demo_landing_funnel(integer) from public, anon;
 grant execute on function public.rpc_demo_landing_funnel(integer) to authenticated, service_role;

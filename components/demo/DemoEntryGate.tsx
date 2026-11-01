@@ -60,9 +60,18 @@ const referrerHost = (): string | null => {
   }
 };
 
-const markLandingStep = (landingId: string | null, step: number, visitorId?: string | null) => {
+// Headless browsers, crawlers and link scanners: kept out of the funnel numbers.
+const looksAutomated = (): boolean => {
+  try {
+    return navigator.webdriver === true || /headless|bot|crawler|spider|preview|scanner|lighthouse/i.test(navigator.userAgent);
+  } catch {
+    return false;
+  }
+};
+
+const markLandingStep = (landingId: string | null, step: number, visitorId?: string | null, details?: Record<string, string>) => {
   if (!landingId) return;
-  void supabase.rpc('rpc_demo_landing_step', { p_id: landingId, p_step: step, p_visitor_id: visitorId ?? null })
+  void supabase.rpc('rpc_demo_landing_step', { p_id: landingId, p_step: step, p_visitor_id: visitorId ?? null, p_details: details ?? null })
     .then(() => undefined, () => undefined);
 };
 
@@ -82,6 +91,7 @@ const DemoEntryGate: React.FC<DemoEntryGateProps> = ({ onLogin }) => {
   const [busy, setBusy] = useState<DemoPersona['key'] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const landingId = useRef<string | null>(null);
+  const interactedEarly = useRef(false);
 
   useEffect(() => {
     if (returning) return;
@@ -93,14 +103,31 @@ const DemoEntryGate: React.FC<DemoEntryGateProps> = ({ onLogin }) => {
     void (async () => {
       const geo = await fetchGeo();
       const { data } = await supabase.rpc('rpc_demo_landing_open', {
-        p: { geo_country: geo.geo_country ?? null, referrer_host: referrerHost(), utm: readUtm(), device: detectDevice(), locale: navigator.language },
+        p: {
+          geo_country: geo.geo_country ?? null, referrer_host: referrerHost(), utm: readUtm(), device: detectDevice(),
+          locale: navigator.language, user_agent: navigator.userAgent, automated: looksAutomated(),
+        },
       });
       const id = (data as { ok?: boolean; id?: string } | null)?.id ?? null;
       if (!id || cancelled) return;
       landingId.current = id;
       try { window.sessionStorage.setItem(LANDING_KEY, id); } catch { /* ignore */ }
+      if (interactedEarly.current) markLandingStep(id, 1);
     })().catch(() => undefined);
     return () => { cancelled = true; };
+  }, [returning]);
+
+  // First real tap, click, key press or scroll: this is a person, not a page check or scanner.
+  useEffect(() => {
+    if (returning) return;
+    const events: Array<keyof WindowEventMap> = ['pointerdown', 'keydown', 'touchstart', 'scroll'];
+    const onFirst = () => {
+      events.forEach((name) => window.removeEventListener(name, onFirst));
+      if (landingId.current) markLandingStep(landingId.current, 1);
+      else interactedEarly.current = true;
+    };
+    events.forEach((name) => window.addEventListener(name, onFirst, { passive: true }));
+    return () => events.forEach((name) => window.removeEventListener(name, onFirst));
   }, [returning]);
 
   useEffect(() => {
@@ -117,11 +144,11 @@ const DemoEntryGate: React.FC<DemoEntryGateProps> = ({ onLogin }) => {
       if (fullName.trim().length < 2) { setError('Your name, please.'); return; }
       if (!EMAIL_RE.test(email.trim())) { setError('That email doesn’t look right.'); return; }
       setStep(2);
-      markLandingStep(landingId.current, 2);
+      markLandingStep(landingId.current, 2, null, { full_name: fullName.trim(), email: email.trim() });
     } else if (step === 2) {
       if (!school.trim()) { setError('Your school’s name, please.'); return; }
       setStep(3);
-      markLandingStep(landingId.current, 3);
+      markLandingStep(landingId.current, 3, null, { school: school.trim(), role, country });
     }
   };
 
@@ -185,6 +212,7 @@ const DemoEntryGate: React.FC<DemoEntryGateProps> = ({ onLogin }) => {
               <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" placeholder="Work email" aria-label="Work email" />
               {error ? <div className="demo-gate-error" role="alert">{error}</div> : null}
               <button type="submit" className="demo-gate-cta">Next →</button>
+              <p className="demo-gate-note">By continuing, you agree Brains Heist may save these details and contact you about the demo.</p>
             </form>
           ) : null}
 
