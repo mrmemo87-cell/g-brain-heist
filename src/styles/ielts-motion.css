@@ -60,18 +60,15 @@
 @keyframes ixm-chip-in { from { opacity: 0; transform: translateY(6px) scale(.96); } }
 @keyframes ixm-draw { from { stroke-dashoffset: 1; } }
 
-/* ---- Listening playback bars (loops only while the recording is actually playing) ---- */
-.ixm-bars { display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 1.9rem; }
-.ixm-bars i { display: block; width: 4px; height: 100%; border-radius: 4px; background: currentColor; transform: scaleY(.55); }
-.ixm-bars i:nth-child(2) { transform: scaleY(.9); }
-.ixm-bars i:nth-child(3) { transform: scaleY(.65); }
-.ixm-bars i:nth-child(4) { transform: scaleY(1); }
-.ixm-bars i:nth-child(5) { transform: scaleY(.45); }
+/* ---- Listening headphones (bars move only while the recording is actually playing) ---- */
+.ixm-hp { display: block; }
+.ixm-hp-band { fill: none; stroke: currentColor; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.ixm-hp-cup { fill: currentColor; }
+.ixm-hp-bar { fill: currentColor; opacity: .9; transform-box: fill-box; transform-origin: center; transform: scaleY(.7); }
 @media (prefers-reduced-motion: no-preference) {
-  .ixm-bars i { animation: ixm-bar 1.3s ease-in-out infinite; }
-  .ixm-bars i:nth-child(2) { animation-delay: -.25s; }
-  .ixm-bars i:nth-child(3) { animation-delay: -.5s; }
-  .ixm-bars i:nth-child(4) { animation-delay: -.75s; }
-  .ixm-bars i:nth-child(5) { animation-delay: -1s; }
+  .ixm-hp-bar { animation: ixm-bar 1.3s ease-in-out infinite; }
+  .ixm-hp-bar--2 { animation-delay: -.3s; }
+  .ixm-hp-bar--3 { animation-delay: -.6s; }
+  .ixm-hp-bar--4 { animation-delay: -.9s; }
 }
-@keyframes ixm-bar { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+@keyframes ixm-bar { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }

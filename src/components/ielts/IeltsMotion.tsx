@@ -70,7 +70,17 @@ export function IeltsPlanChip({ index, children }: { index: number; children: Re
   );
 }
 
-/** Calm sound bars for the Listening player button. Render only while audio is genuinely playing; still bars when motion is reduced. */
+/** Headphones with sound bars for the Listening player button. Render only while audio is genuinely playing; still bars when motion is reduced. Uses currentColor. */
 export function IeltsListeningBars() {
-  return <span className="ixm-bars" aria-hidden="true"><i /><i /><i /><i /><i /></span>;
+  return (
+    <svg className="ixm-hp" viewBox="0 0 120 100" width="44" height="37" aria-hidden="true" focusable="false">
+      <path className="ixm-hp-band" d="M24 58V50a36 36 0 0 1 72 0v8" />
+      <rect className="ixm-hp-cup" x="16" y="54" width="16" height="28" rx="7" />
+      <rect className="ixm-hp-cup" x="88" y="54" width="16" height="28" rx="7" />
+      <rect className="ixm-hp-bar" x="43" y="44" width="4" height="30" rx="2" />
+      <rect className="ixm-hp-bar ixm-hp-bar--2" x="53" y="44" width="4" height="30" rx="2" />
+      <rect className="ixm-hp-bar ixm-hp-bar--3" x="63" y="44" width="4" height="30" rx="2" />
+      <rect className="ixm-hp-bar ixm-hp-bar--4" x="73" y="44" width="4" height="30" rx="2" />
+    </svg>
+  );
 }
