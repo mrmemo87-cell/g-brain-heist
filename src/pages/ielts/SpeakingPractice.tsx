@@ -9,6 +9,9 @@ import { supabase } from '../../../services/supabaseClient';
 import { ensureIeltsProfile, getUserTier, isIeltsPrime } from '../../../services/ieltsService';
 import { rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
+import IeltsPracticeAiFeedback from '../../components/ielts/IeltsPracticeAiFeedback';
+import { useIeltsAudience } from '../../lib/ieltsAudience';
+import { downloadOwnRecording } from '../../../services/ieltsPracticeFeedback';
 import { ieltsCourseUnitRoute, readIeltsCourseUnitFromSearch } from '../../../services/ieltsCourseService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { buildSpeakingAttemptPayload } from '../../lib/ieltsPracticeScoring';
@@ -35,6 +38,7 @@ interface SpeakingTask {
 const SpeakingPractice: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
+  const ieltsAudience = useIeltsAudience();
   // Opened from the self-paced course? Then every exit returns to that unit.
   const courseUnitId = readIeltsCourseUnitFromSearch();
   const exitRoute = courseUnitId ? ieltsCourseUnitRoute(courseUnitId) : '/ielts';
@@ -181,6 +185,7 @@ const SpeakingPractice: React.FC = () => {
     onSuccess: (data) => {
       setSubmitError(null);
       setLastAttemptId(data.attempt?.id);
+      setLastAudioPath(data.attempt?.audio_url ?? null);
       setAssignmentProgress(data.progress);
       setAssignmentCompletionError(data.itemCompletionError);
       setHasFinalizedReview(data.attempt?.review_status === 'finalized');
@@ -196,6 +201,7 @@ const SpeakingPractice: React.FC = () => {
   });
 
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
+  const [lastAudioPath, setLastAudioPath] = useState<string | null>(null);
   const [hasFinalizedReview, setHasFinalizedReview] = useState(false);
   const isSubmissionEligible = Boolean(audioBlob) && recordingDuration >= MIN_RECORDING_SECONDS;
 
@@ -500,11 +506,20 @@ const SpeakingPractice: React.FC = () => {
                 View teacher review result
               </button>
             </div>
-          ) : lastAttemptId ? (
+          ) : lastAttemptId && ieltsAudience === 'school' ? (
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
               <span style={{ color: '#1e3a8a', fontWeight: 600 }}>Teacher feedback will appear here after finalization.</span>
             </div>
           ) : null}
+
+          {lastAttemptId && (
+            <IeltsPracticeAiFeedback
+              attemptId={lastAttemptId}
+              mode="student"
+              skill="speaking"
+              loadRecording={async () => audioBlob ?? (lastAudioPath ? downloadOwnRecording(lastAudioPath) : Promise.reject(new Error('recording_unavailable')))}
+            />
+          )}
 
           <button
             onClick={() => navigate(exitRoute)}

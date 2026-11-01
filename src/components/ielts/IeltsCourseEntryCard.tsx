@@ -2,7 +2,18 @@ import React, { useEffect, useState } from 'react';
 import '../../styles/ielts-course.css';
 import { IELTS_COURSE_ROUTE, cachedIeltsCourseState, fetchIeltsCourseState, ieltsCourseUnitRoute, type IeltsCourseState } from '../../../services/ieltsCourseService';
 
-/** Compact "continue the course" card for the IELTS home screen. Silent on error. */
+function Ring({ percent }: { percent: number }) {
+  const r = 30, c = 2 * Math.PI * r;
+  return (
+    <svg className="ic-ring" viewBox="0 0 72 72" aria-hidden="true">
+      <circle cx="36" cy="36" r={r} className="ic-ring-track" />
+      <circle cx="36" cy="36" r={r} className="ic-ring-value" strokeDasharray={c} strokeDashoffset={c * (1 - percent / 100)} />
+      <text x="36" y="41" textAnchor="middle">{percent}%</text>
+    </svg>
+  );
+}
+
+/** Compact "continue your route" card for the IELTS home screen. Silent on error. */
 const IeltsCourseEntryCard: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => {
   const [state, setState] = useState<IeltsCourseState | null>(() => cachedIeltsCourseState());
   useEffect(() => {
@@ -18,27 +29,26 @@ const IeltsCourseEntryCard: React.FC<{ onNavigate: (route: string) => void }> = 
 
   return (
     <section className="ic-entry" aria-labelledby="ic-entry-title">
-      <div className="ic-entry-head">
-        <div>
-          <div className="ic-eyebrow">Self-paced</div>
-          <h2 id="ic-entry-title">The IELTS Course</h2>
-          <p>
-            {state
-              ? current
-                ? `${started ? 'Up next' : 'Start with'}: Unit ${current.position} · ${current.title}`
-                : state.units_total > 0 ? 'Course complete. Repeat any unit from the map.' : 'Twenty short units, lesson first, then practice.'
-              : 'Twenty short units, lesson first, then practice. Unit 1 is free.'}
-          </p>
-        </div>
-        <button type="button" className="ic-btn ic-btn--primary" onClick={() => onNavigate(target)}>
-          {started ? 'Continue →' : 'Start the course →'}
-        </button>
+      <Ring percent={percent} />
+      <div>
+        <div className="ic-eyebrow ic-eyebrow--light">Self-paced course</div>
+        <h2 id="ic-entry-title">Your route to IELTS</h2>
+        <p>
+          {state
+            ? current
+              ? `${started ? 'Up next' : 'Start with'}: Unit ${current.position} · ${current.title}`
+              : state.units_total > 0 ? 'Route complete. Revisit any stop to practise again.' : 'Twenty short units: a lesson, then practice with feedback.'
+            : 'Twenty short units: a lesson, then practice with feedback. Unit 1 is free.'}
+        </p>
       </div>
+      <button type="button" className="ic-btn ic-btn--light ic-btn--glow" onClick={() => onNavigate(target)}>
+        {started ? 'Continue' : 'Start the course'} <span aria-hidden="true">→</span>
+      </button>
       {state && state.units_total > 0 && (
-        <>
-          <div className="ic-minibar" aria-hidden="true"><span style={{ width: `${percent}%` }} /></div>
-          <p>{state.units_completed} of {state.units_total} units done · <button type="button" className="ic-link" onClick={() => onNavigate(IELTS_COURSE_ROUTE)}>View course map</button></p>
-        </>
+        <div className="ic-entry-foot">
+          <span>{state.units_completed} of {state.units_total} units done</span>
+          <button type="button" className="ic-link" onClick={() => onNavigate(IELTS_COURSE_ROUTE)}>View the map</button>
+        </div>
       )}
     </section>
   );

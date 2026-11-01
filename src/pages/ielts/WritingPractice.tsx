@@ -18,6 +18,7 @@ import { ExamGuard } from '../../utils/examGuard';
 import { logIeltsViolation } from '../../../services/ieltsViolationService';
 import { buildWritingAttemptPayload } from '../../lib/ieltsPracticeScoring';
 import IeltsPracticeAiFeedback from '../../components/ielts/IeltsPracticeAiFeedback';
+import { useIeltsAudience } from '../../lib/ieltsAudience';
 
 interface WritingTask {
   originality_label?: string | null;
@@ -42,6 +43,7 @@ const MIN_MEANINGFUL_WORDS = 50;
 const WritingPractice: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
+  const ieltsAudience = useIeltsAudience();
   // Opened from the self-paced course? Then every exit returns to that unit.
   const courseUnitId = readIeltsCourseUnitFromSearch();
   const exitRoute = courseUnitId ? ieltsCourseUnitRoute(courseUnitId) : '/ielts';
@@ -545,7 +547,7 @@ const WritingPractice: React.FC = () => {
                 View teacher review result
               </button>
             </div>
-          ) : lastAttemptId ? (
+          ) : lastAttemptId && ieltsAudience === 'school' ? (
             <div style={{ background: 'var(--bh-ielts-secondary)', border: '1px solid var(--bh-ielts-border)', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
               <span style={{ color: '#1e3a8a', fontWeight: 600 }}>Teacher feedback will appear here after finalization.</span>
             </div>

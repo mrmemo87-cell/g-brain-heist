@@ -1,8 +1,8 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.0.0\
-**Effective date:** 2026-10-19\
+**Version:** 2.1.0\
+**Effective date:** 2026-11-01\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
 
@@ -843,6 +843,7 @@ but not silently as a complete IELTS Writing band.
 
 **How it must be labelled**
 - Every item carries the visible label **AI practice feedback: your teacher may adjust it**, with the model, prompt version and time recorded (section 10.2).
+- **Learners without a school (section 10.6)** see the label **Brains Heist feedback — an estimate, not an official IELTS result** instead, because no teacher will adjust it. Criterion ranges are labelled **Brains Heist practice estimate**. Model, prompt version and time are still recorded.
 
 **Pronunciation**
 - Pronunciation feedback needs audio analysis. A transcript-only system must say that pronunciation was not assessed.
@@ -855,6 +856,23 @@ but not silently as a complete IELTS Writing band.
 - A student may revise and resubmit the same task as many times as useful. Revisions stay labelled as guided practice (section 8A.3): they show effort and learning, but do not count as independent improvement.
 
 **Volume target.** Design for three or four Writing tasks and three Speaking practice sessions per student per week without increasing teacher marking time. The teacher's job is to confirm, correct and prioritise, not to write first-pass comments.
+
+### 10.6 Self-paced learners without a school
+
+**Owner-authorized (2026-11-01).** Independent learners (no active school membership with the IELTS programme) study through the self-paced course with no teacher. They must never be shown a state that waits for a teacher who does not exist.
+
+**What they receive**
+- Writing and Speaking **practice** tasks return Brains Heist feedback (section 10.5) directly: per-criterion comment, verbatim quotes, one action, and a per-criterion **practice estimate range** (never a single number, never an overall band).
+- Speaking feedback is audio-grounded, so pronunciation may be commented on (section 10.3). A transcript-only path must still say pronunciation was not assessed.
+- General Training Task 1 letters are eligible for practice feedback; the Task Achievement comment checks purpose, coverage of every bullet point and tone.
+- Visible label: **Brains Heist feedback — an estimate, not an official IELTS result**. No wording may imply a teacher will review, adjust or confirm it.
+
+**What does not change (safeguards kept)**
+- Brains Heist feedback is **never** evidence, never a band score, never a readiness estimate, and never enters the learning record, reports, confidence or indicative ranges. Without a teacher, nothing confirms it, so it stays practice feedback permanently.
+- If the learner later joins a school, earlier feedback remains unconfirmed practice feedback; a teacher may confirm items under section 10.5 from then on.
+- Screeners, mocks and independent checks never receive AI feedback (section 10.5).
+- **Starting-point checks:** independent learners are offered only the auto-scored Listening and Reading screeners. Writing and Speaking screeners require teacher review (sections 9.4 and 10), so they are shown only to learners with a school IELTS teacher. Saved Writing/Speaking screener attempts are preserved and stay visible in the learner's record.
+- Rate limits, provider logging rules and server-side authorization are unchanged.
 
 ---
 
@@ -1928,6 +1946,25 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.12 Revision record — v2.1.0 (2026-11-01)
+
+**Authority.** On 2026-11-01 (19:08–19:12 Asia/Bishkek) the owner noted that "in self-paced learning there's no teacher to check anything" and instructed a rule change so learners without a school see feedback described as an estimate, with the note that Brains Heist feedback is never treated as evidence or a band score.
+
+**Why the old rules were insufficient.** Section 10.5 assumed every learner has a teacher. With the self-paced course (released 2026-11-01), independent learners saw "your teacher may adjust it", Speaking practice that said "Teacher feedback will appear here" indefinitely, General Training letters with no feedback, and Writing/Speaking screeners stuck on "Awaiting review".
+
+**What changed**
+- Section 10.5: alternative label for learners without a school.
+- New section 10.6: self-paced learners, Speaking practice feedback, General Training Task 1 eligibility, and Listening/Reading-only starting checks for independent learners.
+
+**What did not change.** Feedback is never evidence or a band score; no overall band; screeners/mocks/independent checks never get AI feedback; teacher confirmation remains the only route into evidence; server-side authorization, rate limits and logging rules.
+
+**Implementation to review**
+- `services/ieltsPracticeFeedback.ts`, `src/components/ielts/IeltsPracticeAiFeedback.tsx`: audience-aware label and messages.
+- `rpc_ielts_practice_feedback_claim`, `_shared/ieltsPracticeFeedback.ts`: General Training Task 1 eligibility and prompt.
+- New Speaking practice feedback tables, RPCs and edge function.
+- `src/components/ielts/IeltsScreenerHub.tsx`: audience-filtered starting checks.
+- `docs/ielts/IELTS_VISUAL_UX_BIBLE.md` 13.3.
 
 ### 22.11 Revision record — v2.0.0 (2026-10-19)
 

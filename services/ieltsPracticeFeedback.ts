@@ -1,39 +1,88 @@
 import { supabase } from './supabaseClient';
+import { toSpeakingWav } from '../src/lib/speakingWav';
 
-/** AI first-pass practice feedback (Diagnostic Bible 2.0.0 section 10.5). */
+/**
+ * Brains Heist practice feedback (Diagnostic Bible 2.1.0 sections 10.5-10.6): Writing and Speaking PRACTICE only.
+ * Never evidence, never an overall band, never on screeners.
+ */
 export type FeedbackCriterion = { comment: string; action: string; evidence: { quote: string }[]; indication: { low: number; high: number } | null };
+export type PracticeSkill = 'writing' | 'speaking';
 export interface PracticeFeedbackView {
   id: string; status: 'working' | 'ready' | 'failed'; created_at: string;
-  fields: { task_number: 1 | 2; criteria: Record<string, FeedbackCriterion>; next_step: string; prompt_version: string } | null;
+  fields: {
+    task_number?: 1 | 2; part?: number; transcript?: string; pronunciation_assessed?: boolean;
+    criteria: Record<string, FeedbackCriterion>; next_step: string; prompt_version: string;
+  } | null;
   confirmed: boolean; confirmed_at: string | null; confirmed_by: string | null; teacher_note: string | null;
 }
 export const criterionLabel: Record<string, string> = {
   task_achievement: 'Task Achievement', task_response: 'Task Response', coherence_cohesion: 'Coherence and Cohesion',
   lexical_resource: 'Lexical Resource', grammar_range_accuracy: 'Grammatical Range and Accuracy',
+  fluency_coherence: 'Fluency and Coherence', pronunciation: 'Pronunciation',
 };
 const errors: Record<string, string> = {
-  ai_rate_limit: 'You have used today\'s AI feedback. Your teacher will still review your writing.',
-  ai_already_working: 'AI feedback is already being prepared. Wait a moment and try again.',
-  too_short: 'Write a longer response (at least 50 words) to get AI feedback.',
-  not_available: 'AI feedback is not available for this task.',
-  sign_in_required: 'Please sign in again to get AI feedback.',
+  ai_rate_limit: 'You have used today\'s feedback for this skill. Try again tomorrow; your work is saved.',
+  ai_already_working: 'Feedback is already being prepared. Wait a moment and try again.',
+  too_short: 'This response is too short for useful feedback. Write at least 50 words, or speak for at least 15 seconds.',
+  not_available: 'Feedback is not available for this task.',
+  sign_in_required: 'Please sign in again to get feedback.',
+  audio_missing: 'Your recording could not be prepared. Try again.',
 };
+const failure = async (error: unknown, fallback: string) => {
+  let code = '';
+  try { code = (await (error as { context?: Response }).context?.json())?.error || ''; } catch { /* generic below */ }
+  return new Error(errors[code] ?? fallback);
+};
+
 export async function requestPracticeFeedback(attemptId: string): Promise<PracticeFeedbackView> {
   const { data, error } = await supabase.functions.invoke('ielts_practice_writing_feedback', { body: { attemptId } });
-  if (error) {
-    let code = '';
-    try { code = (await (error as { context?: Response }).context?.json())?.error || ''; } catch { /* generic below */ }
-    throw new Error(errors[code] ?? 'AI feedback could not be prepared right now. Your writing is saved; try again later.');
-  }
+  if (error) throw await failure(error, 'Feedback could not be prepared right now. Your writing is saved; try again later.');
   return data as PracticeFeedbackView;
 }
 export async function practiceFeedback(attemptId: string): Promise<PracticeFeedbackView | null> {
   const { data, error } = await supabase.rpc('rpc_ielts_practice_feedback', { p_attempt: attemptId });
-  if (error) throw new Error('AI feedback could not load.');
+  if (error) throw new Error('Feedback could not load.');
   return (data ?? null) as PracticeFeedbackView | null;
 }
 export async function confirmPracticeFeedback(id: string, note: string): Promise<PracticeFeedbackView> {
   const { data, error } = await supabase.rpc('rpc_ielts_practice_feedback_confirm', { p_id: id, p_note: note });
   if (error) throw new Error('The confirmation could not be saved. Check your access and retry.');
   return data as PracticeFeedbackView;
+}
+
+export async function speakingPracticeFeedback(attemptId: string): Promise<PracticeFeedbackView | null> {
+  const { data, error } = await supabase.rpc('rpc_ielts_practice_speaking_feedback', { p_attempt: attemptId });
+  if (error) throw new Error('Feedback could not load.');
+  return (data ?? null) as PracticeFeedbackView | null;
+}
+
+/**
+ * Converts the learner's own recording to 16 kHz mono WAV, stores it in their folder, then asks for feedback.
+ * `loadRecording` returns the original practice recording (in memory, or downloaded from their folder).
+ */
+export async function requestSpeakingPracticeFeedback(attemptId: string, loadRecording: () => Promise<Blob>): Promise<PracticeFeedbackView> {
+  const { data: session } = await supabase.auth.getSession();
+  const userId = session?.session?.user?.id;
+  if (!userId) throw new Error(errors['sign_in_required']);
+  let wav: Blob;
+  try { wav = await toSpeakingWav(await loadRecording()); }
+  catch { throw new Error('This browser could not prepare your recording for feedback. Try Chrome or Safari.'); }
+  const path = `speaking/${userId}/feedback/${attemptId}.wav`;
+  const { error: uploadError } = await supabase.storage.from('ielts-recordings').upload(path, wav, { contentType: 'audio/wav', upsert: true });
+  if (uploadError) throw new Error(errors['audio_missing']);
+  const { data, error } = await supabase.functions.invoke('ielts_practice_speaking_feedback', { body: { attemptId } });
+  if (error) throw await failure(error, 'Feedback could not be prepared right now. Your recording is saved; try again later.');
+  return data as PracticeFeedbackView;
+}
+
+export async function confirmSpeakingPracticeFeedback(id: string, note: string): Promise<PracticeFeedbackView> {
+  const { data, error } = await supabase.rpc('rpc_ielts_practice_speaking_feedback_confirm', { p_id: id, p_note: note });
+  if (error) throw new Error('The confirmation could not be saved. Check your access and retry.');
+  return data as PracticeFeedbackView;
+}
+
+export async function downloadOwnRecording(path: string): Promise<Blob> {
+  const { data, error } = await supabase.storage.from('ielts-recordings').download(path);
+  if (error || !data) throw new Error('recording_unavailable');
+  return data;
 }

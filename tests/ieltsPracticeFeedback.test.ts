@@ -9,7 +9,7 @@ test('valid feedback anchors quotes and keeps each indication a one-band range',
   const f = validatePracticeFeedback(output(), context);
   assert.equal(f.criteria['task_response']?.indication?.low, 5.5);
   assert.equal(f.criteria['task_response']?.evidence[0].start_char, essay.indexOf('phones'));
-  assert.equal(f.prompt_version, 'bh-ielts-practice-feedback-v1');
+  assert.equal(f.prompt_version, 'bh-ielts-practice-feedback-v2');
   assert.deepEqual(Object.keys(practiceFeedbackSchema(1).properties.criteria.properties)[0], 'task_achievement');
 });
 test('fabricated quotes, single numbers, wide or uneven ranges, overall scores and missing criteria are rejected', () => {

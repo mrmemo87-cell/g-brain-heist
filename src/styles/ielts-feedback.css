@@ -1,0 +1,65 @@
+@import './ielts-design-system.css';
+
+/* Brains Heist practice feedback (Visual & UX Bible 13.3, 13.6). */
+.pf-panel { position: relative; margin: 1.25rem 0; padding: clamp(1rem, 3vw, 1.4rem); border-radius: 22px; text-align: left; color: var(--bh-ielts-foreground); font-family: var(--bh-ielts-font-body); line-height: 1.6;
+  background: radial-gradient(120% 140% at 0% 0%, #eef2ff 0%, #ffffff 46%, #f0fdfa 100%); border: 1px solid #dbe4f3; box-shadow: 0 18px 40px rgba(23, 59, 108, .10); overflow: hidden; }
+.pf-panel::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: linear-gradient(90deg, #4f46e5, #1746B0 40%, #0e7490 75%, #34d399); }
+.pf-panel *, .pf-panel *::before, .pf-panel *::after { box-sizing: border-box; }
+.pf-panel :is(h2, h3, p, ul, blockquote) { margin: 0; }
+.pf-head { display: flex; gap: .85rem; align-items: center; }
+.pf-spark { flex: 0 0 auto; display: grid; place-items: center; width: 2.9rem; height: 2.9rem; border-radius: 16px; font-size: 1.35rem; background: linear-gradient(135deg, #1e1b4b, #4f46e5); box-shadow: 0 8px 22px rgba(79, 70, 229, .35); }
+.pf-eyebrow { font-size: .74rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #4f46e5; }
+.pf-head h2 { font-size: clamp(1.02rem, 3.6vw, 1.22rem); line-height: 1.3; font-weight: 800; letter-spacing: -.01em; color: #0f172a; }
+.pf-intro { margin-top: 1rem; display: grid; gap: .9rem; }
+.pf-intro p { color: #334155; }
+.pf-cta { display: inline-flex; align-items: center; justify-content: center; gap: .55rem; min-height: 48px; padding: .8rem 1.3rem; border: 0; border-radius: 999px; cursor: pointer; font: 800 .98rem/1.2 var(--bh-ielts-font-body); color: #fff;
+  background: linear-gradient(135deg, #312e81, #1746B0 55%, #0e7490); box-shadow: 0 10px 24px rgba(23, 70, 176, .32); transition: transform .12s ease, box-shadow .2s ease; }
+.pf-cta:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 30px rgba(23, 70, 176, .38); }
+.pf-cta:disabled { opacity: .6; cursor: progress; }
+.pf-cta:focus-visible, .pf-link:focus-visible { outline: 3px solid var(--bh-ielts-focus); outline-offset: 3px; }
+.pf-working { display: flex; align-items: center; gap: .9rem; padding: .9rem 1rem; border-radius: 16px; background: #fff; border: 1px dashed #c7d2fe; color: #312e81; font-weight: 700; }
+.pf-wave { display: inline-flex; align-items: center; gap: 3px; height: 26px; }
+.pf-wave i { display: block; width: 4px; height: 100%; border-radius: 4px; background: linear-gradient(#4f46e5, #0e7490); animation: pf-wave 1s ease-in-out infinite; transform-origin: center; }
+@keyframes pf-wave { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+.pf-error { margin-top: .8rem !important; padding: .7rem .9rem; border-radius: 12px; background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; font-weight: 600; }
+
+.pf-transcript { margin-top: 1rem; }
+.pf-link { background: none; border: 0; padding: .3rem 0; color: #1746B0; font: 700 .9rem/1.3 var(--bh-ielts-font-body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.pf-transcript blockquote { margin-top: .5rem; padding: .8rem 1rem; border-left: 4px solid #a5b4fc; border-radius: 0 14px 14px 0; background: #fff; color: #334155; font-style: italic; white-space: pre-line; }
+
+.pf-criteria { margin-top: 1rem; display: grid; gap: .8rem; }
+.pf-card { padding: 1rem 1.05rem; border-radius: 18px; background: #fff; border: 1px solid #e2e8f0; box-shadow: 0 4px 14px rgba(15, 23, 42, .05); animation: pf-rise .45s both; animation-delay: calc(var(--n, 0) * 80ms); }
+@keyframes pf-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.pf-card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .45rem .8rem; }
+.pf-card h3 { font-size: 1rem; font-weight: 800; color: #0f172a; }
+.pf-chip { display: inline-flex; padding: .22rem .65rem; border-radius: 999px; font-size: .78rem; font-weight: 800; color: #3730a3; background: #eef2ff; border: 1px solid #c7d2fe; }
+.pf-chip--muted { color: #475569; background: #f8fafc; border-color: #e2e8f0; }
+.pf-scale { margin: .7rem 0 .2rem; }
+.pf-scale-track { position: relative; height: 10px; border-radius: 999px; background: repeating-linear-gradient(90deg, #eef2f7 0 calc(100% / 9 - 2px), #fff calc(100% / 9 - 2px) calc(100% / 9)); border: 1px solid #e2e8f0; }
+.pf-scale-range { position: absolute; top: -3px; bottom: -3px; border-radius: 999px; background: linear-gradient(90deg, #4f46e5, #0e7490); box-shadow: 0 4px 12px rgba(79, 70, 229, .35); }
+.pf-scale-marks { display: flex; justify-content: space-between; margin-top: .25rem; font-size: .66rem; font-weight: 700; color: #94a3b8; }
+.pf-comment { margin-top: .55rem !important; color: #1e293b; }
+.pf-quotes { list-style: none; padding: 0; margin-top: .55rem !important; display: grid; gap: .35rem; }
+.pf-quotes mark { display: inline; padding: .1rem .35rem; border-radius: 6px; background: linear-gradient(transparent 35%, #fde68a 35%); color: #422006; font-style: italic; }
+.pf-action { margin-top: .65rem !important; padding: .65rem .8rem; border-radius: 12px; background: #f0fdfa; border: 1px solid #99f6e4; color: #134e4a; }
+.pf-action strong { display: inline-block; margin-right: .4rem; padding: .05rem .5rem; border-radius: 999px; background: #0e7490; color: #fff; font-size: .74rem; letter-spacing: .04em; text-transform: uppercase; vertical-align: 1px; }
+.pf-next { display: flex; gap: .7rem; align-items: flex-start; margin-top: 1rem; padding: .9rem 1rem; border-radius: 16px; color: #fff; background: linear-gradient(135deg, #0f172a, #1e3a8a); }
+.pf-next span { font-size: 1.2rem; }
+.pf-next p { color: #e0e7ff; }
+.pf-next strong { color: #fff; }
+.pf-note { margin-top: .8rem !important; }
+.pf-fine { margin-top: .8rem !important; color: #64748b; font-size: .82rem; }
+.pf-teacher { margin-top: 1rem; display: grid; gap: .6rem; }
+.pf-teacher label { display: grid; gap: .35rem; font-weight: 700; }
+.pf-teacher textarea { width: 100%; min-height: 4rem; padding: .6rem; border-radius: 10px; border: 1px solid var(--bh-ielts-input-border); font: inherit; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-card, .pf-wave i { animation: none; }
+  .pf-cta { transition: none; }
+}
+.pf-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.pf-estimate { position: relative; display: grid; justify-items: end; line-height: 1.05; }
+.pf-estimate small { font-size: .64rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #6366f1; }
+.pf-estimate b { font-size: 1.3rem; font-weight: 900; letter-spacing: -.02em; background: linear-gradient(90deg, #4f46e5, #0e7490); -webkit-background-clip: text; background-clip: text; color: transparent; font-variant-numeric: tabular-nums; }
+.pf-card-head { flex-wrap: nowrap; align-items: flex-start; }
+.pf-estimate b { white-space: nowrap; }

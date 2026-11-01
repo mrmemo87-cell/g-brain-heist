@@ -38,3 +38,6 @@ verify_jwt = true
 
 [functions.ielts_practice_writing_feedback]
 verify_jwt = true
+
+[functions.ielts_practice_speaking_feedback]
+verify_jwt = true

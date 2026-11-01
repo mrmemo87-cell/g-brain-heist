@@ -90,7 +90,10 @@ test('revised extensions are owner approved, with substantive independent checks
     assert.equal(lesson.approval_record?.version, lesson.version);
     assert.equal(lesson.approval_record?.date, '2026-10-26');
     assert.ok(!lesson.release_blockers.some((b) => /owner approval/i.test(b)), lesson.code + ': stale approval blocker');
-    assert.deepEqual(lesson.bibles, currentBibleVersions());
+    // Approved sources keep the Bible versions they were approved under (lesson-source-contract bibleVersionErrors);
+    // a later Bible revision neither re-certifies nor invalidates them.
+    assert.deepEqual(bibleVersionErrors(lesson, currentBibleVersions()), [], lesson.code + ': Bible versions');
+    assert.deepEqual(lesson.bibles, { diagnostic: '2.0.0', lessons: '1.2.0', visual: '1.2.0' }, lesson.code + ': approved under');
     assert.equal(lesson.previous_approval_record?.version, '1.0.0');
     assert.doesNotMatch(lesson.status, /merged/i, lesson.code + ': status must stay true after the PR is merged');
   }

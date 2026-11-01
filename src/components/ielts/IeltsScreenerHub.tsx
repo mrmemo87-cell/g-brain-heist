@@ -9,6 +9,8 @@ import {
 } from '../../../services/ieltsStartingPointService';
 import '../../styles/ielts-journey.css';
 import { createIeltsViewCache } from '../../lib/ieltsViewCache';
+import { useIeltsAudience } from '../../lib/ieltsAudience';
+import type { StartingPointSkill } from '../../../services/ieltsStartingPointService';
 import { IeltsScreenerCard } from './IeltsScreenerCard';
 /** Last summary read in this tab, so returning to Home does not flash a loading panel. */
 const startingPointCache = createIeltsViewCache<IeltsStartingPoint>();
@@ -49,20 +51,28 @@ const IeltsScreenerHub: React.FC<{ data?: IeltsStartingPoint }> = ({
     };
   }, [data, retry]);
   const record = data ?? loaded;
+  const audience = useIeltsAudience();
+  // Diagnostic Bible 2.1.0 section 10.6: Writing and Speaking checks need a teacher's review, so learners
+  // without a school IELTS teacher see only the auto-scored checks, plus any check they already started.
+  const skills: readonly StartingPointSkill[] = audience === 'school' || !record || record.school_managed
+    ? startingPointSkills
+    : startingPointSkills.filter((s) => s === 'listening' || s === 'reading'
+      || Boolean(record.results[s]) || ['in_progress', 'completed'].includes(startingPointEntry(record, s)?.status ?? ''));
   const completed = record
-    ? startingPointSkills.filter((s) => startingPointCompleted(record, s))
-        .length
+    ? skills.filter((s) => startingPointCompleted(record, s)).length
     : 0;
+  const total = skills.length;
+  const numberWord = ['', 'One', 'Two', 'Three', 'Four'][total] ?? String(total);
   return (
     <section aria-labelledby="ielts-screeners-heading" className="ij-checks">
       <div className="ij-section-heading">
         <div>
-          <p className="ij-eyebrow">Four skills. One starting point.</p>
+          <p className="ij-eyebrow">{numberWord} {total === 1 ? 'skill' : 'skills'}. One starting point.</p>
           <h2 id="ielts-screeners-heading">Your starting-point checks</h2>
           <p>Start a check, continue saved work or review a result.</p>
         </div>
         {record && (
-          <span className="ij-status">{completed} of 4 completed</span>
+          <span className="ij-status">{completed} of {total} completed</span>
         )}
       </div>
       {!data && loading ? (
@@ -83,7 +93,7 @@ const IeltsScreenerHub: React.FC<{ data?: IeltsStartingPoint }> = ({
       ) : record ? (
         <>
           <div className="ij-skill-grid">
-            {startingPointSkills.map((skill) => (
+            {skills.map((skill) => (
               <IeltsScreenerCard
                 key={skill}
                 skill={skill}
@@ -96,7 +106,7 @@ const IeltsScreenerHub: React.FC<{ data?: IeltsStartingPoint }> = ({
             ))}
           </div>
           <p className="ij-caption">
-            These checks show your starting point. Completing all four does not
+            These checks show your starting point. Completing them does not
             give an IELTS band.
           </p>
         </>

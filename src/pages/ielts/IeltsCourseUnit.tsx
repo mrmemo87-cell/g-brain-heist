@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../styles/ielts-course.css';
 import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell';
@@ -6,7 +6,6 @@ import {
   IELTS_COURSE_ROUTE,
   fetchIeltsCourseUnit,
   ieltsCourseAccessMessage,
-  ieltsCourseSkillLabel,
   ieltsCourseTaskRoute,
   ieltsCourseUnitRoute,
   markIeltsCourseLessonViewed,
@@ -14,17 +13,38 @@ import {
   type IeltsCourseUnitDetail,
   type IeltsCourseUnitLocked,
 } from '../../../services/ieltsCourseService';
+import { chapterFor, primarySkill, skillTheme } from './ieltsCourseTheme';
 
 type UnitData = IeltsCourseUnitDetail | IeltsCourseUnitLocked;
 type Step = 'lesson' | 'practice' | 'done';
+type Card =
+  | { kind: 'cover' }
+  | { kind: 'section'; title: string; body: string; n: number }
+  | { kind: 'example'; label: string; text: string }
+  | { kind: 'tips'; tips: string[] }
+  | { kind: 'ready' };
 
 const isLocked = (unit: UnitData): unit is IeltsCourseUnitLocked => unit.unlocked === false;
+/** Celebrate a cleared unit once per device, the first time its completion is seen. */
+const celebrationKey = (id: number) => `bh_ielts_course_cleared_${id}`;
+const celebrated = (id: number) => { try { return localStorage.getItem(celebrationKey(id)) === '1'; } catch { return true; } };
+const markCelebrated = (id: number) => { try { localStorage.setItem(celebrationKey(id), '1'); } catch { /* storage unavailable */ } };
+const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-const skillIcon: Record<string, string> = { reading: 'R', listening: 'L', writing: 'W', speaking: 'S' };
+function Confetti() {
+  const pieces = useMemo(() => Array.from({ length: 36 }).map((_, i) => ({
+    left: (i * 37) % 100,
+    delay: (i % 9) * 70,
+    hue: ['#34d399', '#60a5fa', '#a78bfa', '#fbbf24', '#f472b6', '#22d3ee'][i % 6],
+    rot: (i * 47) % 360,
+  })), []);
+  if (reducedMotion()) return null;
+  return <div className="ic-confetti" aria-hidden="true">{pieces.map((p, i) => <i key={i} style={{ left: `${p.left}%`, animationDelay: `${p.delay}ms`, background: p.hue, transform: `rotate(${p.rot}deg)` }} />)}</div>;
+}
 
 /**
- * One course unit: a short lesson, then its practice tasks, then a completion banner
- * with the link to the next unit. The lesson is step one; opening practice marks it read.
+ * One course unit: a lesson told as story cards (swipe or use the buttons), then the unit's practice, then a
+ * celebration with the way to the next unit. Opening practice records the lesson as read.
  */
 const IeltsCourseUnit: React.FC = () => {
   const navigate = useNavigate();
@@ -33,27 +53,60 @@ const IeltsCourseUnit: React.FC = () => {
   const [unit, setUnit] = useState<UnitData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<Step>('lesson');
+  const [card, setCard] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
+  const touch = useRef<number | null>(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
 
   const load = useCallback(async () => {
     if (!Number.isFinite(unitId) || unitId <= 0) { setError('This unit is not available.'); return; }
     setError(null);
     try {
-      // Stamp completion if tasks were finished since the last visit, then read fresh state.
       await syncIeltsCourseProgress(unitId);
       const next = await fetchIeltsCourseUnit(unitId);
       setUnit(next);
+      if (!isLocked(next) && next.completed && !celebrated(next.id)) { markCelebrated(next.id); setCelebrate(true); }
       if (!isLocked(next)) setStep(next.completed ? 'done' : next.lesson_viewed ? 'practice' : 'lesson');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'The unit could not load.');
     }
   }, [unitId]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { setUnit(null); setCard(0); setCelebrate(false); void load(); }, [load]);
   useEffect(() => { window.scrollTo({ top: 0 }); }, [step, unitId]);
 
   const detail = unit && !isLocked(unit) ? unit : null;
-  const doneCount = useMemo(() => detail ? detail.tasks.filter((task) => task.completed).length : 0, [detail]);
+  const skill = detail ? primarySkill(detail.focus_skills) : 'reading';
+  const theme = skillTheme[skill];
+  const doneCount = detail ? detail.tasks.filter((t) => t.completed).length : 0;
+
+  const cards: Card[] = useMemo(() => {
+    if (!detail) return [];
+    const list: Card[] = [{ kind: 'cover' }];
+    (detail.lesson.sections ?? []).forEach((s, i) => list.push({ kind: 'section', title: s.title, body: s.body, n: i + 1 }));
+    if (detail.lesson.example) list.push({ kind: 'example', ...detail.lesson.example });
+    if (detail.lesson.tips?.length) list.push({ kind: 'tips', tips: detail.lesson.tips });
+    list.push({ kind: 'ready' });
+    return list;
+  }, [detail]);
+
+  const go = (delta: number) => {
+    setCard((c) => Math.max(0, Math.min(cards.length - 1, c + delta)));
+    cardRef.current?.focus({ preventScroll: true });
+  };
+
+  useEffect(() => {
+    if (step !== 'lesson') return;
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+      if (e.key === 'ArrowRight') go(1);
+      if (e.key === 'ArrowLeft') go(-1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
 
   const startPractice = async () => {
     if (!detail) return;
@@ -62,6 +115,7 @@ const IeltsCourseUnit: React.FC = () => {
       const result = await markIeltsCourseLessonViewed(detail.id);
       setUnit({ ...detail, lesson_viewed: true, completed: result.completed });
       setStep(result.completed ? 'done' : 'practice');
+      if (result.completed && !celebrated(detail.id)) { markCelebrated(detail.id); setCelebrate(true); }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Your progress could not be saved.');
     } finally {
@@ -69,142 +123,214 @@ const IeltsCourseUnit: React.FC = () => {
     }
   };
 
-  const openTask = (route: string) => {
-    if (!detail) return;
-    navigate(ieltsCourseTaskRoute({ route }, detail.id));
-  };
+  const openTask = (route: string) => { if (detail) navigate(ieltsCourseTaskRoute({ route }, detail.id)); };
+  const current = cards[card];
 
   return (
     <IeltsStudentShell focus={{ label: 'Course map', to: IELTS_COURSE_ROUTE }}>
-      <div className="ic-page ic-page--embedded">
-      <main className="ic-main">
+      <div className="ic-page ic-page--embedded" style={{ ['--tone' as string]: theme.tone, ['--soft' as string]: theme.soft } as React.CSSProperties}>
+        <main className="ic-main">
+          {error && (
+            <div className="ic-notice ic-notice--error" role="alert">
+              <b>{error}</b>
+              <button type="button" className="ic-btn ic-btn--ghost" onClick={() => void load()}>Retry</button>
+            </div>
+          )}
 
-        {error && (
-          <div className="ic-notice ic-notice--error" role="alert">
-            <b>{error}</b>
-            <button type="button" className="ic-btn ic-btn--ghost" onClick={() => void load()}>Retry</button>
-          </div>
-        )}
+          {!unit && !error && <div className="ic-skeleton" style={{ height: 320 }} aria-busy="true" />}
 
-        {!unit && !error && <div className="ic-skeleton" style={{ height: 220 }} aria-busy="true" />}
-
-        {unit && isLocked(unit) && (
-          <section className="ic-card">
-            <div className="ic-eyebrow">Unit {unit.position}</div>
-            <h2>{unit.title}</h2>
-            {unit.subtitle && <p className="ic-unit-sub">{unit.subtitle}</p>}
-            {unit.locked_reason === 'previous_unit' ? (
-              <div className="ic-notice"><b>Finish the previous unit first.</b><span>Units unlock in order so each technique builds on the last.</span></div>
-            ) : (
-              <div className="ic-notice ic-notice--warn">
-                <b>{ieltsCourseAccessMessage(unit.access_reason).title || 'This unit needs full course access.'}</b>
-                <span>{ieltsCourseAccessMessage(unit.access_reason).body}</span>
-                {unit.access_reason === 'prime_required' && (
-                  <button type="button" className="ic-btn ic-btn--primary" onClick={() => navigate('/ielts/apply-prime')}>See IELTS Prime plans</button>
-                )}
-              </div>
-            )}
-            <button type="button" className="ic-btn ic-btn--ghost" onClick={() => navigate(IELTS_COURSE_ROUTE)}>Back to the course map</button>
-          </section>
-        )}
-
-        {detail && (
-          <>
-            <section className="ic-card" aria-labelledby="ic-unit-title">
-              <div className="ic-eyebrow">Unit {detail.position} of 20 · {detail.focus_skills.map((skill) => ieltsCourseSkillLabel[skill]).join(' + ')} · about {detail.estimated_minutes} min</div>
-              <h2 id="ic-unit-title">{detail.title}</h2>
-              {detail.subtitle && <p className="ic-unit-sub">{detail.subtitle}</p>}
-              <ol className="ic-steps" aria-label="Unit steps">
-                <li aria-current={step === 'lesson' ? 'step' : undefined} className={detail.lesson_viewed ? 'ic-step--done' : ''}>1 · Lesson</li>
-                <li aria-current={step === 'practice' ? 'step' : undefined} className={doneCount === detail.tasks.length && detail.tasks.length > 0 ? 'ic-step--done' : ''}>2 · Practice ({doneCount}/{detail.tasks.length})</li>
-                <li aria-current={step === 'done' ? 'step' : undefined} className={detail.completed ? 'ic-step--done' : ''}>3 · Done</li>
-              </ol>
+          {unit && isLocked(unit) && (
+            <section className="ic-card ic-locked-card">
+              <span className="ic-locked-icon" aria-hidden="true">🔒</span>
+              <p className="ic-eyebrow">Unit {unit.position}</p>
+              <h2>{unit.title}</h2>
+              {unit.subtitle && <p className="ic-muted">{unit.subtitle}</p>}
+              {unit.locked_reason === 'previous_unit' ? (
+                <p>Finish the previous unit first. Units open in order so each technique builds on the last.</p>
+              ) : (
+                <>
+                  <p><b>{ieltsCourseAccessMessage(unit.access_reason).title || 'This unit needs full course access.'}</b> {ieltsCourseAccessMessage(unit.access_reason).body}</p>
+                  {unit.access_reason === 'prime_required' && <button type="button" className="ic-btn ic-btn--gold ic-btn--block" onClick={() => navigate('/ielts/apply-prime')}>Unlock with IELTS Prime</button>}
+                </>
+              )}
+              <button type="button" className="ic-btn ic-btn--ghost ic-btn--block" onClick={() => navigate(IELTS_COURSE_ROUTE)}>Back to the course map</button>
             </section>
+          )}
 
-            {step === 'lesson' && (
-              <section className="ic-card ic-lesson" aria-label="Lesson">
-                {detail.lesson.intro && <p>{detail.lesson.intro}</p>}
-                {(detail.lesson.sections ?? []).map((section) => (
-                  <div key={section.title} className="ic-lesson-section">
-                    <h3>{section.title}</h3>
-                    {section.body.split('\n').map((paragraph, index) => <p key={index}>{paragraph}</p>)}
-                  </div>
-                ))}
-                {detail.lesson.example && (
-                  <div className="ic-example">
-                    <div className="ic-eyebrow">{detail.lesson.example.label}</div>
-                    <p>{detail.lesson.example.text}</p>
-                  </div>
-                )}
-                {detail.lesson.tips && detail.lesson.tips.length > 0 && (
-                  <div className="ic-lesson-section">
-                    <h3>Remember</h3>
-                    <ul className="ic-tips">{detail.lesson.tips.map((tip) => <li key={tip}>{tip}</li>)}</ul>
-                  </div>
-                )}
-                <button type="button" className="ic-btn ic-btn--primary ic-btn--block" disabled={saving} onClick={() => void startPractice()}>
-                  {saving ? 'Saving…' : detail.lesson_viewed ? 'Back to practice →' : 'Got it, start practice →'}
-                </button>
-              </section>
-            )}
-
-            {step === 'practice' && (
-              <section className="ic-card" aria-label="Practice">
-                <h3>Practice</h3>
-                <p className="ic-unit-sub">Complete every task to finish the unit. Writing and Speaking count as soon as you submit.</p>
-                <div className="ic-tasklist">
-                  {detail.tasks.map((task) => (
-                    <button key={`${task.skill}-${task.task_id}`} type="button" className={`ic-task${task.completed ? ' ic-task--done' : ''}`} onClick={() => openTask(task.route)}>
-                      <span className="ic-task-icon" aria-hidden="true">{task.completed ? '✓' : skillIcon[task.skill]}</span>
-                      <span className="ic-task-body">
-                        <b>{task.title || `${ieltsCourseSkillLabel[task.skill]} practice`}</b>
-                        <span>{ieltsCourseSkillLabel[task.skill]}{task.display_code ? ` · ${task.display_code}` : ''}{task.minutes ? ` · ${task.minutes} min` : ''}</span>
-                      </span>
-                      <span className="ic-task-go">{task.completed ? 'Review' : 'Start →'}</span>
+          {detail && (
+            <>
+              <nav className="ic-unit-steps" aria-label="Unit steps">
+                {(['lesson', 'practice', 'done'] as Step[]).map((s, i) => {
+                  const complete = s === 'lesson' ? detail.lesson_viewed : s === 'practice' ? doneCount === detail.tasks.length && detail.tasks.length > 0 : detail.completed;
+                  const reachable = s === 'lesson' || (s === 'practice' && detail.lesson_viewed) || (s === 'done' && detail.completed);
+                  return (
+                    <button key={s} type="button" disabled={!reachable} aria-current={step === s ? 'step' : undefined}
+                      className={`ic-unit-step${complete ? ' is-done' : ''}`} onClick={() => setStep(s)}>
+                      <span aria-hidden="true">{complete ? '✓' : i + 1}</span>{s === 'lesson' ? 'Lesson' : s === 'practice' ? <>Practice <small className="ic-step-count">{doneCount}/{detail.tasks.length}</small></> : 'Done'}
                     </button>
-                  ))}
-                </div>
-                <div className="ic-nav">
-                  <button type="button" className="ic-btn ic-btn--ghost" onClick={() => setStep('lesson')}>Re-read the lesson</button>
-                  <button type="button" className="ic-btn ic-btn--ghost" onClick={() => void load()}>Refresh progress</button>
-                </div>
-              </section>
-            )}
+                  );
+                })}
+              </nav>
 
-            {step === 'done' && (
-              <>
-                <section className="ic-done-banner" role="status">
-                  <h2>Unit {detail.position} complete</h2>
-                  <p>{detail.next_unit_id ? 'The next unit is unlocked. Keep the momentum going.' : 'That was the last unit. You have finished the course.'}</p>
-                  {detail.next_unit_id ? (
-                    <button type="button" className="ic-btn ic-btn--light" onClick={() => navigate(ieltsCourseUnitRoute(detail.next_unit_id as number))}>Next unit →</button>
-                  ) : (
-                    <button type="button" className="ic-btn ic-btn--light" onClick={() => navigate(IELTS_COURSE_ROUTE)}>Back to the course map</button>
-                  )}
+              {step === 'lesson' && current && (
+                <section className="ic-story" aria-roledescription="carousel" aria-label="Lesson">
+                  <div className="ic-story-bars" aria-hidden="true">
+                    {cards.map((_, i) => <span key={i} className={i < card ? 'is-past' : i === card ? 'is-now' : ''} />)}
+                  </div>
+                  <div
+                    ref={cardRef}
+                    tabIndex={-1}
+                    key={card}
+                    className={`ic-story-card ic-story-card--${current.kind}`}
+                    role="group"
+                    aria-roledescription="slide"
+                    aria-label={`${card + 1} of ${cards.length}`}
+                    onTouchStart={(e) => { touch.current = e.touches[0]?.clientX ?? null; }}
+                    onTouchEnd={(e) => {
+                      const start = touch.current; touch.current = null;
+                      const end = e.changedTouches[0]?.clientX;
+                      if (start == null || end == null || Math.abs(end - start) < 50) return;
+                      go(end < start ? 1 : -1);
+                    }}
+                  >
+                    {current.kind === 'cover' && (
+                      <>
+                        <div className="ic-cover-art" aria-hidden="true">
+                          <span className="ic-cover-num">{detail.position}</span>
+                          <span className="ic-cover-icon">{theme.icon}</span>
+                        </div>
+                        <p className="ic-eyebrow">Chapter {chapterFor(detail.position).index} · {chapterFor(detail.position).title}</p>
+                        <h1 className="ic-cover-title">{detail.title}</h1>
+                        {detail.subtitle && <p className="ic-cover-sub">{detail.subtitle}</p>}
+                        <div className="ic-cover-meta">
+                          {detail.focus_skills.map((s) => <span key={s} className="ic-chip" style={{ ['--tone' as string]: skillTheme[s].tone } as React.CSSProperties}>{skillTheme[s].icon} {skillTheme[s].label}</span>)}
+                          <span className="ic-chip">⏱ {detail.estimated_minutes} min</span>
+                        </div>
+                        {detail.lesson.intro && <p className="ic-lead">{detail.lesson.intro}</p>}
+                      </>
+                    )}
+                    {current.kind === 'section' && (
+                      <>
+                        <span className="ic-section-num" aria-hidden="true">{String(current.n).padStart(2, '0')}</span>
+                        <h2>{current.title}</h2>
+                        {current.body.split('\n').map((p, i) => {
+                          const m = /^([A-Z][A-Za-z /'-]{1,24}):\s+(.*)$/.exec(p);
+                          return m ? <p key={i} className="ic-body ic-body--term"><span className="ic-term">{m[1]}</span>{m[2]}</p> : <p key={i} className="ic-body">{p}</p>;
+                        })}
+                      </>
+                    )}
+                    {current.kind === 'example' && (
+                      <>
+                        <p className="ic-eyebrow">Worked example</p>
+                        <h2>{current.label}</h2>
+                        <div className="ic-paper">
+                          <span className="ic-paper-tab" aria-hidden="true">EXAM PAPER</span>
+                          {current.text.split('\n').map((line, i) => <p key={i}>{line}</p>)}
+                        </div>
+                      </>
+                    )}
+                    {current.kind === 'tips' && (
+                      <>
+                        <p className="ic-eyebrow">Remember</p>
+                        <h2>{['', 'One thing', 'Two things', 'Three things', 'Four things', 'Five things'][current.tips.length] ?? `${current.tips.length} things`} to take into practice</h2>
+                        <ul className="ic-tips">
+                          {current.tips.map((tip, i) => <li key={tip} style={{ ['--n' as string]: i } as React.CSSProperties}><span aria-hidden="true">✓</span>{tip}</li>)}
+                        </ul>
+                      </>
+                    )}
+                    {current.kind === 'ready' && (
+                      <>
+                        <span className="ic-ready-icon" aria-hidden="true">🚀</span>
+                        <h2>Ready to practise?</h2>
+                        <p className="ic-body">Use what you just learned on {detail.tasks.length === 1 ? 'one real task' : `${detail.tasks.length} real tasks`}. Writing and Speaking get feedback in about a minute.</p>
+                        <ul className="ic-ready-list">
+                          {detail.tasks.map((t) => <li key={`${t.skill}-${t.task_id}`}><span aria-hidden="true">{skillTheme[t.skill].icon}</span>{t.title || skillTheme[t.skill].label}<small>{t.minutes ? `${t.minutes} min` : ''}</small></li>)}
+                        </ul>
+                        <button type="button" className="ic-btn ic-btn--primary ic-btn--block ic-btn--glow" disabled={saving} onClick={() => void startPractice()}>
+                          {saving ? 'Saving…' : detail.lesson_viewed ? 'Back to practice' : 'Start practice'} <span aria-hidden="true">→</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  <div className="ic-story-nav">
+                    <button type="button" className="ic-round" disabled={card === 0} onClick={() => go(-1)} aria-label="Previous card">←</button>
+                    <span className="ic-story-count" aria-live="polite">{card + 1} / {cards.length}</span>
+                    {card < cards.length - 1
+                      ? <button type="button" className="ic-round ic-round--primary" onClick={() => go(1)} aria-label="Next card">→</button>
+                      : <span className="ic-round ic-round--ghost" aria-hidden="true" />}
+                  </div>
                 </section>
-                <section className="ic-card">
-                  <h3>Review this unit</h3>
+              )}
+
+              {step === 'practice' && (
+                <section className="ic-card ic-practice" aria-label="Practice">
+                  <p className="ic-eyebrow">Unit {detail.position} · practice</p>
+                  <h2>Put it into practice</h2>
+                  <p className="ic-muted">Finish every task to clear this stop. Writing and Speaking count as soon as you submit, and you can get feedback straight after.</p>
+                  <div className="ic-practice-meter" role="progressbar" aria-valuemin={0} aria-valuemax={detail.tasks.length} aria-valuenow={doneCount} aria-label="Tasks done">
+                    <span style={{ width: `${detail.tasks.length ? (100 * doneCount) / detail.tasks.length : 0}%` }} />
+                    <b>{doneCount} of {detail.tasks.length} done</b>
+                  </div>
                   <div className="ic-tasklist">
-                    {detail.tasks.map((task) => (
-                      <button key={`${task.skill}-${task.task_id}`} type="button" className="ic-task ic-task--done" onClick={() => openTask(task.route)}>
-                        <span className="ic-task-icon" aria-hidden="true">✓</span>
-                        <span className="ic-task-body"><b>{task.title || `${ieltsCourseSkillLabel[task.skill]} practice`}</b><span>{ieltsCourseSkillLabel[task.skill]}</span></span>
-                        <span className="ic-task-go">Open</span>
+                    {detail.tasks.map((task, i) => (
+                      <button key={`${task.skill}-${task.task_id}`} type="button" className={`ic-task${task.completed ? ' ic-task--done' : ''}`}
+                        style={{ ['--tone' as string]: skillTheme[task.skill].tone, ['--soft' as string]: skillTheme[task.skill].soft, ['--n' as string]: i } as React.CSSProperties}
+                        onClick={() => openTask(task.route)}>
+                        <span className="ic-task-icon" aria-hidden="true">{task.completed ? '✓' : skillTheme[task.skill].icon}</span>
+                        <span className="ic-task-body">
+                          <b>{task.title || `${skillTheme[task.skill].label} practice`}</b>
+                          <span>{skillTheme[task.skill].label}{task.display_code ? ` · ${task.display_code}` : ''}{task.minutes ? ` · ${task.minutes} min` : ''}</span>
+                        </span>
+                        <span className="ic-task-go">{task.completed ? 'Review' : 'Start'} <span aria-hidden="true">→</span></span>
                       </button>
                     ))}
                   </div>
-                  <button type="button" className="ic-btn ic-btn--ghost" onClick={() => setStep('lesson')}>Re-read the lesson</button>
+                  <div className="ic-nav">
+                    <button type="button" className="ic-btn ic-btn--ghost" onClick={() => { setCard(0); setStep('lesson'); }}>Re-read the lesson</button>
+                    <button type="button" className="ic-btn ic-btn--ghost" onClick={() => void load()}>Refresh progress</button>
+                  </div>
                 </section>
-              </>
-            )}
+              )}
 
-            <div className="ic-nav">
-              {detail.prev_unit_id ? <button type="button" className="ic-link" onClick={() => navigate(ieltsCourseUnitRoute(detail.prev_unit_id as number))}>← Previous unit</button> : <span />}
-              {detail.completed && detail.next_unit_id ? <button type="button" className="ic-link" onClick={() => navigate(ieltsCourseUnitRoute(detail.next_unit_id as number))}>Next unit →</button> : null}
-            </div>
-          </>
-        )}
-      </main>
+              {step === 'done' && (
+                <>
+                  <section className="ic-victory" role="status">
+                    {celebrate && <Confetti />}
+                    <div className="ic-medal" aria-hidden="true"><span>{detail.position}</span></div>
+                    <p className="ic-eyebrow ic-eyebrow--light">Stop cleared</p>
+                    <h2>Unit {detail.position} complete</h2>
+                    <p>{detail.next_unit_id ? 'The next stop on your route is open. Keep the momentum going.' : 'That was the final stop. You have finished the whole route.'}</p>
+                    {detail.next_unit_id ? (
+                      <button type="button" className="ic-btn ic-btn--light ic-btn--glow" onClick={() => navigate(ieltsCourseUnitRoute(detail.next_unit_id as number))}>Next unit <span aria-hidden="true">→</span></button>
+                    ) : (
+                      <button type="button" className="ic-btn ic-btn--light" onClick={() => navigate(IELTS_COURSE_ROUTE)}>Back to the course map</button>
+                    )}
+                  </section>
+                  <section className="ic-card">
+                    <h3>Review this unit</h3>
+                    <div className="ic-tasklist">
+                      {detail.tasks.map((task) => (
+                        <button key={`${task.skill}-${task.task_id}`} type="button" className="ic-task ic-task--done"
+                          style={{ ['--tone' as string]: skillTheme[task.skill].tone, ['--soft' as string]: skillTheme[task.skill].soft } as React.CSSProperties}
+                          onClick={() => openTask(task.route)}>
+                          <span className="ic-task-icon" aria-hidden="true">✓</span>
+                          <span className="ic-task-body"><b>{task.title || skillTheme[task.skill].label}</b><span>{skillTheme[task.skill].label}</span></span>
+                          <span className="ic-task-go">Open <span aria-hidden="true">→</span></span>
+                        </button>
+                      ))}
+                    </div>
+                    <button type="button" className="ic-btn ic-btn--ghost" onClick={() => { setCard(0); setStep('lesson'); }}>Re-read the lesson</button>
+                  </section>
+                </>
+              )}
+
+              <div className="ic-nav">
+                {detail.prev_unit_id ? <button type="button" className="ic-link" onClick={() => navigate(ieltsCourseUnitRoute(detail.prev_unit_id as number))}>← Unit {detail.position - 1}</button> : <span />}
+                {detail.completed && detail.next_unit_id ? <button type="button" className="ic-link" onClick={() => navigate(ieltsCourseUnitRoute(detail.next_unit_id as number))}>Unit {detail.position + 1} →</button> : null}
+              </div>
+            </>
+          )}
+        </main>
       </div>
     </IeltsStudentShell>
   );
