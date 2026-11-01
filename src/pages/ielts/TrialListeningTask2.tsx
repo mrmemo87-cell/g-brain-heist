@@ -19,6 +19,8 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' | 'writing
   const writing = skill === 'writing';
   const reading = skill === 'reading';
   const navigate = useNavigate();
+  // On /ielts this page is the locked fallback, so "back to /ielts" would reload this same page.
+  const atIeltsHome = typeof window !== 'undefined' && window.location.pathname.replace(/\/+$/, '') === '/ielts';
   const [entries, setEntries] = useState<IeltsScreenerEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [opening, setOpening] = useState(false);
@@ -154,7 +156,7 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' | 'writing
 
         <button
           type="button"
-          onClick={() => navigate('/ielts')}
+          onClick={() => navigate(atIeltsHome ? '/ielts/course' : '/ielts')}
           style={{
             marginTop: '1.25rem',
             width: '100%',
@@ -168,7 +170,7 @@ const TrialListeningTask2: React.FC<{ skill?: 'listening' | 'reading' | 'writing
             cursor: 'pointer',
           }}
         >
-          Return to IELTS Dashboard
+          {atIeltsHome ? 'Open the IELTS course' : 'Return to IELTS home'}
         </button>
       </section>
     </main>
