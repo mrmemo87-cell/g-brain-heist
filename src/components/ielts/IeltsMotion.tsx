@@ -69,3 +69,8 @@ export function IeltsPlanChip({ index, children }: { index: number; children: Re
     </span>
   );
 }
+
+/** Calm sound bars for the Listening player button. Render only while audio is genuinely playing; still bars when motion is reduced. */
+export function IeltsListeningBars() {
+  return <span className="ixm-bars" aria-hidden="true"><i /><i /><i /><i /><i /></span>;
+}

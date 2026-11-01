@@ -14,6 +14,7 @@ import { ieltsCourseUnitRoute, readIeltsCourseUnitFromSearch } from '../../../se
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { buildListeningAttemptPayload, toRawScoreResult } from '../../lib/ieltsPracticeScoring';
 import { listeningPlayerPresentation, pauseMeansInterruption } from '../../lib/ieltsListeningPlayer';
+import { IeltsListeningBars } from '../../components/ielts/IeltsMotion';
 
 interface ListeningSet {
   originality_label?: string | null;
@@ -924,7 +925,7 @@ const ListeningPractice: React.FC = () => {
                     }}
                     aria-label={playerUi.ariaLabel}
                   >
-                    {playerUi.icon}
+                    {playerUi.icon === '♪' ? <IeltsListeningBars /> : playerUi.icon}
                   </button>
                   <div role="status" aria-live="polite" style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#64748b' }}>
                     {playerUi.message}
