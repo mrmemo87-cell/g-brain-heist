@@ -15,6 +15,7 @@ import IeltsScreenerHub from '../../../components/ielts/IeltsScreenerHub';
 import IeltsSkillIcon from '../../../components/ielts/IeltsSkillIcon';
 import { IeltsCardGroup } from '../../../components/ielts/student/IeltsStudentShell';
 import '../../../styles/ielts-journey.css';
+import { useIeltsAudience } from '../../../lib/ieltsAudience';
 const IeltsStudentLearningPlan = React.lazy(() => import('./IeltsStudentLearningPlan'));
 const title = (s: string) => s[0].toUpperCase() + s.slice(1);
 const date = (v?: string | null) =>
@@ -36,13 +37,24 @@ export default function IeltsStudentJourney({
   onSetTargetBand?: () => void;
 }) {
   const navigate = useNavigate();
-  const completed = startingPointSkills.filter((s) =>
+  // Diagnostic Bible 2.1.0 section 10.6: self-paced learners have no teacher; never point them at one.
+  const audience = useIeltsAudience();
+  const selfPaced = audience === 'independent' && !startingPoint.school_managed;
+  const visibleSkills = selfPaced
+    ? startingPointSkills.filter((s) => s === 'listening' || s === 'reading' || Boolean(startingPoint.results[s]))
+    : startingPointSkills;
+  const completed = visibleSkills.filter((s) =>
     startingPointCompleted(startingPoint, s),
   ).length;
   const reviews = (['writing', 'speaking'] as const).filter(
     (s) => startingPoint.results[s]?.review,
   );
-  const next = journeyNextStep(startingPoint, journey);
+  const selfPacedMissing = (['listening', 'reading'] as const).find((s) => !startingPointCompleted(startingPoint, s) && !startingPoint.results[s]);
+  const next = !selfPaced
+    ? journeyNextStep(startingPoint, journey)
+    : selfPacedMissing
+      ? { title: `Your ${title(selfPacedMissing)} starting point`, description: 'Complete this short, automatically marked check to see where you are starting from.', label: 'Open check', route: startingPointRoute(selfPacedMissing) }
+      : { title: 'Keep going with the course', description: 'Your next unit has a short lesson and practice with Brains Heist feedback on Writing and Speaking.', label: 'Open the course', route: '/ielts/course' };
   const continueTo = (route: string) => {
     if (!route.startsWith('#')) {
       navigate(route);
@@ -109,11 +121,11 @@ export default function IeltsStudentJourney({
         >
           <strong>
             {completed}
-            <span>/ 4</span>
+            <span>/ {visibleSkills.length}</span>
           </strong>
           <span>checks completed</span>
           <div className="ij-progress-segments" aria-hidden="true">
-            {startingPointSkills.map((s) => (
+            {visibleSkills.map((s) => (
               <i
                 key={s}
                 className={
@@ -122,7 +134,7 @@ export default function IeltsStudentJourney({
               />
             ))}
           </div>
-          <small>{reviews.length} of 2 teacher reviews shared</small>
+          {!selfPaced && <small>{reviews.length} of 2 teacher reviews shared</small>}
         </div>
       </header>
       <section className="ij-next" aria-labelledby="next-step-heading">
@@ -140,10 +152,10 @@ export default function IeltsStudentJourney({
           <span aria-hidden="true"> →</span>
         </button>
       </section>
-      <IeltsCardGroup id="checks" title="Starting checks" count={`${completed} of 4`} tone={completed === 4 ? 'done' : 'todo'} defaultOpen={completed < 4}>
+      <IeltsCardGroup id="checks" title="Starting checks" count={`${completed} of ${visibleSkills.length}`} tone={completed === visibleSkills.length ? 'done' : 'todo'} defaultOpen={completed < visibleSkills.length}>
         <IeltsScreenerHub data={startingPoint} />
       </IeltsCardGroup>
-      <section
+      {(!selfPaced || reviews.length > 0 || journey.teacher_feedback.length > 0) && <section
         id="teacher-feedback"
         aria-labelledby="teacher-feedback-heading"
         className="ij-feedback-section"
@@ -255,7 +267,7 @@ export default function IeltsStudentJourney({
             ))}
           </details>
         )}
-      </section>
+      </section>}
       {startingPoint.school_managed && <React.Suspense fallback={<p>Opening learning plans…</p>}><IeltsStudentLearningPlan /></React.Suspense>}
       <details aria-labelledby="learning-trail-heading" className="ij-panel isn-fold">
         <summary className="ij-section-heading">
@@ -380,8 +392,9 @@ export default function IeltsStudentJourney({
         <details>
           <summary>How will we know I am improving?</summary>
           <p>
-            Your teacher will compare fresh tasks that assess the same area
-            under suitable conditions, then check again later. Repeating these
+            {selfPaced
+              ? 'Fresh tasks on the same area, done some weeks apart, show real change. Repeating these'
+              : 'Your teacher will compare fresh tasks that assess the same area under suitable conditions, then check again later. Repeating these'}
             screeners or correcting the same essay is useful practice, but does
             not prove independent improvement.
           </p>
@@ -423,7 +436,7 @@ export default function IeltsStudentJourney({
             </li>
           </ul>
           <p>
-            Your teacher can help plan the next assessments. Any future estimate
+            {selfPaced ? 'Course practice helps you prepare.' : 'Your teacher can help plan the next assessments.'} Any future estimate
             must show its evidence and confidence; it will not be an official
             IELTS result.
           </p>
@@ -433,7 +446,7 @@ export default function IeltsStudentJourney({
             <strong>Your goal:</strong>{' '}
             {journey.target_band != null
               ? `Band ${journey.target_band.toFixed(1)}`
-              : 'Agree a target with your teacher'}
+              : selfPaced ? 'Set a target band' : 'Agree a target with your teacher'}
             <small>A target is a goal, not your current level.</small>
           </span>
           {onSetTargetBand && (

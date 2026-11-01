@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSmartCollapsedNavigation } from '../../../hooks/useSmartCollapsedNavigation';
 import { openSet, openTargeted, useIeltsStudentWork } from './useIeltsStudentWork';
-import { getEntitlements } from '../../../../services/entitlementService';
+import { useIeltsAudience } from '../../../lib/ieltsAudience';
 import '../../../styles/ielts-navigation.css';
 import '../../../styles/ielts-student-shell.css';
 
@@ -23,19 +23,6 @@ const TABS: { id: IeltsStudentTab; route: string; label: string; icon: string; h
 
 /** Teacher assignments and targeted tasks exist only for learners whose school includes IELTS. */
 const SCHOOL_ONLY_TABS: IeltsStudentTab[] = ['assigned', 'targeted'];
-let schoolIeltsCache: boolean | null = null;
-function useSchoolIeltsLearner(): boolean {
-  const [value, setValue] = React.useState<boolean>(schoolIeltsCache ?? false);
-  React.useEffect(() => {
-    if (schoolIeltsCache !== null) return;
-    let alive = true;
-    getEntitlements()
-      .then((e) => { schoolIeltsCache = Boolean(e.schoolId && e.programmeAccess.ielts.available); if (alive) setValue(schoolIeltsCache); })
-      .catch(() => { /* keep the independent-learner tabs */ });
-    return () => { alive = false; };
-  }, []);
-  return value;
-}
 
 /**
  * The IELTS student navigation, styled like the Brains Heist student bar: a bottom bar with badges on phones and
@@ -44,7 +31,7 @@ function useSchoolIeltsLearner(): boolean {
 function IeltsStudentNav({ active }: { active: IeltsStudentTab }) {
   const navigate = useNavigate();
   const work = useIeltsStudentWork();
-  const schoolLearner = useSchoolIeltsLearner();
+  const schoolLearner = useIeltsAudience() === 'school';
   const tabs = TABS.filter((t) => schoolLearner || t.id === active || !SCHOOL_ONLY_TABS.includes(t.id));
   const { navigationRef, revealNavigation } = useNavMotion(active, '(max-width: 1024px)');
   const badges: Partial<Record<IeltsStudentTab, number>> = {

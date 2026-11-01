@@ -1,8 +1,8 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.2.0
-**Effective date:** 2026-10-19  
+**Version:** 1.3.0
+**Effective date:** 2026-11-01  
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
 
@@ -244,6 +244,7 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 
 ### 13.3 AI practice feedback (Diagnostic Bible section 10.5)
 - Place the label "AI practice feedback — your teacher may adjust it" at the top of the feedback panel, not in a footnote.
+- For learners without a school (Diagnostic Bible 10.6) the label at the top is "Brains Heist feedback — an estimate, not an official IELTS result". Never show "teacher" wording to them.
 - When a teacher has confirmed the feedback, the label changes to "Checked by [teacher name], [date]".
 - Quoted examples from the student's work are highlighted inline, each with one revision action.
 - Practice indications appear as ranges per criterion, never as an overall band.
@@ -262,7 +263,18 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 - Every practice task has a quiet "Report a problem" text control, reachable by keyboard, that opens a short form.
 - The mock capture screen is keyboard-first: one row per student, one column per item, Tab moves to the next item, and the save state is visible per row.
 
-### 13.6 Revision record — 1.2.0 (2026-10-19)
+### 13.6 Self-paced course (Diagnostic Bible section 10.6)
+- The course map is a single winding path of units; milestones group units; the current unit is always identifiable by text ("You are here"), not only by colour or motion.
+- A lesson is shown one section per card with visible step progress and Previous/Next buttons (44 px), swipe optional; every card remains readable with reduced motion.
+- Celebration motion (confetti) is decorative, short, never blocks input and is skipped under reduced motion.
+- Criterion estimate ranges may be drawn on a 0–9 scale bar; the bar always carries the text range and never an overall band.
+
+### 13.7 Revision record — 1.3.0 (2026-11-01)
+**Authority.** Owner instruction on 2026-11-01 (self-paced learners have no teacher; premium course presentation) and Diagnostic Bible 2.1.0.
+
+**Change.** Section 13.3 adds the label for learners without a school; new section 13.6 covers the course map, lesson cards, celebration motion and estimate range bars.
+
+### 13.8 Revision record — 1.2.0 (2026-10-19)
 **Authority.** Owner instruction on 2026-10-19 aligning the Bibles with best practice for results, and Diagnostic Bible 2.0.0.
 
 **Change.** New presentation contracts for:
