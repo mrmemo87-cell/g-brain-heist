@@ -7,7 +7,7 @@ const read = (path: string) => readFileSync(path, 'utf8');
 test('students open Academic Progress inside the Learn tab', () => {
   const app = read('App.tsx');
   assert.match(app, /studentLearningView.*academic-profile/);
-  assert.match(app, /Open Academic Progress/);
+  assert.match(app, /key: 'progress' as const[^\n]*onOpen: \(\) => setStudentLearningView\('academic-profile'\)/);
   assert.match(app, /<StudentAcademicProfile/);
   assert.match(app, /onClose=\{\(\) => setStudentLearningView\('catalog'\)\}/);
 });

@@ -58,8 +58,8 @@ test('clan and leaderboard render directly inside the persistent dashboard shell
 });
 
 test('student learning tools share one visible primary action system', () => {
-  assert.match(app, /student-learning-grid/);
-  assert.match(app, /student-learning-card/g);
+  assert.match(app, /<LearnHub/);
+  assert.match(styles, /\.learn-tile__main[^}]*transition/s);
   assert.match(app, /student-primary-button/g);
   assert.match(styles, /\.student-primary-button[^}]*background:\s*linear-gradient/s);
   assert.match(styles, /\.student-primary-button[^}]*color:\s*var\(--student-on-accent\) !important/s);

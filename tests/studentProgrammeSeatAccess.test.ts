@@ -25,7 +25,8 @@ test('student catalogue distinguishes purchase from named-seat allocation', () =
   assert.match(migration, /seat_not_allocated/);
   assert.match(entitlements, /programmeAccess/);
   assert.match(app, /You're not selected for this program\. Ask your school admin if you need it\./);
-  assert.match(app, /Send a request to the school admin/);
+  assert.match(app, /locked: !canUseSchoolModule\('cambridge'\)/);
+  assert.match(read('components/student/LearnHub.tsx'), /Ask your school/);
 });
 
 test('direct IELTS routes fail closed for school accounts without programme access', () => {
