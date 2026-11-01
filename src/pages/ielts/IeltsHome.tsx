@@ -32,12 +32,29 @@ import IeltsPrimeDashboard from '../../components/ielts/IeltsPrimeDashboard';
 import IeltsSchoolLearnerLinks from '../../components/ielts/IeltsSchoolLearnerLinks';
 import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell';
 import IeltsStudentHome from '../../components/ielts/student/IeltsStudentHome';
+import { createIeltsViewCache } from '../../lib/ieltsViewCache';
+
+/**
+ * What this learner's IELTS home looked like on the last visit in this tab. Returning to Home paints it at once
+ * instead of a full-screen loader; the profile and dashboard are still re-read in the background every visit.
+ * Wiped automatically when the signed-in account changes.
+ */
+type IeltsHomeSnapshot = {
+  userId: string;
+  role: string;
+  platformAdmin: boolean;
+  canAdminister: boolean;
+  hasSchool: boolean;
+  summary: IeltsDashboardSummary | null;
+};
+const homeSnapshotCache = createIeltsViewCache<IeltsHomeSnapshot>();
 
 const IeltsHome: React.FC = () => {
+  const [warm] = useState(() => homeSnapshotCache.get());
   const navigate = useNavigate();
   const dashboardEventTrackedRef = useRef(false);
   const landingEventTrackedRef = useRef(false);
-  const authUserIdRef = useRef<string | null>(null);
+  const authUserIdRef = useRef<string | null>(warm?.userId ?? null);
   const primeRedirectUrl = '/ielts/apply-prime';
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [readingSets, setReadingSets] = useState<IELTSReadingSet[]>([]);
@@ -48,22 +65,22 @@ const IeltsHome: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userTier, setUserTier] = useState('free');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authUserId, setAuthUserId] = useState<string | null>(null);
-  const [authResolved, setAuthResolved] = useState(false);
-  const [userRole, setUserRole] = useState<string>('student');
-  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
-  const [canAdministerSchool, setCanAdministerSchool] = useState(false);
-  const [hasSchoolMembership, setHasSchoolMembership] = useState(false);
-  const [profileContextLoaded, setProfileContextLoaded] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(Boolean(warm));
+  const [authUserId, setAuthUserId] = useState<string | null>(warm?.userId ?? null);
+  const [authResolved, setAuthResolved] = useState(Boolean(warm));
+  const [userRole, setUserRole] = useState<string>(warm?.role ?? 'student');
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(warm?.platformAdmin ?? false);
+  const [canAdministerSchool, setCanAdministerSchool] = useState(warm?.canAdminister ?? false);
+  const [hasSchoolMembership, setHasSchoolMembership] = useState(warm?.hasSchool ?? false);
+  const [profileContextLoaded, setProfileContextLoaded] = useState(Boolean(warm));
   const [profileContextError, setProfileContextError] = useState(false);
   const [profileContextRetry, setProfileContextRetry] = useState(0);
   const [extraPracticeEnabled, setExtraPracticeEnabled] = useState<boolean | null>(null);
   const [extraPracticeAccessError, setExtraPracticeAccessError] = useState(false);
   const [extraPracticeRetry, setExtraPracticeRetry] = useState(0);
-  const [dashboardSummary, setDashboardSummary] = useState<IeltsDashboardSummary | null>(null);
+  const [dashboardSummary, setDashboardSummary] = useState<IeltsDashboardSummary | null>(warm?.summary ?? null);
   const [dashboardLoading, setDashboardLoading] = useState(false);
-  const [dashboardLoaded, setDashboardLoaded] = useState(false);
+  const [dashboardLoaded, setDashboardLoaded] = useState(Boolean(warm?.summary));
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
   const isIeltsAdminLandingRole = isPlatformAdmin || canAdministerSchool || normalizeIeltsRole(userRole) === 'teacher';
@@ -193,10 +210,13 @@ const IeltsHome: React.FC = () => {
     const loadProfileContext = async () => {
       if (!authResolved) return;
 
-      setProfileContextLoaded(false);
+      const warmProfile = Boolean(authUserId) && homeSnapshotCache.get()?.userId === authUserId;
+      if (!warmProfile) {
+        setProfileContextLoaded(false);
+        setCanAdministerSchool(false);
+        setHasSchoolMembership(false);
+      }
       setProfileContextError(false);
-      setCanAdministerSchool(false);
-      setHasSchoolMembership(false);
 
       if (!isAuthenticated || !authUserId) {
         setUserRole('student');
@@ -241,6 +261,17 @@ const IeltsHome: React.FC = () => {
 
       if ((profileError && !schoolCapabilities?.can_administer) || (capabilityResolution.status === 'error' && !platformAdmin)) {
         setProfileContextError(true);
+        homeSnapshotCache.clear();
+      } else {
+        const previous = homeSnapshotCache.get();
+        homeSnapshotCache.set({
+          userId: auth.user.id,
+          role: typedProfile?.role || 'student',
+          platformAdmin,
+          canAdminister: Boolean(schoolCapabilities?.can_administer),
+          hasSchool: Boolean(schoolCapabilities),
+          summary: previous?.userId === auth.user.id ? previous.summary : null,
+        });
       }
       setProfileContextLoaded(true);
     };
@@ -282,8 +313,11 @@ const IeltsHome: React.FC = () => {
     if (isSchoolStudentWorkspace) return () => { active = false; };
 
     const loadDashboard = async () => {
-      setDashboardLoading(true);
-      setDashboardLoaded(false);
+      const warmSummary = homeSnapshotCache.get()?.userId === authUserId && Boolean(homeSnapshotCache.get()?.summary);
+      if (!warmSummary) {
+        setDashboardLoading(true);
+        setDashboardLoaded(false);
+      }
       const recentSubmittedAt = Number(window.localStorage.getItem('ielts_diagnostic_submitted_recently') || 0);
       const shouldRetryDiagnostic = recentSubmittedAt > 0 && Date.now() - recentSubmittedAt < 2 * 60 * 1000;
       const maxAttempts = shouldRetryDiagnostic ? 3 : 1;
@@ -301,6 +335,8 @@ const IeltsHome: React.FC = () => {
       }
 
       if (!active) return;
+      const snapshot = homeSnapshotCache.get();
+      if (snapshot && snapshot.userId === authUserId) homeSnapshotCache.set({ ...snapshot, summary: latestSummary });
       setDashboardSummary(latestSummary);
       setDashboardLoaded(true);
       setDashboardLoading(false);

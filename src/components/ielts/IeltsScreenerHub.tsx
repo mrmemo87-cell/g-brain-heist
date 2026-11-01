@@ -8,27 +8,35 @@ import {
   type IeltsStartingPoint,
 } from '../../../services/ieltsStartingPointService';
 import '../../styles/ielts-journey.css';
+import { createIeltsViewCache } from '../../lib/ieltsViewCache';
 import { IeltsScreenerCard } from './IeltsScreenerCard';
+/** Last summary read in this tab, so returning to Home does not flash a loading panel. */
+const startingPointCache = createIeltsViewCache<IeltsStartingPoint>();
+
 const IeltsScreenerHub: React.FC<{ data?: IeltsStartingPoint }> = ({
   data,
 }) => {
   const navigate = useNavigate();
-  const [loaded, setLoaded] = useState<IeltsStartingPoint | null>(null);
-  const [loading, setLoading] = useState(!data),
+  const [loaded, setLoaded] = useState<IeltsStartingPoint | null>(() => startingPointCache.get());
+  const [loading, setLoading] = useState(!data && !startingPointCache.get()),
     [error, setError] = useState(''),
     [retry, setRetry] = useState(0);
   useEffect(() => {
     if (data) return;
     let active = true;
-    setLoading(true);
+    const quiet = Boolean(startingPointCache.get()) && retry === 0;
+    if (!quiet) {
+      setLoading(true);
+      setLoaded(null);
+    }
     setError('');
-    setLoaded(null);
     fetchIeltsStartingPoint()
       .then((value) => {
+        startingPointCache.set(value);
         if (active) setLoaded(value);
       })
       .catch(() => {
-        if (active)
+        if (active && !quiet)
           setError(
             'We could not check your screeners. Your saved work is safe. Check your connection and try again.',
           );

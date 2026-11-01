@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '../../styles/ielts-course.css';
 import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell';
 import {
+  cachedIeltsCourseState,
   fetchIeltsCourseState,
   ieltsCourseAccessMessage,
   ieltsCourseSkillLabel,
@@ -17,7 +18,8 @@ import {
  */
 const IeltsCoursePath: React.FC = () => {
   const navigate = useNavigate();
-  const [state, setState] = useState<IeltsCourseState | null>(null);
+  // Paint the last known map at once; the fresh read replaces it a moment later.
+  const [state, setState] = useState<IeltsCourseState | null>(() => cachedIeltsCourseState());
   const [error, setError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
 
