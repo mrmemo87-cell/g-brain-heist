@@ -48,3 +48,15 @@
 .dv-signin label { display: grid; gap: 0.3rem; font-size: 0.8rem; font-weight: 700; color: #315179; }
 .dv-signin input { min-height: 2.6rem; padding: 0.5rem 0.8rem; border-radius: 0.7rem; border: 1px solid #d9e3ef; font: inherit; }
 .dv-signin button { min-height: 2.6rem; border-radius: 0.7rem; border: 1px solid #0755ab; background: #0755ab; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+
+/* Entry form funnel */
+.dv-funnel { margin-bottom: 1rem; }
+.dv-funnel h3 { margin: 0.8rem 0 0.4rem; font-size: 0.9rem; font-weight: 800; }
+.dv-funnel-steps { display: grid; gap: 0.45rem; }
+.dv-funnel-row { display: grid; grid-template-columns: minmax(10rem, 14rem) 1fr 5.5rem; align-items: center; gap: 0.75rem; font-size: 0.9rem; }
+.dv-funnel-bar { height: 0.7rem; background: #eef3f9; border-radius: 999px; overflow: hidden; }
+.dv-funnel-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #22d3ee, #a855f7); }
+.dv-funnel-row b { text-align: right; }
+.dv-funnel-row small, .dv-funnel li small { color: #627493; font-weight: 600; }
+.dv-funnel-split { margin-top: 0.4rem; }
+@media (max-width: 640px) { .dv-funnel-row { grid-template-columns: 1fr 4.5rem; } .dv-funnel-bar { grid-column: 1 / -1; grid-row: 2; } }

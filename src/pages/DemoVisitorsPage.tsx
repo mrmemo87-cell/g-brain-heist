@@ -22,6 +22,12 @@ interface Report {
   interests: Array<{ interest: string; visitors: number }>;
   visitors: Visitor[];
 }
+interface FunnelRow { opened: number; entered: number }
+interface Funnel {
+  funnel: { opened: number; gave_details: number; gave_school: number; entered: number };
+  sources: Array<FunnelRow & { source: string }>;
+  countries: Array<FunnelRow & { country: string }>;
+}
 
 const REGION_NAMES = typeof Intl !== 'undefined' && 'DisplayNames' in Intl ? new Intl.DisplayNames(['en'], { type: 'region' }) : null;
 const countryName = (code: string | null): string => {
@@ -71,6 +77,7 @@ const DemoVisitorsPage: React.FC = () => {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState<string | null>(null);
   const [timeline, setTimeline] = useState<Record<string, VisitorEvent[]>>({});
+  const [funnel, setFunnel] = useState<Funnel | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,6 +91,9 @@ const DemoVisitorsPage: React.FC = () => {
     const { data, error: rpcError } = await supabase.rpc('rpc_demo_visitor_report', { p_days: days });
     if (rpcError) { setError(rpcError.message.includes('administrator') ? 'This account is not a platform administrator. Sign out and use the demo ops account.' : rpcError.message); return; }
     setReport(data as Report);
+    // Entry-page funnel is optional: older demo databases may not have it yet.
+    const { data: funnelData, error: funnelError } = await supabase.rpc('rpc_demo_landing_funnel', { p_days: days });
+    setFunnel(funnelError ? null : (funnelData as Funnel));
   }, [days, signedIn]);
 
   useEffect(() => { void load(); }, [load]);
@@ -157,6 +167,39 @@ const DemoVisitorsPage: React.FC = () => {
             <div><b>{report.totals.countries}</b><span>countries</span></div>
             <div><b>{report.totals.avg_minutes}</b><span>avg minutes inside</span></div>
           </section>
+
+          {funnel ? (
+            <section className="dv-card dv-funnel" aria-label="Entry form funnel">
+              <h2>Entry form funnel <small>(everyone who opened the demo page, before and after the form)</small></h2>
+              <div className="dv-funnel-steps">
+                {([
+                  ['Opened the demo page', funnel.funnel.opened],
+                  ['Gave name and email', funnel.funnel.gave_details],
+                  ['Gave their school', funnel.funnel.gave_school],
+                  ['Entered the demo', funnel.funnel.entered],
+                ] as Array<[string, number]>).map(([label, n]) => {
+                  const pct = funnel.funnel.opened ? Math.round((n / funnel.funnel.opened) * 100) : 0;
+                  return (
+                    <div key={label} className="dv-funnel-row">
+                      <span>{label}</span>
+                      <div className="dv-funnel-bar"><i style={{ width: `${Math.max(2, pct)}%` }} /></div>
+                      <b>{n} <small>{funnel.funnel.opened ? `${pct}%` : ''}</small></b>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="dv-grid dv-funnel-split">
+                <div>
+                  <h3>Came from</h3>
+                  <ul className="dv-list">{funnel.sources.length === 0 ? <li><span className="dv-muted">No visits yet.</span></li> : funnel.sources.map((row) => <li key={row.source}><span>{row.source}</span><b>{row.opened} <small>→ {row.entered} entered</small></b></li>)}</ul>
+                </div>
+                <div>
+                  <h3>Opened from</h3>
+                  <ul className="dv-list">{funnel.countries.length === 0 ? <li><span className="dv-muted">No visits yet.</span></li> : funnel.countries.map((row) => <li key={row.country}><span>{flag(row.country)} {countryName(row.country)}</span><b>{row.opened} <small>→ {row.entered} entered</small></b></li>)}</ul>
+                </div>
+              </div>
+            </section>
+          ) : null}
 
           <section className="dv-grid">
             <div className="dv-card">

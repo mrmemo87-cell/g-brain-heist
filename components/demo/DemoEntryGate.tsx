@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import { getDemoCountryOptions } from '../../src/data/demoBookingLocations';
 import {
@@ -46,6 +46,26 @@ const fetchGeo = async (): Promise<Record<string, string | null>> => {
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
+// Anonymous entry-page funnel: one row per browser session, before anyone types anything.
+// Only country, device, language and the referring site are sent (no name, email or IP).
+const LANDING_KEY = 'bh_demo_landing_id';
+
+const referrerHost = (): string | null => {
+  try {
+    if (!document.referrer) return null;
+    const host = new URL(document.referrer).host;
+    return host && host !== window.location.host ? host : null;
+  } catch {
+    return null;
+  }
+};
+
+const markLandingStep = (landingId: string | null, step: number, visitorId?: string | null) => {
+  if (!landingId) return;
+  void supabase.rpc('rpc_demo_landing_step', { p_id: landingId, p_step: step, p_visitor_id: visitorId ?? null })
+    .then(() => undefined, () => undefined);
+};
+
 const DemoEntryGate: React.FC<DemoEntryGateProps> = ({ onLogin }) => {
   const personas = useMemo(() => getDemoPersonas(), []);
   const countries = useMemo(() => getDemoCountryOptions(), []);
@@ -61,6 +81,27 @@ const DemoEntryGate: React.FC<DemoEntryGateProps> = ({ onLogin }) => {
   const [consent, setConsent] = useState(!!returning);
   const [busy, setBusy] = useState<DemoPersona['key'] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const landingId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (returning) return;
+    try {
+      const existing = window.sessionStorage.getItem(LANDING_KEY);
+      if (existing) { landingId.current = existing; return; }
+    } catch { /* storage unavailable: still record the open */ }
+    let cancelled = false;
+    void (async () => {
+      const geo = await fetchGeo();
+      const { data } = await supabase.rpc('rpc_demo_landing_open', {
+        p: { geo_country: geo.geo_country ?? null, referrer_host: referrerHost(), utm: readUtm(), device: detectDevice(), locale: navigator.language },
+      });
+      const id = (data as { ok?: boolean; id?: string } | null)?.id ?? null;
+      if (!id || cancelled) return;
+      landingId.current = id;
+      try { window.sessionStorage.setItem(LANDING_KEY, id); } catch { /* ignore */ }
+    })().catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [returning]);
 
   useEffect(() => {
     try {
@@ -76,9 +117,11 @@ const DemoEntryGate: React.FC<DemoEntryGateProps> = ({ onLogin }) => {
       if (fullName.trim().length < 2) { setError('Your name, please.'); return; }
       if (!EMAIL_RE.test(email.trim())) { setError('That email doesn’t look right.'); return; }
       setStep(2);
+      markLandingStep(landingId.current, 2);
     } else if (step === 2) {
       if (!school.trim()) { setError('Your school’s name, please.'); return; }
       setStep(3);
+      markLandingStep(landingId.current, 3);
     }
   };
 
@@ -105,6 +148,7 @@ const DemoEntryGate: React.FC<DemoEntryGateProps> = ({ onLogin }) => {
         if (!payload?.ok || !payload.visitor_id) throw new Error(payload?.error || 'Couldn’t register your visit.');
         visitorId = payload.visitor_id;
       }
+      markLandingStep(landingId.current, 4, visitorId);
       storeDemoVisitor({ id: visitorId!, name: fullName.trim(), email: email.trim(), enteredAs: key, registeredAt: returning?.registeredAt ?? new Date().toISOString() });
       await onLogin(chosen.email, chosen.password);
     } catch (cause) {
