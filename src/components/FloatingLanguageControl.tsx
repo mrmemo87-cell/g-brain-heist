@@ -6,8 +6,11 @@ import '../styles/floating-language-control.css';
 
 type Dock = { side: 'left' | 'right'; ratio: number };
 type Point = { x: number; y: number };
-const SIZE = 54;
-const STORAGE_KEY = 'brains-heist-language-dock-v1';
+const SIZE = 64;
+// v2: the control became the Brains Heist mascot and moved to the bottom-right corner;
+// the new key gives everyone that default once, then their own drag position is kept again.
+const STORAGE_KEY = 'brains-heist-language-dock-v2';
+const MASCOT = '/retention/heist-companion-v1.webp';
 const labels: Record<Language, { short: string; name: string }> = {
   en: { short: 'EN', name: 'English' }, ar: { short: 'ع', name: 'العربية' }, ru: { short: 'RU', name: 'Русский' },
 };
@@ -16,7 +19,7 @@ function readDock(): Dock {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
     if (saved && ['left', 'right'].includes(saved.side) && Number.isFinite(saved.ratio) && saved.ratio >= 0 && saved.ratio <= 1) return saved;
   } catch { /* A blocked or old preference never blocks the control. */ }
-  return { side: 'left', ratio: .5 };
+  return { side: 'right', ratio: 1 };
 }
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 function bounds(probe: HTMLElement | null, size = SIZE) {
@@ -133,7 +136,7 @@ export default function FloatingLanguageControl({ language, setLanguage }: { lan
         onPointerCancel={event => { if (drag.current?.id === event.pointerId) finish(true); }}
         onLostPointerCapture={() => finish(true)}
         onClick={() => { if (suppressClick.current) { suppressClick.current = false; return; } setOpen(value => !value); if (!open) companion?.greet(); }}>
-        {companion ? <span className="companion-hub-avatar">{companion.avatar}</span> : <><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M5 6.5h14M5 17.5h14"/></svg><span className="language-dock-grip" aria-hidden="true" /></>}
+        {companion ? <span className="companion-hub-avatar">{companion.avatar}</span> : <><img className="language-dock-mascot" src={MASCOT} alt="" width={SIZE} height={SIZE} draggable={false} decoding="async" /><span className="language-dock-badge" aria-hidden="true">{labels[language].short}</span></>}
       </button>
       {companion ? <div ref={fan} id={panelId} className={`companion-hub-fan${open && !languageOpen ? ' is-visible' : ''}`} role="group" aria-label={`${companion.name} options`} aria-hidden={!open || languageOpen}>
         {[

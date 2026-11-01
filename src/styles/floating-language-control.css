@@ -83,3 +83,15 @@
  .language-dock.is-companion .companion-hub-option{transition:none!important;filter:none!important;will-change:auto}
  .language-dock.is-companion .companion-hub-fan.is-visible .companion-hub-option{transform:none}
 }
+
+
+/* Mascot trigger (no companion): the waving Brains Heist cat with a small language badge. */
+.language-dock:not(.is-companion) { width:64px; height:64px; }
+.language-dock:not(.is-companion) .language-dock-trigger { width:64px; height:64px; min-width:64px; border:0; border-radius:50%; background:transparent; box-shadow:none; }
+.language-dock-mascot { width:64px; height:64px; object-fit:contain; pointer-events:none; filter:drop-shadow(0 4px 10px rgba(2,6,23,.45)) drop-shadow(0 0 10px rgba(34,211,238,.35)); transition:transform 220ms ease, filter 220ms ease; }
+.language-dock:not(.is-companion) .language-dock-trigger:hover .language-dock-mascot,
+.language-dock:not(.is-companion).is-open .language-dock-mascot { transform:translateY(-2px) rotate(-4deg); filter:drop-shadow(0 6px 12px rgba(2,6,23,.5)) drop-shadow(0 0 14px rgba(34,211,238,.55)); }
+.language-dock.is-dragging:not(.is-companion) .language-dock-trigger { box-shadow:none; }
+.language-dock.is-dragging .language-dock-mascot { transform:scale(1.06); }
+.language-dock-badge { position:absolute; right:-2px; bottom:2px; min-width:22px; padding:2px 6px; border:1px solid #67e8f9; border-radius:999px; background:#0b1220; color:#a5f3fc; font-size:10px; font-weight:800; line-height:1.2; letter-spacing:.04em; pointer-events:none; }
+@media(prefers-reduced-motion:reduce) { .language-dock-mascot { transition:none; } }
