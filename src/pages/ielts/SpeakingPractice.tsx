@@ -9,6 +9,7 @@ import { supabase } from '../../../services/supabaseClient';
 import { ensureIeltsProfile, getUserTier, isIeltsPrime } from '../../../services/ieltsService';
 import { rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
+import { ieltsCourseUnitRoute, readIeltsCourseUnitFromSearch } from '../../../services/ieltsCourseService';
 import { stopBackgroundMusic, resumeBackgroundMusic } from '../../../services/audioService';
 import { buildSpeakingAttemptPayload } from '../../lib/ieltsPracticeScoring';
 
@@ -34,6 +35,10 @@ interface SpeakingTask {
 const SpeakingPractice: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
+  // Opened from the self-paced course? Then every exit returns to that unit.
+  const courseUnitId = readIeltsCourseUnitFromSearch();
+  const exitRoute = courseUnitId ? ieltsCourseUnitRoute(courseUnitId) : '/ielts';
+  const exitLabel = courseUnitId ? 'Back to unit' : null;
   const assignmentContext = readIeltsPracticeAssignmentContext();
   const { assignmentId, assignmentItemId } = assignmentContext;
   const practiceMode = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('mode');
@@ -382,7 +387,7 @@ const SpeakingPractice: React.FC = () => {
         <div style={{ textAlign: 'center', color: '#1e293b' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>Task not found</h2>
           <button
-            onClick={() => navigate('/ielts')}
+            onClick={() => navigate(exitRoute)}
             style={{
               padding: '0.5rem 1.5rem',
               background: '#6366f1',
@@ -393,7 +398,7 @@ const SpeakingPractice: React.FC = () => {
               fontWeight: 500
             }}
           >
-            Back to Home
+            {exitLabel ?? 'Back to Home'}
           </button>
         </div>
       </div>
@@ -502,7 +507,7 @@ const SpeakingPractice: React.FC = () => {
           ) : null}
 
           <button
-            onClick={() => navigate('/ielts')}
+            onClick={() => navigate(exitRoute)}
             style={{
               padding: '0.875rem 2rem',
               background: 'linear-gradient(135deg, #1746B0 0%, #103B9A 100%)',
@@ -514,7 +519,7 @@ const SpeakingPractice: React.FC = () => {
               fontSize: '1rem'
             }}
           >
-            ← Back to IELTS Home
+            {exitLabel ? `← ${exitLabel}` : '← Back to IELTS Home'}
           </button>
         </div>
       </div>
@@ -552,7 +557,7 @@ const SpeakingPractice: React.FC = () => {
               </h1>
             </div>
             <button
-              onClick={() => navigate('/ielts')}
+              onClick={() => navigate(exitRoute)}
               style={{
                 padding: '0.375rem 0.75rem',
                 background: '#f1f5f9',
