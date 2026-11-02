@@ -93,7 +93,6 @@ export function certificatePrinterReminder(printSides: PrintSides): string {
 }
 
 const certificateStyles = `
-  @page { size: A4 landscape; margin: 10mm; }
   * { box-sizing: border-box; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   html, body { margin: 0; padding: 0; background: #e2e8f0; font-family: 'IBM Plex Sans', Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; color: #0f172a; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -167,13 +166,10 @@ const certificateStyles = `
   .top5 li { padding: 3mm 2mm; border-radius: 2.5mm; background: rgba(255,255,255,0.08); border: 0.3mm solid rgba(245,192,66,0.45); text-align: center; }
   .top5 b { display: block; font-size: 3.9mm; line-height: 1.2; color: #fff; overflow-wrap: anywhere; hyphens: auto; }
   .top5 i { display: block; font-style: normal; font-size: 2.9mm; color: #f5c042; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1mm; }
-  @media screen { .print-page { zoom: var(--preview-zoom, 1); } }
   @media print {
     .toolbar, .cert-tools { display: none !important; }
     body { background: #fff; }
-    /* Scaled to 78% (232 × 164 mm) so it fits inside any printer's margins, including the
-       header and footer iPhone always adds; otherwise a certificate spills onto a second page. */
-    .print-page { margin: 0 auto; zoom: 0.78; }
+    .print-page { margin: 0 auto; }
     /* Print engines (iPhone especially) turn fading gradients into black: use solid paper colours. */
     .cert { background: #0f172a !important; }
     .theme-light .cert { background: #fdf8ea !important; }
@@ -204,6 +200,21 @@ const certificateStyles = `
   .theme-light .watermark { opacity: 0.05; }
   .theme-light .blank-back, .theme-dark .blank-back { background: #fff; color: #64748b; }
 `;
+
+/**
+ * Every length on the certificate is expressed in one unit, --mm, instead of fixed millimetres.
+ * Print: 0.78 mm, so the whole certificate is 232 × 164 mm and fits inside any printer's margins,
+ * including the header and footer iPhone always adds (a full 297 × 210 mm page spilled onto two).
+ * Screen: sized to the window, so the preview fits a phone. No CSS zoom: Safari ignores it in print
+ * and applies it inconsistently on screen.
+ */
+const PRINT_SCALE = 0.78;
+const scaledStyles = `
+  @page { size: A4 landscape; margin: 10mm; }
+  :root { --mm: 1mm; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  @media screen { :root { --mm: var(--screen-mm, 1mm); } }
+  @media print { :root { --mm: ${PRINT_SCALE}mm; } }
+` + certificateStyles.replace(/(\d+(?:\.\d+)?)mm\b/g, (_m, n: string) => `calc(${n} * var(--mm))`);
 
 const CORNER = `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M4 60 V4 H60" fill="none" stroke="#f5c042" stroke-width="5" stroke-linecap="round"/><path d="M14 44 V14 H44" fill="none" stroke="#f5c042" stroke-width="2.5" opacity="0.7"/><circle cx="14" cy="14" r="4" fill="#f5c042"/></svg>`;
 const corners = () => ['tl', 'tr', 'bl', 'br'].map((c) => `<div class="corner ${c}">${CORNER}</div>`).join('');
@@ -307,7 +318,7 @@ export function buildCertificateDocument(options: CertificateDocumentOptions): s
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Class Conquest certificates · ${escapeHtml(result.winner_label ?? '')} · ${escapeHtml(map.name)}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
-<style>${certificateStyles}</style></head>
+<style>${scaledStyles}</style></head>
 <body class="theme-${theme}" data-print-sides="${printSides}">
 <div class="toolbar"><button type="button" id="back" class="back">← Back to Brains Heist</button><button type="button" id="print-all" disabled>Preparing…</button><div class="toolbar-copy"><strong id="print-status" role="status">${status}</strong><span>${certificatePrinterReminder(printSides)}. Use these same settings in the printer dialog.${printSides === 'double' ? ' Two-sided stays on: the blank backs make sure no two certificates are ever printed back to back.' : ' Make sure two-sided printing is off, or certificates will be printed back to back.'}</span></div></div>
 ${booklets}
@@ -325,7 +336,8 @@ ${booklets}
   // Fit the A4 preview to small screens (print size is set by the print styles).
   function fit() {
     var page = 297 * 96 / 25.4;
-    document.documentElement.style.setProperty('--preview-zoom', String(Math.min(1, (window.innerWidth - 16) / page)));
+    // A screen-only unit: the print size is fixed by the print styles and never depends on this.
+    document.documentElement.style.setProperty('--screen-mm', (Math.min(1, (window.innerWidth - 16) / page) * 96 / 25.4) + 'px');
   }
   fit(); window.addEventListener('resize', fit);
   var all = document.getElementById('print-all');
