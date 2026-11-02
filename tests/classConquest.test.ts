@@ -261,3 +261,32 @@ test('the pre-season week can never be frozen or shown', () => {
   assert.match(sql, /if p_week_start < date '2026-10-26' then\n\s*return null;/);
   assert.equal((sql.match(/r\.week_start >= date '2026-10-26'/g) ?? []).length, 3, 'live card, Hall of Fame and badges all ignore it');
 });
+
+test('certificates as a real PDF: landscape A4, one per page, blank backs, any device prints it exactly', async () => {
+  const { buildCertificatePdf, certificatePdfFileName } = await import('../src/lib/conquestCertificatePdf.js');
+  const { PDFDocument } = await import('pdf-lib');
+  const fs = await import('node:fs');
+  const assets = {
+    serif: fs.readFileSync('public/fonts/certificates/PlayfairDisplay_700Bold.ttf'),
+    sans: fs.readFileSync('public/fonts/certificates/IBMPlexSans_400Regular.ttf'),
+    sansBold: fs.readFileSync('public/fonts/certificates/IBMPlexSans_700Bold.ttf'),
+    brandLogo: { bytes: fs.readFileSync('public/logo.png'), kind: 'png' as const },
+  };
+  const r = result('2026-10-26', '7A', [['s1', 'Nazar Zhenishbekov'], ['s2', 'Бекзат Асанов'], ['s3', 'Daniyar'], ['s4', 'Үмүт Өмүрбекова'], ['s5', 'Layana Kim']]);
+  const pack = await buildCertificatePdf({ result: r, assets, issuer: 'Silk Road International School', theme: 'light', printSides: 'double' });
+  assert.equal(pack.certificates, 6);
+  assert.equal(pack.pages, 11, '6 certificates + 5 blank backs');
+  assert.equal(pack.sheets, 6);
+  const doc = await PDFDocument.load(pack.bytes);
+  assert.equal(doc.getPageCount(), 11);
+  for (const page of doc.getPages()) {
+    assert.equal(Math.round(page.getWidth()), 842, 'A4 landscape width');
+    assert.equal(Math.round(page.getHeight()), 595, 'A4 landscape height');
+  }
+  const single = await buildCertificatePdf({ result: r, assets, printSides: 'single' });
+  assert.equal(single.pages, 6, 'single-sided printer: no blank backs');
+  const one = await buildCertificatePdf({ result: r, assets, only: 3, theme: 'dark' });
+  assert.equal(one.pages, 1, 'one certificate on its own');
+  assert.match(certificatePdfFileName(r, 3), /^Class-Conquest-Kyrgyzstan-2026-10-26-Үмүт-Өмүрбекова\.pdf$/);
+  if (process.env['CCQ_PDF_OUT']) { fs.writeFileSync(`${process.env['CCQ_PDF_OUT']}/pack.pdf`, pack.bytes); fs.writeFileSync(`${process.env['CCQ_PDF_OUT']}/one-dark.pdf`, one.bytes); }
+});

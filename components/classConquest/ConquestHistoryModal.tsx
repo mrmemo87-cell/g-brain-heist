@@ -3,7 +3,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../src/contexts/LanguageContext';
 import { fetchClassConquestHistory, type ClassConquestHistory } from '../../services/classConquestService';
 import { allTimeMasterminds, CONQUEST_COLORS, mapById, roleForRank, winStreak, type ConquestResult } from '../../src/lib/classConquest';
-import { buildCertificateDocument, conquestBadgeSvg, openCertificatePrintWindow, weekLabel, type CertificateTheme, type PrintSides } from '../../src/lib/conquestCertificates';
+import { conquestBadgeSvg, weekLabel, type CertificateTheme, type PrintSides } from '../../src/lib/conquestCertificates';
+import CertificatePdfButton from './CertificatePdfButton';
 
 interface ConquestHistoryModalProps {
   open: boolean;
@@ -29,7 +30,6 @@ const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClo
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<'weeks' | 'masterminds'>('weeks');
   const [filter, setFilter] = useState<string>('all');
-  const [printBlocked, setPrintBlocked] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -60,10 +60,6 @@ const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClo
 
   if (!open) return null;
 
-  const print = (result: ConquestResult) => {
-    const ok = openCertificatePrintWindow(buildCertificateDocument({ result, issuer, schoolLogoUrl, brandLogoUrl: typeof window === 'undefined' ? null : `${window.location.origin}/logo.png`, theme, printSides, returnUrl: window.location.href }));
-    setPrintBlocked(!ok);
-  };
 
   if (typeof document === 'undefined') return null;
   return createPortal(
@@ -120,7 +116,6 @@ const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClo
                   </div>
                 ) : null}
 
-                {printBlocked ? <p className="ccq-modal-warn" role="alert">{t('Your browser blocked the certificate window. Allow pop-ups for Brains Heist and try again.')}</p> : null}
 
                 <ol className="ccq-weeks">
                   {shown.map((r) => {
@@ -165,7 +160,7 @@ const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClo
                             </ul>
                           </details>
                           {isTeacher && r.top_students.length > 0 ? (
-                            <button type="button" className="ccq-print" onClick={() => print(r)}>🖨 {t('Print certificates')}</button>
+                            <CertificatePdfButton result={r} issuer={issuer} schoolLogoUrl={schoolLogoUrl} theme={theme} printSides={printSides} label={`🖨 ${t('Print certificates')} (PDF)`} />
                           ) : null}
                         </div>
                       </li>
