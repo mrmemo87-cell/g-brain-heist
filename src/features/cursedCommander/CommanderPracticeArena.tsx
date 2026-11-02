@@ -31,6 +31,8 @@ import {
 type CommanderPracticeArenaProps = {
   userId: string;
   ownedLoadout?: boolean;
+  /** Opened from the Headquarters "Fight" button: skip the start screen and go straight into battle. */
+  autoStart?: boolean;
   onClose: () => void;
 };
 
@@ -88,7 +90,7 @@ const COMMANDER_READABILITY_STYLES = `
   }
 `;
 
-const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose, userId, ownedLoadout = false }) => {
+const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose, userId, ownedLoadout = false, autoStart = false }) => {
   const { language, direction } = useLanguage();
   const copy = COMMANDER_COPY[language];
   const [checkpoint] = useState(() => {
@@ -383,6 +385,16 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
     }
   };
 
+
+  // A saved battle in progress is resumed instead; otherwise start the fight right away.
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (!autoStart || checkpoint || autoStarted.current) return;
+    autoStarted.current = true;
+    void begin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <section
       data-no-interface-translation="true"
@@ -395,15 +407,15 @@ const CommanderPracticeArena: React.FC<CommanderPracticeArenaProps> = ({ onClose
     >
       <style>{COMMANDER_READABILITY_STYLES}</style>
       <div className="mx-auto w-full max-w-7xl overflow-clip rounded-[2rem] border border-cyan-400/20 bg-slate-950 shadow-[0_0_80px_rgba(34,211,238,0.12)]">
-        <header className="relative overflow-hidden border-b border-slate-800 px-4 py-4 sm:px-6">
+        <header className={`relative overflow-hidden border-b border-slate-800 px-4 sm:px-6 ${session ? 'cc-arena-header--battle py-2 sm:py-4' : 'py-4'}`}>
           <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(34,211,238,0.18),transparent_34%),radial-gradient(circle_at_82%_20%,rgba(168,85,247,0.16),transparent_32%)]" />
-          <div className="relative flex flex-wrap items-start justify-between gap-4">
+          <div className={`relative flex flex-wrap justify-between gap-4 ${session ? 'items-center' : 'items-start'}`}>
             <div>
-              <div className="mb-2 flex flex-wrap items-center gap-2">
+              <div className={`mb-2 flex-wrap items-center gap-2 ${session ? 'hidden sm:flex' : 'flex'}`}>
                 <span className="rounded-full border border-amber-300/40 bg-amber-400/10 px-2.5 py-1 text-[11px] font-black tracking-[0.16em] text-amber-200">{copy.practiceOnly}</span>
               </div>
-              <h1 id="commander-preview-title" className="font-heading text-2xl font-black text-white sm:text-3xl">{copy.startTitle}</h1>
-              <p className="mt-1 text-sm text-slate-300">{copy.subtitle}</p>
+              <h1 id="commander-preview-title" className={`font-heading font-black text-white sm:text-3xl ${session ? 'text-lg' : 'text-2xl'}`}>{copy.startTitle}</h1>
+              <p className={`mt-1 text-sm text-slate-300 ${session ? 'hidden sm:block' : ''}`}>{copy.subtitle}</p>
             </div>
             <button type="button" onClick={onClose} className="rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:text-white">← {copy.back}</button>
           </div>

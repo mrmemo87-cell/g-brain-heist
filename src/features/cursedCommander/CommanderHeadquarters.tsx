@@ -29,6 +29,7 @@ import CommanderCatalogCards from "./CommanderCatalogCards";
 import CommanderElixirsPanel from "./CommanderElixirsPanel";
 import CommanderHelpGuide from "../../../components/CommanderHelpGuide";
 import CommanderCelebration, { type CommanderCelebrationData } from "./CommanderCelebration";
+import CommanderWarGate from "./CommanderWarGate";
 import {
   commanderUiSoundEnabled,
   onCommanderUiSoundChange,
@@ -177,6 +178,10 @@ export default function CommanderHeadquarters({
   const [notice, setNotice] = useState("");
   const [choice, setChoice] = useState<Choice | null>(null);
   const [practice, setPractice] = useState<"owned" | "fixed" | null>(null);
+  /** Battles opened from the war gate skip the start screen and go straight into the fight. */
+  const [practiceAuto, setPracticeAuto] = useState(false);
+  /** Set when a new student claims the starter army: their first battle starts right after the celebration. */
+  const firstBattleAfterCelebration = useRef(false);
   const [pvpOpen, setPvpOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [celebration, setCelebration] = useState<CommanderCelebrationData | null>(null);
@@ -189,7 +194,14 @@ export default function CommanderHeadquarters({
     const timer = window.setTimeout(() => setXpFloat(null), 1800);
     return () => window.clearTimeout(timer);
   }, [xpFloat]);
-  const closeCelebration = useCallback(() => setCelebration(null), []);
+  const closeCelebration = useCallback(() => {
+    setCelebration(null);
+    if (firstBattleAfterCelebration.current) {
+      firstBattleAfterCelebration.current = false;
+      setPracticeAuto(true);
+      setPractice("owned");
+    }
+  }, []);
   const [pvpLaunch, setPvpLaunch] = useState<CommanderPvpLaunch | null>(null);
   const request = useRef<AbortController | null>(null);
   const alive = useRef(true);
@@ -343,7 +355,8 @@ export default function CommanderHeadquarters({
     const op = choice.operation;
     if (op === "enroll") {
       playCommanderUi("fanfare");
-      setCelebration({ tone: "cyan", icon: "🎉", title: "Your team is ready!", subtitle: "Try a Practice battle to learn the moves." });
+      firstBattleAfterCelebration.current = true;
+      setCelebration({ tone: "cyan", icon: "🎉", title: "Your army is ready!", subtitle: "First battle starting…" });
     } else if (op === "buy") {
       playCommanderUi("coin");
       const item = next.catalog.find((entry) => entry.id === choice.target);
@@ -465,8 +478,10 @@ export default function CommanderHeadquarters({
       <CommanderPracticeArena
         userId={userId}
         ownedLoadout={practice === "owned"}
+        autoStart={practiceAuto}
         onClose={() => {
           setPractice(null);
+          setPracticeAuto(false);
           void refresh();
         }}
       />
@@ -679,8 +694,27 @@ export default function CommanderHeadquarters({
         <>
           {tab === "overview" && (
             <>
+              <CommanderWarGate
+                enrolled={Boolean(p)}
+                busy={unavailable}
+                art={{
+                  guard: sprite("guard", p?.guard),
+                  commander: sprite("commander"),
+                  archer: sprite("archer", p?.archer),
+                  enemy: getCommanderSpriteUrl("enemy_commander", "standing") ?? undefined,
+                }}
+                practiceXp={today.practiceWin ? null : rule("practiceVictoryXp", 40)}
+                pvpXp={rule("pvpVictoryXp", 60)}
+                onSummon={claimStarterSquad}
+                onFight={() => {
+                  playCommanderUi("tap");
+                  setPracticeAuto(true);
+                  setPractice("owned");
+                }}
+                onPvp={() => setPvpOpen(true)}
+              />
               <section
-                className="cc-command-hero"
+                className={`cc-command-hero${p ? "" : " is-gated"}`}
                 style={{ backgroundImage: `url(${COMMANDER_VFX.headquarters})` }}
               >
                 <div className="cc-command-hero-copy">
