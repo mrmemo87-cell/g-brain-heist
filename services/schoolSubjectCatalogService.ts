@@ -56,6 +56,24 @@ export interface SaveSchoolSubjectInput {
   replaceTeacherAllocations?: boolean;
 }
 
+/**
+ * What the save did about teaching-group placement for a selective ("selected students")
+ * offering. Null when the save did not touch a selective offering.
+ *
+ * - placedCount > 0: newly selected students were seated in the offering's only custom group.
+ * - unplacedCount > 0: selected students have subject access but sit in no custom group —
+ *   either there are no groups yet (customGroupCount 0) or several and the admin must choose.
+ */
+export interface SchoolSubjectPlacementSummary {
+  deliveryMode: SchoolSubjectDeliveryMode | null;
+  customGroupCount: number;
+  placedGroupId: string | null;
+  placedGroupName: string | null;
+  placedGroupTeachers: string[] | null;
+  placedCount: number;
+  unplacedCount: number;
+}
+
 export interface SaveSchoolSubjectResult {
   success: boolean;
   code?: string;
@@ -65,6 +83,7 @@ export interface SaveSchoolSubjectResult {
   academicSubjectId?: string | null;
   mappingStatus?: SchoolSubjectMappingStatus;
   mappingRequestId?: string | null;
+  placement?: SchoolSubjectPlacementSummary | null;
 }
 
 const messageForCode = (code?: string) => {
