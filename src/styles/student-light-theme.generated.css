@@ -379,6 +379,7 @@ html body.student-light .text-yellow-300\/85 { color: var(--sl-yellow-700) !impo
 html body.student-light .text-yellow-400 { color: var(--sl-yellow-600) !important; }
 html body.student-light .to-amber-900\/90 { --tw-gradient-to: color-mix(in srgb, var(--sl-amber-600) 12%, white) !important; }
 html body.student-light .to-amber-950\/90 { --tw-gradient-to: color-mix(in srgb, var(--sl-amber-600) 12%, white) !important; }
+html body.student-light .to-black { --tw-gradient-to: #f1f5f9 !important; }
 html body.student-light .to-black\/35 { --tw-gradient-to: #f1f5f9 !important; }
 html body.student-light .to-blue-900\/30 { --tw-gradient-to: color-mix(in srgb, var(--sl-blue-600) 12%, white) !important; }
 html body.student-light .to-cyan-950\/70 { --tw-gradient-to: color-mix(in srgb, var(--sl-cyan-600) 12%, white) !important; }

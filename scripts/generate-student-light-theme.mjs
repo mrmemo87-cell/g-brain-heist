@@ -76,7 +76,7 @@ function remap(prop, color, shade, alpha) {
     return null;
   }
   if (prop === 'from' || prop === 'via' || prop === 'to') {
-    if (color === 'black') return a >= 50 ? null : SURFACE.sunk;
+    if (color === 'black') return a >= 50 && a < 100 ? null : SURFACE.sunk; // solid black gradient stops become a light surface
     if (color === 'white') return a < 100 ? `rgba(15, 23, 42, ${(a / 100) * 0.4})` : null;
     if (grey) {
       if (n >= 900) return SURFACE.card;
