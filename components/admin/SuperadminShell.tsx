@@ -78,6 +78,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: 'analytics', label: 'Analytics', description: 'Operational and product analytics', icon: 'analytics' },
       { id: 'demo-visitors', label: 'Demo Visitors', description: 'Who visited the demo school and how far they got', icon: 'analytics' },
+      { id: 'site-visitors', label: 'Site Visitors', description: 'New people on brainsheist.com and sign-ups with no school', icon: 'analytics' },
     ],
   },
   {

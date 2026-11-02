@@ -10,6 +10,7 @@ import App, { preloadAccountWorkspace } from './App';
 import LoginView from './components/LoginView';
 import { isDemoMode, type DemoPersona, readStoredDemoVisitor, storeDemoVisitor } from './services/demoMode';
 import { startDemoTracking, stopDemoTracking, trackDemoEvent } from './services/demoTracker';
+import { startSiteVisitTracking } from './src/lib/siteVisitTracker';
 import ErrorBoundary from './components/ErrorBoundary';
 import ConfigErrorScreen from './components/ConfigErrorScreen';
 import * as AuthService from './services/authService';
@@ -749,6 +750,11 @@ if (!rootElement) {
 }
 
 const root = ReactDOM.createRoot(rootElement);
+
+// Anonymous visitor counts for the superadmin Site Visitors tab (main site only, signed-out browsers only).
+if (!isDemoMode() && !isMissingSupabaseConfig) {
+  startSiteVisitTracking(async () => Boolean((await supabase.auth.getSession()).data.session));
+}
 
 // Create router with IELTS routes
 const router = createBrowserRouter([
