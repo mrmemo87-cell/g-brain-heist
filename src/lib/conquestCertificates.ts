@@ -69,6 +69,8 @@ export interface CertificateDocumentOptions {
    * certificate a blank back so no two certificates ever share a sheet; 'single' adds nothing.
    */
   printSides?: PrintSides;
+  /** Where "Back to Brains Heist" returns to when the window cannot simply close (home-screen apps). */
+  returnUrl?: string;
 }
 
 export type PrintSides = 'single' | 'double';
@@ -85,19 +87,21 @@ export function planCertificatePrint(certificates: number, printSides: PrintSide
 /** The exact settings to choose in the browser's print dialog. */
 export function certificatePrinterReminder(printSides: PrintSides): string {
   return [
-    'Layout: Landscape', 'Paper: A4', 'Scale: 100% / Actual size', 'Margins: None', 'Headers and footers: Off',
+    'Layout: Landscape', 'Paper: A4', 'Scale: 100% / Actual size', 'Margins: Default', 'Headers and footers: Off',
     'Background graphics: On', printSides === 'double' ? 'Two-sided: On' : 'Two-sided: Off', 'Pages per sheet: 1', 'Pages: All',
   ].join(' · ');
 }
 
 const certificateStyles = `
-  @page { size: A4 landscape; margin: 0; }
+  @page { size: A4 landscape; margin: 10mm; }
   * { box-sizing: border-box; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   html, body { margin: 0; padding: 0; background: #e2e8f0; font-family: 'IBM Plex Sans', Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; color: #0f172a; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .serif { font-family: 'Playfair Display', Georgia, 'Times New Roman', serif; }
   .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: center; justify-content: center; padding: 0.75rem 1rem; background: #172438; color: #fff; position: sticky; top: 0; z-index: 2; }
   .toolbar button { min-height: 44px; padding: 0 1.25rem; border: 0; border-radius: 0.75rem; background: #fff; color: #172438; font: inherit; font-weight: 800; cursor: pointer; }
   .toolbar button:disabled { opacity: 0.6; cursor: wait; }
+  .toolbar button.back { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.45); }
   .toolbar-copy { display: grid; gap: 0.2rem; max-width: 980px; }
   .toolbar-copy strong { font-size: 0.95rem; }
   .toolbar-copy span { font-size: 0.78rem; line-height: 1.5; color: #cbd5e1; }
@@ -163,10 +167,20 @@ const certificateStyles = `
   .top5 li { padding: 3mm 2mm; border-radius: 2.5mm; background: rgba(255,255,255,0.08); border: 0.3mm solid rgba(245,192,66,0.45); text-align: center; }
   .top5 b { display: block; font-size: 3.9mm; line-height: 1.2; color: #fff; overflow-wrap: anywhere; hyphens: auto; }
   .top5 i { display: block; font-style: normal; font-size: 2.9mm; color: #f5c042; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1mm; }
+  @media screen { .print-page { zoom: var(--preview-zoom, 1); } }
   @media print {
     .toolbar, .cert-tools { display: none !important; }
     body { background: #fff; }
-    .print-page { margin: 0; }
+    /* Scaled to 78% (232 × 164 mm) so it fits inside any printer's margins, including the
+       header and footer iPhone always adds; otherwise a certificate spills onto a second page. */
+    .print-page { margin: 0 auto; zoom: 0.78; }
+    /* Print engines (iPhone especially) turn fading gradients into black: use solid paper colours. */
+    .cert { background: #0f172a !important; }
+    .theme-light .cert { background: #fdf8ea !important; }
+    .stat, .top5 li { background: #18213a !important; }
+    .theme-light .stat, .theme-light .top5 li { background: #f6edd6 !important; }
+    .watermark { display: none !important; }
+    .badge svg { filter: none !important; }
     .blank-back { border: 0; }
     .blank-back span { display: none; }
     /* "Print only this one": hide every other certificate and all blank backs. */
@@ -275,7 +289,7 @@ function classCertificate(result: ConquestResult, o: Required<Pick<CertificateDo
 
 /** A complete, self-contained HTML document: one page per top-five student, then the class page. */
 export function buildCertificateDocument(options: CertificateDocumentOptions): string {
-  const { result, theme = 'dark', printSides = 'double' } = options;
+  const { result, theme = 'dark', printSides = 'double', returnUrl = '' } = options;
   const o = { ...options, issuer: options.issuer ?? '', issuedOn: options.issuedOn ?? addDays(result.week_start, 7) };
   const map = mapById(result.map_id);
   const certificates = [
@@ -295,10 +309,25 @@ export function buildCertificateDocument(options: CertificateDocumentOptions): s
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 <style>${certificateStyles}</style></head>
 <body class="theme-${theme}" data-print-sides="${printSides}">
-<div class="toolbar"><button type="button" id="print-all" disabled>Preparing…</button><div class="toolbar-copy"><strong id="print-status" role="status">${status}</strong><span>${certificatePrinterReminder(printSides)}. Use these same settings in the printer dialog.${printSides === 'double' ? ' Two-sided stays on: the blank backs make sure no two certificates are ever printed back to back.' : ' Make sure two-sided printing is off, or certificates will be printed back to back.'}</span></div></div>
+<div class="toolbar"><button type="button" id="back" class="back">← Back to Brains Heist</button><button type="button" id="print-all" disabled>Preparing…</button><div class="toolbar-copy"><strong id="print-status" role="status">${status}</strong><span>${certificatePrinterReminder(printSides)}. Use these same settings in the printer dialog.${printSides === 'double' ? ' Two-sided stays on: the blank backs make sure no two certificates are ever printed back to back.' : ' Make sure two-sided printing is off, or certificates will be printed back to back.'}</span></div></div>
 ${booklets}
 <script>
 (function () {
+  var RETURN_URL = ${JSON.stringify(returnUrl).replace(/</g, '\\u003c')};
+  document.getElementById('back').addEventListener('click', function () {
+    try { window.close(); } catch (e) { /* not closable */ }
+    // Home-screen apps cannot close this window: go back into the app instead.
+    setTimeout(function () {
+      if (window.closed) return;
+      if (RETURN_URL) window.location.replace(RETURN_URL); else history.back();
+    }, 250);
+  });
+  // Fit the A4 preview to small screens (print size is set by the print styles).
+  function fit() {
+    var page = 297 * 96 / 25.4;
+    document.documentElement.style.setProperty('--preview-zoom', String(Math.min(1, (window.innerWidth - 16) / page)));
+  }
+  fit(); window.addEventListener('resize', fit);
   var all = document.getElementById('print-all');
   var ones = Array.prototype.slice.call(document.querySelectorAll('.print-one'));
   function ready() {

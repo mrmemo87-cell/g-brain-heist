@@ -61,7 +61,7 @@ const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClo
   if (!open) return null;
 
   const print = (result: ConquestResult) => {
-    const ok = openCertificatePrintWindow(buildCertificateDocument({ result, issuer, schoolLogoUrl, brandLogoUrl: typeof window === 'undefined' ? null : `${window.location.origin}/logo.png`, theme, printSides }));
+    const ok = openCertificatePrintWindow(buildCertificateDocument({ result, issuer, schoolLogoUrl, brandLogoUrl: typeof window === 'undefined' ? null : `${window.location.origin}/logo.png`, theme, printSides, returnUrl: window.location.href }));
     setPrintBlocked(!ok);
   };
 

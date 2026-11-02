@@ -233,7 +233,9 @@ test('certificates print on the smart print system: landscape, one per sheet, ne
   assert.equal(simplex.blankPages, 0);
 
   const html = buildCertificateDocument({ result: r, printSides: 'double' });
-  assert.match(html, /@page \{ size: A4 landscape; margin: 0; \}/);
+  assert.match(html, /@page \{ size: A4 landscape; margin: 10mm; \}/);
+  assert.match(html, /zoom: 0\.78/, "scaled to fit any printer margins, including iPhone headers");
+  assert.match(html, /id="back"/, "a way back for home-screen apps");
   assert.equal((html.match(/class="print-page blank-back"/g) ?? []).length, 5);
   assert.equal((html.match(/<article class="cert-booklet"/g) ?? []).length, 6);
   // Page order: certificate, blank back, certificate, … — two certificates are never adjacent.
