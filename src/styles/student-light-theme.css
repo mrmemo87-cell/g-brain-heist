@@ -239,3 +239,66 @@ html body.student-light .student-feed-card,
 html body.student-light .student-cap-card,
 html body.student-light .student-next-mission,
 html body.student-light .dashboard-panel { background-color: #ffffff !important; }
+
+/* ── Neon palette variables used as text colour by older components ───────── */
+html body.student-light {
+  --ion-blue: #0e7490;
+  --success-teal: #047857;
+  --amber-warn: #b45309;
+  --plasma-pink: #6d28d9;
+  --danger-red: #be123c;
+  --grid-purple: #1d4ed8;
+  --mist-400: #64748b;
+}
+
+/* ── Today's mission (components/student/DailyMissionCard.css) ─────────────── */
+html body.student-light .dmc-pill { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+html body.student-light .dmc-pill--done { color: #166534; background: #dcfce7; border-color: #86efac; }
+html body.student-light .dmc-title, html body.student-light .dmc-question { color: #0f172a; }
+html body.student-light .dmc-meta, html body.student-light .dmc-copy, html body.student-light .dmc-link { color: #475569; }
+html body.student-light .dmc-topic { color: #64748b; }
+html body.student-light .dmc-dots span, html body.student-light .dmc-progress { background: #e2e8f0; }
+html body.student-light .dmc-option { background: #ffffff; border-color: #cbd5e1; color: #0f172a; }
+html body.student-light .dmc-option.is-correct, html body.student-light .dmc-feedback.is-correct { color: #166534; }
+html body.student-light .dmc-option.is-wrong, html body.student-light .dmc-feedback.is-wrong { color: #991b1b; }
+html body.student-light .dmc-error { color: #b91c1c; }
+
+/* ── Weekly class board (components/student/WeeklyClassBoard.css) ──────────── */
+html body.student-light .wcb-pill { color: #075985; background: #e0f2fe; border-color: #7dd3fc; }
+html body.student-light .wcb-title { color: #0f172a; }
+html body.student-light .wcb-meta { color: #475569; }
+html body.student-light .wcb-climb { color: #166534; background: #dcfce7; }
+html body.student-light .wcb-row { background: #f1f5f9; color: #0f172a; border-color: #e2e8f0; }
+html body.student-light .wcb-row.is-me { background: #ffedd5; color: #0f172a; border-color: #fb923c; }
+html body.student-light .wcb-rank { color: #64748b; }
+html body.student-light .wcb-row.is-me .wcb-rank { color: #c2410c; }
+html body.student-light .wcb-avatar { background: #e2e8f0; color: #334155; }
+html body.student-light .wcb-gap, html body.student-light .wcb-how { color: #64748b; }
+
+/* ── Class Conquest card (components/classConquest/ClassConquest.css). The map briefing and reveal sheets keep their dark design. ── */
+html body.student-light .ccq-pill, html body.student-light .ccq-eyebrow--light { color: #6b21a8; background: #f3e8ff; border-color: #d8b4fe; }
+html body.student-light .ccq-title { color: #0f172a; }
+html body.student-light .ccq-meta, html body.student-light .ccq-goal { color: #475569; }
+html body.student-light .ccq-capture { color: #166534; background: #dcfce7; }
+html body.student-light .ccq-row { background: #f1f5f9; color: #0f172a; border-color: #e2e8f0; }
+html body.student-light .ccq-row.is-mine { background: #f3e8ff; color: #0f172a; border-color: #a855f7; }
+html body.student-light .ccq-rank, html body.student-light .ccq-today, html body.student-light .ccq-how { color: #64748b; }
+html body.student-light .ccq-last { color: #92400e; background: #fef3c7; border-color: #fcd34d; }
+html body.student-light .ccq-last small { color: #b45309; }
+html body.student-light .ccq-next { background: #f8fafc; color: #0f172a; border-color: #cbd5e1; }
+html body.student-light .ccq-next b { color: #0f172a; }
+html body.student-light .ccq-next small { color: #64748b; }
+html body.student-light .ccq-hof, html body.student-light .ccq-secondary, html body.student-light .ccq-print { color: #92400e; background: #fef3c7; border-color: #f5c042; }
+html body.student-light .conquest-map-loading { background: #e2e8f0; }
+
+/* ── Completed assignments table (AssignmentDesk) ─────────────────────────── */
+html body.student-light .assignment-desk__table-scroll { scrollbar-color: #cbd5e1 #f8fafc; }
+html body.student-light .assignment-desk__table thead { background: #f1f5f9; color: #334155; }
+html body.student-light .assignment-desk__table th, html body.student-light .assignment-desk__table td { border-bottom-color: #e2e8f0; }
+html body.student-light .assignment-desk__table tbody tr:nth-child(even) { background: #f8fafc; }
+html body.student-light .assignment-desk__table time { color: #64748b; }
+html body.student-light .ccq-vault { background: #fef3c7; border-color: #f5c042; color: #0f172a; }
+html body.student-light .ccq-vault--button b { color: #0f172a; }
+html body.student-light .ccq-vault--button small, html body.student-light .ccq-vault-count b { color: #92400e; }
+html body.student-light .ccq-vault-count { color: #475569; }
+html body.student-light .ccq-vault-dial { box-shadow: inset 0 0 0 4px #ffffff, 0 0 0 3px rgba(245, 192, 66, 0.25); }
