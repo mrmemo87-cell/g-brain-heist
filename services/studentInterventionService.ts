@@ -250,3 +250,42 @@ export async function getClassLearningNeeds(studentIds: string[], subject: strin
   if (error) throw userFacingError(error, 'We could not load this class’s learning needs just now. Please try again.');
   return data as ClassLearningNeeds;
 }
+
+/** One of the signed-in teacher's own support plans, for the Follow-ups "Today" card. */
+export interface SupportPlanOverview {
+  intervention_id: string; student_id: string; student_name: string; subject: string; skill: string; skill_key: string;
+  status: LearningIntervention['status']; approval_status: LearningIntervention['approval_status'];
+  started_at?: string | null; completed_at?: string | null; target_date?: string | null;
+  baseline_evidence_items: number;
+  target_min_followup_observations: number; target_min_successful_observations: number;
+  follow_up_qualifying_observations: number; follow_up_successful_observations: number;
+  system_outcome_status?: string | null; outcome_status?: string | null;
+  practised_question_ids: string[];
+}
+
+/** Open plans plus plans completed in the last 14 days, created by the signed-in teacher. Read-only. */
+export async function getSupportPlansOverview(): Promise<SupportPlanOverview[]> {
+  const { data, error } = await supabase.rpc('rpc_teacher_support_plans_overview');
+  if (error) throw userFacingError(error, 'We could not load your support plans just now. Please try again.');
+  return (data || []) as SupportPlanOverview[];
+}
+
+/** What a plan needs from the teacher right now. Shared by the Today card and the plan cards. */
+export type PlanStage = 'start' | 'check' | 'waiting' | 'results' | 'done';
+export function planStage(plan: Pick<LearningIntervention, 'status' | 'target_min_followup_observations' | 'follow_up_qualifying_observations'>): PlanStage {
+  if (plan.status === 'planned') return 'start';
+  if (plan.status !== 'active') return 'done';
+  const needed = Math.max(0, (plan.target_min_followup_observations || 0) - (plan.follow_up_qualifying_observations || 0));
+  if (needed === 0) return 'results';
+  return (plan.follow_up_qualifying_observations || 0) > 0 ? 'waiting' : 'check';
+}
+
+/**
+ * Picks questions for an independent quick check: exact governed matches for the skill that were
+ * NOT already used in targeted practice, so the check measures transfer rather than recall.
+ * Returns an empty list when every exact question has been practised.
+ */
+export function pickQuickCheckQuestions(exactQuestionIds: string[], practisedQuestionIds: string[], count = 3): string[] {
+  const practised = new Set(practisedQuestionIds);
+  return [...new Set(exactQuestionIds)].filter((id) => !practised.has(id)).slice(0, count);
+}

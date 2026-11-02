@@ -23,3 +23,114 @@
 .plan-nudge.is-act i, .plan-nudge.is-overdue i { animation: plan-nudge-pulse 2.4s ease-in-out infinite; }
 @keyframes plan-nudge-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
 @media (prefers-reduced-motion: reduce) { .plan-nudge i { animation: none; } }
+
+/* ── Intervention loop UX (2026-11-03): today stats, plan cards, wins, plan window ── */
+.intervention-alert--focus { border-color: #a5b4fc !important; background: #eef2ff !important; color: #3730a3 !important; }
+.intervention-today-stats { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; }
+.intervention-today-stats span { display: flex; align-items: baseline; gap: .3rem; padding: .55rem .75rem; border: 1px solid #dce5ef; border-radius: .8rem; background: #fff; color: #4b5870; font-size: .74rem; font-weight: 700; }
+.intervention-today-stats b { color: #162033; font-size: 1.15rem; }
+.intervention-today-stats .is-hot { border-color: #fdba74; background: #fff7ed; }
+.intervention-today-stats .is-hot b { color: #c2410c; }
+.intervention-today-stats .is-good { border-color: #86efac; background: #f0fdf4; }
+.intervention-today-stats .is-good b { color: #15803d; }
+
+.intervention-wins { display: grid; gap: .5rem; margin-top: 1rem; }
+.intervention-win { display: flex; align-items: center; gap: .8rem; padding: .85rem 1rem; border: 1px solid #86efac; border-radius: 1rem; background: linear-gradient(120deg, #f0fdf4, #ecfeff); animation: intervention-win-in .5s ease-out both; }
+.intervention-win > span { font-size: 1.6rem; }
+.intervention-win strong { display: block; color: #14532d; font-size: .9rem; }
+.intervention-win small { color: #3f6b52; font-size: .7rem; }
+@keyframes intervention-win-in { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
+
+.plan-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: .9rem; }
+.plan-list-footnote { display: block; margin-top: .6rem; color: #78859a; font-size: .68rem; }
+.plan-card { display: grid; gap: .7rem; padding: 1rem; border: 1px solid #dce5ef; border-radius: 1rem; background: #fff; box-shadow: 0 8px 24px rgba(73, 89, 163, .06); }
+.plan-card.is-win { border-color: #86efac; background: linear-gradient(180deg, #f6fef9, #fff 40%); }
+.plan-card.is-completed:not(.is-win) { opacity: .9; }
+.plan-card h3 { margin: 0; font-size: 1.05rem; color: #162033; }
+.plan-card-top { display: flex; justify-content: space-between; align-items: center; gap: .5rem; font-size: .68rem; font-weight: 800; color: #66758a; text-transform: uppercase; letter-spacing: .05em; }
+.plan-card-top b { padding: .22rem .55rem; border-radius: 999px; background: #eef2ff; color: #4753a6; text-transform: none; letter-spacing: 0; }
+.plan-card.is-active .plan-card-top b { background: #e0f2fe; color: #075985; }
+.plan-card.is-win .plan-card-top b { background: #dcfce7; color: #166534; }
+
+.plan-stepper { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .25rem; margin: 0; padding: 0; list-style: none; counter-reset: none; }
+.plan-stepper li { position: relative; display: grid; justify-items: center; gap: .25rem; color: #94a3b8; font-size: .62rem; font-weight: 800; text-align: center; }
+.plan-stepper li::before { content: ''; position: absolute; top: .7rem; right: 50%; width: 100%; height: 2px; background: #e2e8f0; z-index: 0; }
+.plan-stepper li:first-child::before { display: none; }
+.plan-stepper li.is-done::before, .plan-stepper li.is-current::before { background: #5966e8; }
+.plan-stepper i { position: relative; z-index: 1; display: grid; place-items: center; width: 1.4rem; height: 1.4rem; border-radius: 50%; background: #f1f5f9; border: 2px solid #e2e8f0; font-style: normal; font-size: .64rem; }
+.plan-stepper .is-done { color: #4753a6; }
+.plan-stepper .is-done i { background: #5966e8; border-color: #5966e8; color: #fff; }
+.plan-stepper .is-current { color: #162033; }
+.plan-stepper .is-current i { background: #fff; border-color: #5966e8; color: #4753a6; box-shadow: 0 0 0 4px rgba(89, 102, 232, .15); }
+.plan-stepper .is-off { opacity: .45; }
+
+.plan-before-after { display: grid; grid-template-columns: 1fr auto 1fr auto; align-items: center; gap: .55rem; padding: .7rem; border-radius: .85rem; background: #f8fafc; }
+.plan-before-after > div:not(.plan-before-after-arrow) { display: grid; gap: .1rem; }
+.plan-before-after span { color: #66758a; font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+.plan-before-after b { font-size: 1.35rem; line-height: 1.1; color: #162033; }
+.plan-before-after small { color: #66758a; font-size: .64rem; line-height: 1.3; }
+.plan-before-after .is-before b { color: #b42318; }
+.plan-before-after .is-after.is-good b { color: #15803d; }
+.plan-before-after .is-after.is-mid b { color: #b45309; }
+.plan-before-after .is-after.is-low b { color: #b42318; }
+.plan-before-after .is-after.is-empty b { color: #94a3b8; }
+.plan-before-after-arrow { color: #94a3b8; font-weight: 900; }
+
+.plan-ring { position: relative; display: grid; place-items: center; width: 3.6rem; height: 3.6rem; margin: 0; }
+.plan-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.plan-ring circle { fill: none; stroke-width: 6; }
+.plan-ring-track { stroke: #e2e8f0; }
+.plan-ring-value { stroke: #5966e8; stroke-linecap: round; transition: stroke-dasharray .6s ease; }
+.plan-ring figcaption { position: relative; display: grid; justify-items: center; line-height: 1; }
+.plan-ring figcaption b { font-size: .78rem; color: #162033; }
+.plan-ring figcaption span { display: none; }
+
+.plan-outcome { display: grid; gap: .2rem; padding: .6rem .7rem; border-radius: .7rem; background: #f1f5f9; color: #334155; font-size: .74rem; }
+.plan-outcome.is-win { background: #dcfce7; color: #14532d; }
+.plan-outcome span { font-size: .7rem; opacity: .85; }
+
+.plan-card-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.plan-card-actions button, .plan-inline-action { padding: .55rem .9rem; border: 1px solid #5966e8; border-radius: .7rem; background: #5966e8; color: #fff; font: inherit; font-size: .74rem; font-weight: 800; cursor: pointer; }
+.plan-card-actions button.is-strong { border-color: #16a34a; background: #16a34a; animation: plan-results-glow 2.4s ease-in-out infinite; }
+.plan-card-actions button.secondary { background: #fff; color: #4753a6; }
+.plan-card-actions button.link { margin-left: auto; padding: .3rem .2rem; border: 0; background: transparent; color: #8a94a6; font-weight: 700; text-decoration: underline; }
+@keyframes plan-results-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, .35); } 50% { box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); } }
+
+.intervention-watch-collapsed > summary { display: flex; align-items: center; justify-content: space-between; gap: .75rem; cursor: pointer; list-style: none; color: #46536a; font-size: .82rem; font-weight: 800; }
+.intervention-watch-collapsed > summary::-webkit-details-marker { display: none; }
+.intervention-watch-collapsed > summary small { padding: .25rem .6rem; border-radius: 999px; background: #f1f5f9; color: #58667a; font-size: .66rem; }
+.intervention-watch-collapsed[open] > summary small { visibility: hidden; }
+.intervention-watch-collapsed[open] > summary { margin-bottom: .8rem; }
+
+.plan-modal p { margin: .2rem 0 .6rem; color: #46536a; font-size: .8rem; line-height: 1.55; }
+.plan-modal .plan-before-after { margin-bottom: .6rem; }
+.plan-chip-row { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .7rem; }
+.plan-chip-row button { padding: .45rem .75rem; border: 1px solid #dce5ef; border-radius: 999px; background: #fff; color: #334155; font: inherit; font-size: .72rem; font-weight: 700; cursor: pointer; }
+.plan-chip-row button.is-active { border-color: #5966e8; background: #5966e8; color: #fff; }
+.plan-chip-row button.is-good.is-active { border-color: #16a34a; background: #16a34a; }
+.plan-chip-row button.is-bad.is-active { border-color: #dc2626; background: #dc2626; }
+.plan-measured { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; margin-bottom: .6rem; padding: .7rem .85rem; border-radius: .8rem; background: #f1f5f9; }
+.plan-measured span { color: #66758a; font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+.plan-measured b { font-size: 1.05rem; }
+.plan-measured.is-good { background: #dcfce7; color: #14532d; }
+.plan-measured.is-bad { background: #fee2e2; color: #7f1d1d; }
+.plan-modal-hint { display: block; margin-top: .3rem; color: #b45309; font-size: .66rem; }
+.plan-check-facts { margin: 0 0 .7rem; padding-left: 1.1rem; color: #46536a; font-size: .74rem; line-height: 1.6; }
+.intervention-modal-actions button.is-danger { border-color: #dc2626 !important; background: #dc2626 !important; }
+.plan-modal .plan-ring { margin: 0 auto .6rem; width: 4.5rem; height: 4.5rem; }
+
+@media (max-width: 640px) {
+  .intervention-today-stats { justify-content: flex-start; }
+  .plan-list { grid-template-columns: 1fr; }
+  .plan-before-after { grid-template-columns: 1fr auto 1fr; }
+  .plan-before-after .plan-ring { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .intervention-win, .plan-card-actions button.is-strong { animation: none; }
+}
+/* The shared modal styles target every direct child div and its last button; reset them for plan-window content. */
+.plan-modal > .plan-chip-row { justify-content: flex-start !important; gap: .4rem !important; }
+.plan-modal > .plan-chip-row button:last-child:not(.is-active) { border-color: #dce5ef; background: #fff; color: #334155; font-weight: 700; }
+.plan-modal > .plan-measured { display: flex !important; justify-content: space-between !important; }
+.plan-modal > .plan-before-after { display: grid !important; justify-content: stretch !important; }
+.plan-modal > .plan-before-after .plan-ring { display: grid; }
