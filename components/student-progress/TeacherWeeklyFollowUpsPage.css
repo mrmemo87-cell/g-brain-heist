@@ -418,3 +418,37 @@
     width: 100%;
   }
 }
+
+/* Today card: every open loop that needs the teacher, one button each (2026-11-03). */
+.tfu-today {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--tfu-line);
+  border-radius: 1.1rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f4f7ff 100%);
+  box-shadow: 0 10px 30px rgba(31, 85, 201, 0.07);
+}
+.tfu-today-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.tfu-today-head h2 { margin: 0; font-size: 1.15rem; }
+.tfu-today-win { padding: 0.3rem 0.7rem; border-radius: 999px; background: #dcfce7; color: #14532d; font-size: 0.8rem; font-weight: 700; }
+.tfu-today-clear { display: flex; align-items: center; gap: 0.6rem; margin: 0; color: var(--tfu-muted); font-size: 0.9rem; }
+.tfu-today-clear b { display: grid; place-items: center; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: #dcfce7; color: #15803d; }
+.tfu-today-list { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+.tfu-today-list > li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; padding: 0.7rem 0.8rem; border: 1px solid var(--tfu-line); border-radius: 0.85rem; background: #fff; }
+.tfu-today-list > li > i { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; font-style: normal; font-weight: 800; }
+.tfu-today-list > li.is-good > i { background: #dcfce7; color: #15803d; }
+.tfu-today-list > li.is-act > i { background: #fff1e6; color: #c2410c; }
+.tfu-today-list > li.is-info > i { background: var(--tfu-accent-soft); color: var(--tfu-accent); }
+.tfu-today-list strong { display: block; font-size: 0.92rem; }
+.tfu-today-people { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.35rem; }
+.tfu-today-people button, .tfu-today-people em { display: inline-flex; align-items: baseline; gap: 0.3rem; padding: 0.25rem 0.6rem; border: 1px solid var(--tfu-line); border-radius: 999px; background: var(--tfu-soft); color: var(--tfu-ink); font: inherit; font-size: 0.78rem; font-style: normal; font-weight: 600; }
+.tfu-today-people button { cursor: pointer; }
+.tfu-today-people button:hover { border-color: var(--tfu-accent); background: var(--tfu-accent-soft); }
+.tfu-today-people small { color: var(--tfu-muted); font-weight: 500; }
+.tfu-today-action { min-height: 40px; padding: 0 0.95rem; border: 0; border-radius: 0.7rem; background: var(--tfu-accent); color: #fff; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.tfu-today-list > li.is-good .tfu-today-action { background: #16a34a; }
+@media (max-width: 560px) {
+  .tfu-today-list > li { grid-template-columns: auto 1fr; }
+  .tfu-today-action { grid-column: 1 / -1; width: 100%; }
+}

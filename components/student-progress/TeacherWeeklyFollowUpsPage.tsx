@@ -14,6 +14,7 @@ import {
   getAcademicProgressExperienceContext,
   type AcademicProgressExperienceContext,
 } from '../../services/academicProgressExperienceService';
+import { getSupportPlansOverview, planStage, type SupportPlanOverview } from '../../services/studentInterventionService';
 import { AcademicProgressHeader } from './AcademicProgressSuite';
 import './TeacherWeeklyFollowUpsPage.css';
 
@@ -58,6 +59,7 @@ const TeacherWeeklyFollowUpsPage: React.FC<TeacherWeeklyFollowUpsPageProps> = ({
   const [context, setContext] = useState<AcademicProgressExperienceContext | null>(null);
   const [weekCount, setWeekCount] = useState<number | null>(null);
   const [practice, setPractice] = useState<PracticeResult[]>([]);
+  const [plans, setPlans] = useState<SupportPlanOverview[]>([]);
   const [tab, setTab] = useState<FollowUpTab>('late');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [reminded, setReminded] = useState<Set<string>>(new Set());
@@ -70,14 +72,17 @@ const TeacherWeeklyFollowUpsPage: React.FC<TeacherWeeklyFollowUpsPageProps> = ({
     setLoading(true);
     setError(null);
     try {
-      const [list, count, nextContext, results] = await Promise.all([
+      const [list, count, nextContext, results, planRows] = await Promise.all([
         fetchTeacherFollowUps(),
         fetchFollowUpsThisWeek().catch(() => null),
         getAcademicProgressExperienceContext().catch(() => null),
         fetchPracticeResults().catch(() => []),
+        // The Today card still works without plans if this read is unavailable.
+        getSupportPlansOverview().catch(() => [] as SupportPlanOverview[]),
       ]);
       setRows(list);
       setPractice(results);
+      setPlans(planRows);
       setWeekCount(count);
       setContext(nextContext);
       const firstWithStudents = TABS.find((item) => list.some((row) => row.tab === item.id));
@@ -102,6 +107,19 @@ const TeacherWeeklyFollowUpsPage: React.FC<TeacherWeeklyFollowUpsPageProps> = ({
     .map((row) => ({ row, status: practiceStatus(row) }))
     .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
       || new Date(b.row.set_at).getTime() - new Date(a.row.set_at).getTime()), [practice]);
+
+  // "Today": every open loop that needs the teacher, each with one button.
+  const today = useMemo(() => {
+    const open = plans.filter((plan) => plan.status === 'planned' || plan.status === 'active');
+    return {
+      results: open.filter((plan) => planStage(plan) === 'results'),
+      toStart: open.filter((plan) => planStage(plan) === 'start'),
+      toCheck: open.filter((plan) => planStage(plan) === 'check'
+        && plan.started_at && Date.now() - new Date(plan.started_at).getTime() >= 5 * 86_400_000),
+      wins: plans.filter((plan) => plan.status === 'completed' && ['improved', 'resolved'].includes(plan.outcome_status || '')),
+      struggling: practiceRows.filter((item) => item.status === 'struggling'),
+    };
+  }, [plans, practiceRows]);
 
   const flaggedCount = useMemo(() => new Set(rows.map((row) => row.student_id)).size, [rows]);
   const current = byTab[tab];
@@ -180,6 +198,49 @@ const TeacherWeeklyFollowUpsPage: React.FC<TeacherWeeklyFollowUpsPageProps> = ({
       />
 
       <main className="tfu-main">
+        {!loading ? (() => {
+          const open = (studentId: string) => onPlanPractice?.(studentId);
+          const items: Array<{ key: string; tone: 'good' | 'act' | 'info'; icon: string; text: string; people: Array<{ id: string; name: string; detail: string }>; action: string; onAction?: () => void }> = [];
+          if (today.results.length) items.push({ key: 'results', tone: 'good', icon: '✓', text: `${plural(today.results.length, 'plan has', 'plans have')} results`, people: today.results.map((plan) => ({ id: plan.student_id, name: plan.student_name, detail: plan.skill })), action: 'See result' });
+          if (flaggedCount) items.push({ key: 'flagged', tone: 'act', icon: '!', text: `${plural(flaggedCount, 'student needs', 'students need')} a follow-up`, people: [], action: 'Show them', onAction: () => document.getElementById('tfu-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) });
+          if (today.struggling.length) items.push({ key: 'struggling', tone: 'act', icon: '!', text: `${plural(today.struggling.length, 'student is', 'students are')} still struggling with practice you set`, people: today.struggling.map(({ row }) => ({ id: row.student_id, name: row.display_name, detail: row.topic })), action: 'Plan support' });
+          if (today.toCheck.length) items.push({ key: 'check', tone: 'act', icon: '?', text: `${plural(today.toCheck.length, 'plan needs', 'plans need')} a quick check`, people: today.toCheck.map((plan) => ({ id: plan.student_id, name: plan.student_name, detail: plan.skill })), action: 'Set check' });
+          if (today.toStart.length) items.push({ key: 'start', tone: 'info', icon: '▶', text: `${plural(today.toStart.length, 'plan is', 'plans are')} waiting to start`, people: today.toStart.map((plan) => ({ id: plan.student_id, name: plan.student_name, detail: plan.skill })), action: 'Start' });
+          return (
+            <section className="tfu-today" aria-labelledby="tfu-today-title">
+              <div className="tfu-today-head">
+                <h2 id="tfu-today-title">Today</h2>
+                {today.wins.length ? <span className="tfu-today-win">🎉 {plural(today.wins.length, 'student', 'students')} improved in the last 2 weeks</span> : null}
+              </div>
+              {items.length === 0 ? (
+                <p className="tfu-today-clear"><b>✓</b> You’re all caught up. Brains Heist will tell you here when someone needs you.</p>
+              ) : (
+                <ul className="tfu-today-list">
+                  {items.map((item) => (
+                    <li key={item.key} className={`is-${item.tone}`}>
+                      <i aria-hidden="true">{item.icon}</i>
+                      <div>
+                        <strong>{item.text}</strong>
+                        {item.people.length ? (
+                          <span className="tfu-today-people">
+                            {item.people.slice(0, 4).map((person) => (
+                              onPlanPractice
+                                ? <button key={`${item.key}-${person.id}-${person.detail}`} type="button" onClick={() => open(person.id)} aria-label={`${item.action}: ${person.name}, ${person.detail}`}>{person.name}<small>{person.detail}</small></button>
+                                : <em key={`${item.key}-${person.id}-${person.detail}`}>{person.name}<small>{person.detail}</small></em>
+                            ))}
+                            {item.people.length > 4 ? <em>+{item.people.length - 4} more</em> : null}
+                          </span>
+                        ) : null}
+                      </div>
+                      {item.onAction ? <button type="button" className="tfu-today-action" onClick={item.onAction}>{item.action}</button>
+                        : item.people.length && onPlanPractice ? <button type="button" className="tfu-today-action" onClick={() => open(item.people[0].id)}>{item.action}</button> : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          );
+        })() : null}
         <section className="tfu-summary" aria-label="This week">
           <div>
             <strong>{loading ? '…' : flaggedCount}</strong>
