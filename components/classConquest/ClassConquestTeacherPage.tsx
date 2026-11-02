@@ -98,7 +98,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
 
   const printLastWeek = () => {
     if (!last) return;
-    setPrintBlocked(!openCertificatePrintWindow(buildCertificateDocument({ result: last, issuer, schoolLogoUrl, brandLogoUrl: brandLogoUrl(), theme, printSides })));
+    setPrintBlocked(!openCertificatePrintWindow(buildCertificateDocument({ result: last, issuer, schoolLogoUrl, brandLogoUrl: brandLogoUrl(), theme, printSides, returnUrl: window.location.href })));
   };
   const sealed = data?.phase === 'sealed';
   const weekendLabel = (id: string | null) => weekend?.classes.find((c) => c.class_id === id)?.label ?? '';
