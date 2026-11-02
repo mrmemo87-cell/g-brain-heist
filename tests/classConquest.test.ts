@@ -234,7 +234,11 @@ test('certificates print on the smart print system: landscape, one per sheet, ne
 
   const html = buildCertificateDocument({ result: r, printSides: 'double' });
   assert.match(html, /@page \{ size: A4 landscape; margin: 10mm; \}/);
-  assert.match(html, /zoom: 0\.78/, "scaled to fit any printer margins, including iPhone headers");
+  assert.match(html, /@media print \{ :root \{ --mm: 0\.78mm; \} \}/, "scaled to fit any printer margins, including iPhone headers");
+  assert.doesNotMatch(html, /zoom/, "no CSS zoom: Safari ignores it in print and breaks the on-screen layout");
+  const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
+  const rawLengths = (css.match(/\b\d+(?:\.\d+)?mm\b/g) ?? []).sort();
+  assert.deepEqual(rawLengths, ['0.78mm', '10mm', '1mm', '1mm'], "only the unit definitions and page margin use raw mm; every other length goes through --mm");
   assert.match(html, /id="back"/, "a way back for home-screen apps");
   assert.equal((html.match(/class="print-page blank-back"/g) ?? []).length, 5);
   assert.equal((html.match(/<article class="cert-booklet"/g) ?? []).length, 6);
