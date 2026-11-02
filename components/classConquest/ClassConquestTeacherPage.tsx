@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchClassConquest, fetchClassConquestWeekend, type ClassConquestData, type ClassConquestWeekend } from '../../services/classConquestService';
 import { buildConquest, CHEER_TEXT, classColors, CONQUEST_COLORS, dayPower, mapById, roleForRank } from '../../src/lib/classConquest';
-import { buildCertificateDocument, conquestBadgeSvg, openCertificatePrintWindow, planCertificatePrint, weekLabel, type CertificateTheme, type PrintSides } from '../../src/lib/conquestCertificates';
+import { conquestBadgeSvg, planCertificatePrint, weekLabel, type CertificateTheme, type PrintSides } from '../../src/lib/conquestCertificates';
+import CertificatePdfButton from './CertificatePdfButton';
 import ConquestMap from './ConquestMap';
 import ConquestHistoryModal from './ConquestHistoryModal';
 import ConquestIntelModal from './ConquestIntelModal';
@@ -26,8 +27,6 @@ const REASONS: Record<string, string> = {
   not_allowed: 'Class Conquest is available to teachers and school admins.',
 };
 
-const brandLogoUrl = () => (typeof window === 'undefined' ? null : `${window.location.origin}/logo.png`);
-
 const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onBack, schoolId, issuer: issuerFallback, schoolLogoUrl: logoFallback }) => {
   const branding = useSchoolBranding({ schoolId, schoolName: issuerFallback, schoolLogoUrl: logoFallback });
   const issuer = branding.schoolName ?? issuerFallback;
@@ -41,7 +40,6 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
   const [historyOpen, setHistoryOpen] = useState(false);
   const [intelOpen, setIntelOpen] = useState(false);
   const [revealing, setRevealing] = useState(false);
-  const [printBlocked, setPrintBlocked] = useState(false);
   const [theme, setTheme] = useState<CertificateTheme>('light');
   const [printSides, setPrintSidesState] = useState<PrintSides>(() => {
     try { return localStorage.getItem('bh:ccq-print-sides') === 'single' ? 'single' : 'double'; } catch { return 'double'; }
@@ -96,10 +94,6 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
     }
   };
 
-  const printLastWeek = () => {
-    if (!last) return;
-    setPrintBlocked(!openCertificatePrintWindow(buildCertificateDocument({ result: last, issuer, schoolLogoUrl, brandLogoUrl: brandLogoUrl(), theme, printSides, returnUrl: window.location.href })));
-  };
   const sealed = data?.phase === 'sealed';
   const weekendLabel = (id: string | null) => weekend?.classes.find((c) => c.class_id === id)?.label ?? '';
   const weekendColors = useMemo(() => Object.fromEntries([...(weekend?.classes ?? [])].sort((a, b) => a.label.localeCompare(b.label)).map((c, i) => [c.class_id, CONQUEST_COLORS[i % CONQUEST_COLORS.length]])), [weekend]);
@@ -169,18 +163,20 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
                   return `${last.top_students.length + 1} certificates · ${plan.physicalSheets} sheets · A4 landscape · each on its own sheet${plan.blankPages ? ` (${plan.blankPages} blank backs)` : ''}`;
                 })()}
               </p>
-              <button type="button" className="ccq-present" onClick={printLastWeek} disabled={last.top_students.length === 0}>🖨 Print certificates for {weekLabel(last.week_start)}</button>
-              {printBlocked ? <p className="ccq-modal-warn" role="alert">Your browser blocked the certificate window. Allow pop-ups for Brains Heist and try again.</p> : null}
+              {last.top_students.length > 0 ? (
+                <CertificatePdfButton result={last} issuer={issuer} schoolLogoUrl={schoolLogoUrl} theme={theme} printSides={printSides} label={`🖨 Certificates for ${weekLabel(last.week_start)} (PDF)`} />
+              ) : null}
             </div>
           </div>
           {last.top_students.length > 0 ? (
             <ol className="ccq-winner-cards">
-              {last.top_students.map((s) => (
+              {last.top_students.map((s, index) => (
                 <li key={s.student_id} className="ccq-winner-card">
                   <span className="ccq-winner-badge" aria-hidden="true" dangerouslySetInnerHTML={{ __html: conquestBadgeSvg({ kind: 'gold', mapId: last.map_id, rank: s.rank, caption: roleForRank(s.rank).toUpperCase(), size: 72 }) }} />
                   <b>{s.name}</b>
                   <span className="ccq-winner-role">{roleForRank(s.rank)}</span>
                   <small>{s.missions} missions · {s.correct} correct</small>
+                  <CertificatePdfButton compact result={last} issuer={issuer} schoolLogoUrl={schoolLogoUrl} theme={theme} printSides={printSides} only={index} label="PDF for this student" />
                 </li>
               ))}
             </ol>

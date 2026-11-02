@@ -268,3 +268,15 @@
 .ccq-print-sides { display: grid; gap: 0.25rem; color: #334155; font-size: 0.8rem; font-weight: 700; justify-self: end; }
 .ccq-print-sides select { min-height: 40px; padding: 0 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.6rem; background: #fff; color: #0f172a; font-size: 0.85rem; }
 .ccq-print-plan { margin: 0; color: #475569; font-size: 0.78rem; text-align: right; }
+
+/* Certificate PDF button */
+.ccq-pdf { display: grid; gap: 0.4rem; justify-items: end; }
+.ccq-pdf.is-compact { justify-items: center; margin-top: 0.35rem; }
+.ccq-modal .ccq-pdf { justify-items: start; }
+.ccq-pdf-summary { margin: 0; color: #166534; font-size: 0.8rem; font-weight: 800; text-align: right; }
+.ccq-pdf-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.ccq-pdf-small { min-height: 36px; padding: 0 0.75rem; border: 1px solid #c4b5fd; border-radius: 0.6rem; background: #fff; color: #5b21b6; font-size: 0.8rem; font-weight: 800; cursor: pointer; }
+.ccq-pdf-small:disabled { opacity: 0.6; cursor: wait; }
+.ccq-pdf-link { color: #5b21b6; font-size: 0.85rem; font-weight: 800; text-decoration: underline; }
+.ccq-modal .ccq-pdf-link { color: #c4b5fd; }
+.ccq-pdf-inline { border: 0; background: none; padding: 0; color: inherit; font: inherit; font-weight: 800; text-decoration: underline; cursor: pointer; }
