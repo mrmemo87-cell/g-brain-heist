@@ -32,6 +32,7 @@ import { isOnboardingDebugEnabled, logOnboardingDebug } from './src/features/onb
 import type { Profile } from './types';
 import { isAuthCallbackPath, isResumeEvent, resolvePostAuthPath, shouldUseGlobalAuthLoader } from './src/lib/authFlowGuards';
 import { readIeltsPracticeAssignmentContext } from './src/pages/ielts/assignmentPracticeUi';
+import { isUnlockedIeltsCourseTask, readIeltsCourseUnitFromSearch } from './services/ieltsCourseService';
 import { checkIeltsPracticeAccess, type IeltsPracticeSkill } from './services/ieltsService';
 import SchoolProgrammeRouteGuard from './components/SchoolProgrammeRouteGuard';
 import IosInstallGuide from './components/IosInstallGuide';
@@ -112,7 +113,8 @@ const IeltsPracticeRouteGuard: React.FC<{ children: React.ReactElement }> = ({ c
         : 'reading';
   const rawTaskId = params.setId ?? params.taskId;
   const taskId = rawTaskId ? Number(rawTaskId) : NaN;
-  const [state, setState] = useState<{ loading: boolean; allowed: boolean; reason?: string }>({ loading: true, allowed: false });
+  const courseUnitId = readIeltsCourseUnitFromSearch();
+  const [state, setState] = useState<{ loading: boolean; allowed: boolean; reason?: string; courseTask?: boolean }>({ loading: true, allowed: false });
 
   useEffect(() => {
     let active = true;
@@ -125,7 +127,14 @@ const IeltsPracticeRouteGuard: React.FC<{ children: React.ReactElement }> = ({ c
       .then((access) => {
         if (!active) return;
         if (access.allowed) {
-          setState({ loading: false, allowed: true });
+          if (courseUnitId === null) {
+            setState({ loading: false, allowed: true });
+            return;
+          }
+          // A task inside an unlocked course unit is part of the course, not Extra Practice.
+          void isUnlockedIeltsCourseTask(courseUnitId, skill, taskId).then((courseTask) => {
+            if (active) setState({ loading: false, allowed: true, courseTask });
+          });
           return;
         }
         setState({ loading: false, allowed: false, reason: access.reason });
@@ -139,7 +148,7 @@ const IeltsPracticeRouteGuard: React.FC<{ children: React.ReactElement }> = ({ c
       });
 
     return () => { active = false; };
-  }, [navigate, skill, taskId]);
+  }, [courseUnitId, navigate, skill, taskId]);
 
   if (state.loading) {
     return <div style={{ padding: '1rem' }}>Checking IELTS access…</div>;
@@ -150,7 +159,7 @@ const IeltsPracticeRouteGuard: React.FC<{ children: React.ReactElement }> = ({ c
     return <div style={{ padding: '1.5rem', maxWidth: 640, margin: '2rem auto', background: '#fff7ed', border: '1px solid #fdba74', borderRadius: 12, color: '#9a3412' }}>This IELTS task is not available.</div>;
   }
 
-  if (assignmentContext.isAssignedPractice) {
+  if (assignmentContext.isAssignedPractice || state.courseTask) {
     return children;
   }
 
