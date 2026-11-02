@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   commanderHeadquartersError,
   getCommanderHeadquarters,
@@ -184,6 +185,12 @@ export default function CommanderHeadquarters({
   const firstBattleAfterCelebration = useRef(false);
   const [pvpOpen, setPvpOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  useEffect(() => {
+    if (!helpOpen) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setHelpOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [helpOpen]);
   const [celebration, setCelebration] = useState<CommanderCelebrationData | null>(null);
   const [xpFloat, setXpFloat] = useState<string | null>(null);
   const [soundOn, setSoundOn] = useState(commanderUiSoundEnabled);
@@ -638,13 +645,24 @@ export default function CommanderHeadquarters({
       {celebration && <CommanderCelebration data={celebration} onDone={closeCelebration} />}
       {xpFloat && <div className="cc-xp-float" aria-hidden>{xpFloat}</div>}
 
-      {helpOpen && (
-        <div className="cc-command-help-overlay" role="dialog" aria-modal="true" aria-label="How to play Cursed Commander" onClick={() => setHelpOpen(false)}>
+      {/* Rendered on <body> so no transformed/filtered ancestor can pull the "fixed" overlay off-centre. */}
+      {helpOpen && typeof document !== "undefined" && createPortal(
+        <div
+          className="cc-command-help-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="How to play Cursed Commander"
+          lang="en"
+          dir="ltr"
+          data-no-interface-translation="true"
+          onClick={() => setHelpOpen(false)}
+        >
           <div className="cc-command-help-sheet" onClick={(event) => event.stopPropagation()}>
             <button className="cc-command-help-close" onClick={() => setHelpOpen(false)} aria-label="Close how to play">✕</button>
             <CommanderHelpGuide />
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       {error && (

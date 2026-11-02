@@ -21,8 +21,8 @@ const CommanderHelpGuide: React.FC = () => (
     <div className="grid gap-3 sm:grid-cols-2">
       <Card title="🚀 Start here" tone="border-cyan-500/30 bg-cyan-500/10">
         <ol className="list-decimal space-y-1 pl-5">
-          <li>Tap <strong className="text-white">Get your free team</strong>.</li>
-          <li>Play a <strong className="text-white">Practice battle</strong> against the computer. It is free.</li>
+          <li>Tap <strong className="text-white">Summon</strong> to get your free army. Your first battle starts right away.</li>
+          <li>Tap <strong className="text-white">Fight</strong> any time for a free Practice battle against the computer.</li>
           <li>When you feel ready, try <strong className="text-white">Player Battles</strong> against other students' armies.</li>
         </ol>
       </Card>
