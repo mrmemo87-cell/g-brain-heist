@@ -1,16 +1,20 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   archiveSchoolSubjectGroup,
+  fetchOfferingPlacement,
   fetchSchoolSubjectGroupRoster,
   fetchSchoolSubjectGroups,
   saveSchoolSubjectGroup,
   setSchoolSubjectDelivery,
   setSchoolSubjectGroupStudents,
   setSchoolSubjectGroupTeacher,
+  SimilarGroupExistsError,
+  type OfferingPlacement,
   type SchoolSubjectGroup,
   type SubjectDeliveryMode,
 } from '../../services/schoolSubjectGroupService';
 import type { SchoolSubjectOffering } from '../../services/schoolSubjectCatalogService';
+import { groupNameKey } from '../../services/subjectGroupNameKey';
 import { brainsConfirm } from '../../src/utils/brainsAlert';
 
 type Props = {
@@ -22,6 +26,12 @@ type Props = {
   teachers: any[];
   addToast: (message: string, tone?: 'success' | 'error' | 'info' | 'warning') => void;
   onChanged?: () => Promise<void> | void;
+  /**
+   * Set when the Subjects editor just saved students who have access to this subject but
+   * are not in any custom teaching group. The panel scrolls the "not yet in a group" tray
+   * into view so the administrator finishes the job before leaving.
+   */
+  placementAttention?: boolean;
 };
 
 const studentId = (student: any) => student?.user_id || student?.id;
@@ -53,6 +63,7 @@ const SubjectTeachingGroupsPanel: React.FC<Props> = ({
   teachers,
   addToast,
   onChanged,
+  placementAttention = false,
 }) => {
   const [groups, setGroups] = useState<SchoolSubjectGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,12 +71,24 @@ const SubjectTeachingGroupsPanel: React.FC<Props> = ({
   const [newGroupName, setNewGroupName] = useState('');
   const [rosters, setRosters] = useState<Record<string, Set<string>>>({});
   const [rosterSearch, setRosterSearch] = useState<Record<string, string>>({});
+  const [placement, setPlacement] = useState<OfferingPlacement | null>(null);
+  const [placementTarget, setPlacementTarget] = useState<string>('');
+  const unplacedTrayRef = useRef<HTMLDivElement | null>(null);
 
   const load = async () => {
     setLoading(true);
     try {
-      const next = await fetchSchoolSubjectGroups(schoolId, offering.id);
+      const [next, nextPlacement] = await Promise.all([
+        fetchSchoolSubjectGroups(schoolId, offering.id),
+        offering.deliveryMode === 'custom_groups'
+          ? fetchOfferingPlacement(schoolId, offering.id).catch((error) => {
+            console.error('Unable to load teaching-group placement', error);
+            return null;
+          })
+          : Promise.resolve(null),
+      ]);
       setGroups(next);
+      setPlacement(nextPlacement);
       const custom = next.filter((group) => group.groupType === 'custom');
       const loaded = await Promise.all(custom.map(async (group) => {
         const roster = await fetchSchoolSubjectGroupRoster(schoolId, group.id);
@@ -80,7 +103,22 @@ const SubjectTeachingGroupsPanel: React.FC<Props> = ({
     }
   };
 
-  useEffect(() => { void load(); }, [schoolId, offering.id]);
+  useEffect(() => { void load(); }, [schoolId, offering.id, offering.deliveryMode]);
+
+  const customGroups = useMemo(() => groups.filter((group) => group.groupType === 'custom'), [groups]);
+  const unplaced = placement?.unplaced || [];
+
+  // Default the placement chooser to the only group, or the first one.
+  useEffect(() => {
+    if (!customGroups.length) { setPlacementTarget(''); return; }
+    if (!customGroups.some((group) => group.id === placementTarget)) setPlacementTarget(customGroups[0].id);
+  }, [customGroups, placementTarget]);
+
+  useEffect(() => {
+    if (placementAttention && !loading && unplaced.length && unplacedTrayRef.current) {
+      unplacedTrayRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [placementAttention, loading, unplaced.length]);
 
   const gradeClasses = useMemo(() => (classes || [])
     .filter((item: any) => item.is_active !== false && String(item.grade_level) === String(offering.gradeLevel))
@@ -181,15 +219,79 @@ const SubjectTeachingGroupsPanel: React.FC<Props> = ({
       return;
     }
     const groupName = newGroupName.trim();
-    await run(async () => {
-      await saveSchoolSubjectGroup({
-        schoolId,
-        offeringId: offering.id,
-        name: groupName,
-        groupType: 'custom',
+
+    // Near-duplicate guard: "7 ESL" next to "Grade 7 ESL" is almost always an attempt to add
+    // a student to the existing group, not a wish for a second one. Ask before creating.
+    const similar = customGroups.find((group) => groupNameKey(group.name) === groupNameKey(groupName));
+    const confirmDuplicate = async (existingName: string, existing?: SchoolSubjectGroup) => {
+      const detail = existing
+        ? ` It has ${existing.studentCount} student${existing.studentCount === 1 ? '' : 's'}${existing.teachers.length ? ` and is taught by ${existing.teachers.map((teacher) => teacher.name).join(', ')}` : ''}.`
+        : '';
+      // Escape / cancel is the safe path: keep using the existing group.
+      const createAnyway = await brainsConfirm({
+        title: `“${existingName}” already exists`,
+        message: `This subject and grade already has a teaching group called “${existingName}”.${detail} To put a student in front of its teacher, add them to that group’s roster instead of creating another group. Do you really want a second group called “${groupName}”?`,
+        confirmLabel: `Create “${groupName}” anyway`,
+        cancelLabel: 'Use the existing group',
+        destructive: true,
       });
+      return createAnyway;
+    };
+
+    let allowSimilar = false;
+    if (similar) {
+      allowSimilar = await confirmDuplicate(similar.name, similar);
+      if (!allowSimilar) {
+        setNewGroupName('');
+        addToast(`Use “${similar.name}” below — tick the student in its roster and save.`, 'info');
+        return;
+      }
+    }
+
+    await run(async () => {
+      try {
+        await saveSchoolSubjectGroup({
+          schoolId,
+          offeringId: offering.id,
+          name: groupName,
+          groupType: 'custom',
+          allowSimilar,
+        });
+      } catch (error) {
+        if (error instanceof SimilarGroupExistsError && !allowSimilar) {
+          const proceed = await confirmDuplicate(error.existingName);
+          if (!proceed) {
+            setNewGroupName('');
+            throw new Error(`Use “${error.existingName}” below — tick the student in its roster and save.`);
+          }
+          await saveSchoolSubjectGroup({
+            schoolId,
+            offeringId: offering.id,
+            name: groupName,
+            groupType: 'custom',
+            allowSimilar: true,
+          });
+        } else {
+          throw error;
+        }
+      }
       setNewGroupName('');
     }, `${groupName} created.`);
+  };
+
+  /** Seat students who have subject access but no custom group yet. Keeps the group's current roster. */
+  const placeUnplaced = async (group: SchoolSubjectGroup, ids: string[]) => {
+    if (!ids.length) return;
+    const current = rosters[group.id] || new Set<string>();
+    const merged = Array.from(new Set([...current, ...ids]));
+    const names = unplaced.filter((student) => ids.includes(student.studentId)).map((student) => student.name);
+    const teacherNote = group.teachers.length ? ` ${group.teachers.map((teacher) => teacher.name).join(', ')} will see ${ids.length === 1 ? 'them' : 'them all'} now.` : '';
+    await run(
+      () => setSchoolSubjectGroupStudents(schoolId, group.id, merged),
+      ids.length === 1
+        ? `${names[0]} added to ${group.name}.${teacherNote}`
+        : `${ids.length} students added to ${group.name}.${teacherNote}`,
+    );
   };
 
   const saveRoster = async (group: SchoolSubjectGroup) => {
@@ -293,7 +395,7 @@ const SubjectTeachingGroupsPanel: React.FC<Props> = ({
             {groups.length} active group{groups.length === 1 ? '' : 's'} · {eligibleStudents.length} eligible student{eligibleStudents.length === 1 ? '' : 's'}
           </p>
           {offering.deliveryMode === 'custom_groups' && offering.accessMode === 'selected' ? (
-            <p className="mt-2 text-[11px] font-medium text-blue-700">The first custom group automatically starts with the students already selected for this subject.</p>
+            <p className="mt-2 text-[11px] font-medium text-blue-700">The first custom group starts with every student selected for this subject. While it is the only group, students you select later in the Subjects editor join it automatically.</p>
           ) : null}
           {offering.deliveryMode === 'custom_groups' ? (
             <input
@@ -308,6 +410,82 @@ const SubjectTeachingGroupsPanel: React.FC<Props> = ({
           {offering.deliveryMode === 'custom_groups' ? 'Add teaching group' : groups.length ? 'Create missing groups' : 'Create teaching group'}
         </button>
       </div>
+
+      {offering.deliveryMode === 'custom_groups' && unplaced.length ? (
+        <div
+          ref={unplacedTrayRef}
+          data-testid="unplaced-students-tray"
+          className={`rounded-2xl border p-4 ${placementAttention ? 'border-amber-400 bg-amber-50 ring-4 ring-amber-100' : 'border-amber-200 bg-amber-50/70'}`}
+          role="status"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-amber-700">Not yet in a teaching group</p>
+              <h6 className="mt-1 text-sm font-bold text-slate-950">
+                {unplaced.length === 1
+                  ? `${unplaced[0].name} has ${subjectName} access but no teacher can see ${unplaced[0].name.split(' ')[0]} yet.`
+                  : `${unplaced.length} students have ${subjectName} access but no teacher can see them yet.`}
+              </h6>
+              <p className="mt-1 text-xs leading-5 text-amber-900">
+                {customGroups.length
+                  ? 'Selecting a student for the subject gives access; a teaching group is what puts them on a teacher’s roster. Seat them below.'
+                  : 'Create the first teaching group above — it starts with every selected student, so nobody is left out.'}
+              </p>
+            </div>
+            {customGroups.length ? (
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                {customGroups.length > 1 ? (
+                  <select
+                    aria-label="Teaching group to place students in"
+                    value={placementTarget}
+                    disabled={busy}
+                    onChange={(event) => setPlacementTarget(event.target.value)}
+                    className="h-9 rounded-xl border border-amber-300 bg-white px-3 text-xs font-semibold text-slate-700"
+                  >
+                    {customGroups.map((group) => (
+                      <option key={group.id} value={group.id}>{group.name}{group.teachers.length ? ` · ${group.teachers.map((teacher) => teacher.name).join(', ')}` : ''}</option>
+                    ))}
+                  </select>
+                ) : null}
+                <button
+                  type="button"
+                  disabled={busy || !placementTarget}
+                  onClick={() => {
+                    const target = customGroups.find((group) => group.id === placementTarget);
+                    if (target) void placeUnplaced(target, unplaced.map((student) => student.studentId));
+                  }}
+                  className="rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-amber-700 disabled:bg-slate-300"
+                >
+                  {unplaced.length === 1 ? 'Add to ' : `Add all ${unplaced.length} to `}
+                  {customGroups.length === 1 ? customGroups[0].name : 'group'}
+                </button>
+              </div>
+            ) : null}
+          </div>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {unplaced.map((student) => (
+              <li key={student.studentId} className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800">
+                <span>{student.name}</span>
+                {student.classCode ? <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{student.classCode}</span> : null}
+                {customGroups.length > 1 ? (
+                  <button
+                    type="button"
+                    disabled={busy || !placementTarget}
+                    onClick={() => {
+                      const target = customGroups.find((group) => group.id === placementTarget);
+                      if (target) void placeUnplaced(target, [student.studentId]);
+                    }}
+                    className="text-amber-700 hover:underline"
+                    aria-label={`Add ${student.name} to the selected teaching group`}
+                  >
+                    add
+                  </button>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       {groups.length ? (
         <div className="space-y-4">

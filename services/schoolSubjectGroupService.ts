@@ -65,14 +65,65 @@ export const fetchTeacherTeachingGroupRoster = (schoolId: string, groupId: strin
     p_school_id: schoolId, p_group_id: groupId,
   }, 'We could not load this teaching group’s roster. Please try again.');
 
-export const saveSchoolSubjectGroup = (input: {
+export interface OfferingPlacementGroup {
+  id: string;
+  name: string;
+  studentCount: number;
+  teacherNames: string[];
+}
+
+export interface OfferingPlacementStudent {
+  studentId: string;
+  name: string;
+  classCode: string | null;
+}
+
+/** Custom groups of an offering plus the students who have access but sit in none of them. */
+export interface OfferingPlacement {
+  offeringId: string;
+  deliveryMode: SubjectDeliveryMode;
+  accessMode: 'all_grade' | 'selected';
+  customGroups: OfferingPlacementGroup[];
+  unplaced: OfferingPlacementStudent[];
+}
+
+export const fetchOfferingPlacement = (schoolId: string, offeringId: string) =>
+  call<OfferingPlacement>('rpc_school_admin_offering_placement', {
+    p_school_id: schoolId, p_offering_id: offeringId,
+  }, 'We could not check teaching-group placement. Please try again.');
+
+/** Thrown when a new custom group's name matches an existing active group on the same offering. */
+export class SimilarGroupExistsError extends Error {
+  existingName: string;
+  constructor(existingName: string) {
+    super(`A teaching group called “${existingName}” already exists for this subject and grade.`);
+    this.name = 'SimilarGroupExistsError';
+    this.existingName = existingName;
+  }
+}
+
+export const saveSchoolSubjectGroup = async (input: {
   schoolId: string; offeringId: string; name: string; groupType: SubjectGroupType;
   registrationClassId?: string | null; groupId?: string | null;
-}) => call<string>('rpc_school_admin_save_subject_group', {
-  p_school_id: input.schoolId, p_offering_id: input.offeringId, p_name: input.name.trim(),
-  p_group_type: input.groupType, p_registration_class_id: input.registrationClassId ?? null,
-  p_group_id: input.groupId ?? null,
-}, 'We could not save this teaching group. Check its name and registration class.');
+  /** Create even when a near-duplicate exists. Only set after the admin has confirmed. */
+  allowSimilar?: boolean;
+}) => {
+  const args: Record<string, unknown> = {
+    p_school_id: input.schoolId, p_offering_id: input.offeringId, p_name: input.name.trim(),
+    p_group_type: input.groupType, p_registration_class_id: input.registrationClassId ?? null,
+    p_group_id: input.groupId ?? null,
+  };
+  if (input.allowSimilar) args['p_allow_similar'] = true;
+  const { data, error } = await supabase.rpc('rpc_school_admin_save_subject_group', args);
+  if (error) {
+    const raw = String((error as any)?.message || '');
+    if (raw.includes('similar_custom_group_exists')) {
+      throw new SimilarGroupExistsError(String((error as any)?.details || 'another group'));
+    }
+    throw userFacingError(error, 'We could not save this teaching group. Check its name and registration class.');
+  }
+  return data as string;
+};
 
 export const archiveSchoolSubjectGroup = (schoolId: string, groupId: string) =>
   call<void>('rpc_school_admin_archive_subject_group', {

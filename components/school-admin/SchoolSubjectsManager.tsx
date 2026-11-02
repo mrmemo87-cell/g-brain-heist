@@ -64,6 +64,9 @@ const SchoolSubjectsManager: React.FC = () => {
   const [accessMode, setAccessMode] = useState<SchoolSubjectAccessMode>('all_grade');
   const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set());
   const [studentSearch, setStudentSearch] = useState('');
+  // True right after a save left selected students outside every custom teaching group:
+  // the editor stays open and the groups panel scrolls its "not yet in a group" tray into view.
+  const [placementAttention, setPlacementAttention] = useState(false);
 
   const load = async () => {
     if (!school?.id) return;
@@ -162,6 +165,7 @@ const SchoolSubjectsManager: React.FC = () => {
     setAccessMode('all_grade');
     setSelectedStudentIds(new Set());
     setStudentSearch('');
+    setPlacementAttention(false);
   };
 
   const openCreate = () => {
@@ -256,14 +260,47 @@ const SchoolSubjectsManager: React.FC = () => {
         replaceTeacherAllocations: false,
       });
       const subjectLabel = result.name || existingNamedSubject?.name || name.trim();
+      const placement = result.placement || null;
+
+      // Teaching-group placement outcome for selective subjects. Access alone does not put
+      // a student in front of a teacher; the custom group does. Say exactly what happened.
+      const placedNote = placement && placement.placedCount > 0 && placement.placedGroupName
+        ? ` ${placement.placedCount === 1 ? '1 student' : `${placement.placedCount} students`} placed in ${placement.placedGroupName}${placement.placedGroupTeachers?.length ? ` · ${placement.placedGroupTeachers.join(', ')}` : ''}.`
+        : '';
+      const needsPlacement = Boolean(
+        placement
+        && placement.deliveryMode === 'custom_groups'
+        && placement.unplacedCount > 0
+        && result.schoolSubjectId,
+      );
+
       addToast(
-        existingNamedSubject && gradeLevel
+        (existingNamedSubject && gradeLevel
           ? `${gradeLabel(gradeLevel)} added to ${subjectLabel}.`
           : academicSubjectIdForSave
             ? `${subjectLabel} saved${gradeLevel ? ` for ${gradeLabel(gradeLevel)}` : ' without a grade offering'}. Academic resources: ${academicChoiceForSave?.name || 'mapped'}.`
-            : `${subjectLabel} saved. Academic mapping attention has been requested automatically.`,
+            : `${subjectLabel} saved. Academic mapping attention has been requested automatically.`) + placedNote,
         'success',
       );
+
+      if (needsPlacement && placement) {
+        // Keep the editor open on this subject so the groups panel can show who still
+        // needs a seat, instead of closing on a save that looks finished but is not.
+        addToast(
+          placement.customGroupCount === 0
+            ? `${placement.unplacedCount === 1 ? '1 student has' : `${placement.unplacedCount} students have`} ${subjectLabel} access but there is no teaching group yet — create one below so a teacher can see them.`
+            : `${placement.unplacedCount === 1 ? '1 student has' : `${placement.unplacedCount} students have`} ${subjectLabel} access but ${placement.unplacedCount === 1 ? 'is' : 'are'} not in a teaching group. ${subjectLabel} has ${placement.customGroupCount} groups, so choose which one below.`,
+          'warning',
+        );
+        setEditingSubjectId(result.schoolSubjectId || editingSubjectId);
+        setPlacementAttention(true);
+        await Promise.all([
+          load(),
+          typeof loadAdminTools === 'function' ? loadAdminTools(school.id) : Promise.resolve(),
+        ]);
+        return;
+      }
+
       setEditorOpen(false);
       resetEditor();
       await Promise.all([
@@ -509,7 +546,7 @@ const SchoolSubjectsManager: React.FC = () => {
 
                       {accessMode === 'selected' ? (
                         <div className="overflow-hidden rounded-2xl border border-slate-200">
-                          <div className="border-b border-blue-100 bg-blue-50 px-4 py-3 text-[11px] leading-5 text-blue-900"><strong>Registration classes stay unchanged.</strong> Selecting a student for <strong>{name.trim() || 'this subject'}</strong> only gives them access to this subject. Their 8A / 8B / 8C placement remains their school class.</div>
+                          <div className="border-b border-blue-100 bg-blue-50 px-4 py-3 text-[11px] leading-5 text-blue-900"><strong>Registration classes stay unchanged.</strong> Selecting a student for <strong>{name.trim() || 'this subject'}</strong> gives them access to this subject; their 8A / 8B / 8C placement remains their school class. <strong>A teacher sees a student through a teaching group</strong> — when this subject has one custom group, saving here seats new students in it automatically; otherwise you will be asked where they go.</div>
                           <div className="border-b border-slate-200 bg-slate-50 p-3.5"><div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><input value={studentSearch} onChange={(event) => setStudentSearch(event.target.value)} placeholder="Search students…" className="h-9 flex-1 rounded-lg border border-slate-300 bg-white px-3 text-xs outline-none focus:border-blue-500" /><div className="flex gap-2"><button type="button" onClick={() => setSelectedStudentIds(new Set(gradeStudents.map(studentId)))} className="rounded-lg bg-white px-2.5 py-2 text-[11px] font-bold text-blue-700 ring-1 ring-slate-200">Select all</button><button type="button" onClick={() => setSelectedStudentIds(new Set())} className="rounded-lg bg-white px-2.5 py-2 text-[11px] font-bold text-slate-600 ring-1 ring-slate-200">Clear</button></div></div><p className="mt-2 text-[11px] font-semibold text-slate-500">{selectedStudentIds.size} of {gradeStudents.length} selected</p></div>
                           <div className="max-h-52 overflow-y-auto p-2">{visibleStudents.length ? visibleStudents.map((student: any) => { const id = studentId(student); const checked = selectedStudentIds.has(id); return <label key={id} className={`flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 transition ${checked ? 'bg-blue-50' : 'hover:bg-slate-50'}`}><input type="checkbox" checked={checked} onChange={() => toggleStudent(id)} className="h-4 w-4 accent-blue-700" /><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600">{initials(studentName(student))}</span><span className="min-w-0"><strong className="block truncate text-xs text-slate-900">{studentName(student)}</strong><span className="block truncate text-[11px] text-slate-500">{student.batch && student.batch !== 'N/A' ? `Registration class ${student.batch}` : student.email || gradeLabel(gradeLevel)}</span></span></label>; }) : <p className="p-5 text-center text-xs text-slate-500">No students found in {gradeLabel(gradeLevel)}.</p>}</div>
                         </div>
@@ -528,7 +565,7 @@ const SchoolSubjectsManager: React.FC = () => {
                         <>
                         <p className="mb-3 text-sm text-slate-600">{currentOffering.deliveryMode === 'by_class' ? `Grade ${gradeLevel} classes are linked automatically. Assign its teacher in Teacher Allocation.` : 'This subject uses a whole-grade or custom teaching arrangement. Manage it below.'}</p>
                         {currentOffering.deliveryMode === 'by_class' && !activeClasses.some((item: any) => String(item.grade_level) === String(gradeLevel)) ? <button type="button" className="admin-button-primary admin-button-small mb-3" disabled={saving} onClick={() => void handleSave('classes')}>Save and open Classes</button> : null}
-                        <details open={currentOffering.deliveryMode !== 'by_class'} className="rounded-xl border border-slate-200 p-4"><summary className="cursor-pointer text-sm font-semibold text-slate-700">Whole-grade or custom groups (optional)</summary>
+                        <details open={currentOffering.deliveryMode !== 'by_class' || placementAttention} className={`rounded-xl border p-4 ${placementAttention ? 'border-amber-300' : 'border-slate-200'}`}><summary className="cursor-pointer text-sm font-semibold text-slate-700">{currentOffering.deliveryMode === 'by_class' ? 'Whole-grade or custom groups (optional)' : 'Teaching groups — who each teacher sees'}</summary>
                         <SubjectTeachingGroupsPanel
                           schoolId={school.id}
                           subjectName={name || currentSubject?.name || 'Subject'}
@@ -537,7 +574,8 @@ const SchoolSubjectsManager: React.FC = () => {
                           students={students}
                           teachers={teachers}
                           addToast={addToast}
-                          onChanged={load}
+                          onChanged={async () => { setPlacementAttention(false); await load(); }}
+                          placementAttention={placementAttention}
                         />
                         </details>
                         </>

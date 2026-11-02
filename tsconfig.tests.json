@@ -22,6 +22,7 @@
     "services/rpcGateway.ts",
     "services/admissionService.ts",
     "services/supabaseClient.ts",
+    "services/subjectGroupNameKey.ts",
     "services/env.ts",
     "services/ieltsExamModeService.ts",
     "services/ieltsExamModeUx.ts",
