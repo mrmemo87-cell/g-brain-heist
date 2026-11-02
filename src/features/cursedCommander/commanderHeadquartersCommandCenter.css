@@ -1370,19 +1370,22 @@
 .cc-command-help-overlay {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: 2147483001; /* above the floating language/companion dock */
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  padding: 12px;
+  padding: max(12px, env(safe-area-inset-top, 0px)) 12px max(12px, env(safe-area-inset-bottom, 0px));
   background: rgba(2, 6, 23, 0.78);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .cc-command-help-sheet {
   position: relative;
   width: min(760px, 100%);
-  max-height: 88vh;
+  max-height: min(88vh, 88dvh);
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 16px;
   border: 1px solid rgba(148, 163, 184, 0.25);
   border-radius: 20px;
@@ -1403,8 +1406,4 @@
   font-size: 16px;
 }
 
-@media (min-width: 700px) {
-  .cc-command-help-overlay {
-    align-items: center;
-  }
-}
+
