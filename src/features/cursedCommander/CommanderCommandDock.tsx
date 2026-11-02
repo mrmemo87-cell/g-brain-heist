@@ -5,6 +5,7 @@ import type {
   CommanderPracticeSchool,
 } from '../../../services/commanderPracticeService';
 import type { CommanderCopy } from './commanderPracticeCopy';
+import './commanderDock.css';
 
 type Props = {
   copy: CommanderCopy;
@@ -112,87 +113,88 @@ const CommanderCommandDock: React.FC<Props> = ({
   const lockedPowers = powers.filter((power) => !power.unlocked);
   const needsTarget = !busy && !selectedTargetId;
 
+  const tactical = [
+    { move: 'focus_target' as const, icon: <FocusIcon />, label: copy.focus, hint: copy.focusHint, target: true, cls: 'border-cyan-300/40 text-cyan-100 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,.2),transparent_60%),rgba(15,23,42,.85)]' },
+    { move: 'guard' as const, icon: <GuardIcon />, label: copy.guard, hint: copy.guardHint, target: false, cls: 'border-amber-300/40 text-amber-100 bg-[radial-gradient(circle_at_50%_0%,rgba(251,191,36,.18),transparent_60%),rgba(15,23,42,.85)]' },
+  ];
+
   return (
     // Sticky on phones so the moves stay on screen while the student looks at the battlefield.
-    <div className="sticky bottom-0 z-50 mx-auto w-full max-w-5xl px-2 pb-2 sm:px-4" data-commander-dock="true">
-      <div className="relative overflow-hidden rounded-[1.4rem] border border-white/10 bg-slate-950/95 p-2.5 shadow-[0_-14px_60px_rgba(2,6,23,.85)] backdrop-blur-2xl sm:p-3.5">
+    // Phones get a slim row of chunky ability buttons (icon + name); descriptions appear from the sm breakpoint up.
+    <div className="cc-dock sticky bottom-0 z-50 mx-auto w-full max-w-5xl px-2 pb-2 sm:px-4" data-commander-dock="true">
+      <div className="relative overflow-hidden rounded-[1.4rem] border border-white/10 bg-slate-950/95 p-2 shadow-[0_-14px_60px_rgba(2,6,23,.85)] backdrop-blur-2xl sm:p-3.5">
         <div aria-hidden className="pointer-events-none absolute inset-x-[12%] top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent" />
 
-        <div className="relative mb-2 flex items-center justify-between gap-2 px-1">
-          <span className="font-heading text-sm font-black text-white">✦ {copy.powerMatrix}</span>
-          {busy ? (
+        <div className="relative mb-1.5 flex items-center justify-between gap-2 px-1 sm:mb-2">
+          <span className="hidden font-heading text-sm font-black text-white sm:inline">✦ {copy.powerMatrix}</span>
+          {needsTarget ? (
+            <span role="status" className="cc-dock-tap-hint">
+              <svg aria-hidden viewBox="0 0 48 48" className="cc-dock-tap-hand"><path d="M17 8.5a3 3 0 0 1 6 0V22l1.2-.9a3 3 0 0 1 4.3.7l.2.3 1-.5a3 3 0 0 1 4.2 1.4l.3.6.6-.2a3 3 0 0 1 3.8 2.1l1.8 7.4c.9 3.8-.4 7.8-3.4 10.3l-.6.5c-1.4 1.2-3.2 1.8-5 1.8H24.6c-2.4 0-4.6-1.1-6.1-3L10.4 32a3 3 0 0 1 4.5-4l2.1 2.3z" fill="#fff7ed" stroke="#0f172a" strokeWidth="2" strokeLinejoin="round" /></svg>
+              {copy.waiting}
+            </span>
+          ) : busy ? (
             <span className="animate-pulse rounded-full border border-cyan-300/20 bg-cyan-400/[0.08] px-2.5 py-1 text-xs font-bold text-cyan-100">{copy.resolving}</span>
           ) : deathBoltCooldown > 0 ? (
             <span className="rounded-full border border-amber-300/25 bg-amber-400/[0.08] px-2.5 py-1 text-xs font-bold text-amber-100">◷ {copy.coreCooling}: {copy.cooldown} {deathBoltCooldown} {copy.rounds}</span>
           ) : (
             <span className="rounded-full border border-emerald-300/25 bg-emerald-400/[0.08] px-2 py-0.5 text-[11px] font-bold text-emerald-100">● {copy.powerCore}</span>
           )}
+          {lockedPowers.length > 0 && (
+            <span className="cc-dock-locked-chip sm:hidden" title={lockedPowers.map((power) => `${power.label} (${schoolLabel(power.school)})`).join(' · ')}>🔒 +{lockedPowers.length}</span>
+          )}
         </div>
 
-        {needsTarget && (
-          <p role="status" className="relative mb-2 rounded-xl border border-amber-300/30 bg-amber-400/10 px-3 py-2 text-center text-sm font-bold text-amber-100">
-            👆 {copy.waiting}
-          </p>
-        )}
+        <div className="cc-dock-abilities relative" role="group" aria-label={copy.actions}>
+          {tactical.map((command) => {
+            const disabled = busy || (command.target && !selectedTargetId);
+            return (
+              <button
+                key={command.move}
+                type="button"
+                disabled={disabled}
+                onClick={() => onMove(command.move)}
+                aria-label={`${command.label}. ${command.hint}`}
+                className={`cc-dock-ability ${!disabled && command.target ? 'is-ready' : ''} border ${command.cls}`}
+              >
+                <span className="cc-dock-ability__icon">{command.icon}</span>
+                <strong className="cc-dock-ability__label">{command.label}</strong>
+                <span className="cc-dock-ability__hint">{command.hint}</span>
+              </button>
+            );
+          })}
+          {unlockedPowers.map((power) => {
+            const targetRequired = power.move !== 'raise_dead';
+            const cooldown = deathBoltCooldown;
+            const disabled = busy || !power.ready || (targetRequired && !selectedTargetId) || cooldown > 0;
+            const status = !power.ready && power.move === 'raise_dead'
+              ? copy.noSoulToRaise
+              : cooldown > 0
+                ? `${copy.cooldown} ${cooldown} ${copy.rounds}`
+                : null;
 
-        <div className="relative grid gap-2 lg:grid-cols-[0.8fr_2.2fr] lg:gap-3">
-          <section aria-label={copy.tactical} className="grid grid-cols-2 gap-2 lg:grid-cols-1">
-            {[
-              { move: 'focus_target' as const, icon: <FocusIcon />, label: copy.focus, hint: copy.focusHint, target: true, cls: 'border-cyan-300/30 text-cyan-100 hover:border-cyan-200/60 hover:bg-cyan-300/[0.07]' },
-              { move: 'guard' as const, icon: <GuardIcon />, label: copy.guard, hint: copy.guardHint, target: false, cls: 'border-amber-300/30 text-amber-100 hover:border-amber-200/60 hover:bg-amber-300/[0.06]' },
-            ].map((command) => {
-              const disabled = busy || (command.target && !selectedTargetId);
-              return (
-                <button
-                  key={command.move}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => onMove(command.move)}
-                  className={`group flex min-h-[56px] items-center gap-2 rounded-xl border bg-slate-900/60 px-2 py-1.5 text-left transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${command.cls}`}
-                >
-                  <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-current/15 bg-current/[0.05] sm:flex">{command.icon}</span>
-                  <span className="min-w-0">
-                    <strong className="block text-sm font-black">{command.label}</strong>
-                    <span className="mt-0.5 block text-xs leading-4 text-slate-300">{command.hint}</span>
-                  </span>
-                </button>
-              );
-            })}
-          </section>
-
-          <section aria-label={copy.actions} className="grid grid-cols-2 gap-2">
-            {unlockedPowers.map((power) => {
-              const targetRequired = power.move !== 'raise_dead';
-              const cooldown = deathBoltCooldown;
-              const disabled = busy || !power.ready || (targetRequired && !selectedTargetId) || cooldown > 0;
-              const status = !power.ready && power.move === 'raise_dead'
-                ? copy.noSoulToRaise
-                : cooldown > 0
-                  ? `${copy.cooldown} ${cooldown} ${copy.rounds}`
-                  : null;
-
-              return (
-                <button
-                  key={power.move}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => onMove(power.move)}
-                  className={`group relative flex min-h-[56px] items-center gap-2 overflow-hidden rounded-xl border px-2 py-1.5 text-left transition-all duration-200 disabled:cursor-not-allowed ${power.tone} ${disabled ? 'opacity-50' : ''}`}
-                >
-                  <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-current/20 bg-slate-950/45 sm:flex">{power.icon}</span>
-                  <span className="min-w-0">
-                    <strong className="block text-sm font-black text-white">{power.label}</strong>
-                    <span className="mt-0.5 block text-xs leading-4 text-slate-200/90">{power.hint}</span>
-                    {status && <span className="mt-1 block text-xs font-bold text-amber-200">◷ {status}</span>}
-                  </span>
-                </button>
-              );
-            })}
-          </section>
+            return (
+              <button
+                key={power.move}
+                type="button"
+                disabled={disabled}
+                onClick={() => onMove(power.move)}
+                aria-label={`${power.label}. ${power.hint}${status ? `. ${status}` : ''}`}
+                className={`cc-dock-ability cc-dock-ability--power ${!disabled ? 'is-ready' : ''} border ${power.tone} ${disabled ? 'opacity-50' : ''}`}
+              >
+                <span className="cc-dock-ability__icon">
+                  {power.icon}
+                  {cooldown > 0 && power.move !== 'raise_dead' && <span className="cc-dock-ability__cooldown" aria-hidden>{cooldown}</span>}
+                </span>
+                <strong className="cc-dock-ability__label text-white">{power.label}</strong>
+                <span className="cc-dock-ability__hint">{power.hint}</span>
+                {status && <span className="cc-dock-ability__status">◷ {status}</span>}
+              </button>
+            );
+          })}
         </div>
 
         {lockedPowers.length > 0 && (
-          <p className="relative mt-2 px-1 text-xs leading-5 text-slate-400">
+          <p className="relative mt-2 hidden px-1 text-xs leading-5 text-slate-400 sm:block">
             🔒 {lockedPowers.map((power) => `${power.label} (${schoolLabel(power.school)})`).join(' · ')} — {copy.equipToUnlock}.
           </p>
         )}

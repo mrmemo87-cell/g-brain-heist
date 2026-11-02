@@ -267,6 +267,13 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
   const boardRef = useRef<HTMLDivElement>(null);
   const [boardSize, setBoardSize] = useState({ width: 0, height: 0 });
   const compact = boardSize.width ? boardSize.width < 900 : window.innerWidth < 900;
+  // Phones: bring the whole arena into view when a battle opens, so the fight starts on screen.
+  const arenaRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth >= 640) return;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    arenaRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }, []);
   useEffect(() => {
     const board = boardRef.current;
     if (!board) return;
@@ -378,7 +385,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
         style={{
           left: `${point.x}%`,
           top: `${point.y}%`,
-          width: compact ? 'min(27cqw, 120px)' : 'min(11cqw, 170px)',
+          width: compact ? 'min(24cqw, 108px)' : 'min(11cqw, 170px)',
           zIndex: point.z,
           transform: 'translate(-50%, -82%)',
         }}
@@ -386,7 +393,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
       >
         <div className="cc-deployment-shell" style={{ opacity: intro.done || intro.revealed.includes(combatant.id) ? 1 : 0, transform: intro.done || intro.revealed.includes(combatant.id) ? 'translateY(0) scale(1)' : 'translateY(10px) scale(.85)', transition: animationsOn ? 'opacity 260ms ease-out, transform 320ms ease-out' : 'none' }}>
         <div className="cc-stage-scale-shell relative" >
-          <span aria-hidden className={`absolute left-1/2 top-[87%] h-5 w-[76%] -translate-x-1/2 rounded-[50%] border transition-[box-shadow,border-color,background-color,opacity] duration-200 ${selected ? 'border-amber-300/90 bg-amber-300/12 shadow-[0_0_26px_rgba(251,191,36,.5)]' : combatant.side === 'player' ? 'border-cyan-300/35 bg-cyan-300/[0.04]' : 'border-rose-300/35 bg-rose-300/[0.04]'} ${focused || focusLock ? 'cc-stage-focus-ground' : ''}`} />
+          <span aria-hidden className={`absolute left-1/2 top-[87%] h-5 w-[76%] -translate-x-1/2 rounded-[50%] border transition-[box-shadow,border-color,background-color,opacity] duration-200 ${selected ? 'border-amber-300/90 bg-amber-300/12 shadow-[0_0_26px_rgba(251,191,36,.5)]' : combatant.side === 'player' ? 'border-cyan-300/35 bg-cyan-300/[0.04]' : 'border-rose-300/35 bg-rose-300/[0.04]'} ${focused || focusLock ? 'cc-stage-focus-ground' : ''} ${canTarget && !selected ? 'cc-stage-tappable' : ''}`} />
           <TacticalTargetReticle selected={selected} focused={focused} focusLock={focusLock} />
 
           <div className={`cc-stage-action-shell relative mx-auto aspect-[1/1.15] w-full origin-bottom ${actionClass} ${hitClass} ${defeat && animationsOn ? 'cc-stage-defeat' : ''}`}>
@@ -427,7 +434,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
   };
 
   return (
-    <section data-cc-animated={animationsOn} className={`relative overflow-clip rounded-[2rem] border border-cyan-400/24 bg-[#020617] shadow-[0_0_70px_rgba(34,211,238,.1)] ${isDeathBoltImpact && animationsOn ? 'cc-stage-arena-hit' : ''}`}>
+    <section ref={arenaRef} data-cc-animated={animationsOn} className={`relative overflow-clip rounded-[2rem] border border-cyan-400/24 bg-[#020617] shadow-[0_0_70px_rgba(34,211,238,.1)] ${isDeathBoltImpact && animationsOn ? 'cc-stage-arena-hit' : ''}`}>
       <style>{`
         @keyframes ccOpeningFade{from{opacity:1}to{opacity:0}}
         .cc-opening-black{animation:ccOpeningFade 450ms ease-out forwards}
@@ -473,8 +480,8 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
           <span className="hidden text-slate-400 sm:inline">⏱ {copy.expires}: {expiry}</span>
         </div>
         <div className="flex items-center gap-1.5" dir="ltr">
-          <button type="button" onClick={onToggleAnimations} className={`rounded-full border px-2 py-1 text-[11px] font-bold ${animationsOn ? 'border-emerald-400/30 text-emerald-200' : 'border-slate-700 text-slate-500'}`}>{animationsOn ? '●' : '○'} {copy.animations}</button>
-          <button type="button" onClick={onToggleEffects} className={`rounded-full border px-2 py-1 text-[11px] font-bold ${effectsOn ? 'border-cyan-400/30 text-cyan-200' : 'border-slate-700 text-slate-500'}`}>✦ {copy.effects}</button>
+          <button type="button" onClick={onToggleAnimations} aria-label={copy.animations} title={copy.animations} className={`rounded-full border px-2 py-1 text-[11px] font-bold ${animationsOn ? 'border-emerald-400/30 text-emerald-200' : 'border-slate-700 text-slate-500'}`}>{animationsOn ? '●' : '○'}<span className="hidden sm:inline"> {copy.animations}</span></button>
+          <button type="button" onClick={onToggleEffects} aria-label={copy.effects} title={copy.effects} className={`rounded-full border px-2 py-1 text-[11px] font-bold ${effectsOn ? 'border-cyan-400/30 text-cyan-200' : 'border-slate-700 text-slate-500'}`}>✦<span className="hidden sm:inline"> {copy.effects}</span></button>
           <button type="button" onClick={toggleSound} aria-pressed={soundOn} aria-label={copy.sound} title={copy.sound} className={`flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-bold ${soundOn ? 'border-sky-400/30 text-sky-200' : 'border-slate-700 text-slate-500'}`}><SoundGlyph enabled={soundOn} /><span className="hidden sm:inline">{copy.sound}</span></button>
           <button type="button" onClick={onToggleSpeed} className="rounded-full border border-violet-400/30 px-2 py-1 text-[11px] font-bold text-violet-200">{speed}×</button>
           <button type="button" onClick={onRestart} disabled={busy || !intro.done} aria-label={copy.restart} title={copy.restart} className="rounded-full border border-slate-700 px-2 py-1 text-[11px] font-bold text-slate-300 disabled:opacity-40">↻</button>
@@ -483,7 +490,7 @@ const CommanderCinematicBattlefield: React.FC<Props> = ({
 
       <div className="relative">
       <div aria-label="Battlefield" dir="ltr">
-      <div ref={boardRef} data-compact={compact} className="cc-battle-board relative w-full overflow-hidden" style={{ height: compact ? `${Math.max(780, Math.min(840, boardSize.width + 440))}px` : 'clamp(600px, 78svh, 760px)', containerType: 'size' }} dir="ltr">
+      <div ref={boardRef} data-compact={compact} className="cc-battle-board relative w-full overflow-hidden" style={{ height: compact ? `${Math.max(540, Math.min(660, boardSize.width + 150))}px` : 'clamp(600px, 78svh, 760px)', containerType: 'size' }} dir="ltr">
         <TacticalBackdrop />
         {(isDeathBoltImpact || isStormImpact) && animationsOn && <StormDischarge key={activeStep?.id} />}
         {isRotImpact && animationsOn && <span aria-hidden className="cc-power-pulse pointer-events-none absolute inset-[10%] z-30 rounded-[40%] border border-lime-300/30 bg-[radial-gradient(circle,rgba(163,230,53,.14),rgba(217,70,239,.08)_45%,transparent_72%)] shadow-[0_0_90px_rgba(132,204,22,.22)]" />}

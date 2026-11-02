@@ -1,0 +1,92 @@
+/* Cursed Commander battle dock: chunky ability buttons. Phones show icon + name only. */
+.cc-dock-abilities { display: grid; gap: 0.45rem; grid-template-columns: repeat(auto-fit, minmax(4.6rem, 1fr)); }
+.cc-dock-ability {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 0.25rem;
+  min-height: 4.6rem;
+  padding: 0.5rem 0.3rem 0.45rem;
+  border-radius: 1rem;
+  text-align: center;
+  box-shadow: 0 4px 0 rgba(2, 6, 23, 0.9);
+  transition: transform 100ms ease, box-shadow 100ms ease, opacity 150ms ease, filter 150ms ease;
+}
+.cc-dock-ability:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 rgba(2, 6, 23, 0.9); }
+.cc-dock-ability:disabled { cursor: not-allowed; filter: saturate(0.4); opacity: 0.45; }
+.cc-dock-ability:focus-visible { outline: 3px solid #a5f3fc; outline-offset: 2px; }
+.cc-dock-ability__icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  border-color: color-mix(in srgb, currentColor 35%, transparent);
+  background: rgba(2, 6, 23, 0.55);
+}
+.cc-dock-ability__icon svg { width: 1.6rem; height: 1.6rem; }
+.cc-dock-ability__label { display: block; font-size: 0.78rem; font-weight: 900; line-height: 1.1; }
+.cc-dock-ability__hint { display: none; font-size: 0.72rem; line-height: 1.3; color: rgb(203, 213, 225); }
+.cc-dock-ability__status { display: block; font-size: 0.66rem; font-weight: 800; color: #fde68a; }
+.cc-dock-ability__cooldown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 900;
+  color: #fde68a;
+  background: rgba(2, 6, 23, 0.72);
+}
+/* Ready to fire: a soft pulsing ring invites the tap. */
+.cc-dock-ability.is-ready .cc-dock-ability__icon { animation: cc-dock-ready 1.6s ease-in-out infinite; }
+.cc-dock-ability--power.is-ready .cc-dock-ability__icon { animation-duration: 1.2s; }
+
+.cc-dock-tap-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.65rem 0.2rem 0.3rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #1c1002;
+  background: #fbbf24;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.25);
+}
+.cc-dock-tap-hand { width: 1.5rem; height: 1.5rem; transform-origin: 40% 20%; animation: cc-dock-tap 1.2s ease-in-out infinite; }
+.cc-dock-locked-chip {
+  margin-inline-start: auto;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: rgb(148, 163, 184);
+  border: 1px solid rgba(71, 85, 105, 0.8);
+}
+
+@media (min-width: 640px) {
+  .cc-dock-abilities { grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.6rem; }
+  .cc-dock-ability { grid-template-columns: auto minmax(0, 1fr); justify-items: start; align-items: center; text-align: left; column-gap: 0.6rem; min-height: 4rem; padding: 0.55rem 0.7rem; }
+  .cc-dock-ability__icon { grid-row: span 3; }
+  .cc-dock-ability__label { font-size: 0.9rem; }
+  .cc-dock-ability__hint { display: block; }
+}
+
+@keyframes cc-dock-ready { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 55%, transparent); } 60% { box-shadow: 0 0 0 7px transparent; } }
+@keyframes cc-dock-tap { 0%, 100% { transform: translateY(0) rotate(-10deg); } 50% { transform: translateY(-3px) rotate(-10deg) scale(0.92); } }
+@media (prefers-reduced-motion: reduce) {
+  .cc-dock-ability.is-ready .cc-dock-ability__icon, .cc-dock-tap-hand { animation: none; }
+}
+
+/* Enemies you can still pick pulse a red ring under their feet: "tap me". */
+.cc-stage-tappable { animation: cc-stage-tappable 1.4s ease-in-out infinite; }
+@keyframes cc-stage-tappable {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(251, 113, 133, 0.55); border-color: rgba(251, 113, 133, 0.5); }
+  50% { box-shadow: 0 0 22px 4px rgba(251, 113, 133, 0.45); border-color: rgba(253, 164, 175, 0.95); }
+}
+@media (prefers-reduced-motion: reduce) { .cc-stage-tappable { animation: none; } }
