@@ -116,3 +116,13 @@ test('assigned IELTS practice bypasses extra-practice lock while non-diagnostic 
   assert.match(routes, /const IeltsPracticeRouteGuard:[\s\S]*assignmentContext\.isAssignedPractice[\s\S]*return children;/, 'assigned practice should bypass extra-practice lock');
   assert.match(routes, /const IeltsPracticeRouteGuard:[\s\S]*return <IeltsExtraPracticeGuard>\{children\}<\/IeltsExtraPracticeGuard>;/, 'free practice should still be gated by extra-practice lock');
 });
+
+test('unlocked course tasks open even when the school has Extra Practice switched off', () => {
+  const routes = read('index.tsx');
+  const course = read('services/ieltsCourseService.ts');
+  const guard = routes.slice(routes.indexOf('const IeltsPracticeRouteGuard'), routes.indexOf('// Some legacy code paths'));
+  assert.match(guard, /readIeltsCourseUnitFromSearch\(\)/, 'the guard must notice a course launch');
+  assert.match(guard, /isUnlockedIeltsCourseTask\(courseUnitId, skill, taskId\)/, 'the course link must be verified against the learner course state, not trusted from the URL');
+  assert.match(guard, /assignmentContext\.isAssignedPractice \|\| state\.courseTask/, 'verified course tasks skip the Extra Practice switch');
+  assert.match(course, /unit\.id === unitId && unit\.unlocked/, 'only unlocked units count');
+});

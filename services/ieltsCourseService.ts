@@ -110,6 +110,24 @@ export async function fetchIeltsCourseState(): Promise<IeltsCourseState> {
   return data as IeltsCourseState;
 }
 
+const unitHoldsUnlockedTask = (state: IeltsCourseState | null, unitId: number, skill: IeltsCourseSkill, taskId: number) =>
+  Boolean(state?.units?.some((unit) => unit.id === unitId && unit.unlocked
+    && unit.tasks?.some((task) => task.skill === skill && Number(task.task_id) === taskId)));
+
+/**
+ * True when the task is part of an unlocked course unit. Course tasks open even when a school has
+ * switched Extra Practice off; the server gate (private.ielts_can_access_practice_content) applies
+ * the same rule, so this only keeps the page in step with it.
+ */
+export async function isUnlockedIeltsCourseTask(unitId: number, skill: IeltsCourseSkill, taskId: number): Promise<boolean> {
+  if (unitHoldsUnlockedTask(cachedIeltsCourseState(), unitId, skill, taskId)) return true;
+  try {
+    return unitHoldsUnlockedTask(await fetchIeltsCourseState(), unitId, skill, taskId);
+  } catch {
+    return false;
+  }
+}
+
 export async function fetchIeltsCourseUnit(unitId: number): Promise<IeltsCourseUnitDetail | IeltsCourseUnitLocked> {
   const { data, error } = await supabase.rpc('rpc_ielts_course_unit', { p_unit_id: unitId });
   if (error || !data) throw new Error(friendly(error, 'The unit could not load. Please retry.'));
