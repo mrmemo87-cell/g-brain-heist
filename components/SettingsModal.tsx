@@ -65,6 +65,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     setInterfaceStyle,
     studentThemeColor,
     setStudentThemeColor,
+    studentAppearance,
+    setStudentAppearance,
     autoEnabledReason,
     clearAutoEnabledReason,
   } = useLightMode();
@@ -585,7 +587,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           <div>
             <h3 className="font-heading text-xl mb-3" style={{ color: 'var(--amber-warn)' }}>{t("Display")}</h3>
             <div className="student-display-settings border border-gray-700 rounded-2xl p-4 space-y-5">
-              <fieldset>
+              {profile.role === 'student' && (
+                <fieldset data-testid="student-appearance">
+                  <legend className="font-semibold text-white">{t("Appearance")}</legend>
+                  <p className="mt-1 text-sm text-gray-400">{t("Light makes Home, Learn, Assignments and your other school pages white. Games keep their dark look.")}</p>
+                  <div className="mt-3 grid grid-cols-2 gap-3" role="radiogroup" aria-label={t("Appearance")}>
+                    <button type="button" role="radio" aria-checked={studentAppearance === 'dark'} onClick={() => setStudentAppearance('dark')} className={`student-display-style-option ${studentAppearance === 'dark' ? 'is-selected' : ''}`}>
+                      <span className="student-appearance-swatch is-dark" aria-hidden><i /><i /></span>
+                      <span className="block font-bold text-white">🌙 {t("Dark")}</span>
+                    </button>
+                    <button type="button" role="radio" aria-checked={studentAppearance === 'light'} onClick={() => setStudentAppearance('light')} className={`student-display-style-option ${studentAppearance === 'light' ? 'is-selected' : ''}`}>
+                      <span className="student-appearance-swatch is-light" aria-hidden><i /><i /></span>
+                      <span className="block font-bold text-white">☀️ {t("Light")}</span>
+                    </button>
+                  </div>
+                </fieldset>
+              )}
+              <fieldset className={profile.role === 'student' ? 'border-t border-gray-700 pt-4' : ''}>
                 <legend className="font-semibold text-white">{t("Interface style")}</legend>
                 <p className="mt-1 text-sm text-gray-400">{t("Choose how dashboard surfaces look. This does not change your content or progress.")}</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
