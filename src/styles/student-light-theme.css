@@ -1,0 +1,241 @@
+/*
+ * Student "Light" appearance (Settings → Appearance). White school surfaces: Home, Learn,
+ * Assignments, Clan, Leaderboard, More, Settings. Game surfaces keep their dark look because
+ * App only puts `student-light` on <body> while a school surface is showing.
+ *
+ * Two layers:
+ *   1. student-light-theme.generated.css — Tailwind utility remaps (generated, do not edit).
+ *   2. this file — the page, the app's own component classes, and the palette.
+ * Everything is CSS only: no component logic, handlers or links are touched.
+ */
+@import './student-light-theme.generated.css';
+
+html body.student-light {
+  color-scheme: light;
+  /* Deep accent shades for pastel accent text that would vanish on white. */
+  --sl-red-600: #dc2626; --sl-red-700: #b91c1c;
+  --sl-orange-600: #ea580c; --sl-orange-700: #c2410c;
+  --sl-amber-600: #d97706; --sl-amber-700: #b45309;
+  --sl-yellow-600: #ca8a04; --sl-yellow-700: #a16207;
+  --sl-lime-600: #65a30d; --sl-lime-700: #4d7c0f;
+  --sl-green-600: #16a34a; --sl-green-700: #15803d;
+  --sl-emerald-600: #059669; --sl-emerald-700: #047857;
+  --sl-teal-600: #0d9488; --sl-teal-700: #0f766e;
+  --sl-cyan-600: #0891b2; --sl-cyan-700: #0e7490;
+  --sl-sky-600: #0284c7; --sl-sky-700: #0369a1;
+  --sl-blue-600: #2563eb; --sl-blue-700: #1d4ed8;
+  --sl-indigo-600: #4f46e5; --sl-indigo-700: #4338ca;
+  --sl-violet-600: #7c3aed; --sl-violet-700: #6d28d9;
+  --sl-purple-600: #9333ea; --sl-purple-700: #7e22ce;
+  --sl-fuchsia-600: #c026d3; --sl-fuchsia-700: #a21caf;
+  --sl-pink-600: #db2777; --sl-pink-700: #be185d;
+  --sl-rose-600: #e11d48; --sl-rose-700: #be123c;
+
+  /* The student theme colour still tints the page; its "soft" shade becomes a readable deep one. */
+  --student-accent-soft: var(--student-accent-strong);
+  --student-on-accent: #ffffff;
+  --student-surface-rgb: 255, 255, 255;
+  --ink-900: #f4f7fb;
+  --ink-800: #ffffff;
+  --paper-50: #0f172a;
+  --mist-400: #64748b;
+
+  background-color: #f4f7fb;
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(var(--student-accent-rgb), 0.1), transparent 26%),
+    radial-gradient(circle at 82% 10%, rgba(var(--student-secondary-rgb), 0.1), transparent 28%);
+  color: #0f172a;
+}
+
+/* The neon body glows (body::before/::after) are designed for the dark page. */
+html body.student-light::before,
+html body.student-light::after { display: none !important; }
+
+/* ── Shell, header, navigation ─────────────────────────────────────────────── */
+html body.student-light .student-dashboard-shell::before { opacity: 0.55; }
+html body.student-light .student-dashboard-rail,
+html body.student-light .student-dashboard-bottom-nav {
+  border-color: #dbe3ee !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.1) !important;
+}
+html body.student-light .student-dashboard-bottom-link { color: #64748b; }
+html body.student-light .student-dashboard-bottom-link.is-active { color: var(--student-accent-strong); }
+html body.student-light .student-dashboard-bottom-link.is-active .student-dashboard-bottom-icon { background: rgba(var(--student-accent-rgb), 0.14); box-shadow: inset 0 0 0 1px rgba(var(--student-accent-rgb), 0.45); filter: none; }
+html body.student-light .student-mobile-header__name { color: var(--student-accent-strong); }
+html body.student-light .student-mobile-header__menu,
+html body.student-light .student-mobile-header__notifications {
+  border-color: #dbe3ee;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+}
+html body.student-light .student-mobile-hud__chip { background: #ffffff; }
+
+/* ── Cards and panels ──────────────────────────────────────────────────────── */
+html body.student-light .card-glass,
+html body.student-light .student-feed-card,
+html body.student-light .student-cap-card,
+html body.student-light .student-next-mission,
+html body.student-light .dashboard-panel {
+  background: #ffffff !important;
+  border-color: #dbe3ee !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07) !important;
+}
+html body.student-light .student-quick-stat { background: #ffffff !important; }
+html body.student-light .student-quick-stat strong,
+html body.student-light .student-quick-stat small { color: #64748b; }
+html body.student-light .student-quick-stat b { color: #0f172a; }
+html body.student-light .student-secondary-button {
+  border-color: rgba(var(--student-secondary-rgb), 0.45) !important;
+  background: rgba(var(--student-secondary-rgb), 0.12) !important;
+  color: var(--student-secondary) !important;
+}
+html body.student-light .card-glass::after { display: none; }
+html body.student-light .student-feed-card:hover,
+html body.student-light .student-more-card:hover { border-color: rgba(var(--student-accent-rgb), 0.55); }
+html body.student-light .student-cap-card__copy strong,
+html body.student-light .student-invite-card__copy h2,
+html body.student-light .student-more-card__copy strong,
+html body.student-light .student-learning-card h2 { color: #0f172a; }
+html body.student-light .student-cap-card__copy small,
+html body.student-light .student-cap-card__chevron,
+html body.student-light .student-invite-card__copy p,
+html body.student-light .student-more-card__copy small,
+html body.student-light .student-learning-card p { color: #64748b; }
+html body.student-light .student-cap-card__body { border-top-color: #e2e8f0; }
+html body.student-light .student-cap-card__boost { color: #92400e; background: #fef3c7; border-color: #fcd34d; }
+html body.student-light .student-cap-card__icon { color: var(--student-accent-strong); }
+
+/* Primary button: keep the accent, use white text for contrast. */
+html body.student-light .student-primary-button {
+  background: linear-gradient(135deg, var(--student-accent-strong), var(--student-accent) 55%, var(--student-secondary)) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 20px rgba(var(--student-accent-rgb), 0.3) !important;
+}
+html body.student-light .student-primary-button:disabled { background: #e2e8f0 !important; color: #94a3b8 !important; }
+
+/* ── Inputs ────────────────────────────────────────────────────────────────── */
+html body.student-light input:not([type='checkbox']):not([type='radio']):not([type='range']),
+html body.student-light textarea,
+html body.student-light select {
+  background-color: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+html body.student-light input::placeholder,
+html body.student-light textarea::placeholder { color: #94a3b8; }
+
+/* ── Scrims stay dark; sheets on them stay light ───────────────────────────── */
+html body.student-light [role='dialog'] > .bg-slate-950,
+html body.student-light [role='dialog'] > .bg-slate-900,
+html body.student-light [role='dialog'] > .bg-gray-900 { background-color: #ffffff !important; }
+
+/* ── Glows designed for dark backgrounds ───────────────────────────────────── */
+html body.student-light .glow-success, html body.student-light .glow-ion, html body.student-light .glow-plasma,
+html body.student-light .glow-warn, html body.student-light .glow-purple { box-shadow: none; }
+html body.student-light [class*='drop-shadow-\['] { filter: none; }
+html body.student-light .text-shadow, html body.student-light [class*='text-shadow'] { text-shadow: none; }
+
+/* Keep the Learn tiles and feed celebrations as self-contained colour cards (they already read well on white). */
+html body.student-light .learn-tile__main { box-shadow: 0 5px 0 rgba(var(--learn-glow), 0.35), 0 12px 24px rgba(15, 23, 42, 0.12); }
+html body.student-light .learn-hero { border-color: #dbe3ee; }
+
+/* ── Student component classes with their own dark backgrounds ─────────────── */
+html body.student-light .student-dashboard-shell::before {
+  background:
+    radial-gradient(circle at 8% 12%, rgba(var(--student-accent-rgb), 0.12), transparent 30%),
+    radial-gradient(circle at 88% 18%, rgba(var(--student-secondary-rgb), 0.08), transparent 31%);
+}
+html body.student-light .student-profile-panel,
+html body.student-light .student-assignment-section,
+html body.student-light .student-activity-feed,
+html body.student-light .student-display-settings,
+html body.student-light .student-theme-live-preview {
+  background: #ffffff !important;
+  border-color: #dbe3ee !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html body.student-light .student-profile-summary,
+html body.student-light .student-profile-stat,
+html body.student-light .student-assignment-card,
+html body.student-light .student-activity-item,
+html body.student-light .student-display-style-option,
+html body.student-light .student-theme-option {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: none !important;
+}
+html body.student-light .student-activity-item__icon { background: rgba(15, 23, 42, 0.05); }
+html body.student-light .student-activity-item__content > p { color: #334155; }
+html body.student-light .student-activity-item__content time,
+html body.student-light .student-activity-feed__heading > span { color: #64748b; }
+html body.student-light .student-activity-feed__heading h3,
+html body.student-light .student-dashboard-nav-label { color: #0f172a; }
+html body.student-light .student-reaction-button { background: #ffffff !important; border-color: #e2e8f0 !important; color: #334155 !important; }
+html body.student-light .student-reaction-button.is-active { background: rgba(var(--student-accent-rgb), 0.14) !important; border-color: var(--student-accent) !important; color: #0f172a !important; }
+html body.student-light .student-cap-row__track { background: #e2e8f0; }
+html body.student-light .student-dashboard-sidebar-toggle { background: #f1f5f9; border-color: #e2e8f0; color: #334155; }
+html body.student-light .student-profile-name,
+html body.student-light .student-profile-xp-label,
+html body.student-light .student-assignment-heading,
+html body.student-light .student-activity-feed__heading p { color: var(--student-accent-strong) !important; }
+html body.student-light .student-profile-xp-fill { box-shadow: none; }
+
+/* Feed celebration cards keep their tinted look but on a light base. */
+html body.student-light .feed-item { background: #ffffff; }
+html body.student-light .feed-item.is-celebration { background: linear-gradient(135deg, rgba(var(--feed-tone), 0.14), #ffffff 60%); }
+html body.student-light .feed-name,
+html body.student-light .feed-name--gold, html body.student-light .feed-name--flame, html body.student-light .feed-name--teal,
+html body.student-light .feed-name--blue, html body.student-light .feed-name--rose { color: #0f172a; }
+html body.student-light .feed-highlight,
+html body.student-light .feed-highlight--gold, html body.student-light .feed-highlight--flame, html body.student-light .feed-highlight--teal,
+html body.student-light .feed-highlight--blue, html body.student-light .feed-highlight--rose { color: color-mix(in srgb, rgb(var(--feed-tone)) 70%, #0f172a); }
+
+/* ── Assignment desk (components/student/AssignmentDesk.css) ───────────────── */
+html body.student-light .assignment-desk {
+  --desk-muted: #64748b; --desk-accent: #0e7490; --desk-panel: #f8fafc; --desk-line: #e2e8f0;
+  color: #0f172a; background: #ffffff; border-color: #dbe3ee; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
+}
+html body.student-light .assignment-desk h1, html body.student-light .assignment-desk h2,
+html body.student-light .assignment-desk__completion, html body.student-light .assignment-desk__dialog { color: #0f172a; }
+html body.student-light .assignment-desk__next { background: #ecfeff; border-color: #a5f3fc; }
+html body.student-light .assignment-desk__next-icon { background: rgba(14, 116, 144, 0.1); }
+html body.student-light .assignment-desk__primary { background: #0891b2; border-color: #0891b2; color: #ffffff; }
+html body.student-light .assignment-desk__secondary { background: #ffffff; border-color: #cbd5e1; color: #0f172a; }
+html body.student-light .assignment-desk__card { background: #f8fafc; }
+html body.student-light .assignment-desk__status { background: #e2e8f0; color: #334155; }
+html body.student-light .assignment-desk__status--late { background: #fef3c7; color: #92400e; }
+html body.student-light .assignment-desk__dialog { background: #ffffff; border-color: #dbe3ee; }
+html body.student-light .assignment-desk [class*="assignment-desk__"] { border-color: var(--desk-line); }
+html body.student-light .assignment-desk select, html body.student-light .assignment-desk input { background: #ffffff; color: #0f172a; border-color: #cbd5e1; }
+html body.student-light .assignment-desk__secondary:hover { background: #f1f5f9; }
+html body.student-light .assignment-desk__tabs button[aria-pressed=true] { background: rgba(14, 116, 144, 0.1); }
+html body.student-light .assignment-desk__tabs span { background: #e2e8f0; color: #334155; }
+html body.student-light .assignment-desk__subjects button[aria-pressed=true] { background: #f1f5f9; border-color: #94a3b8; color: #0f172a; }
+html body.student-light .assignment-desk__history-filter { color: #64748b; }
+html body.student-light .assignment-desk__table { color: #0f172a; }
+html body.student-light .assignment-desk__score { color: #047857; }
+html body.student-light .assignment-desk__card--completed { border-color: #a7f3d0; }
+
+/* ── Scrims behind menus and sheets stay translucent (not solid panels) ─────── */
+html body.student-light .inset-0.bg-black\/20, html body.student-light .inset-0.bg-black\/30,
+html body.student-light .inset-0.bg-black\/40, html body.student-light .inset-0.bg-slate-950\/40,
+html body.student-light .inset-0.bg-slate-900\/40 { background-color: rgba(15, 23, 42, 0.32) !important; }
+html body.student-light .assignment-desk__ring b { color: #0f172a; }
+
+/* The page-wide "cinematic" glow filters were tuned for dark; on white they haze every card. */
+html body.student-light .cinematic-view,
+html body.student-light .cinematic-view--active,
+html body.student-light .cinematic-view--alert { filter: none !important; transform: none !important; }
+
+/* Basic mode paints every backdrop-blur element dark; in Light they become frosted white instead. */
+html body.student-light [class*="glass"],
+html body.student-light [class*="backdrop"] { background-color: rgba(255, 255, 255, 0.85) !important; }
+html body.student-light .card-glass,
+html body.student-light .student-feed-card,
+html body.student-light .student-cap-card,
+html body.student-light .student-next-mission,
+html body.student-light .dashboard-panel { background-color: #ffffff !important; }

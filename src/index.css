@@ -4528,3 +4528,11 @@ body.performance-mode-disabled .gh-quest::after {
   .gh-hub *, .gh-hub *::before, .gh-hub *::after { animation: none !important; }
   .gh-burst { opacity: 0; }
 }
+
+/* Settings → Appearance swatches */
+.student-appearance-swatch { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; height: 2.6rem; padding: 0.35rem; border-radius: 0.7rem; border: 1px solid rgba(148, 163, 184, 0.35); margin-bottom: 0.5rem; }
+.student-appearance-swatch i { display: block; border-radius: 0.35rem; }
+.student-appearance-swatch.is-dark { background: #0f172a; }
+.student-appearance-swatch.is-dark i { background: #1e293b; border: 1px solid #334155; }
+.student-appearance-swatch.is-light { background: #f4f7fb; }
+.student-appearance-swatch.is-light i { background: #ffffff; border: 1px solid #dbe3ee; }

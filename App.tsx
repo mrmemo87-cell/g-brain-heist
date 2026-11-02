@@ -12,6 +12,7 @@ import type { AuthBootstrap } from './src/lib/authBootstrap';
 import { getAuthBootstrap } from './services/authBootstrapService';
 import SkeletonDashboard from './components/SkeletonDashboard';
 import { useLightMode } from './src/contexts/LightModeContext';
+import { studentLightBodyClass } from './src/lib/studentAppearance';
 import PlayerProfileCard from './components/PlayerProfileCard';
 import TaskList from './components/TaskList';
 import MainActions from './components/MainActions';
@@ -225,7 +226,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
   const lastRewardedLevelRef = useRef<number | null>(null);
   const shownStreakRewardRef = useRef<string | null>(null);
   const cachedDataLoadedRef = useRef(false);
-  const { isLightMode: isLiteMode, toggleLightMode } = useLightMode();
+  const { isLightMode: isLiteMode, toggleLightMode, studentAppearance } = useLightMode();
   const [pendingClanRequests, setPendingClanRequests] = useState(0);
   const [unreadClanChatMessages, setUnreadClanChatMessages] = useState(0);
   const [isUserSchoolAdmin, setIsUserSchoolAdmin] = useState(false);
@@ -1327,6 +1328,13 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
   }, [view, sessionStatus?.active, isTeacherRole, isSchoolAdminRole]);
 
   const isStudent = profile?.role === 'student';
+
+  // Light appearance: only while a school surface is on screen (CSS-only; see src/styles/student-light-theme.css).
+  useEffect(() => {
+    const on = studentLightBodyClass(studentAppearance, isStudent, view, studentDashboardTab);
+    document.body.classList.toggle('student-light', on);
+    return () => { document.body.classList.remove('student-light'); };
+  }, [studentAppearance, isStudent, view, studentDashboardTab]);
   const isAdminUser = isAdminMode;
 
   // Auto-refresh profile every 60 seconds (only for students who need AP regeneration)

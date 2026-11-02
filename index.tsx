@@ -19,6 +19,7 @@ import { LanguageProvider } from './src/contexts/LanguageContext';
 import { LightModeProvider } from './src/contexts/LightModeContext';
 import './src/index.css';
 import './src/styles/light-mode.css';
+import './src/styles/student-light-theme.css';
 import './src/styles/platform-light-theme.css';
 import './src/styles/ielts-experience.css';
 import { createBrowserRouter, Navigate, RouterProvider, useNavigate, useParams } from 'react-router-dom';

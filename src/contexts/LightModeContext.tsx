@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 
 const STORAGE_KEY = 'gbrain-lite-mode';
 const THEME_COLOR_STORAGE_KEY = 'brains-heist-student-theme-color-v1';
+const APPEARANCE_STORAGE_KEY = 'brains-heist-student-appearance-v1';
+
+export type StudentAppearance = 'dark' | 'light';
 
 export const STUDENT_THEME_COLORS = ['blue', 'pink', 'green', 'purple', 'red', 'dark'] as const;
 export type StudentThemeColor = typeof STUDENT_THEME_COLORS[number];
@@ -12,6 +15,9 @@ interface LightModeContextType {
   setInterfaceStyle: (style: 'glassy' | 'basic') => void;
   studentThemeColor: StudentThemeColor;
   setStudentThemeColor: (color: StudentThemeColor) => void;
+  /** Light = white school surfaces (Home, Learn, Assignments, …). Game screens stay dark either way. */
+  studentAppearance: StudentAppearance;
+  setStudentAppearance: (appearance: StudentAppearance) => void;
   /**
    * When set, light mode was auto-enabled to protect performance or battery.
    */
@@ -89,6 +95,23 @@ export const LightModeProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const setStudentThemeColor = (color: StudentThemeColor) => {
     setStudentThemeColorState(color);
+  };
+
+  const [studentAppearance, setStudentAppearanceState] = useState<StudentAppearance>(() => {
+    if (typeof window === 'undefined') return 'dark';
+    try {
+      return window.localStorage.getItem(APPEARANCE_STORAGE_KEY) === 'light' ? 'light' : 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+  const setStudentAppearance = (appearance: StudentAppearance) => {
+    setStudentAppearanceState(appearance);
+    try {
+      window.localStorage.setItem(APPEARANCE_STORAGE_KEY, appearance);
+    } catch {
+      /* ignore storage errors */
+    }
   };
 
   useEffect(() => {
@@ -225,6 +248,8 @@ export const LightModeProvider: React.FC<{ children: ReactNode }> = ({ children 
       setInterfaceStyle,
       studentThemeColor,
       setStudentThemeColor,
+      studentAppearance,
+      setStudentAppearance,
       autoEnabledReason,
       clearAutoEnabledReason,
     }}>
