@@ -61,7 +61,7 @@ export const AcademicProgressHeader: React.FC<AcademicProgressHeaderProps> = ({
         </div>
         <div className="aps-header-actions">
           {actions}
-          <button type="button" className="aps-secondary-button" onClick={goBack}>{backLabel || fallback.label}</button>
+          <button type="button" className="aps-secondary-button aps-back-button" onClick={goBack} aria-label={backLabel || fallback.label}><span aria-hidden="true" className="aps-back-arrow">←</span><span className="aps-back-full">{backLabel || fallback.label}</span><span aria-hidden="true" className="aps-back-short">Back</span></button>
         </div>
       </div>
     </header>
