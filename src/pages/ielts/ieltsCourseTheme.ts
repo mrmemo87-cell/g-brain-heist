@@ -6,6 +6,7 @@ export const skillTheme: Record<IeltsCourseSkill, { icon: string; label: string;
   reading: { icon: '📖', label: 'Reading', tone: '#1746B0', soft: '#EEF3FA' },
   writing: { icon: '✍️', label: 'Writing', tone: '#6D28D9', soft: '#F5F3FF' },
   speaking: { icon: '🎙️', label: 'Speaking', tone: '#B45309', soft: '#FFFBEB' },
+  vocabulary: { icon: '🔤', label: 'Vocabulary', tone: '#047857', soft: '#ECFDF5' },
 };
 
 export type CourseChapter = { index: number; from: number; to: number; title: string; tagline: string; emblem: string };
@@ -17,7 +18,16 @@ export const courseChapters: CourseChapter[] = [
   { index: 4, from: 16, to: 20, title: 'Exam ready', tagline: 'Discussion, letters and full timed practice.', emblem: '🏆' },
 ];
 
-export const chapterFor = (position: number) =>
-  courseChapters.find((c) => position >= c.from && position <= c.to) ?? courseChapters[courseChapters.length - 1];
+/** The vocabulary path is one chapter of six lessons. */
+export const vocabularyChapters: CourseChapter[] = [
+  { index: 1, from: 1, to: 6, title: 'Word power', tagline: 'Paraphrase, trends, arguments, speaking, word forms and topic collocations.', emblem: '🔤' },
+];
+
+export const chaptersFor = (track: 'main' | 'vocabulary' | undefined) => (track === 'vocabulary' ? vocabularyChapters : courseChapters);
+
+export const chapterFor = (position: number, track?: 'main' | 'vocabulary') => {
+  const list = chaptersFor(track);
+  return list.find((c) => position >= c.from && position <= c.to) ?? list[list.length - 1];
+};
 
 export const primarySkill = (skills: IeltsCourseSkill[]): IeltsCourseSkill => skills[0] ?? 'reading';

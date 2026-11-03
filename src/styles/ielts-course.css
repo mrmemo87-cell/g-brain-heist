@@ -260,3 +260,66 @@
 .ic-trail { z-index: 0; }
 .ic-unit-step > span { flex: 0 0 auto; }
 .ic-unit-step { gap: .3rem; padding: .4rem .3rem; font-size: .8rem; }
+
+/* Two paths in the Course tab: the skills route and the vocabulary path. */
+.ic-tracks { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; padding: .35rem; border-radius: 20px; background: #fff; border: 1px solid #e2e8f0; box-shadow: 0 6px 18px rgba(15, 23, 42, .06); }
+.ic-track { display: flex; align-items: center; gap: .6rem; min-height: 56px; padding: .55rem .75rem; border-radius: 16px; border: 1px solid transparent; background: transparent; color: #334155; font: inherit; text-align: left; cursor: pointer; transition: background-color .18s ease, box-shadow .2s ease, color .18s ease; }
+.ic-track:hover:not(.is-active) { background: #f8fafc; }
+.ic-track-icon { display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: 12px; font-size: 1.15rem; background: #f1f5f9; flex: none; }
+.ic-track-text { display: grid; line-height: 1.2; }
+.ic-track-text b { font-size: .95rem; font-weight: 800; }
+.ic-track-text small { font-size: .76rem; color: #64748b; font-weight: 700; }
+.ic-track.is-active { color: #fff; box-shadow: 0 10px 22px rgba(15, 23, 42, .2); }
+.ic-track--main.is-active { background: linear-gradient(135deg, #172554, #1746B0 60%, #0e7490); }
+.ic-track--vocabulary.is-active { background: linear-gradient(135deg, #064e3b, #047857 55%, #0f766e); }
+.ic-track.is-active .ic-track-icon { background: rgba(255, 255, 255, .18); }
+.ic-track.is-active small { color: rgba(255, 255, 255, .8); }
+
+.ic-hero--vocabulary { background: radial-gradient(120% 120% at 100% 0%, #065f46 0%, transparent 55%), radial-gradient(90% 90% at 0% 100%, #0f766e 0%, transparent 60%), linear-gradient(160deg, #04140f, #052e2b 60%, #0b2a24); }
+.ic-hero--vocabulary .ic-eyebrow--light { color: #a7f3d0; }
+.ic-hero--vocabulary .ic-hero-glow { background: radial-gradient(circle, rgba(250, 204, 21, .28), transparent 70%); }
+.ic-chapter--vocab .ic-chapter-banner { --c1: #047857; --c2: #0f766e; }
+
+/* Vocabulary step player */
+.iv-head { display: grid; gap: .55rem; padding: 1.1rem 1.15rem; border-radius: 24px; color: #fff; background: linear-gradient(150deg, #052e2b, #047857 70%, #0f766e); box-shadow: 0 18px 36px rgba(4, 120, 87, .22); }
+.iv-head h1 { color: #fff; font-size: clamp(1.35rem, 5vw, 1.7rem); }
+.iv-head .ic-eyebrow { color: #a7f3d0; }
+.iv-dots { display: flex; gap: .35rem; }
+.iv-dots span { flex: 1; height: 6px; border-radius: 999px; background: rgba(255, 255, 255, .22); }
+.iv-dots span.is-done { background: #6ee7b7; }
+.iv-dots span.is-now { background: #fde68a; }
+.iv-meta { display: flex; flex-wrap: wrap; gap: .4rem; font-size: .8rem; font-weight: 700; color: rgba(255, 255, 255, .85); }
+.iv-meta span { padding: .15rem .55rem; border-radius: 999px; background: rgba(255, 255, 255, .12); }
+.iv-learn { padding: 1rem 1.05rem; border-radius: 20px; background: #fffbeb; border: 1px solid #fde68a; display: grid; gap: .45rem; }
+.iv-learn h2 { font-size: 1.05rem; color: #78350f; }
+.iv-learn p { color: #422006; white-space: pre-wrap; line-height: 1.55; }
+.iv-learn .iv-example { margin-top: .3rem; padding: .7rem .8rem; border-radius: 14px; background: #fff; border: 1px dashed #f59e0b; }
+.iv-passage { padding: 1rem 1.05rem; border-radius: 20px; background: #fff; border: 1px solid #e2e8f0; display: grid; gap: .6rem; }
+.iv-passage h2 { font-size: 1.05rem; }
+.iv-passage p { line-height: 1.65; color: #1e293b; }
+.iv-passage details summary { cursor: pointer; font-weight: 800; color: #047857; }
+.iv-questions { display: grid; gap: .75rem; }
+.iv-q { padding: .95rem 1rem; border-radius: 18px; background: #fff; border: 1px solid #e2e8f0; display: grid; gap: .6rem; }
+.iv-q--right { border-color: #6ee7b7; background: #f0fdf4; }
+.iv-q--wrong { border-color: #fecaca; background: #fff7f7; }
+.iv-q-prompt { display: grid; grid-template-columns: auto 1fr; gap: .6rem; font-weight: 700; color: #0f172a; }
+.iv-q-num { display: grid; place-items: center; width: 1.75rem; height: 1.75rem; border-radius: 9px; font-size: .85rem; font-weight: 800; color: #047857; background: #ecfdf5; }
+.iv-options { display: grid; gap: .4rem; }
+.iv-option { display: flex; align-items: center; gap: .6rem; min-height: 46px; padding: .55rem .8rem; border-radius: 14px; border: 1.5px solid #e2e8f0; background: #fff; font: 600 .95rem/1.35 var(--bh-ielts-font-body); color: #1e293b; text-align: left; cursor: pointer; transition: border-color .15s ease, background-color .15s ease; }
+.iv-option:hover:not(:disabled) { border-color: #6ee7b7; }
+.iv-option.is-picked { border-color: #047857; background: #ecfdf5; box-shadow: inset 0 0 0 1px #047857; }
+.iv-option.is-key { border-color: #16a34a; background: #dcfce7; }
+.iv-option.is-miss { border-color: #ef4444; background: #fee2e2; }
+.iv-option:disabled { cursor: default; }
+.iv-input { min-height: 46px; padding: .6rem .8rem; border-radius: 14px; border: 1.5px solid #cbd5e1; font: 600 1rem/1.3 var(--bh-ielts-font-body); }
+.iv-input:focus { outline: 3px solid var(--bh-ielts-focus); outline-offset: 1px; border-color: #047857; }
+.iv-feedback { display: grid; gap: .25rem; font-size: .9rem; color: #334155; }
+.iv-feedback b { font-weight: 800; }
+.iv-feedback .iv-ok { color: #15803d; }
+.iv-feedback .iv-no { color: #b91c1c; }
+.iv-score { display: grid; justify-items: center; gap: .35rem; padding: 1.2rem 1rem; border-radius: 24px; text-align: center; color: #fff; background: radial-gradient(120% 120% at 50% 0%, #10b981, #065f46 70%); box-shadow: 0 18px 36px rgba(6, 95, 70, .25); }
+.iv-score h2 { color: #fff; font-size: 1.5rem; }
+.iv-score p { color: rgba(255, 255, 255, .9); }
+.iv-score-num { font-size: 2.6rem; font-weight: 900; letter-spacing: -.03em; line-height: 1; }
+.iv-actions { display: grid; gap: .55rem; }
+.iv-note { font-size: .82rem; color: #64748b; text-align: center; }

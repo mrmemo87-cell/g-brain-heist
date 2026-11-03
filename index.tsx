@@ -64,6 +64,7 @@ const IeltsLearningPractice = lazyRetry(() => import('./src/pages/ielts/IeltsLea
 const IeltsJourneyDashboard = lazyRetry(() => import('./src/pages/ielts/IeltsJourneyDashboard'), 'IeltsJourneyDashboard');
 const IeltsCoursePath = lazyRetry(() => import('./src/pages/ielts/IeltsCoursePath'), 'IeltsCoursePath');
 const IeltsCourseUnit = lazyRetry(() => import('./src/pages/ielts/IeltsCourseUnit'), 'IeltsCourseUnit');
+const IeltsCourseVocabStep = lazyRetry(() => import('./src/pages/ielts/IeltsCourseVocabStep'), 'IeltsCourseVocabStep');
 const IeltsSession = lazyRetry(() => import('./src/pages/ielts/IeltsSession'), 'IeltsSession');
 const ReadingPractice = lazyRetry(() => import('./src/pages/ielts/ReadingPractice'), 'ReadingPractice');
 const SpeakingPractice = lazyRetry(() => import('./src/pages/ielts/SpeakingPractice'), 'SpeakingPractice');
@@ -802,6 +803,7 @@ const router = createBrowserRouter([
   { path: '/ielts/screener-result/:attemptId', element: <ProtectedRoute element={<IeltsGovernedScreenerResult />} /> },
   { path: '/ielts/course', element: <ProtectedRoute element={<IeltsCoursePath />} /> },
   { path: '/ielts/course/:unitId', element: <ProtectedRoute element={<IeltsCourseUnit />} /> },
+  { path: '/ielts/vocabulary/:code', element: <ProtectedRoute element={<IeltsCourseVocabStep />} /> },
   {
     path: '/ielts/journey',
     element: withSchoolIeltsAccess(<ProtectedRoute element={<SchoolAdminIeltsRoute ieltsTab="ielts-student-progress"><IeltsJourneyDashboard /></SchoolAdminIeltsRoute>} />),

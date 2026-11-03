@@ -3,7 +3,10 @@ import { createIeltsViewCache } from '../src/lib/ieltsViewCache';
 
 /** Self-paced IELTS course ("course path"): ordered units, each a short lesson + practice tasks. */
 
-export type IeltsCourseSkill = 'reading' | 'listening' | 'writing' | 'speaking';
+export type IeltsCourseSkill = 'reading' | 'listening' | 'writing' | 'speaking' | 'vocabulary';
+
+/** The course has two separate paths, each unlocked in its own order. */
+export type IeltsCourseTrack = 'main' | 'vocabulary';
 
 export type IeltsCourseAccessReason =
   | 'superadmin'
@@ -17,7 +20,10 @@ export type IeltsCourseLockedReason = 'needs_access' | 'previous_unit' | null;
 
 export interface IeltsCourseTask {
   skill: IeltsCourseSkill;
-  task_id: number;
+  /** Bank task id for reading/listening/writing/speaking; null for vocabulary steps. */
+  task_id: number | null;
+  /** Vocabulary step code; only for vocabulary steps. */
+  task_code?: string | null;
   position: number;
   completed: boolean;
   route: string;
@@ -28,6 +34,7 @@ export interface IeltsCourseTask {
 
 export interface IeltsCourseUnitSummary {
   id: number;
+  track?: IeltsCourseTrack;
   position: number;
   slug: string;
   title: string;
@@ -48,7 +55,20 @@ export interface IeltsCourseState {
   units_total: number;
   units_completed: number;
   units: IeltsCourseUnitSummary[];
+  /** The separate vocabulary path. */
+  vocabulary?: IeltsCourseTrackState;
 }
+
+export interface IeltsCourseTrackState {
+  current_unit_id: number | null;
+  units_total: number;
+  units_completed: number;
+  units: IeltsCourseUnitSummary[];
+}
+
+/** Stable key for a task link in lists. */
+export const ieltsCourseTaskKey = (task: Pick<IeltsCourseTask, 'skill' | 'task_id' | 'task_code'>) =>
+  `${task.skill}-${task.task_code ?? task.task_id}`;
 
 export interface IeltsCourseLesson {
   intro?: string;
@@ -65,6 +85,7 @@ export interface IeltsCourseUnitDetail extends IeltsCourseUnitSummary {
 
 export interface IeltsCourseUnitLocked {
   id: number;
+  track?: IeltsCourseTrack;
   position: number;
   title: string;
   subtitle: string | null;
@@ -74,6 +95,13 @@ export interface IeltsCourseUnitLocked {
 }
 
 export const IELTS_COURSE_ROUTE = '/ielts/course';
+/** The course map opened on the vocabulary path. */
+export const IELTS_COURSE_VOCAB_ROUTE = '/ielts/course?path=vocabulary';
+export const ieltsCourseMapRoute = (track: IeltsCourseTrack | undefined) =>
+  track === 'vocabulary' ? IELTS_COURSE_VOCAB_ROUTE : IELTS_COURSE_ROUTE;
+/** 'Unit 3' on the main path, 'V3' on the vocabulary path. */
+export const ieltsCourseUnitLabel = (unit: { track?: IeltsCourseTrack; position: number }) =>
+  unit.track === 'vocabulary' ? `V${unit.position}` : `Unit ${unit.position}`;
 export const ieltsCourseUnitRoute = (unitId: number) => `${IELTS_COURSE_ROUTE}/${unitId}`;
 
 /** Query param carried into a practice page so it can return to the unit afterwards. */
@@ -151,6 +179,7 @@ export const ieltsCourseSkillLabel: Record<IeltsCourseSkill, string> = {
   listening: 'Listening',
   writing: 'Writing',
   speaking: 'Speaking',
+  vocabulary: 'Vocabulary',
 };
 
 export const ieltsCourseAccessMessage = (reason: IeltsCourseAccessReason): { title: string; body: string; cta: 'prime' | 'school' | null } => {
@@ -171,3 +200,66 @@ export const ieltsCourseAccessMessage = (reason: IeltsCourseAccessReason): { tit
       return { title: '', body: '', cta: null };
   }
 };
+
+// ---------------------------------------------------------------------------
+// Vocabulary path steps (auto-marked practice; never a band or teacher evidence)
+// ---------------------------------------------------------------------------
+
+export interface IeltsVocabQuestion {
+  id: string;
+  prompt: string;
+  options?: { value: string; label: string }[] | null;
+  answer_format?: 'text' | string | null;
+}
+
+export interface IeltsVocabResult {
+  attempt_id: string;
+  score: number;
+  total: number;
+  submitted_at: string;
+  answers: Record<string, string>;
+  outcomes: { id: string; correct: boolean; response_state: 'answered' | 'unanswered'; accepted_answers: string[] }[];
+  explanations: Record<string, string>;
+  unit_completed?: boolean;
+}
+
+export interface IeltsVocabStep {
+  code: string;
+  unit_id: number;
+  unit_title: string;
+  step: number;
+  steps: number;
+  next_code: string | null;
+  purpose: 'guided_practice' | 'independent_check' | string;
+  title: string;
+  display_code: string | null;
+  minutes: number | null;
+  instructions: string;
+  success_description: string | null;
+  focus: string | null;
+  passage: string | null;
+  questions: IeltsVocabQuestion[];
+  result: IeltsVocabResult | null;
+}
+
+const vocabError = (error: { message?: string } | null, fallback: string) => {
+  const message = error?.message || '';
+  if (message === 'unit_locked') return 'This step is still locked. Finish the previous vocabulary lesson first.';
+  if (message === 'task_not_found' || message === 'task_not_available') return 'This step is not available.';
+  if (message === 'too_many_attempts') return 'Take a moment to read the explanations, then try again.';
+  return friendly(error, fallback);
+};
+
+export const ieltsVocabStepRoute = (code: string) => `/ielts/vocabulary/${encodeURIComponent(code)}`;
+
+export async function fetchIeltsVocabStep(code: string): Promise<IeltsVocabStep> {
+  const { data, error } = await supabase.rpc('rpc_ielts_course_vocab_task', { p_code: code });
+  if (error || !data) throw new Error(vocabError(error, 'This step could not load. Please retry.'));
+  return data as IeltsVocabStep;
+}
+
+export async function submitIeltsVocabStep(code: string, answers: Record<string, string>): Promise<IeltsVocabResult> {
+  const { data, error } = await supabase.rpc('rpc_ielts_course_vocab_submit', { p_code: code, p_answers: answers });
+  if (error || !data) throw new Error(vocabError(error, 'Your answers could not be marked. Please retry.'));
+  return data as IeltsVocabResult;
+}
