@@ -3,10 +3,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import '../../styles/ielts-course.css';
 import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell';
 import {
-  IELTS_COURSE_ROUTE,
   fetchIeltsCourseUnit,
   ieltsCourseAccessMessage,
+  ieltsCourseMapRoute,
+  ieltsCourseTaskKey,
   ieltsCourseTaskRoute,
+  ieltsCourseUnitLabel,
   ieltsCourseUnitRoute,
   markIeltsCourseLessonViewed,
   syncIeltsCourseProgress,
@@ -80,6 +82,9 @@ const IeltsCourseUnit: React.FC = () => {
   const skill = detail ? primarySkill(detail.focus_skills) : 'reading';
   const theme = skillTheme[skill];
   const doneCount = detail ? detail.tasks.filter((t) => t.completed).length : 0;
+  const isVocab = unit?.track === 'vocabulary';
+  const mapRoute = ieltsCourseMapRoute(unit?.track);
+  const label = (position: number) => ieltsCourseUnitLabel({ track: unit?.track, position });
 
   const cards: Card[] = useMemo(() => {
     if (!detail) return [];
@@ -127,7 +132,7 @@ const IeltsCourseUnit: React.FC = () => {
   const current = cards[card];
 
   return (
-    <IeltsStudentShell focus={{ label: 'Course map', to: IELTS_COURSE_ROUTE }}>
+    <IeltsStudentShell focus={{ label: isVocab ? 'Vocabulary path' : 'Course map', to: mapRoute }}>
       <div className="ic-page ic-page--embedded" style={{ ['--tone' as string]: theme.tone, ['--soft' as string]: theme.soft } as React.CSSProperties}>
         <main className="ic-main">
           {error && (
@@ -142,18 +147,18 @@ const IeltsCourseUnit: React.FC = () => {
           {unit && isLocked(unit) && (
             <section className="ic-card ic-locked-card">
               <span className="ic-locked-icon" aria-hidden="true">🔒</span>
-              <p className="ic-eyebrow">Unit {unit.position}</p>
+              <p className="ic-eyebrow">{label(unit.position)}</p>
               <h2>{unit.title}</h2>
               {unit.subtitle && <p className="ic-muted">{unit.subtitle}</p>}
               {unit.locked_reason === 'previous_unit' ? (
-                <p>Finish the previous unit first. Units open in order so each technique builds on the last.</p>
+                <p>{isVocab ? 'Finish the previous vocabulary lesson first. Lessons open in order.' : 'Finish the previous unit first. Units open in order so each technique builds on the last.'}</p>
               ) : (
                 <>
                   <p><b>{ieltsCourseAccessMessage(unit.access_reason).title || 'This unit needs full course access.'}</b> {ieltsCourseAccessMessage(unit.access_reason).body}</p>
                   {unit.access_reason === 'prime_required' && <button type="button" className="ic-btn ic-btn--gold ic-btn--block" onClick={() => navigate('/ielts/apply-prime')}>Unlock with IELTS Prime</button>}
                 </>
               )}
-              <button type="button" className="ic-btn ic-btn--ghost ic-btn--block" onClick={() => navigate(IELTS_COURSE_ROUTE)}>Back to the course map</button>
+              <button type="button" className="ic-btn ic-btn--ghost ic-btn--block" onClick={() => navigate(mapRoute)}>Back to the course map</button>
             </section>
           )}
 
@@ -196,10 +201,10 @@ const IeltsCourseUnit: React.FC = () => {
                     {current.kind === 'cover' && (
                       <>
                         <div className="ic-cover-art" aria-hidden="true">
-                          <span className="ic-cover-num">{detail.position}</span>
+                          <span className="ic-cover-num">{isVocab ? `V${detail.position}` : detail.position}</span>
                           <span className="ic-cover-icon">{theme.icon}</span>
                         </div>
-                        <p className="ic-eyebrow">Chapter {chapterFor(detail.position).index} · {chapterFor(detail.position).title}</p>
+                        <p className="ic-eyebrow">{isVocab ? `Vocabulary · ${label(detail.position)}` : `Chapter ${chapterFor(detail.position).index} · ${chapterFor(detail.position).title}`}</p>
                         <h1 className="ic-cover-title">{detail.title}</h1>
                         {detail.subtitle && <p className="ic-cover-sub">{detail.subtitle}</p>}
                         <div className="ic-cover-meta">
@@ -242,9 +247,11 @@ const IeltsCourseUnit: React.FC = () => {
                       <>
                         <span className="ic-ready-icon" aria-hidden="true">🚀</span>
                         <h2>Ready to practise?</h2>
-                        <p className="ic-body">Use what you just learned on {detail.tasks.length === 1 ? 'one real task' : `${detail.tasks.length} real tasks`}. Writing and Speaking get feedback in about a minute.</p>
+                        <p className="ic-body">{isVocab
+                          ? `Six short steps. Each one marks itself and explains every answer.`
+                          : <>Use what you just learned on {detail.tasks.length === 1 ? 'one real task' : `${detail.tasks.length} real tasks`}. Writing and Speaking get feedback in about a minute.</>}</p>
                         <ul className="ic-ready-list">
-                          {detail.tasks.map((t) => <li key={`${t.skill}-${t.task_id}`}><span aria-hidden="true">{skillTheme[t.skill].icon}</span>{t.title || skillTheme[t.skill].label}<small>{t.minutes ? `${t.minutes} min` : ''}</small></li>)}
+                          {detail.tasks.map((t) => <li key={ieltsCourseTaskKey(t)}><span aria-hidden="true">{isVocab ? t.position : skillTheme[t.skill].icon}</span>{t.title || skillTheme[t.skill].label}<small>{t.minutes ? `${t.minutes} min` : ''}</small></li>)}
                         </ul>
                         <button type="button" className="ic-btn ic-btn--primary ic-btn--block ic-btn--glow" disabled={saving} onClick={() => void startPractice()}>
                           {saving ? 'Saving…' : detail.lesson_viewed ? 'Back to practice' : 'Start practice'} <span aria-hidden="true">→</span>
@@ -264,22 +271,24 @@ const IeltsCourseUnit: React.FC = () => {
 
               {step === 'practice' && (
                 <section className="ic-card ic-practice" aria-label="Practice">
-                  <p className="ic-eyebrow">Unit {detail.position} · practice</p>
-                  <h2>Put it into practice</h2>
-                  <p className="ic-muted">Finish every task to clear this stop. Writing and Speaking count as soon as you submit, and you can get feedback straight after.</p>
-                  <div className="ic-practice-meter" role="progressbar" aria-valuemin={0} aria-valuemax={detail.tasks.length} aria-valuenow={doneCount} aria-label="Tasks done">
+                  <p className="ic-eyebrow">{label(detail.position)} · {isVocab ? 'steps' : 'practice'}</p>
+                  <h2>{isVocab ? 'Six steps to the mixed check' : 'Put it into practice'}</h2>
+                  <p className="ic-muted">{isVocab
+                    ? 'Work through the steps in order. Each one starts with a short LEARN FIRST box, and every answer is explained after you submit. Step 6 mixes everything together.'
+                    : 'Finish every task to clear this stop. Writing and Speaking count as soon as you submit, and you can get feedback straight after.'}</p>
+                  <div className="ic-practice-meter" role="progressbar" aria-valuemin={0} aria-valuemax={detail.tasks.length} aria-valuenow={doneCount} aria-label={isVocab ? 'Steps done' : 'Tasks done'}>
                     <span style={{ width: `${detail.tasks.length ? (100 * doneCount) / detail.tasks.length : 0}%` }} />
                     <b>{doneCount} of {detail.tasks.length} done</b>
                   </div>
                   <div className="ic-tasklist">
                     {detail.tasks.map((task, i) => (
-                      <button key={`${task.skill}-${task.task_id}`} type="button" className={`ic-task${task.completed ? ' ic-task--done' : ''}`}
+                      <button key={ieltsCourseTaskKey(task)} type="button" className={`ic-task${task.completed ? ' ic-task--done' : ''}`}
                         style={{ ['--tone' as string]: skillTheme[task.skill].tone, ['--soft' as string]: skillTheme[task.skill].soft, ['--n' as string]: i } as React.CSSProperties}
                         onClick={() => openTask(task.route)}>
-                        <span className="ic-task-icon" aria-hidden="true">{task.completed ? '✓' : skillTheme[task.skill].icon}</span>
+                        <span className="ic-task-icon" aria-hidden="true">{task.completed ? '✓' : isVocab ? task.position : skillTheme[task.skill].icon}</span>
                         <span className="ic-task-body">
                           <b>{task.title || `${skillTheme[task.skill].label} practice`}</b>
-                          <span>{skillTheme[task.skill].label}{task.display_code ? ` · ${task.display_code}` : ''}{task.minutes ? ` · ${task.minutes} min` : ''}</span>
+                          <span>{isVocab ? `Step ${task.position}${task.position === detail.tasks.length ? ' · mixed check' : ''}` : skillTheme[task.skill].label}{task.display_code ? ` · ${task.display_code}` : ''}{task.minutes ? ` · ${task.minutes} min` : ''}</span>
                         </span>
                         <span className="ic-task-go">{task.completed ? 'Review' : 'Start'} <span aria-hidden="true">→</span></span>
                       </button>
@@ -296,25 +305,27 @@ const IeltsCourseUnit: React.FC = () => {
                 <>
                   <section className="ic-victory" role="status">
                     {celebrate && <Confetti />}
-                    <div className="ic-medal" aria-hidden="true"><span>{detail.position}</span></div>
-                    <p className="ic-eyebrow ic-eyebrow--light">Stop cleared</p>
-                    <h2>Unit {detail.position} complete</h2>
-                    <p>{detail.next_unit_id ? 'The next stop on your route is open. Keep the momentum going.' : 'That was the final stop. You have finished the whole route.'}</p>
+                    <div className="ic-medal" aria-hidden="true"><span>{isVocab ? `V${detail.position}` : detail.position}</span></div>
+                    <p className="ic-eyebrow ic-eyebrow--light">{isVocab ? 'Lesson cleared' : 'Stop cleared'}</p>
+                    <h2>{label(detail.position)} complete</h2>
+                    <p>{detail.next_unit_id
+                      ? (isVocab ? 'The next vocabulary lesson is open. Keep the momentum going.' : 'The next stop on your route is open. Keep the momentum going.')
+                      : (isVocab ? 'That was the last vocabulary lesson. You have finished the whole path.' : 'That was the final stop. You have finished the whole route.')}</p>
                     {detail.next_unit_id ? (
-                      <button type="button" className="ic-btn ic-btn--light ic-btn--glow" onClick={() => navigate(ieltsCourseUnitRoute(detail.next_unit_id as number))}>Next unit <span aria-hidden="true">→</span></button>
+                      <button type="button" className="ic-btn ic-btn--light ic-btn--glow" onClick={() => navigate(ieltsCourseUnitRoute(detail.next_unit_id as number))}>{isVocab ? 'Next lesson' : 'Next unit'} <span aria-hidden="true">→</span></button>
                     ) : (
-                      <button type="button" className="ic-btn ic-btn--light" onClick={() => navigate(IELTS_COURSE_ROUTE)}>Back to the course map</button>
+                      <button type="button" className="ic-btn ic-btn--light" onClick={() => navigate(mapRoute)}>Back to the course map</button>
                     )}
                   </section>
                   <section className="ic-card">
-                    <h3>Review this unit</h3>
+                    <h3>{isVocab ? 'Review this lesson' : 'Review this unit'}</h3>
                     <div className="ic-tasklist">
                       {detail.tasks.map((task) => (
-                        <button key={`${task.skill}-${task.task_id}`} type="button" className="ic-task ic-task--done"
+                        <button key={ieltsCourseTaskKey(task)} type="button" className="ic-task ic-task--done"
                           style={{ ['--tone' as string]: skillTheme[task.skill].tone, ['--soft' as string]: skillTheme[task.skill].soft } as React.CSSProperties}
                           onClick={() => openTask(task.route)}>
                           <span className="ic-task-icon" aria-hidden="true">✓</span>
-                          <span className="ic-task-body"><b>{task.title || skillTheme[task.skill].label}</b><span>{skillTheme[task.skill].label}</span></span>
+                          <span className="ic-task-body"><b>{task.title || skillTheme[task.skill].label}</b><span>{isVocab ? `Step ${task.position}` : skillTheme[task.skill].label}</span></span>
                           <span className="ic-task-go">Open <span aria-hidden="true">→</span></span>
                         </button>
                       ))}
@@ -325,8 +336,8 @@ const IeltsCourseUnit: React.FC = () => {
               )}
 
               <div className="ic-nav">
-                {detail.prev_unit_id ? <button type="button" className="ic-link" onClick={() => navigate(ieltsCourseUnitRoute(detail.prev_unit_id as number))}>← Unit {detail.position - 1}</button> : <span />}
-                {detail.completed && detail.next_unit_id ? <button type="button" className="ic-link" onClick={() => navigate(ieltsCourseUnitRoute(detail.next_unit_id as number))}>Unit {detail.position + 1} →</button> : null}
+                {detail.prev_unit_id ? <button type="button" className="ic-link" onClick={() => navigate(ieltsCourseUnitRoute(detail.prev_unit_id as number))}>← {label(detail.position - 1)}</button> : <span />}
+                {detail.completed && detail.next_unit_id ? <button type="button" className="ic-link" onClick={() => navigate(ieltsCourseUnitRoute(detail.next_unit_id as number))}>{label(detail.position + 1)} →</button> : null}
               </div>
             </>
           )}

@@ -6,11 +6,30 @@ import {
   cachedIeltsCourseState,
   fetchIeltsCourseState,
   ieltsCourseAccessMessage,
+  ieltsCourseTaskKey,
+  ieltsCourseUnitLabel,
   ieltsCourseUnitRoute,
   type IeltsCourseState,
+  type IeltsCourseTrack,
+  type IeltsCourseTrackState,
   type IeltsCourseUnitSummary,
 } from '../../../services/ieltsCourseService';
-import { chapterFor, courseChapters, primarySkill, skillTheme } from './ieltsCourseTheme';
+import { chapterFor, chaptersFor, primarySkill, skillTheme } from './ieltsCourseTheme';
+
+const trackCopy: Record<IeltsCourseTrack, { eyebrow: string; title: string; body: string; unitWord: string }> = {
+  main: {
+    eyebrow: 'Brains Heist IELTS · self-paced',
+    title: 'Your route to IELTS',
+    body: 'Twenty short units. A lesson, then real practice with instant feedback. Finish one stop to open the next.',
+    unitWord: 'units',
+  },
+  vocabulary: {
+    eyebrow: 'Brains Heist IELTS · vocabulary path',
+    title: 'Word power',
+    body: 'Six vocabulary lessons, six short steps each. Every step marks itself and explains each answer. Finish a lesson to open the next.',
+    unitWord: 'lessons',
+  },
+};
 
 /** Horizontal offset (in % of the lane) for the winding route. */
 const laneOffset = (position: number) => Math.round(Math.sin((position - 1) * 0.95) * 30);
@@ -83,6 +102,8 @@ function ChapterRoute({ label, version, children }: { label: string; version: st
  */
 const IeltsCoursePath: React.FC = () => {
   const navigate = useNavigate();
+  const [track, setTrack] = useState<IeltsCourseTrack>(() =>
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('path') === 'vocabulary' ? 'vocabulary' : 'main');
   const [state, setState] = useState<IeltsCourseState | null>(() => cachedIeltsCourseState());
   const [error, setError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
@@ -99,11 +120,25 @@ const IeltsCoursePath: React.FC = () => {
     return () => { alive = false; };
   }, [retry]);
 
+  /** The path being shown: the main route, or the separate vocabulary path. */
+  const view: IeltsCourseTrackState | null = state ? (track === 'vocabulary' ? state.vocabulary ?? null : state) : null;
+  const copy = trackCopy[track];
+  const chapters = chaptersFor(track);
+  const chooseTrack = (next: IeltsCourseTrack) => {
+    if (next === track) return;
+    scrolled.current = false;
+    setSheet(null);
+    setTrack(next);
+    // Keep the choice in the address so Back, refresh and links return to the same path.
+    try { window.history.replaceState(window.history.state, '', next === 'vocabulary' ? '/ielts/course?path=vocabulary' : '/ielts/course'); } catch { /* history unavailable */ }
+  };
+
   useEffect(() => {
-    if (!state || scrolled.current || !currentRef.current) return;
+    if (!view || scrolled.current || !currentRef.current) return;
     scrolled.current = true;
-    if ((state.current_unit_id ?? 1) > 2) currentRef.current.scrollIntoView({ block: 'center', behavior: 'auto' });
-  }, [state]);
+    const current = view.units.find((u) => u.id === view.current_unit_id);
+    if ((current?.position ?? 1) > 2) currentRef.current.scrollIntoView({ block: 'center', behavior: 'auto' });
+  }, [view]);
 
   useEffect(() => {
     if (!sheet) return;
@@ -112,11 +147,20 @@ const IeltsCoursePath: React.FC = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [sheet]);
 
-  const currentUnit = useMemo(() => state?.units.find((u) => u.id === state.current_unit_id) ?? null, [state]);
-  const allDone = Boolean(state && state.units_total > 0 && state.units_completed === state.units_total);
-  const percent = state && state.units_total ? Math.round((100 * state.units_completed) / state.units_total) : 0;
-  const access = state ? ieltsCourseAccessMessage(state.access.reason) : null;
-  const tasksDone = state ? state.units.reduce((n, u) => n + u.tasks.filter((t) => t.completed).length, 0) : 0;
+  const currentUnit = useMemo(() => view?.units.find((u) => u.id === view.current_unit_id) ?? null, [view]);
+  const allDone = Boolean(view && view.units_total > 0 && view.units_completed === view.units_total);
+  const percent = view && view.units_total ? Math.round((100 * view.units_completed) / view.units_total) : 0;
+  const baseAccess = state ? ieltsCourseAccessMessage(state.access.reason) : null;
+  const access = baseAccess && track === 'vocabulary' && baseAccess.cta
+    ? {
+      ...baseAccess,
+      title: state?.access.reason === 'prime_required' ? 'V1 is free. V2 to V6 are part of IELTS Prime.' : 'V1 is open. Your school has not allocated an IELTS seat to you yet.',
+      body: state?.access.reason === 'prime_required' ? 'Try the first vocabulary lesson, then unlock the whole path and the full course with IELTS Prime.' : 'Ask your school admin to allocate an IELTS programme seat to unlock V2 to V6.',
+    }
+    : baseAccess;
+  const tasksDone = view ? view.units.reduce((n, u) => n + u.tasks.filter((t) => t.completed).length, 0) : 0;
+  const otherTrack: IeltsCourseTrack = track === 'main' ? 'vocabulary' : 'main';
+  const otherView = state ? (otherTrack === 'vocabulary' ? state.vocabulary ?? null : state) : null;
 
   const start = (unit: IeltsCourseUnitSummary) => {
     if (unit.unlocked) navigate(ieltsCourseUnitRoute(unit.id));
@@ -127,27 +171,44 @@ const IeltsCoursePath: React.FC = () => {
     <IeltsStudentShell active="course">
       <div className="ic-page ic-page--embedded">
         <main className="ic-main">
-          <section className="ic-hero" aria-labelledby="ic-course-title">
+          <div className="ic-tracks" role="tablist" aria-label="Course paths">
+            {(['main', 'vocabulary'] as IeltsCourseTrack[]).map((t) => {
+              const v = t === track ? view : otherView;
+              return (
+                <button key={t} type="button" role="tab" aria-selected={t === track} className={`ic-track${t === track ? ' is-active' : ''} ic-track--${t}`} onClick={() => chooseTrack(t)}>
+                  <span className="ic-track-icon" aria-hidden="true">{t === 'main' ? '🧭' : '🔤'}</span>
+                  <span className="ic-track-text">
+                    <b>{t === 'main' ? 'Skills route' : 'Vocabulary'}</b>
+                    <small>{v ? `${v.units_completed}/${v.units_total} ${trackCopy[t].unitWord}` : t === 'main' ? '20 units' : '6 lessons'}</small>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <section className={`ic-hero ic-hero--${track}`} aria-labelledby="ic-course-title">
             <div className="ic-hero-glow" aria-hidden="true" />
             <div className="ic-hero-row">
               <div>
-                <div className="ic-eyebrow ic-eyebrow--light">Brains Heist IELTS · self-paced</div>
-                <h1 id="ic-course-title">Your route to IELTS</h1>
-                <p>Twenty short units. A lesson, then real practice with instant feedback. Finish one stop to open the next.</p>
+                <div className="ic-eyebrow ic-eyebrow--light">{copy.eyebrow}</div>
+                <h1 id="ic-course-title">{copy.title}</h1>
+                <p>{copy.body}</p>
               </div>
               <ProgressRing percent={percent} />
             </div>
             <div className="ic-stats" aria-label="Your progress">
-              <span><b>{state?.units_completed ?? 0}</b> of {state?.units_total ?? 20} units</span>
-              <span><b>{tasksDone}</b> tasks done</span>
-              <span><b>{currentUnit ? chapterFor(currentUnit.position).index : allDone ? 4 : 1}</b> of 4 chapters</span>
+              <span><b>{view?.units_completed ?? 0}</b> of {view?.units_total ?? (track === 'main' ? 20 : 6)} {copy.unitWord}</span>
+              <span><b>{tasksDone}</b> {track === 'main' ? 'tasks' : 'steps'} done</span>
+              {track === 'main'
+                ? <span><b>{currentUnit ? chapterFor(currentUnit.position).index : allDone ? 4 : 1}</b> of 4 chapters</span>
+                : <span><b>{view ? view.units.reduce((n, u) => n + u.tasks.length, 0) : 36}</b> steps in all</span>}
             </div>
             {currentUnit && (
               <button type="button" className="ic-btn ic-btn--light ic-btn--glow" onClick={() => (currentUnit.unlocked ? start(currentUnit) : setSheet(currentUnit))}>
-                {currentUnit.unlocked ? `${currentUnit.lesson_viewed ? 'Continue' : 'Start'} Unit ${currentUnit.position}` : 'Unlock the full course'} <span aria-hidden="true">→</span>
+                {currentUnit.unlocked ? `${currentUnit.lesson_viewed ? 'Continue' : 'Start'} ${ieltsCourseUnitLabel(currentUnit)}` : 'Unlock the full course'} <span aria-hidden="true">→</span>
               </button>
             )}
-            {allDone && <p className="ic-hero-done">🏆 Route complete. Revisit any stop to practise again.</p>}
+            {allDone && <p className="ic-hero-done">🏆 {track === 'main' ? 'Route complete. Revisit any stop to practise again.' : 'Vocabulary path complete. Revisit any lesson to practise again.'}</p>}
           </section>
 
           {error && (
@@ -176,16 +237,20 @@ const IeltsCoursePath: React.FC = () => {
             </div>
           )}
 
-          {state && courseChapters.map((chapter) => {
-            const units = state.units.filter((u) => u.position >= chapter.from && u.position <= chapter.to);
+          {state && !view && (
+            <div className="ic-notice" role="status"><b>The vocabulary path is on its way. Refresh in a moment.</b></div>
+          )}
+
+          {view && chapters.map((chapter) => {
+            const units = view.units.filter((u) => u.position >= chapter.from && u.position <= chapter.to);
             if (!units.length) return null;
             const done = units.filter((u) => u.completed).length;
             return (
-              <section key={chapter.index} className={`ic-chapter ic-chapter--${chapter.index}`} aria-labelledby={`ic-chapter-${chapter.index}`}>
+              <section key={chapter.index} className={`ic-chapter ic-chapter--${chapter.index}${track === 'vocabulary' ? ' ic-chapter--vocab' : ''}`} aria-labelledby={`ic-chapter-${chapter.index}`}>
                 <header className="ic-chapter-banner">
                   <span className="ic-chapter-emblem" aria-hidden="true">{chapter.emblem}</span>
                   <div>
-                    <p className="ic-eyebrow ic-eyebrow--light">Chapter {chapter.index} · units {chapter.from}–{chapter.to}</p>
+                    <p className="ic-eyebrow ic-eyebrow--light">{track === 'main' ? `Chapter ${chapter.index} · units ${chapter.from}–${chapter.to}` : `${units.length} lessons · 6 steps each`}</p>
                     <h2 id={`ic-chapter-${chapter.index}`}>{chapter.title}</h2>
                     <p>{chapter.tagline}</p>
                   </div>
@@ -195,7 +260,7 @@ const IeltsCoursePath: React.FC = () => {
                   {units.map((unit) => {
                     const skill = primarySkill(unit.focus_skills);
                     const theme = skillTheme[skill];
-                    const isCurrent = unit.id === state.current_unit_id;
+                    const isCurrent = unit.id === view.current_unit_id;
                     const status = unit.completed ? 'done' : unit.unlocked ? (isCurrent ? 'current' : 'open') : 'locked';
                     const doneTasks = unit.tasks.filter((t) => t.completed).length;
                     return (
@@ -209,11 +274,11 @@ const IeltsCoursePath: React.FC = () => {
                         <button
                           type="button"
                           className="ic-medallion"
-                          aria-label={`Unit ${unit.position}: ${unit.title}. ${status === 'done' ? 'Completed' : status === 'locked' ? 'Locked' : `${doneTasks} of ${unit.tasks.length} tasks done`}`}
+                          aria-label={`${ieltsCourseUnitLabel(unit)}: ${unit.title}. ${status === 'done' ? 'Completed' : status === 'locked' ? 'Locked' : `${doneTasks} of ${unit.tasks.length} tasks done`}`}
                           onClick={() => setSheet(unit)}
                         >
                           <span className="ic-medallion-face" aria-hidden="true">{status === 'done' ? '✓' : status === 'locked' ? '🔒' : theme.icon}</span>
-                          <span className="ic-medallion-num" aria-hidden="true">{unit.position}</span>
+                          <span className="ic-medallion-num" aria-hidden="true">{track === 'vocabulary' ? `V${unit.position}` : unit.position}</span>
                           {status !== 'locked' && unit.tasks.length > 0 && (
                             <svg className="ic-medallion-ring" viewBox="0 0 80 80" aria-hidden="true">
                               <circle cx="40" cy="40" r="36" strokeDasharray={226} strokeDashoffset={226 * (1 - doneTasks / unit.tasks.length)} />
@@ -236,17 +301,17 @@ const IeltsCoursePath: React.FC = () => {
             <div className="ic-sheet" role="dialog" aria-modal="true" aria-labelledby="ic-sheet-title" onClick={(e) => e.stopPropagation()}
               style={{ ['--tone' as string]: skillTheme[primarySkill(sheet.focus_skills)].tone } as React.CSSProperties}>
               <span className="ic-sheet-grip" aria-hidden="true" />
-              <p className="ic-eyebrow">Unit {sheet.position} · {chapterFor(sheet.position).title} · about {sheet.estimated_minutes} min</p>
+              <p className="ic-eyebrow">{ieltsCourseUnitLabel(sheet)} · {chapterFor(sheet.position, sheet.track).title} · about {sheet.estimated_minutes} min</p>
               <h2 id="ic-sheet-title">{sheet.title}</h2>
               {sheet.subtitle && <p className="ic-sheet-sub">{sheet.subtitle}</p>}
               <div className="ic-sheet-skills">
                 {sheet.focus_skills.map((s) => <span key={s} className="ic-chip" style={{ ['--tone' as string]: skillTheme[s].tone } as React.CSSProperties}>{skillTheme[s].icon} {skillTheme[s].label}</span>)}
-                {sheet.is_free_preview && <span className="ic-chip ic-chip--free">Free unit</span>}
+                {sheet.is_free_preview && <span className="ic-chip ic-chip--free">{track === 'main' ? 'Free unit' : 'Free lesson'}</span>}
               </div>
               <ol className="ic-sheet-steps">
                 <li className={sheet.lesson_viewed ? 'is-done' : ''}><span>1</span>Short lesson</li>
                 {sheet.tasks.map((t, i) => (
-                  <li key={`${t.skill}-${t.task_id}`} className={t.completed ? 'is-done' : ''}>
+                  <li key={ieltsCourseTaskKey(t)} className={t.completed ? 'is-done' : ''}>
                     <span>{i + 2}</span>{skillTheme[t.skill].icon} {t.title || skillTheme[t.skill].label}
                   </li>
                 ))}
@@ -256,7 +321,7 @@ const IeltsCoursePath: React.FC = () => {
                   {sheet.completed ? 'Review this unit' : sheet.lesson_viewed ? 'Continue unit' : 'Start unit'} <span aria-hidden="true">→</span>
                 </button>
               ) : sheet.locked_reason === 'previous_unit' ? (
-                <p className="ic-sheet-lock">🔒 Finish Unit {sheet.position - 1} to open this stop.</p>
+                <p className="ic-sheet-lock">🔒 Finish {ieltsCourseUnitLabel({ track: sheet.track, position: sheet.position - 1 })} to open this {track === 'main' ? 'stop' : 'lesson'}.</p>
               ) : state?.access.reason === 'prime_required' ? (
                 <button type="button" className="ic-btn ic-btn--gold ic-btn--block" onClick={() => navigate('/ielts/apply-prime')}>Unlock with IELTS Prime</button>
               ) : (
