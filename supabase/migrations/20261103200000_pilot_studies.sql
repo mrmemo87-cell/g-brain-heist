@@ -4,8 +4,10 @@
 -- creating or editing a study never changes schools.school_plan or trial_ends_at, so an
 -- enterprise school (e.g. the founder's own school) can run a measured pilot safely.
 --
--- Cohort = students who completed any baseline assignment, plus optional extra student ids,
--- limited to active student members of the study's school.
+-- Cohort = every active student in the chosen classes/groups (school_subject_groups: custom
+-- groups via school_subject_group_students, class groups via their registration class).
+-- With no groups chosen, the cohort falls back to students who completed a baseline assignment.
+-- Extra student ids can always be added. Only active student members of the school count.
 -- Learning activity = completed work only (question attempts, online assignment answers and
 -- results, quiz scores). Logins (sessions) and PvP/raid events are deliberately excluded.
 
@@ -18,6 +20,7 @@ create table if not exists public.pilot_studies (
   baseline_assignment_ids uuid[] not null default '{}',
   endline_assignment_ids uuid[] not null default '{}',
   extra_student_ids uuid[] not null default '{}',
+  group_ids uuid[] not null default '{}',
   notes text,
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
@@ -66,11 +69,25 @@ begin
     from public.school_members sm
     where sm.school_id = v.school_id and sm.status = 'active' and sm.role_in_school = 'student'
   ),
+  group_members as (
+    select g.id as group_id, gs.student_id
+    from public.school_subject_groups g
+    join public.school_subject_group_students gs on gs.group_id = g.id and gs.status = 'active'
+    where g.id = any(v.group_ids) and g.school_id = v.school_id
+    union
+    select g.id, cs.student_id
+    from public.school_subject_groups g
+    join public.class_students cs on cs.class_id = g.registration_class_id
+    where g.id = any(v.group_ids) and g.school_id = v.school_id
+  ),
   cohort as (
     select distinct c.student_id
     from (
       select r.student_id from public.student_assignment_results r
-      where r.assignment_id = any(v.baseline_assignment_ids) and r.completed_at is not null
+      where cardinality(v.group_ids) = 0
+        and r.assignment_id = any(v.baseline_assignment_ids) and r.completed_at is not null
+      union
+      select gm.student_id from group_members gm
       union
       select unnest(v.extra_student_ids)
     ) c
@@ -145,6 +162,19 @@ begin
   paired as (
     select b.student_id, b.pct as base_pct, e.pct as end_pct
     from base_scores b join end_scores e on e.student_id = b.student_id
+  ),
+  last_wk as (select max(wk) as wk from weeks where complete),
+  gc as (select distinct gm.group_id, gm.student_id from group_members gm join cohort c on c.student_id = gm.student_id),
+  per_group as (
+    select g.id, g.name,
+      (select count(*) from gc where gc.group_id = g.id) as n,
+      (select count(distinct we.student_id) from gc join wevents we on we.student_id = gc.student_id
+         where gc.group_id = g.id and we.wk = (select wk from last_wk)) as active_latest,
+      (select count(*) from gc join base_scores bs on bs.student_id = gc.student_id where gc.group_id = g.id) as baseline_n,
+      (select count(*) from gc join paired p on p.student_id = gc.student_id where gc.group_id = g.id) as paired_n,
+      (select round(avg(p.end_pct - p.base_pct), 1) from gc join paired p on p.student_id = gc.student_id where gc.group_id = g.id) as mean_change
+    from public.school_subject_groups g
+    where g.id = any(v.group_ids) and g.school_id = v.school_id
   )
   select jsonb_build_object(
     'study', jsonb_build_object(
@@ -153,6 +183,7 @@ begin
       'baseline_assignment_ids', to_jsonb(v.baseline_assignment_ids),
       'endline_assignment_ids', to_jsonb(v.endline_assignment_ids),
       'extra_student_ids', to_jsonb(v.extra_student_ids),
+      'group_ids', to_jsonb(v.group_ids),
       'current_week', case when v_today < v.starts_on then 0 else least(v_weeks, ((v.ends_on - v.starts_on) / 7) + 1) end,
       'total_weeks', ((v.ends_on - v.starts_on) / 7) + 1,
       'finished', v_today > v.ends_on
@@ -181,6 +212,9 @@ begin
       'mean_change', round(avg(p.end_pct - p.base_pct), 1),
       'improved_n', count(*) filter (where p.end_pct > p.base_pct)
     ) from paired p),
+    'groups', coalesce((select jsonb_agg(jsonb_build_object('id', pg.id, 'name', pg.name, 'n', pg.n,
+      'active_latest', pg.active_latest, 'baseline_n', pg.baseline_n, 'paired_n', pg.paired_n, 'mean_change', pg.mean_change)
+      order by pg.name) from per_group pg), '[]'::jsonb),
     'min_n', 10,
     'generated_at', now()
   ) into v_result;
@@ -203,7 +237,8 @@ create or replace function public.admin_upsert_pilot_study(
   p_endline_assignment_ids uuid[] default '{}',
   p_extra_student_ids uuid[] default '{}',
   p_notes text default null,
-  p_study_id uuid default null
+  p_study_id uuid default null,
+  p_group_ids uuid[] default '{}'
 )
 returns jsonb
 language plpgsql
@@ -228,11 +263,16 @@ begin
   );
   if v_bad > 0 then raise exception 'ASSIGNMENT_NOT_IN_SCHOOL'; end if;
 
+  select count(*) into v_bad from unnest(coalesce(p_group_ids, '{}')) as x(id)
+  where not exists (select 1 from public.school_subject_groups g where g.id = x.id and g.school_id = p_school_id);
+  if v_bad > 0 then raise exception 'GROUP_NOT_IN_SCHOOL'; end if;
+
   if p_study_id is null then
     insert into public.pilot_studies (school_id, name, starts_on, ends_on, baseline_assignment_ids,
-      endline_assignment_ids, extra_student_ids, notes, created_by)
+      endline_assignment_ids, extra_student_ids, group_ids, notes, created_by)
     values (p_school_id, btrim(p_name), p_starts_on, p_ends_on, coalesce(p_baseline_assignment_ids, '{}'),
-      coalesce(p_endline_assignment_ids, '{}'), coalesce(p_extra_student_ids, '{}'), nullif(btrim(p_notes), ''), auth.uid())
+      coalesce(p_endline_assignment_ids, '{}'), coalesce(p_extra_student_ids, '{}'), coalesce(p_group_ids, '{}'),
+      nullif(btrim(p_notes), ''), auth.uid())
     returning id into v_id;
   else
     update public.pilot_studies set
@@ -240,6 +280,7 @@ begin
       baseline_assignment_ids = coalesce(p_baseline_assignment_ids, '{}'),
       endline_assignment_ids = coalesce(p_endline_assignment_ids, '{}'),
       extra_student_ids = coalesce(p_extra_student_ids, '{}'),
+      group_ids = coalesce(p_group_ids, '{}'),
       notes = nullif(btrim(p_notes), ''), updated_at = now()
     where id = p_study_id
     returning id into v_id;
@@ -250,8 +291,8 @@ begin
 end
 $$;
 
-revoke all on function public.admin_upsert_pilot_study(uuid, text, date, date, uuid[], uuid[], uuid[], text, uuid) from public, anon;
-grant execute on function public.admin_upsert_pilot_study(uuid, text, date, date, uuid[], uuid[], uuid[], text, uuid) to authenticated;
+revoke all on function public.admin_upsert_pilot_study(uuid, text, date, date, uuid[], uuid[], uuid[], text, uuid, uuid[]) from public, anon;
+grant execute on function public.admin_upsert_pilot_study(uuid, text, date, date, uuid[], uuid[], uuid[], text, uuid, uuid[]) to authenticated;
 
 create or replace function public.admin_delete_pilot_study(p_study_id uuid)
 returns void
@@ -359,3 +400,28 @@ $$;
 
 revoke all on function public.get_pilot_summary(uuid) from public, anon;
 grant execute on function public.get_pilot_summary(uuid) to authenticated;
+
+-- Classes and groups of one school, to choose the pilot cohort.
+create or replace function public.admin_list_school_groups_for_pilot(p_school_id uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if auth.uid() is null or not public.rpc_is_superadmin() then raise exception 'NOT_AUTHORIZED'; end if;
+  return coalesce((
+    select jsonb_agg(jsonb_build_object('id', g.id, 'name', g.name, 'group_type', g.group_type, 'students',
+      (select count(*) from (
+        select gs.student_id from public.school_subject_group_students gs where gs.group_id = g.id and gs.status = 'active'
+        union select cs.student_id from public.class_students cs where cs.class_id = g.registration_class_id
+      ) x)) order by g.name)
+    from public.school_subject_groups g
+    where g.school_id = p_school_id and g.status = 'active'
+  ), '[]'::jsonb);
+end
+$$;
+
+revoke all on function public.admin_list_school_groups_for_pilot(uuid) from public, anon;
+grant execute on function public.admin_list_school_groups_for_pilot(uuid) to authenticated;

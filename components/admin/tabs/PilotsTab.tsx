@@ -15,7 +15,7 @@ import {
 export interface PilotMetrics {
   study: {
     id: string; school_id: string; school_name: string; name: string; starts_on: string; ends_on: string; notes: string | null;
-    baseline_assignment_ids: string[]; endline_assignment_ids: string[]; extra_student_ids: string[];
+    baseline_assignment_ids: string[]; endline_assignment_ids: string[]; extra_student_ids: string[]; group_ids: string[];
     current_week: number; total_weeks: number; finished: boolean;
   };
   cohort_n: number;
@@ -27,8 +27,10 @@ export interface PilotMetrics {
     baseline_n: number; endline_n: number; paired_n: number; baseline_mean: number | null; endline_mean: number | null;
     mean_change: number | null; improved_n: number;
   };
+  groups: Array<{ id: string; name: string; n: number; active_latest: number; baseline_n: number; paired_n: number; mean_change: number | null }>;
   min_n: number;
 }
+interface GroupOption { id: string; name: string; group_type: string; students: number }
 interface SchoolOption { id: string; name: string; plan: string | null }
 interface AssignmentOption { id: string; title: string; created_at: string; completed_n: number }
 
@@ -102,6 +104,7 @@ const buildSummaryHtml = (m: PilotMetrics) => {
       <tr><th>Score change, baseline → endline</th><td>${e(h.scoreChange)}</td></tr>
     </tbody></table>
     <h2>Progress</h2><p>${e(scoreLine)}</p>
+    ${m.groups.length ? `<h2>By class</h2><table><thead><tr><th>Class</th><th>Students</th><th>Active (latest full week)</th><th>Took baseline</th><th>Score change</th></tr></thead><tbody>${m.groups.map((g) => `<tr><td>${e(g.name)}</td><td>${g.n}</td><td>${g.active_latest}</td><td>${g.baseline_n}</td><td>${g.paired_n ? `${g.mean_change! > 0 ? '+' : ''}${g.mean_change} pts (n=${g.paired_n})` : '—'}</td></tr>`).join('')}</tbody></table>` : ''}
     <h2>Week by week</h2>
     <table><thead><tr><th>Week</th><th>Active students</th><th>Share</th><th>Questions answered</th><th>Tasks completed</th></tr></thead><tbody>${rows}</tbody></table>
     <p><small>Active = completed at least one question, assignment or quiz that week. Logins and game battles are not counted. Percentages are hidden when fewer than ${m.min_n} students are measured.</small></p>`;
@@ -133,11 +136,11 @@ export const openPilotSummary = (m: PilotMetrics) => {
 
 interface FormState {
   id: string | null; school_id: string; name: string; starts_on: string; ends_on: string;
-  baseline: string[]; endline: string[]; notes: string;
+  baseline: string[]; endline: string[]; groups: string[]; notes: string;
 }
 const emptyForm = (): FormState => {
   const today = new Date().toISOString().slice(0, 10);
-  return { id: null, school_id: '', name: '', starts_on: today, ends_on: addDays(today, 55), baseline: [], endline: [], notes: '' };
+  return { id: null, school_id: '', name: '', starts_on: today, ends_on: addDays(today, 55), baseline: [], endline: [], groups: [], notes: '' };
 };
 
 const PilotsTab: React.FC = () => {
@@ -148,6 +151,7 @@ const PilotsTab: React.FC = () => {
   const [openId, setOpenId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
   const [assignments, setAssignments] = useState<AssignmentOption[]>([]);
+  const [groups, setGroups] = useState<GroupOption[]>([]);
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
@@ -160,10 +164,13 @@ const PilotsTab: React.FC = () => {
   useEffect(() => { void load(); }, [load]);
 
   useEffect(() => {
-    if (!form?.school_id) { setAssignments([]); return; }
+    if (!form?.school_id) { setAssignments([]); setGroups([]); return; }
     let active = true;
     supabase.rpc('admin_list_school_assignments_for_pilot', { p_school_id: form.school_id }).then(({ data }) => {
       if (active) setAssignments((data ?? []) as AssignmentOption[]);
+    });
+    supabase.rpc('admin_list_school_groups_for_pilot', { p_school_id: form.school_id }).then(({ data }) => {
+      if (active) setGroups(((data ?? []) as GroupOption[]).filter((g) => g.students > 0));
     });
     return () => { active = false; };
   }, [form?.school_id]);
@@ -172,7 +179,7 @@ const PilotsTab: React.FC = () => {
 
   const edit = (m: PilotMetrics) => setForm({
     id: m.study.id, school_id: m.study.school_id, name: m.study.name, starts_on: m.study.starts_on, ends_on: m.study.ends_on,
-    baseline: m.study.baseline_assignment_ids, endline: m.study.endline_assignment_ids, notes: m.study.notes ?? '',
+    baseline: m.study.baseline_assignment_ids, endline: m.study.endline_assignment_ids, groups: m.study.group_ids ?? [], notes: m.study.notes ?? '',
   });
 
   const save = async () => {
@@ -184,10 +191,10 @@ const PilotsTab: React.FC = () => {
       p_school_id: form.school_id, p_name: form.name.trim(), p_starts_on: form.starts_on, p_ends_on: form.ends_on,
       p_baseline_assignment_ids: form.baseline, p_endline_assignment_ids: form.endline,
       p_extra_student_ids: studies.find((s) => s.study.id === form.id)?.study.extra_student_ids ?? [],
-      p_notes: form.notes, p_study_id: form.id,
+      p_notes: form.notes, p_study_id: form.id, p_group_ids: form.groups,
     });
     setSaving(false);
-    if (err) { setError(err.message === 'ASSIGNMENT_NOT_IN_SCHOOL' ? 'Every test must belong to the chosen school.' : err.message); return; }
+    if (err) { setError(err.message === 'ASSIGNMENT_NOT_IN_SCHOOL' ? 'Every test must belong to the chosen school.' : err.message === 'GROUP_NOT_IN_SCHOOL' ? 'Every class must belong to the chosen school.' : err.message); return; }
     setForm(null); void load();
   };
 
@@ -221,7 +228,7 @@ const PilotsTab: React.FC = () => {
           <h4 className="text-lg font-bold text-white">{form.id ? 'Edit pilot' : 'New pilot'}</h4>
           <div className="grid gap-3 md:grid-cols-2">
             <label className="text-sm text-slate-300">School
-              <select className={input} value={form.school_id} onChange={(e) => setForm({ ...form, school_id: e.target.value, baseline: [], endline: [] })}>
+              <select className={input} value={form.school_id} onChange={(e) => setForm({ ...form, school_id: e.target.value, baseline: [], endline: [], groups: [] })}>
                 <option value="">Choose a school…</option>
                 {schools.map((s) => <option key={s.id} value={s.id}>{s.name}{s.plan ? ` (${s.plan})` : ''}</option>)}
               </select>
@@ -240,10 +247,24 @@ const PilotsTab: React.FC = () => {
             </label>
           </div>
           {form.school_id && (
+            <fieldset className="rounded-xl border border-slate-700 p-3 max-h-64 overflow-y-auto">
+              <legend className="px-1 text-sm font-semibold text-slate-200">Classes and groups in the pilot (every student in them is measured)</legend>
+              {groups.length === 0 && <p className="text-xs text-slate-500">No classes with students found. Without classes, the cohort is whoever took a baseline test.</p>}
+              <div className="grid gap-x-4 sm:grid-cols-2 lg:grid-cols-3">
+                {groups.map((g) => (
+                  <label key={g.id} className="flex items-center gap-2 py-1 text-sm text-slate-300">
+                    <input type="checkbox" checked={form.groups.includes(g.id)} onChange={() => setForm({ ...form, groups: toggle(form.groups, g.id) })} />
+                    <span>{g.name} <span className="text-slate-500">· {g.students} students</span></span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
+          {form.school_id && (
             <div className="grid gap-4 md:grid-cols-2">
               {(['baseline', 'endline'] as const).map((key) => (
                 <fieldset key={key} className="rounded-xl border border-slate-700 p-3 max-h-64 overflow-y-auto">
-                  <legend className="px-1 text-sm font-semibold text-slate-200">{key === 'baseline' ? 'Baseline tests (define the cohort)' : 'Endline tests (same students, similar difficulty)'}</legend>
+                  <legend className="px-1 text-sm font-semibold text-slate-200">{key === 'baseline' ? 'Baseline tests (start of pilot)' : 'Endline tests (same students, similar difficulty)'}</legend>
                   {assignments.length === 0 && <p className="text-xs text-slate-500">No assignments found for this school.</p>}
                   {assignments.map((a) => (
                     <label key={a.id} className="flex items-start gap-2 py-1 text-sm text-slate-300">
@@ -317,6 +338,28 @@ const PilotsTab: React.FC = () => {
               <Stat label="Score change" value={h.scoreChange} note={`${open.scores.paired_n} took both tests · ${open.scores.baseline_n} baseline · ${open.scores.endline_n} endline`} />
               <Stat label="Improved their score" value={open.scores.paired_n ? `${open.scores.improved_n} of ${open.scores.paired_n}` : '—'} />
             </div>
+            {open.groups.length > 0 && (
+              <div className="overflow-x-auto">
+                <p className="text-sm font-semibold text-slate-200 mb-2">By class (a student in two groups counts in both)</p>
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-slate-400 border-b border-slate-700">
+                    <tr>{['Class', 'Students', `Active in week ${open.latest_complete_week?.week ?? '—'}`, 'Took baseline', 'Took both tests', 'Score change'].map((x) => <th key={x} className="px-3 py-2 font-medium">{x}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {open.groups.map((g) => (
+                      <tr key={g.id} className="border-b border-slate-800 text-slate-200">
+                        <td className="px-3 py-2">{g.name}</td>
+                        <td className="px-3 py-2">{g.n}</td>
+                        <td className="px-3 py-2">{g.active_latest} ({g.n ? Math.round((g.active_latest / g.n) * 100) : 0}%)</td>
+                        <td className="px-3 py-2">{g.baseline_n} of {g.n}</td>
+                        <td className="px-3 py-2">{g.paired_n}</td>
+                        <td className="px-3 py-2">{g.paired_n ? `${g.mean_change! > 0 ? '+' : ''}${g.mean_change} pts` : '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
             <div>
               <p className="text-sm font-semibold text-slate-200 mb-2">Weekly active students (share of cohort)</p>
               <WeeklyBars m={open} />
