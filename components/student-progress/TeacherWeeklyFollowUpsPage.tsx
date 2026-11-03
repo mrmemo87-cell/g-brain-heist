@@ -364,7 +364,7 @@ const TeacherWeeklyFollowUpsPage: React.FC<TeacherWeeklyFollowUpsPageProps> = ({
         ) : null}
       </main>
 
-      <footer className="tfu-actions">
+      <footer className={selectedInTab.length ? 'tfu-actions' : 'tfu-actions is-empty'}>
         <span>{selectedInTab.length ? `${selectedInTab.length} selected` : 'Select students to remind'}</span>
         <button type="button" onClick={() => void sendReminder()} disabled={!selectedInTab.length || busy}>
           {busy ? 'Sending…' : 'Send reminder'}

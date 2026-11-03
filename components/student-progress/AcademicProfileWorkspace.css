@@ -17,3 +17,27 @@
   .ap-workspace-brand strong { font-size: 14px; overflow-wrap: anywhere; }
   .ap-workspace-brand > div > span { font-size: 11px; }
 }
+
+/* Teacher academic tools on phones (2026-11-03): one card, not a card inside a card inside a card,
+   and the Follow-ups action bar sits above the fixed bottom menu instead of behind it. */
+@media (max-width: 900px) {
+  .teacher-professional .teacher-main-panel.teacher-main-panel--academic-tool { padding: .55rem; }
+  .teacher-academic-tool-host .tfu-main { padding: .55rem 0 0; }
+  .teacher-academic-tool-host .intervention-page > .aps-header,
+  .teacher-academic-tool-host .intervention-page > .aps-picker,
+  .teacher-academic-tool-host .intervention-class-subjects { margin-left: 0; margin-right: 0; }
+  .teacher-academic-tool-host .tfu-page { padding-bottom: .5rem; }
+  .teacher-academic-tool-host .tfu-actions {
+    bottom: calc(62px + max(.55rem, env(safe-area-inset-bottom, 0px)) + .5rem);
+    z-index: 40;
+    margin: .5rem 0 0;
+    padding: .6rem .7rem;
+    border: 1px solid #dbe3ee;
+    border-radius: 14px;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, .16);
+  }
+}
+@media (max-width: 900px) {
+  /* Nothing selected yet: no floating bar covering the list. It appears once a student is ticked. */
+  .teacher-academic-tool-host .tfu-actions.is-empty { display: none; }
+}

@@ -452,3 +452,11 @@
   .tfu-today-list > li { grid-template-columns: auto 1fr; }
   .tfu-today-action { grid-column: 1 / -1; width: 100%; }
 }
+.tfu-today-head h2 { font-weight: 800; }
+@media (max-width: 560px) {
+  .tfu-today { padding: .85rem; }
+  .tfu-today-list > li { gap: .55rem .7rem; padding: .7rem; }
+  .tfu-today-list > li > i { width: 1.75rem; height: 1.75rem; }
+  .tfu-today-people button, .tfu-today-people em { flex-wrap: wrap; border-radius: .7rem; text-align: left; }
+  .tfu-today-action { min-height: 44px; }
+}
