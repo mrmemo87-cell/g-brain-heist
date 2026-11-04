@@ -1,3 +1,4 @@
+import { feelGameCue } from '../../native/effects/gameFeedback';
 export type CommanderSfxCue =
   | 'thunder'
   | 'intro'
@@ -78,6 +79,7 @@ export const stopCommanderAudio = () => {
   active.clear();
 };
 export const playCommanderSfx = async (cue: CommanderSfxCue) => {
+  feelGameCue(cue); // phone vibration in the app; no-op on the website
   const audio = getContext();
   if (!audio || audio.state !== 'running') return;
   const run = generation;

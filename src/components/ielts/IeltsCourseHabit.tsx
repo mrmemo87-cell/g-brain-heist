@@ -13,7 +13,13 @@ import {
   type IeltsCourseHabit,
 } from '../../../services/ieltsCourseHabitService';
 import { enablePushOnThisDevice, getPushAvailability, isPushEnabledOnThisDevice } from '../../../services/pushService';
-import { BadgeMedal, Blaze } from './IeltsGameArt';
+import { BadgeMedal } from './IeltsGameArt';
+import { BlazeLive } from './BlazeLive';
+import { EffectsControl } from './AppEffectsControl';
+import { isNativeApp } from '../../lib/nativePlatform';
+import { haptic } from '../../native/effects/haptics';
+import { playSfx } from '../../native/effects/sfx';
+import { askNotificationPermission, notificationPermission, syncStreakState } from '../../native/effects/streakReminders';
 
 const readHabitSeenBadges = () => readHabitSeen().badges ?? [];
 const WEEKDAY = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -67,6 +73,9 @@ function WeekStrip({ habit }: { habit: IeltsCourseHabit }) {
 /** The streak bar at the top of the Course tab. Tapping it opens goals, streak freezes and reminders. */
 export function IeltsCourseHabitBar({ habit, onChange }: { habit: IeltsCourseHabit | null; onChange: (next: IeltsCourseHabit) => void }) {
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (habit) void syncStreakState(habit);
+  }, [habit?.streak, habit?.today_done, habit?.reminders]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!habit) return <div className="ih-bar ih-bar--loading" aria-busy="true" />;
   const atRisk = !habit.today_done && habit.streak > 0;
   return (
@@ -74,7 +83,7 @@ export function IeltsCourseHabitBar({ habit, onChange }: { habit: IeltsCourseHab
       <button type="button" className={`ih-bar${habit.today_done ? ' is-lit' : ''}${atRisk ? ' is-waiting' : ''}`} onClick={() => setOpen(true)}
         aria-label={`${habit.streak}-day streak. ${habit.today_xp} of ${habit.daily_goal_xp} XP today. ${habit.freezes} streak freezes. Open streak details.`}>
         <span className="ih-flame" aria-hidden="true">
-          <Blaze mood={habit.today_done ? 'happy' : 'sleepy'} size={58} />
+          <BlazeLive mood={habit.today_done ? 'happy' : 'sleepy'} size={58} streak={habit.streak} todayDone={habit.today_done} />
           <b>{habit.streak}</b>
         </span>
         <span className="ih-bar-text">
@@ -97,6 +106,11 @@ function ReminderControl({ habit, onChange }: { habit: IeltsCourseHabit; onChang
   const [note, setNote] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;
+    if (isNativeApp()) {
+      // In the app the reminder is scheduled on the phone itself (works offline, no server needed).
+      void notificationPermission().then((p) => { if (alive) setDevice(p === 'granted' ? 'on' : 'off'); });
+      return () => { alive = false; };
+    }
     const availability = getPushAvailability();
     if (!availability.ok) { setDevice('unavailable'); return () => { alive = false; }; }
     void isPushEnabledOnThisDevice().then((on) => { if (alive) setDevice(on ? 'on' : 'off'); });
@@ -108,10 +122,13 @@ function ReminderControl({ habit, onChange }: { habit: IeltsCourseHabit; onChang
   };
   const enableDevice = async () => {
     setDevice('busy');
-    const result = await enablePushOnThisDevice();
+    const result = isNativeApp()
+      ? ((await askNotificationPermission()) ? { ok: true as const } : { ok: false as const, reason: 'denied' as const })
+      : await enablePushOnThisDevice();
     setDevice(result.ok ? 'on' : 'off');
     if (!result.ok) setNote(result.reason === 'denied' ? 'Notifications are blocked in your phone settings.' : 'Could not turn on notifications. Please try again.');
     else if (!habit.reminders) await toggle(true);
+    else if (isNativeApp()) void syncStreakState(habit);
   };
   return (
     <section className="ih-section">
@@ -150,7 +167,7 @@ export function IeltsCourseHabitSheet({ habit, onClose, onChange }: { habit: Iel
       <div className="ic-sheet ih-sheet" role="dialog" aria-modal="true" aria-labelledby="ih-sheet-title" onClick={(e) => e.stopPropagation()}>
         <span className="ic-sheet-grip" aria-hidden="true" />
         <div className="ih-hero">
-          <span className="ih-hero-flame" aria-hidden="true"><Blaze mood={habit.today_done ? 'cheer' : 'sleepy'} size={84} /></span>
+          <span className="ih-hero-flame"><BlazeLive mood={habit.today_done ? 'cheer' : 'sleepy'} size={84} streak={habit.streak} todayDone={habit.today_done} interactive /></span>
           <div>
             <h2 id="ih-sheet-title">{habit.streak} day streak</h2>
             <p>{habit.next_milestone ? `${habit.next_milestone - habit.streak} more ${habit.next_milestone - habit.streak === 1 ? 'day' : 'days'} to reach ${habit.next_milestone}.` : 'A legendary streak.'} Best: {habit.longest_streak} {habit.longest_streak === 1 ? 'day' : 'days'}.</p>
@@ -192,6 +209,7 @@ export function IeltsCourseHabitSheet({ habit, onClose, onChange }: { habit: Iel
         )}
 
         <ReminderControl habit={habit} onChange={onChange} />
+        <EffectsControl />
 
         <details className="ih-section">
           <summary>How XP works</summary>
@@ -227,6 +245,9 @@ export function IeltsHabitCelebration({ habit }: { habit: IeltsCourseHabit | nul
       : due.kind === 'goal' ? { goalDay: habit.today }
         : { badges: [...new Set([...(readHabitSeenBadges()), due.badge.id])] });
     setShown(due);
+    // App only (silent on the website): a strong buzz plus a victory or coin sound.
+    void haptic('celebrate');
+    playSfx(due.kind === 'streak' ? 'fanfare' : 'coin');
   }, [habit, shown]);
   useEffect(() => {
     if (!shown || shown.kind !== 'streak') return;
@@ -244,14 +265,14 @@ export function IeltsHabitCelebration({ habit }: { habit: IeltsCourseHabit | nul
         {!reducedMotion() && <div className="ih-sparks" aria-hidden="true">{sparks.map((s, i) => <i key={i} style={{ left: `${s.left}%`, animationDelay: `${s.delay}ms` }} />)}</div>}
         {shown.kind === 'streak' ? (
           <>
-            <span className="ih-big-flame" aria-hidden="true"><Blaze mood="cheer" size={132} /></span>
+            <span className="ih-big-flame" aria-hidden="true"><BlazeLive mood="cheer" size={132} streak={shown.streak} todayDone /></span>
             <span className="ih-count" aria-live="polite">{count}</span>
             <h2 id="ih-celebrate-title">{shown.streak === 1 ? 'Streak started!' : shown.milestone ? `${shown.streak}-day milestone!` : 'Streak extended!'}</h2>
             <p>{streakLine(shown.streak, shown.milestone)}</p>
           </>
         ) : shown.kind === 'goal' ? (
           <>
-            <span className="ih-big-flame" aria-hidden="true"><Blaze mood="cheer" size={120} hue={110} /></span>
+            <span className="ih-big-flame" aria-hidden="true"><BlazeLive mood="cheer" size={120} hue={110} streak={habit?.streak ?? 1} todayDone /></span>
             <h2 id="ih-celebrate-title">Daily goal reached!</h2>
             <p>{shown.xp} XP today, goal {shown.goal}. Anything more is a bonus.</p>
           </>

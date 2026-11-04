@@ -1,8 +1,8 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.3.0
-**Effective date:** 2026-11-01  
+**Version:** 1.4.0
+**Effective date:** 2026-11-05  
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
 
@@ -268,6 +268,33 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 - A lesson is shown one section per card with visible step progress and Previous/Next buttons (44 px), swipe optional; every card remains readable with reduced motion.
 - Celebration motion (confetti) is decorative, short, never blocks input and is skipped under reduced motion.
 - Criterion estimate ranges may be drawn on a 0–9 scale bar; the bar always carries the text range and never an overall band.
+
+## 14. Native app motivation layer — v1.4.0
+
+This section applies **only inside the installed iPhone and Android apps** (`isNativeApp()`). The website keeps sections 12.4 and 13.6 unchanged. Where this section allows more than 12.4 or 13.6, it overrides them for the app only.
+
+### 14.1 Allowed surfaces
+The 3D Blaze, lighting, sound and haptics may appear on: the course map (`/ielts/course`), the IELTS home, course unit pages, vocabulary steps, the streak bar and streak sheet, the habit and unit-complete celebrations, league, growth and journey screens, and the Android home-screen widget. Continuous animation (Blaze idling, flickering, embers) is allowed on these surfaces.
+
+### 14.2 Interaction
+Blaze reacts to taps (flare, sound, vibration) and to tilting the phone. It grows with the streak: spark (0 days), flame (1+), bigger blaze (7+), blue fire (30+), crowned legend (100+). In the evening (from 18:00) when a streak exists and today is not done, Blaze is visibly weak and flickering. A local evening reminder (about 19:00, never at night) may say so.
+
+### 14.3 Quiet surfaces — never
+No motivation animation, sound or haptic from this layer during IELTS screeners, diagnostics, mocks, Exam Mode, timed tests, practice tasks, recordings, results or reviews (anything under `/ielts/` other than the 14.1 list, plus `/exam`). Assessment screens keep section 6.5.
+
+### 14.4 Celebrations
+Up to about 4 seconds, tap-dismissable, never block input, saving or the next step, and never delay feedback (12.4 still applies to application state).
+
+### 14.5 Student control and accessibility
+An "Effects: Full / Light / Off" setting is always available with Blaze. Sounds have their own on/off switch and use the phone's media audio (on iPhone the silent switch also mutes them). The phone's Reduce Motion setting turns the layer off and shows the still Blaze. Phones with ≤4 CPU cores or ≤3 GB memory default to Light (30 fps, fewer embers, no lighting effects). The 2D SVG Blaze remains the fallback when WebGL is unavailable.
+
+### 14.6 Honest meaning
+Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.7 Revision record — 1.4.0 (2026-11-05)
+**Authority.** Owner approval on 2026-11-05 of the native app motivation layer (3D Blaze with tap and tilt, growth tiers, evening weakness and reminder, home-screen widget, unit-complete celebration, app-wide haptics), after the conflict with 12.4 and 13.6 was raised. Diagnostic Bible 2.1.0 unchanged.
+
+**Change.** New section 14. Sections 1–13 are unchanged for the website.
 
 ### 13.7 Revision record — 1.3.0 (2026-11-01)
 **Authority.** Owner instruction on 2026-11-01 (self-paced learners have no teacher; premium course presentation) and Diagnostic Bible 2.1.0.

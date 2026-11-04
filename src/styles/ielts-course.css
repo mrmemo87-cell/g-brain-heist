@@ -537,3 +537,19 @@
 .ic-seat .ic-btn:disabled { opacity: .75; cursor: default; }
 .ic-seat-error { margin: 0; font-size: .82rem; color: #b91c1c; }
 .ic-seat--dark .ic-seat-error { color: #fecaca; }
+
+/* ── App-only live Blaze (IELTS Visual & UX Bible §14) ── */
+.blaze-live { position: relative; display: inline-block; flex: none; line-height: 0; }
+.blaze-live-still, .blaze-live .blaze3d { position: absolute; inset: 0; }
+.blaze-live-still { display: grid; place-items: center; transition: opacity .25s ease-out; }
+.blaze-live:has(.blaze3d[data-ready]) .blaze-live-still { opacity: 0; }
+.blaze3d { pointer-events: none; }
+.blaze3d--tap { pointer-events: auto; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.blaze3d canvas { width: 100% !important; height: 100% !important; }
+.ih-effects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* ── App-only unit-complete medal (Bible §14.3) ── */
+.medal3d { position: fixed; inset: 0; z-index: 90; background: radial-gradient(80% 60% at 50% 45%, rgba(124, 58, 237, .45), rgba(5, 8, 19, .82)); animation: ih-fade .2s ease-out; touch-action: none; }
+.medal3d-stage { position: absolute; inset: 0; }
+.medal3d-stage canvas { display: block; width: 100% !important; height: 100% !important; }
+.medal3d-hint { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 2.2rem); margin: 0; text-align: center; color: rgba(255, 255, 255, .75); font-size: .85rem; font-weight: 600; letter-spacing: .02em; }

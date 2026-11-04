@@ -23,6 +23,11 @@ const config: CapacitorConfig = {
       backgroundColor: '#050813',
       showSpinner: false,
     },
+    LocalNotifications: {
+      // "Blaze is getting cold" evening reminders (IELTS Visual & UX Bible §14.4).
+      smallIcon: 'ic_stat_blaze',
+      iconColor: '#F97316',
+    },
   },
 };
 

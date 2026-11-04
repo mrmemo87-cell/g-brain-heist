@@ -20,6 +20,7 @@ import {
   type IeltsCourseUnitLocked,
 } from '../../../services/ieltsCourseService';
 import IeltsSeatRequest from '../../components/ielts/IeltsSeatRequest';
+import UnitMedalCelebration from '../../components/ielts/UnitMedalCelebration';
 import { chapterFor, primarySkill, skillTheme } from './ieltsCourseTheme';
 
 type UnitData = IeltsCourseUnitDetail | IeltsCourseUnitLocked;
@@ -325,6 +326,7 @@ const IeltsCourseUnit: React.FC = () => {
                 <>
                   <section className="ic-victory" role="status">
                     {celebrate && <Confetti />}
+                    {celebrate && <UnitMedalCelebration label={isVocab ? `V${detail.position}` : String(detail.position)} />}
                     <div className="ic-medal" aria-hidden="true"><span>{isVocab ? `V${detail.position}` : detail.position}</span></div>
                     <p className="ic-eyebrow ic-eyebrow--light">{isVocab ? 'Lesson cleared' : 'Stop cleared'}</p>
                     <h2>{label(detail.position)} complete</h2>

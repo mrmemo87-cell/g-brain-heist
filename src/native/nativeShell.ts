@@ -10,6 +10,8 @@ export function startNativeShell(): void {
   void setUpStatusBar();
   void setUpAppEvents();
   preloadScreensWhenSettled();
+  void import('./effects/haptics').then(({ installTapHaptics }) => installTapHaptics()).catch(() => undefined);
+  void import('./effects/streakReminders').then(({ refreshStreakRemindersOnResume }) => refreshStreakRemindersOnResume()).catch(() => undefined);
 }
 
 // All screens ship inside the app, so load their code in the background once the first screen is up:
