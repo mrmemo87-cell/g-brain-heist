@@ -424,9 +424,16 @@ export default function IeltsLearningPractice() {
                     }}
                     onEnded={() => setPlaying(false)}
                     onTimeUpdate={() => {
-                      if (!checkpointReady.current) return;
-                      const p = audio.current?.currentTime ?? 0;
+                      const el = audio.current;
+                      const p = el?.currentTime ?? 0;
+                      // Always show where playback is. Some players (Android WebView, streamed MP3) report no
+                      // duration at load, so the saved-position restore never runs; once the learner is actually
+                      // playing, that live position becomes the checkpoint instead of freezing the clock at 0:00.
                       setPosition(p);
+                      if (!checkpointReady.current) {
+                        if (!el || el.paused || p <= 0) return;
+                        checkpointReady.current = true;
+                      }
                       if (Date.now() - checkpointSavedAt.current >= 1000) {
                         saveIeltsAudioCheckpoint(positionKey, p);
                         checkpointSavedAt.current = Date.now();

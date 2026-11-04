@@ -33,13 +33,48 @@ function isChunkLoadError(error: unknown): boolean {
   );
 }
 
+// Every lazily loaded screen registers a preloader here, so the installed app can load them all
+// ahead of time (see preloadLazyScreens). A successful preload is reused by React.lazy.
+const registeredPreloaders: Array<() => Promise<unknown>> = [];
+
 export function lazyRetry(
   importFn: () => Promise<{ default: any }>,
   chunkName?: string,
   maxRetries = 2
 ) {
-  return reactLazy(() => retryImport(importFn, chunkName, maxRetries));
+  let preloaded: Promise<{ default: any }> | null = null;
+  // Preloading never triggers the retry/reload path: a failure just leaves the screen to load on demand.
+  registeredPreloaders.push(() => {
+    if (!preloaded) {
+      preloaded = importFn();
+      preloaded.catch(() => { preloaded = null; });
+    }
+    return preloaded;
+  });
+  return reactLazy(() => (preloaded
+    ? preloaded.catch(() => retryImport(importFn, chunkName, maxRetries))
+    : retryImport(importFn, chunkName, maxRetries)));
 }
+
+/**
+ * Load every registered screen in the background, one at a time while the device is idle, so later
+ * navigation never waits for code. Used only inside the installed app, where the files are local;
+ * websites keep loading screens on demand.
+ */
+export async function preloadLazyScreens(isIdle: () => Promise<void> = idle): Promise<number> {
+  let count = 0;
+  for (const preload of registeredPreloaders.slice()) {
+    await isIdle();
+    try { await preload(); count += 1; } catch { /* the screen will load (with retries) when opened */ }
+  }
+  return count;
+}
+
+const idle = () => new Promise<void>((resolve) => {
+  const w = typeof window === 'undefined' ? undefined : (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number });
+  if (w?.requestIdleCallback) w.requestIdleCallback(() => resolve(), { timeout: 500 });
+  else setTimeout(resolve, 16);
+});
 
 async function retryImport(
   importFn: () => Promise<{ default: any }>,

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PUBLIC_SITE_URL, inAppPathFromUrl, isNativeApp, nativeAuthRedirect, nativePlatform, publicSiteUrl } from '../src/lib/nativePlatform';
+import { PUBLIC_SITE_URL, inAppPathFromUrl, isAppRootPath, isNativeApp, nativeAuthRedirect, nativePlatform, publicSiteUrl } from '../src/lib/nativePlatform';
 
 const nativeWindow = (platform: string, native = true) => ({
   Capacitor: { isNativePlatform: () => native, getPlatform: () => platform },
@@ -48,4 +48,11 @@ test('nativeAuthRedirect sends sign-in back to the app scheme, keeping path and 
   assert.equal(nativeAuthRedirect(undefined), 'brainsheist://auth/callback');
   // Round trip: the app maps the returned link back to the same in-app page, tokens in the fragment intact.
   assert.equal(inAppPathFromUrl(`${nativeAuthRedirect('https://www.brainsheist.com/auth/callback')}#access_token=t`), '/auth/callback#access_token=t');
+});
+
+test('isAppRootPath: Brains Heist and IELTS homes are roots; inner pages are not', () => {
+  for (const root of ['/', '/ielts', '/ielts/', '/ielts/course']) assert.equal(isAppRootPath(root), true, root);
+  for (const inner of ['/ielts/course/unit/3', '/ielts/practice/targeted/12', '/ielts/apply-prime', '/auth/callback']) {
+    assert.equal(isAppRootPath(inner), false, inner);
+  }
 });

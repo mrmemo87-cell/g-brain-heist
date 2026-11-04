@@ -30,6 +30,23 @@ export function shipsInApp(relativePath) {
   return !EXCLUDED_FILE.some((pattern) => pattern.test(rel));
 }
 
+// Inside the app the page sits between the phone's status bar and gesture bar instead of under them:
+// without `viewport-fit=cover`, Capacitor's SystemBars pads the web view by the real system-bar insets
+// (Android), and iOS keeps content inside the safe area. Pinch-zoom is off so pages cannot pan sideways.
+export const NATIVE_VIEWPORT = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+
+export function nativeHtml(html) {
+  return html.replace(/<meta\s+name=["']viewport["'][^>]*>/i, `<meta name="viewport" content="${NATIVE_VIEWPORT}" />`);
+}
+
+function rewriteTopLevelHtml(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith('.html')) continue;
+    const file = path.join(dir, entry.name);
+    fs.writeFileSync(file, nativeHtml(fs.readFileSync(file, 'utf8')));
+  }
+}
+
 function sizeOf(dir) {
   let total = 0;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -55,6 +72,7 @@ function main() {
       return shipsInApp(rel);
     },
   });
+  rewriteTopLevelHtml(target);
   const mb = (bytes) => `${(bytes / 1e6).toFixed(1)} MB`;
   console.log(`dist-native ready: ${mb(sizeOf(target))} (web build dist/: ${mb(sizeOf(source))})`);
 }

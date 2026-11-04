@@ -2,13 +2,24 @@
 // Called once from index.tsx, and only when isNativeApp() is true, so none of this runs on the website.
 // Plugins are loaded lazily to keep them out of the website's first download.
 
-import { inAppPathFromUrl } from '../lib/nativePlatform';
+import { inAppPathFromUrl, isAppRootPath } from '../lib/nativePlatform';
 
 const BRAND_BACKGROUND = '#050813';
 
 export function startNativeShell(): void {
   void setUpStatusBar();
   void setUpAppEvents();
+  preloadScreensWhenSettled();
+}
+
+// All screens ship inside the app, so load their code in the background once the first screen is up:
+// opening Game, Learn, IELTS and the rest then never waits for code.
+function preloadScreensWhenSettled(): void {
+  const start = () => window.setTimeout(() => {
+    void import('../utils/lazyRetry').then(({ preloadLazyScreens }) => preloadLazyScreens()).catch(() => undefined);
+  }, 1500);
+  if (document.readyState === 'complete') start();
+  else window.addEventListener('load', start, { once: true });
 }
 
 async function setUpStatusBar(): Promise<void> {
@@ -23,10 +34,14 @@ async function setUpAppEvents(): Promise<void> {
   try {
     const { App } = await import('@capacitor/app');
 
-    // Android hardware/gesture back: go back inside the app, and leave the app only from the first screen.
+    // Android hardware/gesture back: step back inside a section; on a home screen (Brains Heist or IELTS)
+    // send the app to the background like any Android app, instead of bouncing between the two homes.
     await App.addListener('backButton', ({ canGoBack }) => {
-      if (canGoBack && window.history.length > 1) window.history.back();
-      else void App.exitApp();
+      if (!isAppRootPath(window.location.pathname) && canGoBack && window.history.length > 1) {
+        window.history.back();
+        return;
+      }
+      void App.minimizeApp().catch(() => App.exitApp());
     });
 
     // Links that open the app (email sign-in links, OAuth returns) load the matching in-app page.
