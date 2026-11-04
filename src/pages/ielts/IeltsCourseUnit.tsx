@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../styles/ielts-course.css';
 import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell';
+import { IeltsHabitCelebration, useIeltsCourseHabit } from '../../components/ielts/IeltsCourseHabit';
 import {
   fetchIeltsCourseUnit,
   ieltsCourseAccessMessage,
@@ -60,6 +61,7 @@ const IeltsCourseUnit: React.FC = () => {
   const [celebrate, setCelebrate] = useState(false);
   const touch = useRef<number | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const { habit, refresh: refreshHabit } = useIeltsCourseHabit();
 
   const load = useCallback(async () => {
     if (!Number.isFinite(unitId) || unitId <= 0) { setError('This unit is not available.'); return; }
@@ -119,6 +121,7 @@ const IeltsCourseUnit: React.FC = () => {
     try {
       const result = await markIeltsCourseLessonViewed(detail.id);
       setUnit({ ...detail, lesson_viewed: true, completed: result.completed });
+      void refreshHabit();
       setStep(result.completed ? 'done' : 'practice');
       if (result.completed && !celebrated(detail.id)) { markCelebrated(detail.id); setCelebrate(true); }
     } catch (err) {
@@ -135,6 +138,7 @@ const IeltsCourseUnit: React.FC = () => {
     <IeltsStudentShell focus={{ label: isVocab ? 'Vocabulary path' : 'Course map', to: mapRoute }}>
       <div className="ic-page ic-page--embedded" style={{ ['--tone' as string]: theme.tone, ['--soft' as string]: theme.soft } as React.CSSProperties}>
         <main className="ic-main">
+          <IeltsHabitCelebration habit={habit} />
           {error && (
             <div className="ic-notice ic-notice--error" role="alert">
               <b>{error}</b>

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../styles/ielts-course.css';
 import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell';
+import { IeltsHabitCelebration, useIeltsCourseHabit } from '../../components/ielts/IeltsCourseHabit';
 import {
   IELTS_COURSE_VOCAB_ROUTE,
   fetchIeltsVocabStep,
@@ -54,6 +55,8 @@ const IeltsCourseVocabStep: React.FC = () => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<IeltsVocabResult | null>(null);
   const [busy, setBusy] = useState(false);
+  const { habit, refresh: refreshHabit } = useIeltsCourseHabit();
+  const [xpGained, setXpGained] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
@@ -67,7 +70,7 @@ const IeltsCourseVocabStep: React.FC = () => {
     }
   }, [code]);
 
-  useEffect(() => { setStep(null); setResult(null); setAnswers({}); void load(); }, [load]);
+  useEffect(() => { setStep(null); setResult(null); setAnswers({}); setXpGained(null); void load(); }, [load]);
   useEffect(() => { window.scrollTo({ top: 0 }); }, [code]);
 
   const parts = useMemo(() => splitVocabPassage(step?.passage), [step?.passage]);
@@ -79,8 +82,12 @@ const IeltsCourseVocabStep: React.FC = () => {
     setBusy(true);
     setError(null);
     try {
+      const before = habit?.today_xp ?? null;
       const marked = await submitIeltsVocabStep(step.code, answers);
       setResult(marked);
+      void refreshHabit().then((after) => {
+        if (after && before !== null) setXpGained(Math.max(after.today_xp - before, 0));
+      });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Your answers could not be marked.');
@@ -89,7 +96,7 @@ const IeltsCourseVocabStep: React.FC = () => {
     }
   };
 
-  const tryAgain = () => { setResult(null); setAnswers({}); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const tryAgain = () => { setResult(null); setAnswers({}); setXpGained(null); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const unitRoute = step ? ieltsCourseUnitRoute(step.unit_id) : IELTS_COURSE_VOCAB_ROUTE;
   const isCheck = step?.purpose === 'independent_check';
 
@@ -97,6 +104,7 @@ const IeltsCourseVocabStep: React.FC = () => {
     <IeltsStudentShell focus={{ label: step ? `Back to ${step.unit_title}` : 'Vocabulary path', to: unitRoute }}>
       <div className="ic-page ic-page--embedded" style={{ ['--tone' as string]: '#047857', ['--soft' as string]: '#ECFDF5' } as React.CSSProperties}>
         <main className="ic-main">
+          <IeltsHabitCelebration habit={result ? habit : null} />
           {error && (
             <div className="ic-notice ic-notice--error" role="alert">
               <b>{error}</b>
@@ -127,6 +135,11 @@ const IeltsCourseVocabStep: React.FC = () => {
                 <section className="iv-score" role="status" aria-live="polite">
                   <p className="ic-eyebrow ic-eyebrow--light">Your practice score</p>
                   <span className="iv-score-num">{result.score}/{result.total}</span>
+                  {xpGained !== null && (
+                    <span className="iv-xp" aria-label={xpGained > 0 ? `${xpGained} XP earned` : 'XP already earned for this step today'}>
+                      {xpGained > 0 ? `+${xpGained} XP` : 'XP already earned today'}{habit ? ` · 🔥 ${habit.streak}` : ''}
+                    </span>
+                  )}
                   <h2>{result.score === result.total ? 'Perfect. Every answer right.' : result.score >= Math.ceil(result.total * 0.66) ? 'Strong work.' : 'Good effort. Read the explanations below.'}</h2>
                   <p>Each answer is explained below. This is a practice score, not an IELTS band.</p>
                 </section>
