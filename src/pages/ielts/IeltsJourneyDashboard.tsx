@@ -76,9 +76,14 @@ const IeltsJourneyDashboard: React.FC<IeltsJourneyDashboardProps> = ({ embedded 
           dashboardMode = modeResolution;
         }
 
+        // School results exist only for staff of a school whose agreement includes IELTS. The owner and staff of
+        // schools without IELTS see their own learner journey instead of an error.
+        let results: IeltsSchoolResultsResponse | null = null;
         if (dashboardMode === 'admin') {
-          const results = await rpcIeltsSchoolResults({ limit: 100 });
+          results = await rpcIeltsSchoolResults({ limit: 100 }).catch(() => null);
           if (!active) return;
+        }
+        if (results) {
           setSchoolResults(results);
           setMode('admin');
           setJourney(null);

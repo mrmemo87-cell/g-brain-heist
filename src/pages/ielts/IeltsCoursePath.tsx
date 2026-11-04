@@ -18,6 +18,7 @@ import {
   type IeltsCourseTrackState,
   type IeltsCourseUnitSummary,
 } from '../../../services/ieltsCourseService';
+import IeltsSeatRequest from '../../components/ielts/IeltsSeatRequest';
 import { chapterFor, chaptersFor, primarySkill, skillTheme } from './ieltsCourseTheme';
 
 const trackCopy: Record<IeltsCourseTrack, { eyebrow: string; title: string; body: string; unitWord: string }> = {
@@ -162,8 +163,8 @@ const IeltsCoursePath: React.FC = () => {
   const access = baseAccess && track === 'vocabulary' && baseAccess.cta
     ? {
       ...baseAccess,
-      title: state?.access.reason === 'prime_required' ? 'V1 is free. V2 to V6 are part of IELTS Prime.' : 'V1 is open. Your school has not allocated an IELTS seat to you yet.',
-      body: state?.access.reason === 'prime_required' ? 'Try the first vocabulary lesson, then unlock the whole path and the full course with IELTS Prime.' : 'Ask your school admin to allocate an IELTS programme seat to unlock V2 to V6.',
+      title: 'V1 is free. V2 to V6 are part of IELTS Prime.',
+      body: state?.access.reason === 'prime_required' ? 'Try the first vocabulary lesson, then unlock the whole path and the full course with IELTS Prime.' : 'Your school has not given you an IELTS seat. Unlock V2 to V6 with IELTS Prime, or ask your school for a seat.',
     }
     : baseAccess;
   const tasksDone = view ? view.units.reduce((n, u) => n + u.tasks.filter((t) => t.completed).length, 0) : 0;
@@ -242,9 +243,12 @@ const IeltsCoursePath: React.FC = () => {
                 <b>{access.title}</b>
                 <span>{access.body}</span>
               </div>
-              {access.cta === 'prime' && (
-                <button type="button" className="ic-btn ic-btn--gold" onClick={() => navigate('/ielts/apply-prime')}>See Prime plans</button>
-              )}
+              <div className="ic-unlock-actions">
+                {access.cta === 'prime' && (
+                  <button type="button" className="ic-btn ic-btn--gold" onClick={() => navigate('/ielts/apply-prime')}>See Prime plans</button>
+                )}
+                {access.askSchool && <IeltsSeatRequest />}
+              </div>
             </div>
           )}
 

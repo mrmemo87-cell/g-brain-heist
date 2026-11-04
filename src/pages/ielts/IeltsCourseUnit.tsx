@@ -19,6 +19,7 @@ import {
   type IeltsCourseUnitDetail,
   type IeltsCourseUnitLocked,
 } from '../../../services/ieltsCourseService';
+import IeltsSeatRequest from '../../components/ielts/IeltsSeatRequest';
 import { chapterFor, primarySkill, skillTheme } from './ieltsCourseTheme';
 
 type UnitData = IeltsCourseUnitDetail | IeltsCourseUnitLocked;
@@ -173,7 +174,8 @@ const IeltsCourseUnit: React.FC = () => {
               ) : (
                 <>
                   <p><b>{ieltsCourseAccessMessage(unit.access_reason).title || 'This unit needs full course access.'}</b> {ieltsCourseAccessMessage(unit.access_reason).body}</p>
-                  {unit.access_reason === 'prime_required' && <button type="button" className="ic-btn ic-btn--gold ic-btn--block" onClick={() => navigate('/ielts/apply-prime')}>Unlock with IELTS Prime</button>}
+                  {ieltsCourseAccessMessage(unit.access_reason).cta === 'prime' && <button type="button" className="ic-btn ic-btn--gold ic-btn--block" onClick={() => navigate('/ielts/apply-prime')}>Unlock with IELTS Prime</button>}
+                  {ieltsCourseAccessMessage(unit.access_reason).askSchool && <IeltsSeatRequest block />}
                 </>
               )}
               <button type="button" className="ic-btn ic-btn--ghost ic-btn--block" onClick={() => navigate(mapRoute)}>Back to the course map</button>
@@ -337,7 +339,7 @@ const IeltsCourseUnit: React.FC = () => {
                       <button type="button" className="ic-btn ic-btn--light" onClick={() => navigate(mapRoute)}>Back to the course map</button>
                     )}
                   </section>
-                  {detail.is_free_preview && accessReason === 'prime_required' && (
+                  {detail.is_free_preview && (accessReason === 'prime_required' || accessReason === 'school_seat_missing') && (
                     <section className="po-card" aria-labelledby="po-title">
                       <div className="po-glow" aria-hidden="true" />
                       <p className="po-kicker">IELTS Prime</p>
@@ -351,10 +353,8 @@ const IeltsCourseUnit: React.FC = () => {
                       <div className="po-price"><b>$34.50</b><span>for 3 months · most popular</span></div>
                       <button type="button" className="ic-btn ic-btn--gold ic-btn--block ic-btn--glow" onClick={() => navigate('/ielts/apply-prime')}>See Prime plans <span aria-hidden="true">→</span></button>
                       <p className="po-fine">From $14.50 a month. Cancel the monthly plan anytime.</p>
+                      {accessReason === 'school_seat_missing' && <IeltsSeatRequest block tone="dark" />}
                     </section>
-                  )}
-                  {detail.is_free_preview && accessReason === 'school_seat_missing' && (
-                    <section className="ic-card"><h3>Ready for Unit 2?</h3><p className="ic-muted">Ask your school admin to allocate an IELTS seat to you to continue the course.</p></section>
                   )}
                   <section className="ic-card">
                     <h3>{isVocab ? 'Review this lesson' : 'Review this unit'}</h3>

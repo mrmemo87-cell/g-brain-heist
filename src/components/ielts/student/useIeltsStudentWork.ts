@@ -43,14 +43,16 @@ export function loadIeltsStudentWork(force = false) {
   }
 }
 
-export function useIeltsStudentWork() {
+/** `enabled` is false for learners without a school IELTS seat: they have no school work, so nothing is requested. */
+export function useIeltsStudentWork(enabled = true) {
   const [snapshot, setSnapshot] = useState(state);
   useEffect(() => {
+    if (!enabled) return undefined;
     listeners.add(setSnapshot);
     loadIeltsStudentWork();
     setSnapshot(state);
     return () => { listeners.delete(setSnapshot); };
-  }, []);
+  }, [enabled]);
   return { ...snapshot, reload: () => loadIeltsStudentWork(true) };
 }
 

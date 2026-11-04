@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSmartCollapsedNavigation } from '../../../hooks/useSmartCollapsedNavigation';
 import { openSet, openTargeted, useIeltsStudentWork } from './useIeltsStudentWork';
-import { useIeltsAudience } from '../../../lib/ieltsAudience';
+import { useIeltsAccount, useIeltsAudience } from '../../../lib/ieltsAudience';
 import '../../../styles/ielts-navigation.css';
 import '../../../styles/ielts-student-shell.css';
 
@@ -30,8 +30,8 @@ const SCHOOL_ONLY_TABS: IeltsStudentTab[] = ['assigned', 'targeted'];
  */
 function IeltsStudentNav({ active }: { active: IeltsStudentTab }) {
   const navigate = useNavigate();
-  const work = useIeltsStudentWork();
   const schoolLearner = useIeltsAudience() === 'school';
+  const work = useIeltsStudentWork(schoolLearner);
   const tabs = TABS.filter((t) => schoolLearner || t.id === active || !SCHOOL_ONLY_TABS.includes(t.id));
   const { navigationRef, revealNavigation } = useNavMotion(active, '(max-width: 1024px)');
   const badges: Partial<Record<IeltsStudentTab, number>> = {
@@ -93,7 +93,8 @@ export default function IeltsStudentShell({ active, focus, eyebrow, title, lead,
   const navigate = useNavigate();
   const showNav = !focus && active;
   // Learners without a school came for IELTS only: no way back into the game from the top bar.
-  const independent = useIeltsAudience() === 'independent';
+  const account = useIeltsAccount();
+  const independent = account ? !account.inSchool : false;
   return (
     <div className={'isn-page' + (showNav ? ' has-nav' : ' is-focus')} data-ielts-student-shell="">
       <div className="isn-glow" aria-hidden="true" />
