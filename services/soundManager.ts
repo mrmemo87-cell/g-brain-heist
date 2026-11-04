@@ -4,6 +4,7 @@
  * Sounds are lazy-loaded on first play to avoid blocking page load.
  */
 
+import { feelGameCue } from '../src/native/effects/gameFeedback';
 type SoundKey =
   | 'correct'
   | 'wrong'
@@ -37,6 +38,7 @@ function getAudio(key: SoundKey): HTMLAudioElement {
 }
 
 export function playSound(key: SoundKey, volumeOverride?: number): void {
+  if (typeof window !== 'undefined') feelGameCue(key); // phone vibration in the app; no-op on the website
   if (muted || typeof window === 'undefined') return;
   try {
     const audio = getAudio(key);

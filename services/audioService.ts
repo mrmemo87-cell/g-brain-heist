@@ -1,6 +1,7 @@
 // Audio Service for managing game sound effects
 // All audio files are located in /public/sounds/
 
+import { feelGameCue } from '../src/native/effects/gameFeedback';
 type SoundEffect = 
   | 'achievement'  // Achievement unlocked (special fanfare)
   | 'activate'      // Item activation sound
@@ -98,6 +99,7 @@ class AudioManager {
   }
 
   play(sound: SoundEffect) {
+    if (sound !== 'bg' && this.isBrowserRuntime) feelGameCue(sound); // phone vibration in the app; no-op on the website
     if (!this.audioEnabled || sound === 'bg') return;
     
     const audio = this.sounds.get(sound);
