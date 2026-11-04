@@ -351,7 +351,8 @@
 .ih-hero { display: flex; gap: .8rem; align-items: center; padding: .9rem 1rem; border-radius: 20px; color: #fff; background: linear-gradient(135deg, #7c2d12, #ea580c 60%, #f59e0b); }
 .ih-hero h2 { color: #fff; font-size: 1.4rem; }
 .ih-hero p { color: rgba(255, 255, 255, .9); font-size: .88rem; }
-.ih-hero-flame { font-size: 2.4rem; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .25)); }
+.ih-hero-flame { font-size: 2.4rem; }
+.ih-hero-flame .blaze { filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .25)); }
 .ih-week { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, 1fr); gap: .35rem; }
 .ih-day { display: grid; justify-items: center; gap: .25rem; }
 .ih-day-dot { display: grid; place-items: center; width: 2.1rem; height: 2.1rem; border-radius: 50%; background: #f1f5f9; border: 2px solid #e2e8f0; font-size: 1rem; }

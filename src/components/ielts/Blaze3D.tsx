@@ -127,7 +127,13 @@ export default function Blaze3D({ size, streak, mood, level, interactive = false
     renderer.setClearColor(0x000000, 0);
     renderer.domElement.style.display = 'block';
     host.appendChild(renderer.domElement);
-    host.dataset['ready'] = 'true';
+    // The still Blaze underneath is hidden only once a frame is proven to show the flame (see tick):
+    // some phone GPUs create a WebGL canvas but draw nothing, and Blaze must never disappear.
+    let verified = false;
+    let checks = 0;
+    const probe = new Uint8Array(4 * 6 * 6);
+    const onLost = (e: Event) => { e.preventDefault(); delete host.dataset['ready']; };
+    renderer.domElement.addEventListener('webglcontextlost', onLost);
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 50);
@@ -301,6 +307,19 @@ export default function Blaze3D({ size, streak, mood, level, interactive = false
       emberMat.opacity = weak ? 0.45 : 0.95;
       crown.rotation.y = t * 0.9;
       renderer.render(scene, camera);
+      if (!verified) {
+        checks += 1;
+        try {
+          const gl = renderer.getContext();
+          const w = gl.drawingBufferWidth;
+          const h = gl.drawingBufferHeight;
+          // Sample the flame body (centre, a little below the middle).
+          gl.readPixels(Math.floor(w / 2) - 3, Math.floor(h * 0.42) - 3, 6, 6, gl.RGBA, gl.UNSIGNED_BYTE, probe);
+          for (let i = 3; i < probe.length; i += 4) if (probe[i]! > 40) { verified = true; break; }
+        } catch { /* keep checking */ }
+        if (verified) host.dataset['ready'] = 'true';
+        else if (checks > 90) { window.cancelAnimationFrame(raf); renderer.domElement.style.display = 'none'; }
+      }
     };
     raf = window.requestAnimationFrame(tick);
 
@@ -310,6 +329,7 @@ export default function Blaze3D({ size, streak, mood, level, interactive = false
       io?.disconnect();
       flareRef.current = null;
       disposeAll(scene);
+      renderer.domElement.removeEventListener('webglcontextlost', onLost);
       renderer.dispose();
       renderer.forceContextLoss();
       renderer.domElement.remove();

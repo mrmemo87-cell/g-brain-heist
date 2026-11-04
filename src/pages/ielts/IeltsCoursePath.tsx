@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/ielts-course.css';
+import { useSheetDismiss } from '../../components/ielts/useSheetDismiss';
 import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell';
 import { IeltsCourseHabitBar, IeltsHabitCelebration, useIeltsCourseHabit } from '../../components/ielts/IeltsCourseHabit';
 import { IeltsLeagueCard } from './IeltsCourseLeague';
@@ -113,6 +114,7 @@ const IeltsCoursePath: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
   const [sheet, setSheet] = useState<IeltsCourseUnitSummary | null>(null);
+  const sheetRef = useSheetDismiss<HTMLDivElement>(() => setSheet(null));
   const currentRef = useRef<HTMLLIElement | null>(null);
   const { habit, setHabit } = useIeltsCourseHabit();
   const audience = useIeltsAudience();
@@ -319,7 +321,7 @@ const IeltsCoursePath: React.FC = () => {
 
         {sheet && (
           <div className="ic-sheet-backdrop" onClick={() => setSheet(null)}>
-            <div className="ic-sheet" role="dialog" aria-modal="true" aria-labelledby="ic-sheet-title" onClick={(e) => e.stopPropagation()}
+            <div ref={sheetRef} className="ic-sheet" role="dialog" aria-modal="true" aria-labelledby="ic-sheet-title" onClick={(e) => e.stopPropagation()}
               style={{ ['--tone' as string]: skillTheme[primarySkill(sheet.focus_skills)].tone } as React.CSSProperties}>
               <span className="ic-sheet-grip" aria-hidden="true" />
               <p className="ic-eyebrow">{ieltsCourseUnitLabel(sheet)} · {chapterFor(sheet.position, sheet.track).title} · about {sheet.estimated_minutes} min</p>

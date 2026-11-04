@@ -156,7 +156,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(getInitialHeadSidebarCollapsed);
   const [navTooltip, setNavTooltip] = useState<{ label: string; anchor: HTMLElement } | null>(null);
-  const { navigationRef: mobileNavigationRef, revealNavigation } = useSmartCollapsedNavigation(activeTab, '(max-width: 930px)');
+  const { navigationRef: mobileNavigationRef, revealNavigation } = useSmartCollapsedNavigation(activeTab, '(max-width: 930px)', { homeKey: 'overview', navigateTo: (key) => setActiveTab(key as SchoolHeadTab) });
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferTarget, setTransferTarget] = useState('');
   const [transferConfirmation, setTransferConfirmation] = useState('');

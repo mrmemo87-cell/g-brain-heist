@@ -74,7 +74,10 @@ const StudentMobileBottomNavigation: React.FC<StudentMobileBottomNavigationProps
   const {
     navigationRef,
     revealNavigation,
-  } = useSmartCollapsedNavigation(activeDestination, STUDENT_MOBILE_NAV_QUERY);
+  } = useSmartCollapsedNavigation(activeDestination, STUDENT_MOBILE_NAV_QUERY, {
+    homeKey: 'home',
+    navigateTo: (key) => onNavigate(key as StudentDashboardDestination),
+  });
 
   const navigate = (destination: StudentDashboardDestination) => {
     revealNavigation();

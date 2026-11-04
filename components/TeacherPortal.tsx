@@ -1151,7 +1151,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const {
     navigationRef: mobileNavigationRef,
     revealNavigation: revealMobileNavigation,
-  } = useSmartCollapsedNavigation(view, TEACHER_MOBILE_NAV_QUERY);
+  } = useSmartCollapsedNavigation(view, TEACHER_MOBILE_NAV_QUERY, {
+    homeKey: 'dashboard',
+    // Through changeSection so an unfinished assignment still asks before it is left.
+    navigateTo: () => { void changeSection('dashboard'); },
+    stack: false,
+  });
   const desktopSidebarRef = useTeacherSidebarViewport();
 
   const changeSection = async (section: TeacherNavSection) => {

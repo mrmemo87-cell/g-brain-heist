@@ -138,7 +138,7 @@ test('parent mobile navigation reuses School Admin smart collapse without turnin
   const mobileFixes = read('components/guardian/ParentDashboardPremiumMobileFixes.css');
   const hook = read('src/hooks/useSmartCollapsedNavigation.ts');
 
-  assert.match(dashboard, /useSmartCollapsedNavigation\(activeTab, '\(max-width: 768px\)'\)/);
+  assert.match(dashboard, /useSmartCollapsedNavigation\(activeTab, '\(max-width: 768px\)'[,)]/);
   assert.match(dashboard, /revealNavigation/);
   assert.match(dashboard, /window\.history/);
   assert.match(dashboard, /popstate/);

@@ -128,7 +128,7 @@ const ParentDashboardPremium: React.FC<ParentDashboardPremiumProps> = ({
   const [activeTab, setActiveTab] = useState<ParentTab>(readInitialTab);
   const [childMenuOpen, setChildMenuOpen] = useState(false);
   const childSwitcherRef = useRef<HTMLDivElement | null>(null);
-  const { navigationRef, revealNavigation } = useSmartCollapsedNavigation(activeTab, '(max-width: 768px)');
+  const { navigationRef, revealNavigation } = useSmartCollapsedNavigation(activeTab, '(max-width: 768px)', { homeKey: 'home', navigateTo: (key) => setActiveTab(key as ParentTab) });
   const currentChild = children.find((child) => child.student_id === selectedId) || children[0];
   const brand = createSchoolBrand({ schoolId: currentChild?.school_id, schoolName: currentChild?.school_name, schoolLogoUrl: currentChild?.school_logo_url });
   const tone = progress ? progressTone(progress) : { label: 'Steady', tone: 'steady' as const };
