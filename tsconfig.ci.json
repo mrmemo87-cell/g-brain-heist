@@ -3,6 +3,9 @@
   "exclude": [
     "node_modules",
     "dist",
+    "android",
+    "ios",
+    "capacitor.config.ts",
     "supabase-functions",
     "supabase-functions/**",
     "supabase/functions",

@@ -39,10 +39,19 @@ import SchoolProgrammeRouteGuard from './components/SchoolProgrammeRouteGuard';
 import IosInstallGuide from './components/IosInstallGuide';
 import PushMomentPrompt from './components/PushMomentPrompt';
 import { registerAppServiceWorker, startNativeInstallCapture } from './src/lib/nativeInstall';
+import { isNativeApp } from './src/lib/nativePlatform';
+import { startNativeShell } from './src/native/nativeShell';
 
-// Catch Android's one-tap install offer before React renders; the browser fires it only once, early.
-startNativeInstallCapture();
-registerAppServiceWorker();
+const RUNNING_IN_NATIVE_APP = isNativeApp();
+
+if (RUNNING_IN_NATIVE_APP) {
+  // iPhone/Android app: no service worker or "install this app" prompts; set up the native chrome instead.
+  startNativeShell();
+} else {
+  // Catch Android's one-tap install offer before React renders; the browser fires it only once, early.
+  startNativeInstallCapture();
+  registerAppServiceWorker();
+}
 
 // ── Lazy-loaded pages & modals (with automatic retry on stale-chunk errors) ──
 const FinishSetupModal = lazyRetry(() => import('./components/FinishSetupModal'), 'FinishSetupModal');
@@ -971,8 +980,8 @@ root.render(
           <LightModeProvider>
             <LanguageProvider>
               <RouterProvider router={router} />
-              <IosInstallGuide />
-              <PushMomentPrompt />
+              {!RUNNING_IN_NATIVE_APP && <IosInstallGuide />}
+              {!RUNNING_IN_NATIVE_APP && <PushMomentPrompt />}
             </LanguageProvider>
           </LightModeProvider>
         </QueryClientProvider>

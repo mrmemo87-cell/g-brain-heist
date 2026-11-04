@@ -49,9 +49,18 @@
     "test:school-coverage": "node --test tests/schoolRegistryCoverage.test.mjs tests/schoolClassSetupDom.test.mjs",
     "test:curriculum-catalogue": "node --test tests/questionLearningCatalogue.test.mjs tests/curriculumObjectivePrecision.test.mjs tests/englishCurriculumEditorial.test.mjs tests/englishHeldRepairs.test.mjs",
     "curriculum:english:editorial": "node scripts/build-english-curriculum-editorial.mjs",
-    "curriculum:english:held-repairs": "python3 scripts/build-english-reading-replacements.py && node scripts/build-english-held-repair-decisions.mjs && node scripts/validate-english-held-repairs.mjs"
+    "curriculum:english:held-repairs": "python3 scripts/build-english-reading-replacements.py && node scripts/build-english-held-repair-decisions.mjs && node scripts/validate-english-held-repairs.mjs",
+    "native:sync": "npm run build && cap sync",
+    "native:android": "npm run native:sync && cap open android",
+    "native:ios": "npm run native:sync && cap open ios"
   },
   "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/ios": "^8.6.0",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4",
     "@gsap/react": "^2.1.2",
     "@pdf-lib/fontkit": "1.1.1",
     "@supabase/supabase-js": "^2.78.0",
@@ -71,6 +80,7 @@
     "three": "^0.186.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.6.0",
     "@electric-sql/pglite": "0.3.14",
     "@playwright/test": "1.64.1",
     "@types/jsdom": "21.1.7",
