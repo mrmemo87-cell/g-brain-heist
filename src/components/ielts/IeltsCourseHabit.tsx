@@ -16,6 +16,7 @@ import { enablePushOnThisDevice, getPushAvailability, isPushEnabledOnThisDevice 
 import { BadgeMedal } from './IeltsGameArt';
 import { BlazeLive } from './BlazeLive';
 import { EffectsControl } from './AppEffectsControl';
+import { useSheetDismiss } from './useSheetDismiss';
 import { isNativeApp } from '../../lib/nativePlatform';
 import { haptic } from '../../native/effects/haptics';
 import { playSfx } from '../../native/effects/sfx';
@@ -153,6 +154,7 @@ function ReminderControl({ habit, onChange }: { habit: IeltsCourseHabit; onChang
 
 export function IeltsCourseHabitSheet({ habit, onClose, onChange }: { habit: IeltsCourseHabit; onClose: () => void; onChange: (next: IeltsCourseHabit) => void }) {
   const [saving, setSaving] = useState<number | null>(null);
+  const sheetRef = useSheetDismiss<HTMLDivElement>(onClose);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
@@ -164,7 +166,7 @@ export function IeltsCourseHabitSheet({ habit, onClose, onChange }: { habit: Iel
   };
   return (
     <div className="ic-sheet-backdrop" onClick={onClose}>
-      <div className="ic-sheet ih-sheet" role="dialog" aria-modal="true" aria-labelledby="ih-sheet-title" onClick={(e) => e.stopPropagation()}>
+      <div ref={sheetRef} className="ic-sheet ih-sheet" role="dialog" aria-modal="true" aria-labelledby="ih-sheet-title" onClick={(e) => e.stopPropagation()}>
         <span className="ic-sheet-grip" aria-hidden="true" />
         <div className="ih-hero">
           <span className="ih-hero-flame"><BlazeLive mood={habit.today_done ? 'cheer' : 'sleepy'} size={84} streak={habit.streak} todayDone={habit.today_done} interactive /></span>

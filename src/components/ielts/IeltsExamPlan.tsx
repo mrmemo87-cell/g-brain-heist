@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { saveIeltsExamPlan, type IeltsCourseHabit, type IeltsExamPlan } from '../../../services/ieltsCourseHabitService';
 import { Blaze } from './IeltsGameArt';
+import { useSheetDismiss } from './useSheetDismiss';
 
 const MODULES = [
   { id: 'academic', label: 'Academic', hint: 'For university' },
@@ -41,9 +42,10 @@ export function IeltsExamPlanSheet({ initial, onDone, onClose, firstVisit }: {
     }
   };
 
+  const sheetRef = useSheetDismiss<HTMLDivElement>(firstVisit ? undefined : onClose);
   return (
     <div className="ic-sheet-backdrop" onClick={firstVisit ? undefined : onClose}>
-      <div className="ic-sheet ep-sheet" role="dialog" aria-modal="true" aria-labelledby="ep-title" onClick={(e) => e.stopPropagation()}>
+      <div ref={sheetRef} className="ic-sheet ep-sheet" role="dialog" aria-modal="true" aria-labelledby="ep-title" onClick={(e) => e.stopPropagation()}>
         <span className="ic-sheet-grip" aria-hidden="true" />
         {step === 0 ? (
           <div className="ep-welcome">

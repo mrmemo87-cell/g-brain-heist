@@ -23,11 +23,11 @@ test('mobile navigation stays fully visible: no hide-on-scroll', () => {
 test('teacher and student bottom navigation share the premium reveal pattern', () => {
   // Teacher bottom navigation starts at 900px so zoomed laptops (e.g. 1280px at 125%) keep the sidebar.
   assert.match(teacherPortal, /TEACHER_MOBILE_NAV_QUERY = '\(max-width: 900px\)'/);
-  assert.match(teacherPortal, /useSmartCollapsedNavigation\(view, TEACHER_MOBILE_NAV_QUERY\)/);
+  assert.match(teacherPortal, /useSmartCollapsedNavigation\(view, TEACHER_MOBILE_NAV_QUERY[,)]/);
   assert.match(teacherPortal, /ref=\{mobileNavigationRef\}/);
   assert.match(teacherPortal, /aria-label="Show teacher navigation"/);
   assert.match(studentNavigation, /STUDENT_MOBILE_NAV_QUERY = '\(max-width: 1024px\)'/);
-  assert.match(studentNavigation, /useSmartCollapsedNavigation\(activeDestination, STUDENT_MOBILE_NAV_QUERY\)/);
+  assert.match(studentNavigation, /useSmartCollapsedNavigation\(activeDestination, STUDENT_MOBILE_NAV_QUERY[,)]/);
   assert.match(studentNavigation, /ref=\{navigationRef\}/);
   assert.match(studentNavigation, /aria-label=\{t\("Show student navigation"\)\}/);
   assert.match(studentNavigation, /<CollapsedNavTooltip label=\{navTooltip\.label\} anchor=\{navTooltip\.anchor\}/);

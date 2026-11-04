@@ -3,6 +3,7 @@
 // Plugins are loaded lazily to keep them out of the website's first download.
 
 import { inAppPathFromUrl, isAppRootPath } from '../lib/nativePlatform';
+import { closeTopDialog, runBackHandlers } from './backHandlers';
 
 const BRAND_BACKGROUND = '#050813';
 
@@ -36,14 +37,27 @@ async function setUpAppEvents(): Promise<void> {
   try {
     const { App } = await import('@capacitor/app');
 
-    // Android hardware/gesture back: step back inside a section; on a home screen (Brains Heist or IELTS)
-    // send the app to the background like any Android app, instead of bouncing between the two homes.
+    // Android hardware/gesture back, in this order:
+    // 1. close what is open on top (a sheet or pop-up),
+    // 2. go back to the previous tab, then the home tab, of the Brains Heist / teacher / parent portals,
+    // 3. step back to the previous page inside a section,
+    // 4. on a home screen (Brains Heist or IELTS) send the app to the background like any Android app,
+    //    instead of bouncing between the two homes.
+    let busy = false;
     await App.addListener('backButton', ({ canGoBack }) => {
-      if (!isAppRootPath(window.location.pathname) && canGoBack && window.history.length > 1) {
-        window.history.back();
-        return;
-      }
-      void App.minimizeApp().catch(() => App.exitApp());
+      if (busy) return;
+      if (runBackHandlers('overlay')) return;
+      busy = true;
+      void closeTopDialog().then((closed) => {
+        busy = false;
+        if (closed) return;
+        if (runBackHandlers('tabs')) return;
+        if (!isAppRootPath(window.location.pathname) && canGoBack && window.history.length > 1) {
+          window.history.back();
+          return;
+        }
+        void App.minimizeApp().catch(() => App.exitApp());
+      });
     });
 
     // Links that open the app (email sign-in links, OAuth returns) load the matching in-app page.

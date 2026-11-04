@@ -35,7 +35,7 @@ test('student desktop navigation stays visible and follows the teacher collapse 
   assert.match(navigation, /STUDENT_SIDEBAR_STORAGE_KEY/);
   assert.match(navigation, /STUDENT_MOBILE_NAV_QUERY = '\(max-width: 1024px\)'/);
   assert.match(navigation, /STUDENT_SIDEBAR_COMPACT_QUERY = '\(min-width: 1025px\) and \(max-width: 1279px\)'/);
-  assert.match(navigation, /useSmartCollapsedNavigation\(activeDestination, STUDENT_MOBILE_NAV_QUERY\)/);
+  assert.match(navigation, /useSmartCollapsedNavigation\(activeDestination, STUDENT_MOBILE_NAV_QUERY[,)]/);
   assert.match(navigation, /student-dashboard-sidebar-toggle/);
   assert.match(navigation, /sidebarCollapsed \? 'is-collapsed' : ''/);
   assert.match(navigation, /label: 'Leaderboard'/);
