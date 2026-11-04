@@ -3,6 +3,7 @@ import { inspectSpeakingWav } from '../_shared/ieltsSpeakingAudio.ts';
 import {
   SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS,
   parseSpeakingJson,
+  speakingTranscriptionHint,
   validateSpeakingPracticeFeedback,
   type SpeakingPracticeContext,
 } from '../_shared/ieltsPracticeSpeakingFeedback.ts';
@@ -13,7 +14,41 @@ import {
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
 const json = (status: number, value: unknown) => new Response(JSON.stringify(value), { status, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 const model = Deno.env.get('IELTS_PRACTICE_SPEAKING_MODEL')?.trim() || Deno.env.get('IELTS_SPEAKING_DRAFT_MODEL')?.trim() || 'gpt-audio-1.5';
+const transcribeModel = Deno.env.get('IELTS_PRACTICE_TRANSCRIBE_MODEL')?.trim() || 'gpt-4o-transcribe';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** Provider refusals keep only status, code/type and param: never the provider message, which may echo input. */
+async function providerError(response: Response, stage: string): Promise<Error> {
+  const detail = await response.json().catch(() => null) as { error?: { code?: string; type?: string; param?: string } } | null;
+  const err = detail?.error;
+  return new Error(`${stage}_${response.status}:${err?.code || err?.type || 'unknown'}${err?.param ? `:${err.param}` : ''}`);
+}
+
+/** Pass 1: a speech-to-text model writes down the learner's words. */
+async function transcribe(bytes: ArrayBuffer, apiKey: string, hint: string, signal: AbortSignal): Promise<string> {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const form = new FormData();
+    form.append('file', new Blob([bytes], { type: 'audio/wav' }), 'answer.wav');
+    form.append('model', transcribeModel);
+    form.append('language', 'en');
+    form.append('response_format', 'json');
+    form.append('prompt', hint);
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST', signal, headers: { Authorization: `Bearer ${apiKey}` }, body: form,
+    });
+    if (response.ok) {
+      const out = await response.json().catch(() => null) as { text?: unknown } | null;
+      if (typeof out?.text !== 'string') throw new Error('transcribe_invalid');
+      return out.text.trim().slice(0, 6000);
+    }
+    if (attempt === 0 && (response.status === 429 || response.status >= 500)) {
+      const retryable = await response.clone().json().catch(() => null) as { error?: { code?: string } } | null;
+      if (retryable?.error?.code !== 'credit_balance_exhausted' && retryable?.error?.code !== 'insufficient_quota') continue;
+    }
+    throw await providerError(response, 'transcribe');
+  }
+  throw new Error('transcribe_unavailable');
+}
 
 function base64(bytes: ArrayBuffer): string {
   const view = new Uint8Array(bytes);
@@ -55,7 +90,9 @@ Deno.serve(async (req: Request) => {
     const bytes = await audio.arrayBuffer();
     inspectSpeakingWav(bytes);
     const task = { part: context.part, question: context.prompt, follow_ups: context.follow_ups };
-    const signal = AbortSignal.timeout(85000);
+    const signal = AbortSignal.timeout(110000);
+    // Two passes: write down the words first, then judge with both the transcript and the audio.
+    const transcript = await transcribe(bytes, apiKey, speakingTranscriptionHint(task), signal);
     let fields; let providerId: string | null = null;
     for (let attempt = 0; attempt < 2; attempt++) {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -63,9 +100,9 @@ Deno.serve(async (req: Request) => {
         body: JSON.stringify({
           model, modalities: ['text'], store: false, max_completion_tokens: 2600,
           messages: [
-            { role: 'system', content: SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS + (attempt ? '\nThe previous output failed validation. Return only the JSON keys requested, copy every quote exactly from your transcript, keep high = low + 1, and use short simple sentences.' : '') },
+            { role: 'system', content: SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS + (attempt ? '\nThe previous output failed validation. Return only the JSON keys requested, copy every quote exactly from the supplied transcript, keep high = low + 1, and use short simple sentences.' : '') },
             { role: 'user', content: [
-              { type: 'text', text: JSON.stringify({ task }) },
+              { type: 'text', text: JSON.stringify({ task, transcript }) },
               { type: 'input_audio', input_audio: { data: base64(bytes), format: 'wav' } },
             ] },
           ],
@@ -73,16 +110,13 @@ Deno.serve(async (req: Request) => {
       });
       if (!response.ok) {
         if (attempt === 0 && (response.status === 429 || response.status >= 500)) continue;
-        // Only the provider's error code/type/param are kept: never its message, which may echo input.
-        const detail = await response.json().catch(() => null) as { error?: { code?: string; type?: string; param?: string } } | null;
-        const err = detail?.error;
-        throw new Error(`provider_${response.status}:${err?.code || err?.type || 'unknown'}${err?.param ? `:${err.param}` : ''}`);
+        throw await providerError(response, 'provider');
       }
       const output = await response.json();
       const choice = output.choices?.[0];
       try {
         if (choice?.finish_reason !== 'stop' || choice.message?.refusal || !choice.message?.content) throw new Error('incomplete');
-        fields = validateSpeakingPracticeFeedback(parseSpeakingJson(choice.message.content), { part: context.part });
+        fields = validateSpeakingPracticeFeedback(parseSpeakingJson(choice.message.content), { part: context.part, transcript });
         providerId = String(output.id || '');
         break;
       } catch { if (attempt > 0) throw new Error('validation_failed'); }

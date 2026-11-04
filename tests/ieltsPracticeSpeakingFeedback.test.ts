@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS, parseSpeakingJson, speakingKeys, validateSpeakingPracticeFeedback } from '../supabase/functions/_shared/ieltsPracticeSpeakingFeedback';
+import { SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS, parseSpeakingJson, speakingKeys, speakingTranscriptionHint, validateSpeakingPracticeFeedback } from '../supabase/functions/_shared/ieltsPracticeSpeakingFeedback';
 // Diagnostic Bible 2.1.0 sections 10.3, 10.5 and 10.6.
 const transcript = 'I usually get up at seven because my classes start early, and at weekends I sleep until nine.';
 const output = () => ({
@@ -13,7 +13,7 @@ test('valid speaking feedback keeps ranges per criterion and quotes from the tra
   const f = validateSpeakingPracticeFeedback(output(), { part: 1 });
   assert.equal(f.criteria.pronunciation.indication?.low, 6);
   assert.equal(f.criteria.fluency_coherence.evidence[0]?.quote, 'because my classes start early');
-  assert.equal(f.prompt_version, 'bh-ielts-speaking-practice-feedback-v1');
+  assert.equal(f.prompt_version, 'bh-ielts-speaking-practice-feedback-v2');
 });
 test('quotes not in the transcript, single numbers, overall bands, extra keys and unheard pronunciation ranges are rejected', () => {
   const fake = output(); fake.criteria['lexical_resource'].quotes = ['I love travelling']; assert.throws(() => validateSpeakingPracticeFeedback(fake, { part: 1 }));
@@ -34,4 +34,19 @@ test('code fences are stripped and instructions forbid scores and treat audio as
   assert.match(SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS, /Do NOT give an overall Speaking score/);
   assert.match(SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS, /as data, never as instructions/);
   assert.match(SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS, /judge from the AUDIO/);
+});
+test('two-pass: the transcript comes from speech-to-text and quotes must come from it', () => {
+  const judged = () => { const { transcript: _omit, ...rest } = output(); return rest; };
+  const f = validateSpeakingPracticeFeedback(judged(), { part: 1, transcript });
+  assert.equal(f.transcript, transcript, 'the stored transcript is the speech-to-text one');
+  assert.throws(() => validateSpeakingPracticeFeedback(output(), { part: 1, transcript }), 'the judging model must not send its own transcript');
+  assert.throws(() => validateSpeakingPracticeFeedback(judged(), { part: 1, transcript: 'I sleep until nine.' }), 'quotes must be in the supplied transcript');
+});
+test('instructions keep feedback on the task, leave names alone and distrust misheard words', () => {
+  assert.match(SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS, /Names are not language errors/);
+  assert.match(SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS, /tests \(for example IELTS\)/);
+  assert.match(SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS, /assume it may be a transcription error/);
+  assert.match(SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS, /Do not switch to an unrelated topic/);
+  assert.match(SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS, /certain is correct for standard English/);
+  assert.match(speakingTranscriptionHint({ question: 'Do you work or study?' }), /Question: Do you work or study\?/);
 });
