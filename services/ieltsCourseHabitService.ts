@@ -9,6 +9,8 @@ import { createIeltsViewCache } from '../src/lib/ieltsViewCache';
 
 export interface IeltsHabitDay { day: string; xp: number; frozen: boolean; today: boolean }
 
+export interface IeltsBadge { id: string; family: 'streak' | 'xp' | 'perfect' | 'units' | 'league' | string; title: string; detail: string; goal: number; value: number; earned: boolean }
+
 export interface IeltsCourseHabit {
   streak: number;
   today_done: boolean;
@@ -23,6 +25,9 @@ export interface IeltsCourseHabit {
   week: IeltsHabitDay[];
   time_zone: string;
   reminders: boolean;
+  league_tier?: number;
+  league_name?: string;
+  badges?: IeltsBadge[];
 }
 
 export const IELTS_DAILY_GOALS = [
@@ -68,7 +73,7 @@ export async function saveIeltsCourseHabitSettings(settings: { goal?: number; re
 }
 
 /** Celebrations show once per day per device: the first time the streak is extended, and when the goal is met. */
-type Seen = { streakDay?: string; goalDay?: string };
+type Seen = { streakDay?: string; goalDay?: string; badges?: string[] };
 const SEEN_KEY = 'bh_ielts_habit_seen_v1';
 export const readHabitSeen = (): Seen => {
   try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '{}') as Seen; } catch { return {}; }
@@ -77,7 +82,10 @@ export const markHabitSeen = (patch: Seen) => {
   try { localStorage.setItem(SEEN_KEY, JSON.stringify({ ...readHabitSeen(), ...patch })); } catch { /* storage unavailable */ }
 };
 
-export type HabitCelebration = { kind: 'streak'; streak: number; milestone: boolean } | { kind: 'goal'; xp: number; goal: number };
+export type HabitCelebration =
+  | { kind: 'streak'; streak: number; milestone: boolean }
+  | { kind: 'goal'; xp: number; goal: number }
+  | { kind: 'badge'; badge: IeltsBadge };
 
 /** Which celebration (if any) is due for this habit state. A day with no earlier visit still celebrates once. */
 export function dueHabitCelebration(habit: IeltsCourseHabit | null): HabitCelebration | null {
@@ -89,6 +97,11 @@ export function dueHabitCelebration(habit: IeltsCourseHabit | null): HabitCelebr
   if (habit.goal_done && seen.goalDay !== habit.today) {
     return { kind: 'goal', xp: habit.today_xp, goal: habit.daily_goal_xp };
   }
+  const earned = (habit.badges ?? []).filter((b) => b.earned);
+  // The first time badges load on a device, record them silently: only badges earned from now on celebrate.
+  if (!seen.badges) { markHabitSeen({ badges: earned.map((b) => b.id) }); return null; }
+  const fresh = earned.find((b) => !seen.badges!.includes(b.id));
+  if (fresh) return { kind: 'badge', badge: fresh };
   return null;
 }
 
@@ -99,3 +112,45 @@ export function habitStatusLine(habit: IeltsCourseHabit): string {
   if (habit.streak > 0) return `One step today makes it ${habit.streak + 1} days in a row.`;
   return 'Start a streak today. One short step is enough.';
 }
+
+// ---------------------------------------------------------------------------
+// Weekly leagues
+// ---------------------------------------------------------------------------
+
+export interface IeltsLeagueMember { rank: number; name: string; xp: number; me: boolean; hue: number }
+export interface IeltsLeagueResult { week_start: string; tier: number; tier_name: string; rank: number; xp: number; result: 'promoted' | 'stayed' | 'demoted'; new_tier: number; new_tier_name: string }
+export interface IeltsLeague {
+  week_start: string;
+  ends_at: string;
+  tier: number;
+  tier_name: string;
+  joined: boolean;
+  my_xp: number;
+  members: IeltsLeagueMember[];
+  size: number;
+  promote_count: number;
+  demote_count: number;
+  last_week: IeltsLeagueResult | null;
+}
+
+const leagueCache = createIeltsViewCache<IeltsLeague>();
+export const cachedIeltsLeague = () => leagueCache.get();
+
+export async function fetchIeltsLeague(): Promise<IeltsLeague> {
+  const { data, error } = await supabase.rpc('rpc_ielts_league');
+  if (error || !data) throw new Error('The league could not load.');
+  leagueCache.set(data as IeltsLeague);
+  return data as IeltsLeague;
+}
+
+/** "2d 5h" / "5h 12m" until the league week ends. */
+export function leagueTimeLeft(endsAt: string, now = Date.now()): string {
+  const ms = Math.max(0, new Date(endsAt).getTime() - now);
+  const h = Math.floor(ms / 3600000);
+  if (h >= 24) return `${Math.floor(h / 24)}d ${h % 24}h`;
+  return `${h}h ${Math.floor((ms % 3600000) / 60000)}m`;
+}
+
+const LEAGUE_SEEN_KEY = 'bh_ielts_league_result_seen_v1';
+export const leagueResultSeen = (week: string) => { try { return localStorage.getItem(LEAGUE_SEEN_KEY) === week; } catch { return true; } };
+export const markLeagueResultSeen = (week: string) => { try { localStorage.setItem(LEAGUE_SEEN_KEY, week); } catch { /* storage unavailable */ } };
