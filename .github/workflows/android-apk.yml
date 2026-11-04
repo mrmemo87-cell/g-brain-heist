@@ -1,0 +1,81 @@
+name: Android test APK
+
+# Builds an installable Android test app (debug APK) from the current code.
+# Download it from the run's "Artifacts" section and install it on an Android phone.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'android/**'
+      - 'capacitor.config.ts'
+      - 'src/native/**'
+      - 'src/lib/nativePlatform.ts'
+      - '.github/workflows/android-apk.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'capacitor.config.ts'
+      - 'src/native/**'
+      - 'src/lib/nativePlatform.ts'
+      - '.github/workflows/android-apk.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-apk-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    name: Build Android debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Install
+        run: npm ci
+
+      - name: Build web app for the native shell
+        # The Supabase URL and anon key are public client values (they ship in every web page);
+        # repository variables override the defaults from .env.example when set.
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$VITE_SUPABASE_URL" ]; then export VITE_SUPABASE_URL="$(grep '^VITE_SUPABASE_URL=' .env.example | cut -d= -f2-)"; fi
+          if [ -z "$VITE_SUPABASE_ANON_KEY" ]; then export VITE_SUPABASE_ANON_KEY="$(grep '^VITE_SUPABASE_ANON_KEY=' .env.example | cut -d= -f2-)"; fi
+          export VITE_SITE_URL=https://www.brainsheist.com
+          export VITE_SUPABASE_AUTH_REDIRECT_URL=https://www.brainsheist.com/auth/callback
+          npm run build
+          du -sh dist
+
+      - name: Copy web app into the Android project
+        run: npx cap sync android
+
+      - name: Assemble debug APK
+        working-directory: android
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: APK size
+        run: ls -lh android/app/build/outputs/apk/debug/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: brains-heist-android-debug-${{ github.sha }}
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14

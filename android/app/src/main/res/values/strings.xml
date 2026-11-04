@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Brains Heist</string>
+    <string name="title_activity_main">Brains Heist</string>
+    <string name="package_name">com.brainsheist.app</string>
+    <string name="custom_url_scheme">com.brainsheist.app</string>
+</resources>
