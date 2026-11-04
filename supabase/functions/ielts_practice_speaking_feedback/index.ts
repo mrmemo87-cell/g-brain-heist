@@ -71,7 +71,13 @@ Deno.serve(async (req: Request) => {
           ],
         }),
       });
-      if (!response.ok) { if (attempt === 0 && (response.status === 429 || response.status >= 500)) continue; throw new Error('provider_unavailable'); }
+      if (!response.ok) {
+        if (attempt === 0 && (response.status === 429 || response.status >= 500)) continue;
+        // Only the provider's error code/type/param are kept: never its message, which may echo input.
+        const detail = await response.json().catch(() => null) as { error?: { code?: string; type?: string; param?: string } } | null;
+        const err = detail?.error;
+        throw new Error(`provider_${response.status}:${err?.code || err?.type || 'unknown'}${err?.param ? `:${err.param}` : ''}`);
+      }
       const output = await response.json();
       const choice = output.choices?.[0];
       try {
@@ -90,7 +96,7 @@ Deno.serve(async (req: Request) => {
   } catch (e) {
     await admin.rpc('rpc_ielts_practice_speaking_feedback_finish', { p_id: claim.id, p_fields: null, p_provider: null });
     // Never log audio, transcripts, provider bodies, personal data or credentials.
-    console.warn('Speaking practice feedback unavailable', { feedbackId: claim.id, reason: e instanceof Error ? e.message.slice(0, 40) : 'unknown' });
+    console.warn('Speaking practice feedback unavailable', { feedbackId: claim.id, reason: e instanceof Error ? e.message.slice(0, 120) : 'unknown' });
     return json(503, { error: 'ai_unavailable' });
   }
 });
