@@ -23,7 +23,7 @@ on:
       - '.github/workflows/android-apk.yml'
 
 permissions:
-  contents: read
+  contents: write # only used on main, to update the "android-test" pre-release with the newest APK
 
 concurrency:
   group: android-apk-${{ github.event.pull_request.number || github.ref }}
@@ -81,3 +81,19 @@ jobs:
           name: brains-heist-android-debug-${{ github.sha }}
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
+
+      - name: Publish to the android-test pre-release (main only)
+        # Gives a fixed phone-friendly link:
+        # https://github.com/${{ github.repository }}/releases/download/android-test/brains-heist-test.apk
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk brains-heist-test.apk
+          NOTES="Test build of the Brains Heist Android app from ${GITHUB_SHA::7}. Not for the Play Store."
+          if gh release view android-test >/dev/null 2>&1; then
+            gh release upload android-test brains-heist-test.apk --clobber
+            gh release edit android-test --notes "$NOTES"
+          else
+            gh release create android-test brains-heist-test.apk --prerelease --title "Android test app" --notes "$NOTES" --target "$GITHUB_SHA"
+          fi
