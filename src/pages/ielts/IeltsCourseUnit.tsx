@@ -11,7 +11,10 @@ import {
   ieltsCourseTaskRoute,
   ieltsCourseUnitLabel,
   ieltsCourseUnitRoute,
+  cachedIeltsCourseState,
+  fetchIeltsCourseState,
   markIeltsCourseLessonViewed,
+  type IeltsCourseAccessReason,
   syncIeltsCourseProgress,
   type IeltsCourseUnitDetail,
   type IeltsCourseUnitLocked,
@@ -62,6 +65,10 @@ const IeltsCourseUnit: React.FC = () => {
   const touch = useRef<number | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const { habit, refresh: refreshHabit } = useIeltsCourseHabit();
+  const [accessReason, setAccessReason] = useState<IeltsCourseAccessReason | null>(() => {
+    const cached = cachedIeltsCourseState();
+    return cached ? (cached.access.full ? null : cached.access.reason) : null;
+  });
 
   const load = useCallback(async () => {
     if (!Number.isFinite(unitId) || unitId <= 0) { setError('This unit is not available.'); return; }
@@ -79,6 +86,13 @@ const IeltsCourseUnit: React.FC = () => {
 
   useEffect(() => { setUnit(null); setCard(0); setCelebrate(false); void load(); }, [load]);
   useEffect(() => { window.scrollTo({ top: 0 }); }, [step, unitId]);
+  // Clearing a free unit without full access is the moment to offer the rest of the course.
+  useEffect(() => {
+    if (step !== 'done' || !unit || isLocked(unit) || !unit.is_free_preview) return;
+    let alive = true;
+    fetchIeltsCourseState().then((st) => { if (alive) setAccessReason(st.access.full ? null : st.access.reason); }).catch(() => undefined);
+    return () => { alive = false; };
+  }, [step, unit]);
 
   const detail = unit && !isLocked(unit) ? unit : null;
   const skill = detail ? primarySkill(detail.focus_skills) : 'reading';
@@ -312,15 +326,36 @@ const IeltsCourseUnit: React.FC = () => {
                     <div className="ic-medal" aria-hidden="true"><span>{isVocab ? `V${detail.position}` : detail.position}</span></div>
                     <p className="ic-eyebrow ic-eyebrow--light">{isVocab ? 'Lesson cleared' : 'Stop cleared'}</p>
                     <h2>{label(detail.position)} complete</h2>
-                    <p>{detail.next_unit_id
+                    <p>{detail.is_free_preview && accessReason
+                      ? (isVocab ? 'You finished the free vocabulary lesson. Five more are waiting.' : 'You finished the free unit. Nineteen more stops are waiting on your route.')
+                      : detail.next_unit_id
                       ? (isVocab ? 'The next vocabulary lesson is open. Keep the momentum going.' : 'The next stop on your route is open. Keep the momentum going.')
                       : (isVocab ? 'That was the last vocabulary lesson. You have finished the whole path.' : 'That was the final stop. You have finished the whole route.')}</p>
-                    {detail.next_unit_id ? (
+                    {detail.is_free_preview && accessReason ? null : detail.next_unit_id ? (
                       <button type="button" className="ic-btn ic-btn--light ic-btn--glow" onClick={() => navigate(ieltsCourseUnitRoute(detail.next_unit_id as number))}>{isVocab ? 'Next lesson' : 'Next unit'} <span aria-hidden="true">→</span></button>
                     ) : (
                       <button type="button" className="ic-btn ic-btn--light" onClick={() => navigate(mapRoute)}>Back to the course map</button>
                     )}
                   </section>
+                  {detail.is_free_preview && accessReason === 'prime_required' && (
+                    <section className="po-card" aria-labelledby="po-title">
+                      <div className="po-glow" aria-hidden="true" />
+                      <p className="po-kicker">IELTS Prime</p>
+                      <h3 id="po-title">{isVocab ? 'Unlock V2 to V6 and the full course' : 'Unlock the next 19 units'}</h3>
+                      <ul className="po-list">
+                        <li>All 20 units: Reading, Listening, Writing and Speaking</li>
+                        <li>The whole vocabulary path: 6 lessons, 36 steps</li>
+                        <li>Writing and Speaking feedback on all four criteria</li>
+                        <li>Keep your streak, league and badges going</li>
+                      </ul>
+                      <div className="po-price"><b>$34.50</b><span>for 3 months · most popular</span></div>
+                      <button type="button" className="ic-btn ic-btn--gold ic-btn--block ic-btn--glow" onClick={() => navigate('/ielts/apply-prime')}>See Prime plans <span aria-hidden="true">→</span></button>
+                      <p className="po-fine">From $14.50 a month. Cancel the monthly plan anytime.</p>
+                    </section>
+                  )}
+                  {detail.is_free_preview && accessReason === 'school_seat_missing' && (
+                    <section className="ic-card"><h3>Ready for Unit 2?</h3><p className="ic-muted">Ask your school admin to allocate an IELTS seat to you to continue the course.</p></section>
+                  )}
                   <section className="ic-card">
                     <h3>{isVocab ? 'Review this lesson' : 'Review this unit'}</h3>
                     <div className="ic-tasklist">

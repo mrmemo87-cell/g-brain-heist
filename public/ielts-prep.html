@@ -472,6 +472,25 @@
         }
       } catch (e) {}
 
+      // Anonymous visit for the owner's growth report (same pipeline as the main site): a random id in this
+      // browser, the page, the campaign tags and the referring site. Never for signed-in members, never for bots.
+      try {
+        var member = localStorage.getItem('bh_site_member');
+        if (!member && !navigator.webdriver && !/bot|crawl|spider|headless|preview/i.test(navigator.userAgent)) {
+          var vid = localStorage.getItem('bh_site_visitor_id');
+          var mk = function () { return (crypto && crypto.randomUUID) ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) { var r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); }); };
+          if (!vid) { vid = mk(); localStorage.setItem('bh_site_visitor_id', vid); }
+          var utm = {};
+          ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].forEach(function (k) { var v = params.get(k); if (v) utm[k] = v.slice(0, 120); });
+          var refHost = null;
+          try { if (document.referrer) { var h = new URL(document.referrer).hostname.replace(/^www\./, ''); if (h && h.indexOf('brainsheist.com') < 0) refHost = h; } } catch (e) {}
+          var body = JSON.stringify({ visitorId: vid, sessionId: mk(), path: '/ielts-prep', referrerHost: refHost, utm: utm,
+            device: /mobi|iphone|android/i.test(navigator.userAgent) ? 'phone' : 'desktop', locale: (navigator.language || '').slice(0, 20) });
+          if (navigator.sendBeacon) navigator.sendBeacon('/api/site-visit', new Blob([body], { type: 'application/json' }));
+          else fetch('/api/site-visit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body, keepalive: true });
+        }
+      } catch (e) {}
+
       var saved = null;
       try { saved = localStorage.getItem('bh_ielts_landing_lang'); } catch (e) {}
       var browser = (navigator.language || '').toLowerCase().indexOf('ru') === 0 || (navigator.language || '').toLowerCase().indexOf('ky') === 0 || (navigator.language || '').toLowerCase().indexOf('kk') === 0 ? 'ru' : null;

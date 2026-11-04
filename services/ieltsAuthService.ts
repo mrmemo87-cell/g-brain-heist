@@ -25,10 +25,13 @@ export const login = async (email: string, password: string): Promise<void> => {
 };
 
 export const signup = async ({ email, password, username, fullName }: SignupPayload): Promise<{ requiresVerification: boolean }> => {
+  // The confirmation email returns through the auth callback; the callback then opens the saved IELTS intent.
+  const emailRedirectTo = getAuthRedirectUrl();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
+      ...(emailRedirectTo ? { emailRedirectTo } : {}),
       data: {
         app_context: 'ielts_hub',
         ielts_username: username,
