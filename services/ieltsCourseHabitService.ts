@@ -28,6 +28,30 @@ export interface IeltsCourseHabit {
   league_tier?: number;
   league_name?: string;
   badges?: IeltsBadge[];
+  exam?: IeltsExamPlan;
+}
+
+export interface IeltsExamPlan {
+  module: 'academic' | 'general' | 'unsure' | null;
+  date: string | null;
+  days_left: number | null;
+  target: number | null;
+  onboarded: boolean;
+}
+
+/** Save the learner's own exam plan. The first campaign tags they arrived with (landing page) travel along once. */
+export async function saveIeltsExamPlan(plan: { module: string | null; date: string | null; target: number | null }): Promise<IeltsCourseHabit> {
+  let acquisition: Record<string, string> | null = null;
+  try { acquisition = JSON.parse(localStorage.getItem('bh_ielts_first_touch') || 'null'); } catch { acquisition = null; }
+  const { data, error } = await supabase.rpc('rpc_ielts_course_exam_profile', {
+    p_module: plan.module,
+    p_exam_date: plan.date,
+    p_target: plan.target,
+    p_acquisition: acquisition,
+  });
+  if (error || !data) throw new Error('Your plan could not be saved. Please try again.');
+  habitCache.set(data as IeltsCourseHabit);
+  return data as IeltsCourseHabit;
 }
 
 export const IELTS_DAILY_GOALS = [

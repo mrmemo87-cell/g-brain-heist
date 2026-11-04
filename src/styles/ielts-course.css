@@ -459,3 +459,28 @@
 @keyframes lg-old-out { 60% { transform: scale(1.1); opacity: 1; } 100% { transform: translateY(-40px) scale(.3); opacity: 0; } }
 @keyframes lg-new-in { from { transform: translateY(60px) scale(.3); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .lg-hero-rays, .lg-row, .lg-result-old, .lg-result-new { animation: none; } .lg-result-old { display: none; } }
+
+/* Exam plan: welcome sheet and countdown */
+.ep-sheet { display: grid; gap: .8rem; }
+.ep-welcome { display: grid; justify-items: center; gap: .6rem; text-align: center; padding: .4rem 0 .2rem; }
+.ep-welcome h2 { font-size: 1.5rem; }
+.ep-welcome p { color: #475569; }
+.ep-group { border: 0; margin: 0; padding: 0; display: grid; gap: .45rem; }
+.ep-group legend { font-weight: 900; margin-bottom: .35rem; color: #0f172a; }
+.ep-options { display: grid; gap: .4rem; }
+.ep-option { display: grid; gap: .05rem; padding: .7rem .85rem; border-radius: 16px; border: 1.5px solid #e2e8f0; background: #fff; text-align: left; font: inherit; cursor: pointer; }
+.ep-option small { color: #64748b; }
+.ep-option.is-on, .ep-target.is-on { border-color: #1746B0; background: #eef3fa; box-shadow: inset 0 0 0 1px #1746B0; }
+.ep-date { min-height: 48px; padding: .5rem .8rem; border-radius: 14px; border: 1.5px solid #cbd5e1; font: 600 1rem/1.2 inherit; }
+.ep-check { display: inline-flex; align-items: center; gap: .45rem; font-weight: 700; color: #334155; }
+.ep-targets { display: grid; grid-template-columns: repeat(4, 1fr); gap: .4rem; }
+.ep-target { min-height: 46px; border-radius: 14px; border: 1.5px solid #e2e8f0; background: #fff; font: 900 1.02rem/1 inherit; color: #0f172a; cursor: pointer; }
+.ep-countdown { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: .75rem; width: 100%; padding: .55rem .9rem; border-radius: 20px; border: 1px solid #dbe4f3; background: linear-gradient(120deg, #eef3fa, #fff 70%); font: inherit; text-align: left; cursor: pointer; color: #0f172a; }
+.ep-countdown.is-soon { border-color: #fecaca; background: linear-gradient(120deg, #fff1f2, #fff 70%); }
+.ep-cal { display: grid; width: 52px; border-radius: 12px; overflow: hidden; text-align: center; background: #fff; box-shadow: 0 4px 10px rgba(15, 23, 42, .1); }
+.ep-cal-top { font-size: .55rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; color: #fff; background: #1746B0; padding: .15rem .1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ep-countdown.is-soon .ep-cal-top { background: #e11d48; }
+.ep-cal b { font-size: 1.35rem; font-weight: 900; padding: .1rem 0 .15rem; }
+.ep-countdown-text { display: grid; }
+.ep-countdown-text b { font-weight: 900; }
+.ep-countdown-text small { color: #475569; font-weight: 600; font-size: .8rem; }

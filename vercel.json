@@ -24,6 +24,10 @@
       "destination": "/watch.html"
     },
     {
+      "source": "/ielts-prep",
+      "destination": "/ielts-prep.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
