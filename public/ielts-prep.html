@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Подготовка к IELTS онлайн — Brains Heist</title>
+  <meta name="description" content="Подготовка к IELTS для поступающих за рубеж: 20 коротких юнитов по всем четырём частям, отдельный курс лексики, обратная связь по Writing и Speaking, стрики и лиги. Первый юнит бесплатно." />
+  <link rel="canonical" href="https://brainsheist.com/ielts-prep" />
+  <link rel="alternate" hreflang="ru" href="https://brainsheist.com/ielts-prep" />
+  <link rel="alternate" hreflang="en" href="https://brainsheist.com/ielts-prep?lang=en" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Brains Heist" />
+  <meta property="og:title" content="IELTS без скуки: подготовка, к которой хочется возвращаться" />
+  <meta property="og:description" content="Короткие уроки, реальная практика и мгновенная обратная связь. Первый юнит бесплатно." />
+  <meta property="og:url" content="https://brainsheist.com/ielts-prep" />
+  <meta property="og:image" content="https://brainsheist.com/ielts/og-ielts-prep.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="ru_RU" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#0b1023" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <style>
+    :root {
+      --ink: #0f172a; --muted: #475569; --line: #e2e8f0; --paper: #ffffff; --bg: #f6f7fb;
+      --navy: #0b1023; --indigo: #312e81; --blue: #1746b0; --teal: #0e7490; --amber: #f59e0b; --orange: #ea580c; --green: #047857;
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.5; overflow-x: hidden; }
+    a { color: inherit; }
+    img, svg { display: block; }
+    .wrap { width: min(1120px, 100%); margin: 0 auto; padding: 0 20px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 54px; padding: 0 1.6rem; border-radius: 999px; font-weight: 800; font-size: 1.02rem; text-decoration: none; cursor: pointer; border: 0; transition: transform .15s ease, box-shadow .2s ease; }
+    .btn:active { transform: scale(.98); }
+    .btn-primary { color: #1e1b4b; background: linear-gradient(135deg, #fde68a, #f59e0b); box-shadow: 0 14px 30px rgba(245, 158, 11, .35); position: relative; overflow: hidden; }
+    .btn-primary::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.6) 50%, transparent 70%); transform: translateX(-120%); animation: sheen 3.2s ease-in-out infinite 1.2s; }
+    .btn-ghost { color: #fff; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.25); }
+    .btn-dark { color: #fff; background: linear-gradient(135deg, var(--indigo), var(--blue) 60%, var(--teal)); box-shadow: 0 12px 26px rgba(23,70,176,.3); }
+    @keyframes sheen { 0%, 60% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+
+    /* Top bar */
+    .top { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(12px); background: rgba(11,16,35,.72); border-bottom: 1px solid rgba(255,255,255,.08); }
+    .top .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: .55rem; color: #fff; font-weight: 900; text-decoration: none; letter-spacing: -.01em; }
+    .brand-mark { padding: .25rem .55rem; border-radius: 9px; background: linear-gradient(135deg, #4f46e5, #7c3aed); font-size: .78rem; letter-spacing: .08em; }
+    .top-right { display: flex; align-items: center; gap: 8px; }
+    .lang { display: inline-flex; padding: 3px; border-radius: 999px; background: rgba(255,255,255,.1); }
+    .lang button { min-width: 42px; min-height: 34px; border: 0; border-radius: 999px; background: transparent; color: #cbd5e1; font-weight: 800; cursor: pointer; }
+    .lang button[aria-pressed="true"] { background: #fff; color: var(--navy); }
+    .top .btn { min-height: 40px; padding: 0 1rem; font-size: .9rem; }
+    @media (max-width: 520px) { .top .login { display: none; } }
+
+    /* Hero */
+    .hero { position: relative; overflow: hidden; color: #fff; background: radial-gradient(90% 70% at 85% 10%, #4c1d95 0%, transparent 60%), radial-gradient(70% 60% at 0% 100%, #0e7490 0%, transparent 60%), linear-gradient(160deg, #0b1023, #172554 60%, #1e1b4b); padding: 56px 0 72px; }
+    .hero::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.18) 1px, transparent 1px); background-size: 26px 26px; mask-image: linear-gradient(180deg, rgba(0,0,0,.6), transparent 70%); pointer-events: none; }
+    .hero-grid { position: relative; display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; }
+    @media (max-width: 880px) { .hero-grid { grid-template-columns: 1fr; gap: 28px; } .hero { padding-top: 36px; } }
+    .pill { display: inline-flex; align-items: center; gap: .45rem; padding: .35rem .8rem; border-radius: 999px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); font-size: .82rem; font-weight: 700; color: #e0e7ff; }
+    .pill b { color: #fde68a; }
+    h1 { font-size: clamp(2.1rem, 6.4vw, 3.6rem); line-height: 1.05; letter-spacing: -.035em; margin: 18px 0 14px; font-weight: 900; }
+    h1 .glow { background: linear-gradient(90deg, #fde68a, #fb923c 40%, #f472b6 70%, #a78bfa); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero p.lead { font-size: clamp(1.02rem, 2.4vw, 1.2rem); color: #cbd5e1; max-width: 560px; margin: 0 0 26px; }
+    .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .hero-note { margin-top: 14px; font-size: .88rem; color: #a5b4fc; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+    .hero-note span::before { content: '✓ '; color: #86efac; font-weight: 900; }
+
+    /* Phone mock with animated course */
+    .phone { position: relative; justify-self: center; width: min(320px, 86vw); aspect-ratio: 9/18.5; border-radius: 44px; padding: 12px; background: linear-gradient(160deg, #1f2937, #0b1023); box-shadow: 0 40px 80px rgba(0,0,0,.5), inset 0 0 0 2px rgba(255,255,255,.08); transform: rotate(-3deg); animation: phone-float 6s ease-in-out infinite; }
+    @keyframes phone-float { 0%,100% { transform: rotate(-3deg) translateY(0); } 50% { transform: rotate(-2deg) translateY(-10px); } }
+    .screen { position: relative; height: 100%; border-radius: 34px; overflow: hidden; background: #f6f7fb; display: grid; grid-template-rows: auto auto 1fr; gap: 10px; padding: 16px 12px; }
+    .s-bar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 16px; background: linear-gradient(135deg, #fff7ed, #fff); border: 1px solid #fde4c3; }
+    .s-bar b { font-size: .85rem; color: #7c2d12; display: block; }
+    .s-bar small { font-size: .66rem; color: #57534e; }
+    .s-ring { width: 34px; height: 34px; }
+    .s-league { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 14px; background: linear-gradient(120deg, #f1f5f9, #fff); border: 1px solid #e2e8f0; font-size: .74rem; font-weight: 800; color: #334155; }
+    .s-map { position: relative; border-radius: 18px; background: linear-gradient(180deg, #eef3fa, #f6f7fb); overflow: hidden; }
+    .s-map svg { width: 100%; height: 100%; }
+    .node { transform-box: fill-box; transform-origin: center; }
+    .node-current { animation: node-pulse 1.8s ease-in-out infinite; }
+    @keyframes node-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    .trail-done { stroke-dasharray: 600; stroke-dashoffset: 600; animation: draw 2.6s ease-out .4s forwards; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    .toast { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: #0f172a; color: #fff; font-size: .74rem; font-weight: 800; white-space: nowrap; box-shadow: 0 10px 24px rgba(0,0,0,.25); animation: toast 6s ease-in-out infinite 1.8s; opacity: 0; }
+    @keyframes toast { 0% { opacity: 0; transform: translate(-50%, 16px); } 8%, 40% { opacity: 1; transform: translate(-50%, 0); } 48%, 100% { opacity: 0; transform: translate(-50%, -6px); } }
+    .float-chip { position: absolute; padding: 8px 12px; border-radius: 14px; background: #fff; color: var(--ink); font-size: .78rem; font-weight: 800; box-shadow: 0 16px 34px rgba(0,0,0,.28); display: flex; align-items: center; gap: 6px; }
+    .chip-a { top: 40%; left: -14%; animation: bob 5s ease-in-out infinite; }
+    .chip-b { bottom: 18%; right: -12%; animation: bob 5.6s ease-in-out infinite .8s; }
+    @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @media (max-width: 520px) { .chip-a { left: -4%; } .chip-b { right: -2%; } }
+
+    /* Blaze mascot */
+    .blaze-body { transform-origin: 60px 108px; animation: blaze-sway 3.2s ease-in-out infinite; }
+    .blaze-outer, .blaze-inner { transform-origin: 60px 108px; }
+    .blaze-outer { animation: blaze-flicker 1.6s ease-in-out infinite; }
+    .blaze-inner { animation: blaze-flicker 1.1s ease-in-out infinite reverse; }
+    .blaze-eyes { transform-origin: 60px 73px; animation: blaze-blink 4.2s infinite; }
+    .blaze-jump .blaze-body { animation: blaze-jump .9s cubic-bezier(.3,1.4,.5,1) infinite; }
+    @keyframes blaze-flicker { 0%,100% { transform: scale(1,1) skewX(0); } 30% { transform: scale(1.03,.97) skewX(-2deg); } 65% { transform: scale(.97,1.04) skewX(2deg); } }
+    @keyframes blaze-sway { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+    @keyframes blaze-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+    @keyframes blaze-jump { 0%,100% { transform: translateY(0) scale(1.06,.94); } 15% { transform: scale(.95,1.06); } 50% { transform: translateY(-14px); } 85% { transform: scale(1.04,.96); } }
+
+    /* Sections */
+    section { padding: 72px 0; }
+    .kicker { font-size: .78rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; color: var(--blue); }
+    h2 { font-size: clamp(1.7rem, 4.6vw, 2.5rem); line-height: 1.1; letter-spacing: -.03em; margin: 10px 0 14px; font-weight: 900; }
+    .sub { color: var(--muted); font-size: 1.05rem; max-width: 640px; }
+    .center { text-align: center; } .center .sub { margin: 0 auto; }
+
+    /* Who it's for */
+    .flags { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 26px; }
+    .flag { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; background: #fff; border: 1px solid var(--line); font-weight: 700; box-shadow: 0 6px 14px rgba(15,23,42,.05); }
+    .personas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 30px; }
+    @media (max-width: 760px) { .personas { grid-template-columns: 1fr; } }
+    .persona { padding: 22px; border-radius: var(--radius); background: #fff; border: 1px solid var(--line); }
+    .persona .ico { font-size: 1.8rem; }
+    .persona h3 { margin: 8px 0 6px; font-size: 1.12rem; }
+    .persona p { margin: 0; color: var(--muted); }
+
+    /* How it works */
+    .how { background: #fff; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 32px; counter-reset: step; }
+    @media (max-width: 760px) { .steps { grid-template-columns: 1fr; } }
+    .step { position: relative; padding: 24px 22px 22px; border-radius: var(--radius); background: linear-gradient(160deg, #f8fafc, #fff); border: 1px solid var(--line); }
+    .step::before { counter-increment: step; content: counter(step); position: absolute; top: -16px; left: 20px; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: linear-gradient(135deg, var(--indigo), var(--blue)); color: #fff; font-weight: 900; box-shadow: 0 8px 18px rgba(23,70,176,.3); }
+    .step h3 { margin: 10px 0 6px; }
+    .step p { margin: 0; color: var(--muted); }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 34px; }
+    @media (max-width: 760px) { .features { grid-template-columns: 1fr; } }
+    .feature { position: relative; overflow: hidden; padding: 26px; border-radius: 26px; color: #fff; min-height: 220px; display: grid; align-content: end; gap: 8px; }
+    .feature h3 { margin: 0; font-size: 1.3rem; }
+    .feature p { margin: 0; color: rgba(255,255,255,.88); }
+    .feature .art { position: absolute; top: 18px; right: 18px; opacity: .95; }
+    .f-route { background: linear-gradient(150deg, #172554, #1746b0 60%, #0e7490); }
+    .f-vocab { background: linear-gradient(150deg, #052e2b, #047857 65%, #0f766e); }
+    .f-feedback { background: linear-gradient(150deg, #2e1065, #6d28d9 60%, #a21caf); }
+    .f-habit { background: linear-gradient(150deg, #7c2d12, #ea580c 60%, #f59e0b); }
+    .tag { display: inline-block; padding: .2rem .6rem; border-radius: 999px; background: rgba(255,255,255,.16); font-size: .75rem; font-weight: 800; letter-spacing: .02em; width: fit-content; }
+
+    /* Skills strip */
+    .skills { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 26px; }
+    @media (max-width: 640px) { .skills { grid-template-columns: repeat(2, 1fr); } }
+    .skill { padding: 18px 14px; border-radius: 18px; background: #fff; border: 1px solid var(--line); text-align: center; font-weight: 800; }
+    .skill span { display: block; font-size: 1.8rem; margin-bottom: 6px; }
+
+    /* Honesty note */
+    .honest { display: flex; gap: 14px; align-items: flex-start; margin-top: 28px; padding: 18px 20px; border-radius: 18px; background: #eef2ff; border: 1px solid #c7d2fe; color: #312e81; }
+    .honest b { display: block; margin-bottom: 2px; }
+
+    /* Pricing */
+    .pricing { background: linear-gradient(180deg, #0b1023, #172554); color: #fff; }
+    .pricing .kicker { color: #a5b4fc; }
+    .pricing .sub { color: #cbd5e1; }
+    .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 34px; align-items: stretch; }
+    @media (max-width: 860px) { .plans { grid-template-columns: 1fr; } }
+    .plan { position: relative; display: grid; gap: 10px; align-content: start; padding: 26px 22px; border-radius: 26px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); }
+    .plan.best { background: linear-gradient(160deg, rgba(245,158,11,.18), rgba(255,255,255,.06)); border-color: rgba(251,191,36,.6); box-shadow: 0 20px 44px rgba(245,158,11,.18); }
+    .plan .badge { position: absolute; top: -12px; left: 22px; padding: .25rem .7rem; border-radius: 999px; background: linear-gradient(135deg, #fde68a, #f59e0b); color: #1e1b4b; font-size: .75rem; font-weight: 900; }
+    .plan h3 { margin: 0; font-size: 1.15rem; }
+    .price { display: flex; align-items: baseline; gap: 8px; }
+    .price b { font-size: 2.4rem; letter-spacing: -.03em; }
+    .price s { color: #94a3b8; }
+    .price small { color: #cbd5e1; }
+    .plan ul { margin: 6px 0 12px; padding: 0; list-style: none; display: grid; gap: 6px; color: #e2e8f0; }
+    .plan li::before { content: '✓  '; color: #86efac; font-weight: 900; }
+    .plan .btn { width: 100%; }
+    .free-strip { margin-top: 22px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; padding: 16px; border-radius: 18px; background: rgba(255,255,255,.06); border: 1px dashed rgba(255,255,255,.25); color: #e2e8f0; text-align: center; }
+
+    /* FAQ */
+    .faq { max-width: 780px; margin: 30px auto 0; display: grid; gap: 10px; }
+    details { border-radius: 16px; background: #fff; border: 1px solid var(--line); padding: 4px 18px; }
+    summary { cursor: pointer; list-style: none; padding: 14px 0; font-weight: 800; display: flex; justify-content: space-between; gap: 12px; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: '+'; font-size: 1.3rem; color: var(--blue); transition: transform .2s; }
+    details[open] summary::after { transform: rotate(45deg); }
+    details p { margin: 0 0 16px; color: var(--muted); }
+
+    /* Final CTA */
+    .final { position: relative; overflow: hidden; margin: 0 20px 40px; border-radius: 32px; padding: 54px 24px; color: #fff; text-align: center; background: radial-gradient(80% 90% at 50% 0%, #fb923c, #c2410c 55%, #7c2d12); }
+    .final h2 { margin-top: 6px; }
+    .final p { color: #ffedd5; max-width: 560px; margin: 0 auto 22px; }
+    .final .blaze-wrap { display: grid; place-items: center; }
+
+    footer { padding: 30px 0 60px; color: #64748b; font-size: .85rem; }
+    footer .links { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; }
+    footer a { color: #475569; }
+
+    /* Sticky mobile CTA */
+    .sticky-cta { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 30; display: none; }
+    .sticky-cta .btn { width: 100%; }
+    @media (max-width: 640px) { .sticky-cta.show { display: block; animation: rise .3s ease-out; } }
+    @keyframes rise { from { transform: translateY(30px); opacity: 0; } }
+
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1); }
+    .reveal.in { opacity: 1; transform: none; }
+
+    [data-lang="en"] .ru, [data-lang="ru"] .en { display: none !important; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .toast { opacity: 1; }
+    }
+  </style>
+</head>
+<body data-lang="ru">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <radialGradient id="bzo" cx="50%" cy="78%" r="70%"><stop offset="0%" stop-color="#fde047"/><stop offset="55%" stop-color="#f97316"/><stop offset="100%" stop-color="#dc2626"/></radialGradient>
+      <radialGradient id="bzi" cx="50%" cy="80%" r="65%"><stop offset="0%" stop-color="#fffbeb"/><stop offset="100%" stop-color="#fde047"/></radialGradient>
+      <symbol id="blaze" viewBox="0 0 120 120">
+        <ellipse cx="60" cy="112" rx="26" ry="5" fill="rgba(15,23,42,.18)"/>
+        <g class="blaze-body">
+          <path class="blaze-outer" fill="url(#bzo)" d="M60 8 C66 26 84 30 88 50 C91 38 89 30 86 24 C100 36 104 56 100 74 C96 96 80 108 60 108 C40 108 24 96 20 74 C16 56 24 40 34 32 C34 42 38 48 42 52 C40 34 48 20 60 8 Z"/>
+          <path class="blaze-inner" fill="url(#bzi)" d="M60 44 C64 56 76 60 78 74 C80 90 70 100 60 100 C50 100 40 92 42 78 C43 70 48 66 50 60 C52 66 55 68 57 69 C55 60 56 52 60 44 Z"/>
+          <g class="blaze-eyes">
+            <ellipse cx="50" cy="73" rx="5.2" ry="6.4" fill="#fff"/><ellipse cx="70" cy="73" rx="5.2" ry="6.4" fill="#fff"/>
+            <circle cx="51" cy="74.5" r="2.9" fill="#1f2937"/><circle cx="71" cy="74.5" r="2.9" fill="#1f2937"/>
+            <circle cx="52.2" cy="72.6" r="1" fill="#fff"/><circle cx="72.2" cy="72.6" r="1" fill="#fff"/>
+          </g>
+          <circle cx="42" cy="84" r="3.6" fill="#fb7185" opacity=".45"/><circle cx="78" cy="84" r="3.6" fill="#fb7185" opacity=".45"/>
+          <path d="M52 86 q8 7 16 0" fill="none" stroke="#7c2d12" stroke-width="2.6" stroke-linecap="round"/>
+        </g>
+      </symbol>
+    </defs>
+  </svg>
+
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="/ielts-prep" aria-label="Brains Heist IELTS"><span class="brand-mark">IELTS</span>Brains Heist</a>
+      <div class="top-right">
+        <div class="lang" role="group" aria-label="Язык / Language">
+          <button type="button" data-set-lang="ru" aria-pressed="true">RU</button>
+          <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+        </div>
+        <a class="btn btn-ghost login" data-cta href="/ielts/course"><span class="ru">Войти</span><span class="en">Sign in</span></a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <span class="pill">🎓 <span class="ru">Для поступающих в вузы <b>по всему миру</b></span><span class="en">For applicants to universities <b>worldwide</b></span></span>
+          <h1>
+            <span class="ru">IELTS, к которому <span class="glow">хочется возвращаться</span></span>
+            <span class="en">IELTS prep you'll <span class="glow">actually stick with</span></span>
+          </h1>
+          <p class="lead">
+            <span class="ru">Короткие уроки, настоящая практика по всем четырём частям экзамена и мгновенная обратная связь. Каждый день по 10–15 минут — и вы готовитесь без зубрёжки и скуки.</span>
+            <span class="en">Short lessons, real practice in all four papers and instant feedback. Ten to fifteen minutes a day, without the boredom.</span>
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" data-cta href="/ielts/course"><span class="ru">Начать бесплатно</span><span class="en">Start free</span> <span aria-hidden="true">→</span></a>
+            <a class="btn btn-ghost" href="#how"><span class="ru">Как это работает</span><span class="en">How it works</span></a>
+          </div>
+          <div class="hero-note">
+            <span class="ru">Первый юнит бесплатно</span><span class="en">First unit free</span>
+            <span class="ru">Без карты</span><span class="en">No card needed</span>
+            <span class="ru">С телефона</span><span class="en">Works on your phone</span>
+          </div>
+        </div>
+
+        <div style="position:relative">
+          <div class="phone" aria-hidden="true">
+            <div class="screen">
+              <div class="s-bar">
+                <svg width="40" height="40"><use href="#blaze"/></svg>
+                <span><b class="ru">5 дней подряд</b><b class="en">5 day streak</b><small class="ru">Цель на сегодня выполнена</small><small class="en">Daily goal done</small></span>
+                <svg class="s-ring" viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="none" stroke="#fde4c3" stroke-width="5"/><circle cx="20" cy="20" r="15" fill="none" stroke="#f59e0b" stroke-width="5" stroke-linecap="round" stroke-dasharray="94" stroke-dashoffset="8" transform="rotate(-90 20 20)"/><text x="20" y="24" text-anchor="middle" font-size="11" font-weight="900" fill="#b45309">✓</text></svg>
+              </div>
+              <div class="s-league">
+                <svg width="22" height="22" viewBox="0 0 120 120"><path d="M60 8 L102 22 C102 62 88 94 60 112 C32 94 18 62 18 22 Z" fill="#eab308" stroke="#854d0e" stroke-width="6"/><polygon points="60,40 77,58 60,76 43,58" fill="#fde047" stroke="#fff" stroke-width="5"/></svg>
+                <span class="ru">Золотая лига · #2 из 18</span><span class="en">Gold League · #2 of 18</span>
+              </div>
+              <div class="s-map">
+                <svg viewBox="0 0 280 420" preserveAspectRatio="xMidYMid slice">
+                  <path d="M140 380 C 60 340, 60 300, 140 270 C 220 240, 220 200, 140 170 C 60 140, 60 100, 140 70 C 200 48, 200 30, 160 10" fill="none" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round" stroke-dasharray="2 14"/>
+                  <path class="trail-done" d="M140 380 C 60 340, 60 300, 140 270 C 220 240, 220 200, 140 170" fill="none" stroke="#1746b0" stroke-width="8" stroke-linecap="round"/>
+                  <g class="node"><circle cx="140" cy="380" r="26" fill="#16a34a"/><text x="140" y="388" text-anchor="middle" font-size="22" fill="#fff" font-weight="900">✓</text></g>
+                  <g class="node"><circle cx="140" cy="270" r="26" fill="#16a34a"/><text x="140" y="278" text-anchor="middle" font-size="22" fill="#fff" font-weight="900">✓</text></g>
+                  <g class="node node-current"><circle cx="140" cy="170" r="32" fill="#fff" stroke="#1746b0" stroke-width="6"/><text x="140" y="181" text-anchor="middle" font-size="28">📖</text></g>
+                  <g class="node"><circle cx="140" cy="70" r="24" fill="#e2e8f0"/><text x="140" y="78" text-anchor="middle" font-size="18">🔒</text></g>
+                </svg>
+                <div class="toast"><span>🔥</span><span class="ru">+15 XP · серия продлена!</span><span class="en">+15 XP · streak extended!</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="float-chip chip-a" aria-hidden="true">🎙️ <span class="ru">Speaking: отзыв за минуту</span><span class="en">Speaking: feedback in a minute</span></div>
+          <div class="float-chip chip-b" aria-hidden="true">✍️ <span class="ru">Writing: разбор по 4 критериям</span><span class="en">Writing: 4-criteria feedback</span></div>
+        </div>
+      </div>
+    </div>
+
+    <section>
+      <div class="wrap center reveal">
+        <p class="kicker"><span class="ru">Для кого</span><span class="en">Who it's for</span></p>
+        <h2><span class="ru">Ваш английский — ваш билет в университет</span><span class="en">Your English is your ticket to university</span></h2>
+        <p class="sub"><span class="ru">IELTS принимают университеты Великобритании, Канады, Австралии, Европы и многих других стран. Готовьтесь к нужному баллу в своём темпе.</span><span class="en">IELTS is accepted by universities across the UK, Canada, Australia, Europe and beyond. Prepare for the score you need at your own pace.</span></p>
+        <div class="flags">
+          <span class="flag">🇬🇧 <span class="ru">Великобритания</span><span class="en">United Kingdom</span></span>
+          <span class="flag">🇨🇦 <span class="ru">Канада</span><span class="en">Canada</span></span>
+          <span class="flag">🇦🇺 <span class="ru">Австралия</span><span class="en">Australia</span></span>
+          <span class="flag">🇪🇺 <span class="ru">Европа</span><span class="en">Europe</span></span>
+          <span class="flag">🌏 <span class="ru">Азия</span><span class="en">Asia</span></span>
+        </div>
+        <div class="personas">
+          <div class="persona"><div class="ico">🎓</div><h3><span class="ru">Выпускники школ</span><span class="en">School leavers</span></h3><p><span class="ru">Поступаете на бакалавриат за рубежом и хотите сдать IELTS с первого раза.</span><span class="en">Applying for a bachelor's abroad and want to pass IELTS first time.</span></p></div>
+          <div class="persona"><div class="ico">📚</div><h3><span class="ru">Студенты и магистранты</span><span class="en">Students and graduates</span></h3><p><span class="ru">Нужен балл для магистратуры, стипендии или программы обмена.</span><span class="en">Need a score for a master's, a scholarship or an exchange.</span></p></div>
+          <div class="persona"><div class="ico">💼</div><h3><span class="ru">Для работы и переезда</span><span class="en">For work and moving abroad</span></h3><p><span class="ru">Есть раздел General Training: письма и повседневные ситуации.</span><span class="en">General Training is covered too: letters and everyday situations.</span></p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="how" id="how">
+      <div class="wrap center reveal">
+        <p class="kicker"><span class="ru">Как это работает</span><span class="en">How it works</span></p>
+        <h2><span class="ru">Три шага каждый день</span><span class="en">Three steps, every day</span></h2>
+        <div class="steps" style="text-align:left">
+          <div class="step"><h3><span class="ru">Короткий урок</span><span class="en">A short lesson</span></h3><p><span class="ru">Карточки на 3–5 минут: одна техника, пример из экзамена и советы.</span><span class="en">Three-to-five-minute cards: one technique, a real exam example and tips.</span></p></div>
+          <div class="step"><h3><span class="ru">Практика</span><span class="en">Practice</span></h3><p><span class="ru">Задания в формате IELTS по Reading, Listening, Writing и Speaking — сразу применяете то, что узнали.</span><span class="en">IELTS-style tasks in Reading, Listening, Writing and Speaking. Use what you just learned.</span></p></div>
+          <div class="step"><h3><span class="ru">Мгновенный разбор</span><span class="en">Instant feedback</span></h3><p><span class="ru">Ответы проверяются сразу, а по Writing и Speaking вы получаете разбор по четырём критериям IELTS.</span><span class="en">Answers are marked instantly, and Writing and Speaking get feedback on all four IELTS criteria.</span></p></div>
+        </div>
+        <div class="skills">
+          <div class="skill"><span>🎧</span>Listening</div>
+          <div class="skill"><span>📖</span>Reading</div>
+          <div class="skill"><span>✍️</span>Writing</div>
+          <div class="skill"><span>🎙️</span>Speaking</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap reveal">
+        <div class="center">
+          <p class="kicker"><span class="ru">Что внутри</span><span class="en">What's inside</span></p>
+          <h2><span class="ru">Всё для подготовки — в одном приложении</span><span class="en">Everything you need, in one app</span></h2>
+        </div>
+        <div class="features">
+          <div class="feature f-route">
+            <svg class="art" width="86" height="86" viewBox="0 0 100 100" aria-hidden="true"><path d="M20 85 C 0 60, 40 55, 50 45 C 60 35, 100 30, 80 10" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="5" stroke-dasharray="3 9" stroke-linecap="round"/><circle cx="20" cy="85" r="9" fill="#86efac"/><circle cx="50" cy="45" r="11" fill="#fff"/><circle cx="80" cy="10" r="8" fill="rgba(255,255,255,.4)"/></svg>
+            <span class="tag"><span class="ru">20 юнитов · 4 главы</span><span class="en">20 units · 4 chapters</span></span>
+            <h3><span class="ru">Маршрут к IELTS</span><span class="en">Your route to IELTS</span></h3>
+            <p><span class="ru">От основ до полного экзамена. Каждый юнит открывается, когда вы прошли предыдущий — как уровни в игре.</span><span class="en">From the basics to the full test. Each unit opens when you finish the last, like levels in a game.</span></p>
+          </div>
+          <div class="feature f-vocab">
+            <svg class="art" width="80" height="80" viewBox="0 0 100 100" aria-hidden="true"><rect x="12" y="20" width="56" height="40" rx="10" fill="rgba(255,255,255,.2)"/><rect x="32" y="40" width="56" height="40" rx="10" fill="#fff"/><text x="60" y="68" text-anchor="middle" font-size="22" font-weight="900" fill="#047857">Aa</text></svg>
+            <span class="tag"><span class="ru">6 уроков · 36 шагов</span><span class="en">6 lessons · 36 steps</span></span>
+            <h3><span class="ru">Курс лексики</span><span class="en">Vocabulary path</span></h3>
+            <p><span class="ru">Перефразирование, лексика для графиков и эссе, живая речь, словообразование и тематические сочетания.</span><span class="en">Paraphrase, language for charts and essays, natural speech, word forms and topic collocations.</span></p>
+          </div>
+          <div class="feature f-feedback">
+            <svg class="art" width="84" height="84" viewBox="0 0 100 100" aria-hidden="true"><rect x="10" y="14" width="80" height="58" rx="14" fill="rgba(255,255,255,.18)"/><path d="M30 72 L26 90 L46 72" fill="rgba(255,255,255,.18)"/><rect x="22" y="28" width="44" height="7" rx="3.5" fill="#fff"/><rect x="22" y="42" width="56" height="7" rx="3.5" fill="rgba(255,255,255,.6)"/><rect x="22" y="56" width="32" height="7" rx="3.5" fill="#f0abfc"/></svg>
+            <span class="tag"><span class="ru">Writing и Speaking</span><span class="en">Writing and Speaking</span></span>
+            <h3><span class="ru">Разбор ваших ответов</span><span class="en">Feedback on your answers</span></h3>
+            <p><span class="ru">Запишите ответ или напишите эссе — и получите разбор по четырём критериям: что получилось, что исправить и что потренировать.</span><span class="en">Record an answer or write an essay and get feedback on the four criteria: what worked, what to fix and what to practise.</span></p>
+          </div>
+          <div class="feature f-habit">
+            <svg class="art blaze-jump" width="92" height="92" aria-hidden="true"><use href="#blaze"/></svg>
+            <span class="tag"><span class="ru">Стрики · лиги · награды</span><span class="en">Streaks · leagues · badges</span></span>
+            <h3><span class="ru">Затягивает, как игра</span><span class="en">As gripping as a game</span></h3>
+            <p><span class="ru">Серия дней, ежедневная цель, недельные лиги с другими учениками и награды. Наш огонёк Блейз не даст вам бросить.</span><span class="en">Daily streaks, a daily goal, weekly leagues with other learners and badges. Blaze, our little flame, keeps you coming back.</span></p>
+          </div>
+        </div>
+        <div class="honest">
+          <span style="font-size:1.4rem" aria-hidden="true">ℹ️</span>
+          <span><b class="ru">Честно о результатах</b><b class="en">Honest about results</b>
+            <span class="ru">Оценки в приложении — это ориентир для практики, а не официальный результат IELTS. Официальный балл даёт только сам экзамен.</span>
+            <span class="en">Estimates in the app are a guide for practice, not an official IELTS result. Only the real test gives an official score.</span></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="pricing" id="pricing">
+      <div class="wrap center reveal">
+        <p class="kicker"><span class="ru">Цены</span><span class="en">Pricing</span></p>
+        <h2><span class="ru">Начните бесплатно. Откройте всё с IELTS Prime</span><span class="en">Start free. Unlock everything with IELTS Prime</span></h2>
+        <p class="sub"><span class="ru">Первый юнит и первый урок лексики — бесплатно. Prime открывает весь курс, все уроки лексики и разборы Writing и Speaking.</span><span class="en">The first unit and the first vocabulary lesson are free. Prime unlocks the whole course, every vocabulary lesson and Writing and Speaking feedback.</span></p>
+        <div class="plans" style="text-align:left">
+          <div class="plan">
+            <h3><span class="ru">Месяц</span><span class="en">Monthly</span></h3>
+            <div class="price"><b>$14.50</b><s>$29</s><small class="ru">/ месяц</small><small class="en">/ month</small></div>
+            <ul>
+              <li><span class="ru">Полный доступ к курсу</span><span class="en">Full course access</span></li>
+              <li><span class="ru">Отмена в любой момент</span><span class="en">Cancel anytime</span></li>
+              <li><span class="ru">Для короткого рывка</span><span class="en">For a short sprint</span></li>
+            </ul>
+            <a class="btn btn-ghost" data-cta href="/ielts/course"><span class="ru">Попробовать бесплатно</span><span class="en">Try free first</span></a>
+          </div>
+          <div class="plan best">
+            <span class="badge"><span class="ru">Популярный</span><span class="en">Most popular</span></span>
+            <h3><span class="ru">3 месяца</span><span class="en">3 months</span></h3>
+            <div class="price"><b>$34.50</b><s>$69</s><small class="ru">/ 3 месяца</small><small class="en">/ 3 months</small></div>
+            <ul>
+              <li><span class="ru">Лучший срок для подготовки</span><span class="en">The ideal prep window</span></li>
+              <li><span class="ru">Весь курс и лексика</span><span class="en">Whole course and vocabulary</span></li>
+              <li><span class="ru">Выгоднее, чем помесячно</span><span class="en">Cheaper than monthly</span></li>
+            </ul>
+            <a class="btn btn-primary" data-cta href="/ielts/course"><span class="ru">Начать бесплатно</span><span class="en">Start free</span></a>
+          </div>
+          <div class="plan">
+            <h3><span class="ru">Год</span><span class="en">Yearly</span></h3>
+            <div class="price"><b>$99.50</b><s>$199</s><small class="ru">/ год</small><small class="en">/ year</small></div>
+            <ul>
+              <li><span class="ru">Максимальная выгода</span><span class="en">Biggest saving</span></li>
+              <li><span class="ru">Год полного доступа</span><span class="en">A full year of access</span></li>
+              <li><span class="ru">Для долгой подготовки</span><span class="en">For long-term prep</span></li>
+            </ul>
+            <a class="btn btn-ghost" data-cta href="/ielts/course"><span class="ru">Попробовать бесплатно</span><span class="en">Try free first</span></a>
+          </div>
+        </div>
+        <div class="free-strip">🎁 <span class="ru">Сначала пройдите бесплатный юнит — Prime можно купить внутри, когда будете готовы. Оплата картой в долларах США.</span><span class="en">Try the free unit first. You can buy Prime inside the app when you're ready. Card payment in US dollars.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap reveal">
+        <div class="center">
+          <p class="kicker"><span class="ru">Вопросы</span><span class="en">Questions</span></p>
+          <h2><span class="ru">Частые вопросы</span><span class="en">Frequently asked</span></h2>
+        </div>
+        <div class="faq">
+          <details><summary><span class="ru">Подходит для Academic и General Training?</span><span class="en">Is it for Academic or General Training?</span></summary><p><span class="ru">Да. Большая часть курса общая, а для Writing Task 1 есть отдельные юниты: описание графиков (Academic) и письма (General Training).</span><span class="en">Both. Most of the course is shared, and Writing Task 1 has separate units: describing data (Academic) and letters (General Training).</span></p></details>
+          <details><summary><span class="ru">Что можно сделать бесплатно?</span><span class="en">What can I do for free?</span></summary><p><span class="ru">Первый юнит курса и первый урок лексики (6 шагов) полностью бесплатны. Карта не нужна.</span><span class="en">The first course unit and the first vocabulary lesson (six steps) are completely free. No card needed.</span></p></details>
+          <details><summary><span class="ru">Это официальный тест IELTS?</span><span class="en">Is this an official IELTS test?</span></summary><p><span class="ru">Нет. Это подготовка к экзамену. Оценки в приложении — ориентир для практики, официальный балл даёт только экзамен IELTS.</span><span class="en">No. This is preparation for the test. Estimates in the app are a guide for practice; only the IELTS test gives an official score.</span></p></details>
+          <details><summary><span class="ru">Сколько времени нужно в день?</span><span class="en">How much time a day?</span></summary><p><span class="ru">Достаточно 10–15 минут. Вы сами выбираете ежедневную цель — от лёгкой до интенсивной перед экзаменом.</span><span class="en">Ten to fifteen minutes is enough. You choose your daily goal, from casual to intense in exam week.</span></p></details>
+          <details><summary><span class="ru">Как оплатить и можно ли отменить?</span><span class="en">How do I pay, and can I cancel?</span></summary><p><span class="ru">Оплата банковской картой в долларах США через защищённую платёжную систему Paddle. Помесячную подписку можно отменить в любой момент.</span><span class="en">By bank card in US dollars through Paddle's secure checkout. The monthly plan can be cancelled anytime.</span></p></details>
+          <details><summary><span class="ru">Работает на телефоне?</span><span class="en">Does it work on my phone?</span></summary><p><span class="ru">Да, всё работает в браузере телефона. Можно добавить Brains Heist на главный экран и получать напоминания.</span><span class="en">Yes, everything works in your phone's browser. You can add Brains Heist to your home screen and get reminders.</span></p></details>
+        </div>
+      </div>
+    </section>
+
+    <div class="final reveal">
+      <div class="blaze-wrap"><svg class="blaze-jump" width="120" height="120" aria-hidden="true"><use href="#blaze"/></svg></div>
+      <h2><span class="ru">Ваш первый день начинается сегодня</span><span class="en">Your first day starts today</span></h2>
+      <p><span class="ru">10 минут — и у вас уже есть первая серия. Блейз ждёт.</span><span class="en">Ten minutes and your first streak has begun. Blaze is waiting.</span></p>
+      <a class="btn btn-primary" data-cta href="/ielts/course"><span class="ru">Начать бесплатно</span><span class="en">Start free</span> <span aria-hidden="true">→</span></a>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="links">
+        <a href="/privacy.html"><span class="ru">Конфиденциальность</span><span class="en">Privacy</span></a>
+        <a href="/refund.html"><span class="ru">Возврат</span><span class="en">Refunds</span></a>
+        <a href="/contact.html"><span class="ru">Контакты</span><span class="en">Contact</span></a>
+      </div>
+      <p><span class="ru">IELTS — зарегистрированная торговая марка University of Cambridge, British Council и IDP Education. Brains Heist не связан с ними и не одобрен ими.</span><span class="en">IELTS is a registered trademark of the University of Cambridge, the British Council and IDP Education. Brains Heist is not affiliated with or endorsed by them.</span></p>
+      <p>© Brains Heist</p>
+    </div>
+  </footer>
+
+  <div class="sticky-cta" id="sticky"><a class="btn btn-primary" data-cta href="/ielts/course"><span class="ru">Начать бесплатно</span><span class="en">Start free</span> →</a></div>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      // Remember where the visitor came from (utm_* / ref) for the sign-up funnel; first touch wins.
+      try {
+        var keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'ref'];
+        var found = {};
+        keys.forEach(function (k) { var v = params.get(k); if (v) found[k] = v.slice(0, 100); });
+        if (Object.keys(found).length && !localStorage.getItem('bh_ielts_first_touch')) {
+          found.landing = '/ielts-prep'; found.at = new Date().toISOString();
+          localStorage.setItem('bh_ielts_first_touch', JSON.stringify(found));
+        }
+      } catch (e) {}
+
+      var saved = null;
+      try { saved = localStorage.getItem('bh_ielts_landing_lang'); } catch (e) {}
+      var browser = (navigator.language || '').toLowerCase().indexOf('ru') === 0 || (navigator.language || '').toLowerCase().indexOf('ky') === 0 || (navigator.language || '').toLowerCase().indexOf('kk') === 0 ? 'ru' : null;
+      var lang = params.get('lang') === 'en' ? 'en' : params.get('lang') === 'ru' ? 'ru' : saved || browser || 'ru';
+      function setLang(l) {
+        document.body.setAttribute('data-lang', l);
+        document.documentElement.lang = l;
+        document.title = l === 'en' ? 'Online IELTS preparation — Brains Heist' : 'Подготовка к IELTS онлайн — Brains Heist';
+        document.querySelectorAll('[data-set-lang]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-set-lang') === l)); });
+        try { localStorage.setItem('bh_ielts_landing_lang', l); } catch (e) {}
+      }
+      document.querySelectorAll('[data-set-lang]').forEach(function (b) { b.addEventListener('click', function () { setLang(b.getAttribute('data-set-lang')); }); });
+      setLang(lang);
+
+      // Every "Start" button opens the course; campaign tags travel along.
+      var pass = new URLSearchParams();
+      params.forEach(function (v, k) { if (k.indexOf('utm_') === 0 || k === 'ref') pass.set(k, v); });
+      pass.set('from', 'landing');
+      document.querySelectorAll('[data-cta]').forEach(function (a) { a.setAttribute('href', '/ielts/course?' + pass.toString()); });
+
+      var sticky = document.getElementById('sticky');
+      var hero = document.querySelector('.hero');
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (e) { sticky.classList.toggle('show', !e[0].isIntersecting); }).observe(hero);
+        var io = new IntersectionObserver(function (entries) { entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } }); }, { threshold: .12 });
+        document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+      } else {
+        document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+      }
+    })();
+  </script>
+</body>
+</html>

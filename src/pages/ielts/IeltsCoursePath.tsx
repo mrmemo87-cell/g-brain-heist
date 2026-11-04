@@ -4,6 +4,8 @@ import '../../styles/ielts-course.css';
 import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell';
 import { IeltsCourseHabitBar, IeltsHabitCelebration, useIeltsCourseHabit } from '../../components/ielts/IeltsCourseHabit';
 import { IeltsLeagueCard } from './IeltsCourseLeague';
+import { IeltsExamCountdown, IeltsExamPlanSheet } from '../../components/ielts/IeltsExamPlan';
+import { useIeltsAudience } from '../../lib/ieltsAudience';
 import {
   cachedIeltsCourseState,
   fetchIeltsCourseState,
@@ -112,6 +114,9 @@ const IeltsCoursePath: React.FC = () => {
   const [sheet, setSheet] = useState<IeltsCourseUnitSummary | null>(null);
   const currentRef = useRef<HTMLLIElement | null>(null);
   const { habit, setHabit } = useIeltsCourseHabit();
+  const audience = useIeltsAudience();
+  const [planOpen, setPlanOpen] = useState(false);
+  const firstVisit = Boolean(habit?.exam && !habit.exam.onboarded && audience === 'independent');
   const scrolled = useRef(false);
 
   useEffect(() => {
@@ -174,9 +179,14 @@ const IeltsCoursePath: React.FC = () => {
     <IeltsStudentShell active="course">
       <div className="ic-page ic-page--embedded">
         <main className="ic-main">
-          <IeltsHabitCelebration habit={habit} />
+          {(firstVisit || planOpen) && habit?.exam && (
+            <IeltsExamPlanSheet initial={habit.exam} firstVisit={firstVisit} onClose={() => setPlanOpen(false)}
+              onDone={(next) => { setHabit(next); setPlanOpen(false); }} />
+          )}
+          {!firstVisit && <IeltsHabitCelebration habit={habit} />}
           <IeltsCourseHabitBar habit={habit} onChange={setHabit} />
           <IeltsLeagueCard />
+          {habit?.exam?.onboarded && <IeltsExamCountdown exam={habit.exam} onEdit={() => setPlanOpen(true)} />}
 
           <div className="ic-tracks" role="tablist" aria-label="Course paths">
             {(['main', 'vocabulary'] as IeltsCourseTrack[]).map((t) => {

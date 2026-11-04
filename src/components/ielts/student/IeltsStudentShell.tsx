@@ -92,13 +92,17 @@ type ShellProps = {
 export default function IeltsStudentShell({ active, focus, eyebrow, title, lead, children }: ShellProps) {
   const navigate = useNavigate();
   const showNav = !focus && active;
+  // Learners without a school came for IELTS only: no way back into the game from the top bar.
+  const independent = useIeltsAudience() === 'independent';
   return (
     <div className={'isn-page' + (showNav ? ' has-nav' : ' is-focus')} data-ielts-student-shell="">
       <div className="isn-glow" aria-hidden="true" />
       <header className="isn-top">
-        <button type="button" className="isn-back" onClick={() => navigate(focus ? focus.to : '/')}>
-          <span aria-hidden="true">←</span> {focus ? focus.label : 'Brains Heist'}
-        </button>
+        {focus || !independent ? (
+          <button type="button" className="isn-back" onClick={() => navigate(focus ? focus.to : '/')}>
+            <span aria-hidden="true">←</span> {focus ? focus.label : 'Brains Heist'}
+          </button>
+        ) : <span aria-hidden="true" />}
         <span className="isn-brand" aria-label="Brains Heist IELTS"><span className="isn-mark" aria-hidden="true">IELTS</span><span className="isn-brand-text">Brains Heist</span></span>
       </header>
       {showNav && <IeltsStudentNav active={active} />}

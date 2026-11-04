@@ -23,6 +23,8 @@ async function mount(path,habits){
   else if(name==='rpc_ielts_course_habit_settings')result=habit({daily_goal_xp:body.p_goal??20});
   else if(name==='rpc_ielts_course_state')result=state;
   else if(name==='rpc_ielts_league')result=leagueData;
+  else if(name==='rpc_ielts_course_exam_profile')result=habit({exam:{module:body.p_module,date:body.p_exam_date,days_left:43,target:body.p_target,onboarded:true}});
+  else if(name==='get_my_effective_entitlements')result={success:true,plan:'free',school_id:null,modules:{},programme_catalogue:{},entitlements:{}};
   else if(name==='rpc_ielts_course_vocab_task')result=step;
   else if(name==='rpc_ielts_course_vocab_submit')result=marked;
   else return new Promise(()=>{});
@@ -119,4 +121,45 @@ test('leagues show only first name + initial and settle at most once; badges are
  assert.match(sql,/v_n >= 10 and m\.rank > v_n - 5 and g\.tier > 1 then 'demoted'/);
  assert.match(sql,/< 20/,'groups hold at most 20 learners');
  assert.match(sql,/v_streak in \(14, 30, 100, 365\) and v_bank < 3/,'milestone streaks give a bonus freeze, not free access');
+});
+
+test('a new independent learner gets a three-question welcome; the plan becomes a countdown on the map',async()=>{
+ const m=await mount('/ielts/course',[habit({exam:{module:null,date:null,days_left:null,target:null,onboarded:false}})]);try{
+  m.w.localStorage.setItem('bh_ielts_first_touch',JSON.stringify({utm_source:'instagram',utm_campaign:'nov'}));
+  await m.wait(()=>m.w.document.querySelector('.ep-welcome'));
+  assert.match(m.w.document.querySelector('.ep-welcome').textContent,/Welcome! I'm Blaze\./);
+  [...m.w.document.querySelectorAll('.ep-welcome button')][0].click();
+  await m.wait(()=>m.w.document.querySelector('.ep-option'));
+  [...m.w.document.querySelectorAll('.ep-option')].find(b=>/Academic/.test(b.textContent)).click();
+  [...m.w.document.querySelectorAll('.ep-target')].find(b=>b.textContent==='6.5').click();
+  const save=()=>[...m.w.document.querySelectorAll('.ep-sheet button')].find(b=>/Start my course/.test(b.textContent));
+  await m.wait(()=>save()&&m.w.document.querySelector('.ep-target.is-on'));
+  save().click();
+  await m.wait(()=>m.bodies.some(([n])=>n==='rpc_ielts_course_exam_profile'));
+  const sent=m.bodies.find(([n])=>n==='rpc_ielts_course_exam_profile')[1];
+  assert.equal(sent.p_module,'academic');assert.equal(sent.p_target,6.5);assert.equal(sent.p_exam_date,null);
+  assert.deepEqual(sent.p_acquisition,{utm_source:'instagram',utm_campaign:'nov'},'the ad campaign is recorded once');
+  await m.wait(()=>m.w.document.querySelector('.ep-countdown'));
+  assert.match(m.w.document.querySelector('.ep-countdown').textContent,/43 days to your test/);
+  assert.match(m.w.document.querySelector('.ep-countdown').textContent,/Academic · goal 6\.5/);
+  assert.equal(m.w.document.querySelector('.isn-back'),null,'independent learners are not sent back into the game');
+  assert.deepEqual(m.errors,[]);
+ }finally{m.dom.window.close();}
+});
+
+test('the public landing page is Russian first with English, honest about results and carries campaign tags',()=>{
+ const html=fs.readFileSync('public/ielts-prep.html','utf8');
+ const vercel=JSON.parse(fs.readFileSync('vercel.json','utf8'));
+ assert.ok(vercel.rewrites.findIndex(r=>r.source==='/ielts-prep')<vercel.rewrites.findIndex(r=>r.source==='/(.*)'),'the page is served before the app catch-all');
+ assert.match(html,/<html lang="ru">/);
+ assert.match(html,/<body data-lang="ru">/);
+ assert.match(html,/data-set-lang="en"/);
+ assert.match(html,/og:image" content="https:\/\/brainsheist\.com\/ielts\/og-ielts-prep\.jpg"/);
+ assert.ok(fs.existsSync('public/ielts/og-ielts-prep.jpg'));
+ assert.match(html,/не официальный результат IELTS/);
+ assert.match(html,/not an official IELTS result/);
+ assert.match(html,/не связан с ними/,'trademark disclaimer');
+ assert.match(html,/bh_ielts_first_touch/);
+ assert.doesNotMatch(html,/гарантир|guarantee/i,'no score guarantees');
+ for(const price of ['$14.50','$34.50','$99.50']) assert.ok(html.includes(price),'prices match the in-app Prime plans');
 });
