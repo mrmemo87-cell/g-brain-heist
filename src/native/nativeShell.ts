@@ -31,6 +31,8 @@ async function setUpAppEvents(): Promise<void> {
 
     // Links that open the app (email sign-in links, OAuth returns) load the matching in-app page.
     await App.addListener('appUrlOpen', ({ url }) => {
+      // A sign-in that finished in the system browser comes back here: close that browser first.
+      void import('@capacitor/browser').then(({ Browser }) => Browser.close()).catch(() => undefined);
       const path = inAppPathFromUrl(url);
       if (path && path !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
         window.location.assign(path);

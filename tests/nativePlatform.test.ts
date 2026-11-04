@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PUBLIC_SITE_URL, inAppPathFromUrl, isNativeApp, nativePlatform, publicSiteUrl } from '../src/lib/nativePlatform';
+import { PUBLIC_SITE_URL, inAppPathFromUrl, isNativeApp, nativeAuthRedirect, nativePlatform, publicSiteUrl } from '../src/lib/nativePlatform';
 
 const nativeWindow = (platform: string, native = true) => ({
   Capacitor: { isNativePlatform: () => native, getPlatform: () => platform },
@@ -40,4 +40,12 @@ test('inAppPathFromUrl maps site and scheme links to in-app paths and ignores ot
   assert.equal(inAppPathFromUrl('https://evil.example/auth/callback'), null);
   assert.equal(inAppPathFromUrl('http://brainsheist.com/'), null, 'plain http is never trusted');
   assert.equal(inAppPathFromUrl('not a url'), null);
+});
+
+test('nativeAuthRedirect sends sign-in back to the app scheme, keeping path and query', () => {
+  assert.equal(nativeAuthRedirect('https://www.brainsheist.com/auth/callback'), 'brainsheist://auth/callback');
+  assert.equal(nativeAuthRedirect('https://www.brainsheist.com/parent-portal.html?x=1'), 'brainsheist://parent-portal.html?x=1');
+  assert.equal(nativeAuthRedirect(undefined), 'brainsheist://auth/callback');
+  // Round trip: the app maps the returned link back to the same in-app page, tokens in the fragment intact.
+  assert.equal(inAppPathFromUrl(`${nativeAuthRedirect('https://www.brainsheist.com/auth/callback')}#access_token=t`), '/auth/callback#access_token=t');
 });

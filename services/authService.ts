@@ -2,6 +2,7 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from './supabaseClient';
 import { createTeacherProfile } from './rpcGateway';
 import { getAuthRedirectUrl, getEnvVar } from './env';
+import { startOAuthSignIn } from './oauthSignIn';
 import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage';
 import { EMAIL_ALREADY_REGISTERED_MESSAGE, toAuthSafeErrorMessage } from './authErrors';
 import type { Batch, Grade } from '../types';
@@ -353,12 +354,9 @@ export const checkEmailVerification = async (): Promise<{
 export const loginWithGoogle = async (loginHint?: string): Promise<void> => {
     const redirectTo = getAuthRedirectUrl();
 
-    const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-            redirectTo,
-            queryParams: loginHint ? { login_hint: loginHint } : { prompt: 'select_account' },
-        },
+    const { error } = await startOAuthSignIn('google', {
+        redirectTo,
+        queryParams: loginHint ? { login_hint: loginHint } : { prompt: 'select_account' },
     });
 
     if (error) {

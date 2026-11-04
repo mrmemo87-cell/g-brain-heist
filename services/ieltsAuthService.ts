@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient';
 import { ensureIeltsProfile } from './ieltsService';
 import { getAuthRedirectUrl } from './env';
+import { startOAuthSignIn } from './oauthSignIn';
 import { toAuthSafeErrorMessage } from './authErrors';
 
 interface SignupPayload {
@@ -59,12 +60,9 @@ export const logout = async (): Promise<void> => {
 export const loginWithGoogle = async (loginHint?: string): Promise<void> => {
   const redirectTo = getAuthRedirectUrl();
 
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo,
-      queryParams: loginHint ? { login_hint: loginHint } : { prompt: 'select_account' },
-    },
+  const { error } = await startOAuthSignIn('google', {
+    redirectTo,
+    queryParams: loginHint ? { login_hint: loginHint } : { prompt: 'select_account' },
   });
 
   if (error) {
