@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { startOAuthSignIn } from './oauthSignIn';
 
 export interface GuardianChild {
   relationship_id: string;
@@ -177,7 +178,7 @@ export async function parentSignUp(email: string, password: string, redirectTo: 
 }
 
 export async function parentGoogleSignIn(redirectTo: string): Promise<void> {
-  const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
+  const { error } = await startOAuthSignIn('google', { redirectTo });
   if (error) throw friendlyError(error, 'Google sign-in could not start just now. Please try again.');
 }
 

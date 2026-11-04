@@ -60,3 +60,24 @@ export function inAppPathFromUrl(rawUrl: string): string | null {
     return null;
   }
 }
+
+/** Custom URL scheme registered for the iPhone and Android apps (Info.plist / AndroidManifest.xml). */
+export const NATIVE_URL_SCHEME = 'brainsheist';
+
+/**
+ * Turn a website auth return address (for example https://www.brainsheist.com/auth/callback?next=x) into the
+ * app's own address (brainsheist://auth/callback?next=x), so the system browser hands the sign-in back to the app.
+ * Must also be listed under Supabase → Authentication → URL Configuration → Redirect URLs.
+ */
+export function nativeAuthRedirect(webRedirectUrl: string | undefined): string {
+  let path = '/auth/callback';
+  let search = '';
+  try {
+    if (webRedirectUrl) {
+      const url = new URL(webRedirectUrl, PUBLIC_SITE_URL);
+      path = url.pathname || path;
+      search = url.search;
+    }
+  } catch { /* fall back to the default callback */ }
+  return `${NATIVE_URL_SCHEME}://${path.replace(/^\/+/, '')}${search}`;
+}

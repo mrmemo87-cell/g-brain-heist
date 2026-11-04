@@ -51,8 +51,10 @@ files that are not bundled in the app).
    `dist-native/` without admission-test sources, past-paper PDFs, reports and source maps. The app's web
    content is ~181 MB on disk and ~151 MB compressed, under Google Play's 200 MB base limit. Run the image
    script again whenever large PNGs are added.
-2. **Google sign-in** must run in the system browser and return through `brainsheist://auth/callback`;
-   add Sign in with Apple at the same time (App Store rule when Google sign-in is offered).
+2. **Google sign-in — done in code.** `services/oauthSignIn.ts` opens Google in the system browser inside
+   the app and returns through `brainsheist://auth/callback`. **One dashboard step is required:** Supabase →
+   Authentication → URL Configuration → Redirect URLs → add `brainsheist://**`. Sign in with Apple (App Store
+   rule when Google sign-in is offered) follows once the Apple Developer account exists.
 3. **Native push** (Firebase Cloud Messaging + APNs) to replace web push inside the app.
 4. **Settings → Delete my account** (App Store rule).
 5. **IELTS Prime** in-app purchase (Apple/Google) via RevenueCat; Paddle stays on the website.
