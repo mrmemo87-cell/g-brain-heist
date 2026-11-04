@@ -22,15 +22,15 @@ export type CommanderSfxCue =
 
 // Vite bundles the supplied assets; no generated or legacy sound fallback.
 const clips = {
-  thunder: new URL('../../assets/mixkit-fast-thunder-impact-1279.wav', import.meta.url).href,
-  drums: new URL('../../assets/mixkit-drums-of-war-call-2780.wav', import.meta.url).href,
-  percussion: new URL('../../assets/mixkit-futuristic-space-war-percussion-2787.wav', import.meta.url).href,
-  arrow: new URL('../../assets/mixkit-metal-arrow-fast-hit-2770.wav', import.meta.url).href,
-  hit: new URL('../../assets/deep hit.wav', import.meta.url).href,
-  shield: new URL('../../assets/sheilded hit.wav', import.meta.url).href,
-  bolt: new URL('../../assets/death bolt.wav', import.meta.url).href,
-  effort: new URL('../../assets/mixkit-voice-from-effort-to-punch-2174.wav', import.meta.url).href,
-  defeat: new URL('../../assets/defeated.wav', import.meta.url).href,
+  thunder: new URL('../../assets/mixkit-fast-thunder-impact-1279.mp3', import.meta.url).href,
+  drums: new URL('../../assets/mixkit-drums-of-war-call-2780.mp3', import.meta.url).href,
+  percussion: new URL('../../assets/mixkit-futuristic-space-war-percussion-2787.mp3', import.meta.url).href,
+  arrow: new URL('../../assets/mixkit-metal-arrow-fast-hit-2770.mp3', import.meta.url).href,
+  hit: new URL('../../assets/deep hit.mp3', import.meta.url).href,
+  shield: new URL('../../assets/sheilded hit.mp3', import.meta.url).href,
+  bolt: new URL('../../assets/death bolt.mp3', import.meta.url).href,
+  effort: new URL('../../assets/mixkit-voice-from-effort-to-punch-2174.mp3', import.meta.url).href,
+  defeat: new URL('../../assets/defeated.mp3', import.meta.url).href,
 };
 const cues: Record<CommanderSfxCue, [keyof typeof clips, number, number, number?]> = {
   thunder: ['thunder', .18, 1.2, .62],

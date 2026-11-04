@@ -47,6 +47,7 @@
   "exclude": [
     "node_modules",
     "dist",
+    "dist-native",
     "supabase/functions",
     "android",
     "ios",

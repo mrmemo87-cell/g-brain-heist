@@ -8,6 +8,7 @@ change reaches the apps on the next app build.
 | --- | --- |
 | App ID (both stores) | `com.brainsheist.app` |
 | App name | Brains Heist |
+| Bundled web folder | `dist-native/` (made by `scripts/prepare-native-web.mjs` from `dist/`) |
 | Native projects | `android/` (Android Studio), `ios/` (Xcode, Swift Package Manager) |
 | Link scheme | `brainsheist://` (opens the app; universal links come with the Apple account) |
 | Icon and splash sources | `assets/` (regenerate with `npx @capacitor/assets generate`) |
@@ -15,7 +16,7 @@ change reaches the apps on the next app build.
 ## Everyday commands
 
 ```bash
-npm run native:sync      # build the web app and copy it into android/ and ios/
+npm run native:sync      # build, trim into dist-native/, copy into android/ and ios/
 npm run native:android   # sync, then open Android Studio
 npm run native:ios       # sync, then open Xcode (macOS only)
 ```
@@ -45,9 +46,11 @@ files that are not bundled in the app).
 
 ## Known gaps (next steps)
 
-1. **App size.** `dist/` is about 540 MB (211 MB of Biology question images, ~130 MB of character art and
-   sounds, plus test HTML). Google Play limits the base download to 200 MB, so images must be converted to
-   WebP/AVIF and the largest test folders loaded from the website before a Play Store release.
+1. **App size — done.** PNGs were shrunk in place with `scripts/optimize-png-assets.py` (434 MB → 122 MB,
+   same file names), battle sounds moved from WAV to MP3, and `scripts/prepare-native-web.mjs` builds
+   `dist-native/` without admission-test sources, past-paper PDFs, reports and source maps. The app's web
+   content is ~181 MB on disk and ~151 MB compressed, under Google Play's 200 MB base limit. Run the image
+   script again whenever large PNGs are added.
 2. **Google sign-in** must run in the system browser and return through `brainsheist://auth/callback`;
    add Sign in with Apple at the same time (App Store rule when Google sign-in is offered).
 3. **Native push** (Firebase Cloud Messaging + APNs) to replace web push inside the app.

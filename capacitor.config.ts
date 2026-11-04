@@ -6,7 +6,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.brainsheist.app',
   appName: 'Brains Heist',
-  webDir: 'dist',
+  webDir: 'dist-native',
   backgroundColor: '#050813',
   android: {
     // The app talks only to https endpoints; keep mixed content and WebView debugging off in release builds.
