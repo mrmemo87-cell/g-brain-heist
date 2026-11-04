@@ -16,7 +16,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        // Fixed key for TEST builds only (debug APKs from GitHub Actions), so each new test build installs
+        // over the previous one. This key is public on purpose; Play Store releases use a separate private
+        // upload key that is never committed.
+        debug {
+            storeFile file('brainsheist-test.keystore')
+            storePassword 'brainsheist-test'
+            keyAlias 'brainsheist-test'
+            keyPassword 'brainsheist-test'
+        }
+    }
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
