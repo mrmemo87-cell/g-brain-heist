@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>See Brains Heist in action</title>
+  <meta name="description" content="Short videos showing how Brains Heist helps teachers spot a student's repeated mistake, practise it, and prove it is fixed." />
+  <meta property="og:title" content="See Brains Heist in action" />
+  <meta property="og:description" content="A real teacher, a real class, one student's mistake: the Brains Heist intervention loop in three minutes." />
+  <meta property="og:image" content="https://brainsheist.com/media/walkthrough-poster.jpg" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <style>
+    :root { --bg: #0b1222; --surface: #131c33; --border: #26324d; --text: #e2e8f0; --muted: #94a3b8; --accent: #22d3ee; --accent2: #a78bfa; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: radial-gradient(circle at 50% -10%, #1e1b4b 0%, var(--bg) 55%); color: var(--text); line-height: 1.6; min-height: 100vh; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 2rem; }
+    header a.brand { display: flex; align-items: center; gap: .6rem; color: var(--text); text-decoration: none; font-weight: 800; letter-spacing: .04em; }
+    header img { height: 36px; }
+    .intro { text-align: center; margin-bottom: 2rem; }
+    .intro h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); font-weight: 800; line-height: 1.2; }
+    .intro p { color: var(--muted); max-width: 620px; margin: .75rem auto 0; }
+    .videos { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    figure { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 1rem; }
+    video { display: block; width: 100%; max-height: 72vh; aspect-ratio: 9 / 16; object-fit: contain; background: #000; border-radius: 12px; }
+    figcaption { margin-top: .85rem; }
+    figcaption strong { display: block; font-size: 1.05rem; }
+    figcaption span { color: var(--muted); font-size: .9rem; }
+    .cta { margin-top: 2.5rem; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 1.75rem 1.25rem; }
+    .cta h2 { font-size: 1.35rem; margin-bottom: .4rem; }
+    .cta p { color: var(--muted); margin-bottom: 1.2rem; }
+    .btn { display: inline-block; padding: .85rem 1.6rem; border-radius: 999px; font-weight: 700; text-decoration: none; margin: .3rem; }
+    .btn.primary { background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #0b1222; }
+    .btn.secondary { border: 1px solid var(--border); color: var(--text); }
+    footer { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <a class="brand" href="https://brainsheist.com/"><img src="/logo.png" alt="" /> BRAINS HEIST</a>
+      <a class="btn secondary" href="https://demo.brainsheist.com/">Try the demo</a>
+    </header>
+
+    <section class="intro">
+      <h1>See Brains Heist in action</h1>
+      <p>Built by Mr. Sobbi, a classroom teacher, for his own students. Watch how a teacher spots a student's repeated mistake, targets it with practice, and proves it is fixed.</p>
+    </section>
+
+    <section class="videos">
+      <figure>
+        <video controls playsinline preload="metadata" poster="/media/walkthrough-poster.jpg" data-name="walkthrough">
+          <source src="/media/walkthrough.mp4" type="video/mp4" />
+        </video>
+        <figcaption><strong>The intervention loop</strong><span>A real teacher, a real class, one student's mistake · 3 min</span></figcaption>
+      </figure>
+      <figure>
+        <video controls playsinline preload="metadata" poster="/media/heist-ad-poster.jpg" data-name="heist-ad">
+          <source src="/media/heist-ad.mp4" type="video/mp4" />
+        </video>
+        <figcaption><strong>Brains Heist in 60 seconds</strong><span>The short version · 1 min</span></figcaption>
+      </figure>
+    </section>
+
+    <section class="cta">
+      <h2>Try it with your own class</h2>
+      <p>Explore the demo school with no sign-up, as a teacher or a student. Or ask for a free one-class trial.</p>
+      <a class="btn primary" href="https://demo.brainsheist.com/">Open the demo school</a>
+      <a class="btn secondary" href="mailto:support@brainsheist.com?subject=Free%20one-class%20trial">Ask for a free trial</a>
+    </section>
+
+    <footer>© Brains Heist LLC · <a href="/privacy.html" style="color:inherit">Privacy</a></footer>
+  </div>
+
+  <script>
+    // Count this visit in the superadmin Site Visitors tab (same anonymous rules as the app:
+    // browsers that have ever signed in are skipped; no names, emails or IPs are sent).
+    (function () {
+      try {
+        if (/bot|crawl|spider|preview|headless/i.test(navigator.userAgent) || navigator.webdriver) return;
+        if (localStorage.getItem('bh_site_member') === '1') return;
+        var id = localStorage.getItem('bh_site_visitor_id');
+        if (!id) {
+          id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()).toString();
+          if (!/^[0-9a-f-]{36}$/i.test(id)) return;
+          localStorage.setItem('bh_site_visitor_id', id);
+        }
+        var ref = '';
+        try { var h = new URL(document.referrer).hostname.replace(/^www\./, ''); if (h && h.indexOf('brainsheist.com') === -1) ref = h; } catch (e) {}
+        var params = new URLSearchParams(location.search), utm = {};
+        ['utm_source', 'utm_medium', 'utm_campaign'].forEach(function (k) { if (params.get(k)) utm[k] = params.get(k).slice(0, 120); });
+        var send = function (path) {
+          fetch('/api/site-visit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+            body: JSON.stringify({ visitorId: id, path: path, referrerHost: ref, utm: utm,
+              device: /mobi|iphone|android/i.test(navigator.userAgent) ? 'phone' : 'desktop', locale: navigator.language }) }).catch(function () {});
+        };
+        send('/watch');
+        document.querySelectorAll('video[data-name]').forEach(function (v) {
+          v.addEventListener('play', function once() { v.removeEventListener('play', once); send('/watch/' + v.getAttribute('data-name')); });
+        });
+      } catch (e) {}
+    })();
+  </script>
+</body>
+</html>
