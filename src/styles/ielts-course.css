@@ -55,7 +55,7 @@
 .ic-unlock-icon { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 14px; color: #fff; font-size: 1.1rem; background: linear-gradient(135deg, #f59e0b, #d97706); }
 .ic-unlock b { display: block; color: #78350f; }
 .ic-unlock span { color: #92400e; font-size: .92rem; }
-.ic-unlock .ic-btn { grid-column: 1 / -1; justify-self: start; }
+.ic-unlock > .ic-btn { grid-column: 1 / -1; justify-self: start; }
 
 /* Chapters + route */
 .ic-chapter { display: grid; gap: .6rem; }
@@ -527,3 +527,13 @@
 .gd-table th:first-child, .gd-table td:first-child { text-align: left; }
 .gd-table th { font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; color: #64748b; }
 .gd-table small { color: #64748b; }
+
+/* Seat request for school students without an IELTS seat (owner decision 2026-11-05). */
+.ic-unlock-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.ic-seat { display: grid; gap: .35rem; }
+.ic-seat--block { margin-top: .6rem; }
+.ic-seat--block .ic-btn { width: 100%; justify-content: center; }
+.ic-seat--dark .ic-btn { color: #fff; border-color: rgba(255,255,255,.35); background: rgba(255,255,255,.06); }
+.ic-seat .ic-btn:disabled { opacity: .75; cursor: default; }
+.ic-seat-error { margin: 0; font-size: .82rem; color: #b91c1c; }
+.ic-seat--dark .ic-seat-error { color: #fecaca; }

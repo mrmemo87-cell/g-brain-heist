@@ -33,6 +33,7 @@ import IeltsSchoolLearnerLinks from '../../components/ielts/IeltsSchoolLearnerLi
 import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell';
 import IeltsStudentHome from '../../components/ielts/student/IeltsStudentHome';
 import { createIeltsViewCache } from '../../lib/ieltsViewCache';
+import { useIeltsAccount } from '../../lib/ieltsAudience';
 
 /**
  * What this learner's IELTS home looked like on the last visit in this tab. Returning to Home paints it at once
@@ -83,10 +84,18 @@ const IeltsHome: React.FC = () => {
   const [dashboardLoaded, setDashboardLoaded] = useState(Boolean(warm?.summary));
   const isPrimeUser = isIeltsPrime({ tier: userTier });
   const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
-  const isIeltsAdminLandingRole = isPlatformAdmin || canAdministerSchool || normalizeIeltsRole(userRole) === 'teacher';
-  const isSchoolStudentWorkspace = profileContextLoaded && !profileContextError && hasSchoolMembership && !isIeltsAdminLandingRole && new URLSearchParams(window.location.search).get('view') !== 'library';
+  // IELTS access model (owner decision 2026-11-05): staff get the programme workspace only when their school's
+  // agreement includes IELTS; school learners get the school home only with an IELTS seat. Everyone else, including
+  // school students without a seat, uses the independent learner home (course, Prime).
+  const ieltsAccount = useIeltsAccount();
+  const schoolLearner = ieltsAccount?.audience === 'school';
+  const isSchoolStaffRole = canAdministerSchool || normalizeIeltsRole(userRole) === 'teacher';
+  const waitingForIeltsAccount = isAuthenticated && !isPlatformAdmin && isSchoolStaffRole && !ieltsAccount;
+  const isIeltsAdminLandingRole = isPlatformAdmin || (isSchoolStaffRole && schoolLearner);
+  const isSchoolStudentWorkspace = profileContextLoaded && !profileContextError && schoolLearner && !isIeltsAdminLandingRole && new URLSearchParams(window.location.search).get('view') !== 'library';
   const shouldUseSchoolAdminShell = profileContextLoaded
     && canAdministerSchool
+    && schoolLearner
     && !isPlatformAdmin
     && !profileContextError;
   const canOpenReviewQueue = canAccessIeltsReviewQueue({
@@ -514,7 +523,7 @@ const IeltsHome: React.FC = () => {
     );
   }
 
-  if (shouldShowDashboardLoading || shouldUseSchoolAdminShell) {
+  if (shouldShowDashboardLoading || shouldUseSchoolAdminShell || waitingForIeltsAccount) {
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg,#0f172a,#172554 48%,#4c1d95)', color: '#e0f2fe', display: 'grid', placeItems: 'center', padding: '1.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         <div style={{ width: 'min(100%, 520px)', background: 'rgba(15,23,42,0.72)', border: '1px solid rgba(125,211,252,0.24)', borderRadius: '1.25rem', padding: 'clamp(1.5rem,4vw,2.25rem)', textAlign: 'center', boxShadow: '0 24px 70px rgba(2,6,23,0.35)' }}>
@@ -527,7 +536,7 @@ const IeltsHome: React.FC = () => {
     );
   }
 
-  if (isIeltsAdminLandingRole || (profileContextLoaded && normalizeIeltsRole(userRole) === 'teacher')) {
+  if (isIeltsAdminLandingRole) {
     return <React.Suspense fallback={<p role="status">Loading IELTS programme…</p>}><IeltsProgrammeWorkspace /></React.Suspense>;
   }
 
@@ -560,7 +569,7 @@ const IeltsHome: React.FC = () => {
       { skill: 'speaking' as const, label: 'Speaking', benefit: 'Practise fluent answers with clear response patterns.', progress: summary.skillProgress.speaking },
     ];
     if (!summary.diagnostic.completed) {
-      return <IeltsStudentShell active="home" eyebrow="Brains Heist IELTS" title="Your IELTS home" lead="Your course, your starting checks and saved results in one place."><div style={{ display: 'grid', gap: '1rem' }}><IeltsCourseEntryCard onNavigate={navigate} /><IeltsScreenerHub key={authUserId} />{hasSchoolMembership && <IeltsSchoolLearnerLinks onNavigate={navigate} />}</div></IeltsStudentShell>;
+      return <IeltsStudentShell active="home" eyebrow="Brains Heist IELTS" title="Your IELTS home" lead="Your course, your starting checks and saved results in one place."><div style={{ display: 'grid', gap: '1rem' }}><IeltsCourseEntryCard onNavigate={navigate} /><IeltsScreenerHub key={authUserId} />{schoolLearner && <IeltsSchoolLearnerLinks onNavigate={navigate} />}</div></IeltsStudentShell>;
     }
     if (activePrime) {
       return (
@@ -574,15 +583,15 @@ const IeltsHome: React.FC = () => {
           onNavigate={navigate}
           onRedirectToPrime={redirectToPrime}
           formatDate={formatDate}
-          showSchoolLinks={hasSchoolMembership}
+          showSchoolLinks={schoolLearner}
         />
       );
     }
-    return <div style={shell}><main style={{ maxWidth: 1120, margin: '0 auto', display: 'grid', gap: '1rem' }}><section style={{ ...whiteCard, background: 'linear-gradient(135deg,#0f172a,#172554 48%,#4c1d95)', color: '#fff', padding: 'clamp(1.3rem,4vw,2.2rem)' }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}><div><span style={{ display: 'inline-flex', background: activePrime ? 'rgba(34,197,94,.16)' : 'rgba(251,191,36,.16)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 999, padding: '.35rem .7rem', fontWeight: 700, color: activePrime ? '#bbf7d0' : '#fde68a' }}>{activePrime ? 'IELTS Prime Active' : lapsedPrime ? 'Prime access needs renewal' : 'Listening screener complete'}</span><h1 style={{ margin: '.8rem 0 .35rem', fontSize: 'clamp(2rem,5vw,3.7rem)', letterSpacing: '-0.05em' }}>Welcome back, {summary.displayName || 'IELTS learner'}.</h1><p style={{ margin: 0, color: '#cbd5e1' }}>{activePrime ? 'Continue your premium IELTS practice dashboard.' : 'Your screener gives you one useful practice signal. Broader evidence is needed before Brains Heist shows IELTS readiness.'}</p></div><button type="button" onClick={() => navigate(recommendedRoute)} style={{ alignSelf: 'center', background: '#fff', color: '#312e81', border: 0, borderRadius: 999, padding: '.9rem 1.15rem', fontWeight: 700, cursor: 'pointer' }}>Continue Learning →</button></div><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '.75rem', marginTop: '1.1rem' }}>{[['Screener score', summary.diagnostic.practiceScorePercent !== null ? `${Math.round(summary.diagnostic.practiceScorePercent)}%` : 'Completed'], ['Target Band', summary.targetBand ? `${summary.targetBand}.0` : 'Set when ready'], ['Plan', summary.subscription.plan || (activePrime ? 'Prime access active' : 'Free')], ['Status', summary.subscription.status || (activePrime ? 'active' : 'free')], ['Started', formatDate((summary.subscription as any).current_period_start)], ['Renewal', formatDate(summary.subscription.current_period_end)]].map(([k,v]) => <div key={k} style={{ background: 'rgba(15,23,42,.48)', border: '1px solid rgba(148,163,184,.22)', borderRadius: '.9rem', padding: '.85rem' }}><div style={{ color: '#94a3b8', fontSize: '.72rem', fontWeight: 700, textTransform: 'uppercase' }}>{k}</div><div style={{ color: '#fff', fontWeight: 700, marginTop: '.2rem' }}>{v}</div></div>)}</div></section><IeltsCourseEntryCard onNavigate={navigate} /><IeltsScreenerHub key={authUserId} />{hasSchoolMembership && <IeltsSchoolLearnerLinks onNavigate={navigate} />}<section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '1rem' }}><div style={whiteCard}><b>Listening screener complete</b><p>Completed {formatDate(summary.diagnostic.completedAt)}</p></div><div style={whiteCard}><b>Tasks completed</b><p>{completedTotal} completed · {taskTotal || 'No'} available</p></div><div style={whiteCard}><b>Suggested next track</b><p>{recommendedSkill ? recommendedSkill[0].toUpperCase()+recommendedSkill.slice(1) : 'Reading'}</p></div><div style={whiteCard}><b>Recent activity</b><p>{formatDate(summary.recentActivity)}</p></div></section><section style={whiteCard}><h2 style={{ marginTop: 0 }}>{activePrime ? 'Skill tracks' : 'Your screener result and next step'}</h2>{!activePrime && <p style={{ color: '#475569' }}>IELTS Prime helps turn this practice signal into a broader study path. Prime sections are previewed below without pretending the screener is a full readiness result.</p>}<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: '.8rem' }}>{skillCards.map(card => <IeltsSkillTrack key={card.skill} label={card.label} benefit={card.benefit} progress={card.progress} locked={!activePrime && ['writing','speaking'].includes(card.skill)} onNavigate={navigate} onUnlock={redirectToPrime}/>)}</div></section>{!activePrime && <section style={{ ...whiteCard, borderColor: '#c4b5fd' }}><h2 style={{ marginTop: 0 }}>{lapsedPrime ? 'Renew IELTS Prime' : 'Unlock IELTS Prime'}</h2><p style={{ color: '#475569' }}>Writing feedback, Speaking practice, full progress tracking, and a structured IELTS improvement plan are available with Prime. Readiness estimates appear only when the evidence is sufficient.</p><button type="button" onClick={redirectToPrime} style={{ background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: '#fff', border: 0, borderRadius: 999, padding: '.85rem 1.1rem', fontWeight: 700, cursor: 'pointer' }}>{lapsedPrime ? 'Renew IELTS Prime' : 'Explore IELTS Prime'}</button></section>}{activePrime && summary.subscription.management_url && <a href={summary.subscription.management_url} style={{ color: '#334155', fontWeight: 700 }}>Manage subscription</a>}<button onClick={() => navigate('/')} style={{ padding: '.75rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '.75rem', cursor: 'pointer' }}>← Back to Brains Heist Game</button></main></div>;
+    return <div style={shell}><main style={{ maxWidth: 1120, margin: '0 auto', display: 'grid', gap: '1rem' }}><section style={{ ...whiteCard, background: 'linear-gradient(135deg,#0f172a,#172554 48%,#4c1d95)', color: '#fff', padding: 'clamp(1.3rem,4vw,2.2rem)' }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}><div><span style={{ display: 'inline-flex', background: activePrime ? 'rgba(34,197,94,.16)' : 'rgba(251,191,36,.16)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 999, padding: '.35rem .7rem', fontWeight: 700, color: activePrime ? '#bbf7d0' : '#fde68a' }}>{activePrime ? 'IELTS Prime Active' : lapsedPrime ? 'Prime access needs renewal' : 'Listening screener complete'}</span><h1 style={{ margin: '.8rem 0 .35rem', fontSize: 'clamp(2rem,5vw,3.7rem)', letterSpacing: '-0.05em' }}>Welcome back, {summary.displayName || 'IELTS learner'}.</h1><p style={{ margin: 0, color: '#cbd5e1' }}>{activePrime ? 'Continue your premium IELTS practice dashboard.' : 'Your screener gives you one useful practice signal. Broader evidence is needed before Brains Heist shows IELTS readiness.'}</p></div><button type="button" onClick={() => navigate(recommendedRoute)} style={{ alignSelf: 'center', background: '#fff', color: '#312e81', border: 0, borderRadius: 999, padding: '.9rem 1.15rem', fontWeight: 700, cursor: 'pointer' }}>Continue Learning →</button></div><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '.75rem', marginTop: '1.1rem' }}>{[['Screener score', summary.diagnostic.practiceScorePercent !== null ? `${Math.round(summary.diagnostic.practiceScorePercent)}%` : 'Completed'], ['Target Band', summary.targetBand ? `${summary.targetBand}.0` : 'Set when ready'], ['Plan', summary.subscription.plan || (activePrime ? 'Prime access active' : 'Free')], ['Status', summary.subscription.status || (activePrime ? 'active' : 'free')], ['Started', formatDate((summary.subscription as any).current_period_start)], ['Renewal', formatDate(summary.subscription.current_period_end)]].map(([k,v]) => <div key={k} style={{ background: 'rgba(15,23,42,.48)', border: '1px solid rgba(148,163,184,.22)', borderRadius: '.9rem', padding: '.85rem' }}><div style={{ color: '#94a3b8', fontSize: '.72rem', fontWeight: 700, textTransform: 'uppercase' }}>{k}</div><div style={{ color: '#fff', fontWeight: 700, marginTop: '.2rem' }}>{v}</div></div>)}</div></section><IeltsCourseEntryCard onNavigate={navigate} /><IeltsScreenerHub key={authUserId} />{schoolLearner && <IeltsSchoolLearnerLinks onNavigate={navigate} />}<section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '1rem' }}><div style={whiteCard}><b>Listening screener complete</b><p>Completed {formatDate(summary.diagnostic.completedAt)}</p></div><div style={whiteCard}><b>Tasks completed</b><p>{completedTotal} completed · {taskTotal || 'No'} available</p></div><div style={whiteCard}><b>Suggested next track</b><p>{recommendedSkill ? recommendedSkill[0].toUpperCase()+recommendedSkill.slice(1) : 'Reading'}</p></div><div style={whiteCard}><b>Recent activity</b><p>{formatDate(summary.recentActivity)}</p></div></section><section style={whiteCard}><h2 style={{ marginTop: 0 }}>{activePrime ? 'Skill tracks' : 'Your screener result and next step'}</h2>{!activePrime && <p style={{ color: '#475569' }}>IELTS Prime helps turn this practice signal into a broader study path. Prime sections are previewed below without pretending the screener is a full readiness result.</p>}<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: '.8rem' }}>{skillCards.map(card => <IeltsSkillTrack key={card.skill} label={card.label} benefit={card.benefit} progress={card.progress} locked={!activePrime && ['writing','speaking'].includes(card.skill)} onNavigate={navigate} onUnlock={redirectToPrime}/>)}</div></section>{!activePrime && <section style={{ ...whiteCard, borderColor: '#c4b5fd' }}><h2 style={{ marginTop: 0 }}>{lapsedPrime ? 'Renew IELTS Prime' : 'Unlock IELTS Prime'}</h2><p style={{ color: '#475569' }}>Writing feedback, Speaking practice, full progress tracking, and a structured IELTS improvement plan are available with Prime. Readiness estimates appear only when the evidence is sufficient.</p><button type="button" onClick={redirectToPrime} style={{ background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: '#fff', border: 0, borderRadius: 999, padding: '.85rem 1.1rem', fontWeight: 700, cursor: 'pointer' }}>{lapsedPrime ? 'Renew IELTS Prime' : 'Explore IELTS Prime'}</button></section>}{activePrime && summary.subscription.management_url && <a href={summary.subscription.management_url} style={{ color: '#334155', fontWeight: 700 }}>Manage subscription</a>}{ieltsAccount?.inSchool && <button onClick={() => navigate('/')} style={{ padding: '.75rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '.75rem', cursor: 'pointer' }}>← Back to Brains Heist Game</button>}</main></div>;
   }
 
-  const shouldShowSchoolTools = hasSchoolMembership || canOpenReviewQueue;
-  const showPracticeCatalog = extraPracticeEnabled === true && (isAuthenticated || hasSchoolMembership);
+  const shouldShowSchoolTools = schoolLearner || canOpenReviewQueue;
+  const showPracticeCatalog = extraPracticeEnabled === true && isAuthenticated;
   const practiceCatalogRestricted = isAuthenticated
     && (extraPracticeAccessError || extraPracticeEnabled === false);
   const practiceCatalogResolving = isAuthenticated && extraPracticeEnabled === null;
@@ -617,8 +626,8 @@ const IeltsHome: React.FC = () => {
           <section style={{ ...card, marginBottom: '1.25rem' }}>
             <h2 style={{ margin: '0 0 0.8rem', color: '#0f172a', fontSize: '1rem' }}>School tools</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
-              {hasSchoolMembership && <button type="button" onClick={() => navigate('/ielts/practice/assigned')} style={{ padding: '0.85rem', borderRadius: '0.85rem', border: '1px solid #c4b5fd', background: '#f5f3ff', color: '#5b21b6', fontWeight: 700, cursor: 'pointer' }}>📌 Assigned Practice →</button>}
-              {hasSchoolMembership && <button type="button" onClick={() => navigate('/ielts/journey')} style={{ padding: '0.85rem', borderRadius: '0.85rem', border: '1px solid #bae6fd', background: '#f0f9ff', color: '#075985', fontWeight: 700, cursor: 'pointer' }}>🧭 My IELTS Journey →</button>}
+              {schoolLearner && <button type="button" onClick={() => navigate('/ielts/practice/assigned')} style={{ padding: '0.85rem', borderRadius: '0.85rem', border: '1px solid #c4b5fd', background: '#f5f3ff', color: '#5b21b6', fontWeight: 700, cursor: 'pointer' }}>📌 Assigned Practice →</button>}
+              {isAuthenticated && <button type="button" onClick={() => navigate('/ielts/journey')} style={{ padding: '0.85rem', borderRadius: '0.85rem', border: '1px solid #bae6fd', background: '#f0f9ff', color: '#075985', fontWeight: 700, cursor: 'pointer' }}>🧭 My IELTS Journey →</button>}
               {canOpenReviewQueue && (
                 <button type="button" onClick={() => navigate('/ielts/reviews')} style={{ padding: '0.85rem', borderRadius: '0.85rem', border: '1px solid #bbf7d0', background: '#f0fdf4', color: '#166534', fontWeight: 700, cursor: 'pointer' }}>📝 Review Queue →</button>
               )}
@@ -661,7 +670,7 @@ const IeltsHome: React.FC = () => {
             <p style={{ margin: '.55rem 0 0', color: '#475569', lineHeight: 1.6 }}>
               {extraPracticeAccessError
                 ? 'Extra Practice access could not be verified. Optional practice remains closed until you retry.'
-                : hasSchoolMembership
+                : schoolLearner
                   ? 'Extra Practice is currently disabled by your school. Assigned work and your IELTS journey remain available.'
                   : 'Extra Practice is not available for this account. Your IELTS dashboard and saved progress remain available.'}
             </p>
@@ -688,7 +697,7 @@ const IeltsHome: React.FC = () => {
           </details>
         ) : null}
 
-        <button onClick={() => navigate('/')} style={{ width: '100%', padding: '0.75rem', background: '#ffffff', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '0.75rem', cursor: 'pointer', fontWeight: 700 }}>← Back to Brains Heist Game</button>
+        {ieltsAccount?.inSchool && <button onClick={() => navigate('/')} style={{ width: '100%', padding: '0.75rem', background: '#ffffff', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '0.75rem', cursor: 'pointer', fontWeight: 700 }}>← Back to Brains Heist Game</button>}
       </main>
     </div>
   );

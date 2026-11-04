@@ -38,7 +38,9 @@ test('school administrators use the persistent IELTS shell and its single settin
   const home = read('src/pages/ielts/IeltsHome.tsx');
   const settingsTab = read('components/school-admin/tabs/IeltsSettingsTab.tsx');
   const accessService = read('services/ieltsExtraPracticeAccessService.ts');
-  assert.match(home, /isIeltsAdminLandingRole = isPlatformAdmin \|\| canAdministerSchool/);
+  // Staff get the programme workspace only when their school's agreement includes IELTS (owner decision 2026-11-05).
+  assert.match(home, /isIeltsAdminLandingRole = isPlatformAdmin \|\| \(isSchoolStaffRole && schoolLearner\)/);
+  assert.match(home, /isSchoolStaffRole = canAdministerSchool \|\| normalizeIeltsRole\(userRole\) === 'teacher'/);
   assert.match(home, /resolveMySchoolCapabilities\(\)/, 'school administration decisions must use active membership capabilities');
   assert.doesNotMatch(home, /normalizedRole === 'school_admin'/, 'legacy profile role must not grant school administration access');
   assert.match(home, /navigate\(schoolAdminIeltsUrl\('ielts-overview'\), \{ replace: true \}\)/, 'school administrators should enter IELTS through the persistent school shell');
@@ -87,8 +89,8 @@ test('Extra Practice restriction gates only the catalog and keeps the authentica
   assert.match(home, /Extra Practice is currently disabled by your school\. Assigned work and your IELTS journey remain available\./, 'the catalog should explain the school restriction without hiding other tools');
   assert.match(home, /setExtraPracticeRetry/, 'verification failures must offer a retry');
   assert.doesNotMatch(publicLandingPreamble, /extraPracticeAccessError/, 'the obsolete page-level access alert must stay removed');
-  assert.match(home, /showSchoolLinks=\{hasSchoolMembership\}/, 'Prime dashboard users should keep school assignment and journey links');
-  assert.match(home, /hasSchoolMembership && <IeltsSchoolLearnerLinks onNavigate=\{navigate\} \/>/, 'non-Prime and pre-diagnostic dashboard users should keep school assignment and journey links');
+  assert.match(home, /showSchoolLinks=\{schoolLearner\}/, 'Prime dashboard users with a school IELTS seat keep school assignment and journey links');
+  assert.match(home, /schoolLearner && <IeltsSchoolLearnerLinks onNavigate=\{navigate\} \/>/, 'non-Prime and pre-diagnostic dashboard users with a school IELTS seat keep school assignment and journey links');
 
   const schoolLinks = read('src/components/ielts/IeltsSchoolLearnerLinks.tsx');
   assert.match(schoolLinks, /route: '\/ielts\/practice\/assigned'/, 'school dashboard links should open assigned work');

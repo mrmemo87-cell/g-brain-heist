@@ -182,7 +182,11 @@ export const ieltsCourseSkillLabel: Record<IeltsCourseSkill, string> = {
   vocabulary: 'Vocabulary',
 };
 
-export const ieltsCourseAccessMessage = (reason: IeltsCourseAccessReason): { title: string; body: string; cta: 'prime' | 'school' | null } => {
+/**
+ * Lock messages. A school student without an IELTS seat is an independent learner (owner decision 2026-11-05):
+ * IELTS Prime is offered, and `askSchool` lets the page also offer a seat request to the school admin.
+ */
+export const ieltsCourseAccessMessage = (reason: IeltsCourseAccessReason): { title: string; body: string; cta: 'prime' | null; askSchool?: boolean } => {
   switch (reason) {
     case 'prime_required':
       return {
@@ -192,9 +196,10 @@ export const ieltsCourseAccessMessage = (reason: IeltsCourseAccessReason): { tit
       };
     case 'school_seat_missing':
       return {
-        title: 'Your school has not allocated an IELTS seat to you yet.',
-        body: 'Unit 1 is open. Ask your school admin to allocate an IELTS programme seat to unlock the full course.',
-        cta: 'school',
+        title: 'Unit 1 is free. The rest of the course is part of IELTS Prime.',
+        body: 'Your school has not given you an IELTS seat. Unlock all 20 units with IELTS Prime, or ask your school for a seat.',
+        cta: 'prime',
+        askSchool: true,
       };
     default:
       return { title: '', body: '', cta: null };

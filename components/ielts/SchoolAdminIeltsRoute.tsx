@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { resolveMySchoolCapabilities } from '../../services/schoolAdminService';
+import { getEntitlements } from '../../services/entitlementService';
 import { subscribeToAccountChanges } from '../../src/lib/accountChange';
 import {
   isValidSchoolAdminIeltsReviewAttemptId,
@@ -33,7 +34,17 @@ const SchoolAdminIeltsRoute: React.FC<SchoolAdminIeltsRouteProps> = ({ children,
       setAdminAccess('error');
       return;
     }
-    setAdminAccess(resolution.capabilities?.can_administer ? 'school_admin' : 'not_school_admin');
+    if (!resolution.capabilities?.can_administer) {
+      setAdminAccess('not_school_admin');
+      return;
+    }
+    // Only a school whose agreement includes IELTS has an IELTS admin workspace; staff of other schools use IELTS
+    // as learners.
+    const schoolHasIelts = await getEntitlements()
+      .then((e) => e.programmeAccess.ielts.available || e.programmeAccess.ielts.purchased)
+      .catch(() => true);
+    if (requestId !== requestIdRef.current) return;
+    setAdminAccess(schoolHasIelts ? 'school_admin' : 'not_school_admin');
   }, []);
 
   useEffect(() => {

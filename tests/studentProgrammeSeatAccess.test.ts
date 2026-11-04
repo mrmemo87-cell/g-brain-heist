@@ -29,12 +29,18 @@ test('student catalogue distinguishes purchase from named-seat allocation', () =
   assert.match(read('components/student/LearnHub.tsx'), /Ask your school/);
 });
 
-test('direct IELTS routes fail closed for school accounts without programme access', () => {
+test('school-only IELTS routes need a seat; other IELTS routes treat seatless school members as independent learners', () => {
+  // Owner decision 2026-11-05: without a school IELTS seat a student is an independent learner (free Unit 1 and V1,
+  // then IELTS Prime); the server decides each task. Assignments, Targeted and school sessions stay school-only.
   assert.match(routeGuard, /authoritative/);
   assert.match(routeGuard, /programmeAccess\[programme\]\.available/);
   assert.match(routeGuard, /access remains locked for your protection/);
-  assert.match(router, /withSchoolIeltsAccess\(<IeltsHome/);
-  assert.match(router, /withSchoolIeltsAccess\(<ProtectedRoute element={<IeltsPracticeRouteGuard>/);
+  assert.match(router, /withIeltsLearnerAccess\(<IeltsHome/);
+  assert.match(router, /withIeltsLearnerAccess\(<IeltsPrime/);
+  assert.match(router, /withIeltsLearnerAccess\(<ProtectedRoute element={<IeltsPracticeRouteGuard>/);
+  assert.match(router, /path: '\/ielts\/practice\/assigned',\s*element: withSchoolIeltsAccess\(/);
+  assert.match(router, /path: '\/ielts\/practice\/targeted', element: withSchoolIeltsAccess\(/);
+  assert.match(router, /path: '\/ielts\/session\/:sessionId',\s*element: withSchoolIeltsAccess\(/);
 });
 
 test('pilot programmes receive real named-seat capacity', () => {
