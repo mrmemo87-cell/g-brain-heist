@@ -734,3 +734,10 @@ body.ielts-theme {
   .ielts-auth-panel { padding: 24px; gap: 24px; }
   .ielts-auth-panel .ielts-auth-title { font-size: 1.75rem; line-height: 1.2; }
 }
+
+/* IELTS email sign-up (independent learners from ads) */
+.ielts-auth-panel .ielts-auth-email-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; }
+.ielts-auth-panel .ielts-auth-email-row .ielts-auth-email-toggle { margin: 8px 0 0; }
+.ielts-auth-panel .ielts-auth-create { font-weight: 800; }
+.ielts-auth-panel .ielts-auth-check { display: grid; gap: 4px; border-color: #86efac; background: #f0fdf4; color: #14532d; }
+.ielts-auth-panel .ielts-auth-fineprint { margin: 2px 0 0; font-size: .78rem; color: #64748b; text-align: center; }
