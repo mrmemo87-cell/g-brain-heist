@@ -20,6 +20,10 @@
       "destination": "/booked.html"
     },
     {
+      "source": "/watch",
+      "destination": "/watch.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
