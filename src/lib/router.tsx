@@ -124,6 +124,10 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ router }) => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [router.routes]);
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('bh:routechange', { detail: { pathname: state.pathname } }));
+  }, [state.pathname]);
+
   const contextValue = useMemo<RouterContextValue>(
     () => ({ pathname: state.pathname, params: state.params, navigate: updatePath }),
     [state.pathname, state.params, updatePath]

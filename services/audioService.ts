@@ -113,6 +113,8 @@ class AudioManager {
 
   playBackgroundMusic() {
     if (!this.bgMusicEnabled || !this.bgMusic || !this.hasUserInteracted) return;
+    // The IELTS area is a study space: the game soundtrack never plays there.
+    if (isQuietMusicPath()) return;
     
     this.bgMusic.play().catch(err => {
       console.warn('Failed to play background music (autoplay blocked):', err);
@@ -161,8 +163,23 @@ class AudioManager {
   }
 }
 
+/** Paths where the game soundtrack must stay silent (IELTS study area). */
+export function isQuietMusicPath(pathname?: string): boolean {
+  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '');
+  return path === '/ielts' || path.startsWith('/ielts/') || path.startsWith('/ielts-prep');
+}
+
 // Export singleton instance
 export const audioService = new AudioManager();
+
+// Entering the IELTS area stops any soundtrack that was already playing.
+if (typeof window !== 'undefined') {
+  const stopIfQuiet = () => {
+    if (isQuietMusicPath()) audioService.stopBackgroundMusic();
+  };
+  window.addEventListener('bh:routechange', stopIfQuiet);
+  window.addEventListener('popstate', stopIfQuiet);
+}
 
 // Expose methods for IELTS pages to control music
 export const stopBackgroundMusic = () => audioService.stopBackgroundMusic();
