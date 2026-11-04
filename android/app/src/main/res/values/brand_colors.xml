@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brains Heist navy: shown behind the status bar and gesture bar while the app is open. -->
+    <color name="brand_background">#050813</color>
+</resources>

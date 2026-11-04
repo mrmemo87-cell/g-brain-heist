@@ -81,3 +81,15 @@ export function nativeAuthRedirect(webRedirectUrl: string | undefined): string {
   } catch { /* fall back to the default callback */ }
   return `${NATIVE_URL_SCHEME}://${path.replace(/^\/+/, '')}${search}`;
 }
+
+/**
+ * Home screens of the app. Android's back button on one of these sends the app to the background (like
+ * every Android app) instead of walking browser history, which used to bounce between the Brains Heist
+ * and IELTS homes because each switch is a full page load.
+ */
+const APP_ROOT_PATHS = new Set(['/', '/ielts', '/ielts/course']);
+
+export function isAppRootPath(pathname: string): boolean {
+  const clean = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  return APP_ROOT_PATHS.has(clean || '/');
+}

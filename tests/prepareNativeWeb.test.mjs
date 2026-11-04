@@ -25,3 +25,13 @@ test('native app bundle drops sources, answer keys, reports and source maps', ()
     'cambridge-tests/Biology/[CH1] 9700 BIOLOGY P1.pdf',
   ]) assert.equal(shipsInApp(dropped), false, dropped);
 });
+
+test('native app pages fit between the system bars and cannot zoom or pan sideways', async () => {
+  const { nativeHtml, NATIVE_VIEWPORT } = await import('../scripts/prepare-native-web.mjs');
+  const web = '<head><meta charset="UTF-8" />\n<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" /></head>';
+  const app = nativeHtml(web);
+  assert.match(app, new RegExp(`content="${NATIVE_VIEWPORT}"`));
+  assert.doesNotMatch(app, /viewport-fit=cover/);
+  assert.match(app, /user-scalable=no/);
+  assert.equal(nativeHtml('<p>no viewport</p>'), '<p>no viewport</p>');
+});
