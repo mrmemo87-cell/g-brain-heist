@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   IELTS_DAILY_GOALS,
+  readHabitSeen,
   IELTS_XP_RULES,
   cachedIeltsCourseHabit,
   dueHabitCelebration,
@@ -12,7 +13,9 @@ import {
   type IeltsCourseHabit,
 } from '../../../services/ieltsCourseHabitService';
 import { enablePushOnThisDevice, getPushAvailability, isPushEnabledOnThisDevice } from '../../../services/pushService';
+import { BadgeMedal, Blaze } from './IeltsGameArt';
 
+const readHabitSeenBadges = () => readHabitSeen().badges ?? [];
 const WEEKDAY = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const dayLetter = (iso: string) => WEEKDAY[new Date(`${iso}T12:00:00`).getDay()] ?? '';
 const reducedMotion = () => typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
@@ -71,7 +74,7 @@ export function IeltsCourseHabitBar({ habit, onChange }: { habit: IeltsCourseHab
       <button type="button" className={`ih-bar${habit.today_done ? ' is-lit' : ''}${atRisk ? ' is-waiting' : ''}`} onClick={() => setOpen(true)}
         aria-label={`${habit.streak}-day streak. ${habit.today_xp} of ${habit.daily_goal_xp} XP today. ${habit.freezes} streak freezes. Open streak details.`}>
         <span className="ih-flame" aria-hidden="true">
-          <span className="ih-flame-icon">🔥</span>
+          <Blaze mood={habit.today_done ? 'happy' : 'sleepy'} size={58} />
           <b>{habit.streak}</b>
         </span>
         <span className="ih-bar-text">
@@ -147,7 +150,7 @@ export function IeltsCourseHabitSheet({ habit, onClose, onChange }: { habit: Iel
       <div className="ic-sheet ih-sheet" role="dialog" aria-modal="true" aria-labelledby="ih-sheet-title" onClick={(e) => e.stopPropagation()}>
         <span className="ic-sheet-grip" aria-hidden="true" />
         <div className="ih-hero">
-          <span className="ih-hero-flame" aria-hidden="true">🔥</span>
+          <span className="ih-hero-flame" aria-hidden="true"><Blaze mood={habit.today_done ? 'cheer' : 'sleepy'} size={84} /></span>
           <div>
             <h2 id="ih-sheet-title">{habit.streak} day streak</h2>
             <p>{habit.next_milestone ? `${habit.next_milestone - habit.streak} more ${habit.next_milestone - habit.streak === 1 ? 'day' : 'days'} to reach ${habit.next_milestone}.` : 'A legendary streak.'} Best: {habit.longest_streak} {habit.longest_streak === 1 ? 'day' : 'days'}.</p>
@@ -172,6 +175,21 @@ export function IeltsCourseHabitSheet({ habit, onClose, onChange }: { habit: Iel
             ))}
           </div>
         </section>
+
+        {habit.badges && habit.badges.length > 0 && (
+          <section className="ih-section">
+            <h3>Badges <small className="ih-count-chip">{habit.badges.filter((b) => b.earned).length}/{habit.badges.length}</small></h3>
+            <ul className="ih-badges">
+              {habit.badges.map((b) => (
+                <li key={b.id} className={b.earned ? 'is-earned' : ''} title={b.detail}>
+                  <BadgeMedal family={b.family} earned={b.earned} progress={b.goal ? b.value / b.goal : 0} size={62} />
+                  <b>{b.title}</b>
+                  <small>{b.earned ? b.detail : `${b.value}/${b.goal}`}</small>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <ReminderControl habit={habit} onChange={onChange} />
 
@@ -205,7 +223,9 @@ export function IeltsHabitCelebration({ habit }: { habit: IeltsCourseHabit | nul
     if (shown) return;
     const due = dueHabitCelebration(habit);
     if (!due || !habit) return;
-    markHabitSeen(due.kind === 'streak' ? { streakDay: habit.today } : { goalDay: habit.today });
+    markHabitSeen(due.kind === 'streak' ? { streakDay: habit.today }
+      : due.kind === 'goal' ? { goalDay: habit.today }
+        : { badges: [...new Set([...(readHabitSeenBadges()), due.badge.id])] });
     setShown(due);
   }, [habit, shown]);
   useEffect(() => {
@@ -224,16 +244,23 @@ export function IeltsHabitCelebration({ habit }: { habit: IeltsCourseHabit | nul
         {!reducedMotion() && <div className="ih-sparks" aria-hidden="true">{sparks.map((s, i) => <i key={i} style={{ left: `${s.left}%`, animationDelay: `${s.delay}ms` }} />)}</div>}
         {shown.kind === 'streak' ? (
           <>
-            <span className="ih-big-flame" aria-hidden="true">🔥</span>
+            <span className="ih-big-flame" aria-hidden="true"><Blaze mood="cheer" size={132} /></span>
             <span className="ih-count" aria-live="polite">{count}</span>
             <h2 id="ih-celebrate-title">{shown.streak === 1 ? 'Streak started!' : shown.milestone ? `${shown.streak}-day milestone!` : 'Streak extended!'}</h2>
             <p>{streakLine(shown.streak, shown.milestone)}</p>
           </>
-        ) : (
+        ) : shown.kind === 'goal' ? (
           <>
-            <span className="ih-big-flame" aria-hidden="true">🎯</span>
+            <span className="ih-big-flame" aria-hidden="true"><Blaze mood="cheer" size={120} hue={110} /></span>
             <h2 id="ih-celebrate-title">Daily goal reached!</h2>
             <p>{shown.xp} XP today, goal {shown.goal}. Anything more is a bonus.</p>
+          </>
+        ) : (
+          <>
+            <span className="ih-medal-pop" aria-hidden="true"><BadgeMedal family={shown.badge.family} earned size={140} /></span>
+            <p className="ih-celebrate-kicker">New badge</p>
+            <h2 id="ih-celebrate-title">{shown.badge.title}</h2>
+            <p>{shown.badge.detail}</p>
           </>
         )}
         <button type="button" className="ic-btn ic-btn--primary ic-btn--block ic-btn--glow" onClick={close} autoFocus>Continue</button>

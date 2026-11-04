@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '../../styles/ielts-course.css';
 import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell';
 import { IeltsCourseHabitBar, IeltsHabitCelebration, useIeltsCourseHabit } from '../../components/ielts/IeltsCourseHabit';
+import { IeltsLeagueCard } from './IeltsCourseLeague';
 import {
   cachedIeltsCourseState,
   fetchIeltsCourseState,
@@ -175,6 +176,7 @@ const IeltsCoursePath: React.FC = () => {
         <main className="ic-main">
           <IeltsHabitCelebration habit={habit} />
           <IeltsCourseHabitBar habit={habit} onChange={setHabit} />
+          <IeltsLeagueCard />
 
           <div className="ic-tracks" role="tablist" aria-label="Course paths">
             {(['main', 'vocabulary'] as IeltsCourseTrack[]).map((t) => {

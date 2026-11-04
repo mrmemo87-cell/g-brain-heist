@@ -8,7 +8,10 @@ const state={access:{full:true,reason:'prime'},current_unit_id:1,units_total:20,
 const step={code,unit_id:21,unit_title:'Paraphrase power',step:1,steps:6,next_code:'c2',purpose:'guided_practice',title:'Meet the words',display_code:'R-080',minutes:6,instructions:'Choose.',success_description:null,focus:null,passage:'LEARN FIRST: x\n\nBody',questions:[{id:'q1',prompt:'What?',options:[{value:'A',label:'A'},{value:'B',label:'B'}]}],result:null};
 const marked={attempt_id:'a',score:1,total:1,submitted_at:'',answers:{q1:'A'},outcomes:[{id:'q1',correct:true,response_state:'answered',accepted_answers:['A']}],explanations:{q1:'A.'},unit_completed:false};
 
-const bundle=await build({stdin:{contents:`import React from 'react';import{createRoot}from'react-dom/client';import{RouterProvider,createBrowserRouter}from'./src/lib/router';import{ supabase }from'./services/supabaseClient';import Path from './src/pages/ielts/IeltsCoursePath';import Step from './src/pages/ielts/IeltsCourseVocabStep';const user={id:'00000000-0000-0000-0000-000000000001'};supabase.auth.getSession=async()=>({data:{session:{user}}});supabase.auth.getUser=async()=>({data:{user}});supabase.auth.onAuthStateChange=()=>({data:{subscription:{unsubscribe(){}}}});createRoot(document.getElementById('root')).render(<RouterProvider router={createBrowserRouter([{path:'/ielts/course',element:<Path/>},{path:'/ielts/vocabulary/:code',element:<Step/>}])}/>);`,loader:'tsx',resolveDir:process.cwd()},bundle:true,format:'iife',write:false,loader:{'.css':'empty'},define:{'import.meta':JSON.stringify({env:{VITE_SUPABASE_URL:'https://test.supabase.co',VITE_SUPABASE_ANON_KEY:'test-key'}})},logLevel:'silent'});
+const leagueData={week_start:'2026-11-02',ends_at:new Date(Date.now()+30*3600000).toISOString(),tier:2,tier_name:'Silver',joined:true,my_xp:140,size:12,promote_count:5,demote_count:5,
+ members:Array.from({length:12},(_,i)=>({rank:i+1,name:i===2?'Gulzada K.':`Learner ${String.fromCharCode(65+i)}.`,xp:200-i*15,me:i===2,hue:i*30})),
+ last_week:{week_start:'2026-10-26',tier:1,tier_name:'Bronze',rank:2,xp:210,result:'promoted',new_tier:2,new_tier_name:'Silver'}};
+const bundle=await build({stdin:{contents:`import React from 'react';import{createRoot}from'react-dom/client';import{RouterProvider,createBrowserRouter}from'./src/lib/router';import{ supabase }from'./services/supabaseClient';import Path from './src/pages/ielts/IeltsCoursePath';import Step from './src/pages/ielts/IeltsCourseVocabStep';import League from './src/pages/ielts/IeltsCourseLeague';const user={id:'00000000-0000-0000-0000-000000000001'};supabase.auth.getSession=async()=>({data:{session:{user}}});supabase.auth.getUser=async()=>({data:{user}});supabase.auth.onAuthStateChange=()=>({data:{subscription:{unsubscribe(){}}}});createRoot(document.getElementById('root')).render(<RouterProvider router={createBrowserRouter([{path:'/ielts/course',element:<Path/>},{path:'/ielts/vocabulary/:code',element:<Step/>},{path:'/ielts/league',element:<League/>}])}/>);`,loader:'tsx',resolveDir:process.cwd()},bundle:true,format:'iife',write:false,loader:{'.css':'empty'},define:{'import.meta':JSON.stringify({env:{VITE_SUPABASE_URL:'https://test.supabase.co',VITE_SUPABASE_ANON_KEY:'test-key'}})},logLevel:'silent'});
 
 async function mount(path,habits){
  const bodies=[],errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
@@ -19,6 +22,7 @@ async function mount(path,habits){
   if(name==='rpc_ielts_course_habit')result=habits[Math.min(h++,habits.length-1)];
   else if(name==='rpc_ielts_course_habit_settings')result=habit({daily_goal_xp:body.p_goal??20});
   else if(name==='rpc_ielts_course_state')result=state;
+  else if(name==='rpc_ielts_league')result=leagueData;
   else if(name==='rpc_ielts_course_vocab_task')result=step;
   else if(name==='rpc_ielts_course_vocab_submit')result=marked;
   else return new Promise(()=>{});
@@ -83,4 +87,36 @@ test('XP comes only from real attempts on the server; reminders respect the even
  assert.match(sql,/not p\.ielts_course/,'learners can switch the reminder off');
  assert.match(sql,/'ielts-streak-' \|\| r\.user_id::text \|\| '-' \|\| v_local::date::text/,'at most one reminder a day');
  assert.doesNotMatch(sql,/insert into private\.ielts_course_vocab_attempts|rpc_ielts_course_award/,'the browser cannot award XP');
+});
+
+test('the weekly league shows the ladder, both zones, the learner and last week\'s promotion once',async()=>{
+ const m=await mount('/ielts/league',[habit()]);try{
+  m.w.localStorage.clear();
+  await m.wait(()=>m.w.document.querySelector('.lg-result'));
+  assert.match(m.w.document.querySelector('.lg-result').textContent,/Promoted to Silver!/);
+  assert.match(m.w.document.querySelector('.lg-result').textContent,/#2 with 210 XP/);
+  m.w.document.querySelector('.lg-result button').click();
+  await m.wait(()=>!m.w.document.querySelector('.lg-result'));
+  assert.equal(m.w.localStorage.getItem('bh_ielts_league_result_seen_v1'),'2026-10-26','shown once per week');
+  assert.equal(m.w.document.querySelectorAll('.lg-row').length,12);
+  assert.match(m.w.document.querySelector('.lg-row.is-me').textContent,/Gulzada K\. \(you\)/);
+  assert.match(m.w.document.querySelector('.lg-zone--up').textContent,/Promotion zone/);
+  assert.match(m.w.document.querySelector('.lg-zone--down').textContent,/Demotion zone/);
+  assert.equal(m.w.document.querySelectorAll('.lg-row.is-down').length,5);
+  assert.match(m.w.document.querySelector('.lg-hero').textContent,/Top 5 move up to Gold/);
+  assert.equal(m.w.document.querySelectorAll('.lg-rung').length,8);
+  assert.match(m.w.document.body.textContent,/first name and initial/);
+  assert.deepEqual(m.errors,[]);
+ }finally{m.dom.window.close();}
+});
+
+test('leagues show only first name + initial and settle at most once; badges are derived from real activity',()=>{
+ const sql=fs.readFileSync('supabase/migrations/20261104110000_ielts_course_leagues_badges.sql','utf8');
+ assert.match(sql,/upper\(left\(parts\[cardinality\(parts\)\], 1\)\) \|\| '\.'/,'last name is reduced to an initial');
+ assert.doesNotMatch(sql.slice(sql.indexOf('rpc_ielts_league()')),/avatar_url|email|username|school_id/,'no photos, emails, usernames or schools on the board');
+ assert.match(sql,/settled_at is null and week_start < v_week for update skip locked/,'each group settles once');
+ assert.match(sql,/m\.rank <= 5 and m\.xp > 0 and g\.tier < 8 then 'promoted'/);
+ assert.match(sql,/v_n >= 10 and m\.rank > v_n - 5 and g\.tier > 1 then 'demoted'/);
+ assert.match(sql,/< 20/,'groups hold at most 20 learners');
+ assert.match(sql,/v_streak in \(14, 30, 100, 365\) and v_bank < 3/,'milestone streaks give a bonus freeze, not free access');
 });

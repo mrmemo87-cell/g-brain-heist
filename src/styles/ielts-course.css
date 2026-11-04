@@ -399,3 +399,63 @@
   .ih-bar.is-lit .ih-flame, .ih-bar.is-waiting .ih-flame, .ih-big-flame, .ih-celebrate-card, .iv-xp { animation: none; }
 }
 .ih-goal small.is-done { font-size: 1.05rem; color: #b45309; }
+.ih-flame { overflow: visible; }
+.ih-flame .blaze { margin-top: -4px; }
+.ih-bar .ih-flame { background: #f8fafc; filter: none; opacity: 1; }
+.ih-bar.is-lit .ih-flame { background: radial-gradient(circle at 50% 75%, #ffedd5, #fed7aa 70%); animation: none; }
+.ih-hero-flame { display: grid; place-items: center; width: 84px; height: 84px; margin: -14px 0 -10px; }
+.ih-big-flame { display: grid; place-items: center; }
+.ih-celebrate-card--badge { background: radial-gradient(120% 90% at 50% 0%, #a78bfa, #6d28d9 55%, #2e1065); }
+.ih-medal-pop { display: grid; place-items: center; animation: ih-medal-in .9s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes ih-medal-in { from { transform: scale(.2) rotateY(540deg); opacity: 0; } }
+.ih-celebrate-kicker { font-size: .78rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; color: #ddd6fe !important; }
+.ih-count-chip { margin-left: .35rem; padding: .05rem .5rem; border-radius: 999px; background: #f1f5f9; font-size: .74rem; color: #475569; }
+.ih-badges { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: .55rem; }
+.ih-badges li { display: grid; justify-items: center; gap: .15rem; padding: .55rem .35rem; border-radius: 16px; background: #f8fafc; border: 1px solid #e2e8f0; text-align: center; }
+.ih-badges li.is-earned { background: #fffbeb; border-color: #fde68a; }
+.ih-badges b { font-size: .78rem; line-height: 1.2; }
+.ih-badges small { font-size: .68rem; color: #64748b; line-height: 1.2; }
+@media (prefers-reduced-motion: reduce) { .ih-medal-pop { animation: none; } }
+
+/* Weekly league */
+.lg-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .7rem; width: 100%; padding: .55rem .9rem; border-radius: 20px; border: 1px solid color-mix(in srgb, var(--tier-b) 35%, #fff); background: linear-gradient(120deg, color-mix(in srgb, var(--tier-a) 70%, #fff), #fff 70%); font: inherit; text-align: left; cursor: pointer; color: #0f172a; box-shadow: 0 6px 16px rgba(15, 23, 42, .06); }
+.lg-card-text { display: grid; }
+.lg-card-text b { font-size: .98rem; font-weight: 900; }
+.lg-card-text small { font-size: .8rem; color: #475569; font-weight: 600; }
+.lg-card-go { font-weight: 900; color: #475569; }
+.lg-hero { position: relative; overflow: hidden; display: grid; justify-items: center; gap: .35rem; padding: 1.4rem 1rem 1.2rem; border-radius: 28px; text-align: center; color: #fff; background: radial-gradient(120% 100% at 50% 0%, var(--tier-b), var(--tier-c) 70%, #0b1023); box-shadow: 0 20px 44px rgba(15, 23, 42, .28); }
+.lg-hero h1 { color: #fff; font-size: clamp(1.6rem, 6vw, 2.1rem); }
+.lg-hero-time { font-weight: 800; color: rgba(255, 255, 255, .92); }
+.lg-hero-rule { font-size: .9rem; color: rgba(255, 255, 255, .85); }
+.lg-hero-rays { position: absolute; inset: -40%; background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, .09) 0 10deg, transparent 10deg 24deg); animation: lg-spin 40s linear infinite; pointer-events: none; }
+@keyframes lg-spin { to { transform: rotate(360deg); } }
+.lg-ladder { list-style: none; margin: 0; padding: .4rem .2rem; display: flex; gap: .35rem; overflow-x: auto; scrollbar-width: none; align-items: end; }
+.lg-rung { display: grid; justify-items: center; gap: .1rem; min-width: 58px; }
+.lg-rung small { font-size: .66rem; font-weight: 800; color: #64748b; }
+.lg-rung--current small { color: #0f172a; }
+.lg-rung--passed { opacity: .65; }
+.lg-join { display: grid; justify-items: center; gap: .55rem; text-align: center; }
+.lg-board { display: grid; gap: .4rem; }
+.lg-row { display: grid; grid-template-columns: 2.2rem auto 1fr auto; align-items: center; gap: .6rem; padding: .45rem .7rem; border-radius: 16px; background: #fff; border: 1px solid #e2e8f0; animation: lg-row-in .4s cubic-bezier(.2, .9, .3, 1.1) both; animation-delay: calc(var(--i) * 40ms); }
+@keyframes lg-row-in { from { opacity: 0; transform: translateY(10px); } }
+.lg-row.is-up { border-color: #bbf7d0; background: linear-gradient(90deg, #f0fdf4, #fff 60%); }
+.lg-row.is-down { border-color: #fecaca; background: linear-gradient(90deg, #fef2f2, #fff 60%); }
+.lg-row.is-me { border: 2px solid #f59e0b; background: linear-gradient(90deg, #fffbeb, #fff 70%); position: sticky; top: .5rem; bottom: 5.5rem; z-index: 2; box-shadow: 0 8px 18px rgba(245, 158, 11, .2); }
+.lg-rank { font-weight: 900; text-align: center; color: #475569; font-size: 1rem; }
+.lg-rank--1, .lg-rank--2, .lg-rank--3 { font-size: 1.35rem; }
+.lg-name { font-weight: 800; color: #0f172a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lg-xp { font-weight: 900; color: #c2410c; font-size: .92rem; }
+.lg-zone { display: flex; align-items: center; gap: .5rem; font-size: .72rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.lg-zone::before, .lg-zone::after { content: ''; flex: 1; height: 2px; border-radius: 2px; }
+.lg-zone--up { color: #15803d; } .lg-zone--up::before, .lg-zone--up::after { background: repeating-linear-gradient(90deg, #86efac 0 6px, transparent 6px 10px); }
+.lg-zone--down { color: #b91c1c; } .lg-zone--down::before, .lg-zone--down::after { background: repeating-linear-gradient(90deg, #fca5a5 0 6px, transparent 6px 10px); }
+.lg-note { font-size: .8rem; color: #64748b; text-align: center; }
+.lg-result { background: radial-gradient(120% 90% at 50% 0%, #fde68a, #d97706 50%, #78350f); }
+.lg-result--stayed { background: radial-gradient(120% 90% at 50% 0%, #93c5fd, #1d4ed8 55%, #172554); }
+.lg-result--demoted { background: radial-gradient(120% 90% at 50% 0%, #cbd5e1, #475569 55%, #0f172a); }
+.lg-result-art { position: relative; display: grid; place-items: center; min-height: 140px; }
+.lg-result-old { position: absolute; animation: lg-old-out 1.1s ease-in forwards; }
+.lg-result-new { animation: lg-new-in 1.2s cubic-bezier(.2, 1.4, .4, 1) .6s both; }
+@keyframes lg-old-out { 60% { transform: scale(1.1); opacity: 1; } 100% { transform: translateY(-40px) scale(.3); opacity: 0; } }
+@keyframes lg-new-in { from { transform: translateY(60px) scale(.3); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .lg-hero-rays, .lg-row, .lg-result-old, .lg-result-new { animation: none; } .lg-result-old { display: none; } }

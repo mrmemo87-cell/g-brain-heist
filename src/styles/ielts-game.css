@@ -1,0 +1,67 @@
+/* Animated SVG art for the IELTS course habit loop: Blaze, league shields, badge medals. Decorative only. */
+
+.blaze { overflow: visible; }
+.blaze-shadow { fill: rgba(15, 23, 42, .14); transform-origin: 60px 112px; }
+.blaze-body { transform-origin: 60px 108px; }
+.blaze-outer, .blaze-inner { transform-origin: 60px 108px; }
+.blaze-arms path { fill: none; stroke: #f97316; stroke-width: 7; stroke-linecap: round; }
+.blaze-lid { fill: none; stroke: #7c2d12; stroke-width: 2.6; stroke-linecap: round; }
+
+/* Happy: gentle flicker, sway and blinking eyes that glance around. */
+.blaze--happy .blaze-outer { animation: blaze-flicker 1.6s ease-in-out infinite; }
+.blaze--happy .blaze-inner { animation: blaze-flicker 1.1s ease-in-out infinite reverse; }
+.blaze--happy .blaze-body { animation: blaze-sway 3.2s ease-in-out infinite; }
+.blaze--happy .blaze-eyes, .blaze--cheer .blaze-eyes { transform-origin: 60px 73px; animation: blaze-blink 4.2s infinite; }
+.blaze--happy .blaze-pupil { animation: blaze-look 6s ease-in-out infinite; }
+
+/* Sleepy: small, slow breath, floating z's. */
+.blaze--sleepy .blaze-body { animation: blaze-breathe 3.6s ease-in-out infinite; }
+.blaze--sleepy .blaze-z text { animation: blaze-z 2.8s ease-in-out infinite; }
+.blaze--sleepy .blaze-z text:nth-child(2) { animation-delay: .9s; }
+
+/* Cheer: jump with a squash, waving arms and twinkling sparkles. */
+.blaze--cheer .blaze-body { animation: blaze-jump .9s cubic-bezier(.3, 1.4, .5, 1) infinite; }
+.blaze--cheer .blaze-shadow { animation: blaze-shadow .9s cubic-bezier(.3, 1.4, .5, 1) infinite; }
+.blaze--cheer .blaze-outer { animation: blaze-flicker .7s ease-in-out infinite; }
+.blaze--cheer .blaze-arms path { transform-box: fill-box; animation: blaze-wave .45s ease-in-out infinite alternate; }
+.blaze--cheer .blaze-arms path:first-child { transform-origin: 100% 100%; }
+.blaze--cheer .blaze-arms path:last-child { transform-origin: 0% 100%; animation-direction: alternate-reverse; }
+.blaze--cheer .blaze-sparkles path { transform-box: fill-box; transform-origin: center; animation: blaze-twinkle 1.2s ease-in-out infinite; }
+.blaze--cheer .blaze-sparkles path:nth-child(2) { animation-delay: .4s; }
+.blaze--cheer .blaze-sparkles path:nth-child(3) { animation-delay: .8s; }
+
+.blaze--frozen .blaze-body { animation: blaze-shiver .25s linear infinite; }
+
+@keyframes blaze-flicker { 0%, 100% { transform: scale(1, 1) skewX(0deg); } 30% { transform: scale(1.03, .97) skewX(-2deg); } 65% { transform: scale(.97, 1.04) skewX(2deg); } }
+@keyframes blaze-sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+@keyframes blaze-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+@keyframes blaze-look { 0%, 30%, 100% { transform: translate(0, 0); } 40%, 55% { transform: translate(-1.6px, 0); } 65%, 85% { transform: translate(1.6px, -.6px); } }
+@keyframes blaze-breathe { 0%, 100% { transform: scale(.92); } 50% { transform: scale(.96); } }
+@keyframes blaze-z { 0% { opacity: 0; transform: translate(0, 6px); } 40% { opacity: 1; } 100% { opacity: 0; transform: translate(6px, -10px); } }
+@keyframes blaze-jump { 0%, 100% { transform: translateY(0) scale(1.06, .94); } 15% { transform: translateY(0) scale(.95, 1.06); } 50% { transform: translateY(-16px) scale(1, 1); } 85% { transform: translateY(0) scale(1.04, .96); } }
+@keyframes blaze-shadow { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(.65); opacity: .5; } }
+@keyframes blaze-wave { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
+@keyframes blaze-twinkle { 0%, 100% { transform: scale(.4) rotate(0); opacity: .2; } 50% { transform: scale(1.2) rotate(45deg); opacity: 1; } }
+@keyframes blaze-shiver { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(1px); } }
+
+/* League shields */
+.shield { overflow: visible; }
+.shield-shine { animation: shield-shine 3.4s ease-in-out infinite; }
+.shield-gem { transform-origin: 60px 58px; transform-box: view-box; }
+.shield--glow { filter: drop-shadow(0 0 10px rgba(250, 204, 21, .55)); animation: shield-float 3s ease-in-out infinite; }
+.shield--glow .shield-gem { animation: shield-gem 3s ease-in-out infinite; }
+.shield--locked { opacity: .75; }
+@keyframes shield-shine { 0%, 55% { transform: skewX(-18deg) translateX(0); } 100% { transform: skewX(-18deg) translateX(220px); } }
+@keyframes shield-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes shield-gem { 0%, 100% { transform: rotate(0) scale(1); } 50% { transform: rotate(8deg) scale(1.06); } }
+
+/* Badge medals */
+.medal--earned .medal-glint { animation: medal-glint 2.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes medal-glint { 0%, 70%, 100% { opacity: .2; transform: scale(.6); } 80% { opacity: 1; transform: scale(1.4); } }
+
+.league-avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 14px; overflow: hidden; flex: none; }
+.league-avatar.is-me { box-shadow: 0 0 0 3px #f59e0b; }
+
+@media (prefers-reduced-motion: reduce) {
+  .blaze *, .blaze, .shield *, .shield, .medal * { animation: none !important; }
+}
