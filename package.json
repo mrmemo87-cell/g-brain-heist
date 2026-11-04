@@ -17,7 +17,7 @@
     "guard:school-admin-portal": "node scripts/check-school-admin-portal-integrity.mjs",
     "test:clean": "rm -rf dist-tests",
     "test:build": "tsc --project tsconfig.tests.json && node scripts/fix-test-esm-imports.mjs",
-    "test": "node scripts/materialize_commander_elixirs.mjs && python3 scripts/materialize_assignment_edit_feature.py && npm run test:clean && npm run test:build && NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/*.js && npm run test:ielts:programme && npm run test:language:dom && npm run test:classroom:db && npm run test:teacher-assignment-cards && npm run test:teacher-sidebar && npm run test:student-assignments && npm run test:retention && npm run test:ielts:teacher-packs && node --test tests/eventLoadReduction.test.mjs && npm run test:physics && npm run test:school-coverage && npm run test:curriculum-catalogue && npm run test:auth:remembered",
+    "test": "node scripts/materialize_commander_elixirs.mjs && python3 scripts/materialize_assignment_edit_feature.py && npm run test:clean && npm run test:build && NODE_ENV=test VITE_SUPABASE_URL=http://localhost VITE_SUPABASE_ANON_KEY=test node --test dist-tests/tests/*.js && npm run test:ielts:programme && npm run test:language:dom && npm run test:classroom:db && npm run test:teacher-assignment-cards && npm run test:teacher-sidebar && npm run test:student-assignments && npm run test:retention && npm run test:ielts:teacher-packs && node --test tests/eventLoadReduction.test.mjs && npm run test:physics && npm run test:school-coverage && npm run test:curriculum-catalogue && npm run test:auth:remembered && node --test tests/prepareNativeWeb.test.mjs",
     "load:leaderboard": "k6 run load-tests/leaderboard.js",
     "load:shop": "k6 run load-tests/shop.js",
     "load:pvp": "k6 run load-tests/pvp.js",
@@ -50,7 +50,7 @@
     "test:curriculum-catalogue": "node --test tests/questionLearningCatalogue.test.mjs tests/curriculumObjectivePrecision.test.mjs tests/englishCurriculumEditorial.test.mjs tests/englishHeldRepairs.test.mjs",
     "curriculum:english:editorial": "node scripts/build-english-curriculum-editorial.mjs",
     "curriculum:english:held-repairs": "python3 scripts/build-english-reading-replacements.py && node scripts/build-english-held-repair-decisions.mjs && node scripts/validate-english-held-repairs.mjs",
-    "native:sync": "npm run build && cap sync",
+    "native:sync": "npm run build && node scripts/prepare-native-web.mjs && cap sync",
     "native:android": "npm run native:sync && cap open android",
     "native:ios": "npm run native:sync && cap open ios"
   },
