@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.ielts_practice_speaking_feedback]
 verify_jwt = true
+
+[functions.play_billing]
+verify_jwt = true

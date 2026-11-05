@@ -31,6 +31,7 @@ export interface IeltsPrimeSubscriptionStatus {
   has_subscription: boolean;
   status: string | null;
   plan: IeltsPrimePlan | string | null;
+  provider?: 'paddle' | 'google_play' | null;
   current_period_end: string | null;
   cancel_at_period_end: boolean;
   management_url: string | null;

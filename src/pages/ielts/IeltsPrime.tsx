@@ -10,6 +10,15 @@ import { getIeltsFullAccess, getUserTier, isIeltsPrime } from '../../../services
 import * as IELTSAuthService from '../../../services/ieltsAuthService';
 import { openPaddleCheckoutForTransaction } from '../../../services/paddleCheckoutClient';
 import { trackIeltsFunnelEvent, type IeltsFunnelUserType } from '../../../services/ieltsFunnelAnalytics';
+import {
+  buyPrimeWithPlay,
+  getPlayPrimePrices,
+  openPlaySubscriptions,
+  restorePlayPurchases,
+  storeBillingUnavailable,
+  usesPlayBilling,
+  type StorePrice,
+} from '../../native/playBilling';
 
 type PlanCard = {
   id: IeltsPrimePlan;
@@ -85,6 +94,14 @@ const IeltsPrime: React.FC = () => {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [manageUrl, setManageUrl] = useState<string | null>(null);
   const [userType, setUserType] = useState<IeltsFunnelUserType>('independent');
+  const [subscriptionProvider, setSubscriptionProvider] = useState<string | null>(null);
+  const [storePrices, setStorePrices] = useState<StorePrice[]>([]);
+  const [restoring, setRestoring] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  // Android app: Google Play Billing. iPhone app: no purchase until App Store billing exists.
+  const playBilling = useMemo(() => usesPlayBilling(), []);
+  const iosNoPurchase = useMemo(() => storeBillingUnavailable(), []);
+  const activeAccessTrackedRef = useRef(false);
 
   const autoCheckoutStartedRef = useRef(false);
   const checkoutSuccessTrackedRef = useRef(false);
@@ -96,7 +113,18 @@ const IeltsPrime: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!transactionId) return;
+    if (!playBilling) return;
+    let active = true;
+    void getPlayPrimePrices().then((prices) => {
+      if (active) setStorePrices(prices);
+    });
+    return () => {
+      active = false;
+    };
+  }, [playBilling]);
+
+  useEffect(() => {
+    if (!transactionId || playBilling || iosNoPurchase) return;
 
     let cancelled = false;
 
@@ -125,7 +153,7 @@ const IeltsPrime: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [transactionId]);
+  }, [transactionId, playBilling, iosNoPurchase]);
 
   useEffect(() => {
     let active = true;
@@ -147,6 +175,7 @@ const IeltsPrime: React.FC = () => {
       if (!active) return;
 
       setManageUrl(subscription.management_url || subscription.update_payment_url);
+      setSubscriptionProvider(subscription.provider ?? null);
 
       if (prime) {
         const access = await getIeltsFullAccess().catch(() => null);
@@ -174,7 +203,7 @@ const IeltsPrime: React.FC = () => {
       active = false;
       if (interval) window.clearInterval(interval);
     };
-  }, [checkoutSuccess, userType]);
+  }, [checkoutSuccess, userType, refreshKey]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -231,6 +260,32 @@ const IeltsPrime: React.FC = () => {
       return;
     }
 
+    if (iosNoPurchase) return;
+
+    if (playBilling) {
+      setCheckoutPlan(plan);
+      setStatusMessage(null);
+      trackIeltsFunnelEvent('checkout_started', { plan, user_type: userType, checkout_surface: 'google_play' });
+      try {
+        const offerToken = storePrices.find((p) => p.plan === plan)?.offerToken;
+        const result = await buyPrimeWithPlay(plan, offerToken);
+        if (!result.ok) {
+          if (!result.cancelled) {
+            trackIeltsFunnelEvent('funnel_error', { plan, user_type: userType });
+            setError(result.error);
+          }
+          return;
+        }
+        trackIeltsFunnelEvent('checkout_completed', { plan, user_type: userType, checkout_surface: 'google_play' });
+        if (result.active) setIsPrimeUser(true);
+        setStatusMessage(result.active ? 'Your IELTS Prime access is active.' : 'Payment received. Activating your Prime access…');
+        setRefreshKey((k) => k + 1);
+      } finally {
+        setCheckoutPlan(null);
+      }
+      return;
+    }
+
     setCheckoutPlan(plan);
     setStatusMessage('Creating secure Paddle checkout…');
     trackIeltsFunnelEvent('checkout_started', { plan, user_type: userType });
@@ -274,7 +329,25 @@ const IeltsPrime: React.FC = () => {
     }
   };
 
+  const handleRestore = async () => {
+    setError(null);
+    setRestoring(true);
+    try {
+      const result = await restorePlayPurchases();
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      if (result.active) setIsPrimeUser(true);
+      setStatusMessage(result.active ? 'Your IELTS Prime access is active.' : 'No active Google Play subscription found for this account.');
+      setRefreshKey((k) => k + 1);
+    } finally {
+      setRestoring(false);
+    }
+  };
+
   useEffect(() => {
+    if (playBilling || iosNoPurchase) return;
     if (!autostartCheckout || !requestedPlan || !isAuthenticated || autoCheckoutStartedRef.current || checkoutPlan) {
       return;
     }
@@ -282,7 +355,7 @@ const IeltsPrime: React.FC = () => {
     autoCheckoutStartedRef.current = true;
     trackIeltsFunnelEvent('checkout_started', { plan: requestedPlan, user_type: userType });
     void handleCheckout(requestedPlan);
-  }, [autostartCheckout, requestedPlan, isAuthenticated, checkoutPlan, userType]);
+  }, [autostartCheckout, requestedPlan, isAuthenticated, checkoutPlan, userType, playBilling, iosNoPurchase]);
 
   return (
     <div
@@ -351,11 +424,14 @@ const IeltsPrime: React.FC = () => {
               lineHeight: 1.7,
             }}
           >
-            No application form. No waiting. Secure checkout powered by Paddle, and your access
-            activates after checkout.
+            {playBilling
+              ? 'No application form. No waiting. Pay securely with Google Play, and your access activates straight away. Cancel any time in Google Play.'
+              : iosNoPurchase
+                ? 'IELTS Prime cannot be bought in the iPhone app yet. If your school gives you IELTS, you already have full access.'
+                : 'No application form. No waiting. Secure checkout powered by Paddle, and your access activates after checkout.'}
           </p>
 
-          {!isAuthenticated && (
+          {!isAuthenticated && !iosNoPurchase && (
             <p style={{ margin: '1rem auto 0', color: '#93c5fd', fontWeight: 700 }}>
               Sign in with Google to buy Prime — no school required.
             </p>
@@ -444,7 +520,7 @@ const IeltsPrime: React.FC = () => {
               If access does not appear immediately, refresh once or contact support.
             </p>
           </section>
-        ) : (
+        ) : iosNoPurchase ? null : (
         <section
           style={{
             display: 'grid',
@@ -493,33 +569,44 @@ const IeltsPrime: React.FC = () => {
                 {plan.name}
               </h2>
 
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'baseline',
-                  gap: '0.65rem',
-                  marginBottom: '0.35rem',
-                }}
-              >
-                <span
-                  style={{
-                    color: '#94a3b8',
-                    textDecoration: 'line-through',
-                    fontSize: '1.15rem',
-                    fontWeight: 700,
-                  }}
-                >
-                  {formatPrice(plan.originalPrice)}
-                </span>
-                <span style={{ fontSize: '2.35rem', fontWeight: 700, color: '#fef3c7' }}>
-                  {formatPrice(plan.discountedPrice)}
-                </span>
-                <span style={{ color: '#cbd5e1', fontWeight: 700 }}>{plan.period}</span>
-              </div>
+              {playBilling ? (
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.65rem', marginBottom: '1rem' }}>
+                  <span style={{ fontSize: '2.1rem', fontWeight: 700, color: '#fef3c7' }}>
+                    {storePrices.find((p) => p.plan === plan.id)?.priceString ?? formatPrice(plan.discountedPrice)}
+                  </span>
+                  <span style={{ color: '#cbd5e1', fontWeight: 700 }}>{plan.period}</span>
+                </div>
+              ) : (
+                <>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'baseline',
+                      gap: '0.65rem',
+                      marginBottom: '0.35rem',
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: '#94a3b8',
+                        textDecoration: 'line-through',
+                        fontSize: '1.15rem',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {formatPrice(plan.originalPrice)}
+                    </span>
+                    <span style={{ fontSize: '2.35rem', fontWeight: 700, color: '#fef3c7' }}>
+                      {formatPrice(plan.discountedPrice)}
+                    </span>
+                    <span style={{ color: '#cbd5e1', fontWeight: 700 }}>{plan.period}</span>
+                  </div>
 
-              <p style={{ margin: '0 0 1rem', color: '#fde68a', fontWeight: 700 }}>
-                50% off at checkout
-              </p>
+                  <p style={{ margin: '0 0 1rem', color: '#fde68a', fontWeight: 700 }}>
+                    50% off at checkout
+                  </p>
+                </>
+              )}
 
               <ul
                 style={{
@@ -553,11 +640,11 @@ const IeltsPrime: React.FC = () => {
                 }}
               >
                 {checkoutPlan === plan.id
-                  ? 'Opening Paddle…'
+                  ? (playBilling ? 'Opening Google Play…' : 'Opening Paddle…')
                   : googleLoading
                     ? 'Connecting to Google…'
                     : isAuthenticated
-                      ? 'Checkout with Paddle'
+                      ? (playBilling ? 'Subscribe with Google Play' : 'Checkout with Paddle')
                       : 'Sign in with Google to continue'}
               </button>
             </article>
@@ -591,7 +678,31 @@ const IeltsPrime: React.FC = () => {
           </div>
         </section>
 
-        {isPrimeUser && manageUrl && (
+        {playBilling && isAuthenticated && (
+          <section style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            {!isPrimeUser && (
+              <button
+                type="button"
+                onClick={handleRestore}
+                disabled={restoring}
+                style={{ background: 'none', border: 'none', color: '#bfdbfe', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                {restoring ? 'Checking Google Play…' : 'Restore purchase'}
+              </button>
+            )}
+            {isPrimeUser && subscriptionProvider === 'google_play' && (
+              <button
+                type="button"
+                onClick={() => void openPlaySubscriptions()}
+                style={{ background: 'none', border: 'none', color: '#bfdbfe', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Manage your subscription in Google Play
+              </button>
+            )}
+          </section>
+        )}
+
+        {!playBilling && !iosNoPurchase && isPrimeUser && manageUrl && (
           <section style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <a
               href={manageUrl}
