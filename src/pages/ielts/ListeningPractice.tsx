@@ -80,7 +80,15 @@ const ListeningPractice: React.FC = () => {
   const [notifyBySms, setNotifyBySms] = useState(false);
   const [notifyInApp, setNotifyInApp] = useState(true);
   
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // The <audio> element renders only after the listening set loads, so the event wiring below must re-run when the
+  // element appears. Without this, play/pause/time events were never connected: the timer stayed at 0, the button kept
+  // showing play, and a tab switch paused the recording with no resume control.
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  const attachAudio = React.useCallback((node: HTMLAudioElement | null) => {
+    audioRef.current = node;
+    setAudioElement(node);
+  }, []);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastAudioTimeRef = useRef(0);
   const allowAutoResumeRef = useRef(true);
@@ -146,7 +154,7 @@ const ListeningPractice: React.FC = () => {
 
   // Audio time tracking
   useEffect(() => {
-    const audio = audioRef.current;
+    const audio = audioElement;
     if (!audio) return;
 
     const handleTimeUpdate = () => {
@@ -202,7 +210,7 @@ const ListeningPractice: React.FC = () => {
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('seeking', handleSeeking);
     };
-  }, [audioStarted, audioEnded]);
+  }, [audioElement, audioStarted, audioEnded]);
 
   const startAudio = async () => {
     if (audioEnded) return;
@@ -217,6 +225,10 @@ const ListeningPractice: React.FC = () => {
         setAudioInterrupted(false);
       }
       await audio.play();
+      // Do not rely only on the 'play' event for the first start.
+      setAudioStarted(true);
+      setAudioPlayed(true);
+      setIsAudioPlaying(true);
     } catch (error) {
       console.error('Audio play failed:', error);
       if (audioStarted) {
@@ -930,7 +942,7 @@ const ListeningPractice: React.FC = () => {
                   <div role="status" aria-live="polite" style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#64748b' }}>
                     {playerUi.message}
                   </div>
-                  <audio ref={audioRef} preload="metadata">
+                  <audio ref={attachAudio} preload="metadata">
                     <source src={listeningSet.audio_url} type="audio/mpeg" />
                     Your browser does not support the audio element.
                   </audio>

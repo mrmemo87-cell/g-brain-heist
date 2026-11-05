@@ -2,7 +2,7 @@ import { PRACTICE_QUESTION_COLUMNS } from './ieltsPracticeReview';
 import {availablePracticeIds} from './ieltsReviewedPracticeService';
 import { supabase } from './supabaseClient';
 import { buildReadingAttemptPayload, type RawScoreInput } from '../src/lib/ieltsPracticeScoring';
-import { isPro, tryConsumePilotQuota } from './tierService';
+import { tryConsumePilotQuota } from './tierService';
 import type {
   IELTSUserProfile,
   IELTSReadingSet,
@@ -641,21 +641,31 @@ export const submitReadingAttempt = async (
   return data;
 };
 
-// Get user's tier (unified: checks school subscription first, then IELTS-specific tier)
+export type IeltsFullAccessReason = 'superadmin' | 'prime' | 'school_seat' | 'school_seat_missing' | 'prime_required' | 'not_authenticated';
+
+/**
+ * Full IELTS access (course and practice), decided by the server with the course rule: IELTS Prime, a school IELTS
+ * seat, staff of an IELTS school, or the owner. A paid school plan alone is not Prime (owner report 2026-11-05).
+ */
+export const getIeltsFullAccess = async (): Promise<{ full: boolean; reason: IeltsFullAccessReason }> => {
+  const { data, error } = await supabase.rpc('rpc_ielts_full_access');
+  if (error || !data || typeof data !== 'object') throw error ?? new Error('ielts_full_access_unavailable');
+  const value = data as { full?: unknown; reason?: unknown };
+  return { full: value.full === true, reason: (typeof value.reason === 'string' ? value.reason : 'prime_required') as IeltsFullAccessReason };
+};
+
+// Get user's IELTS tier: 'prime_prep_user' when the learner has full IELTS access, otherwise the stored IELTS tier.
 export const getUserTier = async () => {
   const { data: session } = await supabase.auth.getSession();
   if (!session?.session?.user) {
     return 'free';
   }
 
-  // Check school-based subscription tier first
   try {
-    const { data: effectiveTier, error: rpcError } = await supabase.rpc('get_effective_tier');
-    if (!rpcError && isPro(effectiveTier)) {
-      return 'prime_prep_user'; // School subscription grants full IELTS access
-    }
+    const access = await getIeltsFullAccess();
+    if (access.full) return 'prime_prep_user';
   } catch {
-    // RPC not available (migration not yet applied) — fall through to legacy check
+    // Fall through to the personal subscription and stored tier checks.
   }
 
   // Check personal IELTS Prime subscription (independent learners, no school required)
@@ -665,7 +675,7 @@ export const getUserTier = async () => {
       return 'prime_prep_user';
     }
   } catch {
-    // RPC not available (migration not yet applied) — fall through to legacy check
+    // RPC not available — fall through to legacy check
   }
 
   // Legacy: check ielts_users.tier directly

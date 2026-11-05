@@ -39,7 +39,7 @@ test('unverified school capability never opens student tasks or school administr
 });
 
 test('optional catalogue requests stay deferred until the student chooses other practice tools',async()=>{
- const m=await mount({optionalTools:true});try{await m.wait(()=>m.w.document.body.textContent.includes(task.title));assert.equal(m.calls.includes('get_effective_tier'),false);[...m.w.document.querySelectorAll('button')].find(b=>b.textContent==='Explore other practice tools →').click();await m.wait(()=>m.w.location.search==='?view=library'&&m.calls.includes('get_effective_tier'));assert.match(m.w.document.body.textContent,/Loading your IELTS dashboard/);m.w.history.replaceState(null,'','/ielts');m.w.dispatchEvent(new m.w.PopStateEvent('popstate'));await m.wait(()=>m.w.document.body.textContent.includes(task.title));assert.deepEqual(m.errors,[]);}finally{m.dom.window.close();}
+ const m=await mount({optionalTools:true});try{await m.wait(()=>m.w.document.body.textContent.includes(task.title));assert.equal(m.calls.includes('rpc_ielts_full_access'),false);[...m.w.document.querySelectorAll('button')].find(b=>b.textContent==='Explore other practice tools →').click();await m.wait(()=>m.w.location.search==='?view=library'&&m.calls.includes('rpc_ielts_full_access'));assert.match(m.w.document.body.textContent,/Loading your IELTS dashboard/);m.w.history.replaceState(null,'','/ielts');m.w.dispatchEvent(new m.w.PopStateEvent('popstate'));await m.wait(()=>m.w.document.body.textContent.includes(task.title));assert.deepEqual(m.errors,[]);}finally{m.dom.window.close();}
 });
 
 test('batch tasks waiting for the starting checks show as one locked card on Home and Targeted, never as a task',async()=>{

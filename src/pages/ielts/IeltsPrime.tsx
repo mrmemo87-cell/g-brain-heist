@@ -6,7 +6,7 @@ import {
   getIeltsPrimeSubscriptionStatus,
   type IeltsPrimePlan,
 } from '../../../services/ieltsPrimeBillingService';
-import { getUserTier, isIeltsPrime } from '../../../services/ieltsService';
+import { getIeltsFullAccess, getUserTier, isIeltsPrime } from '../../../services/ieltsService';
 import * as IELTSAuthService from '../../../services/ieltsAuthService';
 import { openPaddleCheckoutForTransaction } from '../../../services/paddleCheckoutClient';
 import { trackIeltsFunnelEvent, type IeltsFunnelUserType } from '../../../services/ieltsFunnelAnalytics';
@@ -149,7 +149,11 @@ const IeltsPrime: React.FC = () => {
       setManageUrl(subscription.management_url || subscription.update_payment_url);
 
       if (prime) {
-        setStatusMessage('Your IELTS Prime access is active.');
+        const access = await getIeltsFullAccess().catch(() => null);
+        if (!active) return;
+        setStatusMessage(access?.reason === 'school_seat'
+          ? 'Your school gives you full IELTS access. You do not need Prime.'
+          : 'Your IELTS Prime access is active.');
         if (!activeAccessTrackedRef.current) {
           activeAccessTrackedRef.current = true;
           trackIeltsFunnelEvent('subscription_activated', { checkout_surface: checkoutSuccess ? 'success_redirect_active_access' : 'active_access_page', user_type: userType });
