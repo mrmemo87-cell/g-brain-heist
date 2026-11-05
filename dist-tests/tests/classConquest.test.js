@@ -209,7 +209,13 @@ test('certificates print on the smart print system: landscape, one per sheet, ne
     assert.equal(simplex.physicalSheets, 6);
     assert.equal(simplex.blankPages, 0);
     const html = buildCertificateDocument({ result: r, printSides: 'double' });
-    assert.match(html, /@page \{ size: A4 landscape; margin: 0; \}/);
+    assert.match(html, /@page \{ size: A4 landscape; margin: 10mm; \}/);
+    assert.match(html, /@media print \{ :root \{ --mm: 0\.78mm; \} \}/, "scaled to fit any printer margins, including iPhone headers");
+    assert.doesNotMatch(html, /zoom/, "no CSS zoom: Safari ignores it in print and breaks the on-screen layout");
+    const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
+    const rawLengths = (css.match(/\b\d+(?:\.\d+)?mm\b/g) ?? []).sort();
+    assert.deepEqual(rawLengths, ['0.78mm', '10mm', '1mm', '1mm'], "only the unit definitions and page margin use raw mm; every other length goes through --mm");
+    assert.match(html, /id="back"/, "a way back for home-screen apps");
     assert.equal((html.match(/class="print-page blank-back"/g) ?? []).length, 5);
     assert.equal((html.match(/<article class="cert-booklet"/g) ?? []).length, 6);
     // Page order: certificate, blank back, certificate, … — two certificates are never adjacent.
@@ -228,4 +234,35 @@ test('the pre-season week can never be frozen or shown', () => {
     const sql = readFileSync('supabase/migrations/20261030160000_class_conquest_season_start.sql', 'utf8');
     assert.match(sql, /if p_week_start < date '2026-10-26' then\n\s*return null;/);
     assert.equal((sql.match(/r\.week_start >= date '2026-10-26'/g) ?? []).length, 3, 'live card, Hall of Fame and badges all ignore it');
+});
+test('certificates as a real PDF: landscape A4, one per page, blank backs, any device prints it exactly', async () => {
+    const { buildCertificatePdf, certificatePdfFileName } = await import('../src/lib/conquestCertificatePdf.js');
+    const { PDFDocument } = await import('pdf-lib');
+    const fs = await import('node:fs');
+    const assets = {
+        serif: fs.readFileSync('public/fonts/certificates/PlayfairDisplay_700Bold.ttf'),
+        sans: fs.readFileSync('public/fonts/certificates/IBMPlexSans_400Regular.ttf'),
+        sansBold: fs.readFileSync('public/fonts/certificates/IBMPlexSans_700Bold.ttf'),
+        brandLogo: { bytes: fs.readFileSync('public/logo.png'), kind: 'png' },
+    };
+    const r = result('2026-10-26', '7A', [['s1', 'Nazar Zhenishbekov'], ['s2', 'Бекзат Асанов'], ['s3', 'Daniyar'], ['s4', 'Үмүт Өмүрбекова'], ['s5', 'Layana Kim']]);
+    const pack = await buildCertificatePdf({ result: r, assets, issuer: 'Silk Road International School', theme: 'light', printSides: 'double' });
+    assert.equal(pack.certificates, 6);
+    assert.equal(pack.pages, 11, '6 certificates + 5 blank backs');
+    assert.equal(pack.sheets, 6);
+    const doc = await PDFDocument.load(pack.bytes);
+    assert.equal(doc.getPageCount(), 11);
+    for (const page of doc.getPages()) {
+        assert.equal(Math.round(page.getWidth()), 842, 'A4 landscape width');
+        assert.equal(Math.round(page.getHeight()), 595, 'A4 landscape height');
+    }
+    const single = await buildCertificatePdf({ result: r, assets, printSides: 'single' });
+    assert.equal(single.pages, 6, 'single-sided printer: no blank backs');
+    const one = await buildCertificatePdf({ result: r, assets, only: 3, theme: 'dark' });
+    assert.equal(one.pages, 1, 'one certificate on its own');
+    assert.match(certificatePdfFileName(r, 3), /^Class-Conquest-Kyrgyzstan-2026-10-26-Үмүт-Өмүрбекова\.pdf$/);
+    if (process.env['CCQ_PDF_OUT']) {
+        fs.writeFileSync(`${process.env['CCQ_PDF_OUT']}/pack.pdf`, pack.bytes);
+        fs.writeFileSync(`${process.env['CCQ_PDF_OUT']}/one-dark.pdf`, one.bytes);
+    }
 });

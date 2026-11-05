@@ -127,3 +127,29 @@ export async function getClassLearningNeeds(studentIds, subject) {
         throw userFacingError(error, 'We could not load this class’s learning needs just now. Please try again.');
     return data;
 }
+/** Open plans plus plans completed in the last 14 days, created by the signed-in teacher. Read-only. */
+export async function getSupportPlansOverview() {
+    const { data, error } = await supabase.rpc('rpc_teacher_support_plans_overview');
+    if (error)
+        throw userFacingError(error, 'We could not load your support plans just now. Please try again.');
+    return (data || []);
+}
+export function planStage(plan) {
+    if (plan.status === 'planned')
+        return 'start';
+    if (plan.status !== 'active')
+        return 'done';
+    const needed = Math.max(0, (plan.target_min_followup_observations || 0) - (plan.follow_up_qualifying_observations || 0));
+    if (needed === 0)
+        return 'results';
+    return (plan.follow_up_qualifying_observations || 0) > 0 ? 'waiting' : 'check';
+}
+/**
+ * Picks questions for an independent quick check: exact governed matches for the skill that were
+ * NOT already used in targeted practice, so the check measures transfer rather than recall.
+ * Returns an empty list when every exact question has been practised.
+ */
+export function pickQuickCheckQuestions(exactQuestionIds, practisedQuestionIds, count = 3) {
+    const practised = new Set(practisedQuestionIds);
+    return [...new Set(exactQuestionIds)].filter((id) => !practised.has(id)).slice(0, count);
+}

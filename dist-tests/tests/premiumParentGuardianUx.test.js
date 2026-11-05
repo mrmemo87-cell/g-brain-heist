@@ -123,7 +123,7 @@ test('parent mobile navigation reuses School Admin smart collapse without turnin
     const tabsCss = read('components/guardian/ParentDashboardPremiumTabs.css');
     const mobileFixes = read('components/guardian/ParentDashboardPremiumMobileFixes.css');
     const hook = read('src/hooks/useSmartCollapsedNavigation.ts');
-    assert.match(dashboard, /useSmartCollapsedNavigation\(activeTab, '\(max-width: 768px\)'\)/);
+    assert.match(dashboard, /useSmartCollapsedNavigation\(activeTab, '\(max-width: 768px\)'[,)]/);
     assert.match(dashboard, /revealNavigation/);
     assert.match(dashboard, /window\.history/);
     assert.match(dashboard, /popstate/);
@@ -132,8 +132,9 @@ test('parent mobile navigation reuses School Admin smart collapse without turnin
     assert.match(mobileFixes, /> \.parent-premium-nav-reveal/);
     assert.match(mobileFixes, /position:absolute!important/);
     assert.match(mobileFixes, /button:not\(\.parent-premium-nav-reveal\)/);
-    assert.match(hook, /DIRECT_SCROLL_PORTION = 2 \/ 3/);
-    assert.match(hook, /NAVIGATION_PEEK_HEIGHT = 15/);
+    // Owner decision 2026-11-04: navigation no longer hides on scroll; the hook pins it to shown.
+    assert.match(hook, /'--smart-nav-translate-y', '0px'/);
+    assert.match(hook, /'--smart-nav-opacity', '1'/);
 });
 test('guardian progress contract returns real avatars plus source-aware parent-safe evidence for every verified school relationship', () => {
     const dashboard = read('components/guardian/ParentDashboardPremium.tsx');

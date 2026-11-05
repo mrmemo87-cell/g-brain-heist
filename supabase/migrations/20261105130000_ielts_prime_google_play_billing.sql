@@ -110,3 +110,8 @@ begin
   );
 end;
 $function$;
+
+revoke all on function public.has_active_ielts_prime_subscription(uuid) from public, anon;
+grant execute on function public.has_active_ielts_prime_subscription(uuid) to authenticated, service_role;
+revoke all on function public.get_ielts_prime_subscription_status() from public, anon;
+grant execute on function public.get_ielts_prime_subscription_status() to authenticated, service_role;

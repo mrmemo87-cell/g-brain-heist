@@ -1,3 +1,4 @@
+import { PUBLIC_SITE_URL, isNativeApp } from '../src/lib/nativePlatform.js';
 const envSource = (typeof import.meta !== 'undefined' && import.meta.env)
     ? import.meta.env
     : (typeof process !== 'undefined' ? process.env : {});
@@ -35,6 +36,11 @@ export const getSiteUrl = () => {
         getEnvVar('VITE_SUPABASE_SITE_URL');
     if (explicitSiteUrl) {
         return normalizeSiteUrl(explicitSiteUrl);
+    }
+    // Inside the iPhone/Android app the page origin is capacitor://localhost or https://localhost,
+    // which must never end up in emails or auth redirects: use the public website instead.
+    if (isNativeApp()) {
+        return PUBLIC_SITE_URL;
     }
     if (typeof window !== 'undefined' && window.location) {
         return window.location.origin;
