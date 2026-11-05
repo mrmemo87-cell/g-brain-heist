@@ -334,13 +334,13 @@ export default function Blaze3D({ size, streak, mood, level, interactive = false
     };
   }, [size, streak, level]);
 
-  const onTap = interactive ? (e: React.PointerEvent) => { e.stopPropagation(); flareRef.current?.(); } : undefined;
+  const onTap = interactive ? (e: React.MouseEvent) => { e.stopPropagation(); flareRef.current?.(); } : undefined;
   return (
     <div
       ref={hostRef}
       className={`blaze3d${interactive ? ' blaze3d--tap' : ''}`}
       style={{ width: size, height: size }}
-      onPointerDown={onTap}
+      onClick={onTap}
       role={interactive ? 'button' : undefined}
       aria-label={interactive ? (label ?? 'Blaze, tap to make the flame flare up') : undefined}
       aria-hidden={interactive ? undefined : true}

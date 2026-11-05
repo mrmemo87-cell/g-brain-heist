@@ -52,17 +52,20 @@ function element(sound: BrandSound): HTMLAudioElement {
   return audio;
 }
 
-/** Plays one sound from the set. Silent when sound is off; never throws. */
-export function playBrandSound(sound: BrandSound): void {
-  if (!allowed()) return;
+/**
+ * Plays one sound from the set. Silent when sound is off; never throws.
+ * Resolves true when the browser actually started playback (Safari refuses until the student has tapped).
+ */
+export function playBrandSound(sound: BrandSound): Promise<boolean> {
+  if (!allowed()) return Promise.resolve(false);
   try {
     const base = element(sound);
     // A fresh copy lets the same cue overlap itself (fast answers) without cutting off.
     const audio = base.readyState >= 2 ? (base.cloneNode() as HTMLAudioElement) : base;
     audio.volume = VOLUME[sound] ?? 0.6;
     if (audio === base) audio.currentTime = 0;
-    void audio.play().catch(() => undefined);
-  } catch { /* audio unavailable: stay silent */ }
+    return audio.play().then(() => true, () => false);
+  } catch { return Promise.resolve(false); /* audio unavailable: stay silent */ }
 }
 
 /** Tapping the cat: alternates purr and meow, and ignores rapid repeat taps. */
@@ -71,7 +74,7 @@ export function playCatTap(): void {
   if (now - lastCatTap < 700) return;
   lastCatTap = now;
   catTapIndex += 1;
-  playBrandSound(catTapIndex % 2 ? 'catMeow' : 'catPurr');
+  void playBrandSound(catTapIndex % 2 ? 'catMeow' : 'catPurr');
 }
 
 /** Loads the given sounds in the background so the first play is instant. */
@@ -80,14 +83,17 @@ export function preloadBrandSounds(sounds: BrandSound[]): void {
   sounds.forEach((sound) => { element(sound); });
 }
 
-/** Plays a sound at most once per calendar day on this device (greetings, freeze notices). */
-export function playBrandSoundOncePerDay(sound: BrandSound, key: string): void {
+/**
+ * Plays a sound at most once per calendar day on this device (greetings, freeze notices).
+ * The day only counts once the sound really played, so a play the browser blocked is tried again later.
+ * Resolves true when it played or had already played today.
+ */
+export async function playBrandSoundOncePerDay(sound: BrandSound, key: string): Promise<boolean> {
   const today = new Date().toISOString().slice(0, 10);
   const storageKey = `bh:sound-once:${key}`;
-  try {
-    if (localStorage.getItem(storageKey) === today) return;
-    if (!allowed()) return;
-    localStorage.setItem(storageKey, today);
-  } catch { /* private mode: play anyway */ }
-  playBrandSound(sound);
+  try { if (localStorage.getItem(storageKey) === today) return true; } catch { /* private mode */ }
+  if (!allowed()) return true;
+  const played = await playBrandSound(sound);
+  if (played) { try { localStorage.setItem(storageKey, today); } catch { /* private mode */ } }
+  return played;
 }
