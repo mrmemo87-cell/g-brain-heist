@@ -20,6 +20,7 @@ import { useSheetDismiss } from './useSheetDismiss';
 import { isNativeApp } from '../../lib/nativePlatform';
 import { haptic } from '../../native/effects/haptics';
 import { playSfx } from '../../native/effects/sfx';
+import { playBrandSound, playBrandSoundOncePerDay } from '../../native/effects/brandSounds';
 import { askNotificationPermission, notificationPermission, syncStreakState } from '../../native/effects/streakReminders';
 
 const readHabitSeenBadges = () => readHabitSeen().badges ?? [];
@@ -77,6 +78,11 @@ export function IeltsCourseHabitBar({ habit, onChange }: { habit: IeltsCourseHab
   useEffect(() => {
     if (habit) void syncStreakState(habit);
   }, [habit?.streak, habit?.today_done, habit?.reminders]); // eslint-disable-line react-hooks/exhaustive-deps
+  // A streak freeze saved yesterday: an icy shimmer, once.
+  const frozenDay = habit?.week.find((d) => d.frozen && !d.today && d.xp <= 0)?.day;
+  useEffect(() => {
+    if (frozenDay) playBrandSoundOncePerDay('streakFreeze', `ielts-freeze-${frozenDay}`);
+  }, [frozenDay]);
   if (!habit) return <div className="ih-bar ih-bar--loading" aria-busy="true" />;
   const atRisk = !habit.today_done && habit.streak > 0;
   return (
@@ -247,9 +253,10 @@ export function IeltsHabitCelebration({ habit }: { habit: IeltsCourseHabit | nul
       : due.kind === 'goal' ? { goalDay: habit.today }
         : { badges: [...new Set([...(readHabitSeenBadges()), due.badge.id])] });
     setShown(due);
-    // App only (silent on the website): a strong buzz plus a victory or coin sound.
+    // App only (silent on the website): a strong buzz plus the streak flame (a roar on milestones) or a coin.
     void haptic('celebrate');
-    playSfx(due.kind === 'streak' ? 'fanfare' : 'coin');
+    if (due.kind === 'streak') playBrandSound(due.milestone ? 'streakMilestone' : 'streakFlare');
+    else playSfx('coin');
   }, [habit, shown]);
   useEffect(() => {
     if (!shown || shown.kind !== 'streak') return;

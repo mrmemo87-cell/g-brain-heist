@@ -1,8 +1,8 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.4.0
-**Effective date:** 2026-11-05  
+**Version:** 1.5.0
+**Effective date:** 2026-11-06  
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
 
@@ -288,8 +288,16 @@ Up to about 4 seconds, tap-dismissable, never block input, saving or the next st
 ### 14.5 Student control and accessibility
 An "Effects: Full / Light / Off" setting is always available with Blaze. Sounds have their own on/off switch and use the phone's media audio (on iPhone the silent switch also mutes them). The phone's Reduce Motion setting turns the layer off and shows the still Blaze. Phones with ≤4 CPU cores or ≤3 GB memory default to Light (30 fps, fewer embers, no lighting effects). The 2D SVG Blaze remains the fallback when WebGL is unavailable.
 
+### 14.5a Shared sound set
+The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/mascot, about 190 KB): answer chime and gentle "boop", unit/lesson complete, streak whoosh and milestone roar, a sleepy yawn when Blaze is tapped before today's practice, an icy shimmer once when a streak freeze was used, cat greeting and tap sounds, and a battle win. Each is 0.8–3 s, quieter than the device's normal media level, and follows 14.5 (Sounds switch, Effects Off, Reduce Motion) and 14.3 (never on quiet surfaces). The IELTS website stays silent.
+
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.8 Revision record — 1.5.0 (2026-11-06)
+**Authority.** Owner instruction on 2026-11-06 to use the shared Brains Heist sound set in Brains Heist and IELTS. Diagnostic Bible 2.1.0 unchanged; no scoring or assessment impact.
+
+**Change.** Added 14.5a. No other section changed.
 
 ### 14.7 Revision record — 1.4.0 (2026-11-05)
 **Authority.** Owner approval on 2026-11-05 of the native app motivation layer (3D Blaze with tap and tilt, growth tiers, evening weakness and reminder, home-screen widget, unit-complete celebration, app-wide haptics), after the conflict with 12.4 and 13.6 was raised. Diagnostic Bible 2.1.0 unchanged.

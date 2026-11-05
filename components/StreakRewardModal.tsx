@@ -1,5 +1,7 @@
 import React from 'react';
-import { audioService } from '../services/audioService';
+import { playBrandSound } from '../src/native/effects/brandSounds';
+
+const STREAK_MILESTONES = [3, 7, 14, 30, 50, 100, 200, 365];
 import { visualAssets } from './visualAssets';
 import DotLottieAnimation from './DotLottieAnimation';
 
@@ -12,8 +14,8 @@ interface StreakRewardModalProps {
 
 const StreakRewardModal: React.FC<StreakRewardModalProps> = ({ streak, coinsAwarded, coinBalance, onClose }) => {
   React.useEffect(() => {
-    // Keep streak wins sonically consistent with the existing level-up moment.
-    audioService.play('tada');
+    // The streak flame: a whoosh each day, a roar on milestone days.
+    playBrandSound(STREAK_MILESTONES.includes(streak) ? 'streakMilestone' : 'streakFlare');
   }, []);
 
   React.useEffect(() => {

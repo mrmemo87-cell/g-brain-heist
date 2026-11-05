@@ -15,8 +15,9 @@ type SoundKey =
   | 'avatarMove';
 
 const SOUND_PATHS: Record<SoundKey, string> = {
-  correct:      '/nodes/correct-answer.mp3',
-  wrong:        '/nodes/wrong-answer.mp3',
+  // Shared Brains Heist sound set, so quest answers match the rest of the app.
+  correct:      '/sounds/mascot/correct.mp3',
+  wrong:        '/sounds/mascot/wrong.mp3',
   spin:         '/nodes/spin-wheel.mp3',
   win:          '/nodes/prize-win.mp3',
   chestOpen:    '/nodes/chest-open.mp3',
