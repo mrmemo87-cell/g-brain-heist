@@ -161,16 +161,25 @@ function MascotAvatar({ userId }: { userId: string }) {
         controller.current = {play, dispose};
         if (cancelled) { dispose(); return; }
         renderer.render(scene, camera); setReady(true);
-        // Once a day the cat says hi (after the student's first touch, since phones block sound before that).
+        // Once a day the cat says hi. Phones and Safari block sound until a real tap (click/touchend count,
+        // pointerdown does not on iOS), so if the first try is blocked it waits for the next tap.
         preloadBrandSounds(['catGreet', 'catPurr', 'catMeow', 'correct', 'wrong']);
-        const greet = () => { playBrandSoundOncePerDay('catGreet', 'cat-greet'); };
+        const gestures = ['click', 'touchend', 'keydown'] as const;
+        let greeted = false;
+        const greetOnGesture = () => {
+          if (greeted) return;
+          greeted = true;
+          gestures.forEach((name) => document.removeEventListener(name, greetOnGesture));
+          void playBrandSoundOncePerDay('catGreet', 'cat-greet');
+        };
+        const waitForGesture = () => { gestures.forEach((name) => document.addEventListener(name, greetOnGesture, { passive: true })); };
         const activated = (navigator as Navigator & { userActivation?: { hasBeenActive?: boolean } }).userActivation?.hasBeenActive;
-        if (activated) later(600, greet);
-        else document.addEventListener('pointerdown', greet, { once: true, passive: true });
-        const tapped = () => { playCatTap(); play('greet', 2.4); };
-        stage.addEventListener('pointerdown', tapped, { passive: true });
+        if (activated) later(600, () => { void playBrandSoundOncePerDay('catGreet', 'cat-greet').then((ok) => { if (!ok && !cancelled) waitForGesture(); }); });
+        else waitForGesture();
+        const tapped = () => { greeted = true; playCatTap(); play('greet', 2.4); };
+        stage.addEventListener('click', tapped);
         const previous = cleanup;
-        cleanup = () => { document.removeEventListener('pointerdown', greet); stage.removeEventListener('pointerdown', tapped); previous(); };
+        cleanup = () => { gestures.forEach((name) => document.removeEventListener(name, greetOnGesture)); stage.removeEventListener('click', tapped); previous(); };
       } catch { if (!cancelled) setReady(false); }
     })();
     return () => { cancelled = true; abort.abort(); cleanup(); controller.current = null; };
