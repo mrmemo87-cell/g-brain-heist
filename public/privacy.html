@@ -36,15 +36,15 @@
     <header>
       <a href="/"><img src="/logo.png" alt="Brains Heist" /></a>
       <h1>Privacy Policy</h1>
-      <p class="updated">Last updated: February 23, 2026</p>
+      <p class="updated">Last updated: November 5, 2026</p>
     </header>
 
     <div class="highlight">
-      <p><strong>Summary:</strong> Brains Heist is a school-facing educational platform. We collect minimal personal data, never sell it, and store it securely on Supabase. Payments are handled by Paddle — we never see or store payment card details.</p>
+      <p><strong>Summary:</strong> Brains Heist is a school-facing educational platform and IELTS course, on the web and in our Android and iPhone apps. We collect minimal personal data, never sell it, and store it securely on Supabase. Payments are handled by Paddle on the website and by Google Play or the Apple App Store in the apps — we never see or store payment card details.</p>
     </div>
 
     <h2>1. Who We Are</h2>
-    <p>Brains Heist ("we", "us", "our") operates the gamified learning platform at <a href="https://www.brainsheist.com">brainsheist.com</a>. For privacy questions, contact us at <a href="mailto:privacy@brainsheist.com">privacy@brainsheist.com</a>.</p>
+    <p>Brains Heist LLC, a Wyoming (USA) limited liability company ("Brains Heist", "we", "us", "our"), operates the gamified learning platform at <a href="https://www.brainsheist.com">brainsheist.com</a> and the Brains Heist mobile apps for Android and iPhone (the "Apps"). For privacy questions, contact us at <a href="mailto:privacy@brainsheist.com">privacy@brainsheist.com</a>.</p>
 
     <h2>2. Data We Collect</h2>
 
@@ -56,6 +56,7 @@
       <tr><td>School affiliation, grade, class</td><td>Multi-tenant isolation, reporting</td><td>Contract</td></tr>
       <tr><td>Role (student / teacher / admin)</td><td>Access control, feature gating</td><td>Contract</td></tr>
       <tr><td>Avatar image (optional)</td><td>Profile personalization</td><td>Consent</td></tr>
+      <tr><td>Name and email from Google (if you choose "Sign in with Google")</td><td>Creating and signing in to your account</td><td>Contract</td></tr>
     </table>
 
     <h3>2.2 Usage Data (generated automatically)</h3>
@@ -67,9 +68,19 @@
       <tr><td>IP address (via Supabase auth logs)</td><td>Security, abuse prevention</td><td>Legitimate interest</td></tr>
     </table>
 
-    <h3>2.3 Payment Data</h3>
+    <h3>2.3 Mobile App Data</h3>
+    <p>The Apps use the same account and learning data as the website. In addition:</p>
+    <ul>
+      <li><strong>Reminders:</strong> if you turn on the evening study reminder, it is scheduled by your phone itself. We do not use a push-notification service for it.</li>
+      <li><strong>On-device settings:</strong> your streak count for the home-screen widget, effects and sound settings are stored only on your phone.</li>
+      <li><strong>Motion sensor and vibration:</strong> the Apps may read your phone's tilt to animate the Blaze mascot and may vibrate for feedback. This data stays on your phone and is never stored or sent to us.</li>
+      <li>The Apps do <strong>not</strong> access your location, contacts, photos, camera or microphone, and contain no advertising.</li>
+    </ul>
+
+    <h3>2.4 Payment Data</h3>
     <p>All payments are processed by <strong>Paddle.com Market Limited</strong> (our Merchant of Record). We <strong>never</strong> collect, store, or have access to credit card numbers, bank details, or other payment instruments. Paddle handles all payment data in accordance with their <a href="https://www.paddle.com/legal/privacy" target="_blank" rel="noopener">Privacy Policy</a> and PCI-DSS compliance.</p>
     <p>We only receive from Paddle: subscription status, plan type, billing period dates, and customer ID — no payment card details.</p>
+    <p>In the Apps, purchases such as IELTS Prime are processed by <strong>Google Play</strong> or the <strong>Apple App Store</strong> under their own terms and privacy policies. We receive only the purchase status needed to unlock access, never your payment details.</p>
 
     <h2>3. How We Use Your Data</h2>
     <ul>
@@ -87,6 +98,8 @@
       <tr><td>Supabase (database &amp; auth)</td><td>Hosting, authentication</td><td>All account &amp; usage data</td></tr>
       <tr><td>Paddle (payments)</td><td>Payment processing, tax, invoicing</td><td>Email, school name, subscription plan</td></tr>
       <tr><td>Vercel (hosting)</td><td>Serving the web application</td><td>Standard web request logs (IP, user agent)</td></tr>
+      <tr><td>Google (Sign in with Google)</td><td>Optional sign-in</td><td>Your Google account name and email, shared with us when you choose it</td></tr>
+      <tr><td>Google Play / Apple App Store</td><td>In-app purchases in the Apps</td><td>Purchase status only</td></tr>
       <tr><td>Google Gemini API (optional)</td><td>AI essay grading (when enabled)</td><td>De-identified essay text only</td></tr>
     </table>
     <p>We do not share data with advertisers, data brokers, or social media platforms.</p>
@@ -108,7 +121,7 @@
     </ul>
 
     <h2>7. Children's Privacy</h2>
-    <p>Brains Heist is designed for use in schools. We do not knowingly collect data from children under 13 without the involvement of their school. Schools are responsible for obtaining any required parental/guardian consent.</p>
+    <p>Brains Heist is designed for use in schools and by IELTS students. Independent accounts (outside a school) are for people aged 13 or over. We do not knowingly collect data from children under 13 without the involvement of their school. Schools are responsible for obtaining any required parental/guardian consent.</p>
     <p>We follow applicable children's data protection best practices, including COPPA (US) and age-appropriate design principles, where applicable to school-administered services.</p>
 
     <h2>8. Your Rights</h2>
@@ -121,7 +134,8 @@
       <li><strong>Objection:</strong> Object to processing based on legitimate interest.</li>
       <li><strong>Restriction:</strong> Request limitation of processing.</li>
     </ul>
-    <p>To exercise these rights, email <a href="mailto:privacy@brainsheist.com">privacy@brainsheist.com</a>. We will respond within 30 days.</p>
+    <p>To exercise these rights, email <a href="mailto:privacy@brainsheist.com">privacy@brainsheist.com</a> or <a href="mailto:support@brainsheist.com">support@brainsheist.com</a>. We will respond within 30 days.</p>
+    <p>To delete your account and data, see <a href="/delete-account.html">Delete your Brains Heist account</a>.</p>
     <p>School administrators can delete student accounts and associated data directly from the School Admin portal.</p>
 
     <h2>9. Cookies &amp; Tracking</h2>
@@ -133,7 +147,7 @@
     <p>We do <strong>not</strong> use third-party tracking cookies, analytics cookies, or advertising cookies.</p>
 
     <h2>10. International Transfers</h2>
-    <p>Data may be processed in the United States (Supabase, Vercel) and the European Union (Paddle). Where data is transferred across jurisdictions, we use appropriate safeguards as required by applicable law.</p>
+    <p>Data may be processed in the United States (Supabase, Vercel, Google, Apple) and the European Union (Paddle). Where data is transferred across jurisdictions, we use appropriate safeguards as required by applicable law.</p>
 
     <h2>11. Changes to This Policy</h2>
     <p>We may update this policy from time to time. Material changes will be communicated via email to school administrators at least 30 days before taking effect. The "Last updated" date at the top reflects the most recent revision.</p>
