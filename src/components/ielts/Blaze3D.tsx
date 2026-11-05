@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { blazeLook, type EffectsLevel } from '../../lib/appEffects';
 import { haptic } from '../../native/effects/haptics';
 import { playSfx } from '../../native/effects/sfx';
+import { playBrandSound } from '../../native/effects/brandSounds';
 import { createPresenter } from './presentCanvas';
 
 /**
@@ -241,8 +242,9 @@ export default function Blaze3D({ size, streak, mood, level, interactive = false
     flareRef.current = () => {
       flare = 1;
       for (let i = 0; i < emberCount; i += 1) if (Math.random() < 0.7) resetEmber(i, true);
-      playSfx('whoosh');
-      window.setTimeout(() => playSfx('crackle'), 120);
+      // Asleep or weak (today not done yet): a yawn and a low crackle. Otherwise the fire whooshes up.
+      if (moodRef.current === 'sleepy' || moodRef.current === 'weak') playBrandSound('streakSleepy');
+      else playBrandSound('streakFlare');
       void haptic('reward');
       void askTiltPermissionOnce();
     };

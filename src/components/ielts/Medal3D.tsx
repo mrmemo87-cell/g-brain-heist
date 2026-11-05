@@ -4,6 +4,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import type { EffectsLevel } from '../../lib/appEffects';
 import { haptic } from '../../native/effects/haptics';
 import { playSfx } from '../../native/effects/sfx';
+import { playBrandSound } from '../../native/effects/brandSounds';
 import { createPresenter } from './presentCanvas';
 
 /**
@@ -185,7 +186,7 @@ export default function Medal3D({ label, level, onDone }: Medal3DProps) {
         landed = true;
         burst();
         void haptic('celebrate');
-        timers.push(window.setTimeout(() => playSfx('fanfare'), 120));
+        timers.push(window.setTimeout(() => playBrandSound('lessonComplete'), 120));
         timers.push(window.setTimeout(() => playSfx('medalShine'), 1100));
       }
       const spin = t < DROP ? (1 - p) * 6 : 0;

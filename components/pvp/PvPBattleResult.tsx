@@ -3,6 +3,7 @@ import type { Profile, RaidAttackResult, RaidTarget } from '../../types';
 import AvatarWithFrame from '../AvatarWithFrame';
 import { isFlickerThemeActive } from '../../src/lib/cosmetics';
 import { audioService } from '../../services/audioService';
+import { playBrandSound } from '../../src/native/effects/brandSounds';
 import { GemIcon } from '../icons';
 import { announcePushMoment } from '../../src/lib/pushMoment';
 
@@ -172,9 +173,11 @@ const PvPBattleResult: React.FC<PvPBattleResultProps> = ({ result, attacker, def
     } catch {
       /* vibration is optional */
     }
-    if (outcome === 'win' && coins > 0 && !playedCollect.current) {
+    if (outcome === 'win' && !playedCollect.current) {
       playedCollect.current = true;
-      const t = window.setTimeout(() => audioService.play('collect'), 900);
+      playBrandSound('battleWin');
+      if (coins <= 0) return undefined;
+      const t = window.setTimeout(() => audioService.play('collect'), 1600);
       return () => window.clearTimeout(t);
     }
     return undefined;

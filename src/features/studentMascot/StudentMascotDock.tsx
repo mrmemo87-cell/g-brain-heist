@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { AnimationAction } from 'three';
 import { useFloatingCompanion } from '../../contexts/FloatingCompanionContext';
 import { MASCOT_MOMENT_EVENT, mascotMotionReduced, type MascotMomentDetail } from './mascotMoments';
+import { playBrandSoundOncePerDay, playCatTap, preloadBrandSounds } from '../../native/effects/brandSounds';
 import './StudentMascotDock.css';
 
 type ActionName = 'idle' | 'cheer' | 'angry' | 'greet' | 'box' | 'clap' | 'warmup' | 'dance' | 'dance2' | 'flip';
@@ -160,6 +161,16 @@ function MascotAvatar({ userId }: { userId: string }) {
         controller.current = {play, dispose};
         if (cancelled) { dispose(); return; }
         renderer.render(scene, camera); setReady(true);
+        // Once a day the cat says hi (after the student's first touch, since phones block sound before that).
+        preloadBrandSounds(['catGreet', 'catPurr', 'catMeow', 'correct', 'wrong']);
+        const greet = () => { playBrandSoundOncePerDay('catGreet', 'cat-greet'); };
+        const activated = (navigator as Navigator & { userActivation?: { hasBeenActive?: boolean } }).userActivation?.hasBeenActive;
+        if (activated) later(600, greet);
+        else document.addEventListener('pointerdown', greet, { once: true, passive: true });
+        const tapped = () => { playCatTap(); play('greet', 2.4); };
+        stage.addEventListener('pointerdown', tapped, { passive: true });
+        const previous = cleanup;
+        cleanup = () => { document.removeEventListener('pointerdown', greet); stage.removeEventListener('pointerdown', tapped); previous(); };
       } catch { if (!cancelled) setReady(false); }
     })();
     return () => { cancelled = true; abort.abort(); cleanup(); controller.current = null; };

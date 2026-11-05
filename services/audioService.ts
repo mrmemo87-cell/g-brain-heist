@@ -70,19 +70,21 @@ class AudioManager {
     if (!this.hasAudioConstructor) return;
 
     // Map of sound effects to their file paths (some share files)
+    // Answers, wins and celebrations use the shared Brains Heist sound set (public/sounds/mascot),
+    // so the website, the app and IELTS all sound the same.
     const soundFileMap: Record<SoundEffect, string> = {
-      'achievement': 'tada',    // Use tada for achievement (no achievement.mp3)
+      'achievement': 'mascot/lesson-complete',
       'activate': 'activate',
       'bg': 'bg',
       'buy': 'buy',
       'collect': 'collect',
-      'correct': 'correct',
-      'hack_fail': 'hack_fail',
-      'hack_win': 'hack_win',
+      'correct': 'mascot/correct',
+      'hack_fail': 'mascot/wrong',
+      'hack_win': 'mascot/battle-win',
       'level_up': 'level_up',
       'notification': 'notification',
-      'tada': 'tada',
-      'wrong': 'wrong'
+      'tada': 'mascot/lesson-complete',
+      'wrong': 'mascot/wrong'
     };
 
     (Object.entries(soundFileMap) as [SoundEffect, string][]).forEach(([sound, file]) => {

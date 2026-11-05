@@ -2,7 +2,12 @@
  * Moments the student mascot reacts to. Small moments only change the cat's
  * pose; 'mission-complete' is the one big moment per day, where the cat flies
  * to the middle of the screen, grows and does a backflip.
+ *
+ * Each moment also has its sound from the shared Brains Heist set, so it is
+ * heard even when the cat is tucked away.
  */
+import { playBrandSound, type BrandSound } from '../../native/effects/brandSounds';
+
 export type MascotMoment = 'mission-start' | 'correct' | 'wrong' | 'climb' | 'mission-complete';
 
 export const MASCOT_MOMENT_EVENT = 'bh:mascot-moment';
@@ -13,8 +18,17 @@ export interface MascotMomentDetail {
   claim?: (finished: Promise<void>) => void;
 }
 
-/** Fire-and-forget reaction. Does nothing if the mascot is hidden or not on screen. */
+const MOMENT_SOUND: Partial<Record<MascotMoment, BrandSound>> = {
+  correct: 'correct',
+  wrong: 'wrong',
+  climb: 'battleWin',
+  'mission-complete': 'lessonComplete',
+};
+
+/** Fire-and-forget reaction. The cat does nothing if it is hidden or not on screen; the sound still plays. */
 export function mascotMoment(moment: Exclude<MascotMoment, 'mission-complete'>): void {
+  const sound = MOMENT_SOUND[moment];
+  if (sound) playBrandSound(sound);
   try {
     window.dispatchEvent(new CustomEvent<MascotMomentDetail>(MASCOT_MOMENT_EVENT, { detail: { moment } }));
   } catch {
@@ -28,6 +42,7 @@ export function mascotMoment(moment: Exclude<MascotMoment, 'mission-complete'>):
  * or reduced-motion mode (then the cat only changes pose in its corner).
  */
 export function celebrateWithMascot(): Promise<void> {
+  playBrandSound('lessonComplete');
   let finished: Promise<void> | null = null;
   try {
     window.dispatchEvent(new CustomEvent<MascotMomentDetail>(MASCOT_MOMENT_EVENT, {

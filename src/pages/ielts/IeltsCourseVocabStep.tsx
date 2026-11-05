@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../styles/ielts-course.css';
 import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell';
+import { playBrandSound } from '../../native/effects/brandSounds';
 import { IeltsHabitCelebration, useIeltsCourseHabit } from '../../components/ielts/IeltsCourseHabit';
 import {
   IELTS_COURSE_VOCAB_ROUTE,
@@ -85,6 +86,8 @@ const IeltsCourseVocabStep: React.FC = () => {
       const before = habit?.today_xp ?? null;
       const marked = await submitIeltsVocabStep(step.code, answers);
       setResult(marked);
+      // Finishing the unit gets the celebration; otherwise a chime for a good score or a gentle boop.
+      playBrandSound(marked.unit_completed ? 'lessonComplete' : marked.total > 0 && marked.score / marked.total >= 0.6 ? 'correct' : 'wrong');
       void refreshHabit().then((after) => {
         if (after && before !== null) setXpGained(Math.max(after.today_xp - before, 0));
       });
