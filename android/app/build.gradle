@@ -7,8 +7,9 @@ android {
         applicationId "com.brainsheist.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // CI passes a growing build number so every Play upload has a higher versionCode.
+        versionCode((System.getenv('ANDROID_VERSION_CODE') ?: '1') as int)
+        versionName System.getenv('ANDROID_VERSION_NAME') ?: "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -26,12 +27,25 @@ android {
             keyAlias 'brainsheist-test'
             keyPassword 'brainsheist-test'
         }
+        // Private Play upload key. Only used when the four ANDROID_UPLOAD_* secrets are present (never committed);
+        // otherwise the release bundle is built unsigned and signed afterwards with jarsigner.
+        if (System.getenv('ANDROID_UPLOAD_KEYSTORE_FILE')) {
+            upload {
+                storeFile file(System.getenv('ANDROID_UPLOAD_KEYSTORE_FILE'))
+                storePassword System.getenv('ANDROID_UPLOAD_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_UPLOAD_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_UPLOAD_KEY_PASSWORD')
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
+            if (System.getenv('ANDROID_UPLOAD_KEYSTORE_FILE')) {
+                signingConfig signingConfigs.upload
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
