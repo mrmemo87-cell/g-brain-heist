@@ -1,0 +1,114 @@
+{
+  "scope": "Local Supabase classroom RPC benchmark; focused schema, no production capacity certification",
+  "versions": {
+    "node": "v24.21.0",
+    "source": "e33d7931bafea446761bfcb46507deb755e0c629",
+    "rpcSha256": {
+      "20260928055401_classroom_reliability.sql": "7fab17379ff654eaca9f905757047c522a43fd6ed0b40b27a936d05d0d857395",
+      "20260928163701_auth_bootstrap_v1.sql": "3b38ca6e7b2ab016efc80f296694f21626de6c865abb7b433c2a645e19712047",
+      "20261007153922_classroom_scoped_reads.sql": "58ad5452c83e33986d56a4227e8bd5c524d7822745a2e5e7b718c16800ceb3d1",
+      "20261015150000_classroom_async_evidence_and_incident_repairs.sql": "b609650a332f741ac2117c2953ed2cb7dc05b732f9109eba03c0762939fd86c6",
+      "20261015223001_durable_worker_leases_and_bounded_drain.sql": "eaa65589160ed4a94cb65e0967068312ba86cad200de6b76be95d547273be1cb"
+    },
+    "harnessSha256": "dea87fa52319ace3239b4407fb948a1e54c2b48d21696d31d7d1905ec3fc3ce8",
+    "runnerSha256": "a565212bba9aeea28213eb2f55fbb975068319509e8d8cea9fbf2decdf5fe62e"
+  },
+  "host": {
+    "platform": "linux",
+    "cpuModel": "AMD EPYC 7763 64-Core Processor",
+    "cpuCount": 4,
+    "memoryBytes": 16766414848
+  },
+  "limitations": [
+    "Focused schema with current answer/result/read RPCs and real durable queue/leases; academic ingestion replaced by deterministic receipts, rewards and billing hook omitted",
+    "Synthetic data: 500 students, one teacher, 16 questions per fresh assignment",
+    "Real Supabase Auth users and password-issued sessions; signup/login provisioning is outside the measured load",
+    "Loopback HTTP; no WAN/CDN/TLS latency, browser rendering or hosted connection limits",
+    "Load generator and database share the test host; results do not certify hosted production capacity"
+  ],
+  "stages": [
+    {
+      "stageIndex": 0,
+      "students": 30,
+      "minimumMeasuredSeconds": 600,
+      "started": "2026-10-16T14:26:45.555Z",
+      "finished": "2026-10-16T14:37:03.325Z",
+      "k6ExitCode": 0,
+      "database": {
+        "answers": 480,
+        "results": 30,
+        "completed": 30,
+        "wrong_results": 0,
+        "duplicate_answers": 0
+      },
+      "queue": {
+        "pending": 0,
+        "failed": 0,
+        "done": 30
+      },
+      "receiptCount": 60,
+      "receiptDrainSeconds": 5.428,
+      "teacherSubmissionCount": 30,
+      "expectedTeacherSubmissions": 30,
+      "passed": true
+    },
+    {
+      "stageIndex": 1,
+      "students": 100,
+      "minimumMeasuredSeconds": 600,
+      "started": "2026-10-16T14:37:03.583Z",
+      "finished": "2026-10-16T14:47:53.150Z",
+      "k6ExitCode": 0,
+      "database": {
+        "answers": 1600,
+        "results": 100,
+        "completed": 100,
+        "wrong_results": 0,
+        "duplicate_answers": 0
+      },
+      "queue": {
+        "pending": 0,
+        "failed": 0,
+        "done": 100
+      },
+      "receiptCount": 200,
+      "receiptDrainSeconds": 37.169,
+      "teacherSubmissionCount": 130,
+      "expectedTeacherSubmissions": 130,
+      "passed": true
+    },
+    {
+      "stageIndex": 2,
+      "students": 500,
+      "minimumMeasuredSeconds": 600,
+      "started": "2026-10-16T14:47:53.554Z",
+      "finished": "2026-10-16T15:02:03.897Z",
+      "k6ExitCode": 99,
+      "database": {
+        "answers": 8000,
+        "results": 500,
+        "completed": 500,
+        "wrong_results": 0,
+        "duplicate_answers": 0
+      },
+      "queue": {
+        "pending": 0,
+        "failed": 0,
+        "done": 500
+      },
+      "receiptCount": 1000,
+      "receiptDrainSeconds": 237.2,
+      "teacherSubmissionCount": 630,
+      "expectedTeacherSubmissions": 630,
+      "passed": false
+    }
+  ],
+  "initialDatabaseRows": {
+    "users": 501,
+    "assignments": 0,
+    "answers": 0,
+    "results": 0
+  },
+  "initialTeacherSubmissions": 0,
+  "reusedSyntheticSessions": false
+}
