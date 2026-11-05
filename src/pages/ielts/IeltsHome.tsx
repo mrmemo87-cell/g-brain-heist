@@ -83,11 +83,14 @@ const IeltsHome: React.FC = () => {
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [dashboardLoaded, setDashboardLoaded] = useState(Boolean(warm?.summary));
   const isPrimeUser = isIeltsPrime({ tier: userTier });
-  const canAccessRequiredTier = (requiredTier?: string | null) => !requiredTier || requiredTier === 'free' || isPrimeUser;
+  const ieltsAccount = useIeltsAccount();
+  // Owner decision 2026-11-05: practice outside the course is part of IELTS Prime. Learners without Prime or a school
+  // IELTS seat open tasks only through the course (free Unit 1 and V1); every catalog task leads them to Prime.
+  const canAccessRequiredTier = (requiredTier?: string | null) =>
+    isPrimeUser || (ieltsAccount?.audience === 'school' && (!requiredTier || requiredTier === 'free'));
   // IELTS access model (owner decision 2026-11-05): staff get the programme workspace only when their school's
   // agreement includes IELTS; school learners get the school home only with an IELTS seat. Everyone else, including
   // school students without a seat, uses the independent learner home (course, Prime).
-  const ieltsAccount = useIeltsAccount();
   const schoolLearner = ieltsAccount?.audience === 'school';
   const isSchoolStaffRole = canAdministerSchool || normalizeIeltsRole(userRole) === 'teacher';
   const waitingForIeltsAccount = isAuthenticated && !isPlatformAdmin && isSchoolStaffRole && !ieltsAccount;
