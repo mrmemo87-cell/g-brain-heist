@@ -4,6 +4,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import type { EffectsLevel } from '../../lib/appEffects';
 import { haptic } from '../../native/effects/haptics';
 import { playSfx } from '../../native/effects/sfx';
+import { createPresenter } from './presentCanvas';
 
 /**
  * Unit-complete celebration in the installed app (IELTS Visual & UX Bible §14.3): a gold 3D medal drops in,
@@ -90,7 +91,8 @@ export default function Medal3D({ label, level, onDone }: Medal3DProps) {
     renderer.setSize(w, h);
     renderer.setClearColor(0x000000, 0);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    host.appendChild(renderer.domElement);
+    const presenter = createPresenter(host, renderer.domElement);
+    if (!presenter) { renderer.dispose(); doneRef.current(); return; }
 
     const scene = new THREE.Scene();
     const pmrem = new THREE.PMREMGenerator(renderer);
@@ -211,6 +213,7 @@ export default function Medal3D({ label, level, onDone }: Medal3DProps) {
         sparkMat.opacity = Math.max(0, sparkMat.opacity - dt * 0.6);
       }
       renderer.render(scene, camera);
+      presenter.present();
     };
     raf = window.requestAnimationFrame(tick);
     timers.push(window.setTimeout(() => doneRef.current(), MEDAL_DURATION_MS));
@@ -241,7 +244,7 @@ export default function Medal3D({ label, level, onDone }: Medal3DProps) {
       pmrem.dispose();
       renderer.dispose();
       renderer.forceContextLoss();
-      renderer.domElement.remove();
+      presenter.remove();
     };
   }, [label, level]);
 
