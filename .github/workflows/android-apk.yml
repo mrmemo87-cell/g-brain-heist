@@ -12,15 +12,12 @@ on:
       - 'src/lib/nativePlatform.ts'
       - 'scripts/prepare-native-web.mjs'
       - '.github/workflows/android-apk.yml'
+  # The app bundles the whole web app, so every change on main can change the APK. Only docs-only pushes skip.
   push:
     branches: [main]
-    paths:
-      - 'android/**'
-      - 'capacitor.config.ts'
-      - 'src/native/**'
-      - 'src/lib/nativePlatform.ts'
-      - 'scripts/prepare-native-web.mjs'
-      - '.github/workflows/android-apk.yml'
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
 
 permissions:
   contents: write # only used on main, to update the "android-test" pre-release with the newest APK
