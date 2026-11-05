@@ -13,6 +13,23 @@ export function startNativeShell(): void {
   preloadScreensWhenSettled();
   void import('./effects/haptics').then(({ installTapHaptics }) => installTapHaptics()).catch(() => undefined);
   void import('./effects/streakReminders').then(({ refreshStreakRemindersOnResume }) => refreshStreakRemindersOnResume()).catch(() => undefined);
+  void refreshStoreSubscriptionWhenDue();
+}
+
+// Android: re-check IELTS Prime bought in Google Play (renewals, cancellations) at most every 6 hours.
+async function refreshStoreSubscriptionWhenDue(): Promise<void> {
+  try {
+    const { usesPlayBilling, restorePlayPurchases } = await import('./playBilling');
+    if (!usesPlayBilling()) return;
+    const KEY = 'bh:play-billing-checked-at';
+    const last = Number(window.localStorage.getItem(KEY) || 0);
+    if (Date.now() - last < 6 * 60 * 60 * 1000) return;
+    const { supabase } = await import('../../services/supabaseClient');
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return;
+    window.localStorage.setItem(KEY, String(Date.now()));
+    await restorePlayPurchases();
+  } catch { /* Billing re-check is best effort; the server also expires lapsed periods. */ }
 }
 
 // All screens ship inside the app, so load their code in the background once the first screen is up:

@@ -18,11 +18,35 @@ export const fetchSchoolSubjectGroupRoster = (schoolId, groupId) => call('rpc_sc
 export const fetchTeacherTeachingGroupRoster = (schoolId, groupId) => call('rpc_teacher_teaching_group_roster', {
     p_school_id: schoolId, p_group_id: groupId,
 }, 'We could not load this teaching group’s roster. Please try again.');
-export const saveSchoolSubjectGroup = (input) => call('rpc_school_admin_save_subject_group', {
-    p_school_id: input.schoolId, p_offering_id: input.offeringId, p_name: input.name.trim(),
-    p_group_type: input.groupType, p_registration_class_id: input.registrationClassId ?? null,
-    p_group_id: input.groupId ?? null,
-}, 'We could not save this teaching group. Check its name and registration class.');
+export const fetchOfferingPlacement = (schoolId, offeringId) => call('rpc_school_admin_offering_placement', {
+    p_school_id: schoolId, p_offering_id: offeringId,
+}, 'We could not check teaching-group placement. Please try again.');
+/** Thrown when a new custom group's name matches an existing active group on the same offering. */
+export class SimilarGroupExistsError extends Error {
+    constructor(existingName) {
+        super(`A teaching group called “${existingName}” already exists for this subject and grade.`);
+        this.name = 'SimilarGroupExistsError';
+        this.existingName = existingName;
+    }
+}
+export const saveSchoolSubjectGroup = async (input) => {
+    const args = {
+        p_school_id: input.schoolId, p_offering_id: input.offeringId, p_name: input.name.trim(),
+        p_group_type: input.groupType, p_registration_class_id: input.registrationClassId ?? null,
+        p_group_id: input.groupId ?? null,
+    };
+    if (input.allowSimilar)
+        args['p_allow_similar'] = true;
+    const { data, error } = await supabase.rpc('rpc_school_admin_save_subject_group', args);
+    if (error) {
+        const raw = String(error?.message || '');
+        if (raw.includes('similar_custom_group_exists')) {
+            throw new SimilarGroupExistsError(String(error?.details || 'another group'));
+        }
+        throw userFacingError(error, 'We could not save this teaching group. Check its name and registration class.');
+    }
+    return data;
+};
 export const archiveSchoolSubjectGroup = (schoolId, groupId) => call('rpc_school_admin_archive_subject_group', {
     p_school_id: schoolId, p_group_id: groupId,
 }, 'We could not archive this teaching group. Please try again.');

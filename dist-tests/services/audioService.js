@@ -1,5 +1,6 @@
 // Audio Service for managing game sound effects
 // All audio files are located in /public/sounds/
+import { feelGameCue } from '../src/native/effects/gameFeedback.js';
 class AudioManager {
     constructor() {
         this.sounds = new Map();
@@ -69,6 +70,8 @@ class AudioManager {
         this.bgMusic.volume = 0.3; // Lower volume for background music
     }
     play(sound) {
+        if (sound !== 'bg' && this.isBrowserRuntime)
+            feelGameCue(sound); // phone vibration in the app; no-op on the website
         if (!this.audioEnabled || sound === 'bg')
             return;
         const audio = this.sounds.get(sound);
@@ -83,6 +86,9 @@ class AudioManager {
     }
     playBackgroundMusic() {
         if (!this.bgMusicEnabled || !this.bgMusic || !this.hasUserInteracted)
+            return;
+        // The IELTS area is a study space: the game soundtrack never plays there.
+        if (isQuietMusicPath())
             return;
         this.bgMusic.play().catch(err => {
             console.warn('Failed to play background music (autoplay blocked):', err);
@@ -125,8 +131,22 @@ class AudioManager {
         return this.bgMusicEnabled;
     }
 }
+/** Paths where the game soundtrack must stay silent (IELTS study area). */
+export function isQuietMusicPath(pathname) {
+    const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '');
+    return path === '/ielts' || path.startsWith('/ielts/') || path.startsWith('/ielts-prep');
+}
 // Export singleton instance
 export const audioService = new AudioManager();
+// Entering the IELTS area stops any soundtrack that was already playing.
+if (typeof window !== 'undefined') {
+    const stopIfQuiet = () => {
+        if (isQuietMusicPath())
+            audioService.stopBackgroundMusic();
+    };
+    window.addEventListener('bh:routechange', stopIfQuiet);
+    window.addEventListener('popstate', stopIfQuiet);
+}
 // Expose methods for IELTS pages to control music
 export const stopBackgroundMusic = () => audioService.stopBackgroundMusic();
 export const resumeBackgroundMusic = () => {

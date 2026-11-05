@@ -31,7 +31,7 @@ test('student desktop navigation stays visible and follows the teacher collapse 
     assert.match(navigation, /STUDENT_SIDEBAR_STORAGE_KEY/);
     assert.match(navigation, /STUDENT_MOBILE_NAV_QUERY = '\(max-width: 1024px\)'/);
     assert.match(navigation, /STUDENT_SIDEBAR_COMPACT_QUERY = '\(min-width: 1025px\) and \(max-width: 1279px\)'/);
-    assert.match(navigation, /useSmartCollapsedNavigation\(activeDestination, STUDENT_MOBILE_NAV_QUERY\)/);
+    assert.match(navigation, /useSmartCollapsedNavigation\(activeDestination, STUDENT_MOBILE_NAV_QUERY[,)]/);
     assert.match(navigation, /student-dashboard-sidebar-toggle/);
     assert.match(navigation, /sidebarCollapsed \? 'is-collapsed' : ''/);
     assert.match(navigation, /label: 'Leaderboard'/);
@@ -52,8 +52,8 @@ test('clan and leaderboard render directly inside the persistent dashboard shell
     assert.doesNotMatch(app, />View Leaderboard<\/button>/);
 });
 test('student learning tools share one visible primary action system', () => {
-    assert.match(app, /student-learning-grid/);
-    assert.match(app, /student-learning-card/g);
+    assert.match(app, /<LearnHub/);
+    assert.match(styles, /\.learn-tile__main[^}]*transition/s);
     assert.match(app, /student-primary-button/g);
     assert.match(styles, /\.student-primary-button[^}]*background:\s*linear-gradient/s);
     assert.match(styles, /\.student-primary-button[^}]*color:\s*var\(--student-on-accent\) !important/s);
@@ -72,16 +72,17 @@ test('activity feed uses accessible compact reactions', () => {
     assert.match(newsFeed, /aria-pressed=\{isActive\}/);
     assert.match(newsFeed, /student-activity-item__reactions/);
 });
-test('game mission cards stay compact and keep lockdown last', () => {
-    assert.match(mainActions, /const missionCardClass = 'min-h-\[10rem\] sm:min-h-\[11rem\]'/);
-    assert.doesNotMatch(mainActions, /min-h-\[18rem\]/);
-    const inventoryPosition = mainActions.indexOf('label={t("Inventory")}');
-    const achievementsPosition = mainActions.indexOf('label={t("Achievements")}');
-    const lockdownPosition = mainActions.indexOf('label={t("Lockdown Mode")}');
+test('game tab is a compact lobby and keeps the class battle last', () => {
+    assert.match(mainActions, /data-testid="game-hub"/);
+    assert.match(mainActions, /data-testid="dashboard-start-quest"/);
+    assert.match(styles, /\.gh-dock\s*\{[^}]*grid-template-columns:\s*repeat\(3/);
+    assert.match(styles, /\.gh-dock\s*\{\s*grid-template-columns:\s*repeat\(5/);
+    const inventoryPosition = mainActions.indexOf("key: 'inventory'");
+    const achievementsPosition = mainActions.indexOf("key: 'achievements'");
+    const lockdownPosition = mainActions.indexOf('aria-label={t("Lockdown Mode")}');
     assert.ok(inventoryPosition >= 0);
     assert.ok(achievementsPosition > inventoryPosition);
     assert.ok(lockdownPosition > achievementsPosition);
     assert.match(mainActions, /relative grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4/);
     assert.equal((mainActions.match(/grid grid-cols-2/g) || []).length, 1);
-    assert.match(mainActions, /Lockdown Mode[\s\S]*col-span-2 w-\[calc\(50%-0\.375rem\)\] justify-self-center/);
 });
