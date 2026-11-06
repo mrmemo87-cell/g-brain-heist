@@ -108,7 +108,7 @@ export default function Blaze3D({ size, streak, mood, level, interactive = false
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 50);
-    camera.position.set(0, 0.7, 7.6);
+    camera.position.set(0, 0.7, 6.8);
     camera.lookAt(0, 0.6, 0);
 
     const rig = new THREE.Group();
