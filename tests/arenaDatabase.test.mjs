@@ -45,7 +45,7 @@ insert into public.questions select ('50000000-0000-0000-0000-' || lpad(n::text,
 insert into public.questions values ('${IELTS_Q}', 'IELTS question', '["alpha","beta","gamma","delta"]', 'alpha', 'IELTS Reading', true, true, 'verified', 'global', 'multiple_choice', 'hash', 'hash', array[8], null);
 `;
 
-const migration = fs.readdirSync('supabase/migrations').filter((n) => n.includes('_proving_grounds_arena') || n.includes('_arena_on_by_default')).sort().map((n) => fs.readFileSync(`supabase/migrations/${n}`, 'utf8')).join('\n');
+const migration = fs.readdirSync('supabase/migrations').filter((n) => n.includes('_proving_grounds_arena') || n.includes('_arena_on_by_default') || n.includes('_arena_abandon_refund')).sort().map((n) => fs.readFileSync(`supabase/migrations/${n}`, 'utf8')).join('\n');
 async function setup() { const db = new PGlite(); await db.exec(fixture); await db.exec(migration); return db; }
 async function as(db, id) { await db.query("select set_config('test.uid', $1, false)", [id || '']); }
 async function call(db, q, p = []) { return (await db.query(q, p)).rows[0].value; }
@@ -201,6 +201,30 @@ test('a match that runs too long, or scores outside 0-100, pays nothing', () => 
   const abandoned = (await db.query('select result from public.arena_matches where id = $1', [m2.match_id])).rows[0].result;
   assert.equal(abandoned, 'abandoned');
   assert.ok(m3.match_id);
+}));
+
+test('quitting in the first minute returns the ticket; later it does not', () => withDB(async (db) => {
+  await enableSchool(db);
+  await giveTickets(db, 2);
+  const m = await start(db);
+  assert.equal(m.tickets, 1);
+  const r = await call(db, 'select public.rpc_arena_abandon_match($1) value', [m.match_id]);
+  assert.equal(r.refunded, true);
+  assert.equal(r.tickets, 2);
+  const again = await call(db, 'select public.rpc_arena_abandon_match($1) value', [m.match_id]);
+  assert.equal(again.refunded, false);
+  assert.equal(again.repeated, true);
+  const m2 = await start(db);
+  await backdate(db, m2.match_id, 90);
+  const late = await call(db, 'select public.rpc_arena_abandon_match($1) value', [m2.match_id]);
+  assert.equal(late.refunded, false);
+  assert.equal(late.tickets, 1);
+  assert.equal((await db.query('select result from public.arena_matches where id = $1', [m2.match_id])).rows[0].result, 'abandoned');
+  await as(db, O);
+  await assert.rejects(call(db, 'select public.rpc_arena_abandon_match($1) value', [m2.match_id]), /MATCH_NOT_FOUND/);
+  // an abandoned match never counts toward the daily cap or pays rewards
+  await as(db, S);
+  assert.equal((await status(db)).played_today, 0);
 }));
 
 test('trophies never go below zero and unlock fighters on the road', () => withDB(async (db) => {

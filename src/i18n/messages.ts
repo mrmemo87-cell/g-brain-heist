@@ -1899,6 +1899,7 @@ export const messages = {
   "Space": { "ar": "المسافة", "ru": "Пробел" },
   "Turn your phone sideways for a bigger view": { "ar": "أدر هاتفك أفقيًا لعرض أكبر", "ru": "Поверни телефон горизонтально для большего обзора" },
   "Fight in the Proving Grounds arena": { "ar": "قاتل في ساحة الإثبات", "ru": "Сражайся на арене испытаний" },
+  "Ticket returned.": { "ar": "تمت إعادة التذكرة.", "ru": "Билет возвращён." },
 } as const;
 
 export type MessageKey = keyof typeof messages;
