@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { addDays, CONQUEST_COLORS, mapById, mapForWeek, roleForRank, type ConquestResult } from '../../src/lib/classConquest';
+import { addDays, arenaName, CONQUEST_COLORS, mapById, mapForWeek, roleForRank, type ConquestResult } from '../../src/lib/classConquest';
 import { conquestBadgeSvg, weekLabel } from '../../src/lib/conquestCertificates';
 
 interface ConquestRevealStageProps {
@@ -51,7 +51,7 @@ const ConquestRevealStage: React.FC<ConquestRevealStageProps> = ({ result, onClo
   return createPortal(
     <div ref={stage} className="ccq-reveal" role="dialog" aria-modal="true" aria-label={`Class Conquest reveal · ${map.name}`} onClick={next}>
       <header className="ccq-reveal-head">
-        <span>{map.flag} Operation {map.name} · Grade {result.grade} · {weekLabel(result.week_start)}</span>
+        <span>{map.flag} Operation {map.name} · {arenaName(result.grade)} · {weekLabel(result.week_start)}</span>
         <button type="button" className="ccq-modal-close" onClick={(event) => { event.stopPropagation(); onClose(); }} aria-label="Close">×</button>
       </header>
 

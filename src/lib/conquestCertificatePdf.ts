@@ -13,7 +13,7 @@
 
 import fontkit from '@pdf-lib/fontkit';
 import { PDFDocument, rgb, setCharacterSpacing, type PDFFont, type PDFImage, type PDFPage, type RGB } from 'pdf-lib';
-import { addDays, mapById, roleForRank, type ConquestResult, type ConquestWinner } from './classConquest';
+import { addDays, arenaName, mapById, roleForRank, type ConquestResult, type ConquestWinner } from './classConquest';
 import { certificateId, planCertificatePrint, weekLabel, type CertificateTheme, type PrintSides } from './conquestCertificates';
 
 export interface CertificateImage { bytes: Uint8Array; kind: 'png' | 'jpg' }
@@ -215,7 +215,7 @@ function header(ctx: Ctx, sealTitle: string) {
     textX = 40;
   }
   pen.text(issuer || 'Class Conquest', textX, 23.5, fonts.bold, 4.4, c.ink, { maxWidth: 92 - textX + 18 });
-  pen.text(`GRADE ${result.grade} · CLASS CONQUEST`, textX, 28.8, fonts.sans, 2.8, c.muted, { spacingEm: 0.14, maxWidth: 92 - textX + 18 });
+  pen.text(`${arenaName(result.grade).toUpperCase()} · CLASS CONQUEST`, textX, 28.8, fonts.sans, 2.8, c.muted, { spacingEm: 0.14, maxWidth: 92 - textX + 18 });
 
   // Seal (centre)
   pen.text(sealTitle, PAGE_W / 2, 26, fonts.serif, 9, c.gold, { align: 'center', maxWidth: 80 });
@@ -295,7 +295,7 @@ function studentPage(ctx: Ctx, student: ConquestWinner) {
   pen.text(student.name, 18, 58 + 4 + nameSize * 0.82, fonts.serif, nameSize, c.ink);
   const ruleY = 58 + 8 + nameSize * 0.82;
   pen.rect(18, ruleY, 60, 0.6, c.frame);
-  pen.text(`${role} of Grade ${result.grade}`, 18, ruleY + 11, fonts.bold, 7.4, c.gold, { maxWidth: 182 });
+  pen.text(`${role} of ${arenaName(result.grade)}`, 18, ruleY + 11, fonts.bold, 7.4, c.gold, { maxWidth: 182 });
   pen.text(`RANK #${student.rank} IN ${label}`, 18, ruleY + 16.5, fonts.bold, 2.9, c.muted, { spacingEm: 0.18 });
   const last = pen.paragraph([
     { text: 'For leading' }, { text: label, bold: true }, { text: 'to victory in' }, { text: `Operation ${map.name}`, bold: true },
@@ -318,7 +318,7 @@ function classPage(ctx: Ctx) {
   const rivals = result.standings.length - 1;
   frame(ctx);
   header(ctx, 'Champions');
-  pen.text(`CHAMPIONS OF GRADE ${result.grade}`, 18, 58, fonts.bold, 3.2, c.muted, { spacingEm: 0.26 });
+  pen.text(`CHAMPIONS OF ${arenaName(result.grade).toUpperCase()}`, 18, 58, fonts.bold, 3.2, c.muted, { spacingEm: 0.26 });
   pen.text(label, 18, 77, fonts.serif, 15, c.ink, { maxWidth: 182 });
   pen.rect(18, 81, 60, 0.6, c.frame);
   pen.text(`conquered ${map.name}`, 18, 92, fonts.bold, 7.4, c.gold, { maxWidth: 182 });

@@ -6,7 +6,7 @@
  * own print dialog produces an identical A4 landscape PDF everywhere.
  */
 
-import { addDays, mapById, roleForRank, SCORING_DAYS, type ConquestResult, type ConquestWinner } from './classConquest';
+import { addDays, arenaName, mapById, roleForRank, SCORING_DAYS, type ConquestResult, type ConquestWinner } from './classConquest';
 import { planBookletPrint, type BookletPrintPlan } from './paperScan/printBooklets';
 
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
@@ -231,8 +231,8 @@ const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2)
 function header(result: ConquestResult, issuer: string, schoolLogoUrl: string | null | undefined, brandLogoUrl: string | null | undefined, sealTitle: string): string {
   const map = mapById(result.map_id);
   const school = issuer
-    ? `<div class="school">${schoolLogoUrl ? `<img src="${escapeHtml(schoolLogoUrl)}" alt="">` : `<div class="monogram" aria-hidden="true">${escapeHtml(initials(issuer))}</div>`}<div><div class="school-name">${escapeHtml(issuer)}</div><div class="school-sub">Grade ${escapeHtml(result.grade)} · Class Conquest</div></div></div>`
-    : `<div class="school"><div class="monogram" aria-hidden="true">${map.flag}</div><div><div class="school-name">Class Conquest</div><div class="school-sub">Grade ${escapeHtml(result.grade)}</div></div></div>`;
+    ? `<div class="school">${schoolLogoUrl ? `<img src="${escapeHtml(schoolLogoUrl)}" alt="">` : `<div class="monogram" aria-hidden="true">${escapeHtml(initials(issuer))}</div>`}<div><div class="school-name">${escapeHtml(issuer)}</div><div class="school-sub">${escapeHtml(arenaName(result.grade))} · Class Conquest</div></div></div>`
+    : `<div class="school"><div class="monogram" aria-hidden="true">${map.flag}</div><div><div class="school-name">Class Conquest</div><div class="school-sub">${escapeHtml(arenaName(result.grade))}</div></div></div>`;
   const brand = `<div class="brand"><div><div class="brand-name">Brains Heist</div><div class="brand-sub">Operation ${escapeHtml(map.name)} · ${weekLabel(result.week_start)}</div></div>${brandLogoUrl ? `<img src="${escapeHtml(brandLogoUrl)}" alt="Brains Heist">` : ''}</div>`;
   return `<header class="head">${school}<div class="seal"><div class="seal-title serif">${sealTitle}</div><div class="seal-rule"></div><div class="seal-sub">Certificate of Achievement</div></div>${brand}</header>`;
 }
@@ -259,7 +259,7 @@ function studentCertificate(result: ConquestResult, student: ConquestWinner, o: 
         <p class="eyebrow">Proudly presented to</p>
         <h1 class="name serif">${escapeHtml(student.name)}</h1>
         <div class="name-rule"></div>
-        <p class="role">${role} of Grade ${escapeHtml(result.grade)}<small>Rank #${student.rank} in ${label}</small></p>
+        <p class="role">${role} of ${escapeHtml(arenaName(result.grade))}<small>Rank #${student.rank} in ${label}</small></p>
         <p class="text">For leading <b>${label}</b> to victory in <b>Operation ${escapeHtml(map.name)}</b> — finishing <b>${student.missions} daily missions</b> with <b>${student.correct} correct answers</b>, earned at home, every day of the week, against ${rivals} rival ${rivals === 1 ? 'class' : 'classes'}.</p>
         <div class="stats">
           <div class="stat"><b>${student.missions}</b><span>Missions</span></div>
@@ -285,7 +285,7 @@ function classCertificate(result: ConquestResult, o: Required<Pick<CertificateDo
     ${header(result, o.issuer, o.schoolLogoUrl, o.brandLogoUrl, 'Champions')}
     <div class="body">
       <div>
-        <p class="eyebrow">Champions of Grade ${escapeHtml(result.grade)}</p>
+        <p class="eyebrow">Champions of ${escapeHtml(arenaName(result.grade))}</p>
         <h1 class="name serif">${label}</h1>
         <div class="name-rule"></div>
         <p class="role">conquered ${map.flag} ${escapeHtml(map.name)}<small>Operation ${escapeHtml(map.name)} · ${weekLabel(result.week_start)}</small></p>
