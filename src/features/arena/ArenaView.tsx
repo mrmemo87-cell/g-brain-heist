@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import ModalPortal from '../../../components/ModalPortal';
-import { abandonArenaMatch, answerRespawnQuestion, fetchArenaStatus, fetchRespawnQuestion, finishArenaMatch, startArenaMatch } from '../../../services/arenaService';
+import { abandonArenaMatch, answerRespawnQuestion, fetchArenaStatus, fetchRespawnQuestion, finishArenaMatch, sendArenaClientReport, startArenaMatch } from '../../../services/arenaService';
 import { ArenaEngine, drawFighterPortrait } from './arenaEngine';
 import { FIGHTERS, FIGHTER_IDS, TROPHY_ROAD, arenaBlock, type ArenaMatchOutcome, type ArenaMatchResult, type ArenaMatchTicket, type ArenaRespawnQuestion, type ArenaStatus, type FighterId } from './arenaModel';
 import './arena.css';
@@ -52,6 +52,7 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
   const [sound, setSound] = useState(readSound);
   const [superReady, setSuperReady] = useState(false);
   const [touch, setTouch] = useState(false);
+  const [diag, setDiag] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<ArenaEngine | null>(null);
   const questionTimer = useRef<number | undefined>(undefined);
@@ -124,8 +125,17 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
       onKnockout: () => onKnockout(matchId), onEnd: (o) => { void onEnd(matchId, o); },
     });
     engineRef.current = engine;
+    setDiag(null);
     const poll = window.setInterval(() => { setSuperReady(engine.superReady); setTouch(engine.touchMode); }, 250);
-    return () => { window.clearInterval(poll); };
+    // If nothing has been drawn after 2 s, say so on screen instead of leaving a black screen, and send what the device sees.
+    const check = window.setTimeout(() => {
+      if (engineRef.current !== engine) return;
+      const d = engine.diagnostics();
+      const blank = d.frames === 0 || !!d.error || d.canvas[0] < 10 || d.canvas[1] < 10;
+      if (blank) setDiag(`frames ${d.frames} · canvas ${d.canvas.join('×')} · rect ${d.rect.join(',')} · inner ${d.inner.join('×')} · ${d.error ?? 'no error'}`);
+      void sendArenaClientReport(matchId, { ...d, blank, at: new Date().toISOString() }).catch(() => undefined);
+    }, 2000);
+    return () => { window.clearInterval(poll); window.clearTimeout(check); };
     // labels and sound are applied live through the engine; recreating it would restart the match.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, ticket]);
@@ -225,6 +235,13 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
         <div className="arena-match" role="application" aria-label={t('Proving Grounds')}>
           <canvas ref={canvasRef} />
           <button type="button" className="arena-match__quit" onClick={quit}>{t('Quit match')}</button>
+          {diag && (
+            <div className="arena-question" role="alert" lang="en" dir="ltr">
+              <div className="arena-question__eyebrow">{t('The arena could not draw on this device.')}</div>
+              <p className="arena-question__text" style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>{diag}</p>
+              <p className="arena-question__text" style={{ fontSize: '0.85rem' }}>{t('A report was sent. Quit the match to get your ticket back.')}</p>
+            </div>
+          )}
           {touch && <button type="button" className={`arena-match__super${superReady ? ' is-ready' : ''}`} onPointerDown={(e) => { e.preventDefault(); engineRef.current?.playerSuper(); }} aria-label={t('Super')}>{t('Super').toUpperCase()}</button>}
           {question && (
             <div className="arena-question" role="dialog" aria-live="polite" lang="en" dir="ltr">
