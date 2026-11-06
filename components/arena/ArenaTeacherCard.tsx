@@ -50,7 +50,7 @@ const ArenaTeacherCard: React.FC<ArenaTeacherCardProps> = ({ schoolId }) => {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="font-bold text-slate-800">⚔️ Proving Grounds arena</h3>
-          <p className="mt-1 text-sm text-slate-500">{schoolEnabled ? 'Students earn match tickets by finishing quests, quizzes and your assignments. Respawn questions count as practice.' : 'The arena is off for your school. A school admin can open it under School Settings.'}</p>
+          <p className="mt-1 text-sm text-slate-500">{schoolEnabled ? 'Students earn match tickets by finishing quests, quizzes and your assignments. Respawn questions count as practice.' : 'The arena is off for your school. A school admin can switch it on under School Settings.'}</p>
         </div>
       </div>
       <ul className="mt-4 grid gap-3">

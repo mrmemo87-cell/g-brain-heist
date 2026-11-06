@@ -5,11 +5,13 @@ import { haptic } from '../../native/effects/haptics';
 import { playSfx } from '../../native/effects/sfx';
 import { playBrandSound } from '../../native/effects/brandSounds';
 import { createPresenter } from './presentCanvas';
+import { isNativeApp } from '../../lib/nativePlatform';
 
 /**
- * Blaze in real-time 3D for the installed app (IELTS Visual & UX Bible §14): a living flame with a face,
- * glow, flickering ground light and rising embers. It leans when the phone tilts, flares with a sound and a
- * vibration when tapped, grows with the streak and turns weak in the evening when the streak is at risk.
+ * Blaze in real-time 3D for the installed app (IELTS Visual & UX Bible §14): the animated Blaze character
+ * (rigged model with idle, jump, cheer, dance, sad, greet, laugh and clap) with glow, flickering ground light
+ * and rising embers. He leans when the phone tilts, reacts with a move, a sound and a vibration when tapped,
+ * grows with the streak, celebrates on milestones and droops in the evening when the streak is at risk.
  * Loaded lazily and only through <BlazeLive>, which falls back to the SVG Blaze everywhere else.
  */
 export interface Blaze3DProps {
@@ -21,47 +23,27 @@ export interface Blaze3DProps {
   label?: string;
 }
 
-const FLAME_VERTEX = /* glsl */ `
-  uniform float uTime;
-  uniform float uFlare;
-  uniform float uWobble;
-  varying float vHeight;
-  varying vec3 vNormal;
-  varying vec3 vView;
-  void main() {
-    vec3 p = position;
-    float h = clamp((p.y + 1.0) / 2.6, 0.0, 1.0);
-    vHeight = h;
-    float sway = sin(uTime * 3.1 + p.y * 2.2) * 0.09 + sin(uTime * 5.3 + p.x * 4.0) * 0.04;
-    p.x += sway * h * h * uWobble;
-    p.z += cos(uTime * 2.7 + p.y * 3.0) * 0.05 * h * uWobble;
-    float tongue = sin(atan(p.z, p.x) * 3.0 + uTime * 6.0) * 0.12 * h * h * uWobble;
-    p.y += tongue + uFlare * 0.45 * h;
-    p.xz *= 1.0 + uFlare * 0.18;
-    vec4 mv = modelViewMatrix * vec4(p, 1.0);
-    vNormal = normalize(normalMatrix * normal);
-    vView = normalize(-mv.xyz);
-    gl_Position = projectionMatrix * mv;
-  }
-`;
+const MODEL = '/mascot/brains-heist-blaze.glb?v=2';
 
-const FLAME_FRAGMENT = /* glsl */ `
-  uniform vec3 uCore;
-  uniform vec3 uOuter;
-  uniform float uOpacity;
-  uniform float uFlicker;
-  varying float vHeight;
-  varying vec3 vNormal;
-  varying vec3 vView;
-  void main() {
-    float rim = pow(1.0 - abs(dot(vNormal, vView)), 1.6);
-    vec3 col = mix(uCore, uOuter, smoothstep(0.05, 0.85, vHeight + rim * 0.55));
-    col += uOuter * rim * 0.8;
-    float alpha = (0.92 - rim * 0.35) * uOpacity * uFlicker;
-    alpha *= 1.0 - smoothstep(0.82, 1.0, vHeight);
-    gl_FragColor = vec4(col, alpha);
-  }
-`;
+type Clip = 'idle' | 'jump' | 'cheer' | 'dance' | 'sad' | 'greet' | 'laugh' | 'clap';
+const CLIP_PREFIX: Record<Clip, string> = {
+  idle: 'idle', jump: 'jump', cheer: 'cheer', dance: 'dance_03', sad: 'depressed', greet: 'greet_01', laugh: 'laugh_01', clap: 'clap',
+};
+
+// One download per session; each Blaze on screen gets its own skinned copy.
+let modelPromise: Promise<{ scene: THREE.Group; animations: THREE.AnimationClip[] }> | null = null;
+function loadModel() {
+  modelPromise ??= (async () => {
+    const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+    const response = await fetch(MODEL);
+    if (!response.ok) throw Error('Blaze model missing');
+    const { MeshoptDecoder } = await import('three/addons/libs/meshopt_decoder.module.js');
+    const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+    const gltf = await loader.parseAsync(await response.arrayBuffer(), '/mascot/');
+    return { scene: gltf.scene, animations: gltf.animations };
+  })().catch((error) => { modelPromise = null; throw error; });
+  return modelPromise;
+}
 
 function radialTexture(inner: string, outer: string): THREE.CanvasTexture {
   const c = document.createElement('canvas');
@@ -75,18 +57,6 @@ function radialTexture(inner: string, outer: string): THREE.CanvasTexture {
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
-}
-
-/** Teardrop profile turned on a lathe: round base, pointed tip. */
-function flameGeometry(segments: number): THREE.LatheGeometry {
-  const pts: THREE.Vector2[] = [];
-  for (let i = 0; i <= 24; i += 1) {
-    const t = i / 24;
-    const y = -1 + t * 2.6;
-    const r = Math.sin(Math.PI * Math.pow(t, 0.62)) * (1 - t * 0.55) * 0.95;
-    pts.push(new THREE.Vector2(Math.max(r, 0.001), y));
-  }
-  return new THREE.LatheGeometry(pts, segments);
 }
 
 const disposeAll = (obj: THREE.Object3D) => obj.traverse((o) => {
@@ -162,36 +132,59 @@ export default function Blaze3D({ size, streak, mood, level, interactive = false
 
     const body = new THREE.Group();
     rig.add(body);
-    const uniformsFor = (core: string, outer: string, opacity: number) => ({
-      uTime: { value: 0 }, uFlare: { value: 0 }, uWobble: { value: full ? 1 : 0.7 },
-      uCore: { value: new THREE.Color(core) }, uOuter: { value: new THREE.Color(outer) },
-      uOpacity: { value: opacity }, uFlicker: { value: 1 },
-    });
-    const outerU = uniformsFor(look.outer, `#${new THREE.Color(look.outer).multiplyScalar(0.55).getHexString()}`, 0.95);
-    const innerU = uniformsFor(look.core, look.outer, 1);
-    const flameMat = (u: ReturnType<typeof uniformsFor>) => new THREE.ShaderMaterial({ uniforms: u, vertexShader: FLAME_VERTEX, fragmentShader: FLAME_FRAGMENT, transparent: true, depthWrite: false, blending: THREE.NormalBlending });
-    const outerFlame = new THREE.Mesh(flameGeometry(full ? 48 : 28), flameMat(outerU));
-    body.add(outerFlame);
-    const innerFlame = new THREE.Mesh(flameGeometry(full ? 40 : 24), flameMat(innerU));
-    innerFlame.scale.set(0.58, 0.62, 0.58);
-    innerFlame.position.set(0, -0.32, 0.32);
-    body.add(innerFlame);
+    scene.add(new THREE.HemisphereLight(0xfff1d6, 0x3a1a0a, 2.1));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    keyLight.position.set(1.5, 3, 5);
+    scene.add(keyLight);
 
-    // Face: two eyes that look toward the tilt and blink; closed when sleepy.
-    const face = new THREE.Group();
-    face.position.set(0, -0.08, 0.86);
-    body.add(face);
-    const white = new THREE.MeshBasicMaterial({ color: '#ffffff' });
-    const dark = new THREE.MeshBasicMaterial({ color: '#1f2937' });
-    const eyes: Array<{ eye: THREE.Mesh; pupil: THREE.Mesh }> = [-0.27, 0.27].map((x) => {
-      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 16), white);
-      eye.scale.set(1, 1.25, 0.6);
-      eye.position.set(x, 0, 0);
-      const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.075, 16, 12), dark);
-      pupil.position.set(x, -0.01, 0.08);
-      face.add(eye, pupil);
-      return { eye, pupil };
-    });
+    // The character arrives asynchronously; until then (and if it never does) the still Blaze stays visible.
+    let mixer: THREE.AnimationMixer | null = null;
+    let model: THREE.Object3D | null = null;
+    const actions = new Map<Clip, THREE.AnimationAction>();
+    let current: THREE.AnimationAction | null = null;
+    let backToBase = 0;
+    const baseClip = (): Clip => {
+      const m = moodRef.current;
+      return m === 'weak' || m === 'sleepy' ? 'sad' : m === 'cheer' ? 'cheer' : 'idle';
+    };
+    const play = (name: Clip, seconds?: number) => {
+      const action = actions.get(name) ?? actions.get('idle');
+      if (!action) return;
+      window.clearTimeout(backToBase);
+      const isBase = name === baseClip();
+      if (action !== current) { current?.fadeOut(0.2); action.reset().fadeIn(0.2); }
+      else if (!isBase) action.reset();
+      action.setLoop(isBase ? THREE.LoopRepeat : THREE.LoopOnce, isBase ? Infinity : 1);
+      action.clampWhenFinished = !isBase;
+      action.play();
+      current = action;
+      if (!isBase && seconds) backToBase = window.setTimeout(() => play(baseClip()), seconds * 1000);
+    };
+    let disposed = false;
+    void loadModel().then(async ({ scene: template, animations }) => {
+      if (disposed) return;
+      const { clone } = await import('three/addons/utils/SkeletonUtils.js');
+      if (disposed) return;
+      model = clone(template);
+      // Fit: about 2.6 units tall, feet on the glowing ground.
+      const box = new THREE.Box3().setFromObject(model);
+      const sizeV = box.getSize(new THREE.Vector3());
+      const fit = 2.6 / Math.max(0.001, sizeV.y);
+      model.scale.setScalar(fit);
+      const centre = box.getCenter(new THREE.Vector3());
+      model.position.set(-centre.x * fit, -1 - box.min.y * fit, -centre.z * fit);
+      body.add(model);
+      mixer = new THREE.AnimationMixer(model);
+      (Object.keys(CLIP_PREFIX) as Clip[]).forEach((name) => {
+        const clip = animations.find((c) => c.name.toLowerCase().startsWith(CLIP_PREFIX[name]));
+        if (clip) actions.set(name, mixer!.clipAction(clip));
+      });
+      mixer.addEventListener('finished', (e: { action: THREE.AnimationAction }) => { if (e.action === current) play(baseClip()); });
+      // A short hello the first time he appears, then his mood.
+      if (baseClip() === 'idle' && actions.has('greet')) play('greet', 3.2);
+      else play(baseClip());
+    }).catch(() => { /* model unavailable: the still Blaze stays */ });
+    let shownBase: Clip | null = null;
 
     // Embers rising from the flame.
     const emberCount = full ? look.embers : Math.ceil(look.embers / 2);
@@ -239,14 +232,24 @@ export default function Blaze3D({ size, streak, mood, level, interactive = false
 
     // Tap: flare up.
     let flare = 0;
+    const tapMoves: Array<[Clip, number]> = [['jump', 2.2], ['cheer', 2.6], ['greet', 3.2], ['clap', 2.6]];
+    let tapIndex = Math.floor(Math.random() * tapMoves.length);
     flareRef.current = () => {
       flare = 1;
       for (let i = 0; i < emberCount; i += 1) if (Math.random() < 0.7) resetEmber(i, true);
-      // Asleep or weak (today not done yet): a yawn and a low crackle. Otherwise the fire whooshes up.
-      if (moodRef.current === 'sleepy' || moodRef.current === 'weak') playBrandSound('streakSleepy');
-      else playBrandSound('streakFlare');
+      // Asleep or weak (today not done yet): a sad sigh, a yawn and a low crackle. Otherwise a happy move and a whoosh.
+      if (moodRef.current === 'sleepy' || moodRef.current === 'weak') {
+        play('sad');
+        void playBrandSound('streakSleepy');
+      } else {
+        tapIndex = (tapIndex + 1) % tapMoves.length;
+        const [move, seconds] = tapMoves[tapIndex]!;
+        play(move, seconds);
+        void playBrandSound('streakFlare');
+      }
       void haptic('reward');
-      void askTiltPermissionOnce();
+      // Only the app asks for motion access; on the website Safari would show a permission prompt.
+      if (isNativeApp()) void askTiltPermissionOnce();
     };
 
     // Render only while on screen and the app is in front.
@@ -259,7 +262,6 @@ export default function Blaze3D({ size, streak, mood, level, interactive = false
     const start = performance.now();
     let raf = 0;
     let last = 0;
-    let blinkAt = 2 + Math.random() * 3;
     const frameGap = full ? 0 : 1 / 30;
     const tick = () => {
       raf = window.requestAnimationFrame(tick);
@@ -272,32 +274,22 @@ export default function Blaze3D({ size, streak, mood, level, interactive = false
       const weak = m === 'weak';
       const flicker = weak ? 0.55 + Math.random() * 0.35 : 0.94 + Math.sin(t * 11) * 0.04 + Math.random() * 0.03;
       flare = Math.max(0, flare - dt * 1.6);
-      const cheerBounce = m === 'cheer' ? Math.abs(Math.sin(t * 4.2)) * 0.12 : 0;
-      for (const u of [outerU, innerU]) {
-        u.uTime.value = t;
-        u.uFlare.value = flare;
-        u.uFlicker.value = flicker;
-        u.uWobble.value = (full ? 1 : 0.7) * (weak ? 1.6 : 1);
+      mixer?.update(dt);
+      // Mood changed (lesson finished, evening reached): switch his looping move.
+      const base = baseClip();
+      if (model && base !== shownBase) {
+        shownBase = base;
+        const playingReaction = Boolean(current && current.loop === THREE.LoopOnce && current.isRunning());
+        if (!playingReaction) play(base);
       }
-      body.scale.setScalar((weak ? 0.82 : 1) * (1 + flare * 0.12));
-      body.position.y = cheerBounce;
+      body.scale.setScalar((weak ? 0.88 : 1) * (1 + flare * 0.1));
+      keyLight.intensity = weak ? 1.2 : 2.2;
       halo.material.opacity = (weak ? 0.35 : 0.75) * flicker + flare * 0.4;
       (ground.material as THREE.MeshBasicMaterial).opacity = (weak ? 0.35 : 0.8) * flicker;
 
-      rig.rotation.z += (tiltZ - rig.rotation.z) * 0.08;
-      rig.rotation.x += (tiltX - rig.rotation.x) * 0.08;
-      rig.rotation.y = Math.sin(t * 0.6) * 0.12;
-
-      const sleepy = m === 'sleepy' || weak;
-      if (t > blinkAt) blinkAt = t + 2.5 + Math.random() * 3.5;
-      const blinking = blinkAt - t < 0.12;
-      eyes.forEach(({ eye, pupil }) => {
-        const open = sleepy ? 0.18 : blinking ? 0.12 : 1;
-        eye.scale.y += (1.25 * open - eye.scale.y) * 0.4;
-        pupil.visible = open > 0.5;
-        pupil.position.x = eye.position.x + tiltZ * -0.08;
-        pupil.position.y = -0.01 + tiltX * 0.08;
-      });
+      rig.rotation.z += (tiltZ * 0.5 - rig.rotation.z) * 0.08;
+      rig.rotation.x += (tiltX * 0.5 - rig.rotation.x) * 0.08;
+      rig.rotation.y = Math.sin(t * 0.6) * 0.15;
 
       for (let i = 0; i < emberCount; i += 1) {
         life[i] += dt * speed[i] * 0.45;
@@ -310,7 +302,7 @@ export default function Blaze3D({ size, streak, mood, level, interactive = false
       crown.rotation.y = t * 0.9;
       renderer.render(scene, camera);
       presenter.present();
-      if (!verified) {
+      if (!verified && model) {
         checks += 1;
         // Sample the flame body (centre, a little below the middle) of what is actually on screen.
         verified = presenter.hasPixelsAt(0.5, 0.58);
@@ -321,6 +313,11 @@ export default function Blaze3D({ size, streak, mood, level, interactive = false
     raf = window.requestAnimationFrame(tick);
 
     return () => {
+      disposed = true;
+      window.clearTimeout(backToBase);
+      mixer?.stopAllAction();
+      // The model shares geometry and textures with the cached download: detach it before disposing the rest.
+      if (model) body.remove(model);
       window.cancelAnimationFrame(raf);
       window.removeEventListener('deviceorientation', onOrient);
       io?.disconnect();
@@ -342,7 +339,7 @@ export default function Blaze3D({ size, streak, mood, level, interactive = false
       style={{ width: size, height: size }}
       onClick={onTap}
       role={interactive ? 'button' : undefined}
-      aria-label={interactive ? (label ?? 'Blaze, tap to make the flame flare up') : undefined}
+      aria-label={interactive ? (label ?? 'Blaze, tap to make him move') : undefined}
       aria-hidden={interactive ? undefined : true}
     />
   );

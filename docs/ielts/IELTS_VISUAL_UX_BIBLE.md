@@ -1,8 +1,8 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.5.0
-**Effective date:** 2026-11-06  
+**Version:** 1.7.0
+**Effective date:** 2026-11-07  
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
 
@@ -276,8 +276,11 @@ This section applies **only inside the installed iPhone and Android apps** (`isN
 ### 14.1 Allowed surfaces
 The 3D Blaze, lighting, sound and haptics may appear on: the course map (`/ielts/course`), the IELTS home, course unit pages, vocabulary steps, the streak bar and streak sheet, the habit and unit-complete celebrations, league, growth and journey screens, and the Android home-screen widget. Continuous animation (Blaze idling, flickering, embers) is allowed on these surfaces.
 
+### 14.1a Website: animated Blaze only
+On the website, the animated 3D Blaze (14.2) may appear on the same 14.1 surfaces, and only there. It is silent (no sound, no vibration, no motion-permission prompt) and adds no other effect from this layer; 12.4 and 13.6 still govern everything else on the website. The model is loaded after the page, from a compressed file of about 1.4 MB that the browser keeps, and only while Blaze is visible; the still Blaze shows until the 3D one is ready. "Auto" keeps him still on low-end devices (≤4 CPU cores or ≤3 GB memory); reduce motion and Effects Off keep him still everywhere; the Effects control (14.5) is shown with Blaze on the website too, without the sounds switch. 14.3 applies unchanged.
+
 ### 14.2 Interaction
-Blaze reacts to taps (flare, sound, vibration) and to tilting the phone. It grows with the streak: spark (0 days), flame (1+), bigger blaze (7+), blue fire (30+), crowned legend (100+). In the evening (from 18:00) when a streak exists and today is not done, Blaze is visibly weak and flickering. A local evening reminder (about 19:00, never at night) may say so.
+In the app, the live Blaze is the animated 3D Blaze character (public/mascot/brains-heist-blaze.glb, made from the owner's Blaze artwork) with eight moves: idle, greet, jump, cheer, dance, clap, laugh and a sad droop (laugh is kept in the file but not used in the app). He greets once when he appears, idles, cheers in celebrations and droops when weak. Blaze reacts to taps (a short move such as jump, cheer, wave or clap with flare, sound and vibration; the sad droop and a yawn when weak) and to tilting the phone. It grows with the streak: spark (0 days), flame (1+), bigger blaze (7+), blue fire (30+), crowned legend (100+). In the evening (from 18:00) when a streak exists and today is not done, Blaze is visibly weak and flickering. A local evening reminder (about 19:00, never at night) may say so.
 
 ### 14.3 Quiet surfaces — never
 No motivation animation, sound or haptic from this layer during IELTS screeners, diagnostics, mocks, Exam Mode, timed tests, practice tasks, recordings, results or reviews (anything under `/ielts/` other than the 14.1 list, plus `/exam`). Assessment screens keep section 6.5.
@@ -293,6 +296,16 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.10 Revision record — 1.7.0 (2026-11-07)
+**Authority.** Owner decision on 2026-11-07 to show the full animated Blaze on the website, after the download, battery and calm-website trade-offs were explained. Diagnostic Bible 2.1.0 unchanged; no scoring or assessment impact.
+
+**Change.** Added 14.1a (website animated Blaze, silent, same surfaces, still on low-end devices). The IELTS website remains silent (14.5a); quiet surfaces (14.3) are unchanged.
+
+### 14.9 Revision record — 1.6.0 (2026-11-07)
+**Authority.** Owner instruction on 2026-11-07 to use the owner's Blaze artwork as the animated 3D Blaze in the app. Diagnostic Bible 2.1.0 unchanged; no scoring or assessment impact.
+
+**Change.** 14.2 now names the animated character and its moves. Surfaces (14.1), quiet surfaces (14.3), celebration limits (14.4), controls and fallbacks (14.5) and growth meaning (14.6) are unchanged; streak tiers still show through size, glow, embers and crown.
 
 ### 14.8 Revision record — 1.5.0 (2026-11-06)
 **Authority.** Owner instruction on 2026-11-06 to use the shared Brains Heist sound set in Brains Heist and IELTS. Diagnostic Bible 2.1.0 unchanged; no scoring or assessment impact.
