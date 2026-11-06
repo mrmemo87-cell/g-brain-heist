@@ -9,6 +9,7 @@ import {
 import { getIeltsFullAccess, getUserTier, isIeltsPrime } from '../../../services/ieltsService';
 import * as IELTSAuthService from '../../../services/ieltsAuthService';
 import { openPaddleCheckoutForTransaction } from '../../../services/paddleCheckoutClient';
+import IeltsLocalPayment from '../../components/ielts/IeltsLocalPayment';
 import { trackIeltsFunnelEvent, type IeltsFunnelUserType } from '../../../services/ieltsFunnelAnalytics';
 import {
   buyPrimeWithPlay,
@@ -650,6 +651,11 @@ const IeltsPrime: React.FC = () => {
             </article>
           ))}
         </section>
+        )}
+
+        {/* Local transfer (MBank, O!Dengi, Elsom) on the web only: store apps must use their own billing. */}
+        {isAuthenticated && !isPrimeUser && !playBilling && !iosNoPurchase && (
+          <IeltsLocalPayment onSubmitted={() => trackIeltsFunnelEvent('checkout_started', { user_type: userType, checkout_surface: 'local_transfer' })} />
         )}
 
         <section

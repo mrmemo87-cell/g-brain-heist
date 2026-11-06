@@ -554,3 +554,26 @@
 .medal3d-stage { position: absolute; inset: 0; }
 .medal3d-stage canvas { display: block; width: 100% !important; height: 100% !important; }
 .medal3d-hint { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 2.2rem); margin: 0; text-align: center; color: rgba(255, 255, 255, .75); font-size: .85rem; font-weight: 600; letter-spacing: .02em; }
+
+/* Owner: local payments (MBank, O!Dengi, Elsom) on the growth page */
+.lp-admin .lp-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.lp-admin .lp-head h2{margin:0}
+.lp-badge{font-size:.75rem;font-weight:800;padding:.25rem .6rem;border-radius:999px;background:#f1f5f9;color:#475569}
+.lp-badge.is-on{background:#dcfce7;color:#166534}
+.lp-list{list-style:none;margin:.75rem 0;padding:0;display:grid;gap:.6rem}
+.lp-row{display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap;padding:.8rem .9rem;border:1px solid #e2e8f0;border-radius:.8rem;background:#fff}
+.lp-main{min-width:220px;flex:1 1 260px;line-height:1.5;color:#0f172a}
+.lp-actions{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center}
+.lp-actions input,.lp-field input{border-radius:.6rem;border:1px solid #cbd5e1;background:#fff;color:#0f172a;padding:.55rem .7rem;font:inherit;min-height:40px}
+.lp-ok,.lp-no{border:none;border-radius:.6rem;padding:.6rem .85rem;font-weight:800;cursor:pointer;min-height:40px}
+.lp-ok{background:#16a34a;color:#fff}
+.lp-no{background:#fee2e2;color:#991b1b}
+.lp-ok:disabled,.lp-no:disabled{opacity:.6;cursor:wait}
+.lp-status{font-weight:800;text-transform:capitalize;align-self:center}
+.lp-status--approved{color:#166534}.lp-status--rejected{color:#b91c1c}.lp-status--cancelled{color:#64748b}
+.lp-settings{margin-top:1rem}
+.lp-settings summary{cursor:pointer;font-weight:800;color:#0f172a}
+.lp-settings form{display:grid;gap:.7rem;margin-top:.8rem;max-width:560px}
+.lp-field{display:grid;gap:.25rem;color:#0f172a;font-weight:600}
+.lp-check{display:flex;gap:.5rem;align-items:center;font-weight:700;color:#0f172a}
+.lp-prices{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.6rem}

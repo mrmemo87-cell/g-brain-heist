@@ -18,9 +18,12 @@ export type BrandedEmail = {
   details?: Array<{ label: string; value: string }>;
   action?: { label: string; url: string } | null;
   note?: string | null;
+  /** Learner emails only: one-click link that turns these emails off. */
+  unsubscribeUrl?: string | null;
 };
 
-export type EmailRenderMode = "school" | "platform_operations";
+/** "learner": Brains Heist IELTS emails to independent learners, in Russian, with an unsubscribe link. */
+export type EmailRenderMode = "school" | "platform_operations" | "learner";
 
 export const cleanText = (value: unknown, maxLength = 500) =>
   String(value ?? "").trim().slice(0, maxLength);
@@ -92,6 +95,18 @@ export const schoolSender = (configuredFrom: string, schoolName: string) => {
   return `${display} via ${PRODUCT_NAME} <${address}>`;
 };
 
+export const learnerSender = (configuredFrom: string) =>
+  `${PRODUCT_NAME} IELTS <${senderAddress(configuredFrom)}>`;
+
+/** Signed one-click unsubscribe token for learner emails: HMAC-SHA256(key, user id), hex. */
+export const learnerOptOutToken = async (key: string, userId: string) => {
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(key), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", cryptoKey, new TextEncoder().encode(`ielts-optout:${userId}`));
+  return Array.from(new Uint8Array(signature)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+};
+
 export const operationsSender = (configuredFrom: string) =>
   `${PRODUCT_NAME} Operations <${senderAddress(configuredFrom)}>`;
 
@@ -127,38 +142,47 @@ export const renderBrandedEmail = (
 ) => {
   const schoolName = cleanText(school.name, 140) || "Your school";
   const isOperations = mode === "platform_operations";
+  const isLearner = mode === "learner";
+  const unsubscribeUrl = isLearner ? safeHttpsUrl(email.unsubscribeUrl) : "";
   const details = (email.details || []).filter((item) => cleanText(item.value));
   const detailHtml = details.length
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;border:1px solid ${LINE};border-radius:8px;border-collapse:separate;background:#f9fafb">${details.map((item, index) => `<tr><td valign="top" style="padding:12px 16px;${index ? `border-top:1px solid ${LINE};` : ""}width:96px;color:${MUTED};font-size:13px;line-height:1.5">${escapeHtml(item.label)}</td><td valign="top" style="padding:12px 16px 12px 0;${index ? `border-top:1px solid ${LINE};` : ""}color:${INK};font-size:14px;font-weight:600;line-height:1.5">${escapeHtml(item.value)}</td></tr>`).join("")}</table>`
     : "";
   const actionUrl = safeHttpsUrl(email.action?.url);
   const actionHtml = email.action && actionUrl
-    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 8px"><tr><td style="border-radius:8px;background:${ACCENT}"><a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:13px 24px;border-radius:8px;background:${ACCENT};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none">${escapeHtml(email.action.label)}</a></td></tr></table><p style="margin:0;color:${MUTED};font-size:12px;line-height:1.5">If the button doesn’t work, open <a href="${escapeHtml(actionUrl)}" style="color:${ACCENT};text-decoration:underline">${escapeHtml(actionUrl.replace(/^https:\/\//, ""))}</a></p>`
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 8px"><tr><td style="border-radius:8px;background:${ACCENT}"><a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:13px 24px;border-radius:8px;background:${ACCENT};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none">${escapeHtml(email.action.label)}</a></td></tr></table><p style="margin:0;color:${MUTED};font-size:12px;line-height:1.5">${isLearner ? "Если кнопка не работает, откройте" : "If the button doesn’t work, open"} <a href="${escapeHtml(actionUrl)}" style="color:${ACCENT};text-decoration:underline">${escapeHtml(actionUrl.replace(/^https:\/\//, ""))}</a></p>`
     : "";
   const noteHtml = cleanText(email.note, 1200)
     ? `<p style="margin:20px 0 0;padding-top:16px;border-top:1px solid ${LINE};color:${MUTED};font-size:13px;line-height:1.6">${escapeHtml(email.note)}</p>`
     : "";
   const productMark = `<img src="${PRODUCT_LOGO_URL}" alt="Brains Heist logo" width="20" height="20" style="display:inline-block;width:20px;height:20px;vertical-align:middle;border-radius:5px;background:#08111f"/>`;
-  const brandHeader = isOperations
+  const brandHeader = isLearner
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td valign="middle" style="padding-right:12px"><img src="${PRODUCT_LOGO_URL}" alt="Brains Heist" width="44" height="44" style="display:block;width:44px;height:44px;border-radius:8px;background:#08111f"/></td><td valign="middle"><div style="color:${INK};font-size:16px;font-weight:700">Brains Heist IELTS</div><div style="color:${MUTED};font-size:12px;margin-top:2px">Подготовка к IELTS в телефоне</div></td></tr></table>`
+    : isOperations
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td valign="middle" style="padding-right:12px"><img src="${PRODUCT_LOGO_URL}" alt="Brains Heist logo" width="44" height="44" style="display:block;width:44px;height:44px;border-radius:8px;background:#08111f"/></td><td valign="middle"><div style="color:${INK};font-size:16px;font-weight:700">Brains Heist Operations</div><div style="color:${MUTED};font-size:12px;margin-top:2px">Internal platform notification</div></td></tr></table>`
     : `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td valign="middle" style="padding-right:12px">${schoolMark(school)}</td><td valign="middle"><div style="color:${INK};font-size:16px;font-weight:700;line-height:1.3">${escapeHtml(schoolName)}</div><div style="color:${MUTED};font-size:12px;margin-top:2px">School communication</div></td></tr></table>`;
-  const footer = isOperations
+  const footer = isLearner
+    ? "Вы получили это письмо, потому что начали курс Brains Heist IELTS. Brains Heist не связан с British Council, IDP и IELTS."
+    : isOperations
     ? "This Brains Heist operational notification was generated for an authorized platform administrator. Review sensitive details only inside the protected administration workspace."
     : `Sent on behalf of ${schoolName}. Marks, results and feedback are never included in email. Sign in to Brains Heist to see them.`;
-  const signature = isOperations
+  const signature = isLearner
+    ? `${productMark}&nbsp; <span style="color:${BODY};font-weight:600">Brains Heist IELTS</span>`
+    : isOperations
     ? `${productMark}&nbsp; <span style="color:${BODY};font-weight:600">Brains Heist</span>`
     : `${productMark}&nbsp; <span style="color:${BODY};font-weight:600">${escapeHtml(schoolName)} <span style="color:${MUTED};font-weight:400">×</span> Brains Heist</span> <span style="color:${MUTED}">· Academic progress platform</span>`;
 
-  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><title>${escapeHtml(email.subject)}</title></head><body style="margin:0;padding:0;background:#f3f4f6;font-family:${FONT};color:${BODY};-webkit-text-size-adjust:100%"><div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(email.preview)}</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f3f4f6"><tr><td align="center" style="padding:28px 12px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#ffffff;border:1px solid ${LINE};border-radius:12px;border-collapse:separate;overflow:hidden"><tr><td style="height:4px;line-height:4px;font-size:0;background:${ACCENT}">&nbsp;</td></tr><tr><td style="padding:22px 28px;border-bottom:1px solid ${LINE}">${brandHeader}</td></tr><tr><td style="padding:28px 28px 30px"><p style="margin:0 0 10px;color:${ACCENT};font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase">${escapeHtml(email.kicker)}</p><h1 style="margin:0 0 14px;color:${INK};font-size:23px;line-height:1.3;font-weight:700">${escapeHtml(email.headline)}</h1><p style="margin:0 0 24px;color:${BODY};font-size:15px;line-height:1.65">${escapeHtml(email.intro)}</p>${detailHtml}${actionHtml}${noteHtml}</td></tr></table><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px"><tr><td style="padding:18px 8px 0;font-size:12px;line-height:1.6;color:${MUTED}"><p style="margin:0 0 6px">${signature}</p><p style="margin:0">${escapeHtml(footer)}</p></td></tr></table></td></tr></table></body></html>`;
+  const html = `<!doctype html><html lang="${isLearner ? "ru" : "en"}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><title>${escapeHtml(email.subject)}</title></head><body style="margin:0;padding:0;background:#f3f4f6;font-family:${FONT};color:${BODY};-webkit-text-size-adjust:100%"><div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(email.preview)}</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f3f4f6"><tr><td align="center" style="padding:28px 12px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#ffffff;border:1px solid ${LINE};border-radius:12px;border-collapse:separate;overflow:hidden"><tr><td style="height:4px;line-height:4px;font-size:0;background:${ACCENT}">&nbsp;</td></tr><tr><td style="padding:22px 28px;border-bottom:1px solid ${LINE}">${brandHeader}</td></tr><tr><td style="padding:28px 28px 30px"><p style="margin:0 0 10px;color:${ACCENT};font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase">${escapeHtml(email.kicker)}</p><h1 style="margin:0 0 14px;color:${INK};font-size:23px;line-height:1.3;font-weight:700">${escapeHtml(email.headline)}</h1><p style="margin:0 0 24px;color:${BODY};font-size:15px;line-height:1.65">${escapeHtml(email.intro)}</p>${detailHtml}${actionHtml}${noteHtml}</td></tr></table><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px"><tr><td style="padding:18px 8px 0;font-size:12px;line-height:1.6;color:${MUTED}"><p style="margin:0 0 6px">${signature}</p><p style="margin:0">${escapeHtml(footer)}</p>${unsubscribeUrl ? `<p style="margin:6px 0 0"><a href="${escapeHtml(unsubscribeUrl)}" style="color:${MUTED};text-decoration:underline">Отписаться от этих писем</a></p>` : ""}</td></tr></table></td></tr></table></body></html>`;
 
   const text = [
-    isOperations ? "Brains Heist Operations" : `${schoolName} × Brains Heist`,
+    isLearner ? "Brains Heist IELTS" : isOperations ? "Brains Heist Operations" : `${schoolName} × Brains Heist`,
     email.headline,
     email.intro,
     ...details.map((item) => `${item.label}: ${item.value}`),
     email.action && actionUrl ? `${email.action.label}: ${actionUrl}` : "",
     cleanText(email.note, 1200),
     footer,
+    unsubscribeUrl ? `Отписаться: ${unsubscribeUrl}` : "",
   ].filter(Boolean).join("\n\n");
 
   return { subject: cleanText(email.subject, 180), html, text };
@@ -173,6 +197,7 @@ export const sendWithResend = async (params: {
   subject: string;
   html: string;
   text: string;
+  headers?: Record<string, string>;
 }) => {
   if (!isRoutableEmailAddress(params.to)) {
     throw new Error("Recipient email address is not routable");
@@ -191,6 +216,7 @@ export const sendWithResend = async (params: {
       subject: params.subject,
       html: params.html,
       text: params.text,
+      headers: params.headers && Object.keys(params.headers).length ? params.headers : undefined,
     }),
   });
   const payload = await response.json().catch(() => null) as { id?: string; message?: string; name?: string } | null;

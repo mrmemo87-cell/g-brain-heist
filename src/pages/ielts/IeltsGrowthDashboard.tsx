@@ -2,13 +2,14 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/ielts-course.css';
 import { supabase } from '../../../services/supabaseClient';
+import IeltsLocalPaymentsAdmin from '../../components/ielts/IeltsLocalPaymentsAdmin';
 
 /** Owner-only: which IELTS ad campaigns bring visitors, sign-ups, learners who clear Unit 1 and Prime buyers. */
 
 type Row = { campaign: string; source: string | null; visitors: number; signups: number; started: number; cleared: number; paid: number };
 type Report = {
   days: number;
-  totals: { visitors: number; signups: number; started: number; cleared: number; paid: number; active_prime: number };
+  totals: { visitors: number; signups: number; started: number; cleared: number; paid: number; active_prime: number; pending_local_payments?: number };
   campaigns: Row[];
   daily: { day: string; visitors: number; signups: number }[];
 };
@@ -71,8 +72,10 @@ const IeltsGrowthDashboard: React.FC = () => {
                   </div>
                 );
               })}
-              <p className="gd-note">Active Prime subscribers right now: <b>{report.totals.active_prime}</b></p>
+              <p className="gd-note">Active Prime subscribers right now: <b>{report.totals.active_prime}</b>{report.totals.pending_local_payments ? <> · Transfers to confirm: <b>{report.totals.pending_local_payments}</b></> : null}</p>
             </section>
+
+            <IeltsLocalPaymentsAdmin />
 
             <section className="ic-card">
               <h2>Daily</h2>
