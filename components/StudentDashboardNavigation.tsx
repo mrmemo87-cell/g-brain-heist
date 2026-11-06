@@ -13,6 +13,7 @@ export type StudentDashboardDestination =
   | 'tasks'
   | 'clan'
   | 'leaderboard'
+  | 'arena'
   | 'more';
 
 type StudentDashboardNavigationProps = {
@@ -23,6 +24,8 @@ type StudentDashboardNavigationProps = {
   clanBadgeCount: number;
   activeDestination: StudentDashboardDestination;
   onNavigate: (destination: StudentDashboardDestination) => void;
+  /** Destinations a school has not opened for this student, such as the arena. */
+  hiddenDestinations?: StudentDashboardDestination[];
 };
 
 const destinations: Array<{ id: StudentDashboardDestination; icon: string; label: MessageKey }> = [
@@ -33,6 +36,7 @@ const destinations: Array<{ id: StudentDashboardDestination; icon: string; label
   { id: 'tasks', icon: '📋', label: 'Assignments' },
   { id: 'clan', icon: '🛡️', label: 'Clan' },
   { id: 'leaderboard', icon: '🏆', label: 'Leaderboard' },
+  { id: 'arena', icon: '⚔️', label: 'Arena' },
   { id: 'more', icon: '☰', label: 'More' },
 ];
 
@@ -63,6 +67,9 @@ const badgeFor = (
 type StudentMobileBottomNavigationProps = Pick<StudentDashboardNavigationProps,
   'assignmentCount' | 'clanBadgeCount' | 'activeDestination' | 'onNavigate'
 >;
+
+const visibleDestinations = (list: typeof destinations, hidden?: StudentDashboardDestination[]) =>
+  hidden && hidden.length ? list.filter(({ id }) => !hidden.includes(id)) : list;
 
 const StudentMobileBottomNavigation: React.FC<StudentMobileBottomNavigationProps> = ({
   assignmentCount,
@@ -137,7 +144,9 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
   clanBadgeCount,
   activeDestination,
   onNavigate,
+  hiddenDestinations,
 }) => {
+  const sidebarDestinations = visibleDestinations(destinations, hiddenDestinations);
   const { t, language, direction } = useLanguage();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(getInitialSidebarCollapsed);
   const [navTooltip, setNavTooltip] = useState<{ label: string; anchor: HTMLElement } | null>(null);
@@ -200,7 +209,7 @@ const StudentDashboardNavigation: React.FC<StudentDashboardNavigationProps> = ({
         </button>
 
         <nav id="student-primary-navigation" className="student-dashboard-rail-links">
-          {destinations.map((destination) => {
+          {sidebarDestinations.map((destination) => {
             const badge = badgeFor(destination.id, assignmentCount, clanBadgeCount);
             return (
               <button

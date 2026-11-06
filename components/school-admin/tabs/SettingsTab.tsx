@@ -2,6 +2,7 @@ import React from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import InvitesTab from './InvitesTab';
 import * as SchoolAdminService from '../../../services/schoolAdminService';
+import ArenaSettingsSection from '../ArenaSettingsSection';
 
 const SettingsTab: React.FC = () => {
   const {
@@ -93,6 +94,8 @@ const SettingsTab: React.FC = () => {
         </div>
         <div className="admin-form-actions"><button type="button" onClick={handleSaveSettings} disabled={savingSettings} className="admin-button-primary">{savingSettings ? 'Saving…' : 'Save registration rules'}</button></div>
       </section>
+
+      <ArenaSettingsSection schoolId={school.id} addToast={addToast} />
     </div>
   );
 };

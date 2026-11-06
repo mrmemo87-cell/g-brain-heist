@@ -88,6 +88,7 @@ import {
 import { ProfileIcon } from './student-progress/AcademicProfilePremium';
 import { useIeltsTeacherProgrammeEntry } from '../src/hooks/useIeltsTeacherProgrammeEntry';
 import TeacherIeltsProgrammeShortcut, { IeltsProgrammeIcon } from './teacher/TeacherIeltsProgrammeShortcut';
+import ArenaTeacherCard from './arena/ArenaTeacherCard';
 import { teacherProgrammeRoute } from '../services/ieltsTeacherProgrammeEntry';
 
 interface TeacherPortalProps {
@@ -4714,6 +4715,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       </RetentionTrialGate>
       {/* Dashboard shortcuts */}
       <TeacherIeltsProgrammeShortcut entry={ieltsProgramme.entry} failed={ieltsProgramme.failed} onRetry={ieltsProgramme.retry} />
+      <ArenaTeacherCard schoolId={profile.school_id} />
       <div className="teacher-stats-grid">
         <button type="button" onClick={() => setView('students')} className="teacher-dashboard-stat cyan text-left" aria-label="Open My Classes">
           <div className="teacher-dashboard-stat-info">
