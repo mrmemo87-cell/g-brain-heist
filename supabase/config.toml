@@ -44,3 +44,9 @@ verify_jwt = true
 
 [functions.play_billing]
 verify_jwt = true
+
+[functions.ielts_email_optout]
+verify_jwt = false
+
+[functions.ielts_learner_email_dispatcher]
+verify_jwt = false
