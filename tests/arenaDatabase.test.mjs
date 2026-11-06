@@ -45,7 +45,7 @@ insert into public.questions select ('50000000-0000-0000-0000-' || lpad(n::text,
 insert into public.questions values ('${IELTS_Q}', 'IELTS question', '["alpha","beta","gamma","delta"]', 'alpha', 'IELTS Reading', true, true, 'verified', 'global', 'multiple_choice', 'hash', 'hash', array[8], null);
 `;
 
-const migration = fs.readFileSync('supabase/migrations/20261106150000_proving_grounds_arena.sql', 'utf8');
+const migration = fs.readdirSync('supabase/migrations').filter((n) => n.includes('_proving_grounds_arena') || n.includes('_arena_on_by_default')).sort().map((n) => fs.readFileSync(`supabase/migrations/${n}`, 'utf8')).join('\n');
 async function setup() { const db = new PGlite(); await db.exec(fixture); await db.exec(migration); return db; }
 async function as(db, id) { await db.query("select set_config('test.uid', $1, false)", [id || '']); }
 async function call(db, q, p = []) { return (await db.query(q, p)).rows[0].value; }
@@ -61,19 +61,24 @@ const finish = (db, id, mine = 100, theirs = 40, mvp = false) => call(db, 'selec
 async function backdate(db, id, seconds) { await db.query('update public.arena_matches set started_at = now() - make_interval(secs => $2) where id = $1', [id, seconds]); }
 async function giveTickets(db, n) { await db.query('select private.arena_grant_tickets($1, $2, $3)', [S, n, 'test']); }
 
-test('arena is invisible and refuses to start until the school turns it on', () => withDB(async (db) => {
+test('arena is on by default, a school admin can switch it off, and non-students never see it', () => withDB(async (db) => {
   await as(db, S);
-  const s = await status(db);
+  let s = await status(db);
+  assert.equal(s.available, true);
+  assert.equal(s.daily_cap, 5);
+  assert.equal(s.window_start, '15:00');
+  await as(db, null);
+  await assert.rejects(status(db), /NOT_AUTHENTICATED/);
+  await as(db, A);
+  await call(db, "select public.rpc_arena_update_school_settings($1, false, 5, '15:00', '23:59', true) value", [C]);
+  await as(db, S);
+  s = await status(db);
   assert.equal(s.available, false);
   assert.equal(s.reason, 'school_off');
   await giveTickets(db, 3);
   await assert.rejects(start(db), /ARENA_CLOSED:school_off/);
-  await as(db, null);
-  await assert.rejects(status(db), /NOT_AUTHENTICATED/);
-  await enableSchool(db);
-  assert.equal((await status(db)).available, true);
   await as(db, O);
-  assert.equal((await status(db)).reason, 'school_off');
+  assert.equal((await status(db)).available, true);
   await as(db, T);
   assert.equal((await status(db)).reason, 'not_student');
 }));

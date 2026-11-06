@@ -6,11 +6,11 @@ interface ArenaSettingsSectionProps {
   addToast: (message: string, type?: 'info' | 'success' | 'error' | 'warning') => void;
 }
 
-/** School-wide switch, daily cap and play window for the Proving Grounds arena. Off until an admin turns it on. */
+/** School-wide switch, daily cap and play window for the Proving Grounds arena. On by default. */
 const ArenaSettingsSection: React.FC<ArenaSettingsSectionProps> = ({ schoolId, addToast }) => {
   const [settings, setSettings] = useState<ArenaAdminSettings | null>(null);
   const [failed, setFailed] = useState(false);
-  const [draft, setDraft] = useState({ enabled: false, daily_cap: 5, window_start: '15:00', window_end: '23:59', weekend_all_day: true });
+  const [draft, setDraft] = useState({ enabled: true, daily_cap: 5, window_start: '15:00', window_end: '23:59', weekend_all_day: true });
   const [saving, setSaving] = useState(false);
   const [classBusy, setClassBusy] = useState<string | null>(null);
 
@@ -45,7 +45,7 @@ const ArenaSettingsSection: React.FC<ArenaSettingsSectionProps> = ({ schoolId, a
 
   return (
     <section className="admin-form-card" data-testid="arena-settings">
-      <div className="admin-card-heading"><div><h3>Proving Grounds arena</h3><p>A 3-vs-3 battle game students unlock by studying. Every match costs a ticket earned from quests, quizzes and assignments. Off until you turn it on.</p></div>{settings ? <span className="admin-locked-pill">{settings.enabled ? 'On' : 'Off'}</span> : null}</div>
+      <div className="admin-card-heading"><div><h3>Proving Grounds arena</h3><p>A 3-vs-3 battle game students unlock by studying. Every match costs a ticket earned from quests, quizzes and assignments. On for every school unless you switch it off here.</p></div>{settings ? <span className="admin-locked-pill">{settings.enabled ? 'On' : 'Off'}</span> : null}</div>
       {failed ? <div className="admin-inline-warning" role="alert"><strong>Arena settings could not be loaded</strong><span>Refresh the page or try again later.</span></div> : null}
       {settings ? <>
         <div className="registration-rule-list">
