@@ -1907,6 +1907,12 @@ export const messages = {
   "Correct! Back in the fight with a full super and a shield.": { "ar": "صحيح! عدت إلى المعركة بضربة خاصة كاملة ودرع.", "ru": "Верно! Ты снова в бою с полным суперударом и щитом." },
   "Time's up. 2 extra seconds on the bench.": { "ar": "انتهى الوقت. ثانيتان إضافيتان على مقاعد البدلاء.", "ru": "Время вышло. Ещё 2 секунды на скамейке." },
   "Not this time. 2 extra seconds on the bench.": { "ar": "ليس هذه المرة. ثانيتان إضافيتان على مقاعد البدلاء.", "ru": "Не в этот раз. Ещё 2 секунды на скамейке." },
+  "First KO!": { "ar": "أول إقصاء!", "ru": "Первый нокаут!" },
+  "Double KO!": { "ar": "إقصاء مزدوج!", "ru": "Двойной нокаут!" },
+  "Triple KO!": { "ar": "إقصاء ثلاثي!", "ru": "Тройной нокаут!" },
+  "Reactor secured": { "ar": "تم تأمين المفاعل", "ru": "Реактор захвачен" },
+  "Reactor lost": { "ar": "فُقد المفاعل", "ru": "Реактор потерян" },
+  "Shielded!": { "ar": "محمي!", "ru": "Под щитом!" },
 } as const;
 
 export type MessageKey = keyof typeof messages;

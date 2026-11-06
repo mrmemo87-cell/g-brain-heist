@@ -75,6 +75,7 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
     holdReactor: t('Hold the reactor!'), backIn: t('Back in'), victory: t('Victory!'), defeat: t('Defeat'), draw: t('Draw'), go: t('GO!'),
     yourTeamHolds: t('Your team holds the reactor'), enemyHolds: t('Enemy holds the reactor'), contested: t('Contested'), reactorEmpty: t('Reactor empty'),
     superReady: t('Space'), superCharge: t('Super'), turnPhone: t('Turn your phone sideways for a bigger view'),
+    firstKo: t('First KO!'), doubleKo: t('Double KO!'), tripleKo: t('Triple KO!'), reactorSecured: t('Reactor secured'), reactorLost: t('Reactor lost'), shielded: t('Shielded!'),
   }), [t]);
 
   const stopEngine = useCallback(() => { engineRef.current?.destroy(); engineRef.current = null; window.clearInterval(questionTimer.current); }, []);
