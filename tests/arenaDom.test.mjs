@@ -26,6 +26,7 @@ globalThis.__arenaTest = {
   fetchArenaStatus: async () => globalThis.__arenaTest.status,
   startArenaMatch: async (fighter) => { calls.push(['start', fighter]); return { match_id: 'm1', fighter, power: 3, bot_power: 2, tickets: 0 }; },
   abandonArenaMatch: async () => ({ refunded: true, tickets: 1 }),
+  sendArenaClientReport: async () => true,
   fetchRespawnQuestion: async () => ({ available: false }),
   answerRespawnQuestion: async () => ({ correct: false, xp: 0 }),
   finishArenaMatch: async () => ({ result: 'win', paid: true, trophies_delta: 8, trophies: 63, xp: 15, gems: 2, unlocked: [], played_today: 2, daily_cap: 5 }),
@@ -35,7 +36,7 @@ await build({
   stdin: { contents: "export { default as ArenaView } from './src/features/arena/ArenaView';", resolveDir: process.cwd(), loader: 'tsx' },
   bundle: true, format: 'esm', outfile: out, platform: 'node', external: ['react', 'react-dom', 'react/jsx-runtime'], loader: { '.css': 'empty' },
   plugins: [{ name: 'arena-fixture', setup(b) {
-    b.onLoad({ filter: /services[\\/]arenaService\.ts$/ }, () => ({ contents: 'export const { fetchArenaStatus, startArenaMatch, abandonArenaMatch, fetchRespawnQuestion, answerRespawnQuestion, finishArenaMatch } = globalThis.__arenaTest; export const clearArenaStatusCache = () => {};', loader: 'js' }));
+    b.onLoad({ filter: /services[\\/]arenaService\.ts$/ }, () => ({ contents: 'export const { fetchArenaStatus, startArenaMatch, abandonArenaMatch, sendArenaClientReport, fetchRespawnQuestion, answerRespawnQuestion, finishArenaMatch } = globalThis.__arenaTest; export const clearArenaStatusCache = () => {};', loader: 'js' }));
     b.onLoad({ filter: /LanguageContext\.tsx$/ }, () => ({ contents: "export const useLanguage = () => ({ t: (k, p) => p ? k.replace(/\\{(\\w+)\\}/g, (_, n) => String(p[n])) : k, language: 'en', direction: 'ltr' });", loader: 'js' }));
   } }],
 });

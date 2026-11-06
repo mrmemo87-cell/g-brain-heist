@@ -168,6 +168,8 @@ export class ArenaEngine {
   private keys: Record<string, boolean> = {}; private mouse = { x: 0, y: 0, down: false, active: false }; touchMode = false;
   private stickL: Stick = { id: null, ox: 0, oy: 0, x: 0, y: 0, moved: false }; private stickR: Stick = { id: null, ox: 0, oy: 0, x: 0, y: 0, moved: false };
   private actx: AudioContext | null = null; private soundOn: boolean; private ended = false;
+  /** Frames drawn so far and the last error seen in the loop, for device diagnostics. */
+  frames = 0; lastError: string | null = null;
   private superHit = { x: 0, y: 0, r: 0 };
 
   constructor(canvas: HTMLCanvasElement, opts: ArenaEngineOptions) {
@@ -279,10 +281,24 @@ export class ArenaEngine {
   /* ---------- View ---------- */
   private resize = () => {
     const rect = this.cv.getBoundingClientRect();
-    this.dpr = Math.min(2, window.devicePixelRatio || 1); this.cw = rect.width || window.innerWidth; this.ch = rect.height || window.innerHeight;
-    this.cv.width = Math.round(this.cw * this.dpr); this.cv.height = Math.round(this.ch * this.dpr);
+    const vv = window.visualViewport;
+    this.dpr = Math.min(2, window.devicePixelRatio || 1);
+    this.cw = rect.width > 10 ? rect.width : (vv?.width || window.innerWidth || 360);
+    this.ch = rect.height > 10 ? rect.height : (vv?.height || window.innerHeight || 640);
+    const w = Math.round(this.cw * this.dpr), h = Math.round(this.ch * this.dpr);
+    if (this.cv.width !== w) this.cv.width = w; if (this.cv.height !== h) this.cv.height = h;
     this.scale = this.ch > this.cw ? this.cw / 600 : Math.min(this.cw / 950, this.ch / 540);
   };
+  /** What the engine sees on this device: enough to diagnose a blank match from the database. */
+  diagnostics() {
+    const rect = this.cv.getBoundingClientRect();
+    let center = 'n/a';
+    try { const d = this.ctx.getImageData(Math.floor(this.cv.width / 2), Math.floor(this.cv.height / 2), 1, 1).data; center = `${d[0]},${d[1]},${d[2]},${d[3]}`; } catch (e) { center = 'blocked:' + String(e); }
+    return { frames: this.frames, error: this.lastError, canvas: [this.cv.width, this.cv.height], rect: [Math.round(rect.width), Math.round(rect.height), Math.round(rect.top), Math.round(rect.left)],
+      view: [this.cw, this.ch], scale: Number(this.scale.toFixed(3)), dpr: this.dpr, cam: [Math.round(this.cam.x), Math.round(this.cam.y)], t: Number(this.t.toFixed(2)), center,
+      inner: [window.innerWidth, window.innerHeight], visual: window.visualViewport ? [Math.round(window.visualViewport.width), Math.round(window.visualViewport.height)] : null,
+      touch: this.touchMode, ua: navigator.userAgent.slice(0, 160) };
+  }
   private toWorld(sx: number, sy: number) { const rect = this.cv.getBoundingClientRect(); return { x: (sx - rect.left - this.cw / 2) / this.scale + this.cam.x, y: (sy - rect.top - this.ch / 2) / this.scale + this.cam.y }; }
   private local(e: PointerEvent) { const rect = this.cv.getBoundingClientRect(); return { x: e.clientX - rect.left, y: e.clientY - rect.top }; }
   private shake(n: number) { this.cam.shake = Math.max(this.cam.shake, n); }
@@ -743,8 +759,14 @@ export class ArenaEngine {
 
   private frame = (t: number) => {
     if (this.destroyed) return;
-    const dt = Math.min(0.05, (t - this.last) / 1000); this.last = t; this.now += dt;
-    this.update(dt); this.drawWorld(); this.drawHUD();
+    const dt = Math.max(0, Math.min(0.05, (t - this.last) / 1000)); this.last = t; this.now += dt;
+    try {
+      if (this.frames % 30 === 0) this.resize();
+      this.update(dt); this.drawWorld(); this.drawHUD(); this.frames++;
+    } catch (error) {
+      this.lastError = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+      if (this.frames === 0 || this.lastError !== null) { /* keep going: one bad frame should not freeze the match */ }
+    }
     this.raf = requestAnimationFrame(this.frame);
   };
 }

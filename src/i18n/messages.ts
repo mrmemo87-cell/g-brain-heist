@@ -1900,6 +1900,8 @@ export const messages = {
   "Turn your phone sideways for a bigger view": { "ar": "أدر هاتفك أفقيًا لعرض أكبر", "ru": "Поверни телефон горизонтально для большего обзора" },
   "Fight in the Proving Grounds arena": { "ar": "قاتل في ساحة الإثبات", "ru": "Сражайся на арене испытаний" },
   "Ticket returned.": { "ar": "تمت إعادة التذكرة.", "ru": "Билет возвращён." },
+  "The arena could not draw on this device.": { "ar": "تعذّر على الساحة الرسم على هذا الجهاز.", "ru": "Арена не смогла отрисоваться на этом устройстве." },
+  "A report was sent. Quit the match to get your ticket back.": { "ar": "تم إرسال تقرير. أنهِ المباراة لاستعادة تذكرتك.", "ru": "Отчёт отправлен. Выйди из матча, чтобы вернуть билет." },
 } as const;
 
 export type MessageKey = keyof typeof messages;

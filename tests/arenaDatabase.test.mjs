@@ -45,7 +45,7 @@ insert into public.questions select ('50000000-0000-0000-0000-' || lpad(n::text,
 insert into public.questions values ('${IELTS_Q}', 'IELTS question', '["alpha","beta","gamma","delta"]', 'alpha', 'IELTS Reading', true, true, 'verified', 'global', 'multiple_choice', 'hash', 'hash', array[8], null);
 `;
 
-const migration = fs.readdirSync('supabase/migrations').filter((n) => n.includes('_proving_grounds_arena') || n.includes('_arena_on_by_default') || n.includes('_arena_abandon_refund')).sort().map((n) => fs.readFileSync(`supabase/migrations/${n}`, 'utf8')).join('\n');
+const migration = fs.readdirSync('supabase/migrations').filter((n) => n.includes('_proving_grounds_arena') || n.includes('_arena_on_by_default') || n.includes('_arena_abandon_refund') || n.includes('_arena_test_accounts')).sort().map((n) => fs.readFileSync(`supabase/migrations/${n}`, 'utf8')).join('\n');
 async function setup() { const db = new PGlite(); await db.exec(fixture); await db.exec(migration); return db; }
 async function as(db, id) { await db.query("select set_config('test.uid', $1, false)", [id || '']); }
 async function call(db, q, p = []) { return (await db.query(q, p)).rows[0].value; }
@@ -225,6 +225,41 @@ test('quitting in the first minute returns the ticket; later it does not', () =>
   // an abandoned match never counts toward the daily cap or pays rewards
   await as(db, S);
   assert.equal((await status(db)).played_today, 0);
+}));
+
+test('a test account skips the window, cap, tickets and weekly reset, and can send a device report', () => withDB(async (db) => {
+  await as(db, A);
+  await call(db, "select public.rpc_arena_update_school_settings($1, true, 1, '03:00', '03:01', false) value", [C]);
+  await as(db, S);
+  await assert.rejects(start(db), /ARENA_CLOSED:window|NO_TICKETS|DAILY_CAP/);
+  await db.query('insert into private.arena_test_accounts (user_id, note) values ($1, $2)', [S, 'pilot']);
+  let s = await status(db);
+  assert.equal(s.open_now, true);
+  assert.equal(s.daily_cap, 999);
+  assert.equal(s.tickets, 0);
+  const m1 = await start(db);
+  assert.equal(m1.tickets, 0);
+  await backdate(db, m1.match_id, 90);
+  assert.equal((await finish(db, m1.match_id)).paid, true);
+  const m2 = await start(db);
+  await backdate(db, m2.match_id, 90);
+  assert.equal((await finish(db, m2.match_id)).paid, true);
+  const m3 = await start(db);
+  assert.equal((await call(db, 'select public.rpc_arena_abandon_match($1) value', [m3.match_id])).refunded, false);
+  await giveTickets(db, 100);
+  await db.query('update public.users set arena_tickets_week = arena_tickets_week - 7 where id = $1', [S]);
+  assert.equal((await status(db)).tickets, 100);
+  const m4 = await start(db);
+  assert.equal(await call(db, 'select public.rpc_arena_client_report($1, $2::jsonb) value', [m4.match_id, JSON.stringify({ frames: 0, blank: true })]), true);
+  assert.deepEqual((await db.query('select client_report from public.arena_matches where id = $1', [m4.match_id])).rows[0].client_report, { frames: 0, blank: true });
+  await assert.rejects(call(db, 'select public.rpc_arena_client_report($1, $2::jsonb) value', [m4.match_id, '"nope"']), /INVALID_REPORT/);
+  await as(db, O);
+  assert.equal(await call(db, 'select public.rpc_arena_client_report($1, $2::jsonb) value', [m4.match_id, '{}']), false);
+  // the exception is per account: another student keeps their school's settings
+  assert.equal((await status(db)).daily_cap, 5);
+  await as(db, S);
+  await db.query('delete from private.arena_test_accounts where user_id = $1', [S]);
+  assert.equal((await status(db)).daily_cap, 1);
 }));
 
 test('trophies never go below zero and unlock fighters on the road', () => withDB(async (db) => {
