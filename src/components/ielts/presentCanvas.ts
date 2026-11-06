@@ -16,7 +16,10 @@ export function createPresenter(host: HTMLElement, source: HTMLCanvasElement): P
   const out = document.createElement('canvas');
   const ctx = out.getContext('2d', { willReadFrequently: false });
   if (!ctx) return null;
-  out.style.display = 'block';
+  // !important: some browser extensions hide canvases with injected styles (owner's laptop, 2026-11-07).
+  out.style.setProperty('display', 'block', 'important');
+  out.style.setProperty('visibility', 'visible', 'important');
+  out.style.setProperty('opacity', '1', 'important');
   out.style.width = '100%';
   out.style.height = '100%';
   host.appendChild(out);
@@ -31,6 +34,8 @@ export function createPresenter(host: HTMLElement, source: HTMLCanvasElement): P
       ctx.drawImage(source, 0, 0);
     },
     hasPixelsAt: (x, y) => {
+      // Drawn pixels only count if the canvas is actually laid out on screen.
+      if (!out.isConnected || out.getClientRects().length === 0 || out.offsetWidth === 0) return false;
       try {
         const px = Math.max(0, Math.floor(out.width * x) - 3);
         const py = Math.max(0, Math.floor(out.height * y) - 3);
