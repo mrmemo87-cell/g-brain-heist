@@ -42,18 +42,29 @@ const sha256 = async (value: string) => {
   return Array.from(new Uint8Array(bytes)).map((b) => b.toString(16).padStart(2, "0")).join("");
 };
 
+const fmtBishkek = (value: unknown) => {
+  const date = new Date(cleanText(value, 80));
+  if (Number.isNaN(date.getTime())) return "";
+  return `${new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Bishkek" }).format(date)} (Bishkek)`;
+};
+
 const ownerTemplate = (row: Claimed): BrandedEmail => {
   const p = row.payload || {};
+  const payer = cleanText(p.payer_name, 120);
   return {
-    subject: `IELTS Prime transfer to confirm: ${som(p.amount_som)} | Brains Heist Operations`,
+    subject: `Transfer to confirm: ${som(p.amount_som)}${payer ? ` from ${payer}` : ""} | Brains Heist`,
     preview: "A learner says they paid for IELTS Prime by transfer.",
     kicker: "Platform operations",
     headline: "Check your bank app and confirm the payment",
-    intro: "A learner submitted a local transfer for IELTS Prime. Check that the money arrived, then approve or reject it on the IELTS growth page. Prime switches on as soon as you approve.",
+    intro: "Open MBank and look for an incoming transfer with this sender name and amount. If it is there, approve it on the IELTS growth page and Prime switches on straight away. If not, reject it and the learner is asked to check their transfer.",
     details: [
-      { label: "Plan", value: cleanText(p.plan, 20) },
+      { label: "Sender", value: payer || "Not given" },
       { label: "Amount", value: som(p.amount_som) },
       { label: "Method", value: cleanText(p.method, 20) },
+      { label: "Phone", value: cleanText(p.payer_phone, 40) },
+      { label: "Time / receipt", value: cleanText(p.reference, 120) },
+      { label: "Submitted", value: fmtBishkek(p.submitted_at) },
+      { label: "Plan", value: cleanText(p.plan, 20) },
     ],
     action: { label: "Review payment", url: appRoute("/ielts/growth") },
   };
