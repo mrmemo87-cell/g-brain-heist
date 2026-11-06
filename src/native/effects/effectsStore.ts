@@ -1,8 +1,9 @@
-// Student settings for the app-only motivation layer (IELTS Visual & UX Bible §14.5).
-// Stored on this device. Outside the installed app every check returns "off", so the website never changes.
+// Student settings for the motivation layer (IELTS Visual & UX Bible §14.5).
+// Stored on this device. Outside the installed app sounds, haptics and lighting stay "off"; only the animated
+// Blaze may run on the website (§14.1a), through blazeMotionLevel().
 
 import { useEffect, useState } from 'react';
-import { effectsAllowedOnPath, resolveEffectsLevel, type EffectsChoice, type EffectsLevel } from '../../lib/appEffects';
+import { effectsAllowedOnPath, isLowEndDevice, resolveEffectsLevel, type EffectsChoice, type EffectsLevel } from '../../lib/appEffects';
 import { isNativeApp } from '../../lib/nativePlatform';
 
 const CHOICE_KEY = 'bh:app-effects';
@@ -43,6 +44,20 @@ export function currentEffectsLevel(pathname = typeof window === 'undefined' ? '
   });
 }
 
+/**
+ * Level for the animated Blaze only. In the app it equals the effects level. On the website (Bible §14.1a)
+ * he may animate on the same pages, silently; on low-end devices "Auto" keeps him still there.
+ */
+export function blazeMotionLevel(pathname = typeof window === 'undefined' ? '/' : window.location.pathname): EffectsLevel {
+  if (isNativeApp()) return currentEffectsLevel(pathname);
+  if (!effectsAllowedOnPath(pathname)) return 'off';
+  const nav = (typeof navigator === 'undefined' ? {} : navigator) as Navigator & { deviceMemory?: number };
+  const env = { reducedMotion: reducedMotion(), cores: nav.hardwareConcurrency, memoryGb: nav.deviceMemory };
+  const choice = readEffectsChoice();
+  if (choice === 'auto' && isLowEndDevice(env)) return 'off';
+  return resolveEffectsLevel(choice, env);
+}
+
 export function soundsAllowed(): boolean {
   return currentEffectsLevel() !== 'off' && readSoundOn();
 }
@@ -50,13 +65,15 @@ export function soundsAllowed(): boolean {
 export interface AppEffectsState {
   native: boolean;
   level: EffectsLevel;
+  /** Level for the animated Blaze (also on the website). */
+  blazeLevel: EffectsLevel;
   choice: EffectsChoice;
   soundOn: boolean;
 }
 
 /** React view of the settings; re-renders when the student changes them or the motion setting changes. */
 export function useAppEffects(): AppEffectsState {
-  const read = (): AppEffectsState => ({ native: isNativeApp(), level: currentEffectsLevel(), choice: readEffectsChoice(), soundOn: readSoundOn() });
+  const read = (): AppEffectsState => ({ native: isNativeApp(), level: currentEffectsLevel(), blazeLevel: blazeMotionLevel(), choice: readEffectsChoice(), soundOn: readSoundOn() });
   const [state, setState] = useState<AppEffectsState>(read);
   useEffect(() => {
     const update = () => setState(read());
