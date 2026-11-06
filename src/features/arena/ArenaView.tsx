@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { answerRespawnQuestion, fetchArenaStatus, fetchRespawnQuestion, finishArenaMatch, startArenaMatch } from '../../../services/arenaService';
+import ModalPortal from '../../../components/ModalPortal';
+import { abandonArenaMatch, answerRespawnQuestion, fetchArenaStatus, fetchRespawnQuestion, finishArenaMatch, startArenaMatch } from '../../../services/arenaService';
 import { ArenaEngine, drawFighterPortrait } from './arenaEngine';
 import { FIGHTERS, FIGHTER_IDS, TROPHY_ROAD, arenaBlock, type ArenaMatchOutcome, type ArenaMatchResult, type ArenaMatchTicket, type ArenaRespawnQuestion, type ArenaStatus, type FighterId } from './arenaModel';
 import './arena.css';
@@ -130,7 +131,14 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
   }, [phase, ticket]);
   useEffect(() => { engineRef.current?.setSound(sound); try { localStorage.setItem(SOUND_KEY, sound ? 'on' : 'off'); } catch { /* no storage */ } }, [sound]);
 
-  const quit = () => { stopEngine(); setPhase('lobby'); setQuestion(null); void reload(true); };
+  // Quitting early returns the ticket (the server decides, within the first minute).
+  const quit = () => {
+    stopEngine(); setPhase('lobby'); setQuestion(null);
+    const matchId = ticket?.match_id;
+    if (matchId) {
+      void abandonArenaMatch(matchId).then((r) => { if (r.refunded) addToast?.(t('Ticket returned.'), 'info'); }).catch(() => undefined).finally(() => void reload(true));
+    } else void reload(true);
+  };
 
   const answer = async (option: string) => {
     if (!question || question.picked !== null || !ticket || !question.q.prompt_id) return;
@@ -210,7 +218,10 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
         </details>
       </section>
 
+      {/* The dashboard sits inside a transformed "cinematic" wrapper, which would pin a fixed overlay to the page
+          instead of the screen (the black-screen bug). ModalPortal renders into document.body and locks scroll. */}
       {(phase === 'match' || phase === 'finishing') && ticket && (
+        <ModalPortal>
         <div className="arena-match" role="application" aria-label={t('Proving Grounds')}>
           <canvas ref={canvasRef} />
           <button type="button" className="arena-match__quit" onClick={quit}>{t('Quit match')}</button>
@@ -229,9 +240,11 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
             </div>
           )}
         </div>
+        </ModalPortal>
       )}
 
       {phase === 'results' && outcome && (
+        <ModalPortal>
         <div className="arena-results" role="dialog" aria-label={t('Match result')}>
           <div className="arena-results__card">
             <p className={`arena-results__verdict font-heading ${result?.result === 'win' || (!result && outcome.scoreMine > outcome.scoreTheirs) ? 'is-win' : result?.result === 'loss' || (!result && outcome.scoreMine < outcome.scoreTheirs) ? 'is-loss' : ''}`}>
@@ -255,6 +268,7 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
     </>
   );

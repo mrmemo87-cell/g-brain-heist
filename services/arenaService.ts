@@ -19,6 +19,7 @@ export async function fetchArenaStatus(fresh = false): Promise<ArenaStatus> {
 export function clearArenaStatusCache() { statusCache = null; }
 
 export const startArenaMatch = (fighter: FighterId) => { statusCache = null; return rpc<ArenaMatchTicket>('rpc_arena_start_match', { p_fighter: fighter }); };
+export const abandonArenaMatch = (matchId: string) => { statusCache = null; return rpc<{ refunded: boolean; tickets: number }>('rpc_arena_abandon_match', { p_match_id: matchId }); };
 export const fetchRespawnQuestion = (matchId: string) => rpc<ArenaRespawnQuestion>('rpc_arena_respawn_question', { p_match_id: matchId });
 export const answerRespawnQuestion = (matchId: string, promptId: string, answer: string) =>
   rpc<{ correct: boolean; xp: number; repeated?: boolean }>('rpc_arena_answer_respawn', { p_match_id: matchId, p_prompt_id: promptId, p_answer: answer });
