@@ -46,6 +46,7 @@ import { listMyPendingProgrammeAccessRequests, requestProgrammeAccess } from './
 import { enrollInApprovedSchoolClass, listMySchoolClasses, type ApprovedSignupClass } from './services/authService';
 import AssignmentDesk from './components/student/AssignmentDesk';
 import RetentionTrialGate from './src/features/retention/RetentionTrialGate';
+import { fetchArenaStatus } from './services/arenaService';
 import StudentMascotDock from './src/features/studentMascot/StudentMascotDock';
 const RetentionStudentPanel = React.lazy(() => import('./src/features/retention/RetentionStudentPanel'));
 import ProgramIdentityBanner from './src/components/ProgramIdentityBanner';
@@ -67,6 +68,7 @@ const HelpModal = lazyRetry(() => import('./components/HelpModal'), 'HelpModal')
 const TutorialModal = lazyRetry(() => import('./components/TutorialModal'), 'TutorialModal');
 
 const QuestView = lazyRetry(() => import('./components/QuestView'), 'QuestView');
+const ArenaView = lazyRetry(() => import('./src/features/arena/ArenaView'), 'ArenaView');
 const PvPView = lazyRetry(() => import('./components/PvPView'), 'PvPView');
 const ShopView = lazyRetry(() => import('./components/ShopView'), 'ShopView');
 const ClanView = lazyRetry(() => import('./components/ClanView'), 'ClanView');
@@ -203,6 +205,8 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
   const [helpInitialSection, setHelpInitialSection] = useState<'overview' | 'streak'>('overview');
   const [streakRewardData, setStreakRewardData] = useState<DailyStreakRewardReceipt | null>(null);
   const [weeklyBoardRefreshKey, setWeeklyBoardRefreshKey] = useState(0);
+  // The Proving Grounds arena shows only when the student's school has opened it.
+  const [arenaAvailable, setArenaAvailable] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [tutorialChecked, setTutorialChecked] = useState(false); // Track if we've checked tutorial status
   const tutorialCheckedRef = useRef(tutorialChecked);
@@ -1328,6 +1332,13 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
   }, [view, sessionStatus?.active, isTeacherRole, isSchoolAdminRole]);
 
   const isStudent = profile?.role === 'student';
+
+  useEffect(() => {
+    if (!isStudent || !profile?.school_id) { setArenaAvailable(false); return; }
+    let active = true;
+    void fetchArenaStatus().then((status) => { if (active) setArenaAvailable(Boolean(status.available)); }).catch(() => { if (active) setArenaAvailable(false); });
+    return () => { active = false; };
+  }, [isStudent, profile?.school_id, profile?.id]);
 
   // Light appearance: only while a school surface is on screen (CSS-only; see src/styles/student-light-theme.css).
   useEffect(() => {
@@ -2455,6 +2466,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
                     clanBadgeCount={pendingClanRequests + unreadClanChatMessages}
                     activeDestination={studentDashboardTab}
                     onNavigate={dashboardNavigate}
+                    hiddenDestinations={arenaAvailable ? [] : ['arena']}
                   />
 
                   <section className="student-dashboard-feed" lang={studentDashboardTab === 'clan' || studentDashboardTab === 'leaderboard' || studentLearningView === 'academic-profile' ? 'en' : language} dir={studentDashboardTab === 'clan' || studentDashboardTab === 'leaderboard' || studentLearningView === 'academic-profile' ? 'ltr' : direction} aria-label={`${studentDashboardTab} dashboard tab`}>
@@ -2556,6 +2568,17 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
                       />
                     )}
 
+                    {studentDashboardTab === 'arena' && profile && (
+                      arenaAvailable ? renderLazy(
+                        <ArenaView
+                          userId={profile.id}
+                          username={profile.username}
+                          addToast={addToast}
+                          onRewards={({ xp, gems }) => setProfile((prev) => prev ? { ...prev, xp: (prev.xp || 0) + xp, gemstones: (prev.gemstones || 0) + gems } : prev)}
+                        />
+                      ) : <article className="student-feed-card p-6 text-center"><h2 className="font-heading text-2xl text-white">{t("Proving Grounds")}</h2><p className="mt-2 text-sm text-slate-400">{t("The arena is off for your school.")}</p></article>
+                    )}
+
                     {studentDashboardTab === 'leaderboard' && (
                       <LeaderboardView
                         embedded
@@ -2571,6 +2594,7 @@ const App: React.FC<AppProps> = ({ onLogout, initialBootstrap }) => {
                           { id: 'tasks', icon: '📋', label: 'Assignments', description: t("Review assignments and completed work") },
                           { id: 'tournaments', icon: '🏅', label: t("Tournaments"), description: t("View live events and competition standings") },
                           { id: 'leaderboard', icon: '🏆', label: t("Leaderboard"), description: t("See your position in your school community") },
+                          ...(arenaAvailable ? [{ id: 'arena' as const, icon: '⚔️', label: t("Arena"), description: t("Fight in the Proving Grounds arena") }] : []),
                         ] as Array<{ id: StudentDashboardDestination; icon: string; label: string; description: string }>).map((item) => <button key={item.id} type="button" onClick={() => dashboardNavigate(item.id)} className="student-feed-card student-more-card"><span className="student-more-card__icon" aria-hidden>{item.icon}</span><span className="student-more-card__copy"><strong>{item.label}</strong><small>{item.description}</small></span><span className="student-more-card__arrow" aria-hidden>→</span></button>)}
                       </div>
                     )}
