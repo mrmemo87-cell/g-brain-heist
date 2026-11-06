@@ -77,26 +77,66 @@ function distToSeg(px: number, py: number, x1: number, y1: number, x2: number, y
   return Math.hypot(px - x1 - t * dx, py - y1 - t * dy);
 }
 
+/* ---------- Art assets (generated sprites in /arena; the procedural art below is the fallback) ---------- */
+const ASSET_NAMES = ['rivet', 'fizz', 'vex', 'boulder', 'ground', 'water', 'wall', 'crate', 'bush', 'reactor'] as const;
+type AssetName = typeof ASSET_NAMES[number];
+const ASSETS: Partial<Record<AssetName, HTMLImageElement>> = {};
+const SILHOUETTES: Partial<Record<AssetName, HTMLCanvasElement>> = {};
+let assetsVersion = 0; let assetsRequested = false;
+/** Starts loading the sprites once per page. Each image that fails simply keeps the procedural look. */
+export function loadArenaAssets(base = '/arena/') {
+  if (assetsRequested || typeof Image === 'undefined') return; assetsRequested = true;
+  for (const name of ASSET_NAMES) {
+    const img = new Image(); img.decoding = 'async';
+    img.onload = () => {
+      ASSETS[name] = img;
+      if (['rivet', 'fizz', 'vex', 'boulder'].includes(name)) {
+        const c = document.createElement('canvas'); c.width = 256; c.height = 256; const x = c.getContext('2d');
+        if (x) { x.drawImage(img, 0, 0, 256, 256); x.globalCompositeOperation = 'source-in'; x.fillStyle = '#fff'; x.fillRect(0, 0, 256, 256); SILHOUETTES[name] = c; }
+      }
+      assetsVersion++;
+    };
+    img.onerror = () => undefined;
+    img.src = `${base}${name}.webp`;
+  }
+}
+export const arenaSprite = (name: AssetName) => ASSETS[name] ?? null;
+function tilePattern(ctx: CanvasRenderingContext2D, img: HTMLImageElement, size: number) {
+  const c = document.createElement('canvas'); c.width = size; c.height = size;
+  const x = c.getContext('2d'); if (!x) return null; x.drawImage(img, 0, 0, size, size);
+  return ctx.createPattern(c, 'repeat');
+}
+
 /* ---------- Pre-rendered map art ---------- */
-let groundCv: HTMLCanvasElement | null = null, bushCv: HTMLCanvasElement | null = null;
+let groundCv: HTMLCanvasElement | null = null, bushCv: HTMLCanvasElement | null = null, paintedVersion = -1;
 function rng(seed: number) { return () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
 function paintMap() {
-  if (groundCv && bushCv) return;
-  groundCv = document.createElement('canvas'); bushCv = document.createElement('canvas');
+  if (groundCv && bushCv && paintedVersion === assetsVersion) return;
+  paintedVersion = assetsVersion;
+  groundCv = groundCv ?? document.createElement('canvas'); bushCv = bushCv ?? document.createElement('canvas');
   groundCv.width = bushCv.width = WW; groundCv.height = bushCv.height = WH;
   const g = groundCv.getContext('2d')!, b = bushCv.getContext('2d')!, R = rng(7);
-  g.fillStyle = '#4b463b'; g.fillRect(0, 0, WW, WH);
-  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
-    const x = c * TILE, y = r * TILE, t = MAP[r][c];
-    if (t !== '#' && t !== '~') {
-      g.fillStyle = (r + c) % 2 ? '#4f4a3e' : '#4a453a'; g.fillRect(x, y, TILE, TILE);
-      if (R() < 0.08) { g.fillStyle = 'rgba(20,18,14,.35)'; g.beginPath(); g.ellipse(x + 20 + (R() - .5) * 16, y + 20 + (R() - .5) * 16, 8 + R() * 10, 5 + R() * 6, R() * 3, 0, TAU); g.fill(); }
-      if (R() < 0.06) { g.fillStyle = '#6d6656'; g.beginPath(); g.arc(x + 8 + R() * 24, y + 8 + R() * 24, 2.5, 0, TAU); g.fill(); }
+  const groundImg = ASSETS.ground, waterImg = ASSETS.water, wallImg = ASSETS.wall, crateImg = ASSETS.crate, bushImg = ASSETS.bush;
+  const groundPat = groundImg ? tilePattern(g, groundImg, 240) : null, waterPat = waterImg ? tilePattern(g, waterImg, 160) : null, wallPat = wallImg ? tilePattern(g, wallImg, 120) : null;
+  g.fillStyle = groundPat ?? '#4b463b'; g.fillRect(0, 0, WW, WH);
+  if (groundPat) {
+    // Textured floor: skip the procedural checker, keep a soft vignette so the arena still reads as a room.
+    const v = g.createRadialGradient(WW / 2, WH / 2, WH * 0.35, WW / 2, WH / 2, WW * 0.7); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.28)');
+    g.fillStyle = v; g.fillRect(0, 0, WW, WH);
+  } else
+  {
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      const x = c * TILE, y = r * TILE, t = MAP[r][c];
+      if (t !== '#' && t !== '~') {
+        g.fillStyle = (r + c) % 2 ? '#4f4a3e' : '#4a453a'; g.fillRect(x, y, TILE, TILE);
+        if (R() < 0.08) { g.fillStyle = 'rgba(20,18,14,.35)'; g.beginPath(); g.ellipse(x + 20 + (R() - .5) * 16, y + 20 + (R() - .5) * 16, 8 + R() * 10, 5 + R() * 6, R() * 3, 0, TAU); g.fill(); }
+        if (R() < 0.06) { g.fillStyle = '#6d6656'; g.beginPath(); g.arc(x + 8 + R() * 24, y + 8 + R() * 24, 2.5, 0, TAU); g.fill(); }
+      }
     }
+    g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 1;
+    for (let c = 0; c <= COLS; c++) { g.beginPath(); g.moveTo(c * TILE, 0); g.lineTo(c * TILE, WH); g.stroke(); }
+    for (let r = 0; r <= ROWS; r++) { g.beginPath(); g.moveTo(0, r * TILE); g.lineTo(WW, r * TILE); g.stroke(); }
   }
-  g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 1;
-  for (let c = 0; c <= COLS; c++) { g.beginPath(); g.moveTo(c * TILE, 0); g.lineTo(c * TILE, WH); g.stroke(); }
-  for (let r = 0; r <= ROWS; r++) { g.beginPath(); g.moveTo(0, r * TILE); g.lineTo(WW, r * TILE); g.stroke(); }
   for (const t of [0, 1] as const) {
     const p = SPAWNS[t]; const cx = p[1].x;
     g.fillStyle = t ? 'rgba(255,90,77,.16)' : 'rgba(70,176,255,.16)'; g.fillRect(cx - 60, p[0].y - 40, 120, 120);
@@ -105,12 +145,19 @@ function paintMap() {
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
     const x = c * TILE, y = r * TILE, t = MAP[r][c];
     if (t === '~') {
-      g.fillStyle = '#1d5a70'; g.fillRect(x, y, TILE, TILE);
-      g.strokeStyle = 'rgba(160,220,240,.35)'; g.lineWidth = 2;
-      for (let k = 0; k < 2; k++) { const yy = y + 12 + k * 16; g.beginPath(); g.moveTo(x + 6, yy); g.quadraticCurveTo(x + 13, yy - 4, x + 20, yy); g.quadraticCurveTo(x + 27, yy + 4, x + 34, yy); g.stroke(); }
+      if (waterPat) { g.fillStyle = waterPat; g.fillRect(x, y, TILE, TILE); g.fillStyle = 'rgba(0,40,80,.18)'; g.fillRect(x, y, TILE, 3); g.fillRect(x, y, 3, TILE); }
+      else {
+        g.fillStyle = '#1d5a70'; g.fillRect(x, y, TILE, TILE);
+        g.strokeStyle = 'rgba(160,220,240,.35)'; g.lineWidth = 2;
+        for (let k = 0; k < 2; k++) { const yy = y + 12 + k * 16; g.beginPath(); g.moveTo(x + 6, yy); g.quadraticCurveTo(x + 13, yy - 4, x + 20, yy); g.quadraticCurveTo(x + 27, yy + 4, x + 34, yy); g.stroke(); }
+      }
     } else if (t === '#') {
       const edge = r === 0 || r === ROWS - 1 || c === 0 || c === COLS - 1;
-      if (edge) {
+      if (edge && wallPat) { g.fillStyle = wallPat; g.fillRect(x, y, TILE, TILE); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x, y, TILE, TILE); }
+      else if (!edge && crateImg) {
+        g.fillStyle = 'rgba(0,0,0,.3)'; g.beginPath(); g.ellipse(x + 20, y + 34, 20, 7, 0, 0, TAU); g.fill();
+        g.drawImage(crateImg, x - 4, y - 12, TILE + 8, TILE + 10);
+      } else if (edge) {
         g.fillStyle = '#2f2c27'; g.fillRect(x, y, TILE, TILE);
         g.fillStyle = '#3d3933'; g.fillRect(x + 2, y + 2, TILE - 4, TILE - 10);
         g.fillStyle = '#5c564c'; for (const [px, py] of [[7, 7], [33, 7], [7, 27], [33, 27]]) { g.beginPath(); g.arc(x + px, y + py, 2, 0, TAU); g.fill(); }
@@ -120,6 +167,9 @@ function paintMap() {
         g.strokeStyle = '#5e3c1e'; g.lineWidth = 2; g.strokeRect(x + 3, y + 3, TILE - 6, TILE - 13);
         g.beginPath(); g.moveTo(x + 4, y + 4); g.lineTo(x + TILE - 4, y + TILE - 11); g.moveTo(x + TILE - 4, y + 4); g.lineTo(x + 4, y + TILE - 11); g.stroke();
       }
+    } else if (t === ',' && bushImg) {
+      // One generated bush per tile, nudged so clusters overlap into a hedge.
+      b.drawImage(bushImg, x - 10 + (R() - .5) * 8, y - 12 + (R() - .5) * 8, TILE + 20, TILE + 20);
     } else if (t === ',') {
       for (let k = 0; k < 6; k++) {
         const bx = x + 6 + R() * 28, by = y + 6 + R() * 28, br = 13 + R() * 9;
@@ -168,12 +218,15 @@ export class ArenaEngine {
   private keys: Record<string, boolean> = {}; private mouse = { x: 0, y: 0, down: false, active: false }; touchMode = false;
   private stickL: Stick = { id: null, ox: 0, oy: 0, x: 0, y: 0, moved: false }; private stickR: Stick = { id: null, ox: 0, oy: 0, x: 0, y: 0, moved: false };
   private actx: AudioContext | null = null; private soundOn: boolean; private ended = false;
+  /** While a respawn question is open the match freezes; the clock and the bots wait too. */
+  paused = false;
   /** Frames drawn so far and the last error seen in the loop, for device diagnostics. */
   frames = 0; lastError: string | null = null;
   private superHit = { x: 0, y: 0, r: 0 };
 
   constructor(canvas: HTMLCanvasElement, opts: ArenaEngineOptions) {
     this.cv = canvas; this.ctx = canvas.getContext('2d')!; this.opts = opts; this.soundOn = opts.soundEnabled;
+    loadArenaAssets();
     paintMap();
     this.setup();
     this.resize();
@@ -207,12 +260,16 @@ export class ArenaEngine {
   setSound(on: boolean) { this.soundOn = on; }
   get superReady() { return this.player.alive && this.player.charge >= 1; }
 
-  /** A correct respawn answer: come back a second early with the super half charged. */
-  applyRespawnBonus() {
+  /** Respawn question outcome. Right: back at once with a full super and a 3-second shield. Wrong: wait 2 seconds longer. */
+  respawnOutcome(correct: boolean) {
     const p = this.player;
-    if (!p.alive) p.respawn = Math.max(0.2, p.respawn - 1);
-    p.charge = Math.max(p.charge, 0.5);
+    if (correct) {
+      if (!p.alive) { Object.assign(p, { alive: true, hp: p.maxHp, x: p.spawn.x, y: p.spawn.y, ammo: 3, reveal: 0, lastHurt: this.now, respawn: 0 }); }
+      p.charge = 1; p.shield = 3; this.burst(p.x, p.y, '#ffc93c', 22, 240); this.sfx('sup');
+    } else if (!p.alive) { p.respawn += 2; }
   }
+  /** Kept for older callers: the small bonus. */
+  applyRespawnBonus() { this.respawnOutcome(true); }
 
   /** Called from the on-screen super button on touch devices. */
   playerSuper() {
@@ -594,10 +651,26 @@ export class ArenaEngine {
   /* ---------- Drawing ---------- */
   private rrect(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) { c.beginPath(); if (c.roundRect) c.roundRect(x, y, w, h, r); else c.rect(x, y, w, h); }
 
-  static drawHero(c: CanvasRenderingContext2D, H: FighterSpec, x: number, y: number, r: number, aim: number, ring: string | null, flash: number, t: number, shield: number) {
+  static drawHero(c: CanvasRenderingContext2D, H: FighterSpec, x: number, y: number, r: number, aim: number, ring: string | null, flash: number, t: number, shield: number, moving = false) {
     c.save(); c.translate(x, y);
     c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(0, r * .8, r * 1.05, r * .45, 0, 0, TAU); c.fill();
     if (ring) { c.strokeStyle = ring; c.lineWidth = 4; c.beginPath(); c.ellipse(0, r * .8, r * 1.15, r * .52, 0, 0, TAU); c.stroke(); }
+    const sprite = ASSETS[H.id];
+    if (sprite) {
+      // Generated sprite: faces right, so mirror it when aiming left; bob while moving, breathe while still.
+      const s = r * 3.6, bob = moving ? Math.abs(Math.sin(t * 12)) * 3 : Math.sin(t * 3) * 1;
+      const squash = moving ? 1 + Math.sin(t * 12) * 0.03 : 1;
+      c.translate(0, -r * 0.55 - bob);
+      if (Math.cos(aim) < 0) c.scale(-1, 1);
+      c.scale(1 / squash, squash);
+      c.drawImage(sprite, -s / 2, -s / 2, s, s);
+      const sil = SILHOUETTES[H.id];
+      if (flash > 0 && sil) { c.globalAlpha = Math.min(1, flash * 6); c.drawImage(sil, -s / 2, -s / 2, s, s); c.globalAlpha = 1; }
+      c.scale(squash, 1 / squash);
+      if (Math.cos(aim) < 0) c.scale(-1, 1);
+      if (shield > 0) { c.strokeStyle = 'rgba(255,201,60,.85)'; c.lineWidth = 3; c.beginPath(); c.arc(0, r * .2, r * 1.7, 0, TAU); c.stroke(); c.fillStyle = 'rgba(255,201,60,.12)'; c.fill(); }
+      c.restore(); return;
+    }
     c.translate(0, Math.sin(t * 8) * 1.2);
     c.save(); c.rotate(aim);
     if (H.id === 'rivet') { c.fillStyle = '#3a3f44'; c.beginPath(); c.roundRect ? c.roundRect(r * .3, -6, r * 1.05, 12, 3) : c.rect(r * .3, -6, r * 1.05, 12); c.fill(); c.fillStyle = '#ffc93c'; c.fillRect(r * 1.15, -7, 6, 14); }
@@ -631,14 +704,15 @@ export class ArenaEngine {
     const sx = (Math.random() - .5) * this.cam.shake, sy = (Math.random() - .5) * this.cam.shake;
     ctx.setTransform(this.dpr * this.scale, 0, 0, this.dpr * this.scale, this.dpr * (this.cw / 2 - this.cam.x * this.scale + sx), this.dpr * (this.ch / 2 - this.cam.y * this.scale + sy));
     ctx.drawImage(groundCv!, 0, 0);
+    const reactor = ASSETS.reactor;
+    if (reactor) { ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(ZONE.x, ZONE.y + 8, ZONE.r + 6, ZONE.r * .5 + 6, 0, 0, TAU); ctx.fill(); ctx.drawImage(reactor, ZONE.x - ZONE.r, ZONE.y - ZONE.r, ZONE.r * 2, ZONE.r * 2); }
     const ownerCol = this.owner === 0 ? '70,176,255' : this.owner === 1 ? '255,90,77' : this.owner === 2 ? '255,201,60' : '230,220,200';
     ctx.fillStyle = `rgba(${ownerCol},${this.owner >= 0 ? .2 : .08})`; ctx.beginPath(); ctx.arc(ZONE.x, ZONE.y, ZONE.r, 0, TAU); ctx.fill();
     ctx.save(); ctx.translate(ZONE.x, ZONE.y); ctx.rotate(now * .4);
     ctx.strokeStyle = `rgba(${ownerCol},.85)`; ctx.lineWidth = 6; ctx.setLineDash([22, 14]); ctx.beginPath(); ctx.arc(0, 0, ZONE.r, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
     ctx.restore();
-    ctx.fillStyle = '#2f2c27'; ctx.beginPath(); ctx.arc(ZONE.x, ZONE.y, 26, 0, TAU); ctx.fill();
-    ctx.fillStyle = `rgba(${ownerCol},${.6 + Math.sin(now * 5) * .25})`; ctx.beginPath(); ctx.arc(ZONE.x, ZONE.y, 15, 0, TAU); ctx.fill();
-    ctx.strokeStyle = '#ffc93c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(ZONE.x, ZONE.y, 26, 0, TAU); ctx.stroke();
+    if (!reactor) { ctx.fillStyle = '#2f2c27'; ctx.beginPath(); ctx.arc(ZONE.x, ZONE.y, 26, 0, TAU); ctx.fill(); ctx.strokeStyle = '#ffc93c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(ZONE.x, ZONE.y, 26, 0, TAU); ctx.stroke(); }
+    ctx.fillStyle = `rgba(${ownerCol},${.6 + Math.sin(now * 5) * .25})`; ctx.beginPath(); ctx.arc(ZONE.x, ZONE.y, reactor ? 11 : 15, 0, TAU); ctx.fill();
     for (const c of this.clouds) {
       const fr = Math.min(1, c.t, (4 - c.t) * 4);
       ctx.fillStyle = `rgba(${c.team ? '255,120,90' : '120,230,110'},${.22 * fr})`;
@@ -659,7 +733,7 @@ export class ArenaEngine {
       }
     }
     const vis = this.units.filter(u => u.alive && this.canSee(0, u)).sort((a, b) => a.y - b.y);
-    for (const u of vis) ArenaEngine.drawHero(ctx, u.H, u.x, u.y, u.r, u.aim, u.team ? '#ff5a4d' : '#46b0ff', u.flash, now + u.x * .01, u.shield);
+    for (const u of vis) ArenaEngine.drawHero(ctx, u.H, u.x, u.y, u.r, u.aim, u.team ? '#ff5a4d' : '#46b0ff', u.flash, now + u.x * .01, u.shield, Math.hypot(u.vx, u.vy) > 20);
     for (const l of this.lobs) {
       const k = l.t / l.dur, x = l.x0 + (l.x1 - l.x0) * k, y = l.y0 + (l.y1 - l.y0) * k, h = Math.sin(k * Math.PI) * 70;
       ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(x, y, 8, 4, 0, 0, TAU); ctx.fill();
@@ -754,15 +828,17 @@ export class ArenaEngine {
       ctx.font = '800 72px "Barlow Condensed", Impact, sans-serif'; ctx.fillStyle = '#f4ead8'; ctx.fillText(n > 0 ? String(n) : L.go, cx, ch / 2 + 40);
     } else if (this.t < .8) { ctx.font = '800 72px "Barlow Condensed", Impact, sans-serif'; ctx.globalAlpha = 1 - this.t / .8; ctx.fillStyle = '#ffc93c'; ctx.fillText(L.go, cx, ch / 2 + 30); ctx.globalAlpha = 1; }
     if (this.over) { ctx.font = '800 54px "Barlow Condensed", Impact, sans-serif'; ctx.fillStyle = '#ffc93c'; ctx.fillText(this.score[0] > this.score[1] ? L.victory : this.score[1] > this.score[0] ? L.defeat : L.draw, cx, ch / 2); }
+    if (this.paused && !this.over) { ctx.fillStyle = 'rgba(20,18,15,.45)'; ctx.fillRect(0, 0, cw, ch); }
     if (ch > cw) { ctx.font = '600 15px "Barlow Condensed", sans-serif'; ctx.fillStyle = '#b3a893'; ctx.fillText(L.turnPhone, cx, top + 90); }
   }
 
   private frame = (t: number) => {
     if (this.destroyed) return;
-    const dt = Math.max(0, Math.min(0.05, (t - this.last) / 1000)); this.last = t; this.now += dt;
+    const dt = this.paused ? 0 : Math.max(0, Math.min(0.05, (t - this.last) / 1000)); this.last = t; this.now += dt;
     try {
       if (this.frames % 30 === 0) this.resize();
-      this.update(dt); this.drawWorld(); this.drawHUD(); this.frames++;
+      if (paintedVersion !== assetsVersion) paintMap();
+      if (!this.paused) this.update(dt); this.drawWorld(); this.drawHUD(); this.frames++;
     } catch (error) {
       this.lastError = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
       if (this.frames === 0 || this.lastError !== null) { /* keep going: one bad frame should not freeze the match */ }
@@ -774,7 +850,17 @@ export class ArenaEngine {
 /** Draws a fighter portrait onto a small canvas for the lobby cards. */
 export function drawFighterPortrait(canvas: HTMLCanvasElement, fighter: FighterId) {
   const c = canvas.getContext('2d'); if (!c) return;
+  loadArenaAssets();
   c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, canvas.width, canvas.height);
+  const sprite = ASSETS[fighter];
+  if (sprite) { const h = canvas.height * 0.96, w = h; c.drawImage(sprite, (canvas.width - w) / 2, canvas.height - h, w, h); return; }
   const s = canvas.width / 200; c.scale(s, s);
   ArenaEngine.drawHero(c, FIGHTERS[fighter], 100, 60, 34, 0.35, null, 0, 0, 0);
+}
+/** Resolves once the fighter sprites have loaded (or failed), so lobby portraits can redraw. */
+export function whenArenaAssetsReady(cb: () => void) {
+  loadArenaAssets();
+  let seen = assetsVersion; const id = window.setInterval(() => { if (assetsVersion !== seen) { seen = assetsVersion; cb(); } }, 300);
+  window.setTimeout(() => window.clearInterval(id), 15000);
+  return () => window.clearInterval(id);
 }

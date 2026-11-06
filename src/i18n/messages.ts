@@ -1902,6 +1902,11 @@ export const messages = {
   "Ticket returned.": { "ar": "تمت إعادة التذكرة.", "ru": "Билет возвращён." },
   "The arena could not draw on this device.": { "ar": "تعذّر على الساحة الرسم على هذا الجهاز.", "ru": "Арена не смогла отрисоваться на этом устройстве." },
   "A report was sent. Quit the match to get your ticket back.": { "ar": "تم إرسال تقرير. أنهِ المباراة لاستعادة تذكرتك.", "ru": "Отчёт отправлен. Выйди из матча, чтобы вернуть билет." },
+  "{count}s": { "ar": "{count} ث", "ru": "{count} с" },
+  "Right: back instantly with a full super and a shield. Wrong: 2 seconds longer.": { "ar": "إجابة صحيحة: تعود فورًا بضربة خاصة كاملة ودرع. خاطئة: ثانيتان إضافيتان.", "ru": "Верно: мгновенный возврат с полным суперударом и щитом. Неверно: ещё 2 секунды ожидания." },
+  "Correct! Back in the fight with a full super and a shield.": { "ar": "صحيح! عدت إلى المعركة بضربة خاصة كاملة ودرع.", "ru": "Верно! Ты снова в бою с полным суперударом и щитом." },
+  "Time's up. 2 extra seconds on the bench.": { "ar": "انتهى الوقت. ثانيتان إضافيتان على مقاعد البدلاء.", "ru": "Время вышло. Ещё 2 секунды на скамейке." },
+  "Not this time. 2 extra seconds on the bench.": { "ar": "ليس هذه المرة. ثانيتان إضافيتان على مقاعد البدلاء.", "ru": "Не в этот раз. Ещё 2 секунды на скамейке." },
 } as const;
 
 export type MessageKey = keyof typeof messages;

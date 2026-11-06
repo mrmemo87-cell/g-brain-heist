@@ -16,7 +16,18 @@ const IELTS_Q = '50000000-0000-0000-0000-000000000099';
 const fixture = `
 create schema private; create schema auth; create role anon; create role authenticated;
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('test.uid', true), '')::uuid $$;
-create table public.users (id uuid primary key, username text, role text, school_id uuid, grade text, xp integer default 0, gemstones integer default 0, is_banned boolean default false);
+create table public.users (id uuid primary key, username text, role text, school_id uuid, grade text, xp integer default 0, level integer default 1, gemstones integer default 0, is_banned boolean default false);
+create table public.superadmins (user_id uuid primary key);
+create function auth.role() returns text language sql stable as $$ select 'authenticated'::text $$;
+create function public.block_direct_xp_level_updates() returns trigger language plpgsql security definer set search_path to 'public' as $$
+begin
+  if auth.role() = 'service_role' then return new; end if;
+  if exists (select 1 from public.superadmins s where s.user_id = auth.uid()) then return new; end if;
+  if current_setting('app.allow_xp_level_write', true) = '1' then return new; end if;
+  if (new.xp is distinct from old.xp) or (new.level is distinct from old.level) then raise exception 'Direct XP/level updates are not allowed. Use RPCs.'; end if;
+  return new;
+end $$;
+create trigger trg_block_direct_xp_level before update on public.users for each row execute function public.block_direct_xp_level_updates();
 create table public.schools (id uuid primary key);
 create table public.school_members (school_id uuid, user_id uuid, role_in_school text, status text);
 create table public.teachers (id uuid primary key, user_id uuid);
@@ -45,7 +56,7 @@ insert into public.questions select ('50000000-0000-0000-0000-' || lpad(n::text,
 insert into public.questions values ('${IELTS_Q}', 'IELTS question', '["alpha","beta","gamma","delta"]', 'alpha', 'IELTS Reading', true, true, 'verified', 'global', 'multiple_choice', 'hash', 'hash', array[8], null);
 `;
 
-const migration = fs.readdirSync('supabase/migrations').filter((n) => n.includes('_proving_grounds_arena') || n.includes('_arena_on_by_default') || n.includes('_arena_abandon_refund') || n.includes('_arena_test_accounts')).sort().map((n) => fs.readFileSync(`supabase/migrations/${n}`, 'utf8')).join('\n');
+const migration = fs.readdirSync('supabase/migrations').filter((n) => n.includes('_proving_grounds_arena') || n.includes('_arena_on_by_default') || n.includes('_arena_abandon_refund') || n.includes('_arena_test_accounts') || n.includes('_arena_xp_guard')).sort().map((n) => fs.readFileSync(`supabase/migrations/${n}`, 'utf8')).join('\n');
 async function setup() { const db = new PGlite(); await db.exec(fixture); await db.exec(migration); return db; }
 async function as(db, id) { await db.query("select set_config('test.uid', $1, false)", [id || '']); }
 async function call(db, q, p = []) { return (await db.query(q, p)).rows[0].value; }
@@ -182,17 +193,22 @@ test('rewards are paid only for believable matches within the daily cap', () => 
   await assert.rejects(start(db), /DAILY_CAP/);
   const u = (await db.query('select arena_trophies, xp, gemstones from public.users where id = $1', [S])).rows[0];
   assert.equal(u.arena_trophies, 7);
-  assert.equal(u.xp, 20);
+  assert.equal(u.xp, 20, 'XP is paid through the users XP guard');
   assert.equal(u.gemstones, 2);
+  // a direct write still hits the guard, so the bypass is scoped to the RPC's own transaction
+  await assert.rejects(db.query('update public.users set xp = xp + 1 where id = $1', [S]), /Direct XP\/level updates are not allowed/);
   await assert.rejects(finish(db, '00000000-0000-0000-0000-000000000000'), /MATCH_NOT_FOUND/);
 }));
 
 test('a match that runs too long, or scores outside 0-100, pays nothing', () => withDB(async (db) => {
   await enableSchool(db);
-  await giveTickets(db, 3);
+  await giveTickets(db, 5);
   const m = await start(db);
   await backdate(db, m.match_id, 600);
-  assert.equal((await finish(db, m.match_id)).paid, false);
+  assert.equal((await finish(db, m.match_id)).paid, true, 'a paused match of 10 minutes still pays');
+  const mLong = await start(db);
+  await backdate(db, mLong.match_id, 960);
+  assert.equal((await finish(db, mLong.match_id)).paid, false);
   const m2 = await start(db);
   await backdate(db, m2.match_id, 90);
   await assert.rejects(finish(db, m2.match_id, 140, 0), /INVALID_SCORE/);
@@ -303,6 +319,7 @@ test('respawn questions never come from IELTS, hide the answer key and are check
       const right = await call(db, 'select public.rpc_arena_answer_respawn($1, $2, $3) value', [m.match_id, q.prompt_id, 'alpha']);
       assert.equal(right.correct, true);
       assert.equal(right.xp, 2);
+      assert.equal((await db.query('select xp from public.users where id = $1', [S])).rows[0].xp, 2, 'correct answers pay XP through the guard');
     }
   }
   assert.equal(seen.size, 12);

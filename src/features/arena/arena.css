@@ -56,6 +56,7 @@
 .arena-question__options button.is-right { border-color: #7fd34e; background: rgba(127, 211, 78, 0.2); }
 .arena-question__options button.is-wrong { border-color: #ff5a4d; background: rgba(255, 90, 77, 0.2); }
 .arena-question__verdict { font-weight: 700; }
+.arena-question__stakes { margin: 0; font-size: 0.8rem; color: #94a3b8; }
 @media (max-width: 520px) { .arena-question__options { grid-template-columns: 1fr; } .arena-question { padding: 10px 12px; } .arena-question__text { font-size: 0.95rem; } }
 
 /* Results */
