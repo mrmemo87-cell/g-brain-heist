@@ -2,7 +2,7 @@ import { createPortal } from 'react-dom';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../src/contexts/LanguageContext';
 import { fetchClassConquestHistory, type ClassConquestHistory } from '../../services/classConquestService';
-import { allTimeMasterminds, CONQUEST_COLORS, mapById, roleForRank, winStreak, type ConquestResult } from '../../src/lib/classConquest';
+import { allTimeMasterminds, SCHOOL_ARENA, CONQUEST_COLORS, mapById, roleForRank, winStreak, type ConquestResult } from '../../src/lib/classConquest';
 import { conquestBadgeSvg, weekLabel, type CertificateTheme, type PrintSides } from '../../src/lib/conquestCertificates';
 import CertificatePdfButton from './CertificatePdfButton';
 
@@ -68,7 +68,7 @@ const ConquestHistoryModal: React.FC<ConquestHistoryModalProps> = ({ open, onClo
         <header className="ccq-modal-head">
           <div>
             <p className="ccq-eyebrow ccq-eyebrow--light">{t('Class Conquest')}</p>
-            <h2 id="ccq-hof-title" className="font-heading">{history ? t('Hall of Fame · Grade {grade}', { grade: history.grade }) : t('Hall of Fame')}</h2>
+            <h2 id="ccq-hof-title" className="font-heading">{history ? (history.grade === SCHOOL_ARENA ? t('Hall of Fame · All Grades') : t('Hall of Fame · Grade {grade}', { grade: history.grade })) : t('Hall of Fame')}</h2>
           </div>
           <button ref={closeRef} type="button" className="ccq-modal-close" onClick={onClose} aria-label={t('Close')}>×</button>
         </header>

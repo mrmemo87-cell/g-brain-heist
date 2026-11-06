@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchClassConquest, fetchClassConquestWeekend, type ClassConquestData, type ClassConquestWeekend } from '../../services/classConquestService';
-import { buildConquest, CHEER_TEXT, classColors, CONQUEST_COLORS, dayPower, mapById, roleForRank } from '../../src/lib/classConquest';
+import { arenaName, buildConquest, SCHOOL_ARENA, CHEER_TEXT, classColors, CONQUEST_COLORS, dayPower, mapById, roleForRank } from '../../src/lib/classConquest';
 import { conquestBadgeSvg, planCertificatePrint, weekLabel, type CertificateTheme, type PrintSides } from '../../src/lib/conquestCertificates';
 import CertificatePdfButton from './CertificatePdfButton';
 import ConquestMap from './ConquestMap';
@@ -22,7 +22,7 @@ interface ClassConquestTeacherPageProps {
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const REASONS: Record<string, string> = {
   no_school: 'Join your school first to run Class Conquest.',
-  no_grade: 'Class Conquest needs at least two classes in the same grade, each with two or more students.',
+  no_grade: 'Class Conquest needs two classes in the same grade, or two grades, each with two or more students.',
   one_class: 'This grade has only one class with two or more students, so there is nobody to compete with yet.',
   not_allowed: 'Class Conquest is available to teachers and school admins.',
 };
@@ -105,7 +105,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
         <div>
           <p className="ccq-eyebrow">Weekly class battle · a new map every week</p>
           <h1 className="font-heading">Class Conquest</h1>
-          <p className="ccq-sub">Classes in the same grade win territory by finishing the daily mission at home, Monday to Friday. The vault seals Friday night; students learn the winner Monday 07:00. Print certificates over the weekend and run the reveal ceremony on the projector Monday.</p>
+          <p className="ccq-sub">Classes in the same grade (or, where a grade has only one class, whole grades against each other) win territory by finishing the daily mission at home, Monday to Friday. The vault seals Friday night; students learn the winner Monday 07:00. Print certificates over the weekend and run the reveal ceremony on the projector Monday.</p>
         </div>
       </header>
 
@@ -114,7 +114,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
           <label className="ccq-grade">
             <span>Grade</span>
             <select value={grade ?? ''} onChange={(event) => void load(event.target.value)} disabled={loading}>
-              {grades.map((g) => <option key={g} value={g}>Grade {g}</option>)}
+              {grades.map((g) => <option key={g} value={g}>{g === SCHOOL_ARENA ? 'All Grades (grade vs grade)' : `Grade ${g}`}</option>)}
             </select>
           </label>
         ) : null}
@@ -194,7 +194,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
         <section className="ccq-pulse" aria-labelledby="ccq-pulse-title">
           <div>
             <p className="ccq-eyebrow">Weekend pulse · the vault is sealed</p>
-            <h2 id="ccq-pulse-title" className="font-heading">🔒 Grade {data.grade} is waiting for Monday</h2>
+            <h2 id="ccq-pulse-title" className="font-heading">🔒 {arenaName(data.grade)} is waiting for Monday</h2>
             <p className="ccq-sub">Students cannot see standings until the reveal. Meanwhile they predict the winner, chant on the Hype Wall, and raid rival classes in PvP (wins against other classes count until Sunday midnight).</p>
           </div>
           {weekend ? (
@@ -252,7 +252,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
       {data && view && map && nextMap && !sealed ? (
         <div ref={stage} className={presenting ? 'ccq-stage is-presenting' : 'ccq-stage'}>
           <div className="ccq-stage-title">
-            <h2 className="font-heading">{map.flag} Grade {data.grade} · Operation {map.name}</h2>
+            <h2 className="font-heading">{map.flag} {arenaName(data.grade)} · Operation {map.name}</h2>
             <span>{data.days_left <= 1 ? 'Final day — the vault seals at midnight' : `${data.days_left} scoring days left · seals Friday 23:59`}</span>
           </div>
 

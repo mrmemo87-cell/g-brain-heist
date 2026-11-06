@@ -4,7 +4,7 @@ import {
   fetchClassConquestWeekend, postConquestCheer, predictConquestWinner,
   type ClassConquestData, type ClassConquestWeekend,
 } from '../../services/classConquestService';
-import { CHEER_CODES, CHEER_TEXT, CONQUEST_COLORS, countdownLabel, type CheerCode, type ConquestMap } from '../../src/lib/classConquest';
+import { CHEER_CODES, SCHOOL_ARENA, CHEER_TEXT, CONQUEST_COLORS, countdownLabel, type CheerCode, type ConquestMap } from '../../src/lib/classConquest';
 
 interface ConquestWeekendCardProps {
   data: ClassConquestData;
@@ -70,7 +70,7 @@ const ConquestWeekendCard: React.FC<ConquestWeekendCardProps> = ({ data, map, ne
   return (
     <article className="student-feed-card ccq ccq--weekend" aria-labelledby="ccq-weekend-title">
       <div className="ccq-head">
-        <span className="ccq-pill">{t('Class Conquest · Grade {grade}', { grade: data.grade })}</span>
+        <span className="ccq-pill">{data.grade === SCHOOL_ARENA ? t('Class Conquest · All Grades') : t('Class Conquest · Grade {grade}', { grade: data.grade })}</span>
         <span className="ccq-meta ccq-meta--sealed">🔒 {t('Vault sealed')}</span>
       </div>
 

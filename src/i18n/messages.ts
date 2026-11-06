@@ -1113,6 +1113,18 @@ export const messages = {
     "ar": "{class} يملك {count} من 7 أقاليم",
     "ru": "У {class} {count} из 7 областей"
   },
+  "Class Conquest · All Grades": {
+    "ar": "غزو الصفوف · كل الصفوف",
+    "ru": "Битва классов · Все параллели"
+  },
+  "Hall of Fame · All Grades": {
+    "ar": "قاعة المشاهير · كل الصفوف",
+    "ru": "Зал славы · Все параллели"
+  },
+  "Last week you were the {role} of All Grades — {class} conquered {map}!": {
+    "ar": "الأسبوع الماضي كنت {role} في كل الصفوف — {class} غزا {map}!",
+    "ru": "На прошлой неделе ты — {role} всей школы: {class} захватил {map}!"
+  },
   "Class Conquest · Grade {grade}": {
     "ar": "غزو الصفوف · الصف {grade}",
     "ru": "Битва классов · {grade} класс"

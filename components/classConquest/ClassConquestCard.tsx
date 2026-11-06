@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLanguage } from '../../src/contexts/LanguageContext';
 import { fetchClassConquest, type ClassConquestData } from '../../services/classConquestService';
-import { buildConquest, classColors, mapById, roleForRank } from '../../src/lib/classConquest';
+import { buildConquest, SCHOOL_ARENA, classColors, mapById, roleForRank } from '../../src/lib/classConquest';
 import { conquestBadgeSvg } from '../../src/lib/conquestCertificates';
 import { mascotMoment } from '../../src/features/studentMascot/mascotMoments';
 import ConquestMap from './ConquestMap';
@@ -100,7 +100,7 @@ const ClassConquestCard: React.FC<ClassConquestCardProps> = ({ refreshKey = 0 })
   return (
     <article className="student-feed-card ccq" aria-labelledby="ccq-title">
       <div className="ccq-head">
-        <span className="ccq-pill">{t('Class Conquest · Grade {grade}', { grade: data.grade })}</span>
+        <span className="ccq-pill">{data.grade === SCHOOL_ARENA ? t('Class Conquest · All Grades') : t('Class Conquest · Grade {grade}', { grade: data.grade })}</span>
         <span className="ccq-meta">
           {finalDay ? t('Final day — vault seals at midnight') : t('{count} days left · seals Friday night', { count: data.days_left })}
         </span>
@@ -126,7 +126,9 @@ const ClassConquestCard: React.FC<ClassConquestCardProps> = ({ refreshKey = 0 })
           ) : <span className="ccq-last-flag" aria-hidden="true">{lastMap?.flag}</span>}
           <span className="ccq-last-text">
             {last.my_rank
-              ? t('Last week you were the {role} of Grade {grade} — {class} conquered {map}!', { role: roleForRank(last.my_rank), grade: data.grade, class: last.winner_label, map: lastMap?.name ?? '' })
+              ? (data.grade === SCHOOL_ARENA
+                ? t('Last week you were the {role} of All Grades — {class} conquered {map}!', { role: roleForRank(last.my_rank), class: last.winner_label, map: lastMap?.name ?? '' })
+                : t('Last week you were the {role} of Grade {grade} — {class} conquered {map}!', { role: roleForRank(last.my_rank), grade: data.grade, class: last.winner_label, map: lastMap?.name ?? '' }))
               : last.is_my_class
                 ? t('Last week {class} conquered {map}. New badge unlocked!', { class: last.winner_label, map: lastMap?.name ?? '' })
                 : t('Last week {class} conquered {map}.', { class: last.winner_label, map: lastMap?.name ?? '' })}
