@@ -131,7 +131,7 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
     const check = window.setTimeout(() => {
       if (engineRef.current !== engine) return;
       const d = engine.diagnostics();
-      const blank = d.frames === 0 || !!d.error || d.canvas[0] < 10 || d.canvas[1] < 10;
+      const blank = d.frames === 0 || !!d.error || d.canvas[0] < 10 || d.canvas[1] < 10 || d.rect[0] < 10 || d.rect[1] < 10;
       if (blank) setDiag(`frames ${d.frames} · canvas ${d.canvas.join('×')} · rect ${d.rect.join(',')} · inner ${d.inner.join('×')} · ${d.error ?? 'no error'}`);
       void sendArenaClientReport(matchId, { ...d, blank, at: new Date().toISOString() }).catch(() => undefined);
     }, 2000);

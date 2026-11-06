@@ -31,15 +31,21 @@ body.light-mode [class*="backdrop"] {
   background-color: rgba(15, 23, 42, 0.85) !important;
 }
 
-/* Hide decorative canvases; retain functional diagrams and the opted-in 3D companion. */
+/* Hide decorative canvases; retain functional diagrams, the opted-in 3D companion and the arena game. */
 body.light-mode [class*="particle"],
 body.light-mode [class*="confetti"],
-body.light-mode canvas:not(.konvajs-content canvas):not([data-companion-canvas="3d"]) {
+body.light-mode canvas:not(.konvajs-content canvas):not([data-companion-canvas="3d"]):not(.arena-match canvas):not(.arena-fighter canvas) {
   display: none !important;
 }
 
 /* Keep Konva canvas visible for geometry diagrams */
 body.light-mode .konvajs-content canvas {
+  display: block !important;
+}
+
+/* The Proving Grounds arena is the game itself, not decoration: its match canvas and fighter portraits stay. */
+body.light-mode .arena-match canvas,
+body.light-mode .arena-fighter canvas {
   display: block !important;
 }
 
