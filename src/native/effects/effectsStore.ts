@@ -3,7 +3,7 @@
 // Blaze may run on the website (§14.1a), through blazeMotionLevel().
 
 import { useEffect, useState } from 'react';
-import { effectsAllowedOnPath, isLowEndDevice, resolveEffectsLevel, type EffectsChoice, type EffectsLevel } from '../../lib/appEffects';
+import { effectsAllowedOnPath, resolveEffectsLevel, type EffectsChoice, type EffectsLevel } from '../../lib/appEffects';
 import { isNativeApp } from '../../lib/nativePlatform';
 
 const CHOICE_KEY = 'bh:app-effects';
@@ -54,8 +54,18 @@ export function blazeMotionLevel(pathname = typeof window === 'undefined' ? '/' 
   const nav = (typeof navigator === 'undefined' ? {} : navigator) as Navigator & { deviceMemory?: number };
   const env = { reducedMotion: reducedMotion(), cores: nav.hardwareConcurrency, memoryGb: nav.deviceMemory };
   const choice = readEffectsChoice();
-  if (choice === 'auto' && isLowEndDevice(env)) return 'off';
-  return resolveEffectsLevel(choice, env);
+  if (choice === 'auto' && isLowEndWebDevice(env)) return 'off';
+  // On the website "Auto" means the normal animated Blaze; the app's core/memory rule is for native effects.
+  return resolveEffectsLevel(choice === 'auto' ? 'full' : choice, env);
+}
+
+/**
+ * Browsers report CPU cores unreliably (Safari caps them, some laptops report 2), so on the website a device
+ * counts as low-end only when it reports 2 GB of memory or less, or, if memory is unknown, 2 cores or fewer.
+ */
+export function isLowEndWebDevice(env: { cores?: number; memoryGb?: number }): boolean {
+  if (typeof env.memoryGb === 'number') return env.memoryGb <= 2;
+  return typeof env.cores === 'number' && env.cores <= 2;
 }
 
 export function soundsAllowed(): boolean {

@@ -54,3 +54,12 @@ test('reminders: 7 pm on coming days, today only when not done and still before 
   assert.match(streakReminderText(4).body, /4-day streak/);
   assert.match(streakReminderText(0).title, /waiting/);
 });
+
+test('website low-end rule prefers reported memory over cores', async () => {
+  const { isLowEndWebDevice } = await import('../src/native/effects/effectsStore');
+  assert.equal(isLowEndWebDevice({ cores: 2, memoryGb: 16 }), false);
+  assert.equal(isLowEndWebDevice({ cores: 8, memoryGb: 2 }), true);
+  assert.equal(isLowEndWebDevice({ cores: 4 }), false);
+  assert.equal(isLowEndWebDevice({ cores: 2 }), true);
+  assert.equal(isLowEndWebDevice({}), false);
+});
