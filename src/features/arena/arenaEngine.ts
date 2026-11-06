@@ -2,6 +2,11 @@
 // The engine knows nothing about Supabase. It reports knockouts and the final score through callbacks.
 
 import { FIGHTERS, MATCH_SECONDS, WIN_SCORE, powerMultiplier, type ArenaMatchOutcome, type FighterId, type FighterSpec } from './arenaModel';
+import { ArenaAudio, type SfxName } from './arenaAudio';
+
+const F_DISPLAY = "Bungee, 'IBM Plex Sans', sans-serif";
+const F_BODY = "'IBM Plex Sans', sans-serif";
+const TEAM_RGB = ['70,176,255', '255,90,77'] as const;
 
 const TAU = Math.PI * 2;
 const TILE = 40, COLS = 40, ROWS = 26, WW = COLS * TILE, WH = ROWS * TILE;
@@ -193,7 +198,12 @@ interface Cloud { x: number; y: number; r: number; t: number; team: 0 | 1; owner
 interface Beam { x0: number; y0: number; x1: number; y1: number; t: number; team: 0 | 1 }
 interface Particle { x: number; y: number; vx: number; vy: number; life: number; max: number; col: string; size: number }
 interface FloatText { x: number; y: number; txt: string | number; life: number; col: string; big: boolean }
-interface FeedItem { a: string; ac: string; b: string; bc: string; t: number }
+interface FeedItem { a: string; ac: string; b: string; bc: string; t: number; af: FighterId | null; bf: FighterId }
+interface Ring { x: number; y: number; r: number; max: number; life: number; maxLife: number; col: string; width: number }
+interface Callout { text: string; sub?: string; life: number; max: number; col: string }
+interface Ghost { x: number; y: number; aim: number; H: FighterSpec; life: number }
+interface SpawnFx { x: number; y: number; life: number; col: string }
+interface Confetti { x: number; y: number; vx: number; vy: number; rot: number; vr: number; col: string; w: number; h: number; life: number }
 interface Stick { id: number | null; ox: number; oy: number; x: number; y: number; moved: boolean }
 
 export interface ArenaEngineOptions {
@@ -202,7 +212,8 @@ export interface ArenaEngineOptions {
   botPower: number;
   playerName: string;
   soundEnabled: boolean;
-  labels: { holdReactor: string; backIn: string; victory: string; defeat: string; draw: string; go: string; yourTeamHolds: string; enemyHolds: string; contested: string; reactorEmpty: string; superReady: string; superCharge: string; turnPhone: string };
+  labels: { holdReactor: string; backIn: string; victory: string; defeat: string; draw: string; go: string; yourTeamHolds: string; enemyHolds: string; contested: string; reactorEmpty: string; superReady: string; superCharge: string; turnPhone: string;
+    firstKo?: string; doubleKo?: string; tripleKo?: string; reactorSecured?: string; reactorLost?: string; shielded?: string };
   onKnockout: () => void;
   onEnd: (outcome: ArenaMatchOutcome) => void;
 }
@@ -217,16 +228,26 @@ export class ArenaEngine {
   private cw = 0; private ch = 0; private dpr = 1; private scale = 1; private cam = { x: ZONE.x, y: ZONE.y, shake: 0 };
   private keys: Record<string, boolean> = {}; private mouse = { x: 0, y: 0, down: false, active: false }; touchMode = false;
   private stickL: Stick = { id: null, ox: 0, oy: 0, x: 0, y: 0, moved: false }; private stickR: Stick = { id: null, ox: 0, oy: 0, x: 0, y: 0, moved: false };
-  private actx: AudioContext | null = null; private soundOn: boolean; private ended = false;
+  private ended = false;
+  readonly audio: ArenaAudio;
   /** While a respawn question is open the match freezes; the clock and the bots wait too. */
   paused = false;
+  // Game feel: hit-stop, slow motion, flashes, shockwaves, callouts, dash ghosts, spawn beams, confetti.
+  private timeScale = 1; private slowT = 0; private hitStop = 0; private realNow = 0; private musicDucked = false; private musicStarted = false;
+  private flashFx = { a: 0, col: '255,255,255' };
+  private rings: Ring[] = []; private callouts: Callout[] = []; private ghosts: Ghost[] = []; private spawnFx: SpawnFx[] = []; private confetti: Confetti[] = [];
+  private killTimes: number[] = []; private firstKoDone = false; private playerWasInBush = false; private lastHealFx = 0; private lastCountdown = 99; private ghostT = 0;
   /** Frames drawn so far and the last error seen in the loop, for device diagnostics. */
   frames = 0; lastError: string | null = null;
   private superHit = { x: 0, y: 0, r: 0 };
 
   constructor(canvas: HTMLCanvasElement, opts: ArenaEngineOptions) {
-    this.cv = canvas; this.ctx = canvas.getContext('2d')!; this.opts = opts; this.soundOn = opts.soundEnabled;
+    this.cv = canvas; this.ctx = canvas.getContext('2d')!; this.opts = opts;
+    this.audio = new ArenaAudio(opts.soundEnabled);
+    // The match starts from a tap on Battle, which counts as the gesture browsers need before sound.
+    this.audio.unlock();
     loadArenaAssets();
+    try { void document.fonts?.load(`400 20px ${F_DISPLAY}`); } catch { /* fallback fonts are fine */ }
     paintMap();
     this.setup();
     this.resize();
@@ -254,10 +275,10 @@ export class ArenaEngine {
     this.cv.removeEventListener('pointermove', this.onPointerMove);
     this.cv.removeEventListener('pointerup', this.onPointerUp);
     this.cv.removeEventListener('pointercancel', this.onPointerUp);
-    if (this.actx) { void this.actx.close().catch(() => undefined); this.actx = null; }
+    this.audio.destroy();
   }
 
-  setSound(on: boolean) { this.soundOn = on; }
+  setSound(on: boolean) { this.audio.setEnabled(on); }
   get superReady() { return this.player.alive && this.player.charge >= 1; }
 
   /** Respawn question outcome. Right: back at once with a full super and a 3-second shield. Wrong: wait 2 seconds longer. */
@@ -265,8 +286,10 @@ export class ArenaEngine {
     const p = this.player;
     if (correct) {
       if (!p.alive) { Object.assign(p, { alive: true, hp: p.maxHp, x: p.spawn.x, y: p.spawn.y, ammo: 3, reveal: 0, lastHurt: this.now, respawn: 0 }); }
-      p.charge = 1; p.shield = 3; this.burst(p.x, p.y, '#ffc93c', 22, 240); this.sfx('sup');
-    } else if (!p.alive) { p.respawn += 2; }
+      p.charge = 1; p.shield = 3; this.burst(p.x, p.y, '#ffc93c', 22, 240); this.sfx('correct'); this.sfx('respawn', { delay: 0.2 } as { vol?: number; rate?: number });
+      this.spawnFx.push({ x: p.x, y: p.y, life: 0.7, col: '255,201,60' }); this.ring(p.x, p.y, 110, 'rgba(255,201,60,.9)', 0.5, 8);
+      this.callout(this.opts.labels.shielded ?? 'SHIELDED!', '#ffc93c', undefined, 1.2);
+    } else { this.sfx('wrong', { vol: 0.6 }); if (!p.alive) p.respawn += 2; }
   }
   /** Kept for older callers: the small bonus. */
   applyRespawnBonus() { this.respawnOutcome(true); }
@@ -302,37 +325,28 @@ export class ArenaEngine {
     this.cam.x = this.player.x; this.cam.y = this.player.y;
   }
 
-  /* ---------- Audio (procedural, no files) ---------- */
-  private unlockAudio() {
-    if (!this.actx) { try { this.actx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)(); } catch { this.actx = null; } }
-    if (this.actx && this.actx.state === 'suspended') void this.actx.resume();
+  /* ---------- Audio ---------- */
+  private unlockAudio() { this.audio.unlock(); }
+  private sfx(name: SfxName, opts?: { vol?: number; rate?: number }) { this.audio.play(name, opts); }
+  private shotSfx(id: FighterId) { this.sfx(`shot_${id}` as SfxName, { rate: 0.95 + Math.random() * 0.1 }); }
+
+  /* ---------- Effects ---------- */
+  private ring(x: number, y: number, max: number, col: string, life = 0.45, width = 6) { this.rings.push({ x, y, r: 6, max, life, maxLife: life, col, width }); }
+  private callout(text: string, col = '#ffc93c', sub?: string, max = 1.6) { this.callouts = this.callouts.filter((c) => c.text !== text).slice(-2); this.callouts.push({ text, sub, life: max, max, col }); }
+  private flash(col: string, a: number) { this.flashFx = { col, a: Math.max(this.flashFx.a, a) }; }
+  private updateFx(real: number) {
+    for (const r of this.rings) { r.life -= real; r.r = r.max * (1 - Math.pow(Math.max(0, r.life / r.maxLife), 2)); }
+    this.rings = this.rings.filter((r) => r.life > 0);
+    for (const c of this.callouts) c.life -= real; this.callouts = this.callouts.filter((c) => c.life > 0);
+    for (const g of this.ghosts) g.life -= real; this.ghosts = this.ghosts.filter((g) => g.life > 0);
+    for (const f of this.spawnFx) f.life -= real; this.spawnFx = this.spawnFx.filter((f) => f.life > 0);
+    for (const c of this.confetti) { c.vy += 420 * real; c.x += c.vx * real; c.y += c.vy * real; c.rot += c.vr * real; c.vx *= 0.99; c.life -= real; }
+    this.confetti = this.confetti.filter((c) => c.life > 0 && c.y < this.ch + 40);
+    this.flashFx.a = Math.max(0, this.flashFx.a - real * 3);
   }
-  private tone(freq: number, dur: number, type: OscillatorType, vol: number, slide?: number) {
-    if (!this.soundOn || !this.actx) return; const a = this.actx, t = a.currentTime;
-    const o = a.createOscillator(), g = a.createGain(); o.type = type;
-    o.frequency.setValueAtTime(freq, t); if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq * slide), t + dur);
-    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.02);
-  }
-  private noise(dur: number, vol: number, cutoff: number) {
-    if (!this.soundOn || !this.actx) return; const a = this.actx, t = a.currentTime, len = Math.floor(a.sampleRate * dur);
-    const buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
-    const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
-    f.type = 'lowpass'; f.frequency.value = cutoff; g.gain.value = vol;
-    s.buffer = buf; s.connect(f).connect(g).connect(a.destination); s.start(t);
-  }
-  private sfx(kind: 'shoot' | 'hit' | 'boom' | 'ko' | 'sup' | 'score' | 'win' | 'lose', id?: FighterId) {
-    switch (kind) {
-      case 'shoot': if (id === 'vex') this.tone(900, .12, 'sawtooth', .035, .3); else if (id === 'fizz') this.tone(300, .15, 'triangle', .05, 2); else this.noise(.08, .06, 2200); break;
-      case 'hit': this.tone(180, .07, 'square', .03, .6); break;
-      case 'boom': this.noise(.35, .12, 500); break;
-      case 'ko': this.tone(520, .4, 'square', .05, .25); break;
-      case 'sup': this.tone(220, .35, 'sawtooth', .05, 4); break;
-      case 'score': this.tone(880, .06, 'triangle', .03); break;
-      case 'win': [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => this.tone(f, .22, 'square', .05), i * 120)); break;
-      case 'lose': [392, 330, 262].forEach((f, i) => setTimeout(() => this.tone(f, .3, 'triangle', .06), i * 170)); break;
-    }
+  private spawnConfetti() {
+    const cols = ['#ffc93c', '#46b0ff', '#7fd34e', '#ff8ad1', '#fff3c4', '#b38cff'];
+    for (let i = 0; i < 160; i++) this.confetti.push({ x: Math.random() * this.cw, y: -20 - Math.random() * this.ch * 0.6, vx: (Math.random() - .5) * 160, vy: 40 + Math.random() * 120, rot: Math.random() * TAU, vr: (Math.random() - .5) * 10, col: cols[i % cols.length], w: 6 + Math.random() * 6, h: 8 + Math.random() * 8, life: 4 + Math.random() * 3 });
   }
 
   /* ---------- View ---------- */
@@ -424,7 +438,7 @@ export class ArenaEngine {
       let dx = tx - u.x, dy = ty - u.y; const d = Math.hypot(dx, dy); if (d > H.range) { dx *= H.range / d; dy *= H.range / d; }
       this.lobs.push({ x0: u.x, y0: u.y, x1: u.x + dx, y1: u.y + dy, t: 0, dur: 0.5, owner: u, team: u.team, dmg: H.dmg * u.mult, rad: H.splash || 70 });
     }
-    if (u.isPlayer || this.near(u)) this.sfx('shoot', H.id);
+    if (u.isPlayer || this.near(u)) this.shotSfx(H.id);
     return true;
   }
   private useSuper(u: Unit, ang: number, tx: number, ty: number) {
@@ -439,7 +453,9 @@ export class ArenaEngine {
       for (const e of this.units) if (e.alive && e.team !== u.team && distToSeg(e.x, e.y, u.x, u.y, ex, ey) < e.r + 14) this.hurt(e, 2200 * u.mult, u, true);
       this.beams.push({ x0: u.x, y0: u.y, x1: ex, y1: ey, t: .35, team: u.team }); if (this.near(u)) this.shake(5);
     } else { u.shield = 4; u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.25); this.burst(u.x, u.y, '#ffc93c', 18, 220); }
-    if (u.isPlayer || this.near(u)) this.sfx('sup');
+    const sfxName: SfxName = H.sup === 'dash' ? 'super_dash' : H.sup === 'cloud' ? 'super_cloud' : H.sup === 'rail' ? 'super_rail' : 'super_shell';
+    if (u.isPlayer || this.near(u)) { this.sfx(sfxName); this.ring(u.x, u.y, 120, `rgba(${TEAM_RGB[u.team]},.9)`, 0.5, 8); }
+    if (u.isPlayer) { this.sfx('super', { vol: 0.5 }); this.flash(TEAM_RGB[0], 0.22); this.callout(H.superName.toUpperCase() + '!', '#ffc93c', undefined, 1.2); this.shake(4); }
     return true;
   }
   private hurt(t: Unit, amount: number, src: Unit | null, isSuper: boolean) {
@@ -448,17 +464,27 @@ export class ArenaEngine {
     amount = Math.round(amount); t.hp -= amount; t.lastHurt = this.now; t.flash = .12; t.reveal = Math.max(t.reveal, .8);
     if (src) { src.dmgDealt += amount; if (!isSuper) src.charge = Math.min(1, src.charge + amount / src.H.superCost); }
     this.floats.push({ x: t.x + (Math.random() - .5) * 16, y: t.y - 30, txt: amount, life: .8, col: t.team === 0 ? '#ff8a7a' : '#fff3c4', big: !!(src && src.isPlayer) });
-    if (t.isPlayer) this.shake(5); else if (src && src.isPlayer) this.sfx('hit');
+    if (src && src !== t) { const a = Math.atan2(t.y - src.y, t.x - src.x); t.x += Math.cos(a) * 4; t.y += Math.sin(a) * 4; this.collide(t); }
+    if (t.isPlayer) { this.shake(5); this.sfx('hit', { vol: 0.5, rate: 0.8 }); } else if (src && src.isPlayer) this.sfx('hit', { rate: 1 + Math.random() * 0.2 });
     if (t.hp <= 0) this.knockout(t, src);
   }
   private knockout(t: Unit, src: Unit | null) {
     t.alive = false; t.hp = 0; t.respawn = 3; t.deaths++; t.dash = 0; t.shield = 0;
     this.burst(t.x, t.y, t.H.color, 26, 300); this.burst(t.x, t.y, '#fff3c4', 10, 180);
     if (src) src.kills++;
-    this.feed.unshift({ a: src ? src.name : '', ac: src ? (src.team ? '#ff5a4d' : '#46b0ff') : '#fff', b: t.name, bc: t.team ? '#ff5a4d' : '#46b0ff', t: 4 });
+    this.feed.unshift({ a: src ? src.name : '', ac: src ? (src.team ? '#ff5a4d' : '#46b0ff') : '#fff', b: t.name, bc: t.team ? '#ff5a4d' : '#46b0ff', t: 4, af: src ? src.H.id : null, bf: t.H.id });
     this.feed.length = Math.min(this.feed.length, 4);
-    if (t.isPlayer || (src && src.isPlayer) || this.near(t)) { this.sfx('ko'); this.shake(t.isPlayer ? 12 : 6); }
-    if (t.isPlayer && !this.over) this.opts.onKnockout();
+    this.ring(t.x, t.y, 90, `rgba(${TEAM_RGB[t.team]},.9)`, 0.45, 6);
+    if (t.isPlayer || (src && src.isPlayer) || this.near(t)) { this.sfx('ko', { rate: 0.9 + Math.random() * 0.2 }); this.shake(t.isPlayer ? 12 : 6); }
+    if (src && src.isPlayer && !t.isPlayer) {
+      // The player scored a knockout: a brief hit-stop, and streak callouts for quick follow-ups.
+      this.hitStop = 0.09; this.flash('255,255,255', 0.18);
+      const L = this.opts.labels; this.killTimes = this.killTimes.filter((k) => this.now - k < 4); this.killTimes.push(this.now);
+      if (this.killTimes.length >= 3) this.callout(L.tripleKo ?? 'TRIPLE KO!', '#ff8ad1');
+      else if (this.killTimes.length === 2) this.callout(L.doubleKo ?? 'DOUBLE KO!', '#ffc93c');
+      else if (!this.firstKoDone) { this.firstKoDone = true; this.callout(L.firstKo ?? 'FIRST KO!', '#ffc93c', undefined, 1.2); }
+    }
+    if (t.isPlayer && !this.over) { this.timeScale = 0.3; this.slowT = 0.55; this.flash('255,90,77', 0.25); this.opts.onKnockout(); }
   }
   private burst(x: number, y: number, col: string, n: number, sp: number) {
     for (let i = 0; i < n; i++) { const a = Math.random() * TAU, s = sp * (.3 + Math.random() * .7);
@@ -476,7 +502,8 @@ export class ArenaEngine {
     let sp = u.H.speed * (u.shield > 0 ? 1.25 : 1);
     if (u.dash > 0) { mx = u.dvx; my = u.dvy; sp = 1; }
     const ox = u.x, oy = u.y; u.x += mx * sp * dt; u.y += my * sp * dt; this.collide(u);
-    u.vx = (u.x - ox) / dt; u.vy = (u.y - oy) / dt;
+    // A zero-length step (hit-stop, pause) must not turn velocities into NaN.
+    if (dt > 0) { u.vx = (u.x - ox) / dt; u.vy = (u.y - oy) / dt; }
   }
   private collide(u: Unit) {
     const r = u.r;
@@ -564,16 +591,27 @@ export class ArenaEngine {
 
   /* ---------- Update ---------- */
   private update(dt: number) {
-    this.t += dt;
+    const prevT = this.t; this.t += dt;
     const started = this.t >= 0, P = this.player;
+    if (this.t < 0) { const n = Math.ceil(-this.t); if (n !== this.lastCountdown) { this.lastCountdown = n; this.sfx('countdown', { rate: 1 + (3 - n) * 0.12 }); } }
+    else if (prevT < 0) { this.sfx('go'); this.flash('255,201,60', 0.35); this.ring(P.x, P.y, 140, 'rgba(255,201,60,.9)'); }
+    if (started && !this.musicStarted) { this.musicStarted = true; this.audio.startMusic(); }
+    if (P.alive && started) {
+      const inB = this.inBush(P);
+      if (inB && !this.playerWasInBush) { this.sfx('bush', { vol: 0.6 }); for (let i = 0; i < 10; i++) this.parts.push({ x: P.x + (Math.random() - .5) * 30, y: P.y + (Math.random() - .5) * 30, vx: (Math.random() - .5) * 120, vy: -40 - Math.random() * 80, life: .5, max: .5, col: '#7fd34e', size: 3 }); }
+      this.playerWasInBush = inB;
+    }
     for (const u of this.units) {
       u.flash = Math.max(0, u.flash - dt); u.reveal = Math.max(0, u.reveal - dt); u.shield = Math.max(0, u.shield - dt); u.fireCd = Math.max(0, u.fireCd - dt);
       if (!u.alive) {
-        if (!this.over) { u.respawn -= dt; if (u.respawn <= 0) { Object.assign(u, { alive: true, hp: u.maxHp, x: u.spawn.x, y: u.spawn.y, ammo: 3, reveal: 0, lastHurt: this.now }); u.ai.target = null; } }
+        if (!this.over) { u.respawn -= dt; if (u.respawn <= 0) { Object.assign(u, { alive: true, hp: u.maxHp, x: u.spawn.x, y: u.spawn.y, ammo: 3, reveal: 0, lastHurt: this.now }); u.ai.target = null; this.spawnFx.push({ x: u.x, y: u.y, life: 0.7, col: TEAM_RGB[u.team] }); this.ring(u.x, u.y, 70, `rgba(${TEAM_RGB[u.team]},.9)`, 0.4, 4); if (u.isPlayer) this.sfx('respawn'); } }
         continue;
       }
       u.ammo = Math.min(3, u.ammo + dt / u.H.reload);
-      if (this.now - u.lastHurt > 3 && this.now - u.lastFire > 2.5 && u.hp < u.maxHp) u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.13 * dt);
+      if (this.now - u.lastHurt > 3 && this.now - u.lastFire > 2.5 && u.hp < u.maxHp) {
+        u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.13 * dt);
+        if (u.isPlayer && this.now - this.lastHealFx > 0.3) { this.lastHealFx = this.now; this.parts.push({ x: u.x + (Math.random() - .5) * 30, y: u.y + 10, vx: 0, vy: -60, life: .7, max: .7, col: '#9bffa0', size: 3 }); if (Math.random() < 0.15) this.sfx('heal', { vol: 0.35 }); }
+      }
       let mv: [number, number] = [0, 0];
       if (started && !this.over) mv = u === P ? this.playerInput(u) : this.bot(u, dt);
       if (u.dash > 0) {
@@ -581,6 +619,7 @@ export class ArenaEngine {
         for (const e of this.units) if (e.alive && e.team !== u.team && !u.dashHit.has(e) && Math.hypot(e.x - u.x, e.y - u.y) < e.r + u.r + 6) {
           u.dashHit.add(e); this.hurt(e, 1150 * u.mult, u, true); const a = Math.atan2(e.y - u.y, e.x - u.x); e.x += Math.cos(a) * 60; e.y += Math.sin(a) * 60; this.collide(e); this.burst(e.x, e.y, '#fff3c4', 12, 260); }
         if (Math.random() < .8) this.parts.push({ x: u.x, y: u.y, vx: 0, vy: 0, life: .25, max: .25, col: u.H.color, size: 10 });
+        this.ghostT += dt; if (this.ghostT > 0.03) { this.ghostT = 0; this.ghosts.push({ x: u.x, y: u.y, aim: u.aim, H: u.H, life: 0.3 }); }
       } else this.moveUnit(u, mv[0], mv[1], dt);
     }
     for (let i = 0; i < this.units.length; i++) for (let j = i + 1; j < this.units.length; j++) {
@@ -602,11 +641,13 @@ export class ArenaEngine {
       if (l.t >= l.dur) { l.dead = true;
         for (const u of this.units) if (u.alive && u.team !== l.team && Math.hypot(u.x - l.x1, u.y - l.y1) < l.rad + u.r) this.hurt(u, l.dmg, l.owner, false);
         this.burst(l.x1, l.y1, '#9be86b', 16, 200); this.burst(l.x1, l.y1, '#e6ffd0', 6, 120);
-        if (l.owner.isPlayer || this.near(l.owner)) this.sfx('boom'); }
+        this.ring(l.x1, l.y1, l.rad + 10, 'rgba(155,232,107,.9)', 0.35, 5);
+        if (l.owner.isPlayer || this.near(l.owner)) this.sfx('splash'); }
     }
     this.lobs = this.lobs.filter(l => !l.dead);
     for (const c of this.clouds) {
       c.t -= dt; c.tick -= dt;
+      for (let k = 0; k < 2; k++) { const a = Math.random() * TAU, d = Math.random() * c.r; this.parts.push({ x: c.x + Math.cos(a) * d, y: c.y + Math.sin(a) * d, vx: 0, vy: -50, life: .8, max: .8, col: c.team ? 'rgba(255,200,180,.9)' : 'rgba(225,255,205,.9)', size: 2 + Math.random() * 3 }); }
       if (c.tick <= 0) { c.tick = .25;
         for (const u of this.units) if (u.alive && Math.hypot(u.x - c.x, u.y - c.y) < c.r) {
           if (u.team !== c.team) this.hurt(u, 130 * c.owner.mult, c.owner, true); else u.hp = Math.min(u.maxHp, u.hp + 90); } }
@@ -620,11 +661,17 @@ export class ArenaEngine {
     if (started && !this.over) {
       const inZ = [0, 0];
       for (const u of this.units) if (u.alive && Math.hypot(u.x - ZONE.x, u.y - ZONE.y) < ZONE.r) { inZ[u.team]++; u.scoreTime += dt; }
+      const prevOwner = this.owner;
       this.owner = inZ[0] && !inZ[1] ? 0 : inZ[1] && !inZ[0] ? 1 : (inZ[0] && inZ[1] ? 2 : -1);
+      if (this.owner !== prevOwner && (this.owner === 0 || this.owner === 1)) {
+        const L = this.opts.labels; this.ring(ZONE.x, ZONE.y, ZONE.r + 40, `rgba(${TEAM_RGB[this.owner]},.9)`, 0.6, 8);
+        this.sfx('capture', { rate: this.owner === 0 ? 1 : 0.85, vol: 0.7 });
+        this.callout(this.owner === 0 ? (L.reactorSecured ?? 'REACTOR SECURED') : (L.reactorLost ?? 'REACTOR LOST'), this.owner === 0 ? '#46b0ff' : '#ff5a4d', undefined, 1.3);
+      }
       if (this.owner === 0 || this.owner === 1) {
         const before = Math.floor(this.score[this.owner] / 10);
         this.score[this.owner] = Math.min(WIN_SCORE, this.score[this.owner] + SCORE_RATE * dt);
-        if (Math.floor(this.score[this.owner] / 10) > before) this.sfx('score');
+        if (Math.floor(this.score[this.owner] / 10) > before) this.sfx('tick', { vol: 0.5, rate: this.owner === 0 ? 1.1 : 0.9 });
       }
       if (this.score[0] >= WIN_SCORE || this.score[1] >= WIN_SCORE || this.t >= MATCH_SECONDS) this.endMatch();
     }
@@ -641,7 +688,8 @@ export class ArenaEngine {
     const P = this.player;
     const rank = (u: Unit) => u.kills * 2 + u.dmgDealt / 1500 + u.scoreTime / 6;
     const mvp = this.units.slice().sort((a, b) => rank(b) - rank(a))[0];
-    if (s0 > s1) this.sfx('win'); else if (s1 > s0) this.sfx('lose');
+    this.audio.stopMusic(2);
+    if (s0 > s1) { this.sfx('victory'); this.spawnConfetti(); this.flash('255,201,60', 0.3); } else if (s1 > s0) this.sfx('defeat');
     window.setTimeout(() => {
       if (this.ended || this.destroyed) return; this.ended = true;
       this.opts.onEnd({ scoreMine: s0, scoreTheirs: s1, mvp: mvp === P, kills: P.kills, deaths: P.deaths, damage: Math.round(P.dmgDealt) });
@@ -732,6 +780,15 @@ export class ArenaEngine {
           ctx.beginPath(); ctx.moveTo(P.x, P.y); ctx.arc(P.x, P.y, P.H.range, a - sp, a + sp); ctx.closePath(); ctx.fill(); ctx.stroke(); }
       }
     }
+    for (const g of this.ghosts) { ctx.globalAlpha = Math.max(0, g.life / 0.3) * 0.45; ArenaEngine.drawHero(ctx, g.H, g.x, g.y, 18, g.aim, null, 0, 0, 0); }
+    ctx.globalAlpha = 1;
+    for (const f of this.spawnFx) {
+      const k = Math.max(0, f.life / 0.7); ctx.globalCompositeOperation = 'lighter';
+      const grad = ctx.createLinearGradient(0, f.y - 260, 0, f.y); grad.addColorStop(0, `rgba(${f.col},0)`); grad.addColorStop(1, `rgba(${f.col},${0.55 * k})`);
+      ctx.fillStyle = grad; ctx.fillRect(f.x - 16 * k, f.y - 260, 32 * k, 262);
+      ctx.fillStyle = `rgba(${f.col},${0.35 * k})`; ctx.beginPath(); ctx.ellipse(f.x, f.y + 6, 30 * (1.4 - k), 12 * (1.4 - k), 0, 0, TAU); ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+    }
     const vis = this.units.filter(u => u.alive && this.canSee(0, u)).sort((a, b) => a.y - b.y);
     for (const u of vis) ArenaEngine.drawHero(ctx, u.H, u.x, u.y, u.r, u.aim, u.team ? '#ff5a4d' : '#46b0ff', u.flash, now + u.x * .01, u.shield, Math.hypot(u.vx, u.vy) > 20);
     for (const l of this.lobs) {
@@ -743,16 +800,28 @@ export class ArenaEngine {
     }
     ctx.globalAlpha = .93; ctx.drawImage(bushCv!, 0, 0); ctx.globalAlpha = 1;
     for (const u of vis) if (u.team === 0 && this.inBush(u)) { ctx.globalAlpha = .45; ArenaEngine.drawHero(ctx, u.H, u.x, u.y, u.r, u.aim, '#46b0ff', 0, now, u.shield); ctx.globalAlpha = 1; }
+    ctx.globalCompositeOperation = 'lighter';
     for (const b of this.bullets) {
-      ctx.strokeStyle = b.kind === 'vex' ? '#e2d4ff' : b.team ? '#ffb4a8' : '#cfe9ff'; ctx.lineWidth = b.kind === 'vex' ? 6 : 5; ctx.lineCap = 'round';
-      const l = b.kind === 'vex' ? .03 : .018; ctx.beginPath(); ctx.moveTo(b.x - b.vx * l, b.y - b.vy * l); ctx.lineTo(b.x, b.y); ctx.stroke();
+      if (!Number.isFinite(b.x) || !Number.isFinite(b.y)) { b.dead = true; continue; }
+      const glow = b.kind === 'vex' ? '190,160,255' : b.team ? '255,140,110' : '120,200,255';
+      const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, 16); g.addColorStop(0, `rgba(${glow},.55)`); g.addColorStop(1, `rgba(${glow},0)`);
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b.x, b.y, 16, 0, TAU); ctx.fill();
+      ctx.strokeStyle = `rgba(${glow},.8)`; ctx.lineWidth = b.kind === 'vex' ? 7 : 5; ctx.lineCap = 'round';
+      const l = b.kind === 'vex' ? .035 : .02; ctx.beginPath(); ctx.moveTo(b.x - b.vx * l, b.y - b.vy * l); ctx.lineTo(b.x, b.y); ctx.stroke();
       ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x, b.y, 3, 0, TAU); ctx.fill();
     }
     for (const b of this.beams) {
-      ctx.strokeStyle = `rgba(226,212,255,${b.t / .35})`; ctx.lineWidth = 22 * b.t / .35 + 4; ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.moveTo(b.x0, b.y0); ctx.lineTo(b.x1, b.y1); ctx.stroke();
+      const k = b.t / .35; ctx.lineCap = 'round';
+      ctx.strokeStyle = `rgba(150,120,255,${0.5 * k})`; ctx.lineWidth = 46 * k + 6; ctx.beginPath(); ctx.moveTo(b.x0, b.y0); ctx.lineTo(b.x1, b.y1); ctx.stroke();
+      ctx.strokeStyle = `rgba(226,212,255,${k})`; ctx.lineWidth = 18 * k + 4; ctx.stroke();
       ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.stroke();
+      if (Math.random() < 0.7) { const q = Math.random(); this.parts.push({ x: b.x0 + (b.x1 - b.x0) * q, y: b.y0 + (b.y1 - b.y0) * q, vx: (Math.random() - .5) * 200, vy: (Math.random() - .5) * 200, life: .3, max: .3, col: '#e2d4ff', size: 2 }); }
     }
+    for (const r of this.rings) {
+      const k = Math.max(0, r.life / r.maxLife);
+      ctx.strokeStyle = r.col; ctx.globalAlpha = k; ctx.lineWidth = r.width * k + 1; ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, TAU); ctx.stroke();
+    }
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
     for (const p of this.parts) { ctx.globalAlpha = Math.max(0, p.life / p.max); ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, TAU); ctx.fill(); }
     ctx.globalAlpha = 1;
     ctx.textAlign = 'center';
@@ -760,13 +829,13 @@ export class ArenaEngine {
       const w = 52, x = u.x - w / 2, y = u.y - u.r - 24;
       ctx.fillStyle = 'rgba(0,0,0,.55)'; this.rrect(ctx, x - 2, y - 2, w + 4, 11, 4); ctx.fill();
       ctx.fillStyle = u.isPlayer ? '#7fd34e' : u.team ? '#ff5a4d' : '#46b0ff'; this.rrect(ctx, x, y, w * Math.max(0, u.hp / u.maxHp), 7, 3); ctx.fill();
-      ctx.font = '600 13px "Barlow Condensed", "Arial Narrow", sans-serif'; ctx.fillStyle = '#000'; ctx.fillText(u.name, u.x + 1, y - 4);
+      ctx.font = `600 13px ${F_BODY}`; ctx.fillStyle = '#000'; ctx.fillText(u.name, u.x + 1, y - 4);
       ctx.fillStyle = u.isPlayer ? '#fff3c4' : '#f4ead8'; ctx.fillText(u.name, u.x, y - 5);
       if (u.isPlayer) for (let i = 0; i < 3; i++) { const f = Math.max(0, Math.min(1, u.ammo - i)); ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(u.x - 26 + i * 18, u.y + u.r + 12, 16, 5); ctx.fillStyle = f >= 1 ? '#ffc93c' : '#a17a2a'; ctx.fillRect(u.x - 26 + i * 18, u.y + u.r + 12, 16 * f, 5); }
       if (u.charge >= 1) { ctx.strokeStyle = `rgba(255,201,60,${.5 + Math.sin(now * 8) * .3})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 9, 0, TAU); ctx.stroke(); }
     }
     for (const f of this.floats) {
-      ctx.globalAlpha = Math.min(1, f.life * 2); ctx.font = `800 ${f.big ? 18 : 14}px "Barlow Condensed", Impact, sans-serif`;
+      ctx.globalAlpha = Math.min(1, f.life * 2); ctx.font = `400 ${f.big ? 17 : 13}px ${F_DISPLAY}`;
       ctx.fillStyle = '#1a1714'; ctx.fillText(String(f.txt), f.x + 1.5, f.y + 1.5); ctx.fillStyle = f.col; ctx.fillText(String(f.txt), f.x, f.y);
     }
     ctx.globalAlpha = 1;
@@ -776,39 +845,57 @@ export class ArenaEngine {
     const ctx = this.ctx, L = this.opts.labels, P = this.player, cw = this.cw, ch = this.ch;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     const top = 10, cx = cw / 2, bw = Math.min(420, cw - 140);
+    // Low health: a red pulse at the edges of the screen.
+    if (P.alive && P.hp / P.maxHp < 0.3) {
+      const pulse = 0.25 + Math.sin(this.realNow * 6) * 0.12;
+      const vg = ctx.createRadialGradient(cx, ch / 2, Math.min(cw, ch) * 0.3, cx, ch / 2, Math.max(cw, ch) * 0.7); vg.addColorStop(0, 'rgba(255,40,40,0)'); vg.addColorStop(1, `rgba(255,40,40,${pulse})`);
+      ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch);
+    }
+    if (this.flashFx.a > 0) { ctx.fillStyle = `rgba(${this.flashFx.col},${this.flashFx.a})`; ctx.fillRect(0, 0, cw, ch); }
     ctx.fillStyle = 'rgba(20,18,15,.82)'; this.rrect(ctx, cx - bw / 2 - 8, top, bw + 16, 52, 12); ctx.fill();
     const half = bw / 2 - 34;
     ctx.fillStyle = '#15130f'; this.rrect(ctx, cx - bw / 2, top + 26, half, 14, 5); ctx.fill(); this.rrect(ctx, cx + 34, top + 26, half, 14, 5); ctx.fill();
     ctx.fillStyle = '#46b0ff'; this.rrect(ctx, cx - 34 - half * this.score[0] / 100, top + 26, half * this.score[0] / 100, 14, 5); ctx.fill();
     ctx.fillStyle = '#ff5a4d'; this.rrect(ctx, cx + 34, top + 26, half * this.score[1] / 100, 14, 5); ctx.fill();
-    ctx.font = '800 20px "Barlow Condensed", Impact, sans-serif'; ctx.textAlign = 'center';
+    ctx.font = `400 20px ${F_DISPLAY}`; ctx.textAlign = 'center';
     ctx.fillStyle = '#46b0ff'; ctx.fillText(String(Math.floor(this.score[0])), cx - bw / 4 - 10, top + 21);
     ctx.fillStyle = '#ff5a4d'; ctx.fillText(String(Math.floor(this.score[1])), cx + bw / 4 + 10, top + 21);
     const tl = Math.max(0, Math.ceil(MATCH_SECONDS - Math.max(0, this.t)));
-    ctx.fillStyle = tl <= 20 ? '#ff5a4d' : '#f4ead8'; ctx.font = '800 18px "Barlow Condensed", Impact, sans-serif';
+    ctx.fillStyle = tl <= 20 ? '#ff5a4d' : '#f4ead8'; ctx.font = `400 18px ${F_DISPLAY}`;
     ctx.fillText(`${Math.floor(tl / 60)}:${String(tl % 60).padStart(2, '0')}`, cx, top + 38);
-    ctx.font = '600 13px "Barlow Condensed", sans-serif';
+    ctx.font = `600 13px ${F_BODY}`;
     ctx.fillStyle = this.owner === 0 ? '#46b0ff' : this.owner === 1 ? '#ff5a4d' : this.owner === 2 ? '#ffc93c' : '#b3a893';
     ctx.fillText((this.owner === 0 ? L.yourTeamHolds : this.owner === 1 ? L.enemyHolds : this.owner === 2 ? L.contested : L.reactorEmpty).toUpperCase(), cx, top + 66);
-    ctx.textAlign = 'right'; ctx.font = '600 16px "Barlow Condensed", sans-serif';
+    ctx.textAlign = 'right'; ctx.font = `600 16px ${F_BODY}`;
     this.feed.forEach((f, i) => {
-      const y = top + 18 + i * 24, x = cw - 14;
+      const y = top + 18 + i * 26, x = cw - 14, icon = 20;
       ctx.globalAlpha = Math.min(1, f.t);
-      const bw2 = ctx.measureText(f.b).width, aw = f.a ? ctx.measureText(f.a + '  ✕  ').width : ctx.measureText('✕  ').width;
-      ctx.fillStyle = 'rgba(20,18,15,.75)'; this.rrect(ctx, x - bw2 - aw - 10, y - 15, bw2 + aw + 16, 21, 6); ctx.fill();
-      ctx.fillStyle = f.bc; ctx.fillText(f.b, x, y);
-      ctx.fillStyle = '#f4ead8'; ctx.fillText('✕  ', x - bw2, y);
-      if (f.a) { ctx.fillStyle = f.ac; ctx.fillText(f.a, x - bw2 - ctx.measureText('✕  ').width, y); }
+      const bw2 = ctx.measureText(f.b).width + icon + 4, aw = f.a ? ctx.measureText(f.a).width + icon + 4 + 28 : 28;
+      ctx.fillStyle = 'rgba(20,18,15,.78)'; this.rrect(ctx, x - bw2 - aw - 10, y - 17, bw2 + aw + 16, 25, 8); ctx.fill();
+      const drawIcon = (id: FighterId | null, ix: number, col: string) => { const sp = id ? ASSETS[id] : undefined; if (sp) ctx.drawImage(sp, ix, y - 15, icon, icon); else { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(ix + icon / 2, y - 5, 7, 0, TAU); ctx.fill(); } };
+      ctx.fillStyle = f.bc; ctx.fillText(f.b, x, y); drawIcon(f.bf, x - bw2, f.bc);
+      ctx.fillStyle = '#f4ead8'; ctx.textAlign = 'center'; ctx.fillText('✕', x - bw2 - 14, y); ctx.textAlign = 'right';
+      if (f.a) { ctx.fillStyle = f.ac; ctx.fillText(f.a, x - bw2 - 28, y); drawIcon(f.af, x - bw2 - 28 - ctx.measureText(f.a).width - icon - 4, f.ac); }
     });
     ctx.globalAlpha = 1;
-    if (!this.touchMode) {
-      const w = 190, x = cx - w / 2, y = ch - 44;
-      ctx.fillStyle = 'rgba(20,18,15,.82)'; this.rrect(ctx, x - 6, y - 6, w + 12, 34, 10); ctx.fill();
-      ctx.fillStyle = '#15130f'; this.rrect(ctx, x, y, w, 22, 6); ctx.fill();
-      ctx.fillStyle = P.charge >= 1 ? '#ffc93c' : '#a17a2a'; this.rrect(ctx, x, y, w * P.charge, 22, 6); ctx.fill();
-      ctx.textAlign = 'center'; ctx.font = '800 13px "Barlow Condensed", Impact, sans-serif'; ctx.fillStyle = P.charge >= 1 ? '#2a1d05' : '#f4ead8';
-      ctx.fillText((P.charge >= 1 ? `${P.H.superName} · ${L.superReady}` : `${L.superCharge} ${Math.floor(P.charge * 100)}%`).toUpperCase(), cx, y + 16);
-    } else {
+    {
+      // Portrait with a health arc and a super gauge, under the Quit button.
+      const px = 54, py = 108, pr = 30;
+      ctx.fillStyle = 'rgba(20,18,15,.82)'; ctx.beginPath(); ctx.arc(px, py, pr + 12, 0, TAU); ctx.fill();
+      const hp = Math.max(0, P.hp / P.maxHp);
+      ctx.lineWidth = 6; ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.beginPath(); ctx.arc(px, py, pr + 6, 0, TAU); ctx.stroke();
+      ctx.strokeStyle = hp > 0.5 ? '#7fd34e' : hp > 0.25 ? '#ffc93c' : '#ff5a4d'; ctx.beginPath(); ctx.arc(px, py, pr + 6, -Math.PI / 2, -Math.PI / 2 + TAU * hp); ctx.stroke();
+      ctx.lineWidth = 4; ctx.strokeStyle = P.charge >= 1 ? `rgba(255,201,60,${0.7 + Math.sin(this.realNow * 8) * 0.3})` : 'rgba(255,201,60,.45)';
+      ctx.beginPath(); ctx.arc(px, py, pr + 13, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, P.charge)); ctx.stroke();
+      ctx.save(); ctx.beginPath(); ctx.arc(px, py, pr, 0, TAU); ctx.clip(); ctx.fillStyle = '#2a2621'; ctx.fillRect(px - pr, py - pr, pr * 2, pr * 2);
+      const sp = ASSETS[P.H.id]; if (sp) ctx.drawImage(sp, px - pr * 1.1, py - pr * 1.0, pr * 2.2, pr * 2.2); else { ctx.fillStyle = P.H.color; ctx.beginPath(); ctx.arc(px, py, pr * .7, 0, TAU); ctx.fill(); }
+      if (!P.alive) { ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(px - pr, py - pr, pr * 2, pr * 2); }
+      ctx.restore();
+      ctx.textAlign = 'center'; ctx.font = `400 11px ${F_DISPLAY}`; ctx.fillStyle = P.charge >= 1 ? '#ffc93c' : '#b3a893';
+      ctx.fillText(P.charge >= 1 ? (this.touchMode ? L.superCharge : `${L.superCharge} · ${L.superReady}`).toUpperCase() : `${L.superCharge} ${Math.floor(P.charge * 100)}%`.toUpperCase(), px, py + pr + 30);
+    }
+    if (this.touchMode) {
       const drawStick = (s: Stick, aim: boolean, baseX: number, baseY: number) => {
         const ox = s.id !== null ? s.ox : baseX, oy = s.id !== null ? s.oy : baseY;
         ctx.globalAlpha = s.id !== null ? .6 : .25; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(ox, oy, 58, 0, TAU); ctx.fill();
@@ -821,26 +908,48 @@ export class ArenaEngine {
     }
     ctx.textAlign = 'center';
     if (!P.alive && !this.over) { ctx.fillStyle = 'rgba(20,18,15,.6)'; ctx.fillRect(0, ch / 2 - 46, cw, 76);
-      ctx.font = '800 30px "Barlow Condensed", Impact, sans-serif'; ctx.fillStyle = '#f4ead8'; ctx.fillText(`${L.backIn} ${Math.ceil(P.respawn)}`, cx, ch / 2 + 6); }
+      ctx.font = `400 30px ${F_DISPLAY}`; ctx.fillStyle = '#f4ead8'; ctx.fillText(`${L.backIn} ${Math.ceil(P.respawn)}`, cx, ch / 2 + 6); }
+    const banner = (text: string, y: number, size: number, col: string, scale = 1, alpha = 1) => {
+      ctx.save(); ctx.translate(cx, y); ctx.scale(scale, scale); ctx.globalAlpha = alpha; ctx.textAlign = 'center';
+      ctx.font = `400 ${size}px ${F_DISPLAY}`; ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(4, size * 0.16); ctx.strokeStyle = 'rgba(20,18,15,.9)'; ctx.strokeText(text, 0, 0);
+      ctx.fillStyle = col; ctx.fillText(text, 0, 0); ctx.restore();
+    };
     if (this.t < 0) {
-      const n = Math.ceil(-this.t);
-      ctx.font = '800 26px "Barlow Condensed", Impact, sans-serif'; ctx.fillStyle = '#ffc93c'; ctx.fillText(L.holdReactor, cx, ch / 2 - 40);
-      ctx.font = '800 72px "Barlow Condensed", Impact, sans-serif'; ctx.fillStyle = '#f4ead8'; ctx.fillText(n > 0 ? String(n) : L.go, cx, ch / 2 + 40);
-    } else if (this.t < .8) { ctx.font = '800 72px "Barlow Condensed", Impact, sans-serif'; ctx.globalAlpha = 1 - this.t / .8; ctx.fillStyle = '#ffc93c'; ctx.fillText(L.go, cx, ch / 2 + 30); ctx.globalAlpha = 1; }
-    if (this.over) { ctx.font = '800 54px "Barlow Condensed", Impact, sans-serif'; ctx.fillStyle = '#ffc93c'; ctx.fillText(this.score[0] > this.score[1] ? L.victory : this.score[1] > this.score[0] ? L.defeat : L.draw, cx, ch / 2); }
+      const n = Math.ceil(-this.t), frac = (-this.t) % 1;
+      banner(L.holdReactor, ch / 2 - 60, 24, '#ffc93c');
+      banner(String(n), ch / 2 + 40, 84, '#f4ead8', 1 + 0.5 * frac * frac, 1);
+    } else if (this.t < .7) { const k = this.t / .7; banner(L.go, ch / 2 + 30, 84, '#ffc93c', 1 + k * 0.6, 1 - k); }
+    // Simultaneous callouts stack downwards instead of printing over each other.
+    this.callouts.forEach((c, i) => {
+      const p = 1 - c.life / c.max, sIn = Math.min(1, p / 0.12), scale = 1.35 - 0.35 * (1 - Math.pow(1 - sIn, 3)), alpha = c.life < 0.3 ? c.life / 0.3 : 1;
+      const y = ch * 0.26 + i * 52;
+      banner(c.text, y, i === 0 ? 42 : 30, c.col, scale, alpha);
+      if (c.sub) banner(c.sub, y + 30, 16, '#f4ead8', 1, alpha);
+    });
+    for (const c of this.confetti) { ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.rot); ctx.globalAlpha = Math.min(1, c.life); ctx.fillStyle = c.col; ctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h); ctx.restore(); }
+    ctx.globalAlpha = 1;
+    if (this.over) { const win = this.score[0] > this.score[1]; banner(win ? L.victory : this.score[1] > this.score[0] ? L.defeat : L.draw, ch / 2, 64, win ? '#ffc93c' : this.score[1] > this.score[0] ? '#ff8a7a' : '#f4ead8', 1 + Math.sin(this.realNow * 3) * 0.03); }
     if (this.paused && !this.over) { ctx.fillStyle = 'rgba(20,18,15,.45)'; ctx.fillRect(0, 0, cw, ch); }
-    if (ch > cw) { ctx.font = '600 15px "Barlow Condensed", sans-serif'; ctx.fillStyle = '#b3a893'; ctx.fillText(L.turnPhone, cx, top + 90); }
+    if (ch > cw) { ctx.font = `600 15px ${F_BODY}`; ctx.fillStyle = '#b3a893'; ctx.fillText(L.turnPhone, cx, top + 90); }
   }
 
   private frame = (t: number) => {
     if (this.destroyed) return;
-    const dt = this.paused ? 0 : Math.max(0, Math.min(0.05, (t - this.last) / 1000)); this.last = t; this.now += dt;
+    const real = Math.max(0, Math.min(0.05, (t - this.last) / 1000)); this.last = t; this.realNow += real;
+    let dt = this.paused ? 0 : real;
+    if (this.hitStop > 0) { this.hitStop -= real; dt = 0; }
+    if (this.slowT > 0) { this.slowT -= real; if (this.slowT <= 0) this.timeScale = 1; }
+    dt *= this.timeScale; this.now += dt;
+    const duck = this.paused || this.over;
+    if (duck !== this.musicDucked) { this.musicDucked = duck; this.audio.duckMusic(duck); }
     try {
       if (this.frames % 30 === 0) this.resize();
       if (paintedVersion !== assetsVersion) paintMap();
-      if (!this.paused) this.update(dt); this.drawWorld(); this.drawHUD(); this.frames++;
+      this.updateFx(real);
+      if (!this.paused && dt > 0) this.update(dt); this.drawWorld(); this.drawHUD(); this.frames++;
     } catch (error) {
       this.lastError = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+      this.ctx.globalCompositeOperation = 'source-over'; this.ctx.globalAlpha = 1;
       if (this.frames === 0 || this.lastError !== null) { /* keep going: one bad frame should not freeze the match */ }
     }
     this.raf = requestAnimationFrame(this.frame);
