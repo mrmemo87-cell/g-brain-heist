@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext';
 import ModalPortal from '../../../components/ModalPortal';
 import { abandonArenaMatch, answerRespawnQuestion, fetchArenaStatus, fetchRespawnQuestion, finishArenaMatch, sendArenaClientReport, startArenaMatch } from '../../../services/arenaService';
-import { ArenaEngine, drawFighterPortrait } from './arenaEngine';
+import { ArenaEngine, drawFighterPortrait, whenArenaAssetsReady } from './arenaEngine';
 import { FIGHTERS, FIGHTER_IDS, TROPHY_ROAD, arenaBlock, type ArenaMatchOutcome, type ArenaMatchResult, type ArenaMatchTicket, type ArenaRespawnQuestion, type ArenaStatus, type FighterId } from './arenaModel';
 import './arena.css';
 
@@ -18,13 +18,14 @@ export interface ArenaViewProps {
 }
 
 type Phase = 'lobby' | 'starting' | 'match' | 'finishing' | 'results';
-interface QuestionState { q: ArenaRespawnQuestion; picked: string | null; correct: boolean | null }
+interface QuestionState { q: ArenaRespawnQuestion; picked: string | null; correct: boolean | null; secondsLeft: number }
+const QUESTION_SECONDS = 12;
 
 const FighterCard: React.FC<{ id: FighterId; power: number; attempts: number; unlocked: boolean; selected: boolean; onPick: () => void }> = ({ id, power, attempts, unlocked, selected, onPick }) => {
   const { t } = useLanguage();
   const H = FIGHTERS[id];
   const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => { if (ref.current) drawFighterPortrait(ref.current, id); }, [id]);
+  useEffect(() => { if (ref.current) drawFighterPortrait(ref.current, id); return whenArenaAssetsReady(() => { if (ref.current) drawFighterPortrait(ref.current, id); }); }, [id]);
   return (
     <button type="button" className={`arena-fighter${selected ? ' is-selected' : ''}${unlocked ? '' : ' is-locked'}`} onClick={onPick} aria-pressed={selected} disabled={!unlocked}
       aria-label={`${H.name}, ${H.role}${unlocked ? '' : `, ${t('Unlocks at {count} trophies', { count: H.unlock })}`}`}>
@@ -76,25 +77,48 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
     superReady: t('Space'), superCharge: t('Super'), turnPhone: t('Turn your phone sideways for a bigger view'),
   }), [t]);
 
-  const stopEngine = useCallback(() => { engineRef.current?.destroy(); engineRef.current = null; window.clearTimeout(questionTimer.current); }, []);
+  const stopEngine = useCallback(() => { engineRef.current?.destroy(); engineRef.current = null; window.clearInterval(questionTimer.current); }, []);
   useEffect(() => stopEngine, [stopEngine]);
 
+  // Knocked out: the match freezes and a question decides how you come back.
   const onKnockout = useCallback((matchId: string) => {
     void fetchRespawnQuestion(matchId).then((q) => {
-      if (!q.available || !engineRef.current) return;
-      setQuestion({ q, picked: null, correct: null });
-      window.clearTimeout(questionTimer.current);
-      questionTimer.current = window.setTimeout(() => setQuestion((cur) => (cur && cur.picked === null ? null : cur)), 9000);
-    }).catch(() => undefined);
+      const engine = engineRef.current;
+      if (!q.available || !engine) return;
+      engine.paused = true;
+      setQuestion({ q, picked: null, correct: null, secondsLeft: QUESTION_SECONDS });
+      window.clearInterval(questionTimer.current);
+      questionTimer.current = window.setInterval(() => {
+        setQuestion((cur) => {
+          if (!cur || cur.picked !== null) return cur;
+          if (cur.secondsLeft <= 1) {
+            // Out of time counts as a wrong answer.
+            window.clearInterval(questionTimer.current);
+            engineRef.current?.respawnOutcome(false);
+            window.setTimeout(() => { if (engineRef.current) engineRef.current.paused = false; setQuestion(null); }, 900);
+            return { ...cur, picked: '', correct: false, secondsLeft: 0 };
+          }
+          return { ...cur, secondsLeft: cur.secondsLeft - 1 };
+        });
+      }, 1000);
+    }).catch(() => { if (engineRef.current) engineRef.current.paused = false; });
   }, []);
 
   const onEnd = useCallback(async (matchId: string, o: ArenaMatchOutcome) => {
     setOutcome(o); setQuestion(null); setPhase('finishing');
-    try {
-      const r = await finishArenaMatch(matchId, o.scoreMine, o.scoreTheirs, o.mvp);
-      setResult(r);
-      if (r.paid && onRewards && (r.xp || r.gems)) onRewards({ xp: r.xp, gems: r.gems });
-    } catch { setResult(null); addToast?.(t('The result could not be saved. Check your connection.'), 'error'); }
+    let saved: ArenaMatchResult | null = null;
+    for (let attempt = 0; attempt < 3 && !saved; attempt++) {
+      try { saved = await finishArenaMatch(matchId, o.scoreMine, o.scoreTheirs, o.mvp); }
+      catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        // A rule rejection will not change on retry; only network trouble is worth another try.
+        if (/MATCH_NOT_FOUND|INVALID_SCORE|NOT_AUTHENTICATED/.test(msg)) break;
+        await new Promise((resolve) => setTimeout(resolve, 1200 * (attempt + 1)));
+      }
+    }
+    setResult(saved);
+    if (saved?.paid && onRewards && (saved.xp || saved.gems)) onRewards({ xp: saved.xp, gems: saved.gems });
+    if (!saved) addToast?.(t('The result could not be saved. Check your connection.'), 'error');
     stopEngine();
     setPhase('results');
     void reload(true);
@@ -152,14 +176,14 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
 
   const answer = async (option: string) => {
     if (!question || question.picked !== null || !ticket || !question.q.prompt_id) return;
+    window.clearInterval(questionTimer.current);
     setQuestion({ ...question, picked: option });
-    try {
-      const r = await answerRespawnQuestion(ticket.match_id, question.q.prompt_id, option);
-      setQuestion((cur) => (cur ? { ...cur, correct: r.correct } : cur));
-      if (r.correct) engineRef.current?.applyRespawnBonus();
-    } catch { setQuestion((cur) => (cur ? { ...cur, correct: false } : cur)); }
-    window.clearTimeout(questionTimer.current);
-    questionTimer.current = window.setTimeout(() => setQuestion(null), 1400);
+    let correct = false;
+    try { correct = (await answerRespawnQuestion(ticket.match_id, question.q.prompt_id, option)).correct; }
+    catch { correct = false; }
+    setQuestion((cur) => (cur ? { ...cur, correct } : cur));
+    engineRef.current?.respawnOutcome(correct);
+    window.setTimeout(() => { if (engineRef.current) engineRef.current.paused = false; setQuestion(null); }, correct ? 1100 : 1500);
   };
 
   const blockMessage = block === 'school_off' ? t('The arena is off for your school.')
@@ -245,15 +269,16 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
           {touch && <button type="button" className={`arena-match__super${superReady ? ' is-ready' : ''}`} onPointerDown={(e) => { e.preventDefault(); engineRef.current?.playerSuper(); }} aria-label={t('Super')}>{t('Super').toUpperCase()}</button>}
           {question && (
             <div className="arena-question" role="dialog" aria-live="polite" lang="en" dir="ltr">
-              <div className="arena-question__eyebrow">{t('Quick question!')}</div>
+              <div className="arena-question__eyebrow">{t('Quick question!')} · {t('{count}s', { count: question.secondsLeft })}</div>
               <p className="arena-question__text">{question.q.text}</p>
+              {question.picked === null && <p className="arena-question__stakes">{t('Right: back instantly with a full super and a shield. Wrong: 2 seconds longer.')}</p>}
               <div className="arena-question__options">
                 {(question.q.options ?? []).map((o) => (
                   <button key={o} type="button" disabled={question.picked !== null} onClick={() => void answer(o)}
                     className={question.picked === o ? (question.correct === true ? 'is-right' : question.correct === false ? 'is-wrong' : '') : ''}>{o}</button>
                 ))}
               </div>
-              {question.correct !== null && <div className="arena-question__verdict">{question.correct ? t('Correct! Back early with your super half charged.') : t('Not this time. Back in a moment.')}</div>}
+              {question.correct !== null && <div className="arena-question__verdict">{question.correct ? t('Correct! Back in the fight with a full super and a shield.') : question.picked === '' ? t("Time's up. 2 extra seconds on the bench.") : t('Not this time. 2 extra seconds on the bench.')}</div>}
             </div>
           )}
         </div>
