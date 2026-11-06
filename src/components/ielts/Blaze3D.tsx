@@ -5,6 +5,7 @@ import { haptic } from '../../native/effects/haptics';
 import { playSfx } from '../../native/effects/sfx';
 import { playBrandSound } from '../../native/effects/brandSounds';
 import { createPresenter } from './presentCanvas';
+import { isNativeApp } from '../../lib/nativePlatform';
 
 /**
  * Blaze in real-time 3D for the installed app (IELTS Visual & UX Bible §14): the animated Blaze character
@@ -22,7 +23,7 @@ export interface Blaze3DProps {
   label?: string;
 }
 
-const MODEL = '/mascot/brains-heist-blaze.glb?v=1';
+const MODEL = '/mascot/brains-heist-blaze.glb?v=2';
 
 type Clip = 'idle' | 'jump' | 'cheer' | 'dance' | 'sad' | 'greet' | 'laugh' | 'clap';
 const CLIP_PREFIX: Record<Clip, string> = {
@@ -36,7 +37,9 @@ function loadModel() {
     const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
     const response = await fetch(MODEL);
     if (!response.ok) throw Error('Blaze model missing');
-    const gltf = await new GLTFLoader().parseAsync(await response.arrayBuffer(), '/mascot/');
+    const { MeshoptDecoder } = await import('three/addons/libs/meshopt_decoder.module.js');
+    const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+    const gltf = await loader.parseAsync(await response.arrayBuffer(), '/mascot/');
     return { scene: gltf.scene, animations: gltf.animations };
   })().catch((error) => { modelPromise = null; throw error; });
   return modelPromise;
@@ -245,7 +248,8 @@ export default function Blaze3D({ size, streak, mood, level, interactive = false
         void playBrandSound('streakFlare');
       }
       void haptic('reward');
-      void askTiltPermissionOnce();
+      // Only the app asks for motion access; on the website Safari would show a permission prompt.
+      if (isNativeApp()) void askTiltPermissionOnce();
     };
 
     // Render only while on screen and the app is in front.

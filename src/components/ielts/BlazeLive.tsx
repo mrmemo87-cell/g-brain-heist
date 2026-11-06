@@ -4,9 +4,9 @@ import { useAppEffects } from '../../native/effects/effectsStore';
 import { Blaze, type BlazeMood } from './IeltsGameArt';
 
 /**
- * Blaze everywhere in the IELTS motivation surfaces. On the website, with Effects off, with reduce-motion,
- * on quiet screens or without WebGL this is the existing still SVG Blaze. In the installed app with Effects
- * on it becomes the live 3D Blaze (IELTS Visual & UX Bible §14). The SVG stays underneath until the 3D
+ * Blaze everywhere in the IELTS motivation surfaces. With Effects off, with reduce-motion, on quiet screens,
+ * on low-end website devices or without WebGL this is the still SVG Blaze. Otherwise it becomes the live 3D
+ * Blaze: in the app with sound and vibration, on the website silently (IELTS Visual & UX Bible §14, §14.1a). The SVG stays underneath until the 3D
  * canvas is ready, so there is never an empty space.
  */
 const Blaze3D = lazy(() => import('./Blaze3D'));
@@ -42,7 +42,7 @@ export interface BlazeLiveProps {
 }
 
 export function BlazeLive({ size, streak, todayDone, mood, hue, interactive = false }: BlazeLiveProps) {
-  const { level } = useAppEffects();
+  const { blazeLevel: level } = useAppEffects();
   const hour = useHour();
   const live = level !== 'off' && hasWebGL();
   const weak = blazeIsWeak({ streak, todayDone, hour });

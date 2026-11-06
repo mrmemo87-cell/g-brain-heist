@@ -9,10 +9,11 @@ const CHOICES: Array<{ id: EffectsChoice; label: string; hint: string }> = [
   { id: 'off', label: 'Off', hint: 'Still pictures' },
 ];
 
-/** Effects Full / Light / Off and sounds (IELTS Visual & UX Bible §14.5). Shown only inside the installed app. */
+const WEB_HINTS: Partial<Record<EffectsChoice, string>> = { auto: 'Best for this device', full: 'Moving 3D Blaze', off: 'Still Blaze' };
+
+/** Effects Full / Light / Off and, in the app, sounds (IELTS Visual & UX Bible §14.5). On the website it controls the animated Blaze. */
 export function EffectsControl() {
   const { native, choice, soundOn } = useAppEffects();
-  if (!native) return null;
   const reduced = typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
   return (
     <section className="ih-section">
@@ -21,15 +22,17 @@ export function EffectsControl() {
         {CHOICES.map((c) => (
           <button key={c.id} type="button" role="radio" aria-checked={choice === c.id}
             className={`ih-goal-option${choice === c.id ? ' is-on' : ''}`} onClick={() => setEffectsChoice(c.id)}>
-            <b>{c.label}</b><small>{c.hint}</small>
+            <b>{c.label}</b><small>{native ? c.hint : WEB_HINTS[c.id] ?? c.hint}</small>
           </button>
         ))}
       </div>
-      {reduced && <p className="ih-muted">Your phone is set to reduce motion, so Blaze stays still.</p>}
-      <label className="ih-switch">
-        <input type="checkbox" role="switch" checked={soundOn} onChange={(e) => setSoundOn(e.target.checked)} />
-        <span>{soundOn ? 'Sounds on' : 'Sounds off'}</span>
-      </label>
+      {reduced && <p className="ih-muted">Your device is set to reduce motion, so Blaze stays still.</p>}
+      {native && (
+        <label className="ih-switch">
+          <input type="checkbox" role="switch" checked={soundOn} onChange={(e) => setSoundOn(e.target.checked)} />
+          <span>{soundOn ? 'Sounds on' : 'Sounds off'}</span>
+        </label>
+      )}
       <p className="ih-muted">Effects never play during tests, screeners or practice.</p>
     </section>
   );
