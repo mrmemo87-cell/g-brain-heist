@@ -17,10 +17,28 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Bungee&display=swap" rel="stylesheet">
+    <!-- Fonts load without blocking the first paint (slow phone networks, Instagram's in-app browser). -->
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Bungee&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Bungee&display=swap" rel="stylesheet"></noscript>
 </head>
   <body>
     <div id="root"></div>
+    <script>
+      // IELTS learners (mostly from Instagram ads, on phones) see a light screen at once while the app loads.
+      // React replaces it on its first render.
+      (function () {
+        if (location.pathname.indexOf('/ielts') !== 0) return;
+        var ru = false;
+        try { ru = localStorage.getItem('bh_ielts_landing_lang') === 'ru' || (!localStorage.getItem('bh_ielts_landing_lang') && /^(ru|ky|kk)/i.test(navigator.language || '')); } catch (e) {}
+        var root = document.getElementById('root');
+        if (!root || root.firstChild) return;
+        root.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#f6f7fb;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;color:#1e1b4b">'
+          + '<img src="/logo.png" alt="" width="64" height="64" style="border-radius:16px;background:#08111f">'
+          + '<div style="font-size:18px;font-weight:800">' + (ru ? 'Блэйз уже ждёт…' : 'Blaze is getting ready…') + '</div>'
+          + '<div style="width:140px;height:6px;border-radius:999px;background:#e0e7ff;overflow:hidden"><div style="width:40%;height:100%;border-radius:999px;background:linear-gradient(90deg,#f59e0b,#ec4899);animation:bhboot 1.1s ease-in-out infinite"></div></div>'
+          + '<style>@keyframes bhboot{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}</style></div>';
+      })();
+    </script>
     <script>
       document.addEventListener('click', (event) => {
         const trigger = event.target instanceof Element
