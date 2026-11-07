@@ -24,13 +24,13 @@ export const useRememberedSignIn = () => {
 };
 
 export const RememberAccountPreference: React.FC<{
-  checked: boolean; onChange: (value: boolean) => void; disabled?: boolean;
-}> = ({ checked, onChange, disabled }) => {
+  checked: boolean; onChange: (value: boolean) => void; disabled?: boolean; ru?: boolean;
+}> = ({ checked, onChange, disabled, ru }) => {
   const id = useId();
   return <div className="remember-account-preference">
     <label><input type="checkbox" checked={checked} onChange={event => onChange(event.target.checked)}
-      disabled={disabled} aria-describedby={id} />Remember this account on this device</label>
-    <p id={id}>Only use this on your own device. Private browsing may not keep this choice.</p>
+      disabled={disabled} aria-describedby={id} />{ru ? 'Запомнить аккаунт на этом устройстве' : 'Remember this account on this device'}</label>
+    <p id={id}>{ru ? 'Только на своём телефоне или компьютере.' : 'Only use this on your own device. Private browsing may not keep this choice.'}</p>
   </div>;
 };
 

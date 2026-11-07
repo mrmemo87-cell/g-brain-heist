@@ -50,6 +50,8 @@ const IELTSLoginView: React.FC<IELTSLoginViewProps> = ({ onAuthenticated }) => {
   const [creating, setCreating] = useState(() => isInAppBrowser() && !remembered.account);
   const [fullName, setFullName] = useState('');
   const [checkInbox, setCheckInbox] = useState<string | null>(null);
+  const [code, setCode] = useState('');
+  const [resent, setResent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inFlight = useRef(false);
@@ -135,6 +137,47 @@ const IELTSLoginView: React.FC<IELTSLoginViewProps> = ({ onAuthenticated }) => {
     }
   };
 
+  const profileFor = (address: string) => ({
+    username: address.split('@')[0]?.replace(/[^a-z0-9_]/g, '').slice(0, 20) || 'learner',
+    fullName: fullName.trim() || undefined,
+  });
+
+  const handleVerifyCode = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!checkInbox || inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    setError(null);
+    try {
+      await IELTSAuthService.verifySignupCode(checkInbox, code, profileFor(checkInbox));
+      trackStep('/ielts/signup-verified');
+      onAuthenticated();
+    } catch (authError) {
+      setError(ru
+        ? 'Код не подошёл. Проверьте 6 цифр из письма или запросите новый код.'
+        : authError instanceof Error ? authError.message : 'That code did not work. Please try again.');
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!checkInbox || inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    setError(null);
+    try {
+      await IELTSAuthService.resendSignupCode(checkInbox);
+      setResent(true);
+    } catch (authError) {
+      setError(ru ? 'Не удалось отправить код. Подождите минуту и попробуйте снова.' : authError instanceof Error ? authError.message : 'Could not send a new code.');
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
+    }
+  };
+
   const resetForm = () => {
     setEmail(''); setPassword(''); setShowEmail(false); setError(null);
     window.requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('[data-auth-google]')?.focus());
@@ -145,7 +188,7 @@ const IELTSLoginView: React.FC<IELTSLoginViewProps> = ({ onAuthenticated }) => {
       <div className="ielts-auth-panel">
         <header className="ielts-auth-header">
           <img src="/logo.png" alt="Brains Heist" className="ielts-auth-logo" />
-          <div className="ielts-auth-badge">IELTS Prep Hub</div>
+          <div className="ielts-auth-badge">{tx('IELTS Prep Hub', 'Brains Heist IELTS')}</div>
           <h1 className="ielts-auth-title">{creating && showEmail ? tx('Create your free account.', 'Создайте бесплатный аккаунт') : remembered.account || showEmail ? tx('Welcome back.', 'С возвращением!') : tx('Your next IELTS step starts here.', 'Начните подготовку к IELTS бесплатно')}</h1>
           <p className="ielts-auth-subtitle">
             {creating && showEmail ? tx('Start with a free unit. No school or card needed.', 'Первый юнит — бесплатно. Без карты, за 1 минуту.') : remembered.account || showEmail ? tx('Sign in to return to your IELTS work.', 'Войдите, чтобы продолжить подготовку.') : tx('Sign in to practise, review feedback and continue your preparation.', 'Создайте аккаунт за минуту — первый юнит бесплатно, без карты.')}
@@ -157,13 +200,28 @@ const IELTSLoginView: React.FC<IELTSLoginViewProps> = ({ onAuthenticated }) => {
           <div role="status" className="ielts-auth-alert ielts-auth-check">
             <b>{tx('Check your email', 'Проверьте почту')}</b>
             <span>{ru
-              ? <>Мы отправили ссылку для подтверждения на <strong>{checkInbox}</strong>. Откройте её на этом телефоне — и курс начнётся. Письма нет? Проверьте папку «Спам».</>
-              : <>We sent a confirmation link to <strong>{checkInbox}</strong>. Open it on this phone to start your course. No email? Check the spam folder.</>}</span>
+              ? <>Мы отправили письмо с 6-значным кодом на <strong>{checkInbox}</strong>. Введите код ниже — и курс начнётся. Письма нет? Проверьте папку «Спам».</>
+              : <>We sent an email with a six-digit code to <strong>{checkInbox}</strong>. Enter the code below to start your course, or open the link in the email. No email? Check the spam folder.</>}</span>
           </div>
+        )}
+        {checkInbox && (
+          <form className="ielts-auth-form" onSubmit={handleVerifyCode}>
+            <label className="ielts-auth-field">{tx('Six-digit code', 'Код из письма')}
+              <input type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]*" maxLength={7} required
+                value={code} disabled={busy} placeholder="123456" autoFocus
+                onChange={event => setCode(event.target.value.replace(/[^0-9]/g, '').slice(0, 6))} />
+            </label>
+            <button className="ielts-auth-google" type="submit" disabled={busy || code.length !== 6}>
+              {busy ? tx('Checking…', 'Проверяем…') : tx('Confirm and start', 'Подтвердить и начать')}
+            </button>
+            <button type="button" className="ielts-auth-email-toggle" disabled={busy || resent} onClick={() => void handleResend()}>
+              {resent ? tx('New code sent', 'Новый код отправлен') : tx('Send a new code', 'Отправить код ещё раз')}
+            </button>
+          </form>
         )}
 
         <div>
-          {remembered.account ? <RememberedAccount account={remembered.account} busy={busy}
+          {checkInbox ? null : remembered.account ? <RememberedAccount account={remembered.account} busy={busy}
             onContinue={() => {
               if (remembered.account?.provider === 'google') {
                 void handleGoogleSignIn(remembered.account.email);
@@ -194,7 +252,7 @@ const IELTSLoginView: React.FC<IELTSLoginViewProps> = ({ onAuthenticated }) => {
               </button>
             </div>
           </>}
-          <RememberAccountPreference checked={remembered.remember} onChange={remembered.setRemember} disabled={busy} />
+          {!checkInbox && <RememberAccountPreference checked={remembered.remember} onChange={remembered.setRemember} disabled={busy} ru={ru} />}
           {showEmail && creating && !checkInbox && <form id="ielts-email-create" className="ielts-auth-form" onSubmit={handleCreateAccount}>
             <label className="ielts-auth-field">{tx('Your name', 'Ваше имя')}
               <input type="text" autoComplete="name" required maxLength={60} value={fullName} disabled={busy}
