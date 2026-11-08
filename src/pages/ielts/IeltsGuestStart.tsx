@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../../services/supabaseClient';
+import { publicSupabaseConfig, supabase } from '../../../services/supabaseClient';
 import { Blaze } from '../../components/ielts/IeltsGameArt';
 import { readIeltsGuestProgress, saveIeltsGuestProgress, trackIeltsStep } from '../../../services/ieltsGuestFunnel';
 import '../../styles/ielts-guest.css';
@@ -177,7 +177,10 @@ const IeltsGuestStart: React.FC = () => {
     document.title = lang === 'ru' ? 'Разминка IELTS — Brains Heist' : 'IELTS warm-up — Brains Heist';
     document.documentElement.lang = lang;
     trackIeltsStep('/ielts/start');
-    void supabase.auth.getSession().then(({ data }) => setSignedIn(Boolean(data.session)));
+    // Only changes the last button's wording; never let a slow session check block anything.
+    void Promise.race([supabase.auth.getSession(), new Promise<null>(resolve => window.setTimeout(() => resolve(null), 3000))])
+      .then(result => setSignedIn(Boolean(result && result.data.session)))
+      .catch(() => setSignedIn(false));
   }, [lang]);
 
   const item = ITEMS[index];
@@ -185,12 +188,32 @@ const IeltsGuestStart: React.FC = () => {
   const tfngScore = answers.slice(0, 3).filter(Boolean).length;
   const wordScore = answers.slice(3).filter(Boolean).length;
 
+  // The lesson is public: fetch it with the anon key only, so a signed-in session that is refreshing or stuck
+  // (seen on iPhone Safari) can never block it. 10-second timeout, one automatic retry.
   const loadLesson = () => {
     setLessonError(false);
-    void supabase.rpc('rpc_ielts_guest_first_lesson').then(({ data, error }) => {
-      if (error || !data) { setLessonError(true); return; }
-      setLesson(data as GuestLesson);
-    });
+    const attempt = async (): Promise<GuestLesson> => {
+      const controller = new AbortController();
+      const timer = window.setTimeout(() => controller.abort(), 10000);
+      try {
+        const res = await fetch(`${publicSupabaseConfig.url}/rest/v1/rpc/rpc_ielts_guest_first_lesson`, {
+          method: 'POST',
+          headers: { apikey: publicSupabaseConfig.anonKey, Authorization: `Bearer ${publicSupabaseConfig.anonKey}`, 'Content-Type': 'application/json' },
+          body: '{}',
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        const data = (await res.json()) as GuestLesson | null;
+        if (!data?.lesson) throw new Error('empty');
+        return data;
+      } finally {
+        window.clearTimeout(timer);
+      }
+    };
+    void attempt()
+      .catch(() => attempt())
+      .then(data => setLesson(data))
+      .catch(() => setLessonError(true));
   };
 
   const choose = (option: string) => {
