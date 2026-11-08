@@ -119,16 +119,24 @@ const KO_SECONDS = ANIM_FRAMES.ko / ANIM_FPS.ko;
 /** Frames are square (the strip's height); the fighter's feet sit this far down each frame. */
 const FEET = 204 / 256;
 const ANIMS: Partial<Record<string, HTMLImageElement>> = {};
-let animsRequested = false;
-/** Starts loading the animation strips once per page, only when a match is created. */
-export function loadArenaAnims(base = '/arena/anim/') {
-  if (animsRequested || typeof Image === 'undefined') return; animsRequested = true;
-  for (const f of FIGHTER_IDS) for (const a of Object.keys(ANIM_FRAMES) as AnimName[]) {
+const animsRequested = new Set<string>();
+function loadFighterAnims(f: FighterId, base: string) {
+  return Promise.all((Object.keys(ANIM_FRAMES) as AnimName[]).map((a) => new Promise<void>((resolve) => {
+    const key = `${f}_${a}`; if (animsRequested.has(key) || typeof Image === 'undefined') { resolve(); return; } animsRequested.add(key);
     const img = new Image(); img.decoding = 'async';
-    img.onload = () => { ANIMS[`${f}_${a}`] = img; };
-    img.onerror = () => undefined;
-    img.src = `${base}${f}_${a}.webp`;
-  }
+    img.onload = () => { ANIMS[key] = img; resolve(); };
+    img.onerror = () => { animsRequested.delete(key); resolve(); };
+    img.src = `${base}${key}.webp`;
+  })));
+}
+/**
+ * Loads the animation sheets when a match is created: the student's own fighter first, then the
+ * fighters in the match one at a time, so a slow connection gets the important one quickly.
+ * Anything not loaded yet is drawn with its still sprite.
+ */
+export function loadArenaAnims(first?: FighterId, others: FighterId[] = FIGHTER_IDS, base = '/arena/anim/') {
+  const order = [...new Set([...(first ? [first] : []), ...others])];
+  void order.reduce<Promise<unknown>>((p, f) => p.then(() => loadFighterAnims(f, base)), Promise.resolve());
 }
 // One small scratch canvas turns any frame white for the hit flash, instead of keeping a white copy of every strip.
 let flashCv: HTMLCanvasElement | null = null;
@@ -300,10 +308,11 @@ export class ArenaEngine {
     this.audio.unlock();
     this.audio.prepareFighter(opts.fighter);
     this.audio.voice('ann_intro');
-    loadArenaAssets(); loadArenaAnims();
+    loadArenaAssets();
     try { void document.fonts?.load(`400 20px ${F_DISPLAY}`); } catch { /* fallback fonts are fine */ }
     paintMap();
     this.setup();
+    loadArenaAnims(opts.fighter, this.units.map((u) => u.H.id));
     this.resize();
     window.addEventListener('resize', this.resize);
     window.addEventListener('keydown', this.onKeyDown);

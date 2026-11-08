@@ -16,7 +16,7 @@ for f in sys.argv[3:]:
     for a in ('idle', 'run', 'attack', 'ko'):
         im = Image.open(f'{src}/{f}_{a}.png').convert('RGBA')
         out = f'{dst}/{f}_{a}.webp'
-        im.save(out, 'WEBP', quality=76, method=6, alpha_quality=85)
+        im.save(out, 'WEBP', quality=65, method=6, alpha_quality=70)
         total += os.path.getsize(out)
         print(f'{f}_{a}', im.size, os.path.getsize(out))
 print('total bytes', total)
