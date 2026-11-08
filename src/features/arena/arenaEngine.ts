@@ -246,6 +246,8 @@ export class ArenaEngine {
     this.audio = new ArenaAudio(opts.soundEnabled);
     // The match starts from a tap on Battle, which counts as the gesture browsers need before sound.
     this.audio.unlock();
+    this.audio.prepareFighter(opts.fighter);
+    this.audio.voice('ann_intro');
     loadArenaAssets();
     try { void document.fonts?.load(`400 20px ${F_DISPLAY}`); } catch { /* fallback fonts are fine */ }
     paintMap();
@@ -289,7 +291,8 @@ export class ArenaEngine {
       p.charge = 1; p.shield = 3; this.burst(p.x, p.y, '#ffc93c', 22, 240); this.sfx('correct'); this.sfx('respawn', { delay: 0.2 } as { vol?: number; rate?: number });
       this.spawnFx.push({ x: p.x, y: p.y, life: 0.7, col: '255,201,60' }); this.ring(p.x, p.y, 110, 'rgba(255,201,60,.9)', 0.5, 8);
       this.callout(this.opts.labels.shielded ?? 'SHIELDED!', '#ffc93c', undefined, 1.2);
-    } else { this.sfx('wrong', { vol: 0.6 }); if (!p.alive) p.respawn += 2; }
+      this.audio.voice('ann_shielded', { priority: true });
+    } else { this.sfx('wrong', { vol: 0.6 }); if (!p.alive) p.respawn += 2; this.audio.voice('ann_wrong', { priority: true }); }
   }
   /** Kept for older callers: the small bonus. */
   applyRespawnBonus() { this.respawnOutcome(true); }
@@ -455,7 +458,7 @@ export class ArenaEngine {
     } else { u.shield = 4; u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.25); this.burst(u.x, u.y, '#ffc93c', 18, 220); }
     const sfxName: SfxName = H.sup === 'dash' ? 'super_dash' : H.sup === 'cloud' ? 'super_cloud' : H.sup === 'rail' ? 'super_rail' : 'super_shell';
     if (u.isPlayer || this.near(u)) { this.sfx(sfxName); this.ring(u.x, u.y, 120, `rgba(${TEAM_RGB[u.team]},.9)`, 0.5, 8); }
-    if (u.isPlayer) { this.sfx('super', { vol: 0.5 }); this.flash(TEAM_RGB[0], 0.22); this.callout(H.superName.toUpperCase() + '!', '#ffc93c', undefined, 1.2); this.shake(4); }
+    if (u.isPlayer) { this.sfx('super', { vol: 0.5 }); this.flash(TEAM_RGB[0], 0.22); this.callout(H.superName.toUpperCase() + '!', '#ffc93c', undefined, 1.2); this.shake(4); this.audio.voice(`${H.id}_super`, { priority: true }); }
     return true;
   }
   private hurt(t: Unit, amount: number, src: Unit | null, isSuper: boolean) {
@@ -480,11 +483,12 @@ export class ArenaEngine {
       // The player scored a knockout: a brief hit-stop, and streak callouts for quick follow-ups.
       this.hitStop = 0.09; this.flash('255,255,255', 0.18);
       const L = this.opts.labels; this.killTimes = this.killTimes.filter((k) => this.now - k < 4); this.killTimes.push(this.now);
-      if (this.killTimes.length >= 3) this.callout(L.tripleKo ?? 'TRIPLE KO!', '#ff8ad1');
-      else if (this.killTimes.length === 2) this.callout(L.doubleKo ?? 'DOUBLE KO!', '#ffc93c');
-      else if (!this.firstKoDone) { this.firstKoDone = true; this.callout(L.firstKo ?? 'FIRST KO!', '#ffc93c', undefined, 1.2); }
+      if (this.killTimes.length >= 3) { this.callout(L.tripleKo ?? 'TRIPLE KO!', '#ff8ad1'); this.audio.voice('ann_triple_ko', { priority: true }); }
+      else if (this.killTimes.length === 2) { this.callout(L.doubleKo ?? 'DOUBLE KO!', '#ffc93c'); this.audio.voice('ann_double_ko', { priority: true }); }
+      else if (!this.firstKoDone) { this.firstKoDone = true; this.callout(L.firstKo ?? 'FIRST KO!', '#ffc93c', undefined, 1.2); this.audio.voice('ann_first_ko', { priority: true }); }
+      else if (Math.random() < 0.5) this.audio.voice(`${src.H.id}_kill`, { cooldown: 8 });
     }
-    if (t.isPlayer && !this.over) { this.timeScale = 0.3; this.slowT = 0.55; this.flash('255,90,77', 0.25); this.opts.onKnockout(); }
+    if (t.isPlayer && !this.over) { this.timeScale = 0.3; this.slowT = 0.55; this.flash('255,90,77', 0.25); this.audio.voice(`${t.H.id}_ko`, { priority: true }); this.opts.onKnockout(); }
   }
   private burst(x: number, y: number, col: string, n: number, sp: number) {
     for (let i = 0; i < n; i++) { const a = Math.random() * TAU, s = sp * (.3 + Math.random() * .7);
@@ -594,7 +598,8 @@ export class ArenaEngine {
     const prevT = this.t; this.t += dt;
     const started = this.t >= 0, P = this.player;
     if (this.t < 0) { const n = Math.ceil(-this.t); if (n !== this.lastCountdown) { this.lastCountdown = n; this.sfx('countdown', { rate: 1 + (3 - n) * 0.12 }); } }
-    else if (prevT < 0) { this.sfx('go'); this.flash('255,201,60', 0.35); this.ring(P.x, P.y, 140, 'rgba(255,201,60,.9)'); }
+    else if (prevT < 0) { this.sfx('go'); this.flash('255,201,60', 0.35); this.ring(P.x, P.y, 140, 'rgba(255,201,60,.9)'); this.audio.voice('ann_go', { queue: true }); this.audio.voice(`${P.H.id}_ready`, { queue: true }); }
+    if (!this.over && prevT < MATCH_SECONDS - 10 && this.t >= MATCH_SECONDS - 10) this.audio.voice('ann_ten', { priority: true });
     if (started && !this.musicStarted) { this.musicStarted = true; this.audio.startMusic(); }
     if (P.alive && started) {
       const inB = this.inBush(P);
@@ -666,6 +671,7 @@ export class ArenaEngine {
       if (this.owner !== prevOwner && (this.owner === 0 || this.owner === 1)) {
         const L = this.opts.labels; this.ring(ZONE.x, ZONE.y, ZONE.r + 40, `rgba(${TEAM_RGB[this.owner]},.9)`, 0.6, 8);
         this.sfx('capture', { rate: this.owner === 0 ? 1 : 0.85, vol: 0.7 });
+        if (this.t > 1.5) this.audio.voice(this.owner === 0 ? 'ann_secured' : 'ann_lost', { cooldown: 18 });
         this.callout(this.owner === 0 ? (L.reactorSecured ?? 'REACTOR SECURED') : (L.reactorLost ?? 'REACTOR LOST'), this.owner === 0 ? '#46b0ff' : '#ff5a4d', undefined, 1.3);
       }
       if (this.owner === 0 || this.owner === 1) {
@@ -688,8 +694,9 @@ export class ArenaEngine {
     const P = this.player;
     const rank = (u: Unit) => u.kills * 2 + u.dmgDealt / 1500 + u.scoreTime / 6;
     const mvp = this.units.slice().sort((a, b) => rank(b) - rank(a))[0];
-    this.audio.stopMusic(2);
+    this.audio.clearVoiceQueue(); this.audio.stopMusic(2);
     if (s0 > s1) { this.sfx('victory'); this.spawnConfetti(); this.flash('255,201,60', 0.3); } else if (s1 > s0) this.sfx('defeat');
+    this.audio.voice(s0 > s1 ? 'ann_victory' : s1 > s0 ? 'ann_defeat' : 'ann_draw', { priority: true, delay: 0.7 });
     window.setTimeout(() => {
       if (this.ended || this.destroyed) return; this.ended = true;
       this.opts.onEnd({ scoreMine: s0, scoreTheirs: s1, mvp: mvp === P, kills: P.kills, deaths: P.deaths, damage: Math.round(P.dmgDealt) });

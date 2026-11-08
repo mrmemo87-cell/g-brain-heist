@@ -3,6 +3,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import ModalPortal from '../../../components/ModalPortal';
 import { abandonArenaMatch, answerRespawnQuestion, fetchArenaStatus, fetchRespawnQuestion, finishArenaMatch, sendArenaClientReport, startArenaMatch } from '../../../services/arenaService';
 import { ArenaEngine, drawFighterPortrait, whenArenaAssetsReady } from './arenaEngine';
+import { voiceFileUrl } from './arenaAudio';
 import { FIGHTERS, FIGHTER_IDS, TROPHY_ROAD, arenaBlock, type ArenaMatchOutcome, type ArenaMatchResult, type ArenaMatchTicket, type ArenaRespawnQuestion, type ArenaStatus, type FighterId } from './arenaModel';
 import './arena.css';
 
@@ -20,6 +21,17 @@ export interface ArenaViewProps {
 type Phase = 'lobby' | 'starting' | 'match' | 'finishing' | 'results';
 interface QuestionState { q: ArenaRespawnQuestion; picked: string | null; correct: boolean | null; secondsLeft: number }
 const QUESTION_SECONDS = 12;
+
+// A fighter's "ready" line when picked in the lobby. The tap is the gesture browsers need for sound.
+let previewAudio: HTMLAudioElement | null = null;
+function previewVoice(id: FighterId, soundOn: boolean) {
+  if (!soundOn || typeof Audio === 'undefined') return;
+  try {
+    previewAudio?.pause();
+    previewAudio = new Audio(voiceFileUrl(`${id}_ready`)); previewAudio.volume = 0.9;
+    void previewAudio.play()?.catch(() => undefined);
+  } catch { /* no audio on this device */ }
+}
 
 const FighterCard: React.FC<{ id: FighterId; power: number; attempts: number; unlocked: boolean; selected: boolean; onPick: () => void }> = ({ id, power, attempts, unlocked, selected, onPick }) => {
   const { t } = useLanguage();
@@ -87,6 +99,7 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
       const engine = engineRef.current;
       if (!q.available || !engine) return;
       engine.paused = true;
+      engine.audio.voice('ann_question', { queue: true });
       setQuestion({ q, picked: null, correct: null, secondsLeft: QUESTION_SECONDS });
       window.clearInterval(questionTimer.current);
       questionTimer.current = window.setInterval(() => {
@@ -226,7 +239,7 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
         <div>
           <h3 className="arena-fighter__role" style={{ marginBottom: 8 }}>{t('Pick your fighter')}</h3>
           <div className="arena-fighters">
-            {fighters.map((f) => <FighterCard key={f.id} id={f.id} power={f.power} attempts={f.attempts} unlocked={f.unlocked} selected={selected === f.id} onPick={() => setSelected(f.id)} />)}
+            {fighters.map((f) => <FighterCard key={f.id} id={f.id} power={f.power} attempts={f.attempts} unlocked={f.unlocked} selected={selected === f.id} onPick={() => { setSelected(f.id); if (f.id !== selected) previewVoice(f.id, sound); }} />)}
           </div>
         </div>
 
