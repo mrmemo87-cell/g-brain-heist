@@ -22,6 +22,26 @@ type Phase = 'lobby' | 'starting' | 'match' | 'finishing' | 'results';
 interface QuestionState { q: ArenaRespawnQuestion; picked: string | null; correct: boolean | null; secondsLeft: number }
 const QUESTION_SECONDS = 12;
 
+// Phones play the arena in landscape. Android can go full screen and lock the orientation; where the
+// browser refuses (iPhone), a phone held upright gets the match turned a quarter turn instead.
+const isTouchDevice = () => typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches;
+const isPortrait = () => typeof window !== 'undefined' && window.innerHeight > window.innerWidth;
+type LockableOrientation = ScreenOrientation & { lock?: (o: string) => Promise<void>; unlock?: () => void };
+function enterLandscape() {
+  if (!isTouchDevice()) return;
+  const el = document.documentElement as HTMLElement & { webkitRequestFullscreen?: () => void };
+  const lock = () => { try { void (screen.orientation as LockableOrientation | undefined)?.lock?.('landscape')?.catch(() => undefined); } catch { /* not supported */ } };
+  try {
+    if (!document.fullscreenElement && el.requestFullscreen) void el.requestFullscreen({ navigationUI: 'hide' }).then(lock, () => undefined);
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    else lock();
+  } catch { lock(); }
+}
+function leaveLandscape() {
+  try { (screen.orientation as LockableOrientation | undefined)?.unlock?.(); } catch { /* not supported */ }
+  try { if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined); } catch { /* not supported */ }
+}
+
 let coinAudio: HTMLAudioElement | null = null;
 function coinTick(soundOn: boolean, rate: number) {
   if (!soundOn || typeof Audio === 'undefined') return;
@@ -91,6 +111,9 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
   const [ticket, setTicket] = useState<ArenaMatchTicket | null>(null);
   const [outcome, setOutcome] = useState<ArenaMatchOutcome | null>(null);
   const [result, setResult] = useState<ArenaMatchResult | null>(null);
+  // The result screen counts rewards up only after the announcer has finished the result call.
+  const [rewardDelay, setRewardDelay] = useState(400);
+  const [sideways, setSideways] = useState(false);
   const [question, setQuestion] = useState<QuestionState | null>(null);
   const [sound, setSound] = useState(readSound);
   const [superReady, setSuperReady] = useState(false);
@@ -120,7 +143,7 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
     firstKo: t('First KO!'), doubleKo: t('Double KO!'), tripleKo: t('Triple KO!'), reactorSecured: t('Reactor secured'), reactorLost: t('Reactor lost'), shielded: t('Shielded!'),
   }), [t]);
 
-  const stopEngine = useCallback(() => { engineRef.current?.destroy(); engineRef.current = null; window.clearInterval(questionTimer.current); }, []);
+  const stopEngine = useCallback(() => { engineRef.current?.destroy(); engineRef.current = null; window.clearInterval(questionTimer.current); leaveLandscape(); }, []);
   useEffect(() => stopEngine, [stopEngine]);
 
   // Knocked out: the match freezes and a question decides how you come back.
@@ -163,6 +186,7 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
     setResult(saved);
     if (saved?.paid && onRewards && (saved.xp || saved.gems)) onRewards({ xp: saved.xp, gems: saved.gems });
     if (!saved) addToast?.(t('The result could not be saved. Check your connection.'), 'error');
+    setRewardDelay(Math.round((engineRef.current?.audio.voiceTimeLeft() ?? 0) * 1000) + 400);
     stopEngine();
     setPhase('results');
     void reload(true);
@@ -170,6 +194,7 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
 
   const startMatch = useCallback(async () => {
     if (phase !== 'lobby' && phase !== 'results') return;
+    enterLandscape(); // inside the tap, which browsers require for full screen
     setPhase('starting'); setResult(null); setOutcome(null); setQuestion(null);
     try {
       const tk = await startArenaMatch(selected);
@@ -193,6 +218,7 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
       onKnockout: () => onKnockout(matchId), onEnd: (o) => { void onEnd(matchId, o); },
     });
     engineRef.current = engine;
+    engine.rotated = isTouchDevice() && isPortrait();
     setDiag(null);
     const poll = window.setInterval(() => { setSuperReady(engine.superReady); setTouch(engine.touchMode); }, 250);
     // If nothing has been drawn after 2 s, say so on screen instead of leaving a black screen, and send what the device sees.
@@ -206,6 +232,14 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
     return () => { window.clearInterval(poll); window.clearTimeout(check); };
     // labels and sound are applied live through the engine; recreating it would restart the match.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, ticket]);
+  // Turn the match sideways while a phone is held upright.
+  useEffect(() => {
+    if (phase !== 'match' && phase !== 'finishing') { setSideways(false); return undefined; }
+    const update = () => { const on = isTouchDevice() && isPortrait(); setSideways(on); if (engineRef.current) engineRef.current.rotated = on; };
+    update();
+    window.addEventListener('resize', update); window.addEventListener('orientationchange', update);
+    return () => { window.removeEventListener('resize', update); window.removeEventListener('orientationchange', update); };
   }, [phase, ticket]);
   useEffect(() => { engineRef.current?.setSound(sound); try { localStorage.setItem(SOUND_KEY, sound ? 'on' : 'off'); } catch { /* no storage */ } }, [sound]);
 
@@ -300,7 +334,7 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
           instead of the screen (the black-screen bug). ModalPortal renders into document.body and locks scroll. */}
       {(phase === 'match' || phase === 'finishing') && ticket && (
         <ModalPortal>
-        <div className="arena-match" role="application" aria-label={t('Proving Grounds')}>
+        <div className={`arena-match${sideways ? ' is-sideways' : ''}`} role="application" aria-label={t('Proving Grounds')}>
           <canvas ref={canvasRef} />
           <button type="button" className="arena-match__quit" onClick={quit}>{t('Quit match')}</button>
           {diag && (
@@ -340,9 +374,9 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
             <div className="arena-results__score"><span className="b">{outcome.scoreMine}</span><span>–</span><span className="r">{outcome.scoreTheirs}</span></div>
             {result && result.paid && (
               <div className="arena-results__rewards">
-                <span className="arena-chip">🏆 <CountUp value={result.trophies_delta} delay={400} sound={sound} /></span>
-                {result.xp > 0 && <span className="arena-chip"><CountUp value={result.xp} delay={1300} sound={sound} suffix=" XP" /></span>}
-                {result.gems > 0 && <span className="arena-chip">💎 <CountUp value={result.gems} delay={2200} sound={sound} /></span>}
+                <span className="arena-chip">🏆 <CountUp value={result.trophies_delta} delay={rewardDelay} sound={sound} /></span>
+                {result.xp > 0 && <span className="arena-chip"><CountUp value={result.xp} delay={rewardDelay + 900} sound={sound} suffix=" XP" /></span>}
+                {result.gems > 0 && <span className="arena-chip">💎 <CountUp value={result.gems} delay={rewardDelay + 1800} sound={sound} /></span>}
                 {outcome.mvp && <span className="arena-chip arena-chip--good">{t('MVP!')}</span>}
                 {result.unlocked.map((id) => <span key={id} className="arena-chip arena-chip--good">{t('Unlocked {name}!', { name: FIGHTERS[id].name })}</span>)}
               </div>

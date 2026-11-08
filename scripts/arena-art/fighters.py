@@ -17,10 +17,12 @@ from mathutils import Matrix, Vector
 
 OUT = sys.argv[1]
 WANT = sys.argv[2:] or ['rivet', 'fizz', 'vex', 'boulder']
-ANIMS = [('idle', 12), ('run', 12), ('attack', 8), ('ko', 10)]
-ANIM_START = {'idle': 1, 'run': 101, 'attack': 201, 'ko': 301}
-RES = 512
-FACING = math.radians(-48)  # turn a little toward the camera so the face shows
+# (name, frames in the loop, which of those frames to render)
+ANIMS = [('idle', 8, range(8)), ('run', 10, range(10)), ('attack', 8, range(2, 8)), ('ko', 10, range(10))]
+DIRS = 8          # 0 = right, then clockwise on screen in 45-degree steps: down-right, down, ... up-right
+RES = 320         # rendered size; frames are downscaled to OUT_PX for clean edges
+OUT_PX = 160
+FACING = 0.0      # set per direction: Blender yaw for a screen angle a is -a
 rad = math.radians
 
 
@@ -70,7 +72,7 @@ def reset_scene():
     ls.select_silhouette = True; ls.select_border = True; ls.select_crease = True; ls.select_external_contour = True
     if ls.linestyle is None:
         ls.linestyle = bpy.data.linestyles.new('Ink')
-    st = ls.linestyle; st.color = (0.09, 0.05, 0.04); st.thickness = 3.4
+    st = ls.linestyle; st.color = (0.09, 0.05, 0.04); st.thickness = 2.2
     return sc
 
 
@@ -337,6 +339,15 @@ def pose(R, anim, i, n):
     for o in (body, head, aF, aB, lF, lB, R['weapon'], R['flash']):
         o.rotation_euler = (0, 0, 0)
     root.location = (0, 0, 0); root.rotation_euler = (0, 0, FACING); root.scale = (1, 1, 1)
+    _pose_body(R, anim, i, n)
+    # Animations move the root forwards or backwards along X; turn that into the fighter's own facing.
+    fwd = root.location.x
+    root.location.x = fwd * math.cos(FACING); root.location.y = fwd * math.sin(FACING)
+
+
+def _pose_body(R, anim, i, n):
+    t = i / n; w = math.tau * t; kind = R['kind']
+    root, body, head, aF, aB, lF, lB = (R[k] for k in ('root', 'body', 'head', 'armF', 'armB', 'legF', 'legB'))
     body.scale = (1, 1, 1); R['flash'].scale = (0.001, 0.001, 0.001)
     hold = R['hold']
     aF.rotation_euler.y = hold; aB.rotation_euler.y = 0.15
@@ -403,7 +414,7 @@ def pose(R, anim, i, n):
         # hit, stagger, topple backwards, bounce, settle
         fall = [0, -6, -10, -25, -50, -78, -88, -84, -88, -88][i]
         root.rotation_euler = (0, rad(fall), FACING)
-        root.location.x = [0, -0.04, -0.06, 0.0, 0.12, 0.26, 0.36, 0.4, 0.42, 0.42][i] + R.get('ko_dx', 0) * min(1, i / 5)
+        root.location.x = [0, -0.04, -0.06, 0.05, 0.22, 0.45, 0.6, 0.66, 0.7, 0.7][i] + R.get('ko_dx', 0) * min(1, i / 5)
         root.location.z = [0, 0.08, 0.12, 0.1, 0.05, 0.02, 0.0, 0.05, 0.0, 0.0][i]
         aF.rotation_euler.y = [hold, 0.6, 1.4, 2.2, 2.6, 2.8, 2.9, 2.7, 2.8, 2.8][i]
         aB.rotation_euler.y = [0.15, 0.8, 1.6, 2.4, 2.7, 2.9, 3.0, 2.8, 2.9, 2.9][i]
@@ -421,32 +432,30 @@ def key_all(R, frame):
 
 
 def render_fighter(name):
+    """Renders every animation from DIRS directions into one sheet per animation: rows = directions, columns = frames."""
+    global FACING
     from PIL import Image
     reset_scene(); _mats.clear()
     R = BUILDERS[name]()
     sc = bpy.context.scene
-    # key every frame first so the .blend keeps the animation
-    for anim, n in ANIMS:
-        for i in range(n):
-            pose(R, anim, i, n); key_all(R, ANIM_START[anim] + i)
-    for act in bpy.data.actions:
-        for fc in act.fcurves:
-            for kp in fc.keyframe_points:
-                kp.interpolation = 'CONSTANT'
-    frames_dir = os.path.join(OUT, 'frames', name); os.makedirs(frames_dir, exist_ok=True)
+    tmp = os.path.join(OUT, 'frames', name); os.makedirs(tmp, exist_ok=True)
     meta = {}
-    for anim, n in ANIMS:
-        strip = Image.new('RGBA', (256 * n, 256), (0, 0, 0, 0))
-        for i in range(n):
-            sc.frame_set(ANIM_START[anim] + i)
-            p = os.path.join(frames_dir, f'{anim}_{i:02d}.png')
-            sc.render.filepath = p
-            bpy.ops.render.render(write_still=True)
-            im = Image.open(p).convert('RGBA').resize((256, 256), Image.LANCZOS)
-            strip.alpha_composite(im, (256 * i, 0))
-            print(f'[{name}] {anim} {i + 1}/{n}', flush=True)
-        strip.save(os.path.join(OUT, f'{name}_{anim}.png'), optimize=True)
-        meta[anim] = n
+    for anim, n, frames in ANIMS:
+        frames = list(frames)
+        sheet = Image.new('RGBA', (OUT_PX * len(frames), OUT_PX * DIRS), (0, 0, 0, 0))
+        for d in range(DIRS):
+            FACING = -d * math.pi / 4
+            for col, i in enumerate(frames):
+                pose(R, anim, i, n)
+                bpy.context.view_layer.update()
+                p = os.path.join(tmp, f'{anim}_{d}_{i:02d}.png')
+                sc.render.filepath = p
+                bpy.ops.render.render(write_still=True)
+                im = Image.open(p).convert('RGBA').resize((OUT_PX, OUT_PX), Image.LANCZOS)
+                sheet.alpha_composite(im, (OUT_PX * col, OUT_PX * d))
+            print(f'[{name}] {anim} direction {d + 1}/{DIRS}', flush=True)
+        sheet.save(os.path.join(OUT, f'{name}_{anim}.png'), optimize=True)
+        meta[anim] = len(frames)
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, f'{name}.blend'))
     return meta
 
@@ -454,7 +463,7 @@ def render_fighter(name):
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
     mp = os.path.join(OUT, 'fighters.json')
-    data = json.load(open(mp)) if os.path.exists(mp) else {'frameSize': 256, 'fps': 12, 'fighters': {}}
+    data = json.load(open(mp)) if os.path.exists(mp) else {'frameSize': OUT_PX, 'directions': DIRS, 'fighters': {}}
     for f in WANT:
         data['fighters'][f] = render_fighter(f)
         json.dump(data, open(mp, 'w'), indent=2)

@@ -1,14 +1,22 @@
-import sys, os
+"""Converts the rendered animation sheets to WebP for the game.
+
+    python3 scripts/arena-art/to_webp.py <render_dir> public/arena/anim rivet fizz vex boulder
+
+Each sheet has one row per direction (8) and one column per frame, already at the final frame size.
+"""
+import os
+import sys
+
 from PIL import Image
+
 src, dst = sys.argv[1], sys.argv[2]
 os.makedirs(dst, exist_ok=True)
-tot = 0
+total = 0
 for f in sys.argv[3:]:
     for a in ('idle', 'run', 'attack', 'ko'):
         im = Image.open(f'{src}/{f}_{a}.png').convert('RGBA')
-        n = im.width // 256
-        im = im.resize((192 * n, 192), Image.LANCZOS)
         out = f'{dst}/{f}_{a}.webp'
-        im.save(out, 'WEBP', quality=78, method=6, alpha_quality=90)
-        tot += os.path.getsize(out); print(f'{f}_{a}', os.path.getsize(out))
-print('total', tot)
+        im.save(out, 'WEBP', quality=76, method=6, alpha_quality=85)
+        total += os.path.getsize(out)
+        print(f'{f}_{a}', im.size, os.path.getsize(out))
+print('total bytes', total)
