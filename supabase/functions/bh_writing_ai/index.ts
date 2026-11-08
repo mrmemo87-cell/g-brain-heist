@@ -130,6 +130,8 @@ type StructuredCompletionRequest = {
   messages: ModelMessage[];
   /** Internal only (never sent to a provider): skip Claude, e.g. to re-run a stage whose Claude output failed validation. */
   force_openai?: boolean;
+  /** Internal only: Claude's time limit for this stage, leaving the rest of the stage budget for the OpenAI fallback. */
+  claude_timeout_ms?: number;
 };
 type StructuredCompletion = {
   id: string | null;
@@ -210,7 +212,7 @@ const extractResponsesText = (body: Record<string, unknown>): string | null => {
 const CLAUDE_FALLBACK_HEADROOM_MS = 20000;
 const CLAUDE_STAGE_TIMEOUT_MS = Number(Deno.env.get("BH_WRITING_CLAUDE_TIMEOUT_MS") ?? "") || 30000;
 const createStructuredCompletion = async (request: StructuredCompletionRequest): Promise<StructuredCompletion> => {
-  const { force_openai: forceOpenAi, ...openAiRequest } = request;
+  const { force_openai: forceOpenAi, claude_timeout_ms: claudeTimeoutMs, ...openAiRequest } = request;
   if (!forceOpenAi && claudeEnabled() && !claudeCircuitOpen()) {
     try {
       const format = request.response_format;
@@ -226,7 +228,7 @@ const createStructuredCompletion = async (request: StructuredCompletionRequest):
         schema: jsonSchema,
         temperature: request.temperature,
         maxTokens: Math.min(request.max_output_tokens ?? 8000, 16000),
-        timeoutMs: CLAUDE_STAGE_TIMEOUT_MS,
+        timeoutMs: claudeTimeoutMs ?? CLAUDE_STAGE_TIMEOUT_MS,
       });
       const content = jsonSchema ? result.text : stripJsonFences(result.text);
       JSON.parse(content); // malformed JSON falls back to OpenAI rather than failing the whole request
@@ -1571,6 +1573,8 @@ serve(async (req) => {
     const primaryStartedAt = Date.now();
     const primaryRequest = (forceOpenAi: boolean): StructuredCompletionRequest => ({
         force_openai: forceOpenAi || undefined,
+        // The full assessment is the longest generation: give Claude most of the stage, keep time for the fallback.
+        claude_timeout_ms: assessmentMode && SINGLE_AUTHORITY_PIPELINE ? 75000 : assessmentMode ? 40000 : undefined,
         model: assessmentMode ? WRITING_ASSESSMENT_MODEL : "gpt-4o-mini",
         reasoning_effort: assessmentMode && SINGLE_AUTHORITY_PIPELINE
           ? WRITING_PRIMARY_REASONING_EFFORT
