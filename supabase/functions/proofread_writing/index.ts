@@ -2,18 +2,20 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.1";
 import OpenAI from "https://esm.sh/openai@4.52.3";
 import { normalizePart2CommunicativeAchievement } from "../../../src/lib/writingCommunicativeAchievement.ts";
+import { claudeEnabled, claudeText, reasonOf } from "../_shared/aiProvider.ts";
 
 // Same pattern as ielts_session - top-level initialization
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const openAiKey = Deno.env.get("OPENAI_API_KEY");
 
-if (!supabaseUrl || !serviceKey || !openAiKey) {
+if (!supabaseUrl || !serviceKey || (!openAiKey && !claudeEnabled())) {
   throw new Error("Missing required environment variables.");
 }
 
 const supabase = createClient(supabaseUrl, serviceKey);
-const openai = new OpenAI({ apiKey: openAiKey });
+// OpenAI is the fallback provider; only created when its key exists.
+const openai = openAiKey ? new OpenAI({ apiKey: openAiKey }) : null;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -190,6 +192,33 @@ INSTRUCTIONS:
 
 Return valid JSON only.`;
 
+      // Claude first (Max plan API credit); the original GPT-4 Turbo request is the fallback.
+      const checked = (parsed: unknown) => {
+        if (!isPart1 && parsed && typeof parsed === "object") {
+          const validation = normalizePart2CommunicativeAchievement(parsed);
+          if (validation.errors.length > 0) {
+            throw new Error(`Invalid Part 2 communicative achievement payload: ${validation.errors.join("; ")}`);
+          }
+        }
+        return parsed;
+      };
+      if (claudeEnabled()) {
+        try {
+          const result = await claudeText({
+            system: systemPrompt + "\nReturn one JSON object only, with no text before or after it.",
+            user: userMessage, maxTokens: 4096, temperature: 0, timeoutMs: 60000,
+          });
+          const raw = result.text.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "");
+          const parsed = checked(JSON.parse(raw));
+          console.log("Claude response received");
+          return parsed;
+        } catch (error) {
+          console.warn(JSON.stringify({ fn: "proofread_writing", stage: "claude", reason: reasonOf(error), fallback: "openai" }));
+          if (!openai) throw new Error("Proofreading is temporarily unavailable");
+        }
+      }
+      if (!openai) throw new Error("Proofreading is temporarily unavailable");
+
       const completion = await openai.chat.completions.create({
         model: "gpt-4-turbo",
         response_format: { type: "json_object" },
@@ -206,16 +235,7 @@ Return valid JSON only.`;
       
       if (!content) throw new Error("No GPT response");
 
-      const parsed = JSON.parse(content);
-
-      if (!isPart1 && parsed && typeof parsed === "object") {
-        const validation = normalizePart2CommunicativeAchievement(parsed);
-        if (validation.errors.length > 0) {
-          throw new Error(`Invalid Part 2 communicative achievement payload: ${validation.errors.join("; ")}`);
-        }
-      }
-
-      return parsed;
+      return checked(JSON.parse(content));
     }
 
     const result: { part1?: unknown; part2?: unknown } = {};

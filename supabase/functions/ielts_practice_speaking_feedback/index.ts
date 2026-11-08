@@ -2,11 +2,15 @@ import { createClient } from 'npm:@supabase/supabase-js@2.78.0';
 import { inspectSpeakingWav } from '../_shared/ieltsSpeakingAudio.ts';
 import {
   SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS,
+  SPEAKING_PRACTICE_TRANSCRIPT_INSTRUCTIONS,
+  speakingPracticeFeedbackSchema,
+  withPronunciationNotAssessed,
   parseSpeakingJson,
   speakingTranscriptionHint,
   validateSpeakingPracticeFeedback,
   type SpeakingPracticeContext,
 } from '../_shared/ieltsPracticeSpeakingFeedback.ts';
+import { claudeValidated, primaryModel, providerTag } from '../_shared/aiProvider.ts';
 
 // Diagnostic Bible 2.1.0 sections 10.3, 10.5-10.6: Brains Heist feedback on the learner's own Speaking PRACTICE.
 // Authorization, limits, task text and the audio path come from rpc_ielts_practice_speaking_feedback_claim; the
@@ -72,7 +76,7 @@ Deno.serve(async (req: Request) => {
   const caller = createClient(url, anon, { global: { headers: { Authorization: auth } }, auth: { persistSession: false, autoRefreshToken: false } });
   const { data: identity, error: authError } = await caller.auth.getUser();
   if (authError || !identity.user) return json(401, { error: 'sign_in_required' });
-  const { data: claim, error: claimError } = await caller.rpc('rpc_ielts_practice_speaking_feedback_claim', { p_attempt: body.attemptId, p_model: model });
+  const { data: claim, error: claimError } = await caller.rpc('rpc_ielts_practice_speaking_feedback_claim', { p_attempt: body.attemptId, p_model: primaryModel(model) });
   if (claimError) {
     const known = ['ai_rate_limit', 'ai_already_working', 'too_short'].find(k => claimError.message.includes(k));
     return json(known === 'too_short' ? 422 : known ? 429 : 403, { error: known ?? 'not_available' });
@@ -94,7 +98,14 @@ Deno.serve(async (req: Request) => {
     // Two passes: write down the words first, then judge with both the transcript and the audio.
     const transcript = await transcribe(bytes, apiKey, speakingTranscriptionHint(task), signal);
     let fields; let providerId: string | null = null;
-    for (let attempt = 0; attempt < 2; attempt++) {
+    // Claude first (Max plan API credit): it marks from the OpenAI transcript only, so pronunciation is
+    // recorded as not assessed (Bible 10.3). The original audio model below is the fallback and can hear it.
+    const claude = await claudeValidated('ielts_practice_speaking_feedback', attempt => ({
+      system: SPEAKING_PRACTICE_TRANSCRIPT_INSTRUCTIONS + (attempt ? '\nThe previous output failed validation. Return only the JSON keys requested, copy every quote exactly from the supplied transcript, keep high = low + 1, and use short simple sentences.' : ''),
+      user: JSON.stringify({ task, transcript }), maxTokens: 2600, schema: speakingPracticeFeedbackSchema, timeoutMs: 40000,
+    }), text => withPronunciationNotAssessed(validateSpeakingPracticeFeedback(parseSpeakingJson(text), { part: context.part, transcript })));
+    if (claude) { fields = claude.value; providerId = claude.tag; }
+    for (let attempt = 0; !fields && attempt < 2; attempt++) {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST', signal, headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -117,7 +128,7 @@ Deno.serve(async (req: Request) => {
       try {
         if (choice?.finish_reason !== 'stop' || choice.message?.refusal || !choice.message?.content) throw new Error('incomplete');
         fields = validateSpeakingPracticeFeedback(parseSpeakingJson(choice.message.content), { part: context.part, transcript });
-        providerId = String(output.id || '');
+        providerId = providerTag('openai', model, String(output.id || ''));
         break;
       } catch { if (attempt > 0) throw new Error('validation_failed'); }
     }
