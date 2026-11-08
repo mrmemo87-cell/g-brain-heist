@@ -85,3 +85,6 @@
 .arena-count { display: inline-block; font-variant-numeric: tabular-nums; }
 .arena-count.is-done { animation: arena-pop 0.35s cubic-bezier(.2,1.8,.4,1); }
 @media (prefers-reduced-motion: reduce) { .arena-question.is-correct, .arena-question.is-wrong, .arena-sparks i, .arena-count.is-done, .arena-question__options button.is-right { animation: none; } }
+
+/* A phone held upright plays the match turned a quarter turn, so the arena is always landscape. */
+.arena-match.is-sideways { inset: auto; top: 0; left: 0; width: 100vh; height: 100vw; width: 100dvh; height: 100dvw; transform-origin: top left; transform: rotate(90deg) translateY(-100%); }

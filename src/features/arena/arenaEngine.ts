@@ -109,37 +109,48 @@ export const arenaSprite = (name: AssetName) => ASSETS[name] ?? null;
 
 /* ---------- Animated fighters: Blender-rendered strips in /arena/anim (the still sprite above is the fallback) ---------- */
 export type AnimName = 'idle' | 'run' | 'attack' | 'ko';
-const ANIM_FRAMES: Record<AnimName, number> = { idle: 12, run: 12, attack: 8, ko: 10 };
-const ANIM_FPS: Record<AnimName, number> = { idle: 10, run: 16, attack: 20, ko: 18 };
+const ANIM_FRAMES: Record<AnimName, number> = { idle: 8, run: 10, attack: 6, ko: 10 };
+const ANIM_FPS: Record<AnimName, number> = { idle: 8, run: 16, attack: 20, ko: 18 };
+/** Each sheet has one row per direction: 0 = right, then clockwise on screen in 45-degree steps. */
+const DIRS = 8;
+const dirOf = (ang: number) => ((Math.round(ang / (Math.PI / 4)) % DIRS) + DIRS) % DIRS;
+const angDiff = (a: number, b: number) => { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
 const KO_SECONDS = ANIM_FRAMES.ko / ANIM_FPS.ko;
 /** Frames are square (the strip's height); the fighter's feet sit this far down each frame. */
 const FEET = 204 / 256;
 const ANIMS: Partial<Record<string, HTMLImageElement>> = {};
-let animsRequested = false;
-/** Starts loading the animation strips once per page, only when a match is created. */
-export function loadArenaAnims(base = '/arena/anim/') {
-  if (animsRequested || typeof Image === 'undefined') return; animsRequested = true;
-  for (const f of FIGHTER_IDS) for (const a of Object.keys(ANIM_FRAMES) as AnimName[]) {
+const animsRequested = new Set<string>();
+function loadFighterAnims(f: FighterId, base: string) {
+  return Promise.all((Object.keys(ANIM_FRAMES) as AnimName[]).map((a) => new Promise<void>((resolve) => {
+    const key = `${f}_${a}`; if (animsRequested.has(key) || typeof Image === 'undefined') { resolve(); return; } animsRequested.add(key);
     const img = new Image(); img.decoding = 'async';
-    img.onload = () => { ANIMS[`${f}_${a}`] = img; };
-    img.onerror = () => undefined;
-    img.src = `${base}${f}_${a}.webp`;
-  }
+    img.onload = () => { ANIMS[key] = img; resolve(); };
+    img.onerror = () => { animsRequested.delete(key); resolve(); };
+    img.src = `${base}${key}.webp`;
+  })));
+}
+/**
+ * Loads the animation sheets when a match is created: the student's own fighter first, then the
+ * fighters in the match one at a time, so a slow connection gets the important one quickly.
+ * Anything not loaded yet is drawn with its still sprite.
+ */
+export function loadArenaAnims(first?: FighterId, others: FighterId[] = FIGHTER_IDS, base = '/arena/anim/') {
+  const order = [...new Set([...(first ? [first] : []), ...others])];
+  void order.reduce<Promise<unknown>>((p, f) => p.then(() => loadFighterAnims(f, base)), Promise.resolve());
 }
 // One small scratch canvas turns any frame white for the hit flash, instead of keeping a white copy of every strip.
 let flashCv: HTMLCanvasElement | null = null;
-function whiteFrame(img: HTMLImageElement, frame: number) {
-  const F = img.height;
+function whiteFrame(img: HTMLImageElement, frame: number, row = 0, F = img.height) {
   if (!flashCv) flashCv = document.createElement('canvas');
   if (flashCv.width !== F) { flashCv.width = F; flashCv.height = F; }
   const x = flashCv.getContext('2d'); if (!x) return null;
   x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, F, F);
-  x.drawImage(img, frame * F, 0, F, F, 0, 0, F, F);
+  x.drawImage(img, frame * F, row * F, F, F, 0, 0, F, F);
   x.globalCompositeOperation = 'source-in'; x.fillStyle = '#fff'; x.fillRect(0, 0, F, F);
   x.globalCompositeOperation = 'source-over';
   return flashCv;
 }
-export interface HeroPose { anim?: AnimName; frame?: number; sq?: number; ox?: number; oy?: number }
+export interface HeroPose { anim?: AnimName; frame?: number; sq?: number; ox?: number; oy?: number; face?: number }
 function tilePattern(ctx: CanvasRenderingContext2D, img: HTMLImageElement, size: number) {
   const c = document.createElement('canvas'); c.width = size; c.height = size;
   const x = c.getContext('2d'); if (!x) return null; x.drawImage(img, 0, 0, size, size);
@@ -227,9 +238,11 @@ interface Unit {
   flash: number; shield: number; dash: number; dvx: number; dvy: number; dashHit: Set<Unit>; reveal: number; kills: number; deaths: number; dmgDealt: number; scoreTime: number; ai: BotBrain;
   // Game feel: knockback velocity, squash spring, shot recoil, lagging health bar, pending super, dust timer.
   kx: number; ky: number; sq: number; sqv: number; recoil: number; ghostHp: number; phase: number; wind: Wind | null; dustT: number; wasMoving: boolean;
+  /** Where the body faces: turns smoothly toward the aim while shooting, otherwise toward where it runs. */
+  face: number;
 }
 interface Wind { ang: number; tx: number; ty: number; t: number; max: number }
-interface Corpse { H: FighterSpec; x: number; y: number; aim: number; r: number; t: number; near: boolean }
+interface Corpse { H: FighterSpec; x: number; y: number; aim: number; face: number; r: number; t: number; near: boolean }
 interface Chunk { x: number; y: number; z: number; vx: number; vy: number; vz: number; rot: number; vr: number; s: number; col: string; life: number }
 interface Swoosh { x: number; y: number; ang: number; r: number; life: number; max: number }
 interface HitArrow { ang: number; life: number }
@@ -273,6 +286,10 @@ export class ArenaEngine {
   readonly audio: ArenaAudio;
   /** While a respawn question is open the match freezes; the clock and the bots wait too. */
   paused = false;
+  private rotatedFlag = false;
+  /** Set by the view when it turns the match a quarter turn so a phone held upright still plays in landscape. */
+  get rotated() { return this.rotatedFlag; }
+  set rotated(on: boolean) { if (on !== this.rotatedFlag) { this.rotatedFlag = on; this.resize(); } }
   // Game feel: hit-stop, slow motion, flashes, shockwaves, callouts, dash ghosts, spawn beams, confetti.
   private timeScale = 1; private slowT = 0; private hitStop = 0; private realNow = 0; private musicDucked = false; private musicStarted = false;
   private flashFx = { a: 0, col: '255,255,255' };
@@ -291,10 +308,11 @@ export class ArenaEngine {
     this.audio.unlock();
     this.audio.prepareFighter(opts.fighter);
     this.audio.voice('ann_intro');
-    loadArenaAssets(); loadArenaAnims();
+    loadArenaAssets();
     try { void document.fonts?.load(`400 20px ${F_DISPLAY}`); } catch { /* fallback fonts are fine */ }
     paintMap();
     this.setup();
+    loadArenaAnims(opts.fighter, this.units.map((u) => u.H.id));
     this.resize();
     window.addEventListener('resize', this.resize);
     window.addEventListener('keydown', this.onKeyDown);
@@ -356,7 +374,7 @@ export class ArenaEngine {
     return { H, team, isPlayer, name, mult: m, maxHp: H.hp * m, hp: H.hp * m, x: sp.x, y: sp.y, spawn: sp, vx: 0, vy: 0, r: 18,
       aim: team ? Math.PI : 0, ammo: 3, fireCd: 0, charge: 0, alive: true, respawn: 0, lastHurt: -9, lastFire: -9, flash: 0,
       shield: 0, dash: 0, dvx: 0, dvy: 0, dashHit: new Set(), reveal: 0, kills: 0, deaths: 0, dmgDealt: 0, scoreTime: 0,
-      kx: 0, ky: 0, sq: 0, sqv: 0, recoil: 0, ghostHp: H.hp * m, phase: Math.random() * 10, wind: null, dustT: 0, wasMoving: false,
+      kx: 0, ky: 0, sq: 0, sqv: 0, recoil: 0, ghostHp: H.hp * m, phase: Math.random() * 10, wind: null, dustT: 0, wasMoving: false, face: team ? Math.PI : 0,
       ai: { target: null, think: 0, strafe: Math.random() < .5 ? 1 : -1, strafeT: 0, react: 0.3, stuckT: 0, lastX: sp.x, lastY: sp.y, detour: 0, wander: null, wanderT: 0 } };
   }
 
@@ -425,8 +443,11 @@ export class ArenaEngine {
     const rect = this.cv.getBoundingClientRect();
     const vv = window.visualViewport;
     this.dpr = Math.min(2, window.devicePixelRatio || 1);
-    this.cw = rect.width > 10 ? rect.width : (vv?.width || window.innerWidth || 360);
-    this.ch = rect.height > 10 ? rect.height : (vv?.height || window.innerHeight || 640);
+    // When the page turns the match sideways (phone held upright), the canvas's own width is the screen's height.
+    const rw = this.rotated ? rect.height : rect.width, rh = this.rotated ? rect.width : rect.height;
+    const vw = this.rotated ? (vv?.height || window.innerHeight) : (vv?.width || window.innerWidth), vh = this.rotated ? (vv?.width || window.innerWidth) : (vv?.height || window.innerHeight);
+    this.cw = rw > 10 ? rw : (vw || 360);
+    this.ch = rh > 10 ? rh : (vh || 640);
     const w = Math.round(this.cw * this.dpr), h = Math.round(this.ch * this.dpr);
     if (this.cv.width !== w) this.cv.width = w; if (this.cv.height !== h) this.cv.height = h;
     this.scale = this.ch > this.cw ? this.cw / 600 : Math.min(this.cw / 950, this.ch / 540);
@@ -441,8 +462,13 @@ export class ArenaEngine {
       inner: [window.innerWidth, window.innerHeight], visual: window.visualViewport ? [Math.round(window.visualViewport.width), Math.round(window.visualViewport.height)] : null,
       touch: this.touchMode, ua: navigator.userAgent.slice(0, 160) };
   }
-  private toWorld(sx: number, sy: number) { const rect = this.cv.getBoundingClientRect(); return { x: (sx - rect.left - this.cw / 2) / this.scale + this.cam.x, y: (sy - rect.top - this.ch / 2) / this.scale + this.cam.y }; }
-  private local(e: PointerEvent) { const rect = this.cv.getBoundingClientRect(); return { x: e.clientX - rect.left, y: e.clientY - rect.top }; }
+  /** Screen point to canvas point, undoing the quarter turn when the match is shown sideways. */
+  private toLocal(cx: number, cy: number) {
+    const rect = this.cv.getBoundingClientRect();
+    return this.rotated ? { x: cy - rect.top, y: rect.right - cx } : { x: cx - rect.left, y: cy - rect.top };
+  }
+  private toWorld(sx: number, sy: number) { const p = this.toLocal(sx, sy); return { x: (p.x - this.cw / 2) / this.scale + this.cam.x, y: (p.y - this.ch / 2) / this.scale + this.cam.y }; }
+  private local(e: PointerEvent) { return this.toLocal(e.clientX, e.clientY); }
   private shake(n: number) { this.cam.shake = Math.max(this.cam.shake, n); }
 
   /* ---------- Input ---------- */
@@ -568,7 +594,7 @@ export class ArenaEngine {
   }
   private knockout(t: Unit, src: Unit | null) {
     t.alive = false; t.hp = 0; t.respawn = 3; t.deaths++; t.dash = 0; t.shield = 0; t.wind = null; t.kx = 0; t.ky = 0;
-    this.corpses.push({ H: t.H, x: t.x, y: t.y, aim: t.aim, r: t.r, t: ANIMS[`${t.H.id}_ko`] ? 0 : KO_SECONDS - 0.001, near: t.isPlayer || this.near(t) });
+    this.corpses.push({ H: t.H, x: t.x, y: t.y, aim: t.aim, face: t.face, r: t.r, t: ANIMS[`${t.H.id}_ko`] ? 0 : KO_SECONDS - 0.001, near: t.isPlayer || this.near(t) });
     this.burst(t.x, t.y, t.H.color, 26, 300); this.burst(t.x, t.y, '#fff3c4', 10, 180);
     if (src) src.kills++;
     this.feed.unshift({ a: src ? src.name : '', ac: src ? (src.team ? '#ff5a4d' : '#46b0ff') : '#fff', b: t.name, bc: t.team ? '#ff5a4d' : '#46b0ff', t: 4, af: src ? src.H.id : null, bf: t.H.id });
@@ -736,6 +762,11 @@ export class ArenaEngine {
         if (moving) { u.dustT -= dt; if (u.dustT <= 0) { u.dustT = 0.16; this.dust(u.x - Math.cos(u.aim) * 6, u.y + u.r * .8, 2, 8); } }
       }
       u.wasMoving = moving;
+      // Turn the body, never snap it: aim while shooting or aiming with the mouse, otherwise face the way you run.
+      const aiming = this.now - u.lastFire < 0.6 || u.wind !== null || (u.isPlayer && ((!this.touchMode && this.mouse.active) || (this.stickR.id !== null && this.stickR.moved)));
+      const want = aiming || !moving ? u.aim : Math.atan2(u.vy, u.vx);
+      const dTurn = angDiff(u.face, want), maxTurn = 13 * dt;
+      u.face += Math.abs(dTurn) <= maxTurn ? dTurn : Math.sign(dTurn) * maxTurn;
     }
     for (let i = 0; i < this.units.length; i++) for (let j = i + 1; j < this.units.length; j++) {
       const a = this.units[i], b = this.units[j]; if (!a.alive || !b.alive) continue;
@@ -833,13 +864,15 @@ export class ArenaEngine {
     const strip = pose?.anim ? ANIMS[`${H.id}_${pose.anim}`] : undefined;
     if (strip && pose?.anim) {
       // Animated strip: frames face right and stand on FEET_Y; squash and stretch around the feet.
-      const S = r * 5.4, n = ANIM_FRAMES[pose.anim], f = ((Math.floor(pose.frame ?? 0) % n) + n) % n, sq = pose.sq ?? 0;
+      // A sheet with one row per direction turns the fighter for real; a single-row strip faces right and is mirrored.
+      const S = r * 5.4, n = ANIM_FRAMES[pose.anim], F = strip.width / n, rows = Math.round(strip.height / F);
+      const f = ((Math.floor(pose.frame ?? 0) % n) + n) % n, sq = pose.sq ?? 0;
+      const row = rows >= DIRS ? dirOf(pose.face ?? aim) : 0;
       c.translate(pose.ox ?? 0, r * .8 + (pose.oy ?? 0));
-      if (Math.cos(aim) < 0) c.scale(-1, 1);
+      if (rows < DIRS && Math.cos(aim) < 0) c.scale(-1, 1);
       c.scale(1 + sq, 1 - sq);
-      const F = strip.height;
-      c.drawImage(strip, f * F, 0, F, F, -S / 2, -S * FEET, S, S);
-      if (flash > 0) { const w = whiteFrame(strip, f); if (w) { const a0 = c.globalAlpha; c.globalAlpha = Math.min(1, flash * 6) * a0; c.drawImage(w, -S / 2, -S * FEET, S, S); c.globalAlpha = a0; } }
+      c.drawImage(strip, f * F, row * F, F, F, -S / 2, -S * FEET, S, S);
+      if (flash > 0) { const w = whiteFrame(strip, f, row, F); if (w) { const a0 = c.globalAlpha; c.globalAlpha = Math.min(1, flash * 6) * a0; c.drawImage(w, -S / 2, -S * FEET, S, S); c.globalAlpha = a0; } }
       c.restore();
       if (shield > 0) { c.save(); c.translate(x, y); c.strokeStyle = 'rgba(255,201,60,.85)'; c.lineWidth = 3; c.beginPath(); c.arc(0, -r * .1, r * 1.7, 0, TAU); c.stroke(); c.fillStyle = 'rgba(255,201,60,.12)'; c.fill(); c.restore(); }
       return;
@@ -889,9 +922,10 @@ export class ArenaEngine {
   private poseOf(u: Unit): HeroPose {
     const el = this.now - u.lastFire, moving = Math.hypot(u.vx, u.vy) > 20;
     const ox = -Math.cos(u.aim) * u.recoil * 5, oy = -Math.sin(u.aim) * u.recoil * 5;
-    if (el >= 0 && el < 0.3) return { anim: 'attack', frame: Math.min(7, 2 + Math.floor(el * ANIM_FPS.attack)), sq: u.sq, ox, oy };
-    if (moving || u.dash > 0) return { anim: 'run', frame: (this.now + u.phase) * ANIM_FPS.run, sq: u.sq, ox, oy };
-    return { anim: 'idle', frame: (this.now + u.phase) * ANIM_FPS.idle, sq: u.sq, ox, oy };
+    const face = u.face;
+    if (el >= 0 && el < 0.3) return { anim: 'attack', frame: Math.min(ANIM_FRAMES.attack - 1, Math.floor(el * ANIM_FPS.attack)), sq: u.sq, ox, oy, face };
+    if (moving || u.dash > 0) return { anim: 'run', frame: (this.now + u.phase) * ANIM_FPS.run, sq: u.sq, ox, oy, face };
+    return { anim: 'idle', frame: (this.now + u.phase) * ANIM_FPS.idle, sq: u.sq, ox, oy, face };
   }
 
   private drawWorld() {
@@ -941,7 +975,7 @@ export class ArenaEngine {
         ctx.fillRect(0, -wd / 2, len * (0.3 + 0.7 * k), wd); ctx.strokeRect(0, -wd / 2, len, wd);
         ctx.beginPath(); ctx.moveTo(len, -wd); ctx.lineTo(len + 26, 0); ctx.lineTo(len, wd); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
     }
-    for (const g of this.ghosts) { ctx.globalAlpha = Math.max(0, g.life / 0.3) * 0.45; ArenaEngine.drawHero(ctx, g.H, g.x, g.y, 18, g.aim, null, 0, 0, 0, false, { anim: 'run', frame: 3 }); }
+    for (const g of this.ghosts) { ctx.globalAlpha = Math.max(0, g.life / 0.3) * 0.45; ArenaEngine.drawHero(ctx, g.H, g.x, g.y, 18, g.aim, null, 0, 0, 0, false, { anim: 'run', frame: 3, face: g.aim }); }
     ctx.globalAlpha = 1;
     for (const f of this.spawnFx) {
       const k = Math.max(0, f.life / 0.7); ctx.globalCompositeOperation = 'lighter';
@@ -951,7 +985,7 @@ export class ArenaEngine {
       ctx.globalCompositeOperation = 'source-over';
     }
     const vis = this.units.filter(u => u.alive && this.canSee(0, u)).sort((a, b) => a.y - b.y);
-    for (const c of this.corpses) if (ANIMS[`${c.H.id}_ko`]) ArenaEngine.drawHero(ctx, c.H, c.x, c.y, c.r, c.aim, null, c.t < 0.1 ? 0.1 : 0, now, 0, false, { anim: 'ko', frame: Math.min(ANIM_FRAMES.ko - 1, c.t * ANIM_FPS.ko) });
+    for (const c of this.corpses) if (ANIMS[`${c.H.id}_ko`]) ArenaEngine.drawHero(ctx, c.H, c.x, c.y, c.r, c.aim, null, c.t < 0.1 ? 0.1 : 0, now, 0, false, { anim: 'ko', frame: Math.min(ANIM_FRAMES.ko - 1, c.t * ANIM_FPS.ko), face: c.face });
     for (const u of vis) ArenaEngine.drawHero(ctx, u.H, u.x, u.y, u.r, u.aim, u.team ? '#ff5a4d' : '#46b0ff', u.flash, now + u.x * .01, u.shield, Math.hypot(u.vx, u.vy) > 20, this.poseOf(u));
     for (const l of this.lobs) {
       const k = l.t / l.dur, x = l.x0 + (l.x1 - l.x0) * k, y = l.y0 + (l.y1 - l.y0) * k, h = Math.sin(k * Math.PI) * 70;

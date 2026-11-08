@@ -157,6 +157,8 @@ export class ArenaAudio {
       const next = this.voiceQueue.shift(); if (next) this.voice(next, { priority: true });
     };
   }
+  /** Seconds until the line now playing (or scheduled) has finished; 0 when quiet. */
+  voiceTimeLeft() { return this.ctx ? Math.max(0, this.voiceEndsAt - this.ctx.currentTime) : 0; }
   /** Drops any waiting lines, e.g. when the match ends. */
   clearVoiceQueue() { this.voiceQueue = []; }
 
@@ -191,7 +193,9 @@ export class ArenaAudio {
 
   destroy() {
     this.clearVoiceQueue(); this.stopMusic(0.3);
+    // Let the last voice line (the result call) finish before the sound shuts down.
+    const keep = Math.max(600, this.voiceTimeLeft() * 1000 + 300);
     const ctx = this.ctx; this.ctx = null; this.master = null; this.musicGain = null;
-    if (ctx) window.setTimeout(() => { void ctx.close().catch(() => undefined); }, 600);
+    if (ctx) window.setTimeout(() => { void ctx.close().catch(() => undefined); }, keep);
   }
 }
