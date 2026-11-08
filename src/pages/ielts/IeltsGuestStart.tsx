@@ -243,21 +243,21 @@ const IeltsGuestStart: React.FC = () => {
         )}
 
         {phase === 'quiz' && (
-          <section className="gs-card" aria-live="polite">
+          <section key={`q${index}`} className="gs-card" aria-live="polite">
             <p className="gs-kicker">{t.warmup}</p>
             {item.kind === 'tfng' && (
               <details className="gs-passage" open>
                 <summary>{t.passage}</summary>
-                <p lang="en">{PASSAGE}</p>
+                <p lang="en" translate="no" className="notranslate">{PASSAGE}</p>
               </details>
             )}
             <h1 className="gs-question">{item.prompt[lang]}</h1>
-            {item.statement && <p className="gs-statement" lang="en">“{item.statement}”</p>}
+            {item.statement && <p key={index} className="gs-statement notranslate" lang="en" translate="no">“{item.statement}”</p>}
             <div className={`gs-options ${item.kind === 'tfng' ? 'gs-options-3' : ''}`}>
               {item.options.map(option => {
                 const state = !picked ? '' : option === item.answer ? 'is-right' : option === picked ? 'is-wrong' : 'is-dim';
                 return (
-                  <button key={option} type="button" className={`gs-option ${state}`} lang="en"
+                  <button key={`${index}-${option}`} type="button" className={`gs-option notranslate ${state}`} lang="en" translate="no"
                     onClick={() => choose(option)} disabled={Boolean(picked)} aria-pressed={picked === option}>
                     {option}
                     {picked && option === item.answer && <span aria-hidden="true"> ✓</span>}
@@ -305,7 +305,7 @@ const IeltsGuestStart: React.FC = () => {
               <>
                 <p className="gs-kicker">{t.lessonOf(card + 1, cards.length)}</p>
                 <div className="gs-progress gs-progress-thin" aria-hidden="true"><span style={{ width: `${((card + 1) / cards.length) * 100}%` }} /></div>
-                <article className={`gs-lesson gs-lesson-${cards[card].kind}`} lang="en">
+                <article key={card} className={`gs-lesson notranslate gs-lesson-${cards[card].kind}`} lang="en" translate="no">
                   {cards[card].title && <h1 className="gs-lesson-title">{cards[card].title}</h1>}
                   {cards[card].body?.split('\n').filter(Boolean).map((p, i) => <p key={i}>{p}</p>)}
                   {cards[card].list && <ul>{cards[card].list!.map((tip, i) => <li key={i}>{tip}</li>)}</ul>}
