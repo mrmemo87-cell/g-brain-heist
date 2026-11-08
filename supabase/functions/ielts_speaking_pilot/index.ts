@@ -1,8 +1,40 @@
 import { createClient } from "npm:@supabase/supabase-js@2.78.0";
 import {
+  checkTranscriptSpeakingDraft,
   inspectSpeakingWav,
   SPEAKING_AI_INSTRUCTIONS,
+  SPEAKING_AI_TRANSCRIPT_INSTRUCTIONS,
+  SPEAKING_AI_TRANSCRIPT_PROMPT_VERSION,
+  speakingAiDraftSchema,
+  type SpeakingSegment,
 } from "../_shared/ieltsSpeakingAudio.ts";
+import { claudeEnabled, claudeText, primaryModel, providerTag, reasonOf } from "../_shared/aiProvider.ts";
+
+// Speech-to-text stays on OpenAI (Claude cannot take audio). whisper-1 returns segment timestamps for the draft.
+const transcribeModel = Deno.env.get("IELTS_PILOT_TRANSCRIBE_MODEL")?.trim() || "whisper-1";
+async function transcribeSegments(bytes: ArrayBuffer, key: string, hint: string): Promise<SpeakingSegment[]> {
+  const form = new FormData();
+  form.append("file", new Blob([bytes], { type: "audio/wav" }), "clip.wav");
+  form.append("model", transcribeModel);
+  form.append("language", "en");
+  form.append("response_format", "verbose_json");
+  form.append("timestamp_granularities[]", "segment");
+  form.append("prompt", hint.slice(0, 400));
+  const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+    method: "POST",
+    signal: AbortSignal.timeout(60000),
+    headers: { Authorization: `Bearer ${key}` },
+    body: form,
+  });
+  if (!response.ok) throw new Error(`transcribe_${response.status}`);
+  const out = await response.json().catch(() => null) as { segments?: Array<{ start?: unknown; end?: unknown; text?: unknown }> } | null;
+  if (!Array.isArray(out?.segments)) throw new Error("transcribe_invalid");
+  return out.segments
+    .filter((s) => typeof s.text === "string" && Number.isFinite(Number(s.start)) && Number.isFinite(Number(s.end)))
+    .map((s) => ({ start: Math.round(Number(s.start) * 10) / 10, end: Math.round(Number(s.end) * 10) / 10, text: String(s.text).trim().slice(0, 600) }))
+    .filter((s) => s.text && s.end > s.start)
+    .slice(0, 400);
+}
 const headers = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -134,7 +166,7 @@ Deno.serve(async (req: Request) => {
     const model = Deno.env.get("IELTS_SPEAKING_DRAFT_MODEL") ?? "gpt-audio-1.5";
     const { data: claim, error: claimError } = await caller.rpc(
       "rpc_ielts_claim_speaking_ai",
-      { p_session_id: body.sessionId, p_model: model },
+      { p_session_id: body.sessionId, p_model: primaryModel(model) },
     );
     if (claimError)
       return reply(
@@ -170,6 +202,7 @@ Deno.serve(async (req: Request) => {
         }),
       },
     ];
+    const clipAudio: Array<{ id: string; part: number; duration_seconds: number; interrupted: boolean; bytes: ArrayBuffer }> = [];
     for (const clip of context.clips) {
       const { data: audio, error } = await admin.storage
         .from("ielts-speaking-pilot")
@@ -179,6 +212,7 @@ Deno.serve(async (req: Request) => {
       inspectSpeakingWav(bytes);
       if ((await sha(bytes)) !== clip.sha256)
         throw new Error("source_mismatch");
+      clipAudio.push({ id: clip.id, part: clip.part, duration_seconds: clip.duration_seconds, interrupted: clip.interrupted, bytes });
       content.push(
         { type: "text", text: `Recording ${clip.id}, Part ${clip.part}.` },
         {
@@ -188,8 +222,52 @@ Deno.serve(async (req: Request) => {
       );
     }
     let fields: any, providerId: string | undefined;
+    // Claude first (Max plan API credit): OpenAI writes timestamped transcripts, Claude drafts from them, and
+    // pronunciation is recorded as not assessed (Bible 10.3). The original audio model below is the fallback.
+    if (claudeEnabled()) {
+      try {
+        const question = JSON.stringify(context.package ?? "").slice(0, 300);
+        const transcripts = await Promise.all(clipAudio.map(async (clip) => ({
+          id: clip.id,
+          part: clip.part,
+          duration_seconds: clip.duration_seconds,
+          interrupted: clip.interrupted,
+          segments: await transcribeSegments(clip.bytes, key, `An IELTS-style speaking interview: a teacher asks questions and a student answers. Write exactly what is said, including mistakes. Task: ${question}`),
+        })));
+        const user = JSON.stringify({ task: context.package, incidents: context.incidents, clips: transcripts });
+        for (let attempt = 0; attempt < 2 && !fields; attempt++) {
+          try {
+            const result = await claudeText({
+              system: SPEAKING_AI_TRANSCRIPT_INSTRUCTIONS + (attempt ? " Your last draft was invalid. Check the JSON fields, segment timestamps and simple wording carefully." : ""),
+              user,
+              maxTokens: 2300,
+              schema: speakingAiDraftSchema,
+              timeoutMs: 45000,
+            });
+            const draft = checkTranscriptSpeakingDraft(JSON.parse(result.text), transcripts);
+            validateSimple(draft);
+            const { error } = await admin.rpc("rpc_ielts_finish_speaking_ai", {
+              p_draft_id: draftId,
+              p_fields: draft,
+              p_provider_id: providerTag("anthropic", result.model, result.id),
+              p_provider_model: `${result.model}+${SPEAKING_AI_TRANSCRIPT_PROMPT_VERSION}`.slice(0, 200),
+            });
+            if (error) throw new Error("db_rejected");
+            fields = draft;
+            providerId = result.id;
+          } catch (e) {
+            why(`claude_attempt_${attempt}`, reasonOf(e));
+            // Only output problems earn a second Claude try; provider/timeout failures go straight to the fallback.
+            const retryable = e instanceof Error && (e.name === "SyntaxError" || /^(invalid_|db_rejected)/.test(e.message));
+            if (!retryable) break;
+          }
+        }
+      } catch (e) {
+        why("claude_transcribe", reasonOf(e));
+      }
+    }
     const signal = AbortSignal.timeout(85000);
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; !fields && attempt < 2; attempt++) {
       const response = await fetch(
         "https://api.openai.com/v1/chat/completions",
         {
@@ -237,7 +315,7 @@ Deno.serve(async (req: Request) => {
         const { error } = await admin.rpc("rpc_ielts_finish_speaking_ai", {
           p_draft_id: draftId,
           p_fields: fields,
-            p_provider_id: result.id,
+            p_provider_id: providerTag("openai", String(result.model ?? model), result.id),
             p_provider_model: result.model,
         });
         if (error) throw new Error("db_rejected: " + error.message);

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.1";
+import { claudeCircuitOpen, claudeEnabled, claudeText, reasonOf, stripJsonFences } from "../_shared/aiProvider.ts";
 import {
   applyCanonicalCorrections,
   excludeRejectedCorrections,
@@ -113,7 +114,7 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const openAiKey = Deno.env.get("OPENAI_API_KEY");
 
-if (!supabaseUrl || !serviceKey || !openAiKey) {
+if (!supabaseUrl || !serviceKey || (!openAiKey && !claudeEnabled())) {
   throw new Error("Missing required environment variables.");
 }
 
@@ -127,12 +128,19 @@ type StructuredCompletionRequest = {
   max_output_tokens?: number;
   temperature?: number;
   messages: ModelMessage[];
+  /** Internal only (never sent to a provider): skip Claude, e.g. to re-run a stage whose Claude output failed validation. */
+  force_openai?: boolean;
+  /** Internal only: Claude's time limit for this stage, leaving the rest of the stage budget for the OpenAI fallback. */
+  claude_timeout_ms?: number;
 };
 type StructuredCompletion = {
   id: string | null;
   choices: Array<{ message: { content: string | null } }>;
   usage: { prompt_tokens: number | null; completion_tokens: number | null; total_tokens: number | null } | null;
   _request_id: string | null;
+  /** Provider and model that actually produced this completion (provenance). */
+  _provider: "anthropic" | "openai";
+  _model: string;
 };
 
 class OpenAiRequestError extends Error {
@@ -199,10 +207,53 @@ const extractResponsesText = (body: Record<string, unknown>): string | null => {
   return null;
 };
 
+// Claude first (Max plan API credit), translated into the same narrow completion
+// shape. Any Claude failure falls back to the original OpenAI request below.
+const CLAUDE_FALLBACK_HEADROOM_MS = 20000;
+const CLAUDE_STAGE_TIMEOUT_MS = Number(Deno.env.get("BH_WRITING_CLAUDE_TIMEOUT_MS") ?? "") || 30000;
+const createStructuredCompletion = async (request: StructuredCompletionRequest): Promise<StructuredCompletion> => {
+  const { force_openai: forceOpenAi, claude_timeout_ms: claudeTimeoutMs, ...openAiRequest } = request;
+  if (!forceOpenAi && claudeEnabled() && !claudeCircuitOpen()) {
+    try {
+      const format = request.response_format;
+      const jsonSchema = format.type === "json_schema" && format.json_schema && typeof format.json_schema === "object"
+        ? (format.json_schema as Record<string, unknown>).schema
+        : undefined;
+      const system = request.messages.filter((m) => m.role === "system").map((m) => m.content).join("\n\n")
+        + (jsonSchema ? "" : "\nReturn one JSON object only, with no text before or after it.");
+      const user = request.messages.filter((m) => m.role !== "system").map((m) => m.content).join("\n\n");
+      const result = await claudeText({
+        system,
+        user,
+        schema: jsonSchema,
+        temperature: request.temperature,
+        maxTokens: Math.min(request.max_output_tokens ?? 8000, 16000),
+        timeoutMs: claudeTimeoutMs ?? CLAUDE_STAGE_TIMEOUT_MS,
+      });
+      const content = jsonSchema ? result.text : stripJsonFences(result.text);
+      JSON.parse(content); // malformed JSON falls back to OpenAI rather than failing the whole request
+      const input = result.usage.input_tokens;
+      const output = result.usage.output_tokens;
+      return {
+        id: result.id || null,
+        choices: [{ message: { content } }],
+        usage: { prompt_tokens: input, completion_tokens: output, total_tokens: input !== null && output !== null ? input + output : null },
+        _request_id: null,
+        _provider: "anthropic",
+        _model: result.model,
+      };
+    } catch (error) {
+      console.warn("[bh_writing_ai] Claude unavailable, using OpenAI fallback", { reason: reasonOf(error) });
+    }
+  }
+  if (!openAiKey) throw new OpenAiRequestError({ status: 503, message: "Claude failed and no OpenAI fallback key is configured." });
+  return await createOpenAiStructuredCompletion(openAiRequest);
+};
+
 // GPT-5.6 is a reasoning model. Use its native Responses API and translate the
 // result into the narrow completion shape consumed by the existing authority
 // pipeline. GPT-4o coaching modes retain Chat Completions for rollback safety.
-const createStructuredCompletion = async (request: StructuredCompletionRequest): Promise<StructuredCompletion> => {
+const createOpenAiStructuredCompletion = async (request: StructuredCompletionRequest): Promise<StructuredCompletion> => {
   const headers = {
     Authorization: `Bearer ${openAiKey}`,
     "content-type": "application/json",
@@ -260,6 +311,8 @@ const createStructuredCompletion = async (request: StructuredCompletionRequest):
           }
         : null,
       _request_id: response.headers.get("x-request-id"),
+      _provider: "openai",
+      _model: request.model,
     };
   }
 
@@ -291,6 +344,8 @@ const createStructuredCompletion = async (request: StructuredCompletionRequest):
         }
       : null,
     _request_id: response.headers.get("x-request-id"),
+    _provider: "openai",
+    _model: request.model,
   };
 };
 
@@ -309,7 +364,9 @@ const json = (status: number, body: unknown) =>
     },
   });
 
-const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, stage: string): Promise<T> => {
+const withTimeout = async <T>(promise: Promise<T>, requestedTimeoutMs: number, stage: string): Promise<T> => {
+  // When Claude is tried first, extend each stage so the OpenAI fallback still has time if Claude fails late.
+  const timeoutMs = requestedTimeoutMs + (claudeEnabled() && !claudeCircuitOpen() ? CLAUDE_FALLBACK_HEADROOM_MS : 0);
   let timer: number | undefined;
   try {
     return await Promise.race([
@@ -1514,8 +1571,10 @@ serve(async (req) => {
       : null;
 
     const primaryStartedAt = Date.now();
-    const completion = await withTimeout(
-      createStructuredCompletion({
+    const primaryRequest = (forceOpenAi: boolean): StructuredCompletionRequest => ({
+        force_openai: forceOpenAi || undefined,
+        // The full assessment is the longest generation: give Claude most of the stage, keep time for the fallback.
+        claude_timeout_ms: assessmentMode && SINGLE_AUTHORITY_PIPELINE ? 75000 : assessmentMode ? 40000 : undefined,
         model: assessmentMode ? WRITING_ASSESSMENT_MODEL : "gpt-4o-mini",
         reasoning_effort: assessmentMode && SINGLE_AUTHORITY_PIPELINE
           ? WRITING_PRIMARY_REASONING_EFFORT
@@ -1535,14 +1594,29 @@ serve(async (req) => {
             content: userPrompt,
           },
         ],
-      }),
-      assessmentMode && SINGLE_AUTHORITY_PIPELINE ? 105000 : 45000,
+      });
+    const primaryBudgetMs = assessmentMode && SINGLE_AUTHORITY_PIPELINE ? 105000 : 45000;
+    let completion = await withTimeout(
+      createStructuredCompletion(primaryRequest(false)),
+      primaryBudgetMs,
       "primary-assessment",
     );
+    let content = completion.choices?.[0]?.message?.content;
+    // A Claude assessment that fails the strict evidence checks is re-run once on the OpenAI fallback
+    // instead of returning an error to the student.
+    if (assessmentMode && completion._provider === "anthropic" && openAiKey
+      && (!content || !normalizeAssessmentV2(JSON.parse(content), payload!))) {
+      console.warn("[bh_writing_ai] Claude assessment failed strict validation; re-running on OpenAI fallback");
+      completion = await withTimeout(
+        createStructuredCompletion(primaryRequest(true)),
+        primaryBudgetMs,
+        "primary-assessment-openai-fallback",
+      );
+      content = completion.choices?.[0]?.message?.content;
+    }
     const primaryDurationMs = Date.now() - primaryStartedAt;
     pipelineTimings.primary_ms = primaryDurationMs;
 
-    const content = completion.choices?.[0]?.message?.content;
     if (!content) {
       return json(502, { error: "No model response" });
     }
@@ -1563,6 +1637,8 @@ serve(async (req) => {
     if (assessmentMode) {
       let authoritative = normalizeAssessmentV2(parsed, payload!);
       if (!authoritative) return json(502, { error: "Assessment evidence failed strict validation" });
+      // Provenance: name the model that actually produced the assessment (Claude or the OpenAI fallback).
+      authoritative.assessment.evaluator_model = completion._model;
       const primaryAuthoritative = JSON.parse(JSON.stringify(authoritative)) as typeof authoritative;
 
       // Canonical v3 separates candidate discovery from the sole adjudicated
@@ -2240,7 +2316,7 @@ serve(async (req) => {
           prompt_definition_hash: authoritative.assessment.prompt_definition.prompt_definition_hash,
           rubric_version: WRITING_RUBRIC_VERSION,
           evaluator_version: WRITING_EVALUATOR_VERSION,
-          evaluator_model: WRITING_ASSESSMENT_MODEL,
+          evaluator_model: completion._model,
           assessment_status: authoritative.assessment.assessment_status,
           total_score: authoritative.assessment.total_score,
           content_score: authoritative.assessment.criteria.content.score,

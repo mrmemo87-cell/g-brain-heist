@@ -50,7 +50,10 @@ export default class ErrorBoundary extends Component<Props, State> {
       if (!alreadyReloaded) {
         sessionStorage.setItem(key, '1');
         this.setState({ autoReloading: true });
-        window.location.reload();
+        // Cache-busting reload, so Safari fetches a fresh page instead of the stale cached one.
+        const url = new URL(window.location.href);
+        url.searchParams.set('v', String(Date.now()));
+        window.location.replace(url.toString());
         return;
       }
       // Already tried once this session — fall through to show UI
@@ -97,8 +100,12 @@ export default class ErrorBoundary extends Component<Props, State> {
               </p>
               <button
                 onClick={() => {
-                  // Force-reload bypassing browser cache
-                  window.location.href = window.location.href;
+                  // Load a fresh copy of the page: Safari can keep reusing a cached page that points at
+                  // code files removed by a newer deploy, so a plain reload shows this screen again.
+                  sessionStorage.removeItem('eb-chunk-reload');
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('v', String(Date.now()));
+                  window.location.replace(url.toString());
                 }}
                 className="w-full py-3 px-6 rounded-xl font-heading text-lg transition-all hover:scale-105"
                 style={{

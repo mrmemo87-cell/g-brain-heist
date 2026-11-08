@@ -205,6 +205,21 @@ const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, label: st
   }
 };
 
+// Same light screen as the inline one in index.html, so IELTS learners never see a blank or "Heist OS" screen.
+const IeltsBootScreen: React.FC = () => {
+  let ru = false;
+  try {
+    const saved = window.localStorage.getItem('bh_ielts_landing_lang');
+    ru = saved === 'ru' || (!saved && /^(ru|ky|kk)/i.test(navigator.language || ''));
+  } catch { ru = false; }
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, background: '#f6f7fb', color: '#1e1b4b' }}>
+      <img src="/logo.png" alt="" width={64} height={64} style={{ borderRadius: 16, background: '#08111f' }} />
+      <div style={{ fontSize: 18, fontWeight: 800 }}>{ru ? 'Блэйз уже ждёт…' : 'Blaze is getting ready…'}</div>
+    </div>
+  );
+};
+
 const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
@@ -223,18 +238,12 @@ const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) 
   }, []);
 
   if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="font-heading text-2xl animate-pulse" style={{ color: 'var(--ion-blue)' }}>
-          Initializing Heist OS...
-        </div>
-      </div>
-    );
+    return <IeltsBootScreen />;
   }
 
   if (!isAuthenticated) {
     return (
-      <Suspense fallback={<BrainsLoader message="Loading..." />}>
+      <Suspense fallback={<IeltsBootScreen />}>
         <IELTSLoginView onAuthenticated={() => setIsAuthenticated(true)} />
       </Suspense>
     );

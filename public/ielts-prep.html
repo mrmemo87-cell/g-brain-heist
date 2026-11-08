@@ -66,6 +66,14 @@
     .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
     .hero-note { margin-top: 14px; font-size: .88rem; color: #a5b4fc; display: flex; flex-wrap: wrap; gap: 6px 16px; }
     .hero-note span::before { content: '✓ '; color: #86efac; font-weight: 900; }
+    /* Phones (almost all ad traffic): the start button sits on the first screen. */
+    @media (max-width: 640px) {
+      .hero { padding: 22px 0 40px; }
+      h1 { font-size: 2rem; margin: 12px 0 10px; }
+      .hero p.lead { font-size: .98rem; margin-bottom: 18px; }
+      .hero-start { width: 100%; justify-content: center; font-size: 1.08rem; padding-top: 16px; padding-bottom: 16px; }
+      .hero-how { display: none; }
+    }
 
     /* Phone mock with animated course */
     .phone { position: relative; justify-self: center; width: min(320px, 86vw); aspect-ratio: 9/18.5; border-radius: 44px; padding: 12px; background: linear-gradient(160deg, #1f2937, #0b1023); box-shadow: 0 40px 80px rgba(0,0,0,.5), inset 0 0 0 2px rgba(255,255,255,.08); transform: rotate(-3deg); animation: phone-float 6s ease-in-out infinite; }
@@ -247,22 +255,24 @@
     <div class="hero">
       <div class="wrap hero-grid">
         <div>
-          <span class="pill">🎓 <span class="ru">Для поступающих в вузы <b>по всему миру</b></span><span class="en">For applicants to universities <b>worldwide</b></span></span>
+          <span class="pill ru">🔥 Первый юнит <b>бесплатно</b> · без карты</span>
+          <span class="pill en">🎓 For applicants to universities <b>worldwide</b></span>
           <h1>
-            <span class="ru">IELTS, к которому <span class="glow">хочется возвращаться</span></span>
+            <span class="ru">IELTS по 15 минут в день. <span class="glow">Не дай Блэйзу погаснуть</span></span>
             <span class="en">IELTS prep you'll <span class="glow">actually stick with</span></span>
           </h1>
           <p class="lead">
-            <span class="ru">Короткие уроки, настоящая практика по всем четырём частям экзамена и мгновенная обратная связь. Каждый день по 10–15 минут — и вы готовитесь без зубрёжки и скуки.</span>
+            <span class="ru">Блэйз живёт в твоём телефоне: короткие уроки по Reading, Listening, Writing и Speaking и разбор твоих ответов по критериям IELTS. Занимаешься каждый день — он горит ярче.</span>
             <span class="en">Short lessons, real practice in all four papers and instant feedback. Ten to fifteen minutes a day, without the boredom.</span>
           </p>
           <div class="hero-cta">
-            <a class="btn btn-primary" data-cta href="/ielts/course"><span class="ru">Начать бесплатно</span><span class="en">Start free</span> <span aria-hidden="true">→</span></a>
-            <a class="btn btn-ghost" href="#how"><span class="ru">Как это работает</span><span class="en">How it works</span></a>
+            <a class="btn btn-primary hero-start" id="hero-start" data-cta href="/ielts/course"><span class="ru">Начать бесплатно — 1 минута</span><span class="en">Start free</span> <span aria-hidden="true">→</span></a>
+            <a class="btn btn-ghost hero-how" href="#how"><span class="ru">Как это работает</span><span class="en">How it works</span></a>
           </div>
           <div class="hero-note">
             <span class="ru">Первый юнит бесплатно</span><span class="en">First unit free</span>
             <span class="ru">Без карты</span><span class="en">No card needed</span>
+            <span class="ru">Оплата MBank в сомах</span>
             <span class="ru">С телефона</span><span class="en">Works on your phone</span>
           </div>
         </div>
@@ -385,7 +395,7 @@
         <div class="plans" style="text-align:left">
           <div class="plan">
             <h3><span class="ru">Месяц</span><span class="en">Monthly</span></h3>
-            <div class="price"><b>$14.50</b><s>$29</s><small class="ru">/ месяц</small><small class="en">/ month</small></div>
+            <div class="price ru"><b>1 250 сом</b><small>/ месяц</small></div><div class="price en"><b>$14.50</b><s>$29</s><small>/ month</small></div>
             <ul>
               <li><span class="ru">Полный доступ к курсу</span><span class="en">Full course access</span></li>
               <li><span class="ru">Отмена в любой момент</span><span class="en">Cancel anytime</span></li>
@@ -396,7 +406,7 @@
           <div class="plan best">
             <span class="badge"><span class="ru">Популярный</span><span class="en">Most popular</span></span>
             <h3><span class="ru">3 месяца</span><span class="en">3 months</span></h3>
-            <div class="price"><b>$34.50</b><s>$69</s><small class="ru">/ 3 месяца</small><small class="en">/ 3 months</small></div>
+            <div class="price ru"><b>2 990 сом</b><small>/ 3 месяца</small></div><div class="price en"><b>$34.50</b><s>$69</s><small>/ 3 months</small></div>
             <ul>
               <li><span class="ru">Лучший срок для подготовки</span><span class="en">The ideal prep window</span></li>
               <li><span class="ru">Весь курс и лексика</span><span class="en">Whole course and vocabulary</span></li>
@@ -406,7 +416,7 @@
           </div>
           <div class="plan">
             <h3><span class="ru">Год</span><span class="en">Yearly</span></h3>
-            <div class="price"><b>$99.50</b><s>$199</s><small class="ru">/ год</small><small class="en">/ year</small></div>
+            <div class="price ru"><b>8 590 сом</b><small>/ год</small></div><div class="price en"><b>$99.50</b><s>$199</s><small>/ year</small></div>
             <ul>
               <li><span class="ru">Максимальная выгода</span><span class="en">Biggest saving</span></li>
               <li><span class="ru">Год полного доступа</span><span class="en">A full year of access</span></li>
@@ -415,7 +425,7 @@
             <a class="btn btn-ghost" data-cta href="/ielts/course"><span class="ru">Попробовать бесплатно</span><span class="en">Try free first</span></a>
           </div>
         </div>
-        <div class="free-strip">🎁 <span class="ru">Сначала пройдите бесплатный юнит — Prime можно купить внутри, когда будете готовы. Оплата картой в долларах США.</span><span class="en">Try the free unit first. You can buy Prime inside the app when you're ready. Card payment in US dollars.</span></div>
+        <div class="free-strip">🎁 <span class="ru">Сначала пройдите бесплатный юнит — Prime можно купить внутри, когда будете готовы. Оплата переводом MBank в сомах или банковской картой.</span><span class="en">Try the free unit first. You can buy Prime inside the app when you're ready. Card payment in US dollars.</span></div>
       </div>
     </section>
 
@@ -430,7 +440,7 @@
           <details><summary><span class="ru">Что можно сделать бесплатно?</span><span class="en">What can I do for free?</span></summary><p><span class="ru">Первый юнит курса и первый урок лексики (6 шагов) полностью бесплатны. Карта не нужна.</span><span class="en">The first course unit and the first vocabulary lesson (six steps) are completely free. No card needed.</span></p></details>
           <details><summary><span class="ru">Это официальный тест IELTS?</span><span class="en">Is this an official IELTS test?</span></summary><p><span class="ru">Нет. Это подготовка к экзамену. Оценки в приложении — ориентир для практики, официальный балл даёт только экзамен IELTS.</span><span class="en">No. This is preparation for the test. Estimates in the app are a guide for practice; only the IELTS test gives an official score.</span></p></details>
           <details><summary><span class="ru">Сколько времени нужно в день?</span><span class="en">How much time a day?</span></summary><p><span class="ru">Достаточно 10–15 минут. Вы сами выбираете ежедневную цель — от лёгкой до интенсивной перед экзаменом.</span><span class="en">Ten to fifteen minutes is enough. You choose your daily goal, from casual to intense in exam week.</span></p></details>
-          <details><summary><span class="ru">Как оплатить и можно ли отменить?</span><span class="en">How do I pay, and can I cancel?</span></summary><p><span class="ru">Оплата банковской картой в долларах США через защищённую платёжную систему Paddle. Помесячную подписку можно отменить в любой момент.</span><span class="en">By bank card in US dollars through Paddle's secure checkout. The monthly plan can be cancelled anytime.</span></p></details>
+          <details><summary><span class="ru">Как оплатить и можно ли отменить?</span><span class="en">How do I pay, and can I cancel?</span></summary><p><span class="ru">Переводом MBank в сомах: вы отправляете перевод, мы подтверждаем его, и Prime открывается. Или банковской картой через защищённую платёжную систему Paddle. Автопродления при оплате через MBank нет, а помесячную подписку по карте можно отменить в любой момент.</span><span class="en">By bank card in US dollars through Paddle's secure checkout. The monthly plan can be cancelled anytime.</span></p></details>
           <details><summary><span class="ru">Работает на телефоне?</span><span class="en">Does it work on my phone?</span></summary><p><span class="ru">Да, всё работает в браузере телефона. Можно добавить Brains Heist на главный экран и получать напоминания.</span><span class="en">Yes, everything works in your phone's browser. You can add Brains Heist to your home screen and get reminders.</span></p></details>
         </div>
       </div>
@@ -509,12 +519,40 @@
       var pass = new URLSearchParams();
       params.forEach(function (v, k) { if (k.indexOf('utm_') === 0 || k === 'ref') pass.set(k, v); });
       pass.set('from', 'landing');
-      document.querySelectorAll('[data-cta]').forEach(function (a) { a.setAttribute('href', '/ielts/course?' + pass.toString()); });
+      document.querySelectorAll('[data-cta]').forEach(function (a) {
+        a.setAttribute('href', '/ielts/course?' + pass.toString());
+        // Funnel step for the growth report: this visitor pressed a "Start" button.
+        a.addEventListener('click', function () {
+          try {
+            var v = localStorage.getItem('bh_site_visitor_id');
+            if (!v || localStorage.getItem('bh_site_member') || !navigator.sendBeacon) return;
+            var u = {};
+            ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].forEach(function (k) { var x = params.get(k); if (x) u[k] = x.slice(0, 120); });
+            navigator.sendBeacon('/api/site-visit', new Blob([JSON.stringify({ visitorId: v, path: '/ielts-prep/start', utm: u,
+              device: /mobi|iphone|android/i.test(navigator.userAgent) ? 'phone' : 'desktop', locale: (navigator.language || '').slice(0, 20) })], { type: 'application/json' }));
+          } catch (e) {}
+        });
+      });
 
       var sticky = document.getElementById('sticky');
       var hero = document.querySelector('.hero');
       if ('IntersectionObserver' in window) {
-        new IntersectionObserver(function (e) { sticky.classList.toggle('show', !e[0].isIntersecting); }).observe(hero);
+        // The bottom button shows whenever the hero's own start button is off screen.
+        new IntersectionObserver(function (e) { sticky.classList.toggle('show', !e[0].isIntersecting); }).observe(document.getElementById('hero-start') || hero);
+        // Funnel: did the visitor read past the first screen?
+        var scrolled = false;
+        window.addEventListener('scroll', function () {
+          if (scrolled || window.scrollY < window.innerHeight * 0.9) return;
+          scrolled = true;
+          try {
+            var v = localStorage.getItem('bh_site_visitor_id');
+            if (!v || localStorage.getItem('bh_site_member') || !navigator.sendBeacon) return;
+            var u = {};
+            ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].forEach(function (k) { var x = params.get(k); if (x) u[k] = x.slice(0, 120); });
+            navigator.sendBeacon('/api/site-visit', new Blob([JSON.stringify({ visitorId: v, path: '/ielts-prep/scrolled', utm: u,
+              device: /mobi|iphone|android/i.test(navigator.userAgent) ? 'phone' : 'desktop', locale: (navigator.language || '').slice(0, 20) })], { type: 'application/json' }));
+          } catch (e) {}
+        }, { passive: true });
         var io = new IntersectionObserver(function (entries) { entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } }); }, { threshold: .12 });
         document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
       } else {

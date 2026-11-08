@@ -53,6 +53,27 @@ export const signup = async ({ email, password, username, fullName }: SignupPayl
   return { requiresVerification };
 };
 
+// Learners in Instagram's in-app browser can't easily open the emailed link in the same browser, so they
+// type the six-digit code from the same email instead; this signs them in right here.
+export const verifySignupCode = async (
+  email: string, code: string, profile: { username: string; fullName?: string },
+): Promise<void> => {
+  const token = code.replace(/\s+/g, '');
+  if (!/^\d{6}$/.test(token)) throw new Error('Enter the six-digit code from your confirmation email.');
+  const { data, error } = await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token, type: 'signup' });
+  if (error) throw new Error(toAuthSafeErrorMessage(error));
+  if (!data.session) throw new Error('This code did not sign you in. Please request a new code.');
+  await ensureIeltsProfile({ username: profile.username, fullName: profile.fullName ?? null });
+};
+
+export const resendSignupCode = async (email: string): Promise<void> => {
+  const emailRedirectTo = getAuthRedirectUrl();
+  const { error } = await supabase.auth.resend({
+    type: 'signup', email: email.trim().toLowerCase(), ...(emailRedirectTo ? { options: { emailRedirectTo } } : {}),
+  });
+  if (error) throw new Error(toAuthSafeErrorMessage(error));
+};
+
 export const logout = async (): Promise<void> => {
   const { error } = await supabase.auth.signOut();
   if (error) {
