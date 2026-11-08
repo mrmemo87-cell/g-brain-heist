@@ -3,6 +3,7 @@
 // auth.getUser() was called without the token, so every signed-in teacher got 401 "Unauthorized".
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { claudeEnabled, claudeText, reasonOf } from "../_shared/aiProvider.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,7 +34,7 @@ serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
     const openAiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
     if (!supabaseUrl || !serviceRoleKey || !anonKey) throw new Error("Server configuration is incomplete");
-    if (!openAiKey) {
+    if (!openAiKey && !claudeEnabled()) {
       return new Response(JSON.stringify({ error: "AI review is not configured" }), { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -113,7 +114,26 @@ serve(async (req) => {
   }
 });
 
+const DRAFT_SYSTEM = "You produce concise rubric-aligned IELTS draft feedback JSON for human reviewers.";
+
+// Claude first (Max plan API credit); OpenAI gpt-4o-mini is the fallback.
 const completeJson = async (openAiKey: string, prompt: string): Promise<Record<string, unknown>> => {
+  if (claudeEnabled()) {
+    try {
+      const result = await claudeText({ system: DRAFT_SYSTEM + " Return one JSON object only, with no text before or after it.", user: prompt, maxTokens: 2000, temperature: 0.2, timeoutMs: 40000 });
+      const raw = result.text.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "");
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return { ...parsed, ai_provider: `anthropic/${result.model}` } as Record<string, unknown>;
+      throw new Error("not_object");
+    } catch (error) {
+      console.warn(JSON.stringify({ fn: "ielts_ai_review_draft", stage: "claude", reason: reasonOf(error), fallback: "openai" }));
+      if (!openAiKey) throw new Error("AI review is temporarily unavailable");
+    }
+  }
+  return { ...(await completeJsonOpenAi(openAiKey, prompt)), ai_provider: "openai/gpt-4o-mini" };
+};
+
+const completeJsonOpenAi = async (openAiKey: string, prompt: string): Promise<Record<string, unknown>> => {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -124,7 +144,7 @@ const completeJson = async (openAiKey: string, prompt: string): Promise<Record<s
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: "You produce concise rubric-aligned IELTS draft feedback JSON for human reviewers." },
+        { role: "system", content: DRAFT_SYSTEM },
         { role: "user", content: prompt },
       ],
       temperature: 0.2,
