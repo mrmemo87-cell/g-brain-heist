@@ -10,6 +10,7 @@ import { useIeltsAudience } from '../../lib/ieltsAudience';
 import {
   cachedIeltsCourseState,
   fetchIeltsCourseState,
+  markIeltsCourseLessonViewed,
   ieltsCourseAccessMessage,
   ieltsCourseTaskKey,
   ieltsCourseUnitLabel,
@@ -20,6 +21,7 @@ import {
   type IeltsCourseUnitSummary,
 } from '../../../services/ieltsCourseService';
 import IeltsSeatRequest from '../../components/ielts/IeltsSeatRequest';
+import { clearIeltsGuestProgress, readIeltsGuestProgress } from '../../../services/ieltsGuestFunnel';
 import { chapterFor, chaptersFor, primarySkill, skillTheme } from './ieltsCourseTheme';
 
 const trackCopy: Record<IeltsCourseTrack, { eyebrow: string; title: string; body: string; unitWord: string }> = {
@@ -121,6 +123,17 @@ const IeltsCoursePath: React.FC = () => {
   const [planOpen, setPlanOpen] = useState(false);
   const firstVisit = Boolean(habit?.exam && !habit.exam.onboarded && audience === 'independent');
   const scrolled = useRef(false);
+
+  // A learner who read the first lesson as a guest (/ielts/start) keeps it: mark it viewed once, then reload the path.
+  useEffect(() => {
+    const guest = readIeltsGuestProgress();
+    if (!guest) return;
+    clearIeltsGuestProgress();
+    if (!guest.lessonDone || !guest.unitId) return;
+    markIeltsCourseLessonViewed(guest.unitId)
+      .then(() => setRetry((n) => n + 1))
+      .catch(() => { /* the learner can still open the lesson themselves */ });
+  }, []);
 
   useEffect(() => {
     let alive = true;
