@@ -22,6 +22,36 @@ type Phase = 'lobby' | 'starting' | 'match' | 'finishing' | 'results';
 interface QuestionState { q: ArenaRespawnQuestion; picked: string | null; correct: boolean | null; secondsLeft: number }
 const QUESTION_SECONDS = 12;
 
+let coinAudio: HTMLAudioElement | null = null;
+function coinTick(soundOn: boolean, rate: number) {
+  if (!soundOn || typeof Audio === 'undefined') return;
+  try {
+    coinAudio = coinAudio ?? new Audio('/arena/sfx/coin.mp3');
+    const a = coinAudio.cloneNode(true) as HTMLAudioElement; a.volume = 0.55; a.playbackRate = rate;
+    void a.play()?.catch(() => undefined);
+  } catch { /* no audio on this device */ }
+}
+
+/** Counts a reward up from zero with a coin tick, so the result screen pays out instead of just printing numbers. */
+const CountUp: React.FC<{ value: number; delay: number; sound: boolean; prefix?: string; suffix?: string }> = ({ value, delay, sound, prefix = '', suffix = '' }) => {
+  const [shown, setShown] = useState(0);
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    const target = Math.abs(value); const sign = value < 0 ? -1 : 1;
+    if (!target) { setShown(0); setDone(true); return undefined; }
+    let step = 0; const steps = Math.min(target, 12); let id = 0;
+    const start = window.setTimeout(() => {
+      id = window.setInterval(() => {
+        step += 1; const v = Math.round(target * step / steps); setShown(sign * v);
+        if (value > 0) coinTick(sound, 1 + step * 0.04);
+        if (step >= steps) { window.clearInterval(id); setDone(true); }
+      }, 70);
+    }, delay);
+    return () => { window.clearTimeout(start); window.clearInterval(id); };
+  }, [value, delay, sound]);
+  return <span className={done ? 'arena-count is-done' : 'arena-count'}>{prefix}{shown >= 0 && value >= 0 ? '+' : ''}{shown}{suffix}</span>;
+};
+
 // A fighter's "ready" line when picked in the lobby. The tap is the gesture browsers need for sound.
 let previewAudio: HTMLAudioElement | null = null;
 function previewVoice(id: FighterId, soundOn: boolean) {
@@ -282,7 +312,8 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
           )}
           {touch && <button type="button" className={`arena-match__super${superReady ? ' is-ready' : ''}`} onPointerDown={(e) => { e.preventDefault(); engineRef.current?.playerSuper(); }} aria-label={t('Super')}>{t('Super').toUpperCase()}</button>}
           {question && (
-            <div className="arena-question" role="dialog" aria-live="polite" lang="en" dir="ltr">
+            <div className={`arena-question${question.correct === true ? ' is-correct' : question.correct === false ? ' is-wrong' : ''}`} role="dialog" aria-live="polite" lang="en" dir="ltr">
+              {question.correct === true && <div className="arena-sparks" aria-hidden="true">{Array.from({ length: 14 }, (_, i) => <i key={i} style={{ '--a': `${i * (360 / 14)}deg`, '--d': `${70 + (i % 3) * 30}px` } as React.CSSProperties} />)}</div>}
               <div className="arena-question__eyebrow">{t('Quick question!')} · {t('{count}s', { count: question.secondsLeft })}</div>
               <p className="arena-question__text">{question.q.text}</p>
               {question.picked === null && <p className="arena-question__stakes">{t('Right: back instantly with a full super and a shield. Wrong: 2 seconds longer.')}</p>}
@@ -309,9 +340,9 @@ const ArenaView: React.FC<ArenaViewProps> = ({ userId, username, onRewards, addT
             <div className="arena-results__score"><span className="b">{outcome.scoreMine}</span><span>–</span><span className="r">{outcome.scoreTheirs}</span></div>
             {result && result.paid && (
               <div className="arena-results__rewards">
-                <span className="arena-chip">🏆 {result.trophies_delta >= 0 ? '+' : ''}{result.trophies_delta}</span>
-                {result.xp > 0 && <span className="arena-chip">+{result.xp} XP</span>}
-                {result.gems > 0 && <span className="arena-chip">💎 +{result.gems}</span>}
+                <span className="arena-chip">🏆 <CountUp value={result.trophies_delta} delay={400} sound={sound} /></span>
+                {result.xp > 0 && <span className="arena-chip"><CountUp value={result.xp} delay={1300} sound={sound} suffix=" XP" /></span>}
+                {result.gems > 0 && <span className="arena-chip">💎 <CountUp value={result.gems} delay={2200} sound={sound} /></span>}
                 {outcome.mvp && <span className="arena-chip arena-chip--good">{t('MVP!')}</span>}
                 {result.unlocked.map((id) => <span key={id} className="arena-chip arena-chip--good">{t('Unlocked {name}!', { name: FIGHTERS[id].name })}</span>)}
               </div>

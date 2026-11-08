@@ -70,3 +70,18 @@
 .arena-results__rewards { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .arena-results__buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 .arena-results__stats { color: #94a3b8; font-size: 0.9rem; }
+
+/* Juice: a correct respawn answer celebrates like a knockout; a wrong one shakes. */
+.arena-question.is-correct { animation: arena-correct 0.45s cubic-bezier(.2,1.6,.4,1); border-color: #7fd34e; box-shadow: 0 0 0 4px rgba(127, 211, 78, 0.35), 0 0 40px rgba(127, 211, 78, 0.45), 0 20px 50px rgba(0, 0, 0, 0.5); }
+.arena-question.is-wrong { animation: arena-wrong 0.4s ease-in-out; border-color: #ff5a4d; }
+.arena-question__options button.is-right { animation: arena-pop 0.35s cubic-bezier(.2,1.8,.4,1); color: #eaffde; }
+@keyframes arena-correct { 0% { transform: translate(-50%, -50%) scale(1); filter: brightness(2.2); } 30% { transform: translate(-50%, -50%) scale(1.06); } 100% { transform: translate(-50%, -50%) scale(1); filter: none; } }
+@keyframes arena-wrong { 0%, 100% { transform: translate(-50%, -50%); } 20% { transform: translate(calc(-50% - 10px), -50%); } 40% { transform: translate(calc(-50% + 8px), -50%); } 60% { transform: translate(calc(-50% - 5px), -50%); } 80% { transform: translate(calc(-50% + 3px), -50%); } }
+@keyframes arena-pop { 0% { transform: scale(1); } 40% { transform: scale(1.12); } 100% { transform: scale(1); } }
+.arena-sparks { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; }
+.arena-sparks i { position: absolute; width: 10px; height: 4px; border-radius: 2px; background: #ffc93c; box-shadow: 0 0 8px #ffc93c; transform: rotate(var(--a)) translateX(0); animation: arena-spark 0.6s ease-out forwards; }
+.arena-sparks i:nth-child(3n) { background: #7fd34e; box-shadow: 0 0 8px #7fd34e; }
+@keyframes arena-spark { from { opacity: 1; transform: rotate(var(--a)) translateX(40px); } to { opacity: 0; transform: rotate(var(--a)) translateX(calc(var(--d) + 200px)); } }
+.arena-count { display: inline-block; font-variant-numeric: tabular-nums; }
+.arena-count.is-done { animation: arena-pop 0.35s cubic-bezier(.2,1.8,.4,1); }
+@media (prefers-reduced-motion: reduce) { .arena-question.is-correct, .arena-question.is-wrong, .arena-sparks i, .arena-count.is-done, .arena-question__options button.is-right { animation: none; } }

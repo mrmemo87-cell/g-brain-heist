@@ -4,10 +4,12 @@
 
 export type SfxName =
   | 'shot_rivet' | 'shot_fizz' | 'shot_vex' | 'shot_boulder' | 'hit' | 'splash' | 'ko' | 'super' | 'super_rail' | 'super_cloud'
-  | 'super_dash' | 'super_shell' | 'capture' | 'tick' | 'countdown' | 'go' | 'correct' | 'wrong' | 'respawn' | 'victory' | 'defeat' | 'heal' | 'bush';
+  | 'super_dash' | 'super_shell' | 'capture' | 'tick' | 'countdown' | 'go' | 'correct' | 'wrong' | 'respawn' | 'victory' | 'defeat' | 'heal' | 'bush'
+  | 'heartbeat' | 'swoosh' | 'pop' | 'coin';
 
 const SFX_NAMES: SfxName[] = ['shot_rivet', 'shot_fizz', 'shot_vex', 'shot_boulder', 'hit', 'splash', 'ko', 'super', 'super_rail', 'super_cloud',
-  'super_dash', 'super_shell', 'capture', 'tick', 'countdown', 'go', 'correct', 'wrong', 'respawn', 'victory', 'defeat', 'heal', 'bush'];
+  'super_dash', 'super_shell', 'capture', 'tick', 'countdown', 'go', 'correct', 'wrong', 'respawn', 'victory', 'defeat', 'heal', 'bush',
+  'heartbeat', 'swoosh', 'pop', 'coin'];
 const MUSIC = 'music_battle';
 
 // Voice lines: an announcer plus four short lines per fighter. They live in /arena/sfx/voice and have
@@ -28,6 +30,7 @@ const FALLBACK: Record<SfxName, [number, number, OscillatorType, number, number?
   capture: [440, .5, 'triangle', .04, 2], tick: [880, .06, 'triangle', .03], countdown: [660, .1, 'square', .04], go: [990, .3, 'square', .05, 1.5],
   correct: [784, .3, 'triangle', .05, 1.5], wrong: [220, .3, 'square', .04, .7], respawn: [400, .4, 'triangle', .04, 3], victory: [523, .6, 'square', .05, 2],
   defeat: [392, .6, 'triangle', .05, .5], heal: [1046, .3, 'triangle', .03, 1.3], bush: [600, .08, 'triangle', .02, .7],
+  heartbeat: [60, .18, 'sine', .08, .7], swoosh: [700, .16, 'sawtooth', .02, .3], pop: [380, .18, 'square', .05, 2.2], coin: [1320, .09, 'square', .025, 1.4],
 };
 
 const fetched = new Map<string, Promise<ArrayBuffer | null>>();
@@ -166,6 +169,11 @@ export class ArenaAudio {
     this.musicSource = s;
     this.musicGain.gain.setValueAtTime(0, this.ctx.currentTime);
     this.musicGain.gain.linearRampToValueAtTime(0.32, this.ctx.currentTime + 1.5);
+  }
+  /** Speeds the battle loop up a little for the final seconds; 1 is normal. */
+  setMusicRate(rate: number) {
+    if (!this.ctx || !this.musicSource) return;
+    this.musicSource.playbackRate.setTargetAtTime(rate, this.ctx.currentTime, 0.4);
   }
   /** Lower the music under a question or a result screen. */
   duckMusic(down: boolean) {
