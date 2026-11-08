@@ -266,7 +266,7 @@
             <span class="en">Short lessons, real practice in all four papers and instant feedback. Ten to fifteen minutes a day, without the boredom.</span>
           </p>
           <div class="hero-cta">
-            <a class="btn btn-primary hero-start" id="hero-start" data-cta href="/ielts/course"><span class="ru">Начать бесплатно — 1 минута</span><span class="en">Start free</span> <span aria-hidden="true">→</span></a>
+            <a class="btn btn-primary hero-start" id="hero-start" data-cta href="/ielts/start"><span class="ru">Начать бесплатно — 1 минута</span><span class="en">Start free</span> <span aria-hidden="true">→</span></a>
             <a class="btn btn-ghost hero-how" href="#how"><span class="ru">Как это работает</span><span class="en">How it works</span></a>
           </div>
           <div class="hero-note">
@@ -401,7 +401,7 @@
               <li><span class="ru">Отмена в любой момент</span><span class="en">Cancel anytime</span></li>
               <li><span class="ru">Для короткого рывка</span><span class="en">For a short sprint</span></li>
             </ul>
-            <a class="btn btn-ghost" data-cta href="/ielts/course"><span class="ru">Попробовать бесплатно</span><span class="en">Try free first</span></a>
+            <a class="btn btn-ghost" data-cta href="/ielts/start"><span class="ru">Попробовать бесплатно</span><span class="en">Try free first</span></a>
           </div>
           <div class="plan best">
             <span class="badge"><span class="ru">Популярный</span><span class="en">Most popular</span></span>
@@ -412,7 +412,7 @@
               <li><span class="ru">Весь курс и лексика</span><span class="en">Whole course and vocabulary</span></li>
               <li><span class="ru">Выгоднее, чем помесячно</span><span class="en">Cheaper than monthly</span></li>
             </ul>
-            <a class="btn btn-primary" data-cta href="/ielts/course"><span class="ru">Начать бесплатно</span><span class="en">Start free</span></a>
+            <a class="btn btn-primary" data-cta href="/ielts/start"><span class="ru">Начать бесплатно</span><span class="en">Start free</span></a>
           </div>
           <div class="plan">
             <h3><span class="ru">Год</span><span class="en">Yearly</span></h3>
@@ -422,7 +422,7 @@
               <li><span class="ru">Год полного доступа</span><span class="en">A full year of access</span></li>
               <li><span class="ru">Для долгой подготовки</span><span class="en">For long-term prep</span></li>
             </ul>
-            <a class="btn btn-ghost" data-cta href="/ielts/course"><span class="ru">Попробовать бесплатно</span><span class="en">Try free first</span></a>
+            <a class="btn btn-ghost" data-cta href="/ielts/start"><span class="ru">Попробовать бесплатно</span><span class="en">Try free first</span></a>
           </div>
         </div>
         <div class="free-strip">🎁 <span class="ru">Сначала пройдите бесплатный юнит — Prime можно купить внутри, когда будете готовы. Оплата переводом MBank в сомах или банковской картой.</span><span class="en">Try the free unit first. You can buy Prime inside the app when you're ready. Card payment in US dollars.</span></div>
@@ -450,7 +450,7 @@
       <div class="blaze-wrap"><svg class="blaze-jump" width="120" height="120" aria-hidden="true"><use href="#blaze"/></svg></div>
       <h2><span class="ru">Ваш первый день начинается сегодня</span><span class="en">Your first day starts today</span></h2>
       <p><span class="ru">10 минут — и у вас уже есть первая серия. Блейз ждёт.</span><span class="en">Ten minutes and your first streak has begun. Blaze is waiting.</span></p>
-      <a class="btn btn-primary" data-cta href="/ielts/course"><span class="ru">Начать бесплатно</span><span class="en">Start free</span> <span aria-hidden="true">→</span></a>
+      <a class="btn btn-primary" data-cta href="/ielts/start"><span class="ru">Начать бесплатно</span><span class="en">Start free</span> <span aria-hidden="true">→</span></a>
     </div>
   </main>
 
@@ -466,7 +466,7 @@
     </div>
   </footer>
 
-  <div class="sticky-cta" id="sticky"><a class="btn btn-primary" data-cta href="/ielts/course"><span class="ru">Начать бесплатно</span><span class="en">Start free</span> →</a></div>
+  <div class="sticky-cta" id="sticky"><a class="btn btn-primary" data-cta href="/ielts/start"><span class="ru">Начать бесплатно</span><span class="en">Start free</span> →</a></div>
 
   <script>
     (function () {
@@ -520,9 +520,10 @@
       params.forEach(function (v, k) { if (k.indexOf('utm_') === 0 || k === 'ref') pass.set(k, v); });
       pass.set('from', 'landing');
       document.querySelectorAll('[data-cta]').forEach(function (a) {
-        a.setAttribute('href', '/ielts/course?' + pass.toString());
+        // Sign-in goes straight to the course; every start button goes to the one-minute warm-up.
+        a.setAttribute('href', (a.classList.contains('login') ? '/ielts/course?' : '/ielts/start?') + pass.toString());
         // Funnel step for the growth report: this visitor pressed a "Start" button.
-        a.addEventListener('click', function () {
+        if (!a.classList.contains('login')) a.addEventListener('click', function () {
           try {
             var v = localStorage.getItem('bh_site_visitor_id');
             if (!v || localStorage.getItem('bh_site_member') || !navigator.sendBeacon) return;

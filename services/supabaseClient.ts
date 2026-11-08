@@ -12,6 +12,9 @@ const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY') ?? '';
  *  error screen instead of attempting network requests. */
 export const isMissingSupabaseConfig = !supabaseUrl || !supabaseAnonKey;
 
+/** Public project URL and anon key, for public endpoints that must not wait on the signed-in session. */
+export const publicSupabaseConfig = { url: supabaseUrl, anonKey: supabaseAnonKey };
+
 if (isMissingSupabaseConfig) {
   console.error(
     '[supabaseClient] Missing required environment variables: ' +
