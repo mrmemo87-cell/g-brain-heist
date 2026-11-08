@@ -106,6 +106,40 @@ export function loadArenaAssets(base = '/arena/') {
   }
 }
 export const arenaSprite = (name: AssetName) => ASSETS[name] ?? null;
+
+/* ---------- Animated fighters: Blender-rendered strips in /arena/anim (the still sprite above is the fallback) ---------- */
+export type AnimName = 'idle' | 'run' | 'attack' | 'ko';
+const ANIM_FRAMES: Record<AnimName, number> = { idle: 12, run: 12, attack: 8, ko: 10 };
+const ANIM_FPS: Record<AnimName, number> = { idle: 10, run: 16, attack: 20, ko: 18 };
+const KO_SECONDS = ANIM_FRAMES.ko / ANIM_FPS.ko;
+/** Frames are square (the strip's height); the fighter's feet sit this far down each frame. */
+const FEET = 204 / 256;
+const ANIMS: Partial<Record<string, HTMLImageElement>> = {};
+let animsRequested = false;
+/** Starts loading the animation strips once per page, only when a match is created. */
+export function loadArenaAnims(base = '/arena/anim/') {
+  if (animsRequested || typeof Image === 'undefined') return; animsRequested = true;
+  for (const f of FIGHTER_IDS) for (const a of Object.keys(ANIM_FRAMES) as AnimName[]) {
+    const img = new Image(); img.decoding = 'async';
+    img.onload = () => { ANIMS[`${f}_${a}`] = img; };
+    img.onerror = () => undefined;
+    img.src = `${base}${f}_${a}.webp`;
+  }
+}
+// One small scratch canvas turns any frame white for the hit flash, instead of keeping a white copy of every strip.
+let flashCv: HTMLCanvasElement | null = null;
+function whiteFrame(img: HTMLImageElement, frame: number) {
+  const F = img.height;
+  if (!flashCv) flashCv = document.createElement('canvas');
+  if (flashCv.width !== F) { flashCv.width = F; flashCv.height = F; }
+  const x = flashCv.getContext('2d'); if (!x) return null;
+  x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, F, F);
+  x.drawImage(img, frame * F, 0, F, F, 0, 0, F, F);
+  x.globalCompositeOperation = 'source-in'; x.fillStyle = '#fff'; x.fillRect(0, 0, F, F);
+  x.globalCompositeOperation = 'source-over';
+  return flashCv;
+}
+export interface HeroPose { anim?: AnimName; frame?: number; sq?: number; ox?: number; oy?: number }
 function tilePattern(ctx: CanvasRenderingContext2D, img: HTMLImageElement, size: number) {
   const c = document.createElement('canvas'); c.width = size; c.height = size;
   const x = c.getContext('2d'); if (!x) return null; x.drawImage(img, 0, 0, size, size);
@@ -191,12 +225,19 @@ interface Unit {
   H: FighterSpec; team: 0 | 1; isPlayer: boolean; name: string; mult: number; maxHp: number; hp: number; x: number; y: number; spawn: { x: number; y: number };
   vx: number; vy: number; r: number; aim: number; ammo: number; fireCd: number; charge: number; alive: boolean; respawn: number; lastHurt: number; lastFire: number;
   flash: number; shield: number; dash: number; dvx: number; dvy: number; dashHit: Set<Unit>; reveal: number; kills: number; deaths: number; dmgDealt: number; scoreTime: number; ai: BotBrain;
+  // Game feel: knockback velocity, squash spring, shot recoil, lagging health bar, pending super, dust timer.
+  kx: number; ky: number; sq: number; sqv: number; recoil: number; ghostHp: number; phase: number; wind: Wind | null; dustT: number; wasMoving: boolean;
 }
+interface Wind { ang: number; tx: number; ty: number; t: number; max: number }
+interface Corpse { H: FighterSpec; x: number; y: number; aim: number; r: number; t: number; near: boolean }
+interface Chunk { x: number; y: number; z: number; vx: number; vy: number; vz: number; rot: number; vr: number; s: number; col: string; life: number }
+interface Swoosh { x: number; y: number; ang: number; r: number; life: number; max: number }
+interface HitArrow { ang: number; life: number }
 interface Bullet { x: number; y: number; vx: number; vy: number; team: 0 | 1; owner: Unit; dmg: number; range: number; trav: number; r: number; kind: string; dead?: boolean }
 interface Lob { x0: number; y0: number; x1: number; y1: number; t: number; dur: number; owner: Unit; team: 0 | 1; dmg: number; rad: number; dead?: boolean }
 interface Cloud { x: number; y: number; r: number; t: number; team: 0 | 1; owner: Unit; tick: number }
 interface Beam { x0: number; y0: number; x1: number; y1: number; t: number; team: 0 | 1 }
-interface Particle { x: number; y: number; vx: number; vy: number; life: number; max: number; col: string; size: number }
+interface Particle { x: number; y: number; vx: number; vy: number; life: number; max: number; col: string; size: number; streak?: boolean; grow?: number }
 interface FloatText { x: number; y: number; txt: string | number; life: number; col: string; big: boolean }
 interface FeedItem { a: string; ac: string; b: string; bc: string; t: number; af: FighterId | null; bf: FighterId }
 interface Ring { x: number; y: number; r: number; max: number; life: number; maxLife: number; col: string; width: number }
@@ -236,6 +277,8 @@ export class ArenaEngine {
   private timeScale = 1; private slowT = 0; private hitStop = 0; private realNow = 0; private musicDucked = false; private musicStarted = false;
   private flashFx = { a: 0, col: '255,255,255' };
   private rings: Ring[] = []; private callouts: Callout[] = []; private ghosts: Ghost[] = []; private spawnFx: SpawnFx[] = []; private confetti: Confetti[] = [];
+  private corpses: Corpse[] = []; private chunks: Chunk[] = []; private swooshes: Swoosh[] = []; private hitArrows: HitArrow[] = [];
+  private kick = { x: 0, y: 0 }; private lastStop = -9; private lastHitSfx = -9; private lastBuzz = -9; private combo = 0; private comboT = -9; private heartT = 0; private finalTen = false; private lastClockTick = 99;
   private killTimes: number[] = []; private firstKoDone = false; private playerWasInBush = false; private lastHealFx = 0; private lastCountdown = 99; private ghostT = 0;
   /** Frames drawn so far and the last error seen in the loop, for device diagnostics. */
   frames = 0; lastError: string | null = null;
@@ -248,7 +291,7 @@ export class ArenaEngine {
     this.audio.unlock();
     this.audio.prepareFighter(opts.fighter);
     this.audio.voice('ann_intro');
-    loadArenaAssets();
+    loadArenaAssets(); loadArenaAnims();
     try { void document.fonts?.load(`400 20px ${F_DISPLAY}`); } catch { /* fallback fonts are fine */ }
     paintMap();
     this.setup();
@@ -313,6 +356,7 @@ export class ArenaEngine {
     return { H, team, isPlayer, name, mult: m, maxHp: H.hp * m, hp: H.hp * m, x: sp.x, y: sp.y, spawn: sp, vx: 0, vy: 0, r: 18,
       aim: team ? Math.PI : 0, ammo: 3, fireCd: 0, charge: 0, alive: true, respawn: 0, lastHurt: -9, lastFire: -9, flash: 0,
       shield: 0, dash: 0, dvx: 0, dvy: 0, dashHit: new Set(), reveal: 0, kills: 0, deaths: 0, dmgDealt: 0, scoreTime: 0,
+      kx: 0, ky: 0, sq: 0, sqv: 0, recoil: 0, ghostHp: H.hp * m, phase: Math.random() * 10, wind: null, dustT: 0, wasMoving: false,
       ai: { target: null, think: 0, strafe: Math.random() < .5 ? 1 : -1, strafeT: 0, react: 0.3, stuckT: 0, lastX: sp.x, lastY: sp.y, detour: 0, wander: null, wanderT: 0 } };
   }
 
@@ -336,6 +380,30 @@ export class ArenaEngine {
   /* ---------- Effects ---------- */
   private ring(x: number, y: number, max: number, col: string, life = 0.45, width = 6) { this.rings.push({ x, y, r: 6, max, life, maxLife: life, col, width }); }
   private callout(text: string, col = '#ffc93c', sub?: string, max = 1.6) { this.callouts = this.callouts.filter((c) => c.text !== text).slice(-2); this.callouts.push({ text, sub, life: max, max, col }); }
+  /** A small push of the camera in one direction (recoil, incoming hit), on top of the random shake. */
+  private kickCam(ang: number, amt: number) { this.kick.x += Math.cos(ang) * amt; this.kick.y += Math.sin(ang) * amt; }
+  /** Phone vibration where the browser supports it (Android); iPhones ignore it. */
+  private buzz(pattern: number | number[]) {
+    if (!this.touchMode || this.realNow - this.lastBuzz < 0.08) return; this.lastBuzz = this.realNow;
+    try { navigator.vibrate?.(pattern); } catch { /* not allowed */ }
+  }
+  /** Sparks that spray away from a hit, along the direction of the shot. */
+  private burstDir(x: number, y: number, ang: number, col: string, n: number, sp: number, cone: number) {
+    for (let i = 0; i < n; i++) { const a = ang + (Math.random() - .5) * cone, s = sp * (.45 + Math.random() * .55);
+      this.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: .18 + Math.random() * .18, max: .36, col, size: 2 + Math.random() * 2, streak: true }); }
+  }
+  private dust(x: number, y: number, n: number, spread = 14) {
+    for (let i = 0; i < n; i++) this.parts.push({ x: x + (Math.random() - .5) * spread, y: y + (Math.random() - .5) * 6, vx: (Math.random() - .5) * 50, vy: -10 - Math.random() * 25, life: .45, max: .45, col: 'rgba(214,192,150,.7)', size: 3 + Math.random() * 3, grow: 10 });
+  }
+  /** A knocked-out fighter bursts like a balloon: chunky pieces in its own colours. */
+  private popChunks(c: Corpse) {
+    const cols = [c.H.color, c.H.color, c.H.dark, '#fff3c4'];
+    for (let i = 0; i < 16; i++) { const a = Math.random() * TAU, s = 90 + Math.random() * 220;
+      this.chunks.push({ x: c.x, y: c.y, z: 18 + Math.random() * 14, vx: Math.cos(a) * s, vy: Math.sin(a) * s * .6, vz: 160 + Math.random() * 260, rot: Math.random() * TAU, vr: (Math.random() - .5) * 18, s: 4 + Math.random() * 6, col: cols[i % cols.length], life: 1.1 + Math.random() * .5 }); }
+    this.burst(c.x, c.y - 10, '#ffc93c', 10, 260);
+    this.ring(c.x, c.y, 70, 'rgba(255,243,196,.9)', 0.3, 5);
+    if (c.near) { this.sfx('pop', { vol: 0.75, rate: 0.9 + Math.random() * 0.2 }); this.floats.push({ x: c.x, y: c.y - 40, txt: 'POP!', life: .8, col: '#ffc93c', big: true }); }
+  }
   private flash(col: string, a: number) { this.flashFx = { col, a: Math.max(this.flashFx.a, a) }; }
   private updateFx(real: number) {
     for (const r of this.rings) { r.life -= real; r.r = r.max * (1 - Math.pow(Math.max(0, r.life / r.maxLife), 2)); }
@@ -442,7 +510,21 @@ export class ArenaEngine {
       this.lobs.push({ x0: u.x, y0: u.y, x1: u.x + dx, y1: u.y + dy, t: 0, dur: 0.5, owner: u, team: u.team, dmg: H.dmg * u.mult, rad: H.splash || 70 });
     }
     if (u.isPlayer || this.near(u)) this.shotSfx(H.id);
+    u.recoil = 1; u.sq = -0.08;
+    // Close-range fighters swing: a bright arc in front of them.
+    if (H.attack === 'spread' && H.range < 350) {
+      this.swooshes.push({ x: u.x, y: u.y, ang, r: Math.min(80, H.range * 0.32), life: .16, max: .16 });
+      if (u.isPlayer || this.near(u)) this.sfx('swoosh', { vol: 0.45, rate: 0.9 + Math.random() * 0.25 });
+    }
+    if (u.isPlayer) this.kickCam(ang + Math.PI, 3);
     return true;
+  }
+  /** Bots announce a super half a second ahead with a marker on the ground, so being hit by one feels fair. */
+  private windSuper(u: Unit, ang: number, tx: number, ty: number) {
+    if (u.wind || !u.alive || u.charge < 1) return;
+    if (u.H.sup === 'fortify') { this.useSuper(u, ang, tx, ty); return; }
+    u.wind = { ang, tx, ty, t: 0.5, max: 0.5 };
+    if (u.team !== this.player.team && this.near(u)) this.sfx('tick', { vol: 0.5, rate: 1.7 });
   }
   private useSuper(u: Unit, ang: number, tx: number, ty: number) {
     if (!u.alive || u.charge < 1 || u.dash > 0) return false;
@@ -453,7 +535,7 @@ export class ArenaEngine {
     else if (H.sup === 'rail') {
       let ex = u.x, ey = u.y; const cx = Math.cos(ang), cy = Math.sin(ang);
       for (let s = 0; s < 760; s += 8) { const nx = u.x + cx * s, ny = u.y + cy * s; if (blocksShot(tileAt(nx, ny))) break; ex = nx; ey = ny; }
-      for (const e of this.units) if (e.alive && e.team !== u.team && distToSeg(e.x, e.y, u.x, u.y, ex, ey) < e.r + 14) this.hurt(e, 2200 * u.mult, u, true);
+      for (const e of this.units) if (e.alive && e.team !== u.team && distToSeg(e.x, e.y, u.x, u.y, ex, ey) < e.r + 14 + (u.isPlayer ? 8 : 0) - (e.isPlayer ? 5 : 0)) this.hurt(e, 2200 * u.mult, u, true);
       this.beams.push({ x0: u.x, y0: u.y, x1: ex, y1: ey, t: .35, team: u.team }); if (this.near(u)) this.shake(5);
     } else { u.shield = 4; u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.25); this.burst(u.x, u.y, '#ffc93c', 18, 220); }
     const sfxName: SfxName = H.sup === 'dash' ? 'super_dash' : H.sup === 'cloud' ? 'super_cloud' : H.sup === 'rail' ? 'super_rail' : 'super_shell';
@@ -467,12 +549,26 @@ export class ArenaEngine {
     amount = Math.round(amount); t.hp -= amount; t.lastHurt = this.now; t.flash = .12; t.reveal = Math.max(t.reveal, .8);
     if (src) { src.dmgDealt += amount; if (!isSuper) src.charge = Math.min(1, src.charge + amount / src.H.superCost); }
     this.floats.push({ x: t.x + (Math.random() - .5) * 16, y: t.y - 30, txt: amount, life: .8, col: t.team === 0 ? '#ff8a7a' : '#fff3c4', big: !!(src && src.isPlayer) });
-    if (src && src !== t) { const a = Math.atan2(t.y - src.y, t.x - src.x); t.x += Math.cos(a) * 4; t.y += Math.sin(a) * 4; this.collide(t); }
-    if (t.isPlayer) { this.shake(5); this.sfx('hit', { vol: 0.5, rate: 0.8 }); } else if (src && src.isPlayer) this.sfx('hit', { rate: 1 + Math.random() * 0.2 });
+    t.sq = Math.max(t.sq, 0.16);
+    if (src && src !== t) {
+      // Knockback along the hit; the player is pushed less, so bots cannot juggle you.
+      const a = Math.atan2(t.y - src.y, t.x - src.x), k = Math.min(420, 90 + amount * 0.12) * (isSuper ? 1.6 : 1) * (t.isPlayer ? 0.6 : 1);
+      t.kx += Math.cos(a) * k; t.ky += Math.sin(a) * k;
+      if (t.isPlayer) { this.hitArrows.push({ ang: a + Math.PI, life: .9 }); if (this.hitArrows.length > 4) this.hitArrows.shift(); this.kickCam(a, 5); }
+    }
+    if (t.isPlayer) { this.shake(5); this.sfx('hit', { vol: 0.5, rate: 0.8 }); this.buzz(20); }
+    else if (src && src.isPlayer) {
+      // Your hits land with a tiny freeze and a hit sound that climbs in pitch through a combo.
+      if (this.realNow - this.lastStop > 0.15) { this.hitStop = Math.max(this.hitStop, isSuper ? 0.07 : 0.045); this.lastStop = this.realNow; }
+      this.combo = this.now - this.comboT < 0.8 ? this.combo + 1 : 1; this.comboT = this.now;
+      if (this.realNow - this.lastHitSfx > 0.03) { this.lastHitSfx = this.realNow; this.sfx('hit', { rate: 1 + Math.min(8, this.combo) * 0.045 + Math.random() * 0.06 }); }
+      this.buzz(8);
+    }
     if (t.hp <= 0) this.knockout(t, src);
   }
   private knockout(t: Unit, src: Unit | null) {
-    t.alive = false; t.hp = 0; t.respawn = 3; t.deaths++; t.dash = 0; t.shield = 0;
+    t.alive = false; t.hp = 0; t.respawn = 3; t.deaths++; t.dash = 0; t.shield = 0; t.wind = null; t.kx = 0; t.ky = 0;
+    this.corpses.push({ H: t.H, x: t.x, y: t.y, aim: t.aim, r: t.r, t: ANIMS[`${t.H.id}_ko`] ? 0 : KO_SECONDS - 0.001, near: t.isPlayer || this.near(t) });
     this.burst(t.x, t.y, t.H.color, 26, 300); this.burst(t.x, t.y, '#fff3c4', 10, 180);
     if (src) src.kills++;
     this.feed.unshift({ a: src ? src.name : '', ac: src ? (src.team ? '#ff5a4d' : '#46b0ff') : '#fff', b: t.name, bc: t.team ? '#ff5a4d' : '#46b0ff', t: 4, af: src ? src.H.id : null, bf: t.H.id });
@@ -487,8 +583,9 @@ export class ArenaEngine {
       else if (this.killTimes.length === 2) { this.callout(L.doubleKo ?? 'DOUBLE KO!', '#ffc93c'); this.audio.voice('ann_double_ko', { priority: true }); }
       else if (!this.firstKoDone) { this.firstKoDone = true; this.callout(L.firstKo ?? 'FIRST KO!', '#ffc93c', undefined, 1.2); this.audio.voice('ann_first_ko', { priority: true }); }
       else if (Math.random() < 0.5) this.audio.voice(`${src.H.id}_kill`, { cooldown: 8 });
+      this.buzz(35);
     }
-    if (t.isPlayer && !this.over) { this.timeScale = 0.3; this.slowT = 0.55; this.flash('255,90,77', 0.25); this.audio.voice(`${t.H.id}_ko`, { priority: true }); this.opts.onKnockout(); }
+    if (t.isPlayer && !this.over) { this.timeScale = 0.3; this.slowT = 0.55; this.flash('255,90,77', 0.25); this.buzz([40, 30, 60]); this.audio.voice(`${t.H.id}_ko`, { priority: true }); this.opts.onKnockout(); }
   }
   private burst(x: number, y: number, col: string, n: number, sp: number) {
     for (let i = 0; i < n; i++) { const a = Math.random() * TAU, s = sp * (.3 + Math.random() * .7);
@@ -559,7 +656,7 @@ export class ArenaEngine {
       if (u.charge >= 1) {
         const ang = Math.atan2(t.y - u.y, t.x - u.x);
         if ((H.sup === 'dash' && d < 250) || (H.sup === 'cloud' && d < 380) || (H.sup === 'rail' && d < 700) || (H.sup === 'fortify' && (d < 260 || u.hp / u.maxHp < .5)))
-          this.useSuper(u, ang, t.x, t.y);
+          this.windSuper(u, ang, t.x, t.y);
       }
     } else {
       const dz = Math.hypot(ZONE.x - u.x, ZONE.y - u.y);
@@ -599,7 +696,9 @@ export class ArenaEngine {
     const started = this.t >= 0, P = this.player;
     if (this.t < 0) { const n = Math.ceil(-this.t); if (n !== this.lastCountdown) { this.lastCountdown = n; this.sfx('countdown', { rate: 1 + (3 - n) * 0.12 }); } }
     else if (prevT < 0) { this.sfx('go'); this.flash('255,201,60', 0.35); this.ring(P.x, P.y, 140, 'rgba(255,201,60,.9)'); this.audio.voice('ann_go', { queue: true }); this.audio.voice(`${P.H.id}_ready`, { queue: true }); }
-    if (!this.over && prevT < MATCH_SECONDS - 10 && this.t >= MATCH_SECONDS - 10) this.audio.voice('ann_ten', { priority: true });
+    if (!this.over && prevT < MATCH_SECONDS - 10 && this.t >= MATCH_SECONDS - 10) { this.audio.voice('ann_ten', { priority: true }); this.finalTen = true; this.audio.setMusicRate(1.1); }
+    if (this.finalTen && !this.over) { const left = Math.ceil(MATCH_SECONDS - this.t); if (left !== this.lastClockTick && left > 0) { this.lastClockTick = left; this.sfx('tick', { vol: 0.55, rate: 1.35 + (10 - left) * 0.03 }); } }
+    if (started && !this.over && P.alive && P.hp / P.maxHp < 0.3) { this.heartT -= dt; if (this.heartT <= 0) { this.heartT = 0.85; this.sfx('heartbeat', { vol: 0.7 }); } } else this.heartT = 0;
     if (started && !this.musicStarted) { this.musicStarted = true; this.audio.startMusic(); }
     if (P.alive && started) {
       const inB = this.inBush(P);
@@ -608,8 +707,12 @@ export class ArenaEngine {
     }
     for (const u of this.units) {
       u.flash = Math.max(0, u.flash - dt); u.reveal = Math.max(0, u.reveal - dt); u.shield = Math.max(0, u.shield - dt); u.fireCd = Math.max(0, u.fireCd - dt);
+      u.sqv += (-260 * u.sq - 16 * u.sqv) * dt; u.sq += u.sqv * dt; u.recoil = Math.max(0, u.recoil - dt * 7);
+      if (this.now - u.lastHurt > 0.35) u.ghostHp = Math.max(u.hp, u.ghostHp - u.maxHp * 0.9 * dt); if (u.ghostHp < u.hp) u.ghostHp = u.hp;
+      if (u.alive && (Math.abs(u.kx) > 2 || Math.abs(u.ky) > 2)) { u.x += u.kx * dt; u.y += u.ky * dt; this.collide(u); const f = Math.exp(-11 * dt); u.kx *= f; u.ky *= f; } else { u.kx = 0; u.ky = 0; }
+      if (u.wind) { u.wind.t -= dt; if (u.wind.t <= 0) { const w = u.wind; u.wind = null; this.useSuper(u, w.ang, w.tx, w.ty); } }
       if (!u.alive) {
-        if (!this.over) { u.respawn -= dt; if (u.respawn <= 0) { Object.assign(u, { alive: true, hp: u.maxHp, x: u.spawn.x, y: u.spawn.y, ammo: 3, reveal: 0, lastHurt: this.now }); u.ai.target = null; this.spawnFx.push({ x: u.x, y: u.y, life: 0.7, col: TEAM_RGB[u.team] }); this.ring(u.x, u.y, 70, `rgba(${TEAM_RGB[u.team]},.9)`, 0.4, 4); if (u.isPlayer) this.sfx('respawn'); } }
+        if (!this.over) { u.respawn -= dt; if (u.respawn <= 0) { Object.assign(u, { alive: true, hp: u.maxHp, ghostHp: u.maxHp, x: u.spawn.x, y: u.spawn.y, ammo: 3, reveal: 0, lastHurt: this.now, sq: -0.2, sqv: 0 }); u.ai.target = null; this.dust(u.x, u.y + u.r * .8, 10, 40); this.spawnFx.push({ x: u.x, y: u.y, life: 0.7, col: TEAM_RGB[u.team] }); this.ring(u.x, u.y, 70, `rgba(${TEAM_RGB[u.team]},.9)`, 0.4, 4); if (u.isPlayer) this.sfx('respawn'); } }
         continue;
       }
       u.ammo = Math.min(3, u.ammo + dt / u.H.reload);
@@ -625,7 +728,14 @@ export class ArenaEngine {
           u.dashHit.add(e); this.hurt(e, 1150 * u.mult, u, true); const a = Math.atan2(e.y - u.y, e.x - u.x); e.x += Math.cos(a) * 60; e.y += Math.sin(a) * 60; this.collide(e); this.burst(e.x, e.y, '#fff3c4', 12, 260); }
         if (Math.random() < .8) this.parts.push({ x: u.x, y: u.y, vx: 0, vy: 0, life: .25, max: .25, col: u.H.color, size: 10 });
         this.ghostT += dt; if (this.ghostT > 0.03) { this.ghostT = 0; this.ghosts.push({ x: u.x, y: u.y, aim: u.aim, H: u.H, life: 0.3 }); }
-      } else this.moveUnit(u, mv[0], mv[1], dt);
+      } else this.moveUnit(u, u.wind ? mv[0] * 0.4 : mv[0], u.wind ? mv[1] * 0.4 : mv[1], dt);
+      // Dust at the feet when starting, stopping and while running (only near the player, where it can be seen).
+      const moving = Math.hypot(u.vx, u.vy) > 40;
+      if (this.near(u)) {
+        if (moving !== u.wasMoving) this.dust(u.x, u.y + u.r * .8, 5);
+        if (moving) { u.dustT -= dt; if (u.dustT <= 0) { u.dustT = 0.16; this.dust(u.x - Math.cos(u.aim) * 6, u.y + u.r * .8, 2, 8); } }
+      }
+      u.wasMoving = moving;
     }
     for (let i = 0; i < this.units.length; i++) for (let j = i + 1; j < this.units.length; j++) {
       const a = this.units[i], b = this.units[j]; if (!a.alive || !b.alive) continue;
@@ -636,7 +746,10 @@ export class ArenaEngine {
       for (let s = 0; s < 2 && !b.dead; s++) {
         b.x += b.vx * dt / 2; b.y += b.vy * dt / 2; b.trav += Math.hypot(b.vx, b.vy) * dt / 2;
         if (blocksShot(tileAt(b.x, b.y))) { b.dead = true; this.burst(b.x, b.y, '#d9b98a', 4, 120); break; }
-        for (const u of this.units) if (u.alive && u.team !== b.team && Math.hypot(u.x - b.x, u.y - b.y) < u.r + b.r) { this.hurt(u, b.dmg, b.owner, false); b.dead = true; this.burst(b.x, b.y, '#fff3c4', 5, 160); break; }
+        // Generous on purpose: the player's shots hit slightly wider than they look, and shots at the player slightly narrower.
+        for (const u of this.units) if (u.alive && u.team !== b.team && Math.hypot(u.x - b.x, u.y - b.y) < u.r + b.r + (b.owner.isPlayer ? 6 : 0) - (u.isPlayer ? 5 : 0)) {
+          this.hurt(u, b.dmg, b.owner, false); b.dead = true; const a = Math.atan2(b.vy, b.vx);
+          this.burstDir(b.x, b.y, a, '#fff3c4', b.owner.isPlayer ? 8 : 5, b.owner.isPlayer ? 420 : 300, 0.8); this.burstDir(b.x, b.y, a, b.owner.H.color, 3, 260, 1.2); break; }
         if (b.trav > b.range) b.dead = true;
       }
     }
@@ -644,7 +757,7 @@ export class ArenaEngine {
     for (const l of this.lobs) {
       l.t += dt;
       if (l.t >= l.dur) { l.dead = true;
-        for (const u of this.units) if (u.alive && u.team !== l.team && Math.hypot(u.x - l.x1, u.y - l.y1) < l.rad + u.r) this.hurt(u, l.dmg, l.owner, false);
+        for (const u of this.units) if (u.alive && u.team !== l.team && Math.hypot(u.x - l.x1, u.y - l.y1) < l.rad + u.r + (l.owner.isPlayer ? 10 : 0) - (u.isPlayer ? 6 : 0)) this.hurt(u, l.dmg, l.owner, false);
         this.burst(l.x1, l.y1, '#9be86b', 16, 200); this.burst(l.x1, l.y1, '#e6ffd0', 6, 120);
         this.ring(l.x1, l.y1, l.rad + 10, 'rgba(155,232,107,.9)', 0.35, 5);
         if (l.owner.isPlayer || this.near(l.owner)) this.sfx('splash'); }
@@ -659,6 +772,13 @@ export class ArenaEngine {
     }
     this.clouds = this.clouds.filter(c => c.t > 0);
     for (const b of this.beams) b.t -= dt; this.beams = this.beams.filter(b => b.t > 0);
+    // Knocked-out fighters topple over, then pop.
+    for (const c of this.corpses) { const before = c.t; c.t += dt; if (before < KO_SECONDS && c.t >= KO_SECONDS) this.popChunks(c); }
+    this.corpses = this.corpses.filter((c) => c.t < KO_SECONDS);
+    for (const k of this.chunks) { k.vz -= 900 * dt; k.z += k.vz * dt; if (k.z < 0) { k.z = 0; k.vz *= -0.35; k.vx *= .6; k.vy *= .6; k.vr *= .6; } k.x += k.vx * dt; k.y += k.vy * dt; k.rot += k.vr * dt; k.life -= dt; }
+    this.chunks = this.chunks.filter((k) => k.life > 0);
+    for (const w of this.swooshes) w.life -= dt; this.swooshes = this.swooshes.filter((w) => w.life > 0);
+    for (const h of this.hitArrows) h.life -= dt; this.hitArrows = this.hitArrows.filter((h) => h.life > 0);
     for (const p of this.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= .9; p.vy *= .9; p.life -= dt; }
     this.parts = this.parts.filter(p => p.life > 0); if (this.parts.length > 600) this.parts.splice(0, this.parts.length - 600);
     for (const f of this.floats) { f.y -= 40 * dt; f.life -= dt; } this.floats = this.floats.filter(f => f.life > 0);
@@ -706,15 +826,29 @@ export class ArenaEngine {
   /* ---------- Drawing ---------- */
   private rrect(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) { c.beginPath(); if (c.roundRect) c.roundRect(x, y, w, h, r); else c.rect(x, y, w, h); }
 
-  static drawHero(c: CanvasRenderingContext2D, H: FighterSpec, x: number, y: number, r: number, aim: number, ring: string | null, flash: number, t: number, shield: number, moving = false) {
+  static drawHero(c: CanvasRenderingContext2D, H: FighterSpec, x: number, y: number, r: number, aim: number, ring: string | null, flash: number, t: number, shield: number, moving = false, pose?: HeroPose) {
     c.save(); c.translate(x, y);
     c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(0, r * .8, r * 1.05, r * .45, 0, 0, TAU); c.fill();
     if (ring) { c.strokeStyle = ring; c.lineWidth = 4; c.beginPath(); c.ellipse(0, r * .8, r * 1.15, r * .52, 0, 0, TAU); c.stroke(); }
+    const strip = pose?.anim ? ANIMS[`${H.id}_${pose.anim}`] : undefined;
+    if (strip && pose?.anim) {
+      // Animated strip: frames face right and stand on FEET_Y; squash and stretch around the feet.
+      const S = r * 5.4, n = ANIM_FRAMES[pose.anim], f = ((Math.floor(pose.frame ?? 0) % n) + n) % n, sq = pose.sq ?? 0;
+      c.translate(pose.ox ?? 0, r * .8 + (pose.oy ?? 0));
+      if (Math.cos(aim) < 0) c.scale(-1, 1);
+      c.scale(1 + sq, 1 - sq);
+      const F = strip.height;
+      c.drawImage(strip, f * F, 0, F, F, -S / 2, -S * FEET, S, S);
+      if (flash > 0) { const w = whiteFrame(strip, f); if (w) { const a0 = c.globalAlpha; c.globalAlpha = Math.min(1, flash * 6) * a0; c.drawImage(w, -S / 2, -S * FEET, S, S); c.globalAlpha = a0; } }
+      c.restore();
+      if (shield > 0) { c.save(); c.translate(x, y); c.strokeStyle = 'rgba(255,201,60,.85)'; c.lineWidth = 3; c.beginPath(); c.arc(0, -r * .1, r * 1.7, 0, TAU); c.stroke(); c.fillStyle = 'rgba(255,201,60,.12)'; c.fill(); c.restore(); }
+      return;
+    }
     const sprite = ASSETS[H.id];
     if (sprite) {
       // Generated sprite: faces right, so mirror it when aiming left; bob while moving, breathe while still.
       const s = r * 3.6, bob = moving ? Math.abs(Math.sin(t * 12)) * 3 : Math.sin(t * 3) * 1;
-      const squash = moving ? 1 + Math.sin(t * 12) * 0.03 : 1;
+      const squash = (moving ? 1 + Math.sin(t * 12) * 0.03 : 1) - (pose?.sq ?? 0);
       c.translate(0, -r * 0.55 - bob);
       if (Math.cos(aim) < 0) c.scale(-1, 1);
       c.scale(1 / squash, squash);
@@ -752,11 +886,19 @@ export class ArenaEngine {
     c.restore();
   }
 
+  private poseOf(u: Unit): HeroPose {
+    const el = this.now - u.lastFire, moving = Math.hypot(u.vx, u.vy) > 20;
+    const ox = -Math.cos(u.aim) * u.recoil * 5, oy = -Math.sin(u.aim) * u.recoil * 5;
+    if (el >= 0 && el < 0.3) return { anim: 'attack', frame: Math.min(7, 2 + Math.floor(el * ANIM_FPS.attack)), sq: u.sq, ox, oy };
+    if (moving || u.dash > 0) return { anim: 'run', frame: (this.now + u.phase) * ANIM_FPS.run, sq: u.sq, ox, oy };
+    return { anim: 'idle', frame: (this.now + u.phase) * ANIM_FPS.idle, sq: u.sq, ox, oy };
+  }
+
   private drawWorld() {
     const ctx = this.ctx, now = this.now, P = this.player;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     ctx.fillStyle = '#15130f'; ctx.fillRect(0, 0, this.cw, this.ch);
-    const sx = (Math.random() - .5) * this.cam.shake, sy = (Math.random() - .5) * this.cam.shake;
+    const sx = (Math.random() - .5) * this.cam.shake + this.kick.x, sy = (Math.random() - .5) * this.cam.shake + this.kick.y;
     ctx.setTransform(this.dpr * this.scale, 0, 0, this.dpr * this.scale, this.dpr * (this.cw / 2 - this.cam.x * this.scale + sx), this.dpr * (this.ch / 2 - this.cam.y * this.scale + sy));
     ctx.drawImage(groundCv!, 0, 0);
     const reactor = ASSETS.reactor;
@@ -781,13 +923,25 @@ export class ArenaEngine {
       if (show) {
         ctx.fillStyle = 'rgba(255,255,255,.10)'; ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2;
         if (P.H.attack === 'lob') { const tx = P.x + Math.cos(a) * P.H.range * k, ty = P.y + Math.sin(a) * P.H.range * k;
-          ctx.setLineDash([6, 8]); ctx.beginPath(); ctx.moveTo(P.x, P.y); ctx.lineTo(tx, ty); ctx.stroke(); ctx.setLineDash([]);
+          ctx.setLineDash([6, 8]); ctx.beginPath(); ctx.moveTo(P.x, P.y); ctx.quadraticCurveTo((P.x + tx) / 2, (P.y + ty) / 2 - 90 * k, tx, ty); ctx.stroke(); ctx.setLineDash([]);
           ctx.beginPath(); ctx.arc(tx, ty, P.H.splash || 70, 0, TAU); ctx.fill(); ctx.stroke(); }
         else { const sp = P.H.attack === 'spread' ? (P.H.spread || 0.5) / 2 + .03 : .04;
           ctx.beginPath(); ctx.moveTo(P.x, P.y); ctx.arc(P.x, P.y, P.H.range, a - sp, a + sp); ctx.closePath(); ctx.fill(); ctx.stroke(); }
       }
     }
-    for (const g of this.ghosts) { ctx.globalAlpha = Math.max(0, g.life / 0.3) * 0.45; ArenaEngine.drawHero(ctx, g.H, g.x, g.y, 18, g.aim, null, 0, 0, 0); }
+    // Enemy supers are announced on the ground half a second ahead.
+    for (const u of this.units) {
+      const w = u.wind; if (!w || !u.alive || u.team === 0) continue;
+      const k = 1 - w.t / w.max, a = 0.25 + 0.55 * k + Math.sin(this.realNow * 30) * 0.1;
+      ctx.strokeStyle = `rgba(255,70,60,${a})`; ctx.fillStyle = `rgba(255,70,60,${a * 0.25})`; ctx.lineWidth = 4;
+      if (u.H.sup === 'cloud') { let dx = w.tx - u.x, dy = w.ty - u.y; const d = Math.hypot(dx, dy); if (d > 380) { dx *= 380 / d; dy *= 380 / d; }
+        ctx.setLineDash([12, 8]); ctx.beginPath(); ctx.arc(u.x + dx, u.y + dy, 135 * (0.6 + 0.4 * k), 0, TAU); ctx.fill(); ctx.stroke(); ctx.setLineDash([]); }
+      else { const len = u.H.sup === 'rail' ? 760 : 270, wd = u.H.sup === 'rail' ? 30 : 40;
+        ctx.save(); ctx.translate(u.x, u.y); ctx.rotate(w.ang);
+        ctx.fillRect(0, -wd / 2, len * (0.3 + 0.7 * k), wd); ctx.strokeRect(0, -wd / 2, len, wd);
+        ctx.beginPath(); ctx.moveTo(len, -wd); ctx.lineTo(len + 26, 0); ctx.lineTo(len, wd); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
+    }
+    for (const g of this.ghosts) { ctx.globalAlpha = Math.max(0, g.life / 0.3) * 0.45; ArenaEngine.drawHero(ctx, g.H, g.x, g.y, 18, g.aim, null, 0, 0, 0, false, { anim: 'run', frame: 3 }); }
     ctx.globalAlpha = 1;
     for (const f of this.spawnFx) {
       const k = Math.max(0, f.life / 0.7); ctx.globalCompositeOperation = 'lighter';
@@ -797,7 +951,8 @@ export class ArenaEngine {
       ctx.globalCompositeOperation = 'source-over';
     }
     const vis = this.units.filter(u => u.alive && this.canSee(0, u)).sort((a, b) => a.y - b.y);
-    for (const u of vis) ArenaEngine.drawHero(ctx, u.H, u.x, u.y, u.r, u.aim, u.team ? '#ff5a4d' : '#46b0ff', u.flash, now + u.x * .01, u.shield, Math.hypot(u.vx, u.vy) > 20);
+    for (const c of this.corpses) if (ANIMS[`${c.H.id}_ko`]) ArenaEngine.drawHero(ctx, c.H, c.x, c.y, c.r, c.aim, null, c.t < 0.1 ? 0.1 : 0, now, 0, false, { anim: 'ko', frame: Math.min(ANIM_FRAMES.ko - 1, c.t * ANIM_FPS.ko) });
+    for (const u of vis) ArenaEngine.drawHero(ctx, u.H, u.x, u.y, u.r, u.aim, u.team ? '#ff5a4d' : '#46b0ff', u.flash, now + u.x * .01, u.shield, Math.hypot(u.vx, u.vy) > 20, this.poseOf(u));
     for (const l of this.lobs) {
       const k = l.t / l.dur, x = l.x0 + (l.x1 - l.x0) * k, y = l.y0 + (l.y1 - l.y0) * k, h = Math.sin(k * Math.PI) * 70;
       ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(x, y, 8, 4, 0, 0, TAU); ctx.fill();
@@ -806,8 +961,15 @@ export class ArenaEngine {
       ctx.strokeStyle = 'rgba(155,232,107,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(l.x1, l.y1, l.rad * (1 - k * .3), 0, TAU); ctx.stroke();
     }
     ctx.globalAlpha = .93; ctx.drawImage(bushCv!, 0, 0); ctx.globalAlpha = 1;
-    for (const u of vis) if (u.team === 0 && this.inBush(u)) { ctx.globalAlpha = .45; ArenaEngine.drawHero(ctx, u.H, u.x, u.y, u.r, u.aim, '#46b0ff', 0, now, u.shield); ctx.globalAlpha = 1; }
+    for (const u of vis) if (u.team === 0 && this.inBush(u)) { ctx.globalAlpha = .45; ArenaEngine.drawHero(ctx, u.H, u.x, u.y, u.r, u.aim, '#46b0ff', 0, now, u.shield, false, this.poseOf(u)); ctx.globalAlpha = 1; }
     ctx.globalCompositeOperation = 'lighter';
+    for (const w of this.swooshes) {
+      const k = w.life / w.max, sweep = 1 - k, a0 = w.ang - 1.1 + sweep * 0.5, a1 = w.ang + 1.1 * Math.min(1, sweep * 2.2);
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = `rgba(255,200,70,${0.85 * k})`; ctx.lineWidth = 14 * k + 3; ctx.beginPath(); ctx.arc(w.x, w.y, w.r, a0, a1); ctx.stroke();
+      ctx.strokeStyle = `rgba(255,110,170,${0.7 * k})`; ctx.lineWidth = 5 * k + 1; ctx.beginPath(); ctx.arc(w.x, w.y, w.r - 9, a0, a1); ctx.stroke();
+      ctx.strokeStyle = `rgba(255,255,255,${k})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(w.x, w.y, w.r + 4, a0 + 0.2, a1); ctx.stroke();
+    }
     for (const b of this.bullets) {
       if (!Number.isFinite(b.x) || !Number.isFinite(b.y)) { b.dead = true; continue; }
       const glow = b.kind === 'vex' ? '190,160,255' : b.team ? '255,140,110' : '120,200,255';
@@ -829,12 +991,33 @@ export class ArenaEngine {
       ctx.strokeStyle = r.col; ctx.globalAlpha = k; ctx.lineWidth = r.width * k + 1; ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, TAU); ctx.stroke();
     }
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
-    for (const p of this.parts) { ctx.globalAlpha = Math.max(0, p.life / p.max); ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, TAU); ctx.fill(); }
+    for (const p of this.parts) {
+      ctx.globalAlpha = Math.max(0, p.life / p.max);
+      if (p.streak) { ctx.strokeStyle = p.col; ctx.lineWidth = p.size; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(p.x - p.vx * 0.035, p.y - p.vy * 0.035); ctx.lineTo(p.x, p.y); ctx.stroke(); continue; }
+      ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, p.y, p.size + (p.grow ? (p.max - p.life) * p.grow : 0), 0, TAU); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    for (const k of this.chunks) {
+      ctx.globalAlpha = Math.min(1, k.life * 2);
+      ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(k.x, k.y + 4, k.s * .7, k.s * .3, 0, 0, TAU); ctx.fill();
+      ctx.save(); ctx.translate(k.x, k.y - k.z); ctx.rotate(k.rot); ctx.fillStyle = k.col; ctx.fillRect(-k.s / 2, -k.s / 2, k.s, k.s);
+      ctx.strokeStyle = 'rgba(26,23,20,.6)'; ctx.lineWidth = 1.5; ctx.strokeRect(-k.s / 2, -k.s / 2, k.s, k.s); ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+    // Which way the last hits came from: red chevrons around the player.
+    if (P.alive) for (const h of this.hitArrows) {
+      const k = Math.min(1, h.life / 0.5), rr = P.r + 40;
+      ctx.save(); ctx.translate(P.x, P.y); ctx.rotate(h.ang); ctx.globalAlpha = k;
+      ctx.strokeStyle = '#ff4a3d'; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(0, 0, rr, -0.45, 0.45); ctx.stroke();
+      ctx.fillStyle = '#ff4a3d'; ctx.beginPath(); ctx.moveTo(rr + 16, 0); ctx.lineTo(rr + 4, -9); ctx.lineTo(rr + 4, 9); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
     ctx.globalAlpha = 1;
     ctx.textAlign = 'center';
     for (const u of vis) {
       const w = 52, x = u.x - w / 2, y = u.y - u.r - 24;
       ctx.fillStyle = 'rgba(0,0,0,.55)'; this.rrect(ctx, x - 2, y - 2, w + 4, 11, 4); ctx.fill();
+      if (u.ghostHp > u.hp) { ctx.fillStyle = '#fff3c4'; this.rrect(ctx, x, y, w * Math.min(1, u.ghostHp / u.maxHp), 7, 3); ctx.fill(); }
       ctx.fillStyle = u.isPlayer ? '#7fd34e' : u.team ? '#ff5a4d' : '#46b0ff'; this.rrect(ctx, x, y, w * Math.max(0, u.hp / u.maxHp), 7, 3); ctx.fill();
       ctx.font = `600 13px ${F_BODY}`; ctx.fillStyle = '#000'; ctx.fillText(u.name, u.x + 1, y - 4);
       ctx.fillStyle = u.isPlayer ? '#fff3c4' : '#f4ead8'; ctx.fillText(u.name, u.x, y - 5);
@@ -869,7 +1052,11 @@ export class ArenaEngine {
     ctx.fillStyle = '#ff5a4d'; ctx.fillText(String(Math.floor(this.score[1])), cx + bw / 4 + 10, top + 21);
     const tl = Math.max(0, Math.ceil(MATCH_SECONDS - Math.max(0, this.t)));
     ctx.fillStyle = tl <= 20 ? '#ff5a4d' : '#f4ead8'; ctx.font = `400 18px ${F_DISPLAY}`;
-    ctx.fillText(`${Math.floor(tl / 60)}:${String(tl % 60).padStart(2, '0')}`, cx, top + 38);
+    if (tl <= 10 && this.t >= 0 && !this.over) {
+      // Final ten seconds: the clock beats once a second.
+      const frac = (MATCH_SECONDS - this.t) % 1, pop = 1 + 0.35 * Math.pow(Math.max(0, frac), 3);
+      ctx.save(); ctx.translate(cx, top + 32); ctx.scale(pop, pop); ctx.fillText(`0:${String(tl).padStart(2, '0')}`, 0, 6); ctx.restore();
+    } else ctx.fillText(`${Math.floor(tl / 60)}:${String(tl % 60).padStart(2, '0')}`, cx, top + 38);
     ctx.font = `600 13px ${F_BODY}`;
     ctx.fillStyle = this.owner === 0 ? '#46b0ff' : this.owner === 1 ? '#ff5a4d' : this.owner === 2 ? '#ffc93c' : '#b3a893';
     ctx.fillText((this.owner === 0 ? L.yourTeamHolds : this.owner === 1 ? L.enemyHolds : this.owner === 2 ? L.contested : L.reactorEmpty).toUpperCase(), cx, top + 66);
@@ -953,6 +1140,7 @@ export class ArenaEngine {
       if (this.frames % 30 === 0) this.resize();
       if (paintedVersion !== assetsVersion) paintMap();
       this.updateFx(real);
+      const kd = Math.exp(-18 * real); this.kick.x *= kd; this.kick.y *= kd;
       if (!this.paused && dt > 0) this.update(dt); this.drawWorld(); this.drawHUD(); this.frames++;
     } catch (error) {
       this.lastError = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
