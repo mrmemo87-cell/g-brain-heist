@@ -1,0 +1,115 @@
+/* Guest start (/ielts/start): one-minute warm-up, guest first lesson, save progress.
+   Phone-first, matches the dark landing page. Visual & UX Bible §6.8 / §7 / §7A. */
+
+.gs-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: radial-gradient(120% 60% at 50% 0%, #2a1a5e 0%, #0b1024 55%, #070a18 100%);
+  color: #f8fafc;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'IBM Plex Sans', sans-serif;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+.gs-page *, .gs-page *::before, .gs-page *::after { box-sizing: border-box; }
+.gs-shell { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+
+.gs-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; }
+.gs-brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; }
+.gs-brand img { border-radius: 8px; background: #08111f; }
+.gs-count { font-size: 14px; font-weight: 700; color: #c7d2fe; }
+
+.gs-progress { height: 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+.gs-progress span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #f59e0b, #ec4899); transition: width 0.35s ease; }
+.gs-progress-thin { height: 6px; }
+
+.gs-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.gs-center { align-items: center; text-align: center; }
+.gs-kicker { margin: 0; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #fbbf24; }
+
+.gs-passage { background: rgba(255, 255, 255, 0.07); border-radius: 14px; padding: 12px 14px; }
+.gs-passage summary { cursor: pointer; font-weight: 700; font-size: 14px; color: #c7d2fe; min-height: 28px; }
+.gs-passage p { margin: 8px 0 0; font-size: 15px; line-height: 1.55; color: #e2e8f0; }
+
+.gs-question { margin: 0; font-size: 22px; line-height: 1.25; font-weight: 800; }
+.gs-statement { margin: 0; font-size: 18px; line-height: 1.45; font-weight: 600; color: #fde68a; }
+
+.gs-options { display: grid; gap: 10px; grid-template-columns: 1fr; }
+.gs-option {
+  min-height: 56px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  font-size: 17px;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.2s ease, border-color 0.2s ease;
+}
+.gs-option:not(:disabled):hover { background: rgba(255, 255, 255, 0.14); }
+.gs-option:not(:disabled):active { transform: scale(0.98); }
+.gs-option:focus-visible, .gs-primary:focus-visible, .gs-link:focus-visible, .gs-passage summary:focus-visible { outline: 3px solid #fbbf24; outline-offset: 2px; }
+.gs-option:disabled { cursor: default; }
+.gs-option.is-right { background: #14532d; border-color: #4ade80; color: #f0fdf4; }
+.gs-option.is-wrong { background: #7f1d1d; border-color: #f87171; color: #fef2f2; }
+.gs-option.is-dim { opacity: 0.55; }
+
+.gs-feedback { display: flex; gap: 12px; align-items: flex-start; border-radius: 16px; padding: 12px 14px; }
+.gs-feedback p { margin: 0; font-size: 15px; line-height: 1.5; }
+.gs-feedback.is-right { background: rgba(74, 222, 128, 0.14); border: 1px solid rgba(74, 222, 128, 0.45); }
+.gs-feedback.is-wrong { background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.45); }
+.gs-feedback-blaze { flex: 0 0 auto; }
+
+.gs-primary {
+  width: 100%;
+  min-height: 56px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #fbbf24, #f97316);
+  color: #1c1006;
+  font-size: 17px;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 0 18px;
+}
+.gs-primary:active { transform: scale(0.99); }
+.gs-link { background: none; border: 0; color: #c7d2fe; text-decoration: underline; font-size: 15px; min-height: 44px; cursor: pointer; }
+
+.gs-hero-blaze { display: inline-flex; filter: drop-shadow(0 0 28px rgba(251, 146, 60, 0.55)); }
+.gs-title { margin: 0; font-size: 26px; font-weight: 900; line-height: 1.2; }
+.gs-score { margin: 0; font-size: 20px; font-weight: 800; color: #fde68a; }
+.gs-breakdown { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 8px; }
+.gs-breakdown li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.07); font-size: 15px; }
+.gs-focus { margin: 0; font-size: 16px; line-height: 1.5; color: #e2e8f0; }
+.gs-honest { margin: 0; font-size: 13px; line-height: 1.45; color: #a5b4fc; }
+
+.gs-lesson { background: #f8fafc; color: #1e1b4b; border-radius: 18px; padding: 18px 16px; }
+.gs-lesson-title { margin: 0 0 10px; font-size: 20px; line-height: 1.3; font-weight: 800; }
+.gs-lesson p { margin: 0 0 10px; font-size: 16px; line-height: 1.6; }
+.gs-lesson p:last-child { margin-bottom: 0; }
+.gs-lesson ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; font-size: 16px; line-height: 1.5; }
+.gs-lesson-example { background: #fff7ed; border-left: 5px solid #f97316; }
+.gs-loading { min-height: 160px; display: grid; place-items: center; color: #c7d2fe; }
+
+@media (min-width: 560px) {
+  .gs-options-3 { grid-template-columns: repeat(3, 1fr); }
+  .gs-options-3 .gs-option { text-align: center; }
+  .gs-card { padding: 26px 24px; }
+}
+@media (max-width: 340px) {
+  .gs-question { font-size: 20px; }
+  .gs-title { font-size: 23px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gs-progress span, .gs-option { transition: none; }
+  .gs-option:not(:disabled):active, .gs-primary:active { transform: none; }
+}
