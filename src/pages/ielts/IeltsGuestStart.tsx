@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { publicSupabaseConfig, supabase } from '../../../services/supabaseClient';
 import { Blaze } from '../../components/ielts/IeltsGameArt';
-import { readIeltsGuestProgress, saveIeltsGuestProgress, trackIeltsStep } from '../../../services/ieltsGuestFunnel';
+import { ensureIeltsEntry, readIeltsGuestProgress, saveIeltsGuestProgress, trackIeltsStep } from '../../../services/ieltsGuestFunnel';
 import '../../styles/ielts-guest.css';
 
 /**
@@ -176,11 +176,20 @@ const IeltsGuestStart: React.FC = () => {
   useEffect(() => {
     document.title = lang === 'ru' ? 'Разминка IELTS — Brains Heist' : 'IELTS warm-up — Brains Heist';
     document.documentElement.lang = lang;
-    trackIeltsStep('/ielts/start');
+    ensureIeltsEntry('/ielts/start');
+    let refHost: string | null = null;
+    try {
+      const h = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, '') : '';
+      if (h && !h.includes('brainsheist.com')) refHost = h;
+    } catch { refHost = null; }
+    trackIeltsStep('/ielts/start', refHost);
+    // Stayed 5 seconds: tells real visitors apart from accidental taps on the ad.
+    const engaged = window.setTimeout(() => trackIeltsStep('/ielts/start/engaged'), 5000);
     // Only changes the last button's wording; never let a slow session check block anything.
     void Promise.race([supabase.auth.getSession(), new Promise<null>(resolve => window.setTimeout(() => resolve(null), 3000))])
       .then(result => setSignedIn(Boolean(result && result.data.session)))
       .catch(() => setSignedIn(false));
+    return () => window.clearTimeout(engaged);
   }, [lang]);
 
   const item = ITEMS[index];
