@@ -498,6 +498,14 @@
             device: /mobi|iphone|android/i.test(navigator.userAgent) ? 'phone' : 'desktop', locale: (navigator.language || '').slice(0, 20) });
           if (navigator.sendBeacon) navigator.sendBeacon('/api/site-visit', new Blob([body], { type: 'application/json' }));
           else fetch('/api/site-visit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body, keepalive: true });
+          // Stayed 5 seconds: tells real visitors apart from accidental taps on the ad.
+          setTimeout(function () {
+            try {
+              if (!navigator.sendBeacon) return;
+              navigator.sendBeacon('/api/site-visit', new Blob([JSON.stringify({ visitorId: vid, path: '/ielts-prep/engaged', utm: utm,
+                device: /mobi|iphone|android/i.test(navigator.userAgent) ? 'phone' : 'desktop', locale: (navigator.language || '').slice(0, 20) })], { type: 'application/json' }));
+            } catch (e) {}
+          }, 5000);
         }
       } catch (e) {}
 

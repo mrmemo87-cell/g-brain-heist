@@ -3,9 +3,44 @@
 
 const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as const;
 
-export const trackIeltsStep = (path: string): void => {
+const isBot = (): boolean => Boolean(navigator.webdriver) || /bot|crawl|spider|headless|preview/i.test(navigator.userAgent || '');
+
+const newId = (): string =>
+  (crypto && 'randomUUID' in crypto)
+    ? crypto.randomUUID()
+    : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      return (c === 'x' ? r : (r & 3) | 8).toString(16);
+    });
+
+/**
+ * Ads can link straight to /ielts/start, skipping the landing page that normally creates the anonymous visitor id
+ * and stores the first campaign tags. Do the same here (never for team members or bots), so the growth report and
+ * sign-up attribution still see these visitors.
+ */
+export const ensureIeltsEntry = (landing: string): void => {
   try {
-    if (window.localStorage.getItem('bh_site_member')) return;
+    if (window.localStorage.getItem('bh_site_member') || isBot()) return;
+    if (!window.localStorage.getItem('bh_site_visitor_id')) window.localStorage.setItem('bh_site_visitor_id', newId());
+    if (!window.localStorage.getItem('bh_ielts_first_touch')) {
+      const params = new URLSearchParams(window.location.search);
+      const found: Record<string, string> = {};
+      for (const key of [...UTM_KEYS, 'ref'] as const) {
+        const v = params.get(key);
+        if (v) found[key] = v.slice(0, 100);
+      }
+      if (Object.keys(found).length) {
+        found['landing'] = landing;
+        found['at'] = new Date().toISOString();
+        window.localStorage.setItem('bh_ielts_first_touch', JSON.stringify(found));
+      }
+    }
+  } catch { /* storage blocked: tracking is optional */ }
+};
+
+export const trackIeltsStep = (path: string, referrerHost?: string | null): void => {
+  try {
+    if (window.localStorage.getItem('bh_site_member') || isBot()) return;
     const visitorId = window.localStorage.getItem('bh_site_visitor_id');
     if (!visitorId || !navigator.sendBeacon) return;
     let utm: Record<string, unknown> = {};
@@ -15,6 +50,7 @@ export const trackIeltsStep = (path: string): void => {
     const body = JSON.stringify({
       visitorId,
       path,
+      referrerHost: referrerHost ?? null,
       utm: clean,
       device: /mobi|iphone|android/i.test(navigator.userAgent) ? 'phone' : 'desktop',
       locale: (navigator.language || '').slice(0, 20),
