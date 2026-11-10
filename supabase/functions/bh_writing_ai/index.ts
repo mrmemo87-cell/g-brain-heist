@@ -219,8 +219,12 @@ const createStructuredCompletion = async (request: StructuredCompletionRequest):
       const jsonSchema = format.type === "json_schema" && format.json_schema && typeof format.json_schema === "object"
         ? (format.json_schema as Record<string, unknown>).schema
         : undefined;
+      // The prompts here rely on the schema to define the output shape. Claude's strict schema mode can be
+      // unavailable for a schema (the helper then retries without it), so the shape is always stated in text too.
       const system = request.messages.filter((m) => m.role === "system").map((m) => m.content).join("\n\n")
-        + (jsonSchema ? "" : "\nReturn one JSON object only, with no text before or after it.");
+        + (jsonSchema
+          ? `\n\nReturn ONLY one JSON object, with no text before or after it, that validates against this JSON Schema (use exactly these keys and nesting):\n${JSON.stringify(jsonSchema)}`
+          : "\nReturn one JSON object only, with no text before or after it.");
       const user = request.messages.filter((m) => m.role !== "system").map((m) => m.content).join("\n\n");
       const result = await claudeText({
         system,
