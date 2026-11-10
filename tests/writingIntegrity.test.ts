@@ -68,3 +68,19 @@ test('supervised mode flags leaving the page and revisions preserve change evide
   assert.equal(typeof finalized.revision_changed_word_percent, 'number');
   assert.ok(finalized.review_reasons.includes('left_supervised_page'));
 });
+
+test('a quick second draft is not flagged as very fast, but a quick first draft still is', () => {
+  const started = new Date('2026-11-10T08:00:00.000Z');
+  const submitted = new Date('2026-11-10T08:00:30.000Z');
+  const firstDraft = Array.from({ length: 110 }, (_, index) => `word${index}`).join(' ');
+  const secondDraft = `${firstDraft} improved`;
+  const telemetry = { ...createWritingCompositionTelemetry('formal', 'attempt_first', null), started_at: started.toISOString() };
+
+  const first = finalizeWritingCompositionTelemetry(telemetry, firstDraft, '', submitted);
+  assert.ok(first.review_reasons.includes('very_fast_completion'));
+
+  const second = finalizeWritingCompositionTelemetry(telemetry, secondDraft, firstDraft, submitted);
+  assert.ok(!second.review_reasons.includes('very_fast_completion'));
+  assert.equal(second.review_status, 'no_concerns_observed');
+  assert.equal(typeof second.revision_changed_word_percent, 'number');
+});

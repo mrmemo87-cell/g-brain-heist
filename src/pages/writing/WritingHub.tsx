@@ -5030,6 +5030,17 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   );
   const [latestIntegritySignals, setLatestIntegritySignals] = useState<WritingCompositionTelemetry | null>(null);
   const [revisionOriginText, setRevisionOriginText] = useState('');
+  // Second-draft session: the first draft stays in the editor and its feedback stays visible while the student improves it.
+  const [revisionSession, setRevisionSession] = useState<{
+    text: string;
+    feedback: WritingAiFeedbackAssist | null;
+    totalScore: number | null;
+    subscores: Record<'content' | 'language' | 'organisation' | 'communicative_achievement', number | null>;
+  } | null>(null);
+  const [draftComparison, setDraftComparison] = useState<{
+    totalScore: number | null;
+    subscores: Record<'content' | 'language' | 'organisation' | 'communicative_achievement', number | null>;
+  } | null>(null);
   const [promptHistoryCount, setPromptHistoryCount] = useState<number>(0);
   const [availablePromptCount, setAvailablePromptCount] = useState<number>(1);
   const [targetWordCount, setTargetWordCount] = useState<number>(() => defaultWritingTarget(grade));
@@ -5154,6 +5165,8 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setLastRetryKind('new_prompt');
     setLatestIntegritySignals(null);
     setRevisionOriginText('');
+    setRevisionSession(null);
+    setDraftComparison(null);
     setCompositionTelemetry(createWritingCompositionTelemetry('formal', null, profile.time_limit_seconds));
   }, [genre, grade]);
 
@@ -5238,9 +5251,23 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   }, [draft]);
 
   const beginRetrySamePrompt = () => {
-    setRevisionOriginText(submittedText || draft);
+    const firstDraft = submittedText || draft;
+    setRevisionOriginText(firstDraft);
+    setRevisionSession({
+      text: firstDraft,
+      feedback: aiFeedback,
+      totalScore: assessment?.total_score ?? null,
+      subscores: {
+        content: assessment?.subscores.content ?? null,
+        language: assessment?.subscores.language ?? null,
+        organisation: assessment?.subscores.organisation ?? null,
+        communicative_achievement: assessment?.subscores.communicative_achievement ?? null,
+      },
+    });
+    setDraftComparison(null);
     setLastRetryKind('same_prompt');
-    setDraft('');
+    // Improving a draft means editing it, not writing it again from memory.
+    setDraft(firstDraft);
     setAssessment(null);
     setAiFeedback(null);
     setSubmittedText('');
@@ -5251,8 +5278,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setShowFullEssayContext(false);
     setLatestIntegritySignals(null);
     setRemainingSeconds(timeLimitSeconds);
-    setCompositionTelemetry(createWritingCompositionTelemetry('formal', lastAttemptId, timeLimitSeconds));
-    setNotice('Retry this prompt: write an improved version, then submit.');
+    setCompositionTelemetry(createWritingCompositionTelemetry('formal', lastAttemptId, null));
+    setError('');
+    setNotice('Second draft: your first draft is in the editor. Make your changes, then submit. There is no time limit.');
     setTimeout(() => responseFieldRef.current?.focus(), 0);
   };
 
@@ -5333,6 +5361,8 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       setLastAttemptId(null);
       setLastRetryKind('new_prompt');
       setRevisionOriginText('');
+      setRevisionSession(null);
+      setDraftComparison(null);
       setLatestIntegritySignals(null);
       setCompositionTelemetry(createWritingCompositionTelemetry('formal', null, nextPrompt.data?.time_limit_seconds ?? fallbackProfile.time_limit_seconds));
       setShowPromptChooser(false);
@@ -5381,7 +5411,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       if (document.visibilityState !== 'hidden' || !wizardOpen || !promptId || assessment || voidingAttemptRef.current) return;
       setCompositionTelemetry((current) => {
         const next = recordWritingVisibilityHidden(current);
-        if (next.tab_change_count === 1) {
+        if (revisionSession) {
+          setNotice('You left the writing tab. This is recorded for your teacher. Your second draft is still here.');
+        } else if (next.tab_change_count === 1) {
           setNotice('Warning: you left the assessment tab. A second tab change will archive this attempt, clear the editor, and issue a fresh prompt.');
         } else if (next.tab_change_count >= 2) {
           void preserveVoidedAttemptAndRotate('second_tab_change', next);
@@ -5391,18 +5423,18 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [assessment, draft, promptId, promptText, activeGenre, wizardOpen]);
+  }, [assessment, draft, promptId, promptText, activeGenre, wizardOpen, revisionSession]);
 
   useEffect(() => {
-    if (!wizardOpen || !promptId || assessment || voidingAttemptRef.current) return;
+    if (!wizardOpen || !promptId || assessment || revisionSession || voidingAttemptRef.current) return;
     const timer = window.setInterval(() => setRemainingSeconds((current) => Math.max(0, current - 1)), 1000);
     return () => window.clearInterval(timer);
-  }, [assessment, promptId, wizardOpen]);
+  }, [assessment, promptId, wizardOpen, revisionSession]);
 
   useEffect(() => {
-    if (remainingSeconds !== 0 || !wizardOpen || !promptId || assessment || voidingAttemptRef.current) return;
+    if (remainingSeconds !== 0 || !wizardOpen || !promptId || assessment || revisionSession || voidingAttemptRef.current) return;
     void preserveVoidedAttemptAndRotate('time_expired', compositionTelemetry);
-  }, [remainingSeconds, assessment, wizardOpen, promptId]);
+  }, [remainingSeconds, assessment, wizardOpen, promptId, revisionSession]);
 
   useEffect(() => {
     if (!studentHistoryReady) return;
@@ -5415,6 +5447,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
   const submitAttempt = async (retryKind: 'same_prompt' | 'new_prompt') => {
     if (!draft.trim()) {
       setError('Please write your response before submitting.');
+      return;
+    }
+    if (retryKind === 'same_prompt' && revisionSession && draft.trim() === revisionSession.text.trim()) {
+      setError('This is still your first draft. Change at least one thing from the feedback, then submit.');
       return;
     }
     setBusy(true);
@@ -5513,6 +5549,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setRevisionCycleId(currentCycleId);
     setAttemptNumber(currentAttemptNumber + 1);
     setLastRetryKind(retryKind);
+    setDraftComparison(retryKind === 'same_prompt' && revisionSession
+      ? { totalScore: revisionSession.totalScore, subscores: revisionSession.subscores }
+      : null);
+    setRevisionSession(null);
     setLatestIntegritySignals(finalizedIntegritySignals);
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem(draftStorageKey);
@@ -5897,6 +5937,16 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     patternCount,
     patternLabel,
   }));
+  const revisionPriorityFixes = revisionSession
+    ? selectPriorityWritingFixes(buildValidatedWritingFixes(revisionSession.text, revisionSession.feedback), 3).priority.map(({ fix, patternCount, patternLabel }) => ({
+        original: fix.original,
+        betterVersion: fix.betterVersion,
+        explanation: fix.explanation,
+        patternCount,
+        patternLabel,
+      }))
+    : [];
+  const formatScoreChange = (delta: number): string => (delta > 0 ? `+${delta}` : delta < 0 ? `−${Math.abs(delta)}` : 'no change');
   const quickFixes = fixSelection.rest.map((item) => ({
     type: toQuickFixType(item.kind),
     original: item.original,
@@ -6101,12 +6151,41 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             </span>
           </div>
           <span className="writing-studio__integrity-badge">
-            {Math.floor(remainingSeconds / 60)}:{String(remainingSeconds % 60).padStart(2, '0')} remaining
+            {revisionSession
+              ? 'Second draft · no time limit'
+              : `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, '0')} remaining`}
           </span>
         </div>
         <p className="writing-studio__editor-help">
           Required range: {minimumWordCount}–{maximumWordCount} words · target {targetWordCount} words
         </p>
+        {revisionSession && (
+          <div data-testid="writing-hub-revision-guide" className="writing-studio__integrity-result" style={{ display: 'grid', gap: 8 }}>
+            <strong>
+              Improve your first draft{revisionSession.totalScore != null ? ` (it scored ${revisionSession.totalScore}/20)` : ''}
+            </strong>
+            {revisionPriorityFixes.length > 0 ? (
+              <ol style={{ margin: 0, paddingLeft: 22, display: 'grid', gap: 8 }}>
+                {revisionPriorityFixes.map((item, idx) => (
+                  <li key={`rv-${idx}`} style={{ lineHeight: 1.5 }}>
+                    <div>{item.original} → <strong>{item.betterVersion}</strong></div>
+                    {item.explanation && <div style={{ color: '#475569' }}>{simplifyStudentLanguage(item.explanation)}</div>}
+                    {item.patternCount > 1 && (
+                      <div style={{ color: '#b45309', fontSize: 14 }}>
+                        Look for {item.patternCount - 1} more like this ({item.patternLabel}).
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            ) : null}
+            {(revisionSession.feedback?.next_move || (revisionSession.feedback?.next_steps ?? [])[0]) && (
+              <span>
+                <strong>Then:</strong> {revisionSession.feedback?.next_move || (revisionSession.feedback?.next_steps ?? [])[0]}
+              </span>
+            )}
+          </div>
+        )}
         <textarea
           ref={responseFieldRef}
           value={draft}
@@ -6153,15 +6232,15 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             disabled={busy || !promptId || !draft.trim()}
             className="writing-studio__primary-button"
           >
-            {busy ? 'Analyzing…' : 'Submit formal assessment'}
+            {busy ? 'Analyzing…' : revisionSession ? 'Submit second draft' : 'Submit formal assessment'}
           </button>
           <button
             type="button"
-            onClick={() => void loadFreshPrompt(activeGenre)}
-            disabled={busy || Boolean(draft.trim())}
+            onClick={() => void loadFreshPrompt(activeGenre, Boolean(revisionSession))}
+            disabled={busy || (!revisionSession && Boolean(draft.trim()))}
             className="writing-studio__secondary-button"
           >
-            Change prompt
+            {revisionSession ? 'Skip the second draft and get a new task' : 'Change prompt'}
           </button>
         </div>
       </section>
@@ -6223,6 +6302,23 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
               );
             })}
           </div>
+          {draftComparison && draftComparison.totalScore != null && (
+            <div data-testid="writing-hub-draft-comparison" className="writing-studio__integrity-result" style={{ display: 'grid', gap: 4 }}>
+              <strong>
+                Second draft: {assessment.total_score}/20
+                {' '}({formatScoreChange(assessment.total_score - draftComparison.totalScore)} from your first draft)
+              </strong>
+              <span>
+                {rubricScores
+                  .map((item) => {
+                    const before = draftComparison.subscores[item.key === 'organization' ? 'organisation' : item.key as 'content' | 'language' | 'communicative_achievement'];
+                    return before == null || item.value == null ? null : `${item.label} ${formatScoreChange(item.value - before)}`;
+                  })
+                  .filter(Boolean)
+                  .join(' · ')}
+              </span>
+            </div>
+          )}
           <p style={{ margin: 0 }}><strong>Task alignment:</strong> {toAlignmentLabel(aiFeedback?.alignment)}</p>
           {aiFeedback?.task_understanding && <p style={{ margin: 0 }}>{aiFeedback.task_understanding}</p>}
 
@@ -6319,6 +6415,17 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           <p style={{ margin: 0 }}>
             <strong>Next action:</strong> {aiFeedback?.next_move || (aiFeedback?.next_steps ?? [])[0] || 'Revise one weak sentence and submit again.'}
           </p>
+          <div>
+            <button
+              type="button"
+              data-testid="writing-hub-improve-draft"
+              className="writing-studio__primary-button"
+              disabled={busy}
+              onClick={beginRetrySamePrompt}
+            >
+              Improve this draft
+            </button>
+          </div>
         </section>
       )}
 

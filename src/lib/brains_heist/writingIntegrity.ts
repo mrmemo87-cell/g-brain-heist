@@ -159,7 +159,8 @@ export const finalizeWritingCompositionTelemetry = (
 
   if (telemetry.pasted_characters >= 120 || pasteRatio >= 0.35) reasons.push('substantial_paste');
   if (telemetry.blocked_paste_events > 0) reasons.push('blocked_paste_attempt');
-  if (elapsedSeconds < 45 && countWords(submission) >= 100) reasons.push('very_fast_completion');
+  // A second draft starts from the student's own first draft, so a short editing time is expected, not suspicious.
+  if (!revisionOriginText && elapsedSeconds < 45 && countWords(submission) >= 100) reasons.push('very_fast_completion');
   if (telemetry.full_replacement_count > 0) reasons.push('large_text_replacement');
   if (telemetry.tab_change_count > 0) reasons.push('left_writing_page');
   if (telemetry.mode === 'supervised' && telemetry.visibility_hidden_count > 0) reasons.push('left_supervised_page');
