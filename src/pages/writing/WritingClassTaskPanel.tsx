@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   assignWritingClassTask,
   cancelWritingClassTask,
+  createWritingClassTask,
   getWritingClassDrafts,
   getWritingClassTaskOptions,
   type WritingClassDraft,
@@ -72,6 +73,11 @@ export const WritingClassTaskPanel: React.FC<WritingClassTaskPanelProps> = ({ sc
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [drafts, setDrafts] = useState<WritingClassDraft[]>([]);
+  const [writingOwn, setWritingOwn] = useState(false);
+  const [ownTitle, setOwnTitle] = useState('');
+  const [ownSituation, setOwnSituation] = useState('');
+  const [ownReader, setOwnReader] = useState('');
+  const [ownPoints, setOwnPoints] = useState<string[]>(['', '', '']);
 
   useEffect(() => {
     let cancelled = false;
@@ -118,6 +124,35 @@ export const WritingClassTaskPanel: React.FC<WritingClassTaskPanelProps> = ({ sc
           : '')
       );
       await load(genre);
+    }
+    setBusy(false);
+  };
+
+  const saveOwnTask = async () => {
+    if (busy) return;
+    setBusy(true);
+    setError('');
+    setMessage('');
+    const result = await createWritingClassTask({
+      scope_id: scopeId,
+      genre,
+      title: ownTitle,
+      situation: ownSituation,
+      reader: ownReader,
+      points: ownPoints.map((point) => point.trim()).filter(Boolean),
+    });
+    if (!result.ok || !result.data) {
+      setError(result.error ?? 'Unable to save the task.');
+    } else {
+      setPromptId(result.data.prompt_id);
+      await load(genre);
+      setPromptId(result.data.prompt_id);
+      setWritingOwn(false);
+      setOwnTitle('');
+      setOwnSituation('');
+      setOwnReader('');
+      setOwnPoints(['', '', '']);
+      setMessage('Task saved. Check the wording below, then set it for the class.');
     }
     setBusy(false);
   };
@@ -177,7 +212,9 @@ export const WritingClassTaskPanel: React.FC<WritingClassTaskPanelProps> = ({ sc
             disabled={busy || !options || options.tasks.length === 0}
           >
             {(options?.tasks ?? []).map((task) => (
-              <option key={task.prompt_id} value={task.prompt_id}>{task.title.split('·').pop()?.trim() || task.title}</option>
+              <option key={task.prompt_id} value={task.prompt_id}>
+                {task.custom ? 'Yours: ' : ''}{task.title.split('·').pop()?.trim() || task.title}
+              </option>
             ))}
           </select>
         </label>
@@ -193,6 +230,78 @@ export const WritingClassTaskPanel: React.FC<WritingClassTaskPanelProps> = ({ sc
           </select>
         </label>
       </div>
+
+      <div>
+        <button
+          type="button"
+          className="writing-monitor__text-button"
+          onClick={() => setWritingOwn((current) => !current)}
+          disabled={busy}
+        >
+          {writingOwn ? 'Cancel writing my own task' : 'Or write my own task'}
+        </button>
+      </div>
+
+      {writingOwn ? (
+        <div data-testid="writing-class-own-task" style={{ display: 'grid', gap: 10, border: '1px solid #cbd5e1', borderRadius: 10, padding: 14 }}>
+          <p style={{ margin: 0, color: '#475569', fontSize: 14 }}>
+            Your task uses the standard word limit, time and marking criteria for this grade and genre.
+            It goes to students exactly as you write it, so check it before you set it.
+          </p>
+          <label style={fieldStyle}>
+            Short name
+            <input
+              value={ownTitle}
+              maxLength={60}
+              onChange={(event: SelectChangeEvent) => setOwnTitle(event.target.value)}
+              placeholder="School trip to Issyk-Kul"
+              style={controlStyle}
+              disabled={busy}
+            />
+          </label>
+          <label style={fieldStyle}>
+            Situation
+            <textarea
+              value={ownSituation}
+              maxLength={600}
+              rows={3}
+              onChange={(event: SelectChangeEvent) => setOwnSituation(event.target.value)}
+              placeholder="Your class went on a trip last week and the school wants to know how it went."
+              style={controlStyle}
+              disabled={busy}
+            />
+          </label>
+          <label style={fieldStyle}>
+            Who the student writes for
+            <input
+              value={ownReader}
+              maxLength={80}
+              onChange={(event: SelectChangeEvent) => setOwnReader(event.target.value)}
+              placeholder="the head teacher"
+              style={controlStyle}
+              disabled={busy}
+            />
+          </label>
+          {ownPoints.map((point, index) => (
+            <label key={`point-${index}`} style={fieldStyle}>
+              Point {index + 1} the student must cover{index === 2 ? ' (optional)' : ''}
+              <input
+                value={point}
+                maxLength={120}
+                onChange={(event: SelectChangeEvent) => setOwnPoints((current) => current.map((item, i) => (i === index ? event.target.value : item)))}
+                placeholder={['describe what you did', 'explain what you learned', 'suggest one improvement for next time'][index]}
+                style={controlStyle}
+                disabled={busy}
+              />
+            </label>
+          ))}
+          <div>
+            <button type="button" className="writing-monitor__secondary-button" onClick={() => void saveOwnTask()} disabled={busy}>
+              {busy ? 'Saving…' : 'Save my task'}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {selectedTask ? (
         <blockquote style={{ margin: 0, padding: '10px 14px', borderLeft: '4px solid #2563eb', background: '#f8fafc', borderRadius: 6, lineHeight: 1.55 }}>
