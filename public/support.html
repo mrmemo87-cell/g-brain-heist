@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support — Brains Heist</title>
+  <meta name="description" content="Get help with the Brains Heist app: sign-in, school codes, subscriptions, account deletion and privacy." />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <style>
+    :root { --bg: #0f172a; --surface: #1e293b; --border: #334155; --text: #e2e8f0; --muted: #94a3b8; --accent: #10b981; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+    .container { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; }
+    header { text-align: center; padding: 2rem 0 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
+    header img { height: 40px; margin-bottom: 0.75rem; }
+    h1 { font-size: 2rem; font-weight: 700; }
+    h2 { font-size: 1.25rem; font-weight: 700; margin: 2rem 0 0.75rem; color: var(--accent); }
+    p, li { color: var(--text); font-size: 0.95rem; margin-bottom: 0.75rem; }
+    ul { padding-left: 1.5rem; margin-bottom: 1rem; list-style: none; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin: 1.5rem 0; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; text-align: center; transition: border-color 0.2s; }
+    .card:hover { border-color: var(--accent); }
+    .card .icon { font-size: 2rem; margin-bottom: 0.75rem; }
+    .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .card p { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem; }
+    .card a { font-weight: 600; font-size: 0.95rem; }
+
+    .sla { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin: 1.5rem 0; }
+    .sla-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+    .sla-row:last-child { border-bottom: none; }
+    .sla-row .label { color: var(--muted); font-size: 0.9rem; }
+    .sla-row .value { font-weight: 600; font-size: 0.9rem; }
+
+    .faq { margin-top: 1.5rem; }
+    .faq details { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 0.5rem; }
+    .faq summary { padding: 0.85rem 1rem; cursor: pointer; font-weight: 600; font-size: 0.95rem; }
+    .faq summary:hover { color: var(--accent); }
+    .faq .answer { padding: 0 1rem 0.85rem; font-size: 0.9rem; color: var(--muted); }
+
+    footer { text-align: center; padding: 2rem 0; border-top: 1px solid var(--border); margin-top: 3rem; font-size: 0.8rem; color: var(--muted); }
+    .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem; margin-bottom: 1rem; }
+    .footer-links a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/"><img src="/logo.png" alt="Brains Heist" /></a>
+      <h1>Brains Heist Support</h1>
+      <p style="color: var(--muted); margin-top: 0.5rem;">Questions about the app? We're happy to help.</p>
+    </header>
+
+    <div class="cards">
+      <div class="card"><div class="icon">✉️</div><h3>Email us</h3><p>For any question about the app, your account or a purchase.</p><a href="mailto:support@brainsheist.com">support@brainsheist.com</a></div>
+      <div class="card"><div class="icon">⏱️</div><h3>Response time</h3><p>We reply within 24 hours, Monday to Friday.</p></div>
+    </div>
+    <p>Please include the email or username you use in Brains Heist, your phone model and a short description or screenshot of the problem.</p>
+
+    <h2>Common questions</h2>
+    <div class="faq">
+      <details><summary>I can't sign in</summary><div class="answer">Check that you are using the same email or username your school gave you. If you forgot your password, ask your teacher or school admin to reset it, or email us from the address on your account.</div></details>
+      <details><summary>How do I join my school or class?</summary><div class="answer">Ask your teacher for your school's invite code and enter it when you sign up. If the code doesn't work, your teacher or school admin can check it, or email us.</div></details>
+      <details><summary>How do I manage or cancel IELTS Prime?</summary><div class="answer">If you bought IELTS Prime in the Android app, manage or cancel it in Google Play → Payments &amp; subscriptions. If you bought it in the iPhone app, use Settings → your name → Subscriptions. For anything else about a payment, email support@brainsheist.com.</div></details>
+      <details><summary>How do I delete my account?</summary><div class="answer">Follow the steps on our <a href="/delete-account.html">account deletion page</a>. We confirm by email and delete the account and its data within 30 days.</div></details>
+      <details><summary>How is my data protected?</summary><div class="answer">Read our <a href="/privacy.html">Privacy Policy</a>. For privacy or data requests, email <a href="mailto:privacy@brainsheist.com">privacy@brainsheist.com</a>.</div></details>
+      <details><summary>I'm a school and want Brains Heist</summary><div class="answer">Email <a href="mailto:sales@brainsheist.com">sales@brainsheist.com</a> and we'll set up your school.</div></details>
+    </div>
+
+    <footer>
+      <div class="footer-links">
+        <a href="/">Sign in</a>
+        <a href="/about">About</a>
+        <a href="/privacy.html">Privacy Policy</a>
+        <a href="/terms.html">Terms of Service</a>
+        <a href="/delete-account.html">Delete account</a>
+      </div>
+      <p>Brains Heist LLC · 30 N Gould St Ste R, Sheridan, WY 82801, USA</p>
+      <p>&copy; 2026 Brains Heist LLC. All rights reserved.</p>
+    </footer>
+  </div>
+</body>
+</html>

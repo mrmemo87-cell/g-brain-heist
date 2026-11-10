@@ -37,6 +37,14 @@
       "destination": "/ielts-prep.html"
     },
     {
+      "source": "/about",
+      "destination": "/about.html"
+    },
+    {
+      "source": "/support",
+      "destination": "/support.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
