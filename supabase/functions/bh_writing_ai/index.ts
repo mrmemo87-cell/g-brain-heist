@@ -981,6 +981,56 @@ const normalizeAssessmentV2 = (raw: unknown, payload: Payload) => {
   };
 };
 
+/**
+ * Diagnostics only: names the first strict check a Claude assessment failed, mirroring normalizeAssessmentV2.
+ * Returns short codes and counts, never student text or model output, so it is safe to log.
+ */
+const describeAssessmentRejection = (raw: unknown, payload: Payload): string => {
+  if (!raw || typeof raw !== "object") return "not_object";
+  const value = raw as Record<string, unknown>;
+  const response = payload.studentResponse ?? "";
+  const criteria = value.criteria && typeof value.criteria === "object" ? value.criteria as Record<string, unknown> : null;
+  if (!criteria) return "criteria_missing";
+  const task = value.task_requirements && typeof value.task_requirements === "object" ? value.task_requirements as Record<string, unknown> : null;
+  if (!task) return "task_requirements_missing";
+  for (const key of CRITERION_KEYS) {
+    const c = criteria[key] && typeof criteria[key] === "object" ? criteria[key] as Record<string, unknown> : null;
+    if (!c) return `${key}:missing`;
+    if (!Number.isInteger(c.score) || Number(c.score) < 0 || Number(c.score) > 5) return `${key}:score`;
+    if (typeof c.confidence !== "number" || !Number.isFinite(c.confidence) || c.confidence < 0 || c.confidence > 1) return `${key}:confidence`;
+    if (typeof c.descriptor_id !== "string" || c.descriptor_id.trim().length < 3) return `${key}:descriptor_id`;
+    if (typeof c.justification !== "string" || c.justification.trim().length < 12) return `${key}:justification`;
+    if (typeof c.improvement_action !== "string" || c.improvement_action.trim().length < 8) return `${key}:improvement_action`;
+    if (!Array.isArray(c.evidence) || c.evidence.length === 0) return `${key}:evidence_empty`;
+    let exact = 0, relocated = 0, repeated = 0, missing = 0, malformed = 0;
+    for (const item of c.evidence) {
+      const span = item && typeof item === "object" ? item as Record<string, unknown> : null;
+      if (!span || typeof span.quote !== "string" || !Number.isInteger(span.start_char) || !Number.isInteger(span.end_char)) { malformed++; continue; }
+      const start = Number(span.start_char), end = Number(span.end_char);
+      if (start >= 0 && end === start + span.quote.length && response.slice(start, end) === span.quote) { exact++; continue; }
+      const first = response.indexOf(span.quote);
+      if (first < 0) missing++;
+      else if (response.indexOf(span.quote, first + Math.max(1, span.quote.length)) >= 0) repeated++;
+      else relocated++;
+    }
+    if (exact + relocated === 0) return `${key}:evidence_ungrounded(malformed=${malformed},not_found=${missing},repeated=${repeated})`;
+  }
+  const feedback = value.feedback && typeof value.feedback === "object" ? value.feedback as Record<string, unknown> : null;
+  if (!feedback) return "feedback_missing";
+  for (const key of ["task_understanding", "submission_read", "next_move", "monthly_report_summary"]) {
+    if (typeof feedback[key] !== "string" || String(feedback[key]).trim().length < 4) return `feedback:${key}`;
+  }
+  if (!["on_task", "partially_on_task", "off_topic", "too_short", "underdeveloped", "mostly_correct_but_needs_polish"].includes(String(feedback.alignment))) return "feedback:alignment";
+  for (const key of ["what_is_working", "what_is_missing", "strengths", "strength_evidence", "weaknesses", "next_steps", "weakness_tags"]) {
+    if (!Array.isArray(feedback[key])) return `feedback:${key}_not_array`;
+  }
+  if (typeof task.audience !== "string" || !task.audience.trim()) return "task:audience";
+  if (typeof task.purpose !== "string" || !task.purpose.trim()) return "task:purpose";
+  if (!["informal", "neutral", "formal", "mixed"].includes(String(task.register))) return "task:register";
+  if (!payload.trustedTaskSnapshot) return "trusted_snapshot_missing";
+  return "unknown";
+};
+
 const normalizeAiResult = (mode: Mode, raw: unknown, studentResponse = ""): AiResult | null => {
   if (!raw || typeof raw !== "object") return null;
   const value = raw as Record<string, unknown>;
@@ -1606,7 +1656,10 @@ serve(async (req) => {
     // instead of returning an error to the student.
     if (assessmentMode && completion._provider === "anthropic" && openAiKey
       && (!content || !normalizeAssessmentV2(JSON.parse(content), payload!))) {
-      console.warn("[bh_writing_ai] Claude assessment failed strict validation; re-running on OpenAI fallback");
+      console.warn("[bh_writing_ai] Claude assessment failed strict validation; re-running on OpenAI fallback", {
+        reason: content ? describeAssessmentRejection(JSON.parse(content), payload!) : "empty_content",
+        claude_output_tokens: completion.usage?.completion_tokens ?? null,
+      });
       completion = await withTimeout(
         createStructuredCompletion(primaryRequest(true)),
         primaryBudgetMs,
