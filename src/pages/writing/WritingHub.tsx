@@ -26,6 +26,8 @@ import {
   submitInitialWritingAssessment,
   getStudentPromptAttemptCount,
   recordWritingIntegrityVoid,
+  loadWritingDraftFromServer,
+  saveWritingDraftToServer,
   StudentWritingHistoryEntry,
 } from '../../lib/brains_heist/writingIntegrationService.js';
 import { FALLBACK_PROMPT_BY_GENRE, WEAKNESS_TAG_TO_MISSION_CATEGORY } from '../../lib/brains_heist/writingPromptProgression.js';
@@ -59,6 +61,10 @@ interface WritingHubProps {
 type WritingTextareaChangeEvent = { target: { value: string } };
 type WritingPasteEvent = {
   clipboardData: { getData: (format: string) => string };
+  preventDefault: () => void;
+};
+type WritingDropEvent = {
+  dataTransfer?: { getData: (format: string) => string } | null;
   preventDefault: () => void;
 };
 type SupportedGenre = WritingHubProps['genre'];
@@ -5241,6 +5247,71 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     return () => window.clearTimeout(timer);
   }, [draft, draftStorageKey]);
 
+  // The draft is also kept in the student's account, so a failed or changed device does not lose the work.
+  const remainingSecondsRef = useRef(remainingSeconds);
+  remainingSecondsRef.current = remainingSeconds;
+  const tabChangeCountRef = useRef(0);
+  tabChangeCountRef.current = compositionTelemetry.tab_change_count ?? 0;
+  const serverDraftReadyRef = useRef('');
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
+  const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!promptId || !wizardOpen) return;
+    let cancelled = false;
+    serverDraftReadyRef.current = '';
+    setDraftSavedAt(null);
+    void loadWritingDraftFromServer(promptId).then((result) => {
+      if (cancelled) return;
+      const saved = result.ok ? result.data : null;
+      if (saved) {
+        // Text already in this browser is at least as new as the account copy, so it wins.
+        const restored = !draftRef.current.trim();
+        if (restored) setDraft(saved.draft);
+        if (saved.remaining_seconds != null) {
+          const savedSeconds = saved.remaining_seconds;
+          setRemainingSeconds((current) => Math.min(current, savedSeconds));
+        }
+        if (saved.tab_change_count > 0) {
+          setCompositionTelemetry((current) => ({
+            ...current,
+            tab_change_count: Math.max(current.tab_change_count ?? 0, saved.tab_change_count),
+          }));
+        }
+        if (restored) setNotice('Your saved draft is back. Keep going from where you stopped.');
+      }
+      serverDraftReadyRef.current = promptId;
+    });
+    return () => { cancelled = true; };
+  }, [promptId, wizardOpen]);
+
+  useEffect(() => {
+    if (!promptId || !wizardOpen || assessment) return;
+    // Wait for the saved draft to load first, so an empty editor never erases it.
+    if (serverDraftReadyRef.current !== promptId || !draft.trim()) return;
+    const timer = window.setTimeout(() => {
+      void saveWritingDraftToServer({
+        prompt_id: promptId,
+        genre: activeGenre,
+        draft,
+        remaining_seconds: revisionSession ? null : remainingSecondsRef.current,
+        tab_change_count: tabChangeCountRef.current,
+      }).then((result) => {
+        if (result.ok && result.data?.saved) {
+          setDraftSavedAt(new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }));
+        }
+      });
+    }, 3000);
+    return () => window.clearTimeout(timer);
+  }, [draft, promptId, wizardOpen, assessment, activeGenre, revisionSession]);
+
+  const clearServerDraft = (taskId: string | null) => {
+    if (!taskId) return;
+    setDraftSavedAt(null);
+    void saveWritingDraftToServer({ prompt_id: taskId, genre: activeGenre, draft: '', remaining_seconds: null, tab_change_count: 0 });
+  };
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -5408,6 +5479,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       return;
     }
     if (typeof window !== 'undefined') window.localStorage.removeItem(draftStorageKey);
+    clearServerDraft(promptId);
     setDraft('');
     setLatestIntegritySignals(finalSignals);
     setNotice(reason === 'second_tab_change'
@@ -5572,6 +5644,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem(draftStorageKey);
     }
+    clearServerDraft(promptId);
 
     setCinematicReplaySource(null);
     setCinematicIndex(null);
@@ -6242,12 +6315,27 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             if (!draft.trim()) return;
             setCompositionTelemetry((current) => recordWritingFocusLoss(current));
           }}
+          onDrop={(event: WritingDropEvent) => {
+            // Text dragged in from another window is outside text, the same as a paste.
+            const droppedText = event.dataTransfer?.getData('text') ?? '';
+            event.preventDefault();
+            setCompositionTelemetry((current) => recordWritingPaste(current, droppedText.length, true));
+            setError('Dragging text into the writing box is disabled. The attempt was recorded.');
+          }}
+          spellCheck={false}
+          autoCorrect="off"
+          autoCapitalize="off"
+          autoComplete="off"
+          data-gramm="false"
+          data-gramm_editor="false"
+          data-enable-grammarly="false"
+          data-lt-active="false"
           placeholder="Write your response here."
           className="writing-studio__editor"
           aria-describedby="writing-editor-help"
         />
         <p id="writing-editor-help" className="writing-studio__editor-help">
-          Your draft saves securely while you work. Accessibility accommodations can be arranged by your teacher.
+          Your draft is saved to your account as you write{draftSavedAt ? ` (last saved ${draftSavedAt})` : ''}. Spelling and grammar helpers are turned off for this task. Accessibility accommodations can be arranged by your teacher.
         </p>
         {isVeryShortDraft && <p className="writing-studio__gentle-warning">Add a little more detail before submitting so your feedback can be useful.</p>}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

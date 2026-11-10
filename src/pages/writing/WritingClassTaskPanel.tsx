@@ -2,7 +2,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   assignWritingClassTask,
   cancelWritingClassTask,
+  getWritingClassDrafts,
   getWritingClassTaskOptions,
+  type WritingClassDraft,
   type WritingClassTaskOptions,
 } from '../../lib/brains_heist/writingIntegrationService.js';
 import type { SupportedGenre } from '../../lib/brains_heist/writingAssessment.js';
@@ -69,6 +71,15 @@ export const WritingClassTaskPanel: React.FC<WritingClassTaskPanelProps> = ({ sc
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [drafts, setDrafts] = useState<WritingClassDraft[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getWritingClassDrafts(scopeId).then((result) => {
+      if (!cancelled) setDrafts(result.ok && result.data ? result.data : []);
+    });
+    return () => { cancelled = true; };
+  }, [scopeId]);
 
   const load = useCallback(async (nextGenre: SupportedGenre) => {
     setError('');
@@ -208,6 +219,31 @@ export const WritingClassTaskPanel: React.FC<WritingClassTaskPanelProps> = ({ sc
         {message ? <span role="status" style={{ color: '#166534' }}>{message}</span> : null}
         {error ? <span role="alert" style={{ color: '#b91c1c' }}>{error}</span> : null}
       </div>
+
+      {drafts.length > 0 ? (
+        <details data-testid="writing-class-drafts">
+          <summary style={{ cursor: 'pointer', fontWeight: 700 }}>
+            Drafts in progress ({drafts.length})
+          </summary>
+          <p style={{ margin: '8px 0', color: '#475569', fontSize: 14 }}>
+            Work students have started but not submitted. It is saved automatically as they write.
+          </p>
+          <div style={{ display: 'grid', gap: 10 }}>
+            {drafts.map((item) => (
+              <details key={`${item.student_id}:${item.prompt_id}`} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '8px 12px' }}>
+                <summary style={{ cursor: 'pointer' }}>
+                  <strong>{item.student_name}</strong>
+                  {' · '}{item.task_title.split('·').pop()?.trim() || item.task_title}
+                  {' · '}{item.draft.trim().split(/\s+/).filter(Boolean).length} words
+                  {' · saved '}{formatDate(item.updated_at)}
+                  {item.tab_change_count > 0 ? ` · left the tab ${item.tab_change_count} ${item.tab_change_count === 1 ? 'time' : 'times'}` : ''}
+                </summary>
+                <p style={{ margin: '8px 0 0', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{item.draft}</p>
+              </details>
+            ))}
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 };
