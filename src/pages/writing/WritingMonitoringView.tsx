@@ -15,6 +15,7 @@ import {
 } from '../../lib/brains_heist/writingIntegrationService.js';
 import { parseAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
 import { openProfessionalWritingReport } from '../../lib/brains_heist/writingReportDocument.js';
+import { WritingClassTaskPanel } from './WritingClassTaskPanel.js';
 
 interface WritingMonitoringViewProps {
   month?: string;
@@ -27,7 +28,7 @@ type MonitoringRow = WritingMonitoringOverview['student_rows'][number] & {
   class_name?: string | null;
 };
 
-type CollapseKey = 'overview' | 'classes' | 'students' | 'genres' | 'reader';
+type CollapseKey = 'overview' | 'classes' | 'students' | 'genres' | 'reader' | 'class-task';
 type SupportedMonitorGenre = 'email' | 'article' | 'review' | 'story' | 'essay' | 'report' | 'paragraph';
 type FlipDirection = 'forward' | 'backward';
 type InputChangeEvent = { target: { value: string } };
@@ -1189,6 +1190,25 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
           )
         ) : null}
       </section>
+
+      {selectedClass && selectedClass.key.startsWith('id:') ? (
+        <section className="writing-monitor__section">
+          <CollapsibleHeading
+            eyebrow="Class task"
+            title={`Set a writing task for ${selectedClass.name}`}
+            description="Give the whole class the same task and genre. Students get it in the Writing Hub until they submit it."
+            collapsed={collapsed.has('class-task')}
+            onToggle={() => toggleCollapsed('class-task')}
+          />
+          {!collapsed.has('class-task') ? (
+            <WritingClassTaskPanel
+              key={selectedClass.key}
+              scopeId={selectedClass.key.slice(3)}
+              className={selectedClass.name}
+            />
+          ) : null}
+        </section>
+      ) : null}
 
       {selectedClass ? (
         <section className="writing-monitor__section writing-monitor__section--accent">

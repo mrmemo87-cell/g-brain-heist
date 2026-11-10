@@ -5042,6 +5042,8 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     subscores: Record<'content' | 'language' | 'organisation' | 'communicative_achievement', number | null>;
   } | null>(null);
   const [promptHistoryCount, setPromptHistoryCount] = useState<number>(0);
+  // Set when the teacher gave this task to the student's whole class.
+  const [classTask, setClassTask] = useState<{ class_name: string; closes_at: string } | null>(null);
   const [availablePromptCount, setAvailablePromptCount] = useState<number>(1);
   const [targetWordCount, setTargetWordCount] = useState<number>(() => defaultWritingTarget(grade));
   const [minimumWordCount, setMinimumWordCount] = useState(initialProfile.minimum_word_count);
@@ -5294,8 +5296,8 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setError('');
     setNotice(hasPromptRotation ? 'Loading a new prompt…' : 'Checking for a different prompt…');
     try {
-      const nextGenre = genreOverride ?? activeGenre;
-      const fallbackProfile = getCambridgeWritingProfile(grade, nextGenre);
+      let nextGenre = genreOverride ?? activeGenre;
+      let fallbackProfile = getCambridgeWritingProfile(grade, nextGenre);
       if (nextGenre !== activeGenre) setActiveGenre(nextGenre);
       const stateRes = getStudentWritingState(studentId, nextGenre);
       const weaknessTags = stateRes.ok && stateRes.data?.latest_assessment ? stateRes.data.latest_assessment.weakness_tags.slice(0, 4) : [];
@@ -5310,6 +5312,15 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         weakness_tags: weaknessTags,
         use_ai_polish: true,
       });
+      const assignedTask = nextPrompt.ok ? nextPrompt.data?.assignment ?? null : null;
+      if (assignedTask && nextPrompt.data && nextPrompt.data.genre !== nextGenre) {
+        // The teacher's class task decides the genre. Mark this genre as loaded so the genre effect does not reload it.
+        nextGenre = nextPrompt.data.genre;
+        fallbackProfile = getCambridgeWritingProfile(grade, nextGenre);
+        managedPromptLoadKeyRef.current = `${studentId}:${nextGenre}`;
+        setActiveGenre(nextGenre);
+      }
+      setClassTask(assignedTask ? { class_name: assignedTask.class_name, closes_at: assignedTask.closes_at } : null);
       let resolvedPrompt = defaultPromptByGenre[nextGenre];
       let resolvedPromptId: string | null = null;
       if (nextPrompt.ok && nextPrompt.data?.prompt_text?.trim()) {
@@ -5338,7 +5349,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         && previousPromptId === resolvedPromptId
       );
       const samePromptText = normalizePromptForComparison(resolvedPrompt) === normalizePromptForComparison(previousPrompt);
-      if (samePromptIdentity || samePromptText) {
+      if (assignedTask) {
+        setNotice(`Your teacher set this task for ${assignedTask.class_name}. Write and submit it. Other tasks open after you submit.`);
+      } else if (samePromptIdentity || samePromptText) {
         setNotice(
           hasPromptRotation
             ? 'This is still the same task, so it has not been labelled as a new prompt. Choose New prompt again or retry it.'
@@ -5553,6 +5566,8 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       ? { totalScore: revisionSession.totalScore, subscores: revisionSession.subscores }
       : null);
     setRevisionSession(null);
+    // A submitted class task is done; the picker now offers the student's own choice again.
+    setClassTask(null);
     setLatestIntegritySignals(finalizedIntegritySignals);
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem(draftStorageKey);
@@ -6132,6 +6147,16 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             </button>
           ))}
         </div>}
+        {classTask && (
+          <div data-testid="writing-hub-class-task" className="writing-studio__integrity-result" style={{ display: 'grid', gap: 2 }}>
+            <strong>Set by your teacher for {classTask.class_name}</strong>
+            <span>
+              {Number.isNaN(new Date(classTask.closes_at).getTime())
+                ? 'Submit this task to open other tasks.'
+                : `Submit it by ${new Date(classTask.closes_at).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}. Other tasks open after you submit.`}
+            </span>
+          </div>
+        )}
         <div className="writing-studio__prompt-copy">{promptText}</div>
       </section>
 
