@@ -44,6 +44,7 @@ import {
   WritingIntegrityMode,
 } from '../../lib/brains_heist/writingIntegrity.js';
 import { getCambridgeWritingProfile, getCambridgeWritingTaskLabel } from '../../lib/brains_heist/cambridgeWritingProfiles.js';
+import { selectPriorityWritingFixes } from '../../lib/brains_heist/writingPriorityFixes.js';
 import { quest_get_missions, QuestMissionRow } from '../../../services/gameService.js';
 import { getAcademicReportingContext, type AcademicReportingYear } from '../../../services/academicReportingService.js';
 
@@ -161,6 +162,7 @@ interface ValidatedWritingFix {
   end: number;
   providerStart?: number;
   providerEnd?: number;
+  weaknessTag?: string;
 }
 
 interface RepairQueueItem {
@@ -717,9 +719,9 @@ export const buildValidatedWritingFixes = (
 ): ValidatedWritingFix[] => {
   if (!text || !ai) return [];
   const candidates: Array<Omit<ValidatedWritingFix, 'id' | 'start' | 'end'>> = [
-    ...(ai.grammar_fixes ?? []).map((item) => ({ kind: 'grammar' as const, original: item.original, betterVersion: item.better_version, explanation: item.issue, providerStart: item.start_char, providerEnd: item.end_char })),
-    ...(ai.punctuation_fixes ?? []).map((item) => ({ kind: 'punctuation' as const, original: item.original, betterVersion: item.better_version, explanation: item.issue, providerStart: item.start_char, providerEnd: item.end_char })),
-    ...(ai.natural_phrase_upgrades ?? []).map((item) => ({ kind: 'phrase' as const, original: item.original, betterVersion: item.better_version, explanation: item.why_it_helps, providerStart: item.start_char, providerEnd: item.end_char })),
+    ...(ai.grammar_fixes ?? []).map((item) => ({ kind: 'grammar' as const, original: item.original, betterVersion: item.better_version, explanation: item.issue, providerStart: item.start_char, providerEnd: item.end_char, weaknessTag: item.weakness_tag })),
+    ...(ai.punctuation_fixes ?? []).map((item) => ({ kind: 'punctuation' as const, original: item.original, betterVersion: item.better_version, explanation: item.issue, providerStart: item.start_char, providerEnd: item.end_char, weaknessTag: item.weakness_tag })),
+    ...(ai.natural_phrase_upgrades ?? []).map((item) => ({ kind: 'phrase' as const, original: item.original, betterVersion: item.better_version, explanation: item.why_it_helps, providerStart: item.start_char, providerEnd: item.end_char, weaknessTag: item.weakness_tag })),
     ...(ai.style_tone_feedback ?? []).map((item) => ({ kind: 'style' as const, original: item.evidence, betterVersion: item.suggestion, explanation: item.issue })),
   ];
   const seen = new Set<string>();
@@ -5878,14 +5880,25 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
 
   const strengths = (aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).filter(Boolean).slice(0, 4);
   const improvements = (aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).filter(Boolean).slice(0, 4);
-  const quickFixes = buildValidatedWritingFixes(submittedText, aiFeedback).map((item) => ({
-    type: item.kind === 'grammar'
-      ? 'Grammar'
-      : item.kind === 'punctuation'
-        ? 'Punctuation'
-        : item.kind === 'style'
-          ? 'Style & tone'
-          : 'Better phrasing',
+  const toQuickFixType = (kind: WritingFixKind): string => kind === 'grammar'
+    ? 'Grammar'
+    : kind === 'punctuation'
+      ? 'Punctuation'
+      : kind === 'style'
+        ? 'Style & tone'
+        : 'Better phrasing';
+  // Lead with the few corrections worth acting on first; the complete list stays one tap away.
+  const fixSelection = selectPriorityWritingFixes(buildValidatedWritingFixes(submittedText, aiFeedback), 3);
+  const priorityFixes = fixSelection.priority.map(({ fix, patternCount, patternLabel }) => ({
+    type: toQuickFixType(fix.kind),
+    original: fix.original,
+    betterVersion: fix.betterVersion,
+    explanation: fix.explanation,
+    patternCount,
+    patternLabel,
+  }));
+  const quickFixes = fixSelection.rest.map((item) => ({
+    type: toQuickFixType(item.kind),
     original: item.original,
     betterVersion: item.betterVersion,
     explanation: item.explanation,
@@ -6254,10 +6267,40 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             </div>
           )}
 
+          {priorityFixes.length > 0 && (
+            <div data-testid="writing-hub-priority-fixes">
+              <p style={{ margin: '2px 0 4px' }}>
+                <strong>✏️ Fix {priorityFixes.length === 1 ? 'this' : `these ${priorityFixes.length}`} first</strong>
+              </p>
+              <p style={{ margin: '0 0 8px', color: '#475569', fontSize: 14 }}>
+                Start here. These are the changes that will improve your writing the most.
+              </p>
+              <ol style={{ margin: 0, paddingLeft: 22, display: 'grid', gap: 12 }}>
+                {priorityFixes.map((item, idx) => (
+                  <li key={`p-${idx}`} style={{ lineHeight: 1.6 }}>
+                    <div>
+                      {item.original} → <strong>{item.betterVersion}</strong>
+                    </div>
+                    {item.explanation && (
+                      <div style={{ color: '#475569', marginTop: 4 }}>{simplifyStudentLanguage(item.explanation)}</div>
+                    )}
+                    {item.patternCount > 1 && (
+                      <div style={{ color: '#b45309', marginTop: 4, fontSize: 14 }}>
+                        You made this kind of mistake ({item.patternLabel}) {item.patternCount} times. Check the others too.
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
           {quickFixes.length > 0 && (
-            <div>
-              <p style={{ margin: '2px 0 8px' }}><strong>✏️ Quick fixes</strong></p>
-              <ul style={{ margin: 0, paddingLeft: 22, display: 'grid', gap: 12 }}>
+            <details data-testid="writing-hub-all-fixes">
+              <summary style={{ cursor: 'pointer', fontWeight: 700 }}>
+                See {quickFixes.length} more {quickFixes.length === 1 ? 'correction' : 'corrections'}
+              </summary>
+              <ul style={{ margin: '10px 0 0', paddingLeft: 22, display: 'grid', gap: 12 }}>
                 {quickFixes.map((item, idx) => (
                   <li key={`g-${idx}`} style={{ lineHeight: 1.6 }}>
                     <div style={{ marginBottom: 4 }}><strong>{item.type}</strong></div>
@@ -6270,7 +6313,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                   </li>
                 ))}
               </ul>
-            </div>
+            </details>
           )}
 
           <p style={{ margin: 0 }}>
