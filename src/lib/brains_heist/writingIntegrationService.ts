@@ -3505,6 +3505,81 @@ export const assignWritingClassTask = async (input: {
   }
 };
 
+export interface WritingServerDraft {
+  draft: string;
+  remaining_seconds: number | null;
+  tab_change_count: number;
+  updated_at: string;
+}
+
+export interface WritingClassDraft {
+  student_id: string;
+  student_name: string;
+  prompt_id: string;
+  task_title: string;
+  genre: SupportedGenre;
+  draft: string;
+  tab_change_count: number;
+  updated_at: string;
+}
+
+/** Student: save the draft in progress to the account. Empty text clears the saved draft. */
+export const saveWritingDraftToServer = async (input: {
+  prompt_id: string;
+  genre: SupportedGenre;
+  draft: string;
+  remaining_seconds: number | null;
+  tab_change_count: number;
+}): Promise<ServiceResponse<{ saved: boolean }>> => {
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_save_draft', {
+      p_prompt_id: input.prompt_id,
+      p_genre: input.genre,
+      p_draft: input.draft,
+      p_remaining_seconds: input.remaining_seconds,
+      p_tab_change_count: input.tab_change_count,
+    });
+    if (error || !data) return badRequest(error?.message ?? 'Unable to save the draft.');
+    return ok({ saved: (data as Record<string, unknown>)['saved'] === true });
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to save the draft.');
+  }
+};
+
+/** Student: the draft saved in the account for this task, or null. */
+export const loadWritingDraftFromServer = async (promptId: string): Promise<ServiceResponse<WritingServerDraft | null>> => {
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_load_draft', { p_prompt_id: promptId });
+    if (error) return badRequest(error.message);
+    if (!data || typeof data !== 'object') return ok(null);
+    const record = data as Record<string, unknown>;
+    if (typeof record['draft'] !== 'string' || !record['draft'].trim()) return ok(null);
+    return ok({
+      draft: record['draft'],
+      remaining_seconds: Number.isInteger(record['remaining_seconds']) ? Number(record['remaining_seconds']) : null,
+      tab_change_count: Number(record['tab_change_count']) || 0,
+      updated_at: typeof record['updated_at'] === 'string' ? record['updated_at'] : '',
+    });
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to load the saved draft.');
+  }
+};
+
+/** Teacher: drafts students in this class have started but not submitted. */
+export const getWritingClassDrafts = async (scopeId: string): Promise<ServiceResponse<WritingClassDraft[]>> => {
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_class_drafts', { p_scope_id: scopeId });
+    if (error || !data || typeof data !== 'object') return badRequest(error?.message ?? 'Unable to load drafts in progress.');
+    const drafts = (data as Record<string, unknown>)['drafts'];
+    return ok(Array.isArray(drafts) ? drafts as WritingClassDraft[] : []);
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to load drafts in progress.');
+  }
+};
+
 /** Teacher: withdraw the class task so students return to their own choice of task. */
 export const cancelWritingClassTask = async (assignmentId: string): Promise<ServiceResponse<{ cancelled: true }>> => {
   try {
