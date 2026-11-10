@@ -48,6 +48,11 @@ const PortalLanding: React.FC<PortalLandingProps> = ({ onExplore, children, retu
                             <div className="mt-1 text-[10px] font-extrabold uppercase tracking-[0.5em] text-slate-500 sm:text-xs">Learn · Compete · Grow</div>
                         </div>
                     </div>
+                    <nav aria-label="About Brains Heist" className="mt-4 flex gap-5 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                        <a href="/about" className="hover:text-cyan-300">About</a>
+                        <a href="/support" className="hover:text-cyan-300">Support</a>
+                        <a href="/privacy.html" className="hover:text-cyan-300">Privacy</a>
+                    </nav>
                 </div>
 
                 <section className="mx-auto grid w-full flex-1 items-center gap-10 py-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-14 lg:py-8">
