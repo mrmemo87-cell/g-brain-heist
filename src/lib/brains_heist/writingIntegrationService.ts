@@ -1620,6 +1620,8 @@ export interface WritingClassTaskOption {
   prompt_text: string;
   target_word_count: number;
   time_limit_minutes: number;
+  /** True for a task a teacher in this school wrote. */
+  custom?: boolean;
 }
 
 export interface WritingClassTaskOptions {
@@ -3476,6 +3478,32 @@ export const getWritingClassTaskOptions = async (input: {
     });
   } catch (error) {
     return badRequest(error instanceof Error ? error.message : 'Unable to load tasks for this class.');
+  }
+};
+
+/** Teacher: write a new task for this class. It keeps the grade's standard word limits, timing and marking criteria. */
+export const createWritingClassTask = async (input: {
+  scope_id: string;
+  genre: SupportedGenre;
+  title: string;
+  situation: string;
+  reader: string;
+  points: string[];
+}): Promise<ServiceResponse<WritingClassTaskOption>> => {
+  try {
+    const { supabase } = await import('../../../services/supabaseClient.js');
+    const { data, error } = await supabase.rpc('rpc_bh_writing_create_class_task', {
+      p_scope_id: input.scope_id,
+      p_genre: input.genre,
+      p_title: input.title,
+      p_situation: input.situation,
+      p_reader: input.reader,
+      p_points: input.points,
+    });
+    if (error || !data || typeof data !== 'object') return badRequest(error?.message ?? 'Unable to save the task.');
+    return ok(data as WritingClassTaskOption);
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : 'Unable to save the task.');
   }
 };
 
