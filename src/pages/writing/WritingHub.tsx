@@ -5276,7 +5276,8 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         if (saved.tab_change_count > 0) {
           setCompositionTelemetry((current) => ({
             ...current,
-            tab_change_count: Math.max(current.tab_change_count ?? 0, saved.tab_change_count),
+            // A restored session keeps its warning but always gets one more chance before an attempt is archived.
+            tab_change_count: Math.max(current.tab_change_count ?? 0, Math.min(saved.tab_change_count, 1)),
           }));
         }
         if (restored) setNotice('Your saved draft is back. Keep going from where you stopped.');
@@ -5291,6 +5292,8 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     // Wait for the saved draft to load first, so an empty editor never erases it.
     if (serverDraftReadyRef.current !== promptId || !draft.trim()) return;
     const timer = window.setTimeout(() => {
+      // An attempt that is being archived is cleared from the account; a late save must not bring it back.
+      if (voidingAttemptRef.current) return;
       void saveWritingDraftToServer({
         prompt_id: promptId,
         genre: activeGenre,
@@ -5483,8 +5486,8 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setDraft('');
     setLatestIntegritySignals(finalSignals);
     setNotice(reason === 'second_tab_change'
-      ? 'The second tab change ended and archived that attempt. A completely fresh prompt is being issued.'
-      : 'Time expired. The attempt was archived and a fresh prompt is being issued.');
+      ? 'The second tab change ended and archived that attempt for your teacher, and the editor was cleared. Stay on this page while you write.'
+      : 'Time expired. The attempt was archived for your teacher and the editor was cleared.');
     setBusy(false);
     await loadFreshPrompt(activeGenre, true);
     voidingAttemptRef.current = false;
@@ -5494,6 +5497,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     if (typeof document === 'undefined') return;
     const handleVisibility = () => {
       if (document.visibilityState !== 'hidden' || !wizardOpen || !promptId || assessment || voidingAttemptRef.current) return;
+      // Once the student has pressed Submit the writing is finished: leaving the tab while it is being marked must
+      // never archive the attempt. An empty editor has nothing to protect either.
+      if (busy || !draft.trim()) return;
       setCompositionTelemetry((current) => {
         const next = recordWritingVisibilityHidden(current);
         if (revisionSession) {
@@ -5508,7 +5514,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [assessment, draft, promptId, promptText, activeGenre, wizardOpen, revisionSession]);
+  }, [assessment, draft, promptId, promptText, activeGenre, wizardOpen, revisionSession, busy]);
 
   useEffect(() => {
     if (!wizardOpen || !promptId || assessment || revisionSession || voidingAttemptRef.current) return;
@@ -6347,6 +6353,11 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           >
             {busy ? 'Analyzing…' : revisionSession ? 'Submit second draft' : 'Submit formal assessment'}
           </button>
+          {busy && draft.trim() ? (
+            <span role="status" style={{ alignSelf: 'center', color: '#475569', fontSize: 14 }}>
+              Marking can take up to a minute. Your writing is saved. Please wait on this page.
+            </span>
+          ) : null}
           <button
             type="button"
             onClick={() => void loadFreshPrompt(activeGenre, Boolean(revisionSession))}

@@ -211,6 +211,10 @@ const extractResponsesText = (body: Record<string, unknown>): string | null => {
 // shape. Any Claude failure falls back to the original OpenAI request below.
 const CLAUDE_FALLBACK_HEADROOM_MS = 20000;
 const CLAUDE_STAGE_TIMEOUT_MS = Number(Deno.env.get("BH_WRITING_CLAUDE_TIMEOUT_MS") ?? "") || 30000;
+// The full assessment is the one stage Claude has not yet completed inside the time and token budget in production
+// (it timed out or ran past the token limit, adding over a minute before the OpenAI fallback answered). Until that is
+// solved it runs on OpenAI directly; set BH_WRITING_CLAUDE_ASSESSMENT=on to try Claude first again.
+const CLAUDE_ASSESSMENT_FIRST = Deno.env.get("BH_WRITING_CLAUDE_ASSESSMENT")?.trim().toLowerCase() === "on";
 const createStructuredCompletion = async (request: StructuredCompletionRequest): Promise<StructuredCompletion> => {
   const { force_openai: forceOpenAi, claude_timeout_ms: claudeTimeoutMs, ...openAiRequest } = request;
   if (!forceOpenAi && claudeEnabled() && !claudeCircuitOpen()) {
@@ -1627,7 +1631,7 @@ serve(async (req) => {
 
     const primaryStartedAt = Date.now();
     const primaryRequest = (forceOpenAi: boolean): StructuredCompletionRequest => ({
-        force_openai: forceOpenAi || undefined,
+        force_openai: forceOpenAi || (assessmentMode && !CLAUDE_ASSESSMENT_FIRST) || undefined,
         // The full assessment is the longest generation: give Claude most of the stage, keep time for the fallback.
         claude_timeout_ms: assessmentMode && SINGLE_AUTHORITY_PIPELINE ? 75000 : assessmentMode ? 40000 : undefined,
         model: assessmentMode ? WRITING_ASSESSMENT_MODEL : "gpt-4o-mini",
@@ -2388,6 +2392,25 @@ serve(async (req) => {
           request_metadata: { openai_request_id: openAiRequestId, usage, pipeline: pipelineDiagnostics },
         });
       if (persistence.error) {
+        // A second request for the same attempt (a retry while the first was still being marked) loses the insert
+        // race. The first result is the authoritative one: return it instead of failing the student's submission.
+        if (persistence.error.code === "23505") {
+          const { data: stored } = await supabase
+            .from("bh_writing_assessments")
+            .select("student_id, submission_fingerprint, assessment_payload, feedback_payload, request_metadata")
+            .eq("attempt_key", payload!.attemptKey)
+            .eq("rubric_version", WRITING_RUBRIC_VERSION)
+            .eq("evaluator_version", WRITING_EVALUATOR_VERSION)
+            .maybeSingle();
+          if (stored && stored.student_id === authData.user.id
+            && stored.submission_fingerprint === authoritative.assessment.text_fingerprint) {
+            return json(200, {
+              mode: payload!.mode,
+              result: { assessment: stored.assessment_payload, feedback: stored.feedback_payload },
+              meta: stored.request_metadata ?? null,
+            });
+          }
+        }
         console.error("[bh_writing_ai] authoritative assessment persistence failed", persistence.error.message);
         return json(503, { error: "Assessment could not be safely recorded" });
       }
