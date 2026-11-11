@@ -5486,7 +5486,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     setDraft('');
     setLatestIntegritySignals(finalSignals);
     setNotice(reason === 'second_tab_change'
-      ? 'You left the writing tab twice, so that attempt was archived for your teacher and the editor was cleared. Stay on this page while you write.'
+      ? 'The second tab change ended and archived that attempt for your teacher, and the editor was cleared. Stay on this page while you write.'
       : 'Time expired. The attempt was archived for your teacher and the editor was cleared.');
     setBusy(false);
     await loadFreshPrompt(activeGenre, true);
