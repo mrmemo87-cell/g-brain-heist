@@ -286,7 +286,9 @@ try {
   mark('photos-added');
   const startReview = page.getByRole('button', { name: /Start review/ });
   await startReview.waitFor({ timeout: 120000 });
-  await pause(1200);
+  // The green 'Photos are ready' banner lands after the last photo and shifts the tray down.
+  await page.getByText('Photos are ready').waitFor({ timeout: 120000 });
+  await pause(1500);
   mark('photos-read');
   await press(startReview, 'start-review', { settle: 3000 });
   mark('review-page-1');
