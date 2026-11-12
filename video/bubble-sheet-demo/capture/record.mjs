@@ -200,7 +200,8 @@ const makePhotos = async (svgDir, photoDir, count, answerKeys = {}) => {
       }
     }
     svg = svg.replace('</svg>', marks.join('') + '</svg>').replace(/width="210mm" height="297mm"/, 'width="1000" height="1414"');
-    const tilt = (rand() - 0.5) * 8, rotX = 4 + rand() * 5, rotY = (rand() - 0.5) * 6;
+    // Mild perspective: enough to look like a hand-held photo, well inside what the corner detector accepts.
+    const tilt = (rand() - 0.5) * 5, rotX = 2.5 + rand() * 3, rotY = (rand() - 0.5) * 3;
     await shot.setContent(`<!doctype html><html><body style="margin:0;width:1800px;height:2400px;overflow:hidden;background:radial-gradient(circle at 30% 20%, #8a6a4a 0%, #5e4530 60%, #3f2d1e 100%);">
       <div style="position:absolute;inset:0;background:repeating-linear-gradient(95deg, rgba(255,255,255,0.03) 0 6px, rgba(0,0,0,0.03) 6px 14px);"></div>
       <div style="position:absolute;left:300px;top:260px;width:1200px;height:1697px;perspective:2600px;">
@@ -349,7 +350,14 @@ try {
   await press(page.getByRole('button', { name: /Save page/ }), 'save-1', { settle: 2600 });
   for (let p = 2; p <= PHOTO_COUNT; p++) {
     mark(`review-page-${p}`);
-    await press(page.getByText("I checked this page’s answers."), `checked-${p}`, { settle: 500 });
+    const checkbox = page.getByText("I checked this page’s answers.");
+    if (!(await checkbox.isVisible().catch(() => false))) {
+      // Back on the tray (a page needed another look): open the next page that is ready.
+      const next = page.getByRole('button', { name: /Start review|Review page/ }).first();
+      if (!(await next.isVisible().catch(() => false))) break;
+      await press(next, `open-page-${p}`, { settle: 2500 });
+    }
+    await press(checkbox, `checked-${p}`, { settle: 500 });
     await press(page.getByRole('button', { name: /Save page/ }), `save-${p}`, { settle: 2400 });
   }
   mark('tray-reviewed');
