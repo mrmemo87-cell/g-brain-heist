@@ -37,6 +37,9 @@ const contextOptions = mode === 'mobile'
 // so the recording shows where the teacher clicks.
 const overlay = `
 (() => {
+  // Headless print windows fire afterprint immediately and may close themselves; keep them open for the recording.
+  window.print = function () {};
+  window.close = function () {};
   const mobile = ${mode === 'mobile'};
   const init = () => {
     if (document.getElementById('__bh_cursor')) return;
