@@ -5,17 +5,17 @@
     {
       "id": "hook",
       "title": "Hook",
-      "text": "Thirty papers. One red pen. A whole evening gone. There is a faster way to grade paper quizzes."
+      "text": "Thirty paper quizzes. One red pen. Your whole evening. There is a faster way, and it is already in your pocket."
     },
     {
       "id": "create",
       "title": "Build the assignment",
-      "text": "In Brains Heist, you build the assignment once. Pick your questions, switch delivery to paper, and the system prepares a personalised answer sheet for every student."
+      "text": "Build the assignment in Brains Heist like any other. Pick the class, pull questions from the bank, and set delivery to Paper."
     },
     {
       "id": "print",
       "title": "Print the sheets",
-      "text": "Hit print. Each sheet carries the student's name, the assignment code, and a unique QR code. And those four black squares in the corners? They let the scanner straighten any photo, even a crooked one."
+      "text": "Hit Print papers. Every student gets their own answer sheet, with their name, the assignment code, a unique QR code, and four corner markers."
     },
     {
       "id": "fill",
@@ -25,17 +25,17 @@
     {
       "id": "scan",
       "title": "Scan with a phone",
-      "text": "Now the magic. Open the scan tab, point your phone at the sheet, and snap. The QR code identifies the student instantly. The corner squares lock the grid in place. And every bubble is read automatically. Snap the whole pile. Thirty sheets, one batch."
+      "text": "Now the magic. Open Scan and review, add the photos from your phone, and watch. The QR code matches each sheet to its student, the corners straighten the photo, and every bubble is read on the spot."
     },
     {
       "id": "review",
       "title": "Review flagged marks",
-      "text": "Not sure about a smudged bubble? Neither is the scanner, and it says so. Flagged marks show you the actual photo crop. You tap the right answer, and confirm. Nothing is graded blind."
+      "text": "Not sure about a smudged mark? Neither is the scanner, and it says so. Question seven is flagged. You see the crop, you tap the right answer, you save. Nothing is graded blind."
     },
     {
       "id": "results",
       "title": "Results",
-      "text": "Confirm the batch, and the results flow straight into the gradebook. Class averages, per-question insights, and every student sees their score on their own dashboard."
+      "text": "Confirm the batch, and the results land in the gradebook, with a full report for every student, right next to their online work."
     },
     {
       "id": "outro",

@@ -1,3 +1,5 @@
 node_modules
 out
 *.log
+capture/out
+public/footage/**/*.mp4

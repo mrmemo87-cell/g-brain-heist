@@ -40,6 +40,8 @@ export interface Ring {
 }
 
 interface Props {
+  /** Path under public/ of the sheet SVG; defaults to the sample sheet. */
+  src?: string;
   /** Rendered width in pixels; height follows the A4 ratio. */
   width: number;
   fills?: Fill[];
@@ -57,7 +59,7 @@ interface Props {
  * The real printed answer sheet (public/sheet.svg, produced by the app's own
  * print service) with animated overlays drawn in the sheet's own coordinates.
  */
-export const Sheet: React.FC<Props> = ({ width, fills = [], rings = [], qrGlow = 0, markerGlow = 0, markerFrame = 0, style }) => {
+export const Sheet: React.FC<Props> = ({ src = "sheet.svg", width, fills = [], rings = [], qrGlow = 0, markerGlow = 0, markerFrame = 0, style }) => {
   const height = width * (SHEET.height / SHEET.width);
   const quad = SHEET.markers.map((m) => `${m.x},${m.y}`).join(" ");
   const perimeter = 2 * (910 + 1324);
@@ -74,7 +76,7 @@ export const Sheet: React.FC<Props> = ({ width, fills = [], rings = [], qrGlow =
         ...style,
       }}
     >
-      <Img src={staticFile("sheet.svg")} style={{ width, height, display: "block" }} />
+      <Img src={staticFile(src)} style={{ width, height, display: "block" }} />
       <svg viewBox={`0 0 ${SHEET.width} ${SHEET.height}`} width={width} height={height} style={{ position: "absolute", inset: 0 }}>
         {fills.map((fill, i) => {
           const p = bubblePosition(fill.row, fill.choice);

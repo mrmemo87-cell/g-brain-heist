@@ -939,10 +939,16 @@
     grid-template-columns: 1fr;
   }
 
-  .aw-class-grid,
   .aw-subject-grid,
   .aw-due-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* One class card per row on phones: a two-up grid squeezes the icon,
+     name, subject and roster count into a column too narrow to read,
+     and the tick overlaps the text. */
+  .aw-class-grid {
+    grid-template-columns: 1fr;
   }
 
   .aw-toolbar,

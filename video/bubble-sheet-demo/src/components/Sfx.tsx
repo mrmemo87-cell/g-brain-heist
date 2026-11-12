@@ -1,6 +1,6 @@
 import { Audio, Sequence, staticFile } from "remotion";
 
-export type SfxName = "shutter" | "click" | "chime" | "paper";
+export type SfxName = "shutter" | "click" | "chime" | "paper" | "whoosh" | "pop" | "success" | "tick";
 
 /** Plays a short sound effect starting at the given scene frame. */
 export const Sfx: React.FC<{ name: SfxName; at: number; volume?: number }> = ({ name, at, volume = 0.7 }) => (

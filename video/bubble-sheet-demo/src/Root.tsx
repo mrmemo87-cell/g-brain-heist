@@ -1,11 +1,13 @@
 import { Composition } from "remotion";
 import { loadFonts } from "./components/fonts";
-import { HEIGHT, WIDTH } from "./theme";
+import { Demo } from "./Demo";
 import { FPS, totalFrames } from "./timing";
-import { Video } from "./Video";
 
 loadFonts();
 
 export const Root: React.FC = () => (
-  <Composition id="BubbleSheetDemo" component={Video} durationInFrames={totalFrames} fps={FPS} width={WIDTH} height={HEIGHT} />
+  <>
+    <Composition id="DesktopDemo" component={Demo} defaultProps={{ layout: "landscape" as const }} durationInFrames={totalFrames} fps={FPS} width={1920} height={1080} />
+    <Composition id="MobileDemo" component={Demo} defaultProps={{ layout: "portrait" as const }} durationInFrames={totalFrames} fps={FPS} width={1080} height={1920} />
+  </>
 );

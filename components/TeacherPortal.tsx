@@ -256,7 +256,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [allocatedClasses, setAllocatedClasses] = useState<SchoolAdminService.TeacherAllocatedClass[]>([]);
   const [teachingGroups, setTeachingGroups] = useState<SchoolSubjectGroup[]>([]);
   const [teachingGroupRosters, setTeachingGroupRosters] = useState<Record<string, SubjectGroupRosterStudent[]>>({});
-  const [teacherHasClassAllocations, setTeacherHasClassAllocations] = useState(false);
+  // null until the allocation load settles, so the "no teaching groups" warning
+  // does not flash for teachers who do have allocations.
+  const [teacherHasClassAllocations, setTeacherHasClassAllocations] = useState<boolean | null>(null);
   const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '/BRAINS.svg');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -9495,7 +9497,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 </details>
               )}
               
-              {!teacherHasClassAllocations && (
+              {teacherHasClassAllocations === false && (
                 <div className="mt-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-4 py-3">
                   <p className="text-sm text-amber-900">
                     ⚠️ No teaching groups allocated yet. Contact your school admin to allocate your subject teaching responsibilities.

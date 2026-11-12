@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@remotion/cli": "^4.0.543",
+    "@remotion/transitions": "^4.0.543",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "remotion": "^4.0.543"

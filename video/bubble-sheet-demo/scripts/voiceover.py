@@ -69,7 +69,34 @@ def synth_sfx() -> None:
     paper = np.convolve(paper, np.ones(24) / 24, mode="same")
     paper = 0.3 * paper / np.max(np.abs(paper))
 
-    for name, data in {"shutter": shutter, "click": click, "chime": chime, "paper": paper}.items():
+    # Whoosh for transitions: band-limited noise with a rising then falling sweep.
+    x = t(0.45)
+    env_w = np.sin(np.pi * np.clip(x / 0.45, 0, 1)) ** 1.5
+    whoosh = rng.normal(0, 1, x.size)
+    # crude band-pass by differencing a moving average at two widths
+    wide = np.convolve(whoosh, np.ones(40) / 40, mode="same")
+    narrow = np.convolve(whoosh, np.ones(6) / 6, mode="same")
+    whoosh = (narrow - wide) * env_w
+    whoosh = 0.45 * whoosh / np.max(np.abs(whoosh))
+
+    # Pop for callouts and badges: short pitched blip with a fast downward sweep.
+    x = t(0.12)
+    pop = np.sin(2 * np.pi * (900 - 500 * x / 0.12) * x) * np.exp(-x * 35)
+    pop = 0.4 * pop / np.max(np.abs(pop))
+
+    # Success: three ascending notes with a soft tail.
+    success = np.concatenate([note(523.25, 0.12), note(659.25, 0.12), note(783.99, 0.5)])
+    success = 0.45 * success / np.max(np.abs(success))
+
+    # Tick for counters and progress steps.
+    x = t(0.03)
+    tick = np.sin(2 * np.pi * 2400 * x) * np.exp(-x * 220)
+    tick = 0.25 * tick / np.max(np.abs(tick))
+
+    for name, data in {
+        "shutter": shutter, "click": click, "chime": chime, "paper": paper,
+        "whoosh": whoosh, "pop": pop, "success": success, "tick": tick,
+    }.items():
         wav = SFX / f"{name}.wav"
         sf.write(wav, data.astype(np.float32), sr)
         to_mp3(wav, SFX / f"{name}.mp3")

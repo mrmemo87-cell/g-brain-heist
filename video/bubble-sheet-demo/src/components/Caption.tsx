@@ -12,7 +12,7 @@ const splitSentences = (text: string): string[] =>
  * Subtitle strip that shows the narration sentence by sentence, with each
  * sentence on screen for a share of the voice track proportional to its length.
  */
-export const Caption: React.FC<{ scene: SceneTiming }> = ({ scene }) => {
+export const Caption: React.FC<{ scene: SceneTiming; bottom?: number; size?: number; maxWidth?: number }> = ({ scene, bottom = 42, size = 34, maxWidth = 1500 }) => {
   const frame = useCurrentFrame();
   const sentences = splitSentences(scene.text);
   const totalChars = sentences.reduce((n, s) => n + s.length, 0);
@@ -46,7 +46,7 @@ export const Caption: React.FC<{ scene: SceneTiming }> = ({ scene }) => {
         position: "absolute",
         left: 0,
         right: 0,
-        bottom: 42,
+        bottom,
         display: "flex",
         justifyContent: "center",
         opacity,
@@ -55,14 +55,14 @@ export const Caption: React.FC<{ scene: SceneTiming }> = ({ scene }) => {
     >
       <div
         style={{
-          maxWidth: 1500,
+          maxWidth,
           padding: "14px 30px",
           borderRadius: 16,
           backgroundColor: "rgba(5, 10, 24, 0.82)",
           border: `1px solid ${theme.panelBorder}`,
           color: theme.ink,
           fontFamily: theme.font,
-          fontSize: 34,
+          fontSize: size,
           lineHeight: 1.3,
           textAlign: "center",
         }}
