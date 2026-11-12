@@ -28,10 +28,15 @@ const out = join(here, 'out', mode);
 mkdirSync(join(out, 'sheets'), { recursive: true });
 mkdirSync(join(out, 'photos'), { recursive: true });
 
-const size = mode === 'mobile' ? { width: 1179, height: 2556 } : { width: 1920, height: 1080 };
+const PHONE = { width: 393, height: 852, scale: 3 };
+const size = mode === 'mobile' ? { width: PHONE.width * PHONE.scale, height: PHONE.height * PHONE.scale } : { width: 1920, height: 1080 };
+// Desktop uses Playwright's recorder. Phone frames are pulled from Chrome's screencast
+// instead, because the recorder captures emulated phones at CSS size only; with an
+// OS-level scale factor the screencast delivers true 3x frames.
 const contextOptions = mode === 'mobile'
-  ? { ...devices['iPhone 14 Pro'], deviceScaleFactor: 3, recordVideo: { dir: join(out, 'raw'), size } }
+  ? { ...devices['iPhone 14 Pro'], viewport: { width: PHONE.width, height: PHONE.height }, deviceScaleFactor: PHONE.scale }
   : { viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1, recordVideo: { dir: join(out, 'raw'), size } };
+if (mode === 'mobile') launchOptions.args = [...(launchOptions.args ?? []), `--force-device-scale-factor=${PHONE.scale}`, '--high-dpi-support=1'];
 
 // Pointer overlay: a cursor arrow on desktop, a tap ring on mobile, drawn inside the page
 // so the recording shows where the teacher clicks.
@@ -71,6 +76,28 @@ const t0 = Date.now();
 const timeline = [];
 const mark = (label, extra = {}) => { const t = Date.now() - t0; timeline.push({ t, label, ...extra }); console.log(String(t).padStart(6), label); };
 const pause = (ms) => page.waitForTimeout(ms);
+
+/** Saves every screencast frame of a page as JPEG with its page-time stamp. */
+const screencast = async (target, dir) => {
+  mkdirSync(dir, { recursive: true });
+  const cdp = await context.newCDPSession(target);
+  const frames = [];
+  cdp.on('Page.screencastFrame', ({ data, sessionId }) => {
+    const name = `f${String(frames.length).padStart(6, '0')}.jpg`;
+    writeFileSync(join(dir, name), Buffer.from(data, 'base64'));
+    frames.push({ t: Date.now() - t0, name });
+    cdp.send('Page.screencastFrameAck', { sessionId }).catch(() => {});
+  });
+  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 90, maxWidth: size.width, maxHeight: size.height, everyNthFrame: 1 });
+  return {
+    stop: async () => {
+      await cdp.send('Page.stopScreencast').catch(() => {});
+      writeFileSync(join(dir, 'frames.json'), JSON.stringify({ frames, end: Date.now() - t0 }));
+    },
+  };
+};
+const pageCast = mode === 'mobile' ? await screencast(page, join(out, 'frames')) : null;
+let printCast = null;
 
 let mouse = { x: 200, y: 200 };
 const glide = async (x, y) => {
@@ -200,11 +227,16 @@ try {
   await type(page.getByLabel('Password', { exact: true }), PASSWORD, 'password');
   await press(page.getByRole('button', { name: /Enter/ }), 'login', { settle: 500 });
   const portal = page.locator('button, a, [role=button]').filter({ hasText: 'Teacher Portal' }).first();
-  await portal.waitFor({ timeout: 40000 });
+  const notNow = page.getByRole('button', { name: 'Not now' });
+  // The iOS install guide can cover the workspace chooser; dismiss it as soon as it shows.
+  for (let waited = 0; waited < 45000; waited += 500) {
+    if (await notNow.isVisible().catch(() => false)) { await press(notNow, 'dismiss-install-guide', { settle: 600, reveal: false }); }
+    if (await portal.isVisible().catch(() => false)) break;
+    await pause(500);
+  }
+  await portal.waitFor({ timeout: 5000 });
   await pause(800);
   mark('workspace-chooser');
-  const notNow = page.getByRole('button', { name: 'Not now' });
-  if (await notNow.count()) await press(notNow, 'dismiss-install-guide', { settle: 400 });
   await press(portal, 'open-teacher-portal', { settle: 4500 });
   mark('portal');
 
@@ -259,6 +291,7 @@ try {
     await press(page.getByRole('button', { name: 'Preview print order' }), attempt === 1 ? 'preview-print-order' : 'preview-print-order-retry', { settle: 500 });
     popup = await popupPromise;
     mark('print-window-open');
+    if (mode === 'mobile') printCast = await screencast(popup, join(out, 'print-frames'));
     issuedSession = (await issuePromise) ?? issuedSession;
     const rendered = await popup.waitForFunction(() => document.querySelectorAll('svg[aria-label^="Answer sheet"]').length > 0, null, { timeout: 25000 }).then(() => true).catch(() => false);
     if (rendered) break;
@@ -277,7 +310,7 @@ try {
   await popup.evaluate(() => window.scrollTo({ top: 1200, behavior: 'smooth' }));
   await popup.waitForTimeout(2500);
   mark('print-window-scrolled');
-  const printVideo = popup.video();
+  if (printCast) await printCast.stop();
   await popup.close();
   await pause(800);
   mark('print-window-closed');
@@ -334,13 +367,16 @@ try {
   mark('ERROR', { message: error.message.split('\n')[0] });
   console.error(error);
 } finally {
-  const pageVideo = page.video();
+  if (pageCast) await pageCast.stop();
+  const pageVideo = mode === 'mobile' ? null : page.video();
   await context.close();
-  const pagePath = await pageVideo.path();
-  renameSync(pagePath, join(out, 'page.webm'));
-  // Playwright names popup videos by page id; the only other file left in raw/ is the print window.
-  for (const f of readdirSync(join(out, 'raw'))) if (f.endsWith('.webm')) renameSync(join(out, 'raw', f), join(out, 'print.webm'));
-  writeFileSync(join(out, 'timeline.json'), JSON.stringify({ mode, size, title: TITLE, timeline }, null, 2));
+  if (pageVideo) {
+    renameSync(await pageVideo.path(), join(out, 'page.webm'));
+    // Playwright names popup videos by page id; the only other file left in raw/ is the print window.
+    for (const f of readdirSync(join(out, 'raw'))) if (f.endsWith('.webm')) renameSync(join(out, 'raw', f), join(out, 'print.webm'));
+  }
+  const viewport = mode === 'mobile' ? { width: PHONE.width, height: PHONE.height } : { width: 1920, height: 1080 };
+  writeFileSync(join(out, 'timeline.json'), JSON.stringify({ mode, size, viewport, title: TITLE, timeline }, null, 2));
   await browser.close();
   console.log('saved', join(out, 'page.webm'), 'and timeline.json');
 }
