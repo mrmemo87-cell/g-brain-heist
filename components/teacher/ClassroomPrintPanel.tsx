@@ -123,15 +123,13 @@ export default function ClassroomPrintPanel({
     count >= 1 &&
     count <= 200 &&
     (actualMode === "questions" || Number.isFinite(Date.parse(date)));
-  // The picker only has minute precision, so the default "now" lands at the start of
-  // the current minute, which can precede an assignment published seconds earlier and
-  // fail the server's publication-to-now check. Treat the current minute as "now".
+  // The picker defaults to "now" but only has minute precision and is captured when the
+  // panel mounts, so it can precede an assignment published seconds earlier and fail the
+  // server's publication-to-now check. Until the teacher edits it, send the real current time.
+  const [dateTouched, setDateTouched] = useState(false);
   const assessedAt = () => {
-    if (actualMode === "questions") return new Date().toISOString();
-    const chosen = new Date(date);
-    const now = new Date();
-    const sameMinute = chosen.getTime() <= now.getTime() && now.getTime() - chosen.getTime() < 60_000;
-    return (sameMinute ? now : chosen).toISOString();
+    if (actualMode === "questions" || !dateTouched) return new Date().toISOString();
+    return new Date(date).toISOString();
   };
   const submit = () =>
     onPrint({
@@ -192,7 +190,7 @@ export default function ClassroomPrintPanel({
                 type="datetime-local"
                 value={date}
                 disabled={busy}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={(e) => { setDate(e.target.value); setDateTouched(true); }}
               />
             </label>
             {actualMode === "unnamed" ? (
