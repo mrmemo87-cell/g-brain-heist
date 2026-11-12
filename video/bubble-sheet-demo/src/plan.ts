@@ -77,7 +77,9 @@ export const planClips = (layout: Layout, specs: ClipSpec[], totalFrames: number
     const durationInFrames = Math.max(fps, Math.round((available * weights[i]) / totalWeight));
     const raw = Math.max(0.3, spec.to - spec.from);
     const rate = Math.min(4, Math.max(0.6, raw / (durationInFrames / fps)));
-    const camera: CameraKey[] = (spec.focus ?? []).map((f) => ({ at: (f.at - spec.from) / rate, scale: f.scale, x: f.x, y: f.y }));
+    // Phone footage is already large on screen; cap the zoom so controls stay in frame.
+    const maxScale = layout === "landscape" ? 2 : 1.35;
+    const camera: CameraKey[] = (spec.focus ?? []).map((f) => ({ at: (f.at - spec.from) / rate, scale: Math.min(maxScale, f.scale), x: f.x, y: f.y }));
     return { src: `footage/${dir}/${spec.src ?? "page"}.mp4`, from: spec.from, rate, durationInFrames, camera };
   });
 };

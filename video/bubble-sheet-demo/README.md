@@ -1,63 +1,71 @@
-# Bubble sheet demo video
+# Paper assignment demo videos
 
-An animated explainer (about 90 seconds, 1920x1080, 30 fps) showing the Brains Heist paper
-assignment flow: build the assignment, print QR bubble sheets, students fill them in, the
-teacher photographs them with a phone, uncertain marks are reviewed, results land in the
-gradebook.
+Two explainer videos of the Brains Heist paper flow, cut from recordings of the real app:
+build the assignment, print QR bubble sheets, photograph the filled sheets, review the one
+flagged mark, confirm, and open the report.
 
-Everything in the pipeline is free and runs offline once the voice model is downloaded.
+| Composition | Output | Footage |
+|-------------|--------|---------|
+| `DesktopDemo` (1920x1080) | `out/brains-heist-paper-desktop.mp4` | laptop recording |
+| `MobileDemo` (1080x1920) | `out/brains-heist-paper-mobile.mp4` | phone recording at 3x |
+
+Everything in the pipeline is free: Playwright drives the app, Chrome's screencast captures
+the phone, Kokoro speaks the narration offline, the music bed and sound effects are
+synthesised, Remotion animates, ffmpeg encodes.
 
 ## Layout
 
 | Path | What it is |
 |------|------------|
-| `script/narration.json` | The voiceover script, one entry per scene. Edit the wording here. |
-| `scripts/voiceover.py` | Synthesises the narration with Kokoro and writes `public/vo/*.mp3` plus `manifest.json` (per-scene durations). Also generates the click, shutter, chime and paper sound effects into `public/sfx/`. |
-| `scripts/generate-sheet.ts` | Renders `public/sheet.svg` with the app's real `buildBubbleSheetSvg`, so the sheet in the video is the one teachers actually print. |
-| `src/timing.ts` | Turns the manifest into scene durations. Each scene is its narration plus a short lead-in and tail. |
-| `src/scenes/*.tsx` | One component per scene. Visual beats are placed with `beat(scene, secondsIntoNarration)`. |
-| `src/components/` | Stick figures, callouts, cursor, the sheet with bubble overlays, the mock app window, captions. |
-| `public/` | Generated assets: sheet, voice, sound effects, fonts (IBM Plex Sans, OFL), logo. |
+| `capture/record.mjs` | Drives the whole teacher flow against the demo project and logs every click with a timestamp and position. Issues real sheets, turns them into desk photos with the correct answers (plus one deliberate double mark), and scans them with the app's own OMR. `node capture/record.mjs desktop|mobile` |
+| `capture/prepare.mjs` | Converts a recording into `public/footage/<mode>/`: H.264 MP4s, the first issued sheets, the photos, and `timeline.json` (click marks in video pixels). |
+| `script/narration.json` | The voiceover script, one entry per scene. |
+| `scripts/voiceover.py` | Kokoro narration into `public/vo/`, plus synthesised sound effects into `public/sfx/`. |
+| `scripts/music.py` | Synthesised lo-fi bed into `public/music/bed.mp3`. |
+| `src/timing.ts` | Scene durations from the narration manifest, with the transition overlap. |
+| `src/plan.ts` | Maps click marks to footage clips and camera keyframes (zoom to the control in use). |
+| `src/scenes/*.tsx` | One component per scene; each works in both orientations through `src/layout.ts`. |
+| `src/components/Footage.tsx` | A slice of a recording with smooth camera moves. `Clips.tsx` chains slices with whip transitions. |
 
-## Regenerate from scratch
+The MP4 footage is not committed (see `.gitignore`); regenerate it with the capture scripts.
+
+## Regenerate
 
 ```bash
-# 1. Install (from this folder)
 npm install
 
-# 2. Rebuild the sheet from the app's print code (from the repository root)
-npm run sheet
+# App running locally against the demo Supabase project (see .env.local in the repo root)
+#   VITE_SUPABASE_URL=https://lvkmkgjpcbdyzdkbqcgc.supabase.co  + its anon key
+node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 4180   # from the repo root
 
-# 3. Voiceover: download the Kokoro model once (about 350 MB) from the kokoro-onnx GitHub releases
-#    https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0
+# Record (needs Playwright + Chromium; set PLAYWRIGHT_MODULE_PATH / CHROMIUM_EXECUTABLE_PATH if they are not resolvable)
+node capture/record.mjs desktop && node capture/prepare.mjs desktop
+node capture/record.mjs mobile  && node capture/prepare.mjs mobile
+
+# Voice and music (Kokoro model files from the kokoro-onnx GitHub releases, model-files-v1.0)
 python3 -m venv .venv && .venv/bin/pip install kokoro-onnx soundfile
 KOKORO_MODEL=/path/kokoro-v1.0.onnx KOKORO_VOICES=/path/voices-v1.0.bin .venv/bin/python scripts/voiceover.py
+.venv/bin/python scripts/music.py
 
-# 4. Preview in the Remotion Studio, or render
+# Preview or render
 npm run preview
-npm run render          # out/bubble-sheet-demo.mp4
+npm run render:desktop
+npm run render:mobile
 ```
 
-If Remotion cannot download its own Chrome, point it at an installed one:
-`REMOTION_BROWSER=/path/to/chrome npm run render`.
+If Remotion cannot download its own Chrome, point it at an installed one with `REMOTION_BROWSER`.
 
 ## Changing the narration
 
-Edit `script/narration.json`, rerun `scripts/voiceover.py`, then render. Scene lengths follow
-the new audio automatically. Beats inside a scene are in seconds from the start of that
-scene's narration, so if a sentence gets much longer or shorter, nudge the `b(...)` values in
-that scene.
+Edit `script/narration.json`, rerun `scripts/voiceover.py`, render. Scene lengths follow the
+audio. Visual beats inside a scene are `b(seconds)` from the start of that scene's narration,
+so nudge them if a sentence changes length a lot.
 
-## Swapping in real screen recordings
+## Notes
 
-The mock app windows (`AppFrame`) are placeholders for real footage. To replace one, record the
-real teacher flow (for example with Playwright's video recording), drop the file in `public/`,
-and render it with Remotion's `<OffthreadVideo>` inside the scene in place of the `AppFrame`.
-
-## Licensing notes
-
-- Remotion is free for individuals and companies with up to three people. Larger companies need
-  a company licence: https://www.remotion.dev/license
-- Kokoro voices are Apache 2.0. IBM Plex Sans is under the SIL Open Font License.
-- No stock music is bundled. Add a track from the YouTube Audio Library as `public/music.mp3`
-  and an `<Audio>` in `src/Video.tsx` if you want a bed.
+- The recorder logs in as the public demo teacher (`demo.teacher@example.com`) on the demo
+  project, which resets nightly. Each take creates a fresh assignment and scan session there.
+- The photos are rendered from the issued sheet SVGs with pencil marks, mild perspective and a
+  desk background; the app's scanner reads them exactly as it would a phone photo.
+- Remotion is free for individuals and companies with up to three people; larger companies
+  need a company licence. Kokoro voices are Apache 2.0, IBM Plex Sans is OFL.

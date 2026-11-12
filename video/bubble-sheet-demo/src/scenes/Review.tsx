@@ -37,7 +37,7 @@ export const Review: React.FC<{ scene: SceneTiming; layout: Layout }> = ({ scene
       <Sfx name="pop" at={b(3.6)} volume={0.45} />
       <Sfx name="click" at={b(6.9)} volume={0.5} />
       <Sfx name="chime" at={b(8.1)} volume={0.45} />
-      <Kinetic text="Nothing is graded blind." at={b(8.8)} x={layout === "landscape" ? g.width / 2 : g.width / 2} y={layout === "landscape" ? 1000 : 110} size={layout === "landscape" ? 46 : 52} color={theme.amber} width={g.width - 200} />
+      <Kinetic text="Nothing is graded blind." at={b(8.8)} x={g.width / 2} y={layout === "landscape" ? 22 : 70} size={layout === "landscape" ? 44 : 52} color={theme.amber} width={g.width - 200} />
     </SceneShell>
   );
 };

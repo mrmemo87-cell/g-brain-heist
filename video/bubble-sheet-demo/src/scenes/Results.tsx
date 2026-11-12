@@ -15,7 +15,7 @@ export const Results: React.FC<{ scene: SceneTiming; layout: Layout }> = ({ scen
   const b = (s: number) => beat(scene, s);
   const confirm = markPoint(tl, "confirm-results");
   const report = markPoint(tl, "view-report");
-  const rows = { x: tl.size.width * (layout === "landscape" ? 0.55 : 0.5), y: tl.size.height * (layout === "landscape" ? 0.7 : 0.62) };
+  const rows = { x: tl.size.width * (layout === "landscape" ? 0.55 : 0.5), y: tl.size.height * (layout === "landscape" ? 0.7 : 0.82) };
   const clips = planClips(
     layout,
     [

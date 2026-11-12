@@ -6,9 +6,12 @@
   "scripts": {
     "sheet": "cd ../.. && npx tsx video/bubble-sheet-demo/scripts/generate-sheet.ts",
     "voice": "python3 scripts/voiceover.py",
+    "music": "python3 scripts/music.py",
+    "record:desktop": "node capture/record.mjs desktop && node capture/prepare.mjs desktop",
+    "record:mobile": "node capture/record.mjs mobile && node capture/prepare.mjs mobile",
     "preview": "remotion studio src/index.ts",
-    "render": "remotion render src/index.ts BubbleSheetDemo out/bubble-sheet-demo.mp4 --codec h264",
-    "render:fast": "remotion render src/index.ts BubbleSheetDemo out/preview.mp4 --codec h264 --scale 0.5 --every-nth-frame 2"
+    "render:desktop": "remotion render src/index.ts DesktopDemo out/brains-heist-paper-desktop.mp4 --codec h264 --crf 20",
+    "render:mobile": "remotion render src/index.ts MobileDemo out/brains-heist-paper-mobile.mp4 --codec h264 --crf 20"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.543",

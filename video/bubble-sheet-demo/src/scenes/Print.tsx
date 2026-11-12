@@ -44,7 +44,7 @@ export const Print: React.FC<{ scene: SceneTiming; layout: Layout }> = ({ scene,
   const labelX = layout === "landscape" ? 980 : sheet.x + 60;
   const labels = layout === "landscape"
     ? { name: { x: labelX, y: 420 }, code: { x: labelX, y: 250 }, qr: { x: 1560, y: 980 }, marker: { x: labelX, y: 640 } }
-    : { name: { x: sheet.x + 40, y: 230 }, code: { x: sheet.x + 500, y: 230 }, qr: { x: sheet.x + 300, y: 1400 }, marker: { x: sheet.x + 520, y: 1600 } };
+    : { name: { x: sheet.x + 380, y: 190 }, code: { x: sheet.x + 560, y: 110 }, qr: { x: sheet.x + 740, y: 1400 }, marker: { x: sheet.x + 420, y: 1560 } };
 
   return (
     <SceneShell scene={scene} layout={layout} accent={theme.purple}>

@@ -1,479 +1,464 @@
 {
-  "mode": "desktop",
+  "mode": "mobile",
   "size": {
-    "width": 1920,
-    "height": 1080
+    "width": 1178,
+    "height": 2556
+  },
+  "viewport": {
+    "width": 393,
+    "height": 852
   },
   "title": "Adjectives quiz · Unit 4",
   "timeline": [
     {
-      "t": 3383,
+      "t": 3249,
       "label": "login-screen"
     },
     {
-      "t": 9662,
+      "t": 7336,
       "label": "email-focus",
-      "x": 1291,
-      "y": 492
+      "x": 516,
+      "y": 1227
     },
     {
-      "t": 11545,
+      "t": 9343,
       "label": "email"
     },
     {
-      "t": 14356,
+      "t": 13018,
       "label": "password-focus",
-      "x": 1291,
-      "y": 497
+      "x": 516,
+      "y": 1278
     },
     {
-      "t": 15878,
+      "t": 14708,
       "label": "password"
     },
     {
-      "t": 18249,
+      "t": 16014,
       "label": "login",
-      "x": 1291,
-      "y": 540
+      "x": 516,
+      "y": 1653
     },
     {
-      "t": 21473,
+      "t": 17391,
+      "label": "dismiss-install-guide",
+      "x": 941,
+      "y": 2202
+    },
+    {
+      "t": 19257,
+      "label": "login-again",
+      "x": 516,
+      "y": 1278
+    },
+    {
+      "t": 22368,
       "label": "workspace-chooser"
     },
     {
-      "t": 23050,
+      "t": 23372,
       "label": "open-teacher-portal",
-      "x": 728,
-      "y": 652
+      "x": 510,
+      "y": 1818
     },
     {
-      "t": 27551,
+      "t": 27875,
       "label": "portal"
     },
     {
-      "t": 30308,
+      "t": 29960,
       "label": "nav-assignments",
-      "x": 303,
-      "y": 605
+      "x": 812,
+      "y": 1071
     },
     {
-      "t": 33809,
+      "t": 33495,
       "label": "assignments"
     },
     {
-      "t": 36095,
+      "t": 35127,
       "label": "create-menu",
-      "x": 1641,
-      "y": 269
+      "x": 908,
+      "y": 615
     },
     {
-      "t": 38518,
+      "t": 37292,
       "label": "new-assignment",
-      "x": 1558,
-      "y": 331
+      "x": 653,
+      "y": 798
     },
     {
-      "t": 41019,
+      "t": 39793,
       "label": "wizard-subject"
     },
     {
-      "t": 43522,
+      "t": 40876,
       "label": "subject-english",
-      "x": 624,
-      "y": 540
+      "x": 294,
+      "y": 1293
     },
     {
-      "t": 46745,
+      "t": 42544,
       "label": "next-1",
-      "x": 1585,
-      "y": 905
+      "x": 779,
+      "y": 1521
     },
     {
-      "t": 48547,
+      "t": 44348,
       "label": "wizard-audience"
     },
     {
-      "t": 50892,
+      "t": 45439,
       "label": "audience-7a",
-      "x": 723,
-      "y": 540
+      "x": 522,
+      "y": 1278
     },
     {
-      "t": 54431,
+      "t": 47406,
       "label": "next-2",
-      "x": 1585,
-      "y": 905
+      "x": 779,
+      "y": 1551
     },
     {
-      "t": 56936,
+      "t": 49913,
       "label": "wizard-questions"
     },
     {
-      "t": 58504,
+      "t": 50837,
       "label": "topic-open",
-      "x": 1483,
-      "y": 540
+      "x": 528,
+      "y": 1278
     },
     {
-      "t": 58915,
+      "t": 51372,
       "label": "topic-adjectives"
     },
     {
-      "t": 61910,
+      "t": 53966,
       "label": "select-all",
-      "x": 1478,
-      "y": 540
+      "x": 558,
+      "y": 1281
     },
     {
-      "t": 65179,
+      "t": 56838,
       "label": "next-3",
-      "x": 1585,
-      "y": 913
+      "x": 779,
+      "y": 2202
     },
     {
-      "t": 67180,
+      "t": 58847,
       "label": "wizard-details"
     },
     {
-      "t": 69300,
+      "t": 60098,
       "label": "delivery-paper",
-      "x": 974,
-      "y": 540
+      "x": 540,
+      "y": 1278
     },
     {
-      "t": 71691,
+      "t": 62079,
       "label": "title-focus",
-      "x": 1025,
-      "y": 540
+      "x": 522,
+      "y": 1278
     },
     {
-      "t": 74630,
+      "t": 67047,
       "label": "title"
     },
     {
-      "t": 76123,
+      "t": 68122,
       "label": "type-quiz",
-      "x": 802,
-      "y": 540
+      "x": 531,
+      "y": 1278
     },
     {
-      "t": 78975,
+      "t": 69695,
       "label": "next-4",
-      "x": 1585,
-      "y": 905
+      "x": 779,
+      "y": 2118
     },
     {
-      "t": 80976,
+      "t": 71696,
       "label": "wizard-due"
     },
     {
-      "t": 82648,
+      "t": 72718,
       "label": "due-1-week",
-      "x": 1275,
-      "y": 540
+      "x": 740,
+      "y": 1278
     },
     {
-      "t": 85204,
+      "t": 74412,
       "label": "next-5",
-      "x": 1585,
-      "y": 905
+      "x": 779,
+      "y": 2202
     },
     {
-      "t": 87405,
+      "t": 76613,
       "label": "wizard-review"
     },
     {
-      "t": 89426,
+      "t": 77499,
       "label": "review-checkbox",
-      "x": 949,
-      "y": 686
+      "x": 576,
+      "y": 1569
     },
     {
-      "t": 91884,
+      "t": 79165,
       "label": "publish",
-      "x": 1329,
-      "y": 906
+      "x": 330,
+      "y": 1281
     },
     {
-      "t": 96899,
+      "t": 83905,
       "label": "published-dialog"
     },
     {
-      "t": 99627,
+      "t": 84173,
       "label": "published-ok",
-      "x": 953,
-      "y": 611
+      "x": 567,
+      "y": 1491
     },
     {
-      "t": 102628,
+      "t": 87175,
       "label": "assignments-after-publish"
     },
     {
-      "t": 104224,
+      "t": 88686,
       "label": "print-papers",
-      "x": 854,
-      "y": 540
+      "x": 324,
+      "y": 1278
     },
     {
-      "t": 108728,
+      "t": 93191,
       "label": "paper-workspace"
     },
     {
-      "t": 111553,
+      "t": 95328,
       "label": "bubble-sheets-only",
-      "x": 582,
-      "y": 626
+      "x": 309,
+      "y": 1503
     },
     {
-      "t": 115863,
+      "t": 99360,
       "label": "preview-print-order",
-      "x": 690,
-      "y": 879
+      "x": 513,
+      "y": 2391
     },
     {
-      "t": 116364,
+      "t": 99862,
       "label": "print-window-open"
     },
     {
-      "t": 119818,
+      "t": 103079,
       "label": "print-window-ready"
     },
     {
-      "t": 123279,
+      "t": 107475,
       "label": "print-window-scrolled"
     },
     {
-      "t": 124914,
+      "t": 108323,
       "label": "print-window-closed"
     },
     {
-      "t": 127307,
+      "t": 115981,
       "label": "photos-generated",
       "count": 4,
       "keyed": 24
     },
     {
-      "t": 131708,
+      "t": 118153,
       "label": "scan-tab",
-      "x": 640,
-      "y": 358
+      "x": 564,
+      "y": 600
     },
     {
-      "t": 133510,
+      "t": 119965,
       "label": "scan-empty"
     },
     {
-      "t": 137302,
+      "t": 125516,
       "label": "photos-added"
     },
     {
-      "t": 148553,
+      "t": 139004,
       "label": "photos-read"
     },
     {
-      "t": 151782,
+      "t": 141000,
       "label": "start-review",
-      "x": 649,
-      "y": 626
+      "x": 510,
+      "y": 1503
     },
     {
-      "t": 154783,
+      "t": 144007,
       "label": "review-page-1"
     },
     {
-      "t": 155915,
+      "t": 145363,
       "label": "flag-visible"
     },
     {
-      "t": 160741,
+      "t": 149037,
       "label": "choose-c",
-      "x": 833,
-      "y": 702
+      "x": 683,
+      "y": 1791
     },
     {
-      "t": 164285,
+      "t": 151773,
       "label": "checked-1",
-      "x": 900,
-      "y": 837
+      "x": 513,
+      "y": 2223
     },
     {
-      "t": 167274,
+      "t": 153506,
       "label": "save-1",
-      "x": 900,
-      "y": 881
+      "x": 513,
+      "y": 2391
     },
     {
-      "t": 169875,
+      "t": 156107,
       "label": "review-page-2"
     },
     {
-      "t": 172344,
+      "t": 157786,
       "label": "checked-2",
-      "x": 900,
-      "y": 837
+      "x": 513,
+      "y": 2223
     },
     {
-      "t": 175260,
+      "t": 159263,
       "label": "save-2",
-      "x": 900,
-      "y": 881
+      "x": 513,
+      "y": 2391
     },
     {
-      "t": 177662,
+      "t": 161663,
       "label": "review-page-3"
     },
     {
-      "t": 180492,
-      "label": "checked-3",
-      "x": 900,
-      "y": 837
-    },
-    {
-      "t": 183228,
-      "label": "save-3",
-      "x": 900,
-      "y": 881
-    },
-    {
-      "t": 185630,
-      "label": "review-page-4"
-    },
-    {
-      "t": 188403,
-      "label": "checked-4",
-      "x": 900,
-      "y": 837
-    },
-    {
-      "t": 191623,
-      "label": "save-4",
-      "x": 900,
-      "y": 881
-    },
-    {
-      "t": 194025,
+      "t": 161710,
       "label": "tray-reviewed"
     },
     {
-      "t": 198507,
+      "t": 164792,
       "label": "confirm-results",
-      "x": 659,
-      "y": 739
+      "x": 288,
+      "y": 1692
     },
     {
-      "t": 203509,
+      "t": 169793,
       "label": "confirmed"
     },
     {
-      "t": 209410,
+      "t": 170950,
       "label": "close-workspace",
-      "x": 1449,
-      "y": 183
+      "x": 1046,
+      "y": 132
     },
     {
-      "t": 212411,
+      "t": 173955,
       "label": "assignments-after-confirm"
     },
     {
-      "t": 213107,
+      "t": 174718,
       "label": "card-progress"
     },
     {
-      "t": 217136,
+      "t": 178225,
       "label": "view-report",
-      "x": 767,
-      "y": 540
+      "x": 516,
+      "y": 1278
     },
     {
-      "t": 222137,
+      "t": 183226,
       "label": "report"
     },
     {
-      "t": 224669,
+      "t": 185883,
       "label": "end"
     }
   ],
   "durations": {
-    "page": 225.56,
-    "print": 6.52
+    "page": 187.88,
+    "print": 7.68
   },
   "marks": {
-    "login-screen": 3.383,
-    "email-focus": 9.662,
-    "email": 11.545,
-    "password-focus": 14.356,
-    "password": 15.878,
-    "login": 18.249,
-    "workspace-chooser": 21.473,
-    "open-teacher-portal": 23.05,
-    "portal": 27.551,
-    "nav-assignments": 30.308,
-    "assignments": 33.809,
-    "create-menu": 36.095,
-    "new-assignment": 38.518,
-    "wizard-subject": 41.019,
-    "subject-english": 43.522,
-    "next-1": 46.745,
-    "wizard-audience": 48.547,
-    "audience-7a": 50.892,
-    "next-2": 54.431,
-    "wizard-questions": 56.936,
-    "topic-open": 58.504,
-    "topic-adjectives": 58.915,
-    "select-all": 61.91,
-    "next-3": 65.179,
-    "wizard-details": 67.18,
-    "delivery-paper": 69.3,
-    "title-focus": 71.691,
-    "title": 74.63,
-    "type-quiz": 76.123,
-    "next-4": 78.975,
-    "wizard-due": 80.976,
-    "due-1-week": 82.648,
-    "next-5": 85.204,
-    "wizard-review": 87.405,
-    "review-checkbox": 89.426,
-    "publish": 91.884,
-    "published-dialog": 96.899,
-    "published-ok": 99.627,
-    "assignments-after-publish": 102.628,
-    "print-papers": 104.224,
-    "paper-workspace": 108.728,
-    "bubble-sheets-only": 111.553,
-    "preview-print-order": 115.863,
-    "print-window-open": 116.364,
-    "print-window-ready": 119.818,
-    "print-window-scrolled": 123.279,
-    "print-window-closed": 124.914,
-    "photos-generated": 127.307,
-    "scan-tab": 131.708,
-    "scan-empty": 133.51,
-    "photos-added": 137.302,
-    "photos-read": 148.553,
-    "start-review": 151.782,
-    "review-page-1": 154.783,
-    "flag-visible": 155.915,
-    "choose-c": 160.741,
-    "checked-1": 164.285,
-    "save-1": 167.274,
-    "review-page-2": 169.875,
-    "checked-2": 172.344,
-    "save-2": 175.26,
-    "review-page-3": 177.662,
-    "checked-3": 180.492,
-    "save-3": 183.228,
-    "review-page-4": 185.63,
-    "checked-4": 188.403,
-    "save-4": 191.623,
-    "tray-reviewed": 194.025,
-    "confirm-results": 198.507,
-    "confirmed": 203.509,
-    "close-workspace": 209.41,
-    "assignments-after-confirm": 212.411,
-    "card-progress": 213.107,
-    "view-report": 217.136,
-    "report": 222.137,
-    "end": 224.669
+    "login-screen": 3.249,
+    "email-focus": 7.336,
+    "email": 9.343,
+    "password-focus": 13.018,
+    "password": 14.708,
+    "login": 16.014,
+    "dismiss-install-guide": 17.391,
+    "login-again": 19.257,
+    "workspace-chooser": 22.368,
+    "open-teacher-portal": 23.372,
+    "portal": 27.875,
+    "nav-assignments": 29.96,
+    "assignments": 33.495,
+    "create-menu": 35.127,
+    "new-assignment": 37.292,
+    "wizard-subject": 39.793,
+    "subject-english": 40.876,
+    "next-1": 42.544,
+    "wizard-audience": 44.348,
+    "audience-7a": 45.439,
+    "next-2": 47.406,
+    "wizard-questions": 49.913,
+    "topic-open": 50.837,
+    "topic-adjectives": 51.372,
+    "select-all": 53.966,
+    "next-3": 56.838,
+    "wizard-details": 58.847,
+    "delivery-paper": 60.098,
+    "title-focus": 62.079,
+    "title": 67.047,
+    "type-quiz": 68.122,
+    "next-4": 69.695,
+    "wizard-due": 71.696,
+    "due-1-week": 72.718,
+    "next-5": 74.412,
+    "wizard-review": 76.613,
+    "review-checkbox": 77.499,
+    "publish": 79.165,
+    "published-dialog": 83.905,
+    "published-ok": 84.173,
+    "assignments-after-publish": 87.175,
+    "print-papers": 88.686,
+    "paper-workspace": 93.191,
+    "bubble-sheets-only": 95.328,
+    "preview-print-order": 99.36,
+    "print-window-open": 99.862,
+    "print-window-ready": 103.079,
+    "print-window-scrolled": 107.475,
+    "print-window-closed": 108.323,
+    "photos-generated": 115.981,
+    "scan-tab": 118.153,
+    "scan-empty": 119.965,
+    "photos-added": 125.516,
+    "photos-read": 139.004,
+    "start-review": 141,
+    "review-page-1": 144.007,
+    "flag-visible": 145.363,
+    "choose-c": 149.037,
+    "checked-1": 151.773,
+    "save-1": 153.506,
+    "review-page-2": 156.107,
+    "checked-2": 157.786,
+    "save-2": 159.263,
+    "review-page-3": 161.663,
+    "tray-reviewed": 161.71,
+    "confirm-results": 164.792,
+    "confirmed": 169.793,
+    "close-workspace": 170.95,
+    "assignments-after-confirm": 173.955,
+    "card-progress": 174.718,
+    "view-report": 178.225,
+    "report": 183.226,
+    "end": 185.883
   },
   "sheets": [
     "sheet-01.svg",
