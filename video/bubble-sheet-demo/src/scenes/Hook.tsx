@@ -20,7 +20,7 @@ export const Hook: React.FC<{ scene: SceneTiming; layout: Layout }> = ({ scene, 
   const tl = timelineFor(layout);
   const b = (s: number) => beat(scene, s);
   const start = markPoint(tl, "start-review");
-  const tray = { x: start.x, y: Math.min(tl.size.height - 200, start.y + (layout === "landscape" ? 170 : 420)) };
+  const tray = { x: start.x, y: Math.min(tl.size.height - 200, start.y + (layout === "landscape" ? 170 : 620)) };
   const clips = planClips(
     layout,
     [
@@ -47,7 +47,7 @@ export const Hook: React.FC<{ scene: SceneTiming; layout: Layout }> = ({ scene, 
   return (
     <SceneShell scene={scene} layout={layout} accent={theme.cyan}>
       <Clips clips={clips} sourceWidth={tl.size.width} sourceHeight={tl.size.height} box={box} transitionFrames={0} from={0} />
-      {layout === "portrait" && <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 520, background: "linear-gradient(180deg, rgba(11,18,32,0.96) 55%, rgba(11,18,32,0) 100%)" }} />}
+      {layout === "portrait" && <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 700, background: "linear-gradient(180deg, rgba(11,18,32,0.97) 62%, rgba(11,18,32,0) 100%)" }} />}
       <div style={{ position: "absolute", left: textX, top: textY, width: textWidth, fontFamily: theme.font, fontWeight: 700, color: theme.ink, lineHeight: 1.02, letterSpacing: -2 }}>
         <div style={{ fontSize: layout === "landscape" ? 92 : 88, transform: `scale(${0.96 + 0.04 * popIn(frame, 0, fps)})`, transformOrigin: "left top" }}>
           Your phone just graded
@@ -63,7 +63,7 @@ export const Hook: React.FC<{ scene: SceneTiming; layout: Layout }> = ({ scene, 
       {[0, 1, 2, 3].map((i) => (
         <Sfx key={i} name="tick" at={b(0.6 + i * 0.45)} volume={0.35} />
       ))}
-      <Kinetic text="Here's how ↓" at={b(3.3)} x={layout === "landscape" ? 400 : g.width / 2} y={layout === "landscape" ? 760 : 470} size={layout === "landscape" ? 60 : 64} color={theme.amber} />
+      <Kinetic text="Here's how ↓" at={b(3.3)} x={layout === "landscape" ? 400 : g.width / 2} y={layout === "landscape" ? 930 : 560} size={layout === "landscape" ? 60 : 64} color={theme.amber} />
       <Sfx name="pop" at={b(3.3)} volume={0.45} />
     </SceneShell>
   );

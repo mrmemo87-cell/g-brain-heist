@@ -20,8 +20,8 @@ export const geometry = (layout: Layout) => {
     width: 1080,
     height: 1920,
     screen,
-    captionY: 1540,
-    captionSize: 60,
+    captionY: 1812,
+    captionSize: 56,
     sheet: { x: 190, y: 330, width: 700 },
     heroText: { x: 540, y: 820, size: 104 },
   };
