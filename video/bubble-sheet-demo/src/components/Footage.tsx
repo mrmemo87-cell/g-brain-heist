@@ -26,13 +26,15 @@ interface Props {
   camera?: CameraKey[];
   radius?: number;
   muted?: boolean;
+  /** Quick zoom settle on the first frames, the punch-cut feel. */
+  punch?: boolean;
 }
 
 /**
  * A slice of a screen recording with smooth camera moves: scale and pan between
  * keyframes so the viewer's eye is taken to the control being used.
  */
-export const Footage: React.FC<Props> = ({ src, from, rate = 1, sourceWidth, sourceHeight, box, camera = [], radius = 18, muted = true }) => {
+export const Footage: React.FC<Props> = ({ src, from, rate = 1, sourceWidth, sourceHeight, box, camera = [], radius = 18, muted = true, punch = false }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const seconds = frame / fps;
@@ -46,7 +48,8 @@ export const Footage: React.FC<Props> = ({ src, from, rate = 1, sourceWidth, sou
     keys.length === 1
       ? get(keys[0])
       : interpolate(seconds, times, keys.map(get), { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) });
-  const scale = pick((k) => k.scale);
+  const punchScale = punch ? interpolate(frame, [0, 7], [1.07, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) }) : 1;
+  const scale = pick((k) => k.scale) * punchScale;
   const cx = pick((k) => k.x);
   const cy = pick((k) => k.y);
 

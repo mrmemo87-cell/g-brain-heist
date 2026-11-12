@@ -1,46 +1,46 @@
 {
   "voice": "af_heart",
-  "speed": 1.0,
+  "speed": 1.08,
   "scenes": [
     {
       "id": "hook",
-      "title": "Hook",
-      "text": "Thirty paper quizzes. One red pen. Your whole evening. There is a faster way, and it is already in your pocket."
+      "title": "Cold open",
+      "text": "Your phone just graded a whole class of paper quizzes. In seconds. Here's how."
     },
     {
       "id": "create",
       "title": "Build the assignment",
-      "text": "Build the assignment in Brains Heist like any other. Pick the class, pull questions from the bank, and set delivery to Paper."
+      "text": "Build the assignment like any other, and set delivery to Paper."
     },
     {
       "id": "print",
       "title": "Print the sheets",
-      "text": "Hit Print papers. Every student gets their own answer sheet, with their name, the assignment code, a unique QR code, and four corner markers."
+      "text": "Print. Every sheet carries the student's name, a QR code, and four corner markers."
     },
     {
       "id": "fill",
       "title": "Students answer on paper",
-      "text": "Students answer the old-fashioned way. One bubble per question, dark pencil or pen. No devices needed in the exam room."
+      "text": "Students answer with a pencil. No devices in the exam room."
     },
     {
       "id": "scan",
       "title": "Scan with a phone",
-      "text": "Now the magic. Open Scan and review, add the photos from your phone, and watch. The QR code matches each sheet to its student, the corners straighten the photo, and every bubble is read on the spot."
+      "text": "Snap the pile. The QR matches each student, the corners straighten the photo, and every bubble is read on the spot."
     },
     {
       "id": "review",
       "title": "Review flagged marks",
-      "text": "Not sure about a smudged mark? Neither is the scanner, and it says so. Question seven is flagged. You see the crop, you tap the right answer, you save. Nothing is graded blind."
+      "text": "A smudged mark? It gets flagged. You see the crop, you tap the answer. Nothing is graded blind."
     },
     {
       "id": "results",
       "title": "Results",
-      "text": "Confirm the batch, and the results land in the gradebook, with a full report for every student, right next to their online work."
+      "text": "Confirm, and the results and the full report land in the gradebook."
     },
     {
       "id": "outro",
       "title": "Outro",
-      "text": "Print. Scan. Done. Brains Heist. Paper exams, digital speed."
+      "text": "Print. Scan. Done. That's your phone grading the whole class."
     }
   ]
 }

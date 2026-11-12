@@ -1,6 +1,5 @@
 import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
-import { slide } from "@remotion/transitions/slide";
 import { AbsoluteFill, Audio, staticFile } from "remotion";
 import { Sfx } from "./components/Sfx";
 import type { Layout } from "./plan";
@@ -28,7 +27,7 @@ const SCENES: Record<string, React.FC<{ scene: SceneTiming; layout: Layout }>> =
 /** Music sits under the narration: louder in the gaps, ducked while the voice speaks. */
 const musicVolume = (frame: number): number => {
   const ramp = 0.45 * FPS;
-  let level = 0.34;
+  let level = 0.4;
   for (const scene of scenes) {
     const start = scene.from + scene.voiceStart;
     const end = start + scene.seconds * FPS;
@@ -36,7 +35,7 @@ const musicVolume = (frame: number): number => {
       const inFade = Math.min(1, Math.max(0, (frame - (start - ramp)) / ramp));
       const outFade = Math.min(1, Math.max(0, (end + ramp - frame) / ramp));
       const duck = Math.min(inFade, outFade);
-      level = Math.min(level, 0.34 - 0.22 * duck);
+      level = Math.min(level, 0.4 - 0.26 * duck);
     }
   }
   const tail = totalFrames - frame;
@@ -59,7 +58,7 @@ export const Demo: React.FC<{ layout: Layout }> = ({ layout }) => (
           items.push(
             <TransitionSeries.Transition
               key={`${scene.id}-t`}
-              presentation={i % 2 === 0 ? slide({ direction: layout === "landscape" ? "from-right" : "from-bottom" }) : fade()}
+              presentation={fade()}
               timing={linearTiming({ durationInFrames: SCENE_TRANSITION_FRAMES })}
             />,
           );
@@ -68,7 +67,7 @@ export const Demo: React.FC<{ layout: Layout }> = ({ layout }) => (
       })}
     </TransitionSeries>
     {scenes.slice(1).map((scene) => (
-      <Sfx key={scene.id} name="whoosh" at={scene.from - 2} volume={0.45} />
+      <Sfx key={scene.id} name="whoosh" at={scene.from - 2} volume={0.22} />
     ))}
     <Audio src={staticFile("music/bed.mp3")} volume={musicVolume} />
   </AbsoluteFill>

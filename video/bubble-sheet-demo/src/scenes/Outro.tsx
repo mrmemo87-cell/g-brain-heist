@@ -9,8 +9,8 @@ import { theme } from "../theme";
 
 const WORDS = [
   { text: "Print.", color: theme.cyan, at: 0.05 },
-  { text: "Scan.", color: theme.purple, at: 0.5 },
-  { text: "Done.", color: theme.teal, at: 0.95 },
+  { text: "Scan.", color: theme.purple, at: 0.42 },
+  { text: "Done.", color: theme.teal, at: 0.8 },
 ];
 
 export const Outro: React.FC<{ scene: SceneTiming; layout: Layout }> = ({ scene, layout }) => {
@@ -18,8 +18,8 @@ export const Outro: React.FC<{ scene: SceneTiming; layout: Layout }> = ({ scene,
   const { fps } = useVideoConfig();
   const g = geometry(layout);
   const b = (s: number) => beat(scene, s);
-  const lift = ramp(frame, b(1.7), b(2.2));
-  const brandIn = popIn(frame, b(2.0), fps, { damping: 14 });
+  const lift = ramp(frame, b(1.3), b(1.7));
+  const brandIn = popIn(frame, b(1.5), fps, { damping: 14 });
   const wordSize = layout === "landscape" ? 150 : 120;
   const row = layout === "landscape";
 
@@ -36,18 +36,18 @@ export const Outro: React.FC<{ scene: SceneTiming; layout: Layout }> = ({ scene,
         })}
       </div>
       {WORDS.map((w) => (
-        <Sfx key={w.text} name="pop" at={b(w.at)} volume={0.5} />
+        <Sfx key={w.text} name="pop" at={b(w.at)} volume={0.4} />
       ))}
-      {frame >= b(2.0) && (
-        <div style={{ position: "absolute", left: 0, right: 0, top: row ? 380 : 760, display: "flex", flexDirection: "column", alignItems: "center", gap: 18, transform: `scale(${brandIn})`, opacity: brandIn }}>
-          <Img src={staticFile("logo.png")} style={{ height: row ? 220 : 260 }} />
-          <div style={{ fontFamily: theme.font, fontWeight: 700, fontSize: row ? 84 : 76, color: theme.ink }}>Brains Heist</div>
-          <div style={{ fontFamily: theme.font, fontSize: row ? 40 : 38, color: theme.muted }}>Paper exams, digital speed.</div>
-          <div style={{ fontFamily: theme.font, fontSize: row ? 30 : 30, color: theme.cyan, marginTop: 10 }}>brainsheist.com</div>
+      {frame >= b(1.5) && (
+        <div style={{ position: "absolute", left: 0, right: 0, top: row ? 380 : 760, display: "flex", flexDirection: "column", alignItems: "center", gap: 16, transform: `scale(${brandIn})`, opacity: brandIn }}>
+          <Img src={staticFile("logo.png")} style={{ height: row ? 200 : 240 }} />
+          <div style={{ fontFamily: theme.font, fontWeight: 700, fontSize: row ? 80 : 72, color: theme.ink }}>Brains Heist</div>
+          <div style={{ fontFamily: theme.font, fontSize: row ? 40 : 40, color: theme.muted }}>Your phone grades the whole class.</div>
+          <div style={{ fontFamily: theme.font, fontSize: 30, color: theme.cyan, marginTop: 8 }}>brainsheist.com</div>
         </div>
       )}
-      <Sfx name="success" at={b(2.0)} volume={0.5} />
-      <div style={{ position: "absolute", left: 0, right: 0, bottom: g.captionBottom + 10, textAlign: "center", fontFamily: theme.font, fontSize: 22, color: theme.muted, opacity: 0.7 }}>
+      <Sfx name="success" at={b(1.5)} volume={0.45} />
+      <div style={{ position: "absolute", left: 0, right: 0, bottom: 28, textAlign: "center", fontFamily: theme.font, fontSize: 22, color: theme.muted, opacity: 0.7 }}>
         Recorded in the live app · no mock-ups
       </div>
     </SceneShell>

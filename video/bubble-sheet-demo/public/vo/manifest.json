@@ -3,51 +3,51 @@
   "scenes": [
     {
       "id": "hook",
-      "title": "Hook",
-      "text": "Thirty paper quizzes. One red pen. Your whole evening. There is a faster way, and it is already in your pocket.",
-      "seconds": 6.72
+      "title": "Cold open",
+      "text": "Your phone just graded a whole class of paper quizzes. In seconds. Here's how.",
+      "seconds": 4.395
     },
     {
       "id": "create",
       "title": "Build the assignment",
-      "text": "Build the assignment in Brains Heist like any other. Pick the class, pull questions from the bank, and set delivery to Paper.",
-      "seconds": 7.36
+      "text": "Build the assignment like any other, and set delivery to Paper.",
+      "seconds": 3.307
     },
     {
       "id": "print",
       "title": "Print the sheets",
-      "text": "Hit Print papers. Every student gets their own answer sheet, with their name, the assignment code, a unique QR code, and four corner markers.",
-      "seconds": 8.576
+      "text": "Print. Every sheet carries the student's name, a QR code, and four corner markers.",
+      "seconds": 4.693
     },
     {
       "id": "fill",
       "title": "Students answer on paper",
-      "text": "Students answer the old-fashioned way. One bubble per question, dark pencil or pen. No devices needed in the exam room.",
-      "seconds": 8.0
+      "text": "Students answer with a pencil. No devices in the exam room.",
+      "seconds": 3.584
     },
     {
       "id": "scan",
       "title": "Scan with a phone",
-      "text": "Now the magic. Open Scan and review, add the photos from your phone, and watch. The QR code matches each sheet to its student, the corners straighten the photo, and every bubble is read on the spot.",
-      "seconds": 12.288
+      "text": "Snap the pile. The QR matches each student, the corners straighten the photo, and every bubble is read on the spot.",
+      "seconds": 6.741
     },
     {
       "id": "review",
       "title": "Review flagged marks",
-      "text": "Not sure about a smudged mark? Neither is the scanner, and it says so. Question seven is flagged. You see the crop, you tap the right answer, you save. Nothing is graded blind.",
-      "seconds": 10.752
+      "text": "A smudged mark? It gets flagged. You see the crop, you tap the answer. Nothing is graded blind.",
+      "seconds": 5.589
     },
     {
       "id": "results",
       "title": "Results",
-      "text": "Confirm the batch, and the results land in the gradebook, with a full report for every student, right next to their online work.",
-      "seconds": 7.168
+      "text": "Confirm, and the results and the full report land in the gradebook.",
+      "seconds": 3.563
     },
     {
       "id": "outro",
       "title": "Outro",
-      "text": "Print. Scan. Done. Brains Heist. Paper exams, digital speed.",
-      "seconds": 4.245
+      "text": "Print. Scan. Done. That's your phone grading the whole class.",
+      "seconds": 3.2
     }
   ]
 }

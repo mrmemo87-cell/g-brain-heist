@@ -179,6 +179,7 @@ const readAnswerKeys = async () => {
   }, { anonKey, sheets });
 };
 
+let flagLetter = 'A';
 const makePhotos = async (svgDir, photoDir, count, answerKeys = {}) => {
   const files = readdirSync(svgDir).filter((f) => f.endsWith('.svg')).sort().slice(0, count);
   const shooter = await chromium.launch(shooterLaunchOptions);
@@ -198,6 +199,8 @@ const makePhotos = async (svgDir, photoDir, count, answerKeys = {}) => {
       const p = bubble(row, choice);
       marks.push(`<circle cx="${p.x + (rand() - 0.5) * 3}" cy="${p.y + (rand() - 0.5) * 3}" r="${10 + rand() * 1.5}" fill="#23272e" opacity="0.92"/>`);
       if (index === 0 && row === 6) {
+        // The dark mark is the student's real answer; the teacher resolves the flag to this letter.
+        flagLetter = 'ABCD'[choice];
         const q = bubble(row, (choice + 1) % 4);
         marks.push(`<circle cx="${q.x}" cy="${q.y}" r="9" fill="#5b6270" opacity="0.45"/>`);
       }
@@ -347,8 +350,9 @@ try {
   mark('review-page-1');
   const flagged = page.getByText('Question 7', { exact: false }).first();
   if (await flagged.count()) { await reveal(flagged); mark('flag-visible'); await pause(1800); }
-  const choiceC = page.getByRole('button', { name: 'C', exact: true });
-  if (await choiceC.count()) await press(choiceC.last(), 'choose-c', { settle: 1200 });
+  const choice = page.getByRole('button', { name: flagLetter, exact: true });
+  if (await choice.count()) await press(choice.last(), 'choose-c', { settle: 1200, reveal: false });
+  mark('flag-letter', { letter: flagLetter });
   await press(page.getByText("I checked this page’s answers."), 'checked-1', { settle: 600 });
   await press(page.getByRole('button', { name: /Save page/ }), 'save-1', { settle: 2600 });
   for (let p = 2; p <= PHOTO_COUNT; p++) {

@@ -2,11 +2,11 @@ import manifest from "../public/vo/manifest.json";
 
 export const FPS = 30;
 /** Silence before the narration starts in each scene, so visuals can settle. */
-const LEAD_IN_SECONDS = 0.5;
+const LEAD_IN_SECONDS = 0.3;
 /** Silence after the narration so the last visual beat can land. */
-const TAIL_SECONDS = 1.1;
+const TAIL_SECONDS = 0.6;
 /** Frames of overlap between scenes for the transition. */
-export const SCENE_TRANSITION_FRAMES = 12;
+export const SCENE_TRANSITION_FRAMES = 8;
 
 export interface SceneTiming {
   id: string;
