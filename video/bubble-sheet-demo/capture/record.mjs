@@ -229,9 +229,13 @@ try {
   const portal = page.locator('button, a, [role=button]').filter({ hasText: 'Teacher Portal' }).first();
   const notNow = page.getByRole('button', { name: 'Not now' });
   // The iOS install guide can cover the workspace chooser; dismiss it as soon as it shows.
+  const enter = page.getByRole('button', { name: /Enter/ });
+  let dismissed = false;
   for (let waited = 0; waited < 45000; waited += 500) {
-    if (await notNow.isVisible().catch(() => false)) { await press(notNow, 'dismiss-install-guide', { settle: 600, reveal: false }); }
+    if (await notNow.isVisible().catch(() => false)) { await press(notNow, 'dismiss-install-guide', { settle: 600, reveal: false }); dismissed = true; }
     if (await portal.isVisible().catch(() => false)) break;
+    // The guide can swallow the Enter tap; if the form is still there after dismissing it, submit again.
+    if (dismissed && (await enter.isVisible().catch(() => false))) { await press(enter, 'login-again', { settle: 500 }); dismissed = false; }
     await pause(500);
   }
   await portal.waitFor({ timeout: 5000 });
