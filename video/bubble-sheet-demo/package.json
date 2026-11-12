@@ -1,0 +1,23 @@
+{
+  "name": "brains-heist-bubble-sheet-demo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Animated explainer video: Brains Heist paper assignments, printed bubble sheets, phone scanning and automatic grading.",
+  "scripts": {
+    "sheet": "cd ../.. && npx tsx video/bubble-sheet-demo/scripts/generate-sheet.ts",
+    "voice": "python3 scripts/voiceover.py",
+    "preview": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts BubbleSheetDemo out/bubble-sheet-demo.mp4 --codec h264",
+    "render:fast": "remotion render src/index.ts BubbleSheetDemo out/preview.mp4 --codec h264 --scale 0.5 --every-nth-frame 2"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.543",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.543"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.31",
+    "typescript": "^5.9.3"
+  }
+}

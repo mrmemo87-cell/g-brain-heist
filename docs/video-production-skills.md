@@ -49,6 +49,13 @@ npx skills list --agent claude-code
 3. Build animated segments with Claude Motion (05) or Remotion (07, 08), applying motion design principles (06).
 4. Package titles, thumbnails, tags and Shorts cuts with the YouTube toolkit (01).
 
+## First video built with this stack
+
+`video/bubble-sheet-demo/` holds the animated explainer for the paper assignment and bubble
+sheet scanning flow. It is the zero-cost version of the pipeline: Remotion for animation,
+Kokoro (offline) for the voice, ffmpeg for the render, and the app's own print code for the
+sheet. See its README for how to regenerate or change the narration.
+
 ## Connected tools already available in Claude sessions
 
 - The Runway connector exposes video generation, stitching, speech, music and sound effects, and an `import-claude-motion-from-url` tool that pulls a Claude Motion export into Runway for further editing.

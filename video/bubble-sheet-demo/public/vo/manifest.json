@@ -1,0 +1,53 @@
+{
+  "voice": "af_heart",
+  "scenes": [
+    {
+      "id": "hook",
+      "title": "Hook",
+      "text": "Thirty papers. One red pen. A whole evening gone. There is a faster way to grade paper quizzes.",
+      "seconds": 6.144
+    },
+    {
+      "id": "create",
+      "title": "Build the assignment",
+      "text": "In Brains Heist, you build the assignment once. Pick your questions, switch delivery to paper, and the system prepares a personalised answer sheet for every student.",
+      "seconds": 9.792
+    },
+    {
+      "id": "print",
+      "title": "Print the sheets",
+      "text": "Hit print. Each sheet carries the student's name, the assignment code, and a unique QR code. And those four black squares in the corners? They let the scanner straighten any photo, even a crooked one.",
+      "seconds": 11.819
+    },
+    {
+      "id": "fill",
+      "title": "Students answer on paper",
+      "text": "Students answer the old-fashioned way. One bubble per question, dark pencil or pen. No devices needed in the exam room.",
+      "seconds": 8.0
+    },
+    {
+      "id": "scan",
+      "title": "Scan with a phone",
+      "text": "Now the magic. Open the scan tab, point your phone at the sheet, and snap. The QR code identifies the student instantly. The corner squares lock the grid in place. And every bubble is read automatically. Snap the whole pile. Thirty sheets, one batch.",
+      "seconds": 15.872
+    },
+    {
+      "id": "review",
+      "title": "Review flagged marks",
+      "text": "Not sure about a smudged bubble? Neither is the scanner, and it says so. Flagged marks show you the actual photo crop. You tap the right answer, and confirm. Nothing is graded blind.",
+      "seconds": 11.307
+    },
+    {
+      "id": "results",
+      "title": "Results",
+      "text": "Confirm the batch, and the results flow straight into the gradebook. Class averages, per-question insights, and every student sees their score on their own dashboard.",
+      "seconds": 9.771
+    },
+    {
+      "id": "outro",
+      "title": "Outro",
+      "text": "Print. Scan. Done. Brains Heist. Paper exams, digital speed.",
+      "seconds": 4.245
+    }
+  ]
+}

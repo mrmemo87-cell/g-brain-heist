@@ -10,6 +10,8 @@
     "supabase-functions",
     "supabase-functions/**",
     "supabase/functions",
-    "supabase/functions/**"
+    "supabase/functions/**",
+    "video",
+    "video/**"
   ]
 }

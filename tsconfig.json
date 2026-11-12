@@ -51,6 +51,7 @@
     "supabase/functions",
     "android",
     "ios",
-    "capacitor.config.ts"
+    "capacitor.config.ts",
+    "video"
   ]
 }
