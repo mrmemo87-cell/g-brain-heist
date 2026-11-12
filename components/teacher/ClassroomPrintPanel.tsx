@@ -123,15 +123,22 @@ export default function ClassroomPrintPanel({
     count >= 1 &&
     count <= 200 &&
     (actualMode === "questions" || Number.isFinite(Date.parse(date)));
+  // The picker only has minute precision, so the default "now" lands at the start of
+  // the current minute, which can precede an assignment published seconds earlier and
+  // fail the server's publication-to-now check. Treat the current minute as "now".
+  const assessedAt = () => {
+    if (actualMode === "questions") return new Date().toISOString();
+    const chosen = new Date(date);
+    const now = new Date();
+    const sameMinute = chosen.getTime() <= now.getTime() && now.getTime() - chosen.getTime() < 60_000;
+    return (sameMinute ? now : chosen).toISOString();
+  };
   const submit = () =>
     onPrint({
       mode: actualMode,
       studentIds: [...selected].sort(),
       copies: count,
-      assessedAt:
-        actualMode === "questions"
-          ? new Date().toISOString()
-          : new Date(date).toISOString(),
+      assessedAt: assessedAt(),
       includeQuestions:
         actualMode === "pack" || (actualMode === "unnamed" && guestQuestions),
       printSettings,
