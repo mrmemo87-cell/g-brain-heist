@@ -252,13 +252,22 @@ try {
   await press(page.getByRole('button', { name: `Print papers for ${TITLE}` }).first(), 'print-papers', { settle: 4500 });
   mark('paper-workspace');
   await press(page.getByText('Bubble sheets only'), 'bubble-sheets-only', { settle: 1200 });
-  const popupPromise = context.waitForEvent('page', { timeout: 30000 });
-  const issuePromise = page.waitForResponse((r) => r.url().includes('rpc_teacher_issue_scan_sheets'), { timeout: 60000 }).then((r) => r.json()).catch(() => null);
-  await press(page.getByRole('button', { name: 'Preview print order' }), 'preview-print-order', { settle: 500 });
-  const popup = await popupPromise;
-  issuedSession = await issuePromise;
-  mark('print-window-open');
-  await popup.waitForFunction(() => document.querySelectorAll('svg[aria-label^="Answer sheet"]').length > 0, null, { timeout: 60000 });
+  let popup = null;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const popupPromise = context.waitForEvent('page', { timeout: 30000 });
+    const issuePromise = page.waitForResponse((r) => r.url().includes('rpc_teacher_issue_scan_sheets'), { timeout: 60000 }).then((r) => r.json()).catch(() => null);
+    await press(page.getByRole('button', { name: 'Preview print order' }), attempt === 1 ? 'preview-print-order' : 'preview-print-order-retry', { settle: 500 });
+    popup = await popupPromise;
+    mark('print-window-open');
+    issuedSession = (await issuePromise) ?? issuedSession;
+    const rendered = await popup.waitForFunction(() => document.querySelectorAll('svg[aria-label^="Answer sheet"]').length > 0, null, { timeout: 25000 }).then(() => true).catch(() => false);
+    if (rendered) break;
+    console.warn('print window did not render; workspace says:', (await page.locator('.psc').innerText().catch(() => '')).replace(/\n+/g, ' | ').slice(0, 400));
+    console.warn('popup body:', (await popup.content().catch(() => '')).slice(0, 200));
+    if (attempt === 2) throw new Error('Print window never rendered the sheets');
+    await popup.close().catch(() => {});
+    await pause(1500);
+  }
   await popup.waitForTimeout(2500);
   mark('print-window-ready');
   const svgs = await popup.$$eval('svg[aria-label^="Answer sheet"]', (nodes) => nodes.map((n) => ({ label: n.getAttribute('aria-label'), html: n.outerHTML })));
