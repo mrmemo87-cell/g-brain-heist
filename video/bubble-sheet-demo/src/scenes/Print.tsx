@@ -73,7 +73,7 @@ export const Print: React.FC<{ scene: SceneTiming }> = ({ scene }) => {
       <StickFigure pose="idle" x={660} y={600} size={300} />
       <div style={{ position: "absolute", left: PRINTER.x + 30, top: PRINTER.y + PRINTER.h - 70, fontFamily: theme.font, fontSize: 22, color: theme.muted, zIndex: 2 }}>Any office printer · plain A4</div>
 
-      <Callout targetX={name.x} targetY={name.y} labelX={900} labelY={380} label="Student's name" color={theme.amber} from={b(1.2)} until={b(6.4)} />
+      <Callout targetX={name.x} targetY={name.y} labelX={900} labelY={500} label="Student's name" color={theme.amber} from={b(1.2)} until={b(6.4)} />
       <Callout targetX={code.x} targetY={code.y} labelX={900} labelY={230} label="Assignment code" color={theme.pink} from={b(3.4)} until={b(6.4)} />
       <Callout targetX={qr.x} targetY={qr.y} labelX={1570} labelY={30} label="Unique QR code" color={theme.cyan} from={b(4.8)} until={b(6.6)} ring={70} />
       <Callout targetX={marker.x} targetY={marker.y} labelX={900} labelY={560} label="4 corner markers" color={theme.teal} from={b(6.6)} until={b(9.4)} ring={30} />
