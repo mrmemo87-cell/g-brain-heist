@@ -358,7 +358,8 @@ try {
   for (let p = 2; p <= PHOTO_COUNT; p++) {
     mark(`review-page-${p}`);
     const checkbox = page.getByText("I checked this page’s answers.");
-    if (!(await checkbox.isVisible().catch(() => false))) {
+    const nextPageLoaded = await checkbox.waitFor({ timeout: 6000 }).then(() => true).catch(() => false);
+    if (!nextPageLoaded) {
       // Back on the tray (a page needed another look): open the next page that is ready.
       const next = page.getByRole('button', { name: /Start review|Review page/ }).first();
       if (!(await next.isVisible().catch(() => false))) break;
@@ -369,7 +370,7 @@ try {
   }
   mark('tray-reviewed');
   await pause(1200);
-  await press(page.getByRole('button', { name: /Confirm \d+ student results/ }), 'confirm-results', { settle: 5000 });
+  await press(page.getByRole('button', { name: /Confirm \d+ student results?/ }), 'confirm-results', { settle: 5000 });
   mark('confirmed');
   await press(page.getByRole('button', { name: 'Close paper workspace' }), 'close-workspace', { settle: 800, reveal: false });
   await page.getByRole('button', { name: 'Close paper workspace' }).waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
