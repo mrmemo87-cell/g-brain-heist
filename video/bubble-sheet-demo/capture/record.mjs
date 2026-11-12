@@ -15,6 +15,9 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const { chromium, devices } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
 const launchOptions = process.env.CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.CHROMIUM_EXECUTABLE_PATH } : {};
+// The photo renderer must not inherit the phone take's device-scale flag: at 3x its 1800x2400
+// canvas paints too slowly and screenshots come out half blank.
+const shooterLaunchOptions = { ...launchOptions };
 
 const mode = process.argv[2] === 'mobile' ? 'mobile' : 'desktop';
 const APP_URL = process.env.APP_URL || 'http://127.0.0.1:4180/';
@@ -178,7 +181,7 @@ const readAnswerKeys = async () => {
 
 const makePhotos = async (svgDir, photoDir, count, answerKeys = {}) => {
   const files = readdirSync(svgDir).filter((f) => f.endsWith('.svg')).sort().slice(0, count);
-  const shooter = await chromium.launch(launchOptions);
+  const shooter = await chromium.launch(shooterLaunchOptions);
   const shot = await shooter.newPage({ viewport: { width: 1800, height: 2400 } });
   for (const [index, file] of files.entries()) {
     const rand = seeded(index + 11);
@@ -212,7 +215,7 @@ const makePhotos = async (svgDir, photoDir, count, answerKeys = {}) => {
       </div>
       <div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 40%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.35) 100%);"></div>
     </body></html>`);
-    await shot.waitForTimeout(250);
+    await shot.waitForTimeout(700);
     await shot.screenshot({ path: join(photoDir, file.replace('.svg', '.jpg')), type: 'jpeg', quality: 86 });
   }
   await shooter.close();
