@@ -367,7 +367,9 @@ try {
   await pause(1200);
   await press(page.getByRole('button', { name: /Confirm \d+ student results/ }), 'confirm-results', { settle: 5000 });
   mark('confirmed');
-  await press(page.getByRole('button', { name: /Close|×/ }).first(), 'close-workspace', { settle: 3000 });
+  await press(page.getByRole('button', { name: 'Close paper workspace' }), 'close-workspace', { settle: 800, reveal: false });
+  await page.getByRole('button', { name: 'Close paper workspace' }).waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+  await pause(2200);
   mark('assignments-after-confirm');
   const card = page.locator('article').filter({ hasText: TITLE }).first();
   await reveal(card);
