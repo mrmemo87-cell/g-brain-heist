@@ -19,6 +19,7 @@ import {
   type SpeakingClip,
 } from "../../../services/ieltsSpeakingPilot";
 import { SpeakingRecorder } from "../../components/ielts/SpeakingRecorder";
+import SpeakingInterviewInsights from "../../components/ielts/SpeakingInterviewInsights";
 import "../../styles/ielts-speaking-pilot.css";
 type Session = SpeakingSession & { source_hash: string; can_record: boolean };
 function SoundMark() {
@@ -873,9 +874,9 @@ export default function IeltsSpeakingPilot() {
                 </span>
                 <h2>Your Speaking starting point</h2>
                 <p>
-                  This interview samples all three parts. It does not give a
-                  Speaking or overall IELTS band. These observations refer to
-                  this sitting.
+                  This interview samples all three parts. Your teacher may give
+                  a band for each part; it is not a full Speaking or overall
+                  IELTS band. These observations refer to this sitting.
                 </p>
                 {session.evidence_kind === "same_form_practice" && (
                   <p>
@@ -1245,6 +1246,8 @@ export default function IeltsSpeakingPilot() {
                   </section>
                 )}
               </div>
+              {/* Transcripts, colour highlights, pronunciation and Part 1-3 bands (Bible 2.2.0 section 10.7). */}
+              <SpeakingInterviewInsights session={session} />
             </>
           )}
         </>

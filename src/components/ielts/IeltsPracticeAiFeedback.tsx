@@ -12,6 +12,7 @@ import {
 import { useIeltsAudience, type IeltsAudience } from '../../lib/ieltsAudience';
 import '../../styles/ielts-feedback.css';
 import { IeltsWorkingGlyph } from './IeltsMotion';
+import SpeakingTranscript from './SpeakingTranscript';
 
 /**
  * Practice feedback on Writing and Speaking (Diagnostic Bible 2.1.0 sections 10.5-10.6; Visual & UX Bible 13.3, 13.6).
@@ -22,8 +23,12 @@ type Props = {
   attemptId: string;
   mode: 'student' | 'teacher';
   skill?: 'writing' | 'speaking';
-  /** Speaking only: returns the learner's original practice recording. */
+  /** Speaking only: returns the learner's original practice recording (the teacher view passes the student's). */
   loadRecording?: () => Promise<Blob>;
+  /** Speaking: start transcription and feedback as soon as the panel loads, if none exists yet. */
+  autoStart?: boolean;
+  /** Called after feedback is generated or confirmed, so a host page can refresh its own copy. */
+  onFeedback?: (view: PracticeFeedbackView) => void;
   /** Overrides the detected audience (tests, previews). */
   audience?: IeltsAudience;
 };
@@ -41,7 +46,7 @@ function RangeBar({ low, high }: { low: number; high: number }) {
   );
 }
 
-export default function IeltsPracticeAiFeedback({ attemptId, mode, skill = 'writing', loadRecording, audience: forced }: Props) {
+export default function IeltsPracticeAiFeedback({ attemptId, mode, skill = 'writing', loadRecording, onFeedback, autoStart = false, audience: forced }: Props) {
   const detected = useIeltsAudience();
   const audience = forced ?? detected;
   const independent = mode === 'student' && audience === 'independent';
@@ -60,15 +65,25 @@ export default function IeltsPracticeAiFeedback({ attemptId, mode, skill = 'writ
 
   const run = async (f: () => Promise<PracticeFeedbackView>) => {
     if (lock.current) return; lock.current = true; setBusy(true); setError('');
-    try { setView(await f()); } catch (e) { setError((e as Error).message); } finally { lock.current = false; setBusy(false); }
+    try { const next = await f(); setView(next); onFeedback?.(next); } catch (e) { setError((e as Error).message); } finally { lock.current = false; setBusy(false); }
   };
   const request = () => run(() => (skill === 'speaking'
-    ? requestSpeakingPracticeFeedback(attemptId, loadRecording ?? (() => Promise.reject(new Error('recording_unavailable'))))
+    ? requestSpeakingPracticeFeedback(attemptId, loadRecording ?? (() => Promise.reject(new Error('recording_unavailable'))), { asTeacher: mode === 'teacher' })
     : requestPracticeFeedback(attemptId)));
+
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (!autoStart || autoStarted.current || !loaded || skill !== 'speaking' || !loadRecording) return;
+    if (view) return; // already working, ready, or failed (a failure waits for the learner's own retry)
+    autoStarted.current = true;
+    void request();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart, loaded, view, skill]);
 
   if (!loaded || (mode === 'student' && !audience)) return null;
   const ready = view?.status === 'ready' && view.fields;
-  if (!ready && mode === 'teacher') return null;
+  // A teacher may run Speaking feedback when the student never did, so every reviewed recording gets a transcript.
+  if (!ready && mode === 'teacher' && !(skill === 'speaking' && loadRecording)) return null;
   if (skill === 'speaking' && !ready && mode === 'student' && !loadRecording) return null;
 
   const title = view?.confirmed
@@ -97,13 +112,15 @@ export default function IeltsPracticeAiFeedback({ attemptId, mode, skill = 'writ
           ) : (
             <>
               <p>
-                {skill === 'speaking'
+                {mode === 'teacher'
+                  ? 'This recording has not been transcribed yet. Run the AI check to get the transcript with colour highlights, pronunciation corrections and a practice range for each criterion.'
+                  : skill === 'speaking'
                   ? 'Get feedback on fluency, vocabulary, grammar and pronunciation from your actual recording: what worked, what to fix and one thing to practise for each.'
                   : 'Get fast feedback on this response: what worked, what to fix and one action for each criterion.'}
                 {' '}It is practice feedback, not an official IELTS result.
               </p>
               <button type="button" className="pf-cta" disabled={busy} onClick={() => void request()}>
-                {view?.status === 'failed' ? 'Try feedback again' : independent ? 'Get my feedback' : 'Get AI feedback now'}
+                {view?.status === 'failed' ? 'Try feedback again' : mode === 'teacher' ? 'Transcribe and run AI check' : independent ? 'Get my feedback' : 'Get AI feedback now'}
                 <span aria-hidden="true">→</span>
               </button>
             </>
@@ -114,13 +131,33 @@ export default function IeltsPracticeAiFeedback({ attemptId, mode, skill = 'writ
 
       {ready && fields && (
         <>
-          {skill === 'speaking' && fields.transcript && (
-            <div className="pf-transcript">
-              <button type="button" className="pf-link" aria-expanded={showTranscript} onClick={() => setShowTranscript(v => !v)}>
-                {showTranscript ? 'Hide' : 'Show'} what we heard
-              </button>
-              {showTranscript && <blockquote>{fields.transcript}</blockquote>}
-            </div>
+          {skill === 'speaking' && typeof fields.transcript === 'string' && (
+            mode === 'teacher' ? (
+              <div className="pf-transcript pf-transcript--open">
+                <SpeakingTranscript
+                  title="Transcript with assessment highlights"
+                  audience="teacher"
+                  transcript={fields.transcript}
+                  highlights={fields.highlights ?? []}
+                  pronunciationWords={fields.pronunciation_words ?? []}
+                  pronunciationAssessed={fields.pronunciation_assessed !== false}
+                />
+              </div>
+            ) : (
+              <div className="pf-transcript">
+                <button type="button" className="pf-link" aria-expanded={showTranscript} onClick={() => setShowTranscript(v => !v)}>
+                  {showTranscript ? 'Hide' : 'Show'} what we heard, with colour highlights
+                </button>
+                {showTranscript && (
+                  <SpeakingTranscript
+                    transcript={fields.transcript}
+                    highlights={fields.highlights ?? []}
+                    pronunciationWords={fields.pronunciation_words ?? []}
+                    pronunciationAssessed={fields.pronunciation_assessed !== false}
+                  />
+                )}
+              </div>
+            )
           )}
           <div className="pf-criteria">
             {Object.entries(fields.criteria).map(([key, c], index) => (

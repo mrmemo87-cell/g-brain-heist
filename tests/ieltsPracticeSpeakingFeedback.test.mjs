@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS, parseSpeakingJson, speakingKeys, speakingTranscriptionHint, validateSpeakingPracticeFeedback } from '../supabase/functions/_shared/ieltsPracticeSpeakingFeedback';
+import { build } from 'esbuild';
+const load = async (entry) => {
+  const out = (await build({ entryPoints: [entry], bundle: true, format: 'esm', write: false, logLevel: 'silent' })).outputFiles[0].text;
+  return import('data:text/javascript;base64,' + Buffer.from(out).toString('base64'));
+};
+const { SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS, parseSpeakingJson, speakingKeys, speakingTranscriptionHint, validateSpeakingPracticeFeedback } = await load('supabase/functions/_shared/ieltsPracticeSpeakingFeedback.ts');
 // Diagnostic Bible 2.1.0 sections 10.3, 10.5 and 10.6.
 const transcript = 'I usually get up at seven because my classes start early, and at weekends I sleep until nine.';
 const output = () => ({
@@ -13,7 +18,7 @@ test('valid speaking feedback keeps ranges per criterion and quotes from the tra
   const f = validateSpeakingPracticeFeedback(output(), { part: 1 });
   assert.equal(f.criteria.pronunciation.indication?.low, 6);
   assert.equal(f.criteria.fluency_coherence.evidence[0]?.quote, 'because my classes start early');
-  assert.equal(f.prompt_version, 'bh-ielts-speaking-practice-feedback-v2');
+  assert.equal(f.prompt_version, 'bh-ielts-speaking-practice-feedback-v3');
 });
 test('quotes not in the transcript, single numbers, overall bands, extra keys and unheard pronunciation ranges are rejected', () => {
   const fake = output(); fake.criteria['lexical_resource'].quotes = ['I love travelling']; assert.throws(() => validateSpeakingPracticeFeedback(fake, { part: 1 }));

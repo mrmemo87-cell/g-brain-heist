@@ -4,7 +4,6 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   rpcIeltsReviewDetail,
   rpcIeltsSubmitReview,
-  requestIeltsAiDraft,
   rubricForSkill,
   speakingRubricKeys,
   writingRubricKeys,
@@ -20,13 +19,14 @@ import { IeltsButton } from '../../components/ielts/IeltsUi';
 import { IeltsEmailOptions, IeltsEmailStatusLine } from '../../components/ielts/IeltsEmailControls';
 import { notifyIeltsStudents, type IeltsEmailQueued } from '../../../services/ieltsEmailService';
 import '../../styles/ielts-submission-review.css';
-import { practiceFeedback, criterionLabel } from '../../../services/ieltsPracticeFeedback';
+import { practiceFeedback, speakingPracticeFeedback, criterionLabel } from '../../../services/ieltsPracticeFeedback';
 
 // Review rubric key -> AI practice feedback criterion keys (Diagnostic Bible 2.0.0 section 10.5). The AI never sets a band;
 // its range is shown as a hint beside the teacher's own selection.
 const aiCriterionFor: Record<string, string[]> = {
   task_achievement: ['task_achievement', 'task_response'], coherence_cohesion: ['coherence_cohesion'],
   lexical_resource: ['lexical_resource'], grammar: ['grammar_range_accuracy'],
+  fluency: ['fluency_coherence'], pronunciation: ['pronunciation'],
 };
 import {
   createSchoolDocumentId,
@@ -84,9 +84,9 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
   const skill = skillOverride ?? ((params.skill === 'speaking' ? 'speaking' : 'writing') as IeltsReviewSkill);
   const attemptId = attemptIdOverride ?? decodeURIComponent(params.attemptId ?? '');
   const aiFeedbackQuery = useQuery({
-    queryKey: ['ielts-practice-feedback-review', attemptId],
-    queryFn: () => practiceFeedback(attemptId),
-    enabled: skill === 'writing' && Boolean(attemptId),
+    queryKey: ['ielts-practice-feedback-review', skill, attemptId],
+    queryFn: () => (skill === 'speaking' ? speakingPracticeFeedback(attemptId) : practiceFeedback(attemptId)),
+    enabled: Boolean(attemptId),
     refetchInterval: (q) => (q.state.data?.status === 'working' ? 4000 : false),
   });
   const aiFields = aiFeedbackQuery.data?.status === 'ready' ? aiFeedbackQuery.data.fields : null;
@@ -115,8 +115,6 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
   const [privateNotes, setPrivateNotes] = useState('');
   const [resolvedAudioUrl, setResolvedAudioUrl] = useState<string | null>(null);
   const [audioLoadError, setAudioLoadError] = useState<string | null>(null);
-  const [aiDraft, setAiDraft] = useState<Record<string, unknown> | null>(null);
-  const [aiError, setAiError] = useState<string | null>(null);
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [reviewerName, setReviewerName] = useState('IELTS teacher');
   const { schoolName, schoolLogoUrl } = useSchoolBranding({ schoolId });
@@ -221,17 +219,6 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
     },
   });
 
-  const aiCheckMutation = useMutation({
-    mutationFn: () => requestIeltsAiDraft({ skill, attemptId }),
-    onSuccess: (payload) => {
-      setAiDraft(payload.draft);
-      setAiError(null);
-    },
-    onError: (err) => {
-      setAiError(friendlyIeltsAdminError(err, 'The AI check could not be completed. Please try again.'));
-    },
-  });
-
   const locked = detail?.review_status === 'finalized';
   const title = skill === 'writing' ? 'Writing Review' : 'Speaking Review';
 
@@ -253,11 +240,12 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
          <p><strong>Task:</strong> ${escapeSchoolDocumentHtml(detail.task_title || detail.prompt || 'IELTS speaking task')}</p>
          <p><strong>Recording duration:</strong> ${escapeSchoolDocumentHtml(detail.duration_seconds ? `${detail.duration_seconds} seconds` : 'Not recorded')}</p>
          <p class="document-callout">The audio remains in the secure school system. This printed record does not embed or expose a recording link.</p>
-         <div class="document-card" style="white-space:pre-wrap">${escapeSchoolDocumentHtml(detail.transcript || 'No transcript available.')}</div>`;
+         <div class="document-card" style="white-space:pre-wrap">${escapeSchoolDocumentHtml(aiFields?.transcript || detail.transcript || 'No transcript available.')}</div>
+         ${(aiFields?.pronunciation_words ?? []).length ? `<h3>Pronunciation corrections</h3><ul>${(aiFields?.pronunciation_words ?? []).map((w) => `<li><strong>${escapeSchoolDocumentHtml(w.word)}</strong>${w.ipa ? ` /${escapeSchoolDocumentHtml(w.ipa)}/` : ''} — ${escapeSchoolDocumentHtml(w.tip)}</li>`).join('')}</ul>` : ''}`;
     const bodyHtml = `
       ${isStudentCopy ? '<p class="document-callout"><strong>Final school feedback copy.</strong> This is a Brains Heist practice report and is not an official IELTS Test Report Form or an endorsement by IELTS.</p>' : `<p class="document-callout document-callout--private"><strong>Confidential reviewer copy.</strong> Contains assessment evidence and private working notes. Do not distribute to students or families.</p>`}
       <div class="document-grid">
-        <div class="document-card"><strong>Reviewed task band</strong><span style="font-size:28px;font-weight:700">${escapeSchoolDocumentHtml(overallBand ?? '—')}</span></div>
+        <div class="document-card"><strong>${skill === 'speaking' && detail.part ? `Reviewed Part ${escapeSchoolDocumentHtml(detail.part)} band` : 'Reviewed task band'}</strong><span style="font-size:28px;font-weight:700">${escapeSchoolDocumentHtml(overallBand ?? '—')}</span></div>
         <div class="document-card"><strong>Review status</strong>${escapeSchoolDocumentHtml(locked ? 'Finalized' : 'Draft / in review')}</div>
       </div>
       <h2>Rubric profile</h2>
@@ -339,7 +327,20 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
                     <p className="ir-muted">Audio unavailable.</p>
                   )}
                   {audioLoadError ? <p className="ir-warning">{audioLoadError}</p> : null}
-                  <div className="ir-answer">{detail.transcript ?? 'No transcript available.'}</div>
+                  {detail.transcript && !aiFields?.transcript ? <div className="ir-answer">{detail.transcript}</div> : null}
+                  {/* Transcript, colour highlights, pronunciation words and AI ranges (Bible 2.2.0 section 10.7). */}
+                  <IeltsPracticeAiFeedback
+                    key={resolvedAudioUrl ?? 'no-audio'}
+                    attemptId={attemptId}
+                    mode="teacher"
+                    skill="speaking"
+                    loadRecording={resolvedAudioUrl ? async () => {
+                      const response = await fetch(resolvedAudioUrl);
+                      if (!response.ok) throw new Error('recording_unavailable');
+                      return response.blob();
+                    } : undefined}
+                    onFeedback={() => { void aiFeedbackQuery.refetch(); }}
+                  />
                 </>
               )}
             </article>
@@ -357,9 +358,9 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
                   </label>
                 ))}
               </div>
-              <label className="ir-field ir-field--strong">Task-level reviewed band (required to finalize)
+              <label className="ir-field ir-field--strong">{skill === 'speaking' && detail.part ? `Part ${detail.part} band (required to finalize)` : 'Task-level reviewed band (required to finalize)'}
                 <select disabled={locked} value={overallBand ?? ''} onChange={(e) => setOverallBand(e.target.value ? Number(e.target.value) : null)}>
-                  <option value="">Select task band</option>
+                  <option value="">{skill === 'speaking' && detail.part ? `Select Part ${detail.part} band` : 'Select task band'}</option>
                   {bandOptions.map((band) => <option key={band} value={band}>{band}</option>)}
                 </select>
               </label>
@@ -370,25 +371,13 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
                   <p><strong>Assistant suggestion — verify before finalizing.</strong> Automated feedback can make mistakes. Verify the evidence before finalizing.</p>
                   {skill === 'speaking' ? <p className="ir-small">Transcript may contain errors. Listen to the audio before finalizing Speaking criteria, especially pronunciation.</p> : null}
                   <div className="ir-actions">
-                    {skill === 'writing' ? (
-                      <IeltsButton type="button" disabled={!aiFields} onClick={applyAiFeedback}>Copy AI feedback into the form</IeltsButton>
-                    ) : (
-                      <IeltsButton type="button" disabled={aiCheckMutation.isPending} onClick={() => aiCheckMutation.mutate()}>{aiCheckMutation.isPending ? 'Running AI check…' : 'Run AI check'}</IeltsButton>
-                    )}
-                    {aiDraft ? <IeltsButton type="button" onClick={() => {
-                      const suggested = typeof aiDraft.suggested_feedback === 'string' ? aiDraft.suggested_feedback : '';
-                      const strengthsList = Array.isArray(aiDraft.strengths) ? aiDraft.strengths.join('\n• ') : '';
-                      const fixesList = Array.isArray(aiDraft.priority_fixes) ? aiDraft.priority_fixes.join('\n• ') : '';
-                      if (suggested) setTeacherFeedback(suggested);
-                      if (strengthsList) setStrengths(`• ${strengthsList}`);
-                      if (fixesList) setImprovements(`• ${fixesList}`);
-                    }}>Copy AI draft into the form</IeltsButton> : null}
+                    {/* Speaking no longer uses the legacy draft that returned a single AI band (Bible 10.5). */}
+                    <IeltsButton type="button" disabled={!aiFields} onClick={applyAiFeedback}>Copy AI feedback into the form</IeltsButton>
+
                   </div>
-                  {skill === 'writing' && !aiFields ? <p className="ir-small">Run the AI check in the panel under the student answer first.</p> : null}
-                  {aiError ? <p className="ir-error">{aiError}</p> : null}
+                  {!aiFields ? <p className="ir-small">{skill === 'writing' ? 'Run the AI check in the panel under the student answer first.' : 'Run the AI check in the panel under the recording first.'}</p> : null}
                 </div>
               ) : null}
-              {aiDraft ? <details className="ir-draft"><summary>Show the AI draft</summary><pre>{JSON.stringify(aiDraft, null, 2)}</pre></details> : null}
               {[
                 ['Strengths', strengths, setStrengths, 'What the student did well'],
                 ['Improvements', improvements, setImprovements, 'The most important things to fix'],

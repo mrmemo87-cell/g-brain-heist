@@ -517,6 +517,7 @@ const SpeakingPractice: React.FC = () => {
               attemptId={lastAttemptId}
               mode="student"
               skill="speaking"
+              autoStart={Boolean(audioBlob)}
               loadRecording={async () => audioBlob ?? (lastAudioPath ? downloadOwnRecording(lastAudioPath) : Promise.reject(new Error('recording_unavailable')))}
             />
           )}
