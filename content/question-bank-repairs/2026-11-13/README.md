@@ -8,6 +8,12 @@ Only `question_text` changes, plus `image_url` and `image_alt_text` for three be
 
 Twelve flagged items were left unchanged because they are already short or the context is the question itself (possessives, meaning questions and the two causative items).
 
+## Applied 13 November 2026
+
+- `apply.sql` (99 questions, batch `main`) was applied to production. In the same transaction it checked that the questions' curriculum visibility was unchanged in 1,012 (school, year, grade, subject) combinations.
+- Legacy *generic* curriculum objective mappings cannot be recreated, because the database now rejects them (`mapping_requires_specific_objective_use_new_curriculum_edition`). The release therefore carries the approved native registry taxonomy (the current authority) and any specific mappings. Visibility for each school, grade and subject was proven unchanged before commit.
+- `apply-grade6.sql` (40 questions, batch `grade6-review`) is **not applied**. These Grade 6–7 items are visible to Grade 6 only through a legacy generic mapping. Their registry skills are classed as secondary (Grades 7+), so a replacement would drop out of Grade 6 classes. They need an owner decision: accept losing Grade 6 visibility, or map them to the new curriculum edition first.
+
 ## Release order and verification
 
 1. Run `python3 content/question-bank-repairs/2026-11-13/validate.py`.
