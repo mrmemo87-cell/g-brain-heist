@@ -1,0 +1,110 @@
+-- Immutable question-bank stem-length repair. Run as the connected database owner.
+    -- Follows the 2026-10-12 audit-repair pattern. Does not update assignments, snapshots, answers, attempts or student scores.
+    begin;
+    set constraints all deferred;
+    create temporary table stem_release_input(raw text) on commit drop;
+    insert into stem_release_input values ($stem_payload${"version":"question-bank-stem-length-2026-11-13-v1","repairs":[{"original_id":"6cb28085-78c0-55d0-9c77-1c1f6a8b765c","src_md5":"6d44263c608c5b6556d79ec868401b95","replacement_id":"785b7eb7-0717-562a-abc9-2f2c79f4ffce","patch":{"question_text":"Emphasis (present): He ____ want to help."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"90ae76fd-897f-5b48-be82-7f90203ba1fd","src_md5":"05aef1c89588cb77375a02d077f3ab43","replacement_id":"a9501875-6e43-5519-a7d7-7a8031e7d218","patch":{"question_text":"Emphasis (present): Sara ____ speak French well."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"1db57d37-175f-59b5-abb7-d1a5f0bea735","src_md5":"c9a91a1d4f94d25ce5924e35b55e8e1b","replacement_id":"af3525ec-2f1f-5d1f-a8fd-f44cd587179e","patch":{"question_text":"Emphasis (present): They ____ understand the rules."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"f5390396-0d9f-5f2d-87e7-14018665ae0d","src_md5":"c54485cb80cf961513a7d0e11585eccf","replacement_id":"852c666f-3b0c-5723-a217-8c4d6a3c857e","patch":{"question_text":"Present perfect: I ____ my keys."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"20148ee9-9f34-5fcd-b68f-3d6a3869a2bc","src_md5":"c07ddd1e5d7d3b1bf9e602e1019bd40a","replacement_id":"26808d82-6437-5a4b-bc9a-8a5e0adfeb62","patch":{"question_text":"Present perfect continuous: She ____ on this project since Monday."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"57dd2a40-6816-5111-b7ea-77b8b6a3b9fa","src_md5":"e67b8b83e95b08ee8758c8bfbcca7e0c","replacement_id":"f8d845f7-b929-500a-8f9c-be05000660e2","patch":{"question_text":"Report it (with backshift): Emma said, 'My brother is a doctor.'"},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"5c6a90ba-120b-5991-a26c-154c6fc3bccf","src_md5":"dcf04395017b9b67f259203c504f051a","replacement_id":"5e867333-fe6e-5ea8-9d1b-343693e1a003","patch":{"question_text":"Report it (with backshift): He said, 'I will call you.'"},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"07bb74d1-c762-5080-bffa-ffb15b16570a","src_md5":"9ac2f9e4184987fb2ffea0d27c17ffa5","replacement_id":"851ac3ed-9021-58f1-aff9-ef1ad16a2d8a","patch":{"question_text":"Report it (with backshift): 'I am reading a novel,' she said."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"c3e07d5d-c4c8-5a07-a1c6-58c8047db711","src_md5":"9856d770b3e4f8030fe8185d5ffcc469","replacement_id":"18c733da-ceaf-57d0-ab89-2b8a1f768bbe","patch":{"question_text":"Report it (with backshift): Lina said, 'I have finished my homework.'"},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"4f1560da-cd39-53cd-ab00-f5b0cbd7814b","src_md5":"dbeb54a6b79dad027b98565e24167e46","replacement_id":"2842667a-fc77-5d1e-a16b-aa9145351bcb","patch":{"question_text":"Report it (with backshift): Sara said, 'I can swim.'"},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"d2fafd1a-5edf-5e9a-90e1-16add4577098","src_md5":"cc36115b0e5081f10d42d7c15f1e6114","replacement_id":"9f7adb0f-b854-5cc0-a59c-b90df758ac6f","patch":{"question_text":"Report it (with backshift): Tom said, 'I am tired.'"},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"9921f04b-e60e-5967-b43e-0e79c83e4fbc","src_md5":"b7501e064a21aac620a31c865c28cbd6","replacement_id":"23e8dd17-eb2c-5d25-955b-06eab5b6ab4b","patch":{"question_text":"Choose the correct reported sentence (with backshift)."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"044b3158-7051-57df-86f0-cf3e4afed525","src_md5":"cd6ab4343311d8d64009a56de834ff97","replacement_id":"2c3837ff-542a-5f81-b44a-40f148dfaf71","patch":{"question_text":"Passive: These forms are ready ____."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"c8819d0d-4e05-50af-81f0-1cbe2bbb8faa","src_md5":"7664d562b71cdd2d8306bb4bcdfa26a8","replacement_id":"01d03198-17f3-5c02-8575-30f34c5d473c","patch":{"question_text":"Passive: These tickets are ready ____."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"12332815-0072-5cbd-b51c-57c97b10228e","src_md5":"e2269062cff26d7681345080a4281a39","replacement_id":"70f39088-26fb-53b7-b81d-a4717d8dba78","patch":{"question_text":"Choose the correct third conditional sentence."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"34435ccf-9fda-5394-8c48-15b5c8038172","src_md5":"7abac2febce7ff8c3c795413f357cfda","replacement_id":"728dcb5f-50ca-51d8-9f88-e4fde663191d","patch":{"question_text":"Choose the correct third conditional sentence."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"b95347d5-2622-51fa-8f94-52238b7d37cb","src_md5":"7eb5bf28c9dcb24fd41f94bdb566d82e","replacement_id":"7783c024-cca2-5dfa-9db3-d53820a581df","patch":{"question_text":"Third conditional: If she ____ earlier, she would have caught the bus."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"6b6ee368-3643-5287-8964-eefefe61750e","src_md5":"b21822d98a13e031dcce0c482be9cd82","replacement_id":"45d3d3db-ae73-5edd-be18-0575859a2e69","patch":{"question_text":"Third conditional: If they had left on time, they ____ late."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"70dcdc1a-b9da-5df8-9485-9519657af0a5","src_md5":"0529d8d4de9dbf33d4c38b3c6f633e2f","replacement_id":"830eabbd-e476-5005-a1fe-603307041826","patch":{"question_text":"Third conditional: If we ____ the address, we would have found the place."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"aa08917e-8133-52ae-8158-844f7c881060","src_md5":"6af2f65ac62f78a95fe8892f1790625c","replacement_id":"3e5da7c3-e475-580e-9da4-755ad25d94ac","patch":{"question_text":"Choose the correct third conditional sentence."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"6e4aedea-bca5-5f35-a4c7-9af47b43b578","src_md5":"e5e71b30648ab241b99c9ae87b9c3b20","replacement_id":"bb98c45c-2e17-51f8-9c55-d56f1688aa5a","patch":{"question_text":"Choose the correct third conditional sentence."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"9c3f7896-496c-52b9-804a-49f06afb467d","src_md5":"b170b48e245912799e599265d330316b","replacement_id":"2aca2e10-b2d8-5e90-a523-1c2185a25f39","patch":{"question_text":"Choose the correct third conditional question."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"ba0f6883-1d3c-53d0-877a-244fe64c2d40","src_md5":"9d26cc96bdf71956fdceb8f03b78788a","replacement_id":"d575d91b-e406-51d7-9a00-0a4cba240d0e","patch":{"question_text":"Choose the correct third conditional sentence."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"25fdc68a-f1ed-51ba-9b48-419a97b28765","src_md5":"40ea0c0493892cd206504840560ed08e","replacement_id":"b321347a-64f8-53bc-afb7-e82257340ebb","patch":{"question_text":"Choose the correct third conditional sentence."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"a260b6e3-f790-5d58-baac-478a583f2aed","src_md5":"1380295da76a0a63c508a6d883bcba3a","replacement_id":"8a4e140f-10aa-5fd9-a50f-2dd63e754997","patch":{"question_text":"Choose the correct third conditional sentence."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"777061cf-3cdb-538e-82b9-a98db8ac4e0c","src_md5":"2a2d0881b5e4dc27ab69fe06d962166f","replacement_id":"b67ad752-5fd2-590c-a05d-32caf019c681","patch":{"question_text":"Choose the correct third conditional sentence."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"7774abdb-8bea-5513-9d80-f66c356fe90c","src_md5":"f9de0f93ef1dab8fde2a0e9a243053a6","replacement_id":"d1c19c6a-b490-56fa-a114-492885552a68","patch":{"question_text":"Choose the correct third conditional sentence."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"9b3bfbac-ca84-5b77-acfa-024727e3d311","src_md5":"00ebf47269418aea93fdf037819f1796","replacement_id":"621d40c5-9001-5695-a899-755b12f42777","patch":{"question_text":"Choose the correct third conditional sentence."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"4412c698-cc0a-5471-b343-e273e50047bf","src_md5":"987099846b595f968000f0224b23fcf1","replacement_id":"9bbd024a-032d-57bb-899b-0f21db55af6f","patch":{"question_text":"Choose the correct third conditional sentence."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"cd966e05-c3b2-51e4-8821-5babafeb47af","src_md5":"f61fac08969597c05d9490b4cc92ceb5","replacement_id":"f159f057-5e59-5ecf-893b-2fef7e40bc37","patch":{"question_text":"Third conditional: If he ____ my message, he would have replied."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"a350716e-f7d7-528e-a1b5-6d11e5d6c7ad","src_md5":"e9f72c8ca85b069ed9b4fb754e664032","replacement_id":"353b0826-b966-5b7a-aa74-fc7fbe68d699","patch":{"question_text":"Third conditional: If I had had money, I ____ the book."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"e7f5b5fe-0a0e-5b77-9a82-114b842349e0","src_md5":"7eb5bf28c9dcb24fd41f94bdb566d82e","replacement_id":"a3e33feb-e787-5432-90de-405550841344","patch":{"question_text":"Third conditional: If she ____ earlier, she would have caught the bus."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"3a0806dd-96dc-5ed8-954f-2df738092edf","src_md5":"08bee7d5564d4611f6683e56f03098d0","replacement_id":"ee389e51-31e4-545f-88bc-0f35fe594cd5","patch":{"question_text":"Third conditional: If she had brought an umbrella, she ____ wet."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"8e571980-51bf-5fc4-a5eb-4ba59d9a02cb","src_md5":"3b1571571690dcd9f6a8479ecee98919","replacement_id":"5ca38df4-159b-5f1d-8220-aac3fc9b1e5e","patch":{"question_text":"Third conditional: If she had studied, she ____ the exam."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"a35e9489-02fc-526d-94f7-38b770564c93","src_md5":"55f9c28d734c719ca308f2347bea42e9","replacement_id":"3d4dd551-7d94-54f8-914b-99cb7d0af0b7","patch":{"question_text":"Third conditional: If she hadn't forgotten the key, we ____ outside."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"42fec1a8-735d-5045-b7ed-56b2ab9df133","src_md5":"b3f09df7f63b8c4fd1987fa3101cc6ae","replacement_id":"f94db013-4a5d-566e-9184-82abe96cae73","patch":{"question_text":"Third conditional: If they had called me, I ____ happy."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"b87942f7-03b1-5a38-8299-bdeb66db34ad","src_md5":"0ca4109b0d34c8be32c8ca22824400bd","replacement_id":"f3a255bd-9639-5dfc-a3a6-e5d41bd289ea","patch":{"question_text":"Third conditional: If we ____ a taxi, we would have arrived on time."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"97448f38-abd9-5c58-bfe6-e3fc851cdfc8","src_md5":"05b7736ade1c1debd86d9e6824d6ae42","replacement_id":"cbce271e-7689-572c-9c41-cfbf7aeece41","patch":{"question_text":"Third conditional: If we had left earlier, we ____ traffic."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"dc2641b0-a031-573e-9726-82aeb7b082a3","src_md5":"c5f906b3f9fa5ec4609a3b373caaa63a","replacement_id":"116ee0b6-a816-5f59-9930-34577cdbeb47","patch":{"question_text":"Third conditional: If you ____ me the truth, I would have believed you."},"reason":"STEM_LENGTH_SHORT_CUE"},{"original_id":"4e9d14da-be82-58b2-aaee-63e99790480a","src_md5":"a95544850d541f8e1d9805c635ab187f","replacement_id":"30605ac9-a6f3-501d-86eb-d0aa64e1e601","patch":{"question_text":"Third conditional: If you had asked, I ____ you."},"reason":"STEM_LENGTH_SHORT_CUE"}]}$stem_payload$);
+    create temporary table stem_new_items(old_id uuid,new_id uuid) on commit drop;
+    create temporary table stem_new_mappings(old_id uuid,new_id uuid) on commit drop;
+    create temporary table stem_release_result(original_id uuid,replacement_id uuid) on commit drop;
+    create temporary table stem_snapshot_guard on commit drop as
+     select count(*) as n, md5(string_agg(assignment_id::text||':'||order_index::text||':'||question_snapshot::text,'|' order by assignment_id,order_index)) as digest from public.assignment_questions;
+    create temporary table stem_vis_before on commit drop as
+     select (e.value->>'original_id')::uuid as original_id,(e.value->>'replacement_id')::uuid as replacement_id,
+      scm.school_id,scm.academic_year_id,scm.grade_level,scm.academic_subject_id
+     from stem_release_input s cross join lateral jsonb_array_elements(s.raw::jsonb->'repairs') e
+     join public.questions q on q.id=(e.value->>'original_id')::uuid
+     join public.school_curriculum_scope_mappings scm on scm.status='active' and scm.academic_subject_id=q.academic_subject_id
+     where private.verified_question_has_curriculum_mapping(q.id,scm.school_id,scm.academic_year_id,scm.grade_level,scm.academic_subject_id);
+    do $repair$
+    declare
+     v_data jsonb; v_entry jsonb; v_old public.questions%rowtype; v_new public.questions%rowtype;
+     v_patch jsonb; v_id uuid; v_item public.curriculum_assessment_items%rowtype;
+     v_map public.curriculum_item_objective_mappings%rowtype;
+     v_tx public.verified_question_registry_taxonomy%rowtype;
+     v_diag public.verified_question_diagnostic_taxonomy%rowtype;
+     v_row jsonb; v_new_item uuid; v_new_map uuid; v_count integer;
+    begin
+     select raw::jsonb into v_data from stem_release_input;
+     if (select md5(raw) from stem_release_input)<>'dbb46d20629e6b3a5277e30bcceeef91' then raise exception 'stem_payload_digest_mismatch';end if;
+     perform pg_advisory_xact_lock(hashtext(v_data->>'version'));
+     for v_entry in select value from jsonb_array_elements(v_data->'repairs') loop
+      select * into strict v_old from public.questions where id=(v_entry->>'original_id')::uuid for update;
+      if exists(select 1 from public.verified_question_content_repairs where original_question_id=v_old.id and repair_key=v_data->>'version') then continue;end if;
+      if md5(v_old.question_text||'|'||v_old.correct_answer)<>v_entry->>'src_md5'
+         or v_old.current_content_hash is distinct from v_old.verified_content_hash then
+       raise exception 'stem_source_content_changed:%',v_old.id;end if;
+      if not v_old.is_active or v_old.verification_status<>'verified' or v_old.pool_scope<>'global' then raise exception 'stem_source_not_active_global_verified:%',v_old.id;end if;
+      v_id:=(v_entry->>'replacement_id')::uuid;v_patch:=v_entry->'patch';
+      v_row:=to_jsonb(v_old)||v_patch||jsonb_build_object('id',v_id,'created_at',now(),'updated_at',now(),
+       'content_version',v_data->>'version','content_revision',v_old.content_revision+1,'times_answered',0,'times_correct',0,
+       'verified_external_id',case when v_old.verified_external_id is null then null else 'stem-2026-11-13-'||v_id::text end);
+      v_row:=v_row||jsonb_build_object('accepted_answers',jsonb_build_array(v_row->>'correct_answer'));
+      v_row:=v_row||jsonb_build_object('verified_at',now(),'verified_by_authority','Brains Heist Content Quality',
+       'verified_content_hash',private.question_content_hash(v_id,v_row->>'question_text',v_row->'options',v_row->>'correct_answer',v_row->>'explanation',v_row->>'image_url',v_row->>'question_type'));
+      v_new:=jsonb_populate_record(null::public.questions,v_row);
+      insert into public.questions select (v_new).*;
+      select * into strict v_new from public.questions where id=v_id;
+      if v_new.current_content_hash<>v_new.verified_content_hash then raise exception 'stem_replacement_hash_mismatch:%',v_id;end if;
+      for v_tx in select * from public.verified_question_registry_taxonomy where question_id=v_old.id and question_content_hash=v_old.current_content_hash and review_status='approved' loop
+       insert into public.verified_question_registry_taxonomy select (jsonb_populate_record(null::public.verified_question_registry_taxonomy,
+        to_jsonb(v_tx)||jsonb_build_object('id',gen_random_uuid(),'question_id',v_id,'question_content_hash',v_new.current_content_hash,
+         'source_method','immutable_audit_repair','reviewed_by_authority','Brains Heist Content Quality','reviewed_at',now(),'created_at',now(),'taxonomy_hash',''))).*;
+      end loop;
+      for v_item in select * from public.curriculum_assessment_items where source_type='question_bank' and source_record_id=v_old.id::text and content_hash=v_old.current_content_hash loop
+       v_new_item:=gen_random_uuid();
+       insert into public.curriculum_assessment_items(id,source_type,school_id,source_record_id,source_item_key,source_version,academic_subject_id,grade_level,content_hash,source_metadata,is_active,registered_by)
+        values(v_new_item,v_item.source_type,v_item.school_id,v_id::text,v_item.source_item_key,v_data->>'version',v_item.academic_subject_id,v_item.grade_level,v_new.current_content_hash,
+         v_item.source_metadata||jsonb_build_object('stemRepairKey',v_data->>'version','supersedesQuestionId',v_old.id),true,v_item.registered_by);
+       insert into stem_new_items values(v_item.id,v_new_item);
+       for v_map in select m.* from public.curriculum_item_objective_mappings m join public.curriculum_objectives o on o.id=m.curriculum_objective_id
+         where m.assessment_item_id=v_item.id and m.status='approved' and m.superseded_at is null and m.item_content_hash=v_old.current_content_hash
+          and not private.curriculum_objective_is_generic(o.statement) loop
+        v_new_map:=gen_random_uuid();
+        insert into public.curriculum_item_objective_mappings select (jsonb_populate_record(null::public.curriculum_item_objective_mappings,
+         to_jsonb(v_map)||jsonb_build_object('id',v_new_map,'assessment_item_id',v_new_item,'item_content_hash',v_new.current_content_hash,
+          'provenance',v_map.provenance||jsonb_build_object('stemRepairKey',v_data->>'version','supersedesQuestionId',v_old.id,'sourceMappingId',v_map.id),
+          'created_at',now(),'updated_at',now(),'supersedes_mapping_id',null,
+          'rationale','Stem-length repair retains the current approved objective; the assessed construct, options, key and grade scope are unchanged.'))).*;
+        insert into stem_new_mappings values(v_map.id,v_new_map);
+       end loop;
+      end loop;
+      for v_diag in select * from public.verified_question_diagnostic_taxonomy where question_id=v_old.id and question_content_hash=v_old.current_content_hash and review_status='approved' and not human_review_required
+       and nullif(trim(evidence_focus_code),'') is not null and nullif(trim(evidence_focus_name),'') is not null
+       and lower(trim(atomic_subskill_name)) not in (lower(trim(v_new.topic)),lower(trim(v_new.curriculum_strand))) loop
+       select new_id into v_new_item from stem_new_items where old_id=v_diag.assessment_item_id;
+       select new_id into v_new_map from stem_new_mappings where old_id=v_diag.curriculum_mapping_id;
+       if v_new_item is null or v_new_map is null then continue;end if;
+       insert into public.verified_question_diagnostic_taxonomy select (jsonb_populate_record(null::public.verified_question_diagnostic_taxonomy,
+        to_jsonb(v_diag)||jsonb_build_object('id',gen_random_uuid(),'question_id',v_id,'question_content_hash',v_new.current_content_hash,
+         'assessment_item_id',v_new_item,'curriculum_mapping_id',v_new_map,'package_version',v_data->>'version',
+         'reviewed_by_authority','Brains Heist Content Quality','reviewed_at',now(),'created_at',now(),
+         'supersedes_taxonomy_id',null,'taxonomy_hash',null,'review_reason','Immutable stem-length repair preserves the approved atomic skill and evidence focus.'))).*;
+      end loop;
+      insert into public.verified_question_content_repairs values(v_old.id,v_id,v_data->>'version',v_entry->>'reason',v_old.current_content_hash,v_new.current_content_hash,'Brains Heist Content Quality',now());
+      update public.questions set is_active=false,is_public=false,analytics_eligible=false,verification_status='retired',updated_at=now() where id=v_old.id;
+      insert into stem_release_result values(v_old.id,v_id);
+     end loop;
+     if exists(select 1 from public.assignment_questions having count(*)<>(select n from stem_snapshot_guard)
+      or md5(string_agg(assignment_id::text||':'||order_index::text||':'||question_snapshot::text,'|' order by assignment_id,order_index)) is distinct from (select digest from stem_snapshot_guard)) then
+      raise exception 'stem_assignment_snapshots_changed';end if;
+     if exists(select 1 from stem_release_result r join public.questions q on q.id=r.replacement_id where not private.verified_question_has_registry_mapping(q.id)) then
+      raise exception 'stem_replacement_registry_invariant_failed';end if;
+     select count(*) into v_count from stem_vis_before b
+      where not private.verified_question_has_curriculum_mapping(b.replacement_id,b.school_id,b.academic_year_id,b.grade_level,b.academic_subject_id);
+     if v_count<>0 then raise exception 'stem_curriculum_visibility_lost:%',v_count;end if;
+     select count(*) into v_count from stem_release_result;
+     if v_count<>40 then raise exception 'stem_replacement_count:%',v_count;end if;
+     select count(*) into v_count from stem_release_result r join public.questions q on q.id=r.replacement_id
+      join jsonb_array_elements(v_data->'repairs') e on (e.value->>'replacement_id')::uuid=q.id
+      where q.is_active and q.verification_status='verified' and q.analytics_eligible and q.question_text=e.value->'patch'->>'question_text'
+       and q.current_content_hash=q.verified_content_hash and private.verified_question_has_registry_mapping(q.id);
+     if v_count<>40 then raise exception 'stem_replacement_eligibility:%',v_count;end if;
+     select count(*) into v_count from stem_release_result r join public.questions o on o.id=r.original_id where not o.is_active and o.verification_status='retired';
+     if v_count<>40 then raise exception 'stem_original_retirement:%',v_count;end if;
+    end;
+    $repair$;
+    set constraints all immediate;
+    select count(*) as replaced from stem_release_result;
+    commit;
+    
