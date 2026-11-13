@@ -1,8 +1,8 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.1.0\
-**Effective date:** 2026-11-01\
+**Version:** 2.2.0\
+**Effective date:** 2026-11-13\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
 
@@ -873,6 +873,31 @@ but not silently as a complete IELTS Writing band.
 - Screeners, mocks and independent checks never receive AI feedback (section 10.5).
 - **Starting-point checks:** independent learners are offered only the auto-scored Listening and Reading screeners. Writing and Speaking screeners require teacher review (sections 9.4 and 10), so they are shown only to learners with a school IELTS teacher. Saved Writing/Speaking screener attempts are preserved and stay visible in the learner's record.
 - Rate limits, provider logging rules and server-side authorization are unchanged.
+
+### 10.7 Speaking transcripts, highlights, pronunciation words and Part bands
+
+**Owner-authorized (2026-11-13).** Teachers must be sure every Speaking recording they review is transcribed, see the transcript coloured by assessment criterion, and give a band for each Speaking part. Students see a polished result with their band and the coloured transcript.
+
+**Transcript**
+- Every Speaking practice attempt and every saved interview clip a teacher reviews is transcribed by speech-to-text. A school IELTS teacher may run the practice feedback for a student who never requested it; it is the same practice feedback (section 10.5), recorded with the teacher as requester.
+- The transcript is a record of the words heard, not of pauses or sounds. It carries no score.
+
+**Highlights**
+- AI may mark short phrases copied exactly from the transcript, each tagged with ONE of Fluency and Coherence, Lexical Resource, or Grammatical Range and Accuracy, as *done well* or *to improve*, with one short note. Phrases not found in the transcript are discarded on the server.
+- Pronunciation is never highlighted from text (section 10.3). In an interview, only the student's words are highlighted.
+
+**Pronunciation words**
+- Only a model that listens to the audio may list mispronounced words, with a short tip, and give the Pronunciation comment and practice range. This replaces the transcript-only "not assessed" result when the listening pass succeeds; when it fails, "Pronunciation was not assessed" stays.
+- The phonetic transcription shown is looked up in a pronouncing dictionary (CMU, American English), never written by the AI. Words the dictionary does not know show no transcription. Names, tests and acronyms are never listed.
+- The play button uses the learner's own device voice; it is a model of the dictionary word, not a recording of the student.
+
+**Part bands (teacher only)**
+- A teacher may record a band (0–9, half bands) for a single Speaking part: the practice task's part, or Part 1, Part 2 and Part 3 of an interview after sharing feedback. AI suggests at most the per-criterion practice ranges of section 10.5; it never sets a Part band.
+- A Part band is the teacher's judgment for that part of that sitting. It is labelled **Part N band**, **checked by** the teacher with the date, and **Not an official IELTS result**. It is never averaged automatically into an overall Speaking band, never shown as an indicative band range (section 9.5) and never a readiness estimate (section 9.4).
+- Interview Part bands are append-only history; the latest is current.
+
+**Labels and provenance**
+- Highlights and pronunciation words remain AI practice feedback (sections 10.5 and 10.6 labels); the teacher's bands are the checked result. Model, prompt version and time are recorded. Students see interview transcripts and Part bands only after their teacher has shared feedback.
 
 ---
 
@@ -1946,6 +1971,23 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.13 Revision record — v2.2.0 (2026-11-13)
+
+**Authority.** On 2026-11-13 (22:56–23:13 Asia/Bishkek) the owner asked for an audit of IELTS Speaking and required that every recording is transcribed, the teacher sees the text with coloured highlights for each part of the assessment, each part has a band, and each mispronounced word shows its pronunciation in phonetic transcription with a button to hear it. After the conflict with section 10.5 (AI ranges only) was raised, the owner chose teacher-confirmed Part bands, per-part bands for Parts 1–3, and an extra audio listening pass for pronunciation at a few cents per recording.
+
+**Why the old rules were insufficient.** The audit found that teachers saw no transcript for Speaking practice, interview transcripts were discarded, there were no criterion highlights, pronunciation was never assessed once marking moved to the transcript-only Claude path, the legacy teacher "Run AI check" returned a single AI band against section 10.5, and no Part band existed.
+
+**What changed**
+- New section 10.7: transcripts for every reviewed recording, criterion highlights, audio-only pronunciation words with dictionary IPA, teacher Part bands.
+
+**What did not change.** AI never sets a band or an overall Speaking band; practice feedback is never evidence; pronunciation is never judged from text; indicative ranges (9.5) and provisional estimates (9.4) keep their own rules; server-side authorization, history and rate limits.
+
+**Implementation to review**
+- `supabase/functions/_shared/ieltsSpeakingAnnotations.ts`, `_shared/ieltsPracticeSpeakingFeedback.ts`, edge functions `ielts_practice_speaking_feedback` and `ielts_speaking_pilot` (action `analyse`).
+- Migrations `20261113180000_ielts_speaking_practice_teacher_feedback_run.sql` and `20261113181000_ielts_speaking_interview_transcripts_part_bands.sql`.
+- `src/components/ielts/SpeakingTranscript.tsx`, `SpeakingInterviewInsights.tsx`, `IeltsPracticeAiFeedback.tsx`, `src/pages/ielts/IeltsSubmissionReview.tsx` (legacy single-band Speaking draft removed), `IeltsReviewResult.tsx`, `IeltsSpeakingPilot.tsx`.
+- `docs/ielts/IELTS_VISUAL_UX_BIBLE.md` 13.9.
 
 ### 22.12 Revision record — v2.1.0 (2026-11-01)
 

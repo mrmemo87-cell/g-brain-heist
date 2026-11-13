@@ -68,3 +68,21 @@ test('IELTS-only learners without a public.users row can request writing feedbac
  await db.exec(`insert into public.ielts_writing_attempts values('50000000-0000-0000-0000-000000000001','${indie}',2,'${essay}',96)`);
  await as(indie);const c=await claim('50000000-0000-0000-0000-000000000001');assert.equal(c.ready,false);
 });
+// Diagnostic Bible 2.2.0 section 10.7: a school IELTS teacher can run Speaking feedback for a student's attempt.
+test('teacher-run speaking feedback: school teacher only, WAV in the teacher folder, one row per attempt, requester recorded',async()=>{
+ await db.exec(readFileSync('supabase/migrations/20261113180000_ielts_speaking_practice_teacher_feedback_run.sql','utf8'));
+ const rclaim=a=>db.query("select public.rpc_ielts_practice_speaking_feedback_claim_review($1,'audio-model') j",[a]).then(r=>r.rows[0].j);
+ const A='40000000-0000-0000-0000-000000000004';
+ await as(stu);await assert.rejects(rclaim(A),/not_available/,'students use their own claim');
+ await as(other);await assert.rejects(rclaim(A),/not_authorized/,'another student cannot run it');
+ await as(teacher);
+ await assert.rejects(rclaim('40000000-0000-0000-0000-000000000001'),/not_authorized/,'self-paced learners have no school teacher');
+ const c=await rclaim(A);
+ assert.equal(c.ready,false);assert.equal(c.context.audio_path,`speaking/${teacher}/feedback/${A}.wav`);
+ const row=(await db.query('select student_id,requested_by from private.ielts_practice_speaking_feedback where id=$1',[c.id])).rows[0];
+ assert.equal(row.student_id,stu,'feedback still belongs to the student');assert.equal(row.requested_by,teacher);
+ await assert.rejects(rclaim(A),/ai_already_working/);
+ await db.query("select public.rpc_ielts_practice_speaking_feedback_finish($1,$2::jsonb,'p')",[c.id,JSON.stringify({part:1,criteria:{},next_step:'x',prompt_version:'v3',highlights:[]})]);
+ assert.equal((await rclaim(A)).ready,true,'a ready result is returned, not regenerated');
+ await as(stu);assert.equal((await db.query('select public.rpc_ielts_practice_speaking_feedback($1) j',[A])).rows[0].j.status,'ready','the student sees it too');
+});

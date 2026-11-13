@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import type { PronunciationWord, SpeakingHighlight } from "./ieltsPracticeFeedback";
 import {
   encodeSpeakingWav,
   type SpeakingPackage,
@@ -200,3 +201,35 @@ export async function speakingAi(
     );
   return data;
 }
+
+/**
+ * Diagnostic Bible 2.2.0 section 10.7: interview transcripts, colour highlights, pronunciation words and the teacher's
+ * Part 1-3 bands. Students receive these only after their teacher has shared a review.
+ */
+export type SpeakingClipAnalysis = {
+  clip_id: string;
+  part: number;
+  transcript: string;
+  highlights: SpeakingHighlight[];
+  pronunciation: { assessed: boolean; words: PronunciationWord[] };
+  created_at: string;
+};
+export type SpeakingPartBands = { part_1: number; part_2: number; part_3: number; created_at: string; teacher_name: string | null };
+export type SpeakingSessionExtras = {
+  analysis: SpeakingClipAnalysis[];
+  missing_clips?: number;
+  part_bands: SpeakingPartBands | null;
+  can_set_bands: boolean;
+};
+export const speakingExtras = (sessionId: string) =>
+  speakingRpc<SpeakingSessionExtras>("rpc_ielts_speaking_session_extras", { p_session_id: sessionId });
+export async function analyseSpeakingSession(sessionId: string): Promise<SpeakingSessionExtras> {
+  const { data, error } = await supabase.functions.invoke("ielts_speaking_pilot", { body: { action: "analyse", sessionId } });
+  if (error || !data || (data as { error?: string }).error)
+    throw new Error("The transcript could not be prepared right now. The recordings are safe; try again in a minute.");
+  return data as SpeakingSessionExtras;
+}
+export const setSpeakingPartBands = (sessionId: string, bands: [number, number, number]) =>
+  speakingRpc<SpeakingSessionExtras>("rpc_ielts_set_speaking_part_bands", {
+    p_session_id: sessionId, p_part_1: bands[0], p_part_2: bands[1], p_part_3: bands[2],
+  });

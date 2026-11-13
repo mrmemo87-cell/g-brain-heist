@@ -3,7 +3,9 @@
  * Per criterion: a short comment, one action, 1-2 verbatim quotes from the speech-to-text transcript of the student,
  * and a practice estimate range (high = low + 1). Never an overall band; never evidence; never a screener.
  */
-export const SPEAKING_PRACTICE_FEEDBACK_PROMPT_VERSION = 'bh-ielts-speaking-practice-feedback-v2';
+import { HIGHLIGHT_INSTRUCTIONS, PRONUNCIATION_PASS_PROMPT_VERSION, cleanHighlights, highlightSchema, type PronunciationPass, type PronunciationWord, type SpeakingHighlight } from './ieltsSpeakingAnnotations.ts';
+
+export const SPEAKING_PRACTICE_FEEDBACK_PROMPT_VERSION = 'bh-ielts-speaking-practice-feedback-v3';
 export const speakingKeys = ['fluency_coherence', 'lexical_resource', 'grammar_range_accuracy', 'pronunciation'] as const;
 export type SpeakingKey = typeof speakingKeys[number];
 export type SpeakingCriterion = { comment: string; action: string; evidence: { quote: string }[]; indication: { low: number; high: number } | null };
@@ -14,6 +16,11 @@ export type SpeakingPracticeFeedback = {
   pronunciation_assessed: boolean;
   next_step: string;
   prompt_version: string;
+  /** Coloured transcript phrases (Bible 2.2.0 section 10.7). Empty when none survived validation. */
+  highlights: SpeakingHighlight[];
+  /** Words the audio pass heard mispronounced, with dictionary IPA. Absent when no audio pass ran. */
+  pronunciation_words?: PronunciationWord[];
+  pronunciation_prompt_version?: string;
 };
 export type SpeakingPracticeContext = { part: number; prompt: string; follow_ups: unknown; audio_path: string };
 
@@ -45,14 +52,15 @@ If the transcript is empty or the audio is silent, unclear or not English, say s
 pronunciation_assessed = true only if you could actually hear the learner's pronunciation in the audio.
 Do NOT give an overall Speaking score, a single number, a band headline, a diagnosis, a prediction of the real test or an official-examiner claim.
 next_step = 2-3 short sentences: the single most useful thing to practise next FOR THIS KIND OF QUESTION (the same Speaking part and topic as the task) and how to check it. Do not switch to an unrelated topic.
-Return ONLY JSON with exactly these keys: criteria (with exactly fluency_coherence, lexical_resource, grammar_range_accuracy, pronunciation; each with exactly comment, action, quotes, low, high), pronunciation_assessed, next_step. Do not repeat the transcript.`;
+${HIGHLIGHT_INSTRUCTIONS}
+Return ONLY JSON with exactly these keys: criteria (with exactly fluency_coherence, lexical_resource, grammar_range_accuracy, pronunciation; each with exactly comment, action, quotes, low, high), pronunciation_assessed, next_step, highlights. Do not repeat the transcript.`;
 
 /**
  * Claude path (text-only model): the same task, but judged from the speech-to-text TRANSCRIPT alone. Diagnostic Bible
  * 10.3/10.5: pronunciation is never scored from text, so the server marks it "not assessed" after validation
  * (withPronunciationNotAssessed). Recorded under its own prompt version.
  */
-export const SPEAKING_PRACTICE_TRANSCRIPT_PROMPT_VERSION = 'bh-ielts-speaking-practice-feedback-v2-transcript';
+export const SPEAKING_PRACTICE_TRANSCRIPT_PROMPT_VERSION = 'bh-ielts-speaking-practice-feedback-v3-transcript';
 export const SPEAKING_PRACTICE_TRANSCRIPT_INSTRUCTIONS = `You give FAST FIRST-PASS PRACTICE FEEDBACK to ONE learner on ONE IELTS-style Speaking practice answer for Brains Heist.
 Your output is a provisional practice estimate and is not an official IELTS result. It is not an examiner judgement.
 You receive the task (part and question) and a TRANSCRIPT of the learner's recording made by a speech-to-text system. You cannot hear the recording. Only the learner speaks.
@@ -68,7 +76,8 @@ For each of those three criteria also give a practice indication as a range on t
 If the transcript is empty or not English, say so in next_step and set every low and high to null.
 Do NOT give an overall Speaking score, a single number, a band headline, a diagnosis, a prediction of the real test or an official-examiner claim.
 next_step = 2-3 short sentences: the single most useful thing to practise next FOR THIS KIND OF QUESTION (the same Speaking part and topic as the task) and how to check it. Do not switch to an unrelated topic.
-Return ONLY JSON with exactly these keys: criteria (with exactly fluency_coherence, lexical_resource, grammar_range_accuracy, pronunciation; each with exactly comment, action, quotes, low, high), pronunciation_assessed, next_step. Do not repeat the transcript.`;
+${HIGHLIGHT_INSTRUCTIONS}
+Return ONLY JSON with exactly these keys: criteria (with exactly fluency_coherence, lexical_resource, grammar_range_accuracy, pronunciation; each with exactly comment, action, quotes, low, high), pronunciation_assessed, next_step, highlights. Do not repeat the transcript.`;
 
 const criterionSchema = {
   type: 'object',
@@ -85,8 +94,9 @@ export const speakingPracticeFeedbackSchema = {
     criteria: { type: 'object', properties: Object.fromEntries(speakingKeys.map(k => [k, criterionSchema])), required: [...speakingKeys], additionalProperties: false },
     pronunciation_assessed: { type: 'boolean' },
     next_step: { type: 'string' },
+    highlights: highlightSchema,
   },
-  required: ['criteria', 'pronunciation_assessed', 'next_step'], additionalProperties: false,
+  required: ['criteria', 'pronunciation_assessed', 'next_step', 'highlights'], additionalProperties: false,
 };
 
 /**
@@ -111,7 +121,10 @@ export function withPronunciationNotAssessed(feedback: SpeakingPracticeFeedback)
 }
 
 const record = (value: unknown): Record<string, unknown> => { if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('invalid_feedback'); return value as Record<string, unknown>; };
-const exactKeys = (value: Record<string, unknown>, keys: readonly string[]) => { if (Object.keys(value).length !== keys.length || keys.some(k => !(k in value))) throw new Error('invalid_feedback'); };
+const exactKeys = (value: Record<string, unknown>, keys: readonly string[], optional: readonly string[] = []) => {
+  const present = Object.keys(value).filter(k => !optional.includes(k));
+  if (present.length !== keys.length || keys.some(k => !(k in value))) throw new Error('invalid_feedback');
+};
 const banned = /\b(?:overall\s+(?:band|score)|band\s*score|your\s+band\s+is|official\s+(?:examiner|result|score)|guarantee[ds]?|you\s+will\s+get|persistent\s+weakness)\b/i;
 const text = (value: unknown, min: number, max: number) => {
   if (typeof value !== 'string' || value.trim().length < min || value.length > max || banned.test(value)) throw new Error('invalid_feedback');
@@ -136,7 +149,7 @@ export function validateSpeakingPracticeFeedback(
   // Two-pass: the transcript comes from the speech-to-text pass, not from the judging model.
   const supplied = typeof context.transcript === 'string';
   const root = record(value);
-  exactKeys(root, supplied ? ['criteria', 'pronunciation_assessed', 'next_step'] : ['transcript', 'criteria', 'pronunciation_assessed', 'next_step']);
+  exactKeys(root, supplied ? ['criteria', 'pronunciation_assessed', 'next_step'] : ['transcript', 'criteria', 'pronunciation_assessed', 'next_step'], ['highlights']);
   const rawTranscript = supplied ? context.transcript : root['transcript'];
   if (typeof rawTranscript !== 'string' || rawTranscript.length > 6000) throw new Error('invalid_feedback');
   const transcript = rawTranscript.trim();
@@ -168,5 +181,24 @@ export function validateSpeakingPracticeFeedback(
     pronunciation_assessed: root['pronunciation_assessed'] as boolean,
     next_step: text(root['next_step'], 10, 700),
     prompt_version: SPEAKING_PRACTICE_FEEDBACK_PROMPT_VERSION,
+    highlights: cleanHighlights(root['highlights'], transcript),
+  };
+}
+
+/**
+ * Replaces the pronunciation criterion with the audio pass (Bible 10.3: only audio may judge pronunciation) and adds
+ * the mispronounced words with dictionary IPA. Used after the transcript-only (Claude) path and the audio fallback.
+ */
+export function withPronunciationPass(feedback: SpeakingPracticeFeedback, pass: PronunciationPass, words: PronunciationWord[]): SpeakingPracticeFeedback {
+  if (!pass.assessed) return { ...feedback, pronunciation_words: [], pronunciation_prompt_version: PRONUNCIATION_PASS_PROMPT_VERSION };
+  return {
+    ...feedback,
+    criteria: {
+      ...feedback.criteria,
+      pronunciation: { comment: pass.comment, action: pass.action, evidence: pass.evidence, indication: pass.indication },
+    },
+    pronunciation_assessed: true,
+    pronunciation_words: words,
+    pronunciation_prompt_version: PRONUNCIATION_PASS_PROMPT_VERSION,
   };
 }

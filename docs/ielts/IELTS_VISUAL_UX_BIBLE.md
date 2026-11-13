@@ -1,8 +1,8 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.7.1
-**Effective date:** 2026-11-07  
+**Version:** 1.8.0
+**Effective date:** 2026-11-13\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
 
@@ -269,6 +269,13 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 - Celebration motion (confetti) is decorative, short, never blocks input and is skipped under reduced motion.
 - Criterion estimate ranges may be drawn on a 0–9 scale bar; the bar always carries the text range and never an overall band.
 
+### 13.9 Speaking transcripts and Part bands (Diagnostic Bible section 10.7) — v1.8.0
+- Criterion colours: Fluency & Coherence blue, Lexical Resource violet, Grammar amber, Pronunciation rose. Every highlight also carries a text tag (FC, LR, GR, P with a number) and a numbered note, so meaning never relies on colour alone; a colour key with counts sits above the transcript.
+- *To improve* highlights add a wavy underline; *done well* highlights do not. Tapping or pressing Enter on a highlight shows its note.
+- Pronunciation words show the word, the dictionary transcription between slashes and a 44 px ▶ Play button; the source of the transcription is named in small print. Without device speech, the button is hidden.
+- Teachers see transcripts open. Students see them in a collapsible section, closed by default.
+- The student result leads with a hero card: the teacher's Part band as the headline, "Checked by [teacher], [date]" and "Not an official IELTS result", then one tile per criterion, then the transcript, then teacher feedback. Interview results show three Part tiles. No band animates up to its value.
+
 ## 14. Native app motivation layer — v1.4.0
 
 This section applies **only inside the installed iPhone and Android apps** (`isNativeApp()`). The website keeps sections 12.4 and 13.6 unchanged. Where this section allows more than 12.4 or 13.6, it overrides them for the app only.
@@ -296,6 +303,11 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.12 Revision record — 1.8.0 (2026-11-13)
+**Authority.** Owner request on 2026-11-13 for colour-highlighted Speaking transcripts, pronunciation transcription with a play button, Part bands, and a premium student result with a collapsible transcript. Diagnostic Bible 2.2.0 section 10.7 defines what these mean.
+
+**Change.** Added 13.9 (criterion colours with text tags, highlight notes, pronunciation word cards, collapsible student transcript, Speaking result hero).
 
 ### 14.11 Revision record — 1.7.1 (2026-11-07)
 **Change.** 14.1a low-end rule for the website now uses reported memory first (cores only when memory is unknown); the owner's 16 GB laptop reporting 2 cores was wrongly kept still. Diagnostic Bible unaffected.

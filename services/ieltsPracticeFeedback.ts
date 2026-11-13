@@ -7,11 +7,16 @@ import { toSpeakingWav } from '../src/lib/speakingWav';
  */
 export type FeedbackCriterion = { comment: string; action: string; evidence: { quote: string }[]; indication: { low: number; high: number } | null };
 export type PracticeSkill = 'writing' | 'speaking';
+/** Coloured transcript phrase (Diagnostic Bible 2.2.0 section 10.7). */
+export type SpeakingHighlight = { criterion: 'fluency_coherence' | 'lexical_resource' | 'grammar_range_accuracy'; kind: 'strength' | 'fix'; quote: string; note: string };
+/** A word the audio model heard mispronounced; ipa comes from a pronouncing dictionary (American English). */
+export type PronunciationWord = { word: string; tip: string; ipa: string | null };
 export interface PracticeFeedbackView {
   id: string; status: 'working' | 'ready' | 'failed'; created_at: string;
   fields: {
     task_number?: 1 | 2; part?: number; transcript?: string; pronunciation_assessed?: boolean;
     criteria: Record<string, FeedbackCriterion>; next_step: string; prompt_version: string;
+    highlights?: SpeakingHighlight[]; pronunciation_words?: PronunciationWord[];
   } | null;
   confirmed: boolean; confirmed_at: string | null; confirmed_by: string | null; teacher_note: string | null;
 }
@@ -27,6 +32,7 @@ const errors: Record<string, string> = {
   not_available: 'Feedback is not available for this task.',
   sign_in_required: 'Please sign in again to get feedback.',
   audio_missing: 'Your recording could not be prepared. Try again.',
+  not_authorized: 'You can only run feedback for students in your school.',
 };
 const failure = async (error: unknown, fallback: string) => {
   let code = '';
@@ -60,7 +66,7 @@ export async function speakingPracticeFeedback(attemptId: string): Promise<Pract
  * Converts the learner's own recording to 16 kHz mono WAV, stores it in their folder, then asks for feedback.
  * `loadRecording` returns the original practice recording (in memory, or downloaded from their folder).
  */
-export async function requestSpeakingPracticeFeedback(attemptId: string, loadRecording: () => Promise<Blob>): Promise<PracticeFeedbackView> {
+export async function requestSpeakingPracticeFeedback(attemptId: string, loadRecording: () => Promise<Blob>, options: { asTeacher?: boolean } = {}): Promise<PracticeFeedbackView> {
   const { data: session } = await supabase.auth.getSession();
   const userId = session?.session?.user?.id;
   if (!userId) throw new Error(errors['sign_in_required']);
@@ -70,7 +76,7 @@ export async function requestSpeakingPracticeFeedback(attemptId: string, loadRec
   const path = `speaking/${userId}/feedback/${attemptId}.wav`;
   const { error: uploadError } = await supabase.storage.from('ielts-recordings').upload(path, wav, { contentType: 'audio/wav', upsert: true });
   if (uploadError) throw new Error(errors['audio_missing']);
-  const { data, error } = await supabase.functions.invoke('ielts_practice_speaking_feedback', { body: { attemptId } });
+  const { data, error } = await supabase.functions.invoke('ielts_practice_speaking_feedback', { body: options.asTeacher ? { attemptId, asTeacher: true } : { attemptId } });
   if (error) throw await failure(error, 'Feedback could not be prepared right now. Your recording is saved; try again later.');
   return data as PracticeFeedbackView;
 }

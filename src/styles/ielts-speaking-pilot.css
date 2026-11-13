@@ -587,3 +587,13 @@
     transition: none !important;
   }
 }
+
+/* Interview transcripts and Part bands (Visual & UX Bible 13.9). */
+.sp-insights { display: grid; gap: 1rem; margin-top: 1rem; }
+.sp-insight-part { display: grid; gap: .7rem; padding-top: .9rem; border-top: 1px solid #e2e8f0; }
+.sp-insight-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem; }
+.sp-insight-head h3 { margin: 0; }
+.sp-insight-band { display: inline-flex; align-items: center; gap: .5rem; font-weight: 800; }
+.sp-insight-band select { min-height: 44px; padding: .3rem .6rem; border-radius: 10px; font: inherit; }
+.sp-insight-save { display: grid; gap: .5rem; padding-top: .9rem; border-top: 1px solid #e2e8f0; }
+.sp-fine { font-size: .82rem; color: #64748b; }
