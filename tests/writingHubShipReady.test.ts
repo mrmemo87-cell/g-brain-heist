@@ -198,7 +198,8 @@ test('premium Writing Hub keeps authorship context, score meaning, and teacher r
   const sql = readProjectFile('supabase/migrations/20260726160000_writing_hub_premium_release.sql');
 
   assert.match(hub, /AI assessment · teacher review when flagged/);
-  assert.match(hub, /recordWritingIntegrityVoid/);
+  // Tab changes are recorded as authorship evidence for the teacher; the attempt itself is never archived (13 Nov 2026).
+  assert.match(hub, /recordWritingVisibilityHidden/);
   assert.match(hub, /recordWritingPaste/);
   assert.match(monitoring, /Writing Command Center/);
   assert.doesNotMatch(monitoring, /Class writing mode/);

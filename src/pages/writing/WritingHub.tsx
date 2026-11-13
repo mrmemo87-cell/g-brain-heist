@@ -25,7 +25,6 @@ import {
   submitDailyWritingPractice,
   submitInitialWritingAssessment,
   getStudentPromptAttemptCount,
-  recordWritingIntegrityVoid,
   loadWritingDraftFromServer,
   saveWritingDraftToServer,
   StudentWritingHistoryEntry,
@@ -5276,8 +5275,8 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         if (saved.tab_change_count > 0) {
           setCompositionTelemetry((current) => ({
             ...current,
-            // A restored session keeps its warning but always gets one more chance before an attempt is archived.
-            tab_change_count: Math.max(current.tab_change_count ?? 0, Math.min(saved.tab_change_count, 1)),
+            // Tab changes are only recorded now, so the teacher sees the full count across refreshes and devices.
+            tab_change_count: Math.max(current.tab_change_count ?? 0, saved.tab_change_count),
           }));
         }
         if (restored) setNotice('Your saved draft is back. Keep going from where you stopped.');
@@ -5462,37 +5461,6 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     }
   };
 
-  const preserveVoidedAttemptAndRotate = async (
-    reason: 'second_tab_change' | 'time_expired', signals: WritingCompositionTelemetry
-  ): Promise<void> => {
-    if (voidingAttemptRef.current || assessment) return;
-    voidingAttemptRef.current = true;
-    setBusy(true);
-    const finalSignals = finalizeWritingCompositionTelemetry(
-      { ...signals, prompt_restart_count: signals.prompt_restart_count + 1 }, draft
-    );
-    const recorded = await recordWritingIntegrityVoid({
-      attempt_key: createWritingAttemptKey(), prompt_id: promptId, prompt_text: promptText,
-      grade, genre: activeGenre, draft_snapshot: draft, integrity_signals: finalSignals, reason,
-    });
-    if (!recorded.ok) {
-      setError(`${recorded.error ?? 'The interrupted attempt could not be archived.'} Your text has been kept; ask a teacher for help.`);
-      setBusy(false);
-      voidingAttemptRef.current = false;
-      return;
-    }
-    if (typeof window !== 'undefined') window.localStorage.removeItem(draftStorageKey);
-    clearServerDraft(promptId);
-    setDraft('');
-    setLatestIntegritySignals(finalSignals);
-    setNotice(reason === 'second_tab_change'
-      ? 'The second tab change ended and archived that attempt for your teacher, and the editor was cleared. Stay on this page while you write.'
-      : 'Time expired. The attempt was archived for your teacher and the editor was cleared.');
-    setBusy(false);
-    await loadFreshPrompt(activeGenre, true);
-    voidingAttemptRef.current = false;
-  };
-
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const handleVisibility = () => {
@@ -5502,13 +5470,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
       if (busy || !draft.trim()) return;
       setCompositionTelemetry((current) => {
         const next = recordWritingVisibilityHidden(current);
-        if (revisionSession) {
-          setNotice('You left the writing tab. This is recorded for your teacher. Your second draft is still here.');
-        } else if (next.tab_change_count === 1) {
-          setNotice('Warning: you left the assessment tab. A second tab change will archive this attempt, clear the editor, and issue a fresh prompt.');
-        } else if (next.tab_change_count >= 2) {
-          void preserveVoidedAttemptAndRotate('second_tab_change', next);
-        }
+        // Rule set by the school (13 Nov 2026): record every tab change for the teacher, never clear the student's text.
+        setNotice(next.tab_change_count === 1
+          ? 'You left the writing tab. This is recorded for your teacher. Stay on this page while you write.'
+          : `You have left the writing tab ${next.tab_change_count} times. Each time is recorded for your teacher. Your writing is still here.`);
         return next;
       });
     };
@@ -5524,7 +5489,10 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
 
   useEffect(() => {
     if (remainingSeconds !== 0 || !wizardOpen || !promptId || assessment || revisionSession || voidingAttemptRef.current) return;
-    void preserveVoidedAttemptAndRotate('time_expired', compositionTelemetry);
+    // The writing is kept when time runs out. The time spent is recorded with the submission for the teacher.
+    setNotice(draft.trim()
+      ? 'Time is up. Your writing is still here: finish your last sentence and submit now. Your teacher can see the time you took.'
+      : 'Time is up. You can still write and submit. Your teacher can see the time you took.');
   }, [remainingSeconds, assessment, wizardOpen, promptId, revisionSession]);
 
   useEffect(() => {
@@ -6257,7 +6225,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
           <span className="writing-studio__integrity-badge">
             {revisionSession
               ? 'Second draft · no time limit'
-              : `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, '0')} remaining`}
+              : remainingSeconds === 0
+                ? 'Time is up · submit now'
+                : `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, '0')} remaining`}
           </span>
         </div>
         <p className="writing-studio__editor-help">
