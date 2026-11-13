@@ -22,11 +22,14 @@ test('formal bank creates 10 tasks for each of 7 genres and 12 grades',()=>{
   assert.match(sql,/'verification_passes',2/); assert.doesNotMatch(sql,/First Language/i);
 });
 
-test('formal integrity archives interrupted attempts and exposes teacher evidence',()=>{
+test('formal integrity records tab changes and time without clearing work, and exposes teacher evidence',()=>{
   const sql=readFileSync('supabase/migrations/20260817152418_cambridge_esl_formal_writing_hub.sql','utf8');
   const hub=readFileSync('src/pages/writing/WritingHub.tsx','utf8');
   const monitor=readFileSync('src/pages/writing/WritingMonitoringView.tsx','utf8');
   assert.match(sql,/bh_writing_voided_attempts/); assert.match(sql,/second_tab_change/); assert.match(sql,/time_expired/);
-  assert.match(hub,/second tab change ended and archived/i); assert.match(hub,/recordWritingIntegrityVoid/);
+  // Since 13 Nov 2026 tab changes and time expiry are recorded for the teacher and never clear the student's text.
+  assert.match(hub,/recordWritingVisibilityHidden/); assert.match(hub,/Each time is recorded for your teacher/);
+  assert.doesNotMatch(hub,/preserveVoidedAttemptAndRotate\('second_tab_change'/);
+  assert.doesNotMatch(hub,/preserveVoidedAttemptAndRotate\('time_expired'/);
   assert.match(monitor,/Time spent:/); assert.match(monitor,/Tab changes:/); assert.match(monitor,/Largest attempted paste:/);
 });
