@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img"><title>A set of keys lying on top of a wooden desk</title>
+<rect width="640" height="360" fill="#F4F7FB"/>
+<rect x="0" y="300" width="640" height="60" fill="#E3E8EF"/>
+<rect x="150" y="170" width="340" height="22" rx="4" fill="#B07A4A"/>
+<rect x="150" y="186" width="340" height="6" fill="#9A6A3F"/>
+<rect x="170" y="192" width="18" height="110" fill="#9A6A3F"/>
+<rect x="452" y="192" width="18" height="110" fill="#9A6A3F"/>
+<rect x="190" y="200" width="120" height="60" rx="3" fill="#A87244"/>
+<rect x="238" y="226" width="24" height="6" rx="3" fill="#7C5230"/>
+<g transform="translate(320 128) scale(1.7)">
+<circle cx="0" cy="8" r="13" fill="none" stroke="#6B7785" stroke-width="5"/>
+<rect x="10" y="4" width="54" height="9" rx="3" fill="#D9A520"/>
+<rect x="52" y="13" width="6" height="7" fill="#D9A520"/><rect x="42" y="13" width="5" height="5" fill="#D9A520"/>
+<circle cx="14" cy="8" r="9" fill="#D9A520"/><circle cx="14" cy="8" r="3" fill="#F4F7FB"/>
+<rect x="-50" y="7" width="40" height="8" rx="3" fill="#9AA6B2"/>
+<rect x="-46" y="15" width="5" height="6" fill="#9AA6B2"/><rect x="-36" y="15" width="5" height="4" fill="#9AA6B2"/>
+<circle cx="-12" cy="11" r="8" fill="#9AA6B2"/><circle cx="-12" cy="11" r="3" fill="#F4F7FB"/>
+</g>
+</svg>
