@@ -1,0 +1,1563 @@
+{
+ "version": "question-bank-stem-length-2026-11-13-v1",
+ "repairs": [
+  {
+   "n": 1,
+   "original_id": "8b50dc4a-e8e5-58bf-a8f6-bd84a1bab992",
+   "original_text": "Introduce an unspecified movie for the first time, then refer to that same movie. Choose the correct pair: I saw ____ movie. ____ movie was great.",
+   "correct_answer": "a / The",
+   "replacement_id": "be327c72-ecac-5aba-8b70-3c24815de2f3",
+   "patch": {
+    "question_text": "First mention, then the same movie: I saw ____ movie. ____ movie was great."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 2,
+   "original_id": "cf87521b-3953-586a-bccd-8fba8713f69a",
+   "original_text": "Speak about coffee in general, not a particular serving. Choose the correct option: I don't like ____ coffee.",
+   "correct_answer": "— (zero)",
+   "replacement_id": "6f9d7fdd-0d79-5692-ac5c-5992a9326ff8",
+   "patch": {
+    "question_text": "Coffee in general: I don't like ____ coffee."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 3,
+   "original_id": "47217407-3799-5020-9d5c-7ca2604795e2",
+   "original_text": "Use an indefinite article for an unspecified singular item or person, not something already identified. Choose the correct article: He is ____ engineer.",
+   "correct_answer": "an",
+   "replacement_id": "bdc26d02-2a57-5434-ade6-e22cd2b66b01",
+   "patch": {
+    "question_text": "Choose a or an: He is ____ engineer."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 4,
+   "original_id": "5b69e534-1655-5919-ae41-c31c3b469d00",
+   "original_text": "Use an indefinite article for an unspecified singular item or person, not something already identified. Choose the correct article: I bought ____ new phone yesterday.",
+   "correct_answer": "a",
+   "replacement_id": "8e711a4d-8408-5495-b278-72dbf3f2e0a1",
+   "patch": {
+    "question_text": "Choose a or an: I bought ____ new phone yesterday."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 5,
+   "original_id": "958eea21-126a-57ec-ba03-ab8370d95f20",
+   "original_text": "Use an indefinite article for an unspecified singular item or person, not something already identified. Choose the correct article: She has ____ apple in her bag.",
+   "correct_answer": "an",
+   "replacement_id": "598fa64d-f523-5d67-b449-4ea210ec0005",
+   "patch": {
+    "question_text": "Choose a or an: She has ____ apple in her bag."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 6,
+   "original_id": "9bd64e98-80a3-5785-99f3-986f05a1c3f3",
+   "original_text": "Use formal singular agreement for the group as one unit, in the present: A group of tourists ____ outside.",
+   "correct_answer": "is",
+   "replacement_id": "be30259d-8bb3-5a88-ad13-7306c28f54ab",
+   "patch": {
+    "question_text": "Formal English: A group of tourists ____ outside."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 7,
+   "original_id": "bfc8d37e-c8ed-521e-ad31-67379c71f151",
+   "original_text": "My seat is beside the window. Complete with a phrase meaning beside: My seat is _____ the window.",
+   "correct_answer": "next to",
+   "replacement_id": "5d36f96c-ef85-5242-95dc-b352240ac8a0",
+   "patch": {
+    "question_text": "Look at the picture. My seat is _____ the window.",
+    "image_url": "https://www.brainsheist.com/question-assets/2026-11-13/stem-seat.c673fef9e7f9.svg",
+    "image_alt_text": "A chair standing next to a tall window that reaches the floor."
+   },
+   "reason": "STEM_LENGTH_VISUAL_CONTEXT"
+  },
+  {
+   "n": 8,
+   "original_id": "d1827e63-1289-54e2-a9bb-d0a5549bbdf1",
+   "original_text": "The keys are resting on the flat top surface of the desk. Complete: The keys are _____ the desk.",
+   "correct_answer": "on",
+   "replacement_id": "37edcc25-0fa7-5c40-8138-717663b12f42",
+   "patch": {
+    "question_text": "Look at the picture. The keys are _____ the desk.",
+    "image_url": "https://www.brainsheist.com/question-assets/2026-11-13/stem-keys.92e77a77b335.svg",
+    "image_alt_text": "A set of keys lying on top of a wooden desk."
+   },
+   "reason": "STEM_LENGTH_VISUAL_CONTEXT"
+  },
+  {
+   "n": 9,
+   "original_id": "9f1484ec-367c-55fc-a670-68202dc3ecaa",
+   "original_text": "The pencils are inside a closed box. Complete: The pencils are _____ the box.",
+   "correct_answer": "in",
+   "replacement_id": "02838cb4-3282-5c4e-8d43-0772f68eb46d",
+   "patch": {
+    "question_text": "Look at the picture. The pencils are _____ the box.",
+    "image_url": "https://www.brainsheist.com/question-assets/2026-11-13/stem-pencils.f6e8bae8a6ac.svg",
+    "image_alt_text": "Three pencils standing inside an open cardboard box."
+   },
+   "reason": "STEM_LENGTH_VISUAL_CONTEXT"
+  },
+  {
+   "n": 10,
+   "original_id": "23ce58a4-7ba8-5362-ae9f-23ceba6cec32",
+   "original_text": "Use an indefinite article for an unspecified singular item or person, not something already identified. France is _____ European country.",
+   "correct_answer": "a",
+   "replacement_id": "33edfc7e-a81f-5e20-8636-7caec96390a4",
+   "patch": {
+    "question_text": "Choose a or an: France is _____ European country."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 11,
+   "original_id": "10357120-a98d-5129-822e-e097b1eb1af3",
+   "original_text": "Use an indefinite article for an unspecified singular item or person, not something already identified. He studies at _____ university in the city.",
+   "correct_answer": "a",
+   "replacement_id": "fdac966d-a3ba-57ae-b297-e474998e825a",
+   "patch": {
+    "question_text": "Choose a or an: He studies at _____ university in the city."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 12,
+   "original_id": "0c989c26-0f95-5a56-b650-a2c9c2683e9f",
+   "original_text": "Use an indefinite article for an unspecified singular item or person, not something already identified. I need _____ eraser for this exercise.",
+   "correct_answer": "an",
+   "replacement_id": "19b4b8ab-b7ea-599d-bf2b-0ab40351ddac",
+   "patch": {
+    "question_text": "Choose a or an: I need _____ eraser for this exercise."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 13,
+   "original_id": "db3128f2-90a9-540d-b28d-b3341d37679f",
+   "original_text": "Use an indefinite article for an unspecified singular item or person, not something already identified. I need _____ new notebook.",
+   "correct_answer": "a",
+   "replacement_id": "2b17c45a-13f1-5c1b-979c-002644496c1f",
+   "patch": {
+    "question_text": "Choose a or an: I need _____ new notebook."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 14,
+   "original_id": "d67b03b0-550a-5b65-a023-de1605c84230",
+   "original_text": "Use an indefinite article for an unspecified singular item or person, not something already identified. It is raining. I need _____ umbrella.",
+   "correct_answer": "an",
+   "replacement_id": "f29c1572-43a1-56d4-8024-42760ac8ad38",
+   "patch": {
+    "question_text": "Choose a or an: It is raining. I need _____ umbrella."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 15,
+   "original_id": "6ae1924a-7a98-5841-8d6d-cfca545c3edd",
+   "original_text": "Use an indefinite article for an unspecified singular item or person, not something already identified. She ate _____ apple after lunch.",
+   "correct_answer": "an",
+   "replacement_id": "5ff7c121-6b26-5662-9139-0e48a8e12e25",
+   "patch": {
+    "question_text": "Choose a or an: She ate _____ apple after lunch."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 16,
+   "original_id": "6c26299d-9c2b-59bb-854c-026a75d0a204",
+   "original_text": "Use an indefinite article for an unspecified singular item or person, not something already identified. She bought _____ orange at the market.",
+   "correct_answer": "an",
+   "replacement_id": "1818b2d1-f36c-5eb3-896c-caae65ffc9ee",
+   "patch": {
+    "question_text": "Choose a or an: She bought _____ orange at the market."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 17,
+   "original_id": "c2977f48-058b-50d9-8353-807370b85705",
+   "original_text": "Use an indefinite article for an unspecified singular item or person, not something already identified. She bought _____ pen at the shop.",
+   "correct_answer": "a",
+   "replacement_id": "9a24f7e8-3e69-5fd3-9df2-bfaca475f4eb",
+   "patch": {
+    "question_text": "Choose a or an: She bought _____ pen at the shop."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 18,
+   "original_id": "903819cc-0d50-5ca3-a397-fe4c1c2e303c",
+   "original_text": "Use an indefinite article for an unspecified singular item or person, not something already identified. We waited for _____ hour.",
+   "correct_answer": "an",
+   "replacement_id": "d20fe282-55b4-5309-90f1-dc0bb490bf7e",
+   "patch": {
+    "question_text": "Choose a or an: We waited for _____ hour."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 19,
+   "original_id": "4bc41ccb-a55f-5707-8194-7b34b21c1cd2",
+   "original_text": "Use do/does with stop as the action verb: Where _____ the bus stop?",
+   "correct_answer": "does",
+   "replacement_id": "4201463d-5d5f-5ccc-b5b1-f7519c8f7751",
+   "patch": {
+    "question_text": "Where _____ the car stop?"
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 20,
+   "original_id": "dc1e5132-ccc3-5a65-881a-9089d3ddf57b",
+   "original_text": "Use the usual any-form for a neutral information question: Are there _____ students in the library?",
+   "correct_answer": "any",
+   "replacement_id": "225c22dd-edf9-574f-aa5d-00a0fdb8a4d3",
+   "patch": {
+    "question_text": "I can't see anyone. Are there _____ students in the library?"
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 21,
+   "original_id": "711a95b2-0656-50d7-9bbf-488b28f3d83d",
+   "original_text": "Use the single-word form with the -er or -est ending. Choose the correct comparative: This explanation is ____ than the last one.",
+   "correct_answer": "clearer",
+   "replacement_id": "d67b7b10-45be-512c-b867-1fae15edc922",
+   "patch": {
+    "question_text": "One-word comparative: This explanation is ____ than the last one."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 22,
+   "original_id": "ba567404-dffa-548b-8567-dcc3d60c8020",
+   "original_text": "Use the single-word form with the -er or -est ending. Choose the correct spelling: happy → ____ (superlative).",
+   "correct_answer": "happiest",
+   "replacement_id": "4639c3df-1e70-5b53-b697-18760abfa451",
+   "patch": {
+    "question_text": "One-word superlative: happy → ____"
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 23,
+   "original_id": "2f8658dd-2d2f-5579-984d-b8b4d0fcf93f",
+   "original_text": "Choose the time conjunction meaning “at the time that an event happens”. Choose the best conjunction: ____ I saw his face, I knew something was wrong.",
+   "correct_answer": "When",
+   "replacement_id": "8a103a72-ed34-5c09-b028-9f8a311d106e",
+   "patch": {
+    "question_text": "Choose the time word: ____ I saw his face, I knew something was wrong."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 24,
+   "original_id": "a93dc10e-0c49-5c84-a245-b66e59af7a3e",
+   "original_text": "Choose the time conjunction meaning “at the time that an event happens”. Choose the best conjunction: ____ the bell rang, the students left the classroom.",
+   "correct_answer": "When",
+   "replacement_id": "0f1be4ae-aa9e-5ebe-b28d-bc37f6aff7e8",
+   "patch": {
+    "question_text": "Choose the time word: ____ the bell rang, the students left the classroom."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 25,
+   "original_id": "6f49b925-e20c-5199-8c41-93af87a731ce",
+   "original_text": "Choose the time conjunction meaning “at the time that an event happens”. Choose the best conjunction: ____ you wake up, drink some water.",
+   "correct_answer": "When",
+   "replacement_id": "f60d9ddc-4805-5918-8584-a42cdf9da3de",
+   "patch": {
+    "question_text": "Choose the time word: ____ you wake up, drink some water."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 26,
+   "original_id": "77dd0dd2-ffaf-588e-bc43-cb68f9f215ee",
+   "original_text": "Choose the time conjunction meaning “at the time that an event happens”. Choose the best conjunction: I always take a photo ____ I travel to a new place.",
+   "correct_answer": "when",
+   "replacement_id": "9b365bd6-8ddc-5d09-b6a6-3367dd825dc9",
+   "patch": {
+    "question_text": "Choose the time word: I always take a photo ____ I travel to a new place."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 27,
+   "original_id": "928b8db7-049c-50a7-b6cc-ec9bc066666c",
+   "original_text": "Choose the time conjunction meaning “at the time that an event happens”. Choose the best conjunction: I felt nervous ____ the teacher asked me a question.",
+   "correct_answer": "when",
+   "replacement_id": "cc1385a6-c027-5806-9ba7-288346f62250",
+   "patch": {
+    "question_text": "Choose the time word: I felt nervous ____ the teacher asked me a question."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 28,
+   "original_id": "b5ca1a9e-0819-5f4d-9b69-2296291eeb84",
+   "original_text": "Choose the time conjunction meaning “at the time that an event happens”. Choose the best conjunction: I hurt my knee ____ I fell.",
+   "correct_answer": "when",
+   "replacement_id": "2491222f-a4e8-5b54-b31e-3df970c71f07",
+   "patch": {
+    "question_text": "Choose the time word: I hurt my knee ____ I fell."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 29,
+   "original_id": "740d8bad-ad0a-5956-a211-e07d79a019cb",
+   "original_text": "Choose the time conjunction meaning “during the whole time that an ongoing action happens”. Choose the best conjunction: ____ I was speaking, my phone rang.",
+   "correct_answer": "While",
+   "replacement_id": "b6c7029a-f504-58bc-9680-329d1518cc9c",
+   "patch": {
+    "question_text": "Choose the time word: ____ I was speaking, my phone rang."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 30,
+   "original_id": "fc9edbbe-b540-5607-80bb-43bf08140026",
+   "original_text": "Choose the time conjunction meaning “during the whole time that an ongoing action happens”. Choose the best conjunction: ____ I was walking to school, I saw a rainbow.",
+   "correct_answer": "While",
+   "replacement_id": "842d70a0-0a0c-5b0e-997d-6d6b465fda11",
+   "patch": {
+    "question_text": "Choose the time word: ____ I was walking to school, I saw a rainbow."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 31,
+   "original_id": "20da45be-c82e-5061-ad5b-099b1bfe0e7c",
+   "original_text": "Choose the time conjunction meaning “during the whole time that an ongoing action happens”. Choose the best conjunction: I hurt my knee ____ I was playing football.",
+   "correct_answer": "while",
+   "replacement_id": "da7c4038-a960-529a-b40a-400a8295a164",
+   "patch": {
+    "question_text": "Choose the time word: I hurt my knee ____ I was playing football."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 32,
+   "original_id": "90c9b800-9234-5904-9adc-affb71a2fe58",
+   "original_text": "Choose the time conjunction meaning “during the whole time that an ongoing action happens”. Choose the best conjunction: I stayed quiet ____ the teacher was explaining the rules.",
+   "correct_answer": "while",
+   "replacement_id": "36db6662-f2d8-54e5-a3d6-8cc3c8d048dd",
+   "patch": {
+    "question_text": "Choose the time word: I stayed quiet ____ the teacher was explaining the rules."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 33,
+   "original_id": "e8befd82-574e-5eb6-8847-b96abf95c9bc",
+   "original_text": "Choose the time conjunction meaning “during the whole time that an ongoing action happens”. Choose the best conjunction: I was watching TV ____ my brother cooked dinner.",
+   "correct_answer": "while",
+   "replacement_id": "f5d72d7d-453e-5b30-8866-6b2ce07f4e3e",
+   "patch": {
+    "question_text": "Choose the time word: I was watching TV ____ my brother cooked dinner."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 34,
+   "original_id": "51394945-b3f6-56c4-b451-66f2ae30ea16",
+   "original_text": "Choose the time conjunction meaning “during the whole time that an ongoing action happens”. Choose the best conjunction: She listened to music ____ she was doing her homework.",
+   "correct_answer": "while",
+   "replacement_id": "a2f37617-9b5a-59a9-aa4b-f53612bb0df1",
+   "patch": {
+    "question_text": "Choose the time word: She listened to music ____ she was doing her homework."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 35,
+   "original_id": "a01a827d-0d2a-5d39-ade0-d52f92c44bc4",
+   "original_text": "Choose the time conjunction meaning “during the whole time that an ongoing action happens”. Choose the best conjunction: 'Did you see anything colourful ____ walking to school this morning?'",
+   "correct_answer": "while",
+   "replacement_id": "7a1adfc1-8ae0-5ca2-bde2-667d28cee0cb",
+   "patch": {
+    "question_text": "Choose the time word: Did you see anything colourful ____ walking to school this morning?"
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 36,
+   "original_id": "c73a87cf-f69b-54f0-9845-49d6b666d2d9",
+   "original_text": "Choose the time conjunction meaning “earlier than an event”. Choose the best conjunction: ____ you leave the house, turn off the lights.",
+   "correct_answer": "Before",
+   "replacement_id": "0ed31d6d-c978-5dd1-9d6c-af61d0c49aa6",
+   "patch": {
+    "question_text": "Choose the time word: ____ you leave the house, turn off the lights."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 37,
+   "original_id": "7ced7402-a15a-5034-811e-735ad24ac636",
+   "original_text": "Choose the time conjunction meaning “earlier than an event”. Choose the best conjunction: I didn't recognize him ____ he took off his mask.",
+   "correct_answer": "before",
+   "replacement_id": "cc88527c-37b4-520a-9064-812d92f76a3d",
+   "patch": {
+    "question_text": "Choose the time word: I didn't recognize him ____ he took off his mask."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 38,
+   "original_id": "9d07a682-fe8e-5ab4-9785-40427c5aba08",
+   "original_text": "Choose the time conjunction meaning “later than a completed event”. Choose the best conjunction: ____ I had packed my bag, I remembered my charger.",
+   "correct_answer": "After",
+   "replacement_id": "8b57a62b-8ff6-5166-af86-aa766f9268f0",
+   "patch": {
+    "question_text": "Choose the time word: ____ I had packed my bag, I remembered my charger."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 39,
+   "original_id": "14acd2ae-6bed-5d71-a453-d9e0ae90d4aa",
+   "original_text": "Choose the time conjunction meaning “later than a completed event”. Choose the best conjunction: ____ she had finished the test, she checked her answers.",
+   "correct_answer": "After",
+   "replacement_id": "50e998e4-ffbc-54d2-a93f-f194471aa4af",
+   "patch": {
+    "question_text": "Choose the time word: ____ she had finished the test, she checked her answers."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 40,
+   "original_id": "d3e4485d-1589-5d66-8173-fe33c61f8c4d",
+   "original_text": "Choose the time conjunction meaning “later than a completed event”. Choose the best conjunction: ____ the lesson finished, we asked questions.",
+   "correct_answer": "After",
+   "replacement_id": "991ede90-477e-5482-833d-0f259526a785",
+   "patch": {
+    "question_text": "Choose the time word: ____ the lesson finished, we asked questions."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 41,
+   "original_id": "3587f688-d26e-5412-b247-83de9d9218cb",
+   "original_text": "Choose the time conjunction meaning “later than a completed event”. Choose the best conjunction: ____ the movie ended, everyone clapped.",
+   "correct_answer": "After",
+   "replacement_id": "54e64c7b-1442-5d51-a621-b4f6b4848042",
+   "patch": {
+    "question_text": "Choose the time word: ____ the movie ended, everyone clapped."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 42,
+   "original_id": "1b810f1e-cc46-5050-a096-9e47d47647ab",
+   "original_text": "Choose the time conjunction meaning “later than a completed event”. Choose the best conjunction: I called my friend ____ I arrived home.",
+   "correct_answer": "after",
+   "replacement_id": "82fc7ab4-902f-50ba-a22a-0f4dbcb6ed8e",
+   "patch": {
+    "question_text": "Choose the time word: I called my friend ____ I arrived home."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 43,
+   "original_id": "b38e0134-f866-5ba5-bcc3-48feea457b13",
+   "original_text": "Choose the time conjunction meaning “later than a completed event”. Choose the best conjunction: I started studying ____ I had dinner.",
+   "correct_answer": "after",
+   "replacement_id": "ee71c173-6b2d-538f-85f0-0625fc47fab7",
+   "patch": {
+    "question_text": "Choose the time word: I started studying ____ I had dinner."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 44,
+   "original_id": "6cb28085-78c0-55d0-9c77-1c1f6a8b765c",
+   "original_text": "Use present-simple do/does for emphasis. Complete: He ____ want to help.",
+   "correct_answer": "does",
+   "replacement_id": "785b7eb7-0717-562a-abc9-2f2c79f4ffce",
+   "patch": {
+    "question_text": "Emphasis (present): He ____ want to help."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 45,
+   "original_id": "90ae76fd-897f-5b48-be82-7f90203ba1fd",
+   "original_text": "Use present-simple do/does for emphasis. Complete: Sara ____ speak French well.",
+   "correct_answer": "does",
+   "replacement_id": "a9501875-6e43-5519-a7d7-7a8031e7d218",
+   "patch": {
+    "question_text": "Emphasis (present): Sara ____ speak French well."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 46,
+   "original_id": "1db57d37-175f-59b5-abb7-d1a5f0bea735",
+   "original_text": "Use present-simple do/does for emphasis. Complete: They ____ understand the rules.",
+   "correct_answer": "do",
+   "replacement_id": "af3525ec-2f1f-5d1f-a8fd-f44cd587179e",
+   "patch": {
+    "question_text": "Emphasis (present): They ____ understand the rules."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 47,
+   "original_id": "f5125425-caad-5ea9-9f39-00d5ff620dd4",
+   "original_text": "Use the future continuous to describe an activity in progress at the stated future time. At 10 a.m. tomorrow, we ____ an exam.",
+   "correct_answer": "will be taking",
+   "replacement_id": "94b5f1ef-60dc-54d4-9b29-f84f5e79040d",
+   "patch": {
+    "question_text": "Future continuous: At 10 a.m. tomorrow, we ____ an exam."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 48,
+   "original_id": "1b9ced20-12a4-5cc6-a41e-caec48054186",
+   "original_text": "Use the future continuous to describe an activity in progress at the stated future time. Choose the best answer: 'Can I come at 7?' 'Sorry, I ____ then.'",
+   "correct_answer": "will be working",
+   "replacement_id": "37b9d0a7-8543-52b3-a9f3-28e2be432308",
+   "patch": {
+    "question_text": "Future continuous: 'Can I come at 7?' 'Sorry, I ____ then.'"
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 49,
+   "original_id": "73b87ad8-06c3-5502-b868-b138e0bf23d6",
+   "original_text": "Use the future continuous to describe an activity in progress at the stated future time. Choose the best completion: This evening, my parents ____ guests.",
+   "correct_answer": "will be entertaining",
+   "replacement_id": "648eb580-bd40-500c-b8b5-5b6ba22e35dc",
+   "patch": {
+    "question_text": "Future continuous: This evening, my parents ____ guests."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 50,
+   "original_id": "2381c27f-6a34-5418-b214-5c68304ab8f1",
+   "original_text": "Use the future continuous to describe an activity in progress at the stated future time. Choose the best option: Don't call at 6 p.m.; I ____ dinner.",
+   "correct_answer": "will be cooking",
+   "replacement_id": "173d6549-bbb1-5614-9a91-fc7cb2d4a416",
+   "patch": {
+    "question_text": "Future continuous: Don't call at 6 p.m.; I ____ dinner."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 51,
+   "original_id": "154cc7c4-db6a-5ff2-a393-056214d5d70b",
+   "original_text": "Use the future continuous to describe an activity in progress at the stated future time. Complete: By this time next week, he ____ in Dubai.",
+   "correct_answer": "will be staying",
+   "replacement_id": "1e263de0-0955-55a5-bfc8-86f683d71e4c",
+   "patch": {
+    "question_text": "Future continuous: By this time next week, he ____ in Dubai."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 52,
+   "original_id": "9f0bb86e-ddfb-593e-a2a0-d0c269e5b293",
+   "original_text": "Use the future continuous to describe an activity in progress at the stated future time. Complete: This time tomorrow, she ____ on the beach.",
+   "correct_answer": "will be lying",
+   "replacement_id": "45054587-36ee-56a5-9e53-8c29bfeb2575",
+   "patch": {
+    "question_text": "Future continuous: This time tomorrow, she ____ on the beach."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 53,
+   "original_id": "c0deceea-8a15-07de-e8a1-c858a0a6b419",
+   "original_text": "Introduce this person or item for the first time. Choose a or an.\nHe is carrying _____ umbrella.",
+   "correct_answer": "an",
+   "replacement_id": "b0c608f8-19ec-511b-b436-534bf5d33f58",
+   "patch": {
+    "question_text": "Choose a or an: He is carrying _____ umbrella."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 54,
+   "original_id": "2efcaa32-6f3d-8adc-a845-6ec4cb6d40dd",
+   "original_text": "Introduce this person or item for the first time. Choose a or an.\nI bought _____ apple for lunch.",
+   "correct_answer": "an",
+   "replacement_id": "44024a20-6250-57c2-a0e0-9b47e57d0f8d",
+   "patch": {
+    "question_text": "Choose a or an: I bought _____ apple for lunch."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 55,
+   "original_id": "52061249-9f9e-75d4-f171-c1ba4ad28366",
+   "original_text": "Introduce this person or item for the first time. Choose a or an.\nI can see _____ dog near the gate.",
+   "correct_answer": "a",
+   "replacement_id": "f5739295-5b6d-5b1a-b3b7-351d912d1f37",
+   "patch": {
+    "question_text": "Choose a or an: I can see _____ dog near the gate."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 56,
+   "original_id": "a111ae44-d322-435f-0334-af3e2a20cd39",
+   "original_text": "Introduce this person or item for the first time. Choose a or an.\nShe has _____ blue bag.",
+   "correct_answer": "a",
+   "replacement_id": "41977fbf-f7e8-5e25-8470-e948e4670e1b",
+   "patch": {
+    "question_text": "Choose a or an: She has _____ blue bag."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 57,
+   "original_id": "3d761261-c306-1239-8640-7c1facbed37d",
+   "original_text": "Introduce this person or item for the first time. Choose a or an.\nShe is _____ university student.",
+   "correct_answer": "a",
+   "replacement_id": "1c3c5d75-e2cb-52c9-a3bf-c5530ecd3e9e",
+   "patch": {
+    "question_text": "Choose a or an: She is _____ university student."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 58,
+   "original_id": "67bda26e-06c5-bc9f-861f-c188d084c1d6",
+   "original_text": "Introduce this person or item for the first time. Choose a or an.\nThere is _____ egg on the plate.",
+   "correct_answer": "an",
+   "replacement_id": "e3757c5e-6bc3-5dc7-a0c9-b92157a63c8a",
+   "patch": {
+    "question_text": "Choose a or an: There is _____ egg on the plate."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 59,
+   "original_id": "36ccb500-64e9-c684-3423-bf6d1333ebed",
+   "original_text": "Introduce this person or item for the first time. Choose a or an.\nThey found _____ old map in the cupboard.",
+   "correct_answer": "an",
+   "replacement_id": "1ebca710-311a-58a9-923e-e836e2feafb4",
+   "patch": {
+    "question_text": "Choose a or an: They found _____ old map in the cupboard."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 60,
+   "original_id": "d734931b-6865-f707-2610-d61ac3b3e252",
+   "original_text": "Introduce this person or item for the first time. Choose a or an.\nWe waited for _____ hour.",
+   "correct_answer": "an",
+   "replacement_id": "6b41c192-fdc5-59f1-b519-c9e64b77b654",
+   "patch": {
+    "question_text": "Choose a or an: We waited for _____ hour."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 61,
+   "original_id": "48099922-dd27-5d10-abff-855e5e9993fb",
+   "original_text": "Use the past continuous for the ongoing action. Choose the best option: At 6 p.m. yesterday, we ____ home.",
+   "correct_answer": "were driving",
+   "replacement_id": "26a4647f-fc72-578a-8d1a-a3b9fd4cfdf4",
+   "patch": {
+    "question_text": "Past continuous: At 6 p.m. yesterday, we ____ home."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 62,
+   "original_id": "33cef2ba-1574-55f9-a999-f3cb2edea3ab",
+   "original_text": "Use the past continuous for the ongoing action. Choose the best option: She ____ (not/pay) attention, so she didn't hear the instructions.",
+   "correct_answer": "wasn't paying",
+   "replacement_id": "2f302f6a-a3b4-5498-8c83-daa094716fdf",
+   "patch": {
+    "question_text": "Past continuous: She ____ (not/pay) attention, so she didn't hear the instructions."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 63,
+   "original_id": "cda615d0-0c21-58cd-a73a-f194cfc6751a",
+   "original_text": "Use the past continuous for the ongoing action. Choose the best option: The kids ____ outside all afternoon yesterday.",
+   "correct_answer": "were playing",
+   "replacement_id": "f983af19-0d6d-5a89-808b-8a02d6daf7e5",
+   "patch": {
+    "question_text": "Past continuous: The kids ____ outside all afternoon yesterday."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 64,
+   "original_id": "afddef4e-e983-5dd0-a19c-192bf75dbd9c",
+   "original_text": "Use the past continuous for the ongoing action. Choose the best option: When I arrived, they ____ dinner.",
+   "correct_answer": "were having",
+   "replacement_id": "4a409a0b-49b1-5fc2-b849-597868f05e37",
+   "patch": {
+    "question_text": "Past continuous: When I arrived, they ____ dinner."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 65,
+   "original_id": "d02f776d-e287-5091-8c60-9d781504e7f6",
+   "original_text": "Use the past continuous for the ongoing action. Choose the correct form: He ____ (work) late yesterday evening.",
+   "correct_answer": "was working",
+   "replacement_id": "81ce9be8-7a9e-5b81-b94a-44bf842b33b5",
+   "patch": {
+    "question_text": "Past continuous: He ____ (work) late yesterday evening."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 66,
+   "original_id": "9b3f0a49-d807-574f-8fda-89f9588f1159",
+   "original_text": "Use the past continuous for the ongoing action. Choose the correct form: We ____ (talk) when the teacher came in.",
+   "correct_answer": "were talking",
+   "replacement_id": "7e13220c-97bc-5f0d-970f-235deda2fed6",
+   "patch": {
+    "question_text": "Past continuous: We ____ (talk) when the teacher came in."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 67,
+   "original_id": "5fe0189b-c350-58f3-b0f5-3bc83675cf5b",
+   "original_text": "Use the past continuous for the ongoing action. Choose the correct question: ____ you ____ at 10 last night?",
+   "correct_answer": "Were / studying",
+   "replacement_id": "e4f82c39-2463-5550-957d-59999f9a0414",
+   "patch": {
+    "question_text": "Past continuous: ____ you ____ at 10 last night?"
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 68,
+   "original_id": "22d1a32e-4fc2-5027-96fb-3946f6b56d72",
+   "original_text": "Use the past continuous for the ongoing action. Choose the correct sentence: I ____ (write) an email, so I couldn't answer.",
+   "correct_answer": "was writing",
+   "replacement_id": "e4a645c5-512f-5087-8386-bbbfdec3d8eb",
+   "patch": {
+    "question_text": "Past continuous: I ____ (write) an email, so I couldn't answer."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 69,
+   "original_id": "0511f912-58fa-59c7-9f71-2529f5094c95",
+   "original_text": "Use the past continuous for the ongoing action. Choose the correct sentence: While I ____ dinner, the phone rang.",
+   "correct_answer": "was cooking",
+   "replacement_id": "5149e98c-e839-5d32-bec8-f0cc97e5e9a7",
+   "patch": {
+    "question_text": "Past continuous: While I ____ dinner, the phone rang."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 70,
+   "original_id": "2c0914a6-b646-5747-90b6-88452ffda1d5",
+   "original_text": "Use the past continuous for the ongoing action. Choose the correct sentence.",
+   "correct_answer": "At that moment, I was thinking about my future.",
+   "replacement_id": "412a0d4f-d86b-52c1-bf9b-9f90a6b3eaaa",
+   "patch": {
+    "question_text": "Choose the correct past continuous sentence."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 71,
+   "original_id": "808e19d1-16b4-519e-8c32-bf4923a61bbd",
+   "original_text": "Use the past continuous for the ongoing action. Complete: It ____ (rain) when we left the house.",
+   "correct_answer": "was raining",
+   "replacement_id": "507b6d79-97e8-5098-b4aa-1d3eb0e62417",
+   "patch": {
+    "question_text": "Past continuous: It ____ (rain) when we left the house."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 72,
+   "original_id": "51e02ca1-b194-550c-978c-a76b15214b1c",
+   "original_text": "Use the past continuous for the ongoing action. Complete: She ____ (study) when I called her.",
+   "correct_answer": "was studying",
+   "replacement_id": "b8e9b4d2-d4ef-547d-9720-513f0b3a678e",
+   "patch": {
+    "question_text": "Past continuous: She ____ (study) when I called her."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 73,
+   "original_id": "438e411e-aa15-525b-85e6-394c175a87a8",
+   "original_text": "Use the past continuous for the ongoing reading and the past simple for the single text message. Choose the correct contrast: I ____ (read) when you ____ (text) me.",
+   "correct_answer": "was reading / texted",
+   "replacement_id": "61e32fe8-c69b-5fe6-9558-5d8cb9381175",
+   "patch": {
+    "question_text": "Past continuous + past simple: I ____ (read) when you ____ (text) me."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 74,
+   "original_id": "12fb45b9-5933-5d14-917d-a574b8920ec8",
+   "original_text": "He rushed, but it was unnecessary because he had plenty of time. Complete with a past modal of unnecessary action: He ____ rushed.",
+   "correct_answer": "needn't have",
+   "replacement_id": "140b31ff-a2ec-52ef-be90-9b850431053d",
+   "patch": {
+    "question_text": "He had plenty of time, so rushing wasn't necessary. He ____ rushed."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 75,
+   "original_id": "30f57185-b0b4-5d48-bb9c-52ff9c9af901",
+   "original_text": "Use a past modal expressing uncertainty, not a definite deduction: He ____ (not/see) the sign; he drove too fast.",
+   "correct_answer": "might not have seen",
+   "replacement_id": "ca20ad8a-453e-5429-a00d-a6a877036df6",
+   "patch": {
+    "question_text": "I'm not sure, but he ____ (not/see) the sign; he drove too fast."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 76,
+   "original_id": "210ecdbe-05c4-57c0-b2ba-22a2403ed483",
+   "original_text": "Use the past perfect to mark the action completed before the other past event. Choose the best option: After he ____ dinner, he went for a walk.",
+   "correct_answer": "had eaten",
+   "replacement_id": "6a8a46d5-e0c5-536e-a88c-6aa15d71584a",
+   "patch": {
+    "question_text": "Past perfect: After he ____ dinner, he went for a walk."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 77,
+   "original_id": "d1f33f6f-f317-5be5-985a-dd2c75975465",
+   "original_text": "Use the past perfect to mark the action completed before the other past event. Choose the best option: He couldn't get in because the door ____.",
+   "correct_answer": "had been locked",
+   "replacement_id": "34eb5f87-f89b-525c-a0eb-c57add508a13",
+   "patch": {
+    "question_text": "Past perfect: He couldn't get in because the door ____."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 78,
+   "original_id": "a301b41a-bc1b-5be6-92ea-dc7eccf458d4",
+   "original_text": "Use the past perfect to mark the action completed before the other past event. Choose the correct sentence.",
+   "correct_answer": "She was upset because her phone had been lost.",
+   "replacement_id": "f1712e47-d843-557e-a308-6282d58e21c3",
+   "patch": {
+    "question_text": "Choose the correct past perfect sentence."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 79,
+   "original_id": "f5390396-0d9f-5f2d-87e7-14018665ae0d",
+   "original_text": "Complete in the present perfect active. Choose the correct sentence: (Active) I ____ my keys.",
+   "correct_answer": "have lost",
+   "replacement_id": "852c666f-3b0c-5723-a217-8c4d6a3c857e",
+   "patch": {
+    "question_text": "Present perfect: I ____ my keys."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 80,
+   "original_id": "4ff9b9ff-681b-5f3c-8728-b6bcbf2f195a",
+   "original_text": "Use the present perfect continuous to emphasize the duration or repeated activity. Choose the best option: I ____ all afternoon, and I’m exhausted.",
+   "correct_answer": "have been studying",
+   "replacement_id": "28ac07c2-2079-5941-b6e4-2d54a9dd63d9",
+   "patch": {
+    "question_text": "Present perfect continuous: I ____ all afternoon, and I’m exhausted."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 81,
+   "original_id": "4229c1c8-c8c3-552a-8ad3-5be35231c720",
+   "original_text": "Use the present perfect continuous to emphasize the duration or repeated activity. Choose the best option: I ____ for you since 2 o’clock.",
+   "correct_answer": "have been waiting",
+   "replacement_id": "b4a1f484-48d7-59e7-a5fe-b7a8f163339a",
+   "patch": {
+    "question_text": "Present perfect continuous: I ____ for you since 2 o’clock."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 82,
+   "original_id": "1a6ef7de-108a-5240-85f7-677c3ac08f27",
+   "original_text": "Use the present perfect continuous to emphasize the duration or repeated activity. Choose the best option: I ____ this song on repeat all week.",
+   "correct_answer": "have been listening to",
+   "replacement_id": "d8c2ee7c-bf98-5aca-87a5-c9d7409f2696",
+   "patch": {
+    "question_text": "Present perfect continuous: I ____ this song on repeat all week."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 83,
+   "original_id": "960f113d-4b45-5b48-8890-1ea39f2c40ed",
+   "original_text": "Use the present perfect continuous to emphasize the duration or repeated activity. Choose the best option: I ____ too much coffee lately.",
+   "correct_answer": "have been drinking",
+   "replacement_id": "bb127fd7-3e4b-5668-9fad-274cc907383a",
+   "patch": {
+    "question_text": "Present perfect continuous: I ____ too much coffee lately."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 84,
+   "original_id": "fb7fb924-3b75-5c46-bd10-87cf87ff5b1a",
+   "original_text": "Use the present perfect continuous to emphasize the duration or repeated activity. Choose the best option: It ____ all day, so the streets are wet.",
+   "correct_answer": "has been raining",
+   "replacement_id": "ed948db9-465d-51d3-819c-a89de94c8b2c",
+   "patch": {
+    "question_text": "Present perfect continuous: It ____ all day, so the streets are wet."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 85,
+   "original_id": "dca3f2bc-6212-5063-ad50-d7b885ed7c06",
+   "original_text": "Use the present perfect continuous to emphasize the duration or repeated activity. Choose the best option: My hands are dirty because I ____ the car.",
+   "correct_answer": "have been washing",
+   "replacement_id": "c94d2239-31b8-5314-bc6a-bb95ecc1cdb0",
+   "patch": {
+    "question_text": "Present perfect continuous: My hands are dirty because I ____ the car."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 86,
+   "original_id": "09f56716-9b0c-5d74-b51c-96b2b117b973",
+   "original_text": "Use the present perfect continuous to emphasize the duration or repeated activity. Choose the best option: The kids ____ outside for hours, but now they’re inside.",
+   "correct_answer": "have been playing",
+   "replacement_id": "87e1810b-96c6-5987-9a91-aae330bf43b6",
+   "patch": {
+    "question_text": "Present perfect continuous: The kids ____ outside for hours, but now they’re inside."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 87,
+   "original_id": "5ba2c23b-165d-5dfd-b8c0-d0bdc95188da",
+   "original_text": "Use the present perfect continuous to emphasize the duration or repeated activity. Choose the best option: They ____ hard recently, so their results are improving.",
+   "correct_answer": "have been working",
+   "replacement_id": "7eb2d028-9682-528a-911f-0d6d35dcdbb2",
+   "patch": {
+    "question_text": "Present perfect continuous: They ____ hard recently, so their results are improving."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 88,
+   "original_id": "f8350bd1-e0ea-5a14-8f34-6f64620d93b4",
+   "original_text": "Use the present perfect continuous to emphasize the duration or repeated activity. Choose the correct form: How long ____ you ____ here?",
+   "correct_answer": "have / been living",
+   "replacement_id": "78c49f15-6217-5fb8-b443-ced6437f2c65",
+   "patch": {
+    "question_text": "Present perfect continuous: How long ____ you ____ here?"
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 89,
+   "original_id": "20148ee9-9f34-5fcd-b68f-3d6a3869a2bc",
+   "original_text": "Use the present perfect continuous to emphasize the duration or repeated activity. Choose the correct form: She ____ on this project since Monday.",
+   "correct_answer": "has been working",
+   "replacement_id": "26808d82-6437-5a4b-bc9a-8a5e0adfeb62",
+   "patch": {
+    "question_text": "Present perfect continuous: She ____ on this project since Monday."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 90,
+   "original_id": "4329c471-f0cc-51b9-b842-09f1f1787bae",
+   "original_text": "Use the formal object relative pronoun for a person: The woman ___ we met yesterday is my neighbour.",
+   "correct_answer": "whom",
+   "replacement_id": "3db3bf89-bf3f-5167-be4c-70d4842d97ec",
+   "patch": {
+    "question_text": "Formal English: The woman ___ we met yesterday is my neighbour."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 91,
+   "original_id": "a88185e2-8393-53e1-9e98-449b2ff7b6b3",
+   "original_text": "Use standard tense backshift. Report the statement later, from a different place, changing time, place and speaker references where needed. Choose the correct place change: She said, 'I will meet you here.'",
+   "correct_answer": "She said that she would meet me there.",
+   "replacement_id": "09fabde4-7440-597b-a723-bade40e4a398",
+   "patch": {
+    "question_text": "Report it later, from a different place: She said, 'I will meet you here.'"
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 92,
+   "original_id": "57dd2a40-6816-5111-b7ea-77b8b6a3b9fa",
+   "original_text": "Use standard tense backshift. Report the statement later, from a different place, changing time, place and speaker references where needed. Choose the correct pronoun change: Emma said, 'My brother is a doctor.'",
+   "correct_answer": "Emma said that her brother was a doctor.",
+   "replacement_id": "f8d845f7-b929-500a-8f9c-be05000660e2",
+   "patch": {
+    "question_text": "Report it (with backshift): Emma said, 'My brother is a doctor.'"
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 93,
+   "original_id": "78d879b6-ad92-5829-86e4-7bf6b7ebc80c",
+   "original_text": "Use standard tense backshift. Report the statement later, from a different place, changing time, place and speaker references where needed. Choose the correct reported form: 'We have been waiting for an hour,' they said.",
+   "correct_answer": "They said that they had been waiting for an hour.",
+   "replacement_id": "2e0cea01-6495-55ea-ad75-1216958872c2",
+   "patch": {
+    "question_text": "Report it (with backshift): 'We have been waiting for an hour,' they said."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 94,
+   "original_id": "5c6a90ba-120b-5991-a26c-154c6fc3bccf",
+   "original_text": "Use standard tense backshift. Report the statement later, from a different place, changing time, place and speaker references where needed. Choose the correct reported form: He said, 'I will call you.'",
+   "correct_answer": "He said that he would call me.",
+   "replacement_id": "5e867333-fe6e-5ea8-9d1b-343693e1a003",
+   "patch": {
+    "question_text": "Report it (with backshift): He said, 'I will call you.'"
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 95,
+   "original_id": "07bb74d1-c762-5080-bffa-ffb15b16570a",
+   "original_text": "Use standard tense backshift. Report the statement later, from a different place, changing time, place and speaker references where needed. Choose the correct reported sentence: 'I am reading a novel,' she said.",
+   "correct_answer": "She said that she was reading a novel.",
+   "replacement_id": "851ac3ed-9021-58f1-aff9-ef1ad16a2d8a",
+   "patch": {
+    "question_text": "Report it (with backshift): 'I am reading a novel,' she said."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 96,
+   "original_id": "c3e07d5d-c4c8-5a07-a1c6-58c8047db711",
+   "original_text": "Use standard tense backshift. Report the statement later, from a different place, changing time, place and speaker references where needed. Choose the correct reported sentence: Lina said, 'I have finished my homework.'",
+   "correct_answer": "Lina said that she had finished her homework.",
+   "replacement_id": "18c733da-ceaf-57d0-ab89-2b8a1f768bbe",
+   "patch": {
+    "question_text": "Report it (with backshift): Lina said, 'I have finished my homework.'"
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 97,
+   "original_id": "4f1560da-cd39-53cd-ab00-f5b0cbd7814b",
+   "original_text": "Use standard tense backshift. Report the statement later, from a different place, changing time, place and speaker references where needed. Choose the correct reported sentence: Sara said, 'I can swim.'",
+   "correct_answer": "Sara said that she could swim.",
+   "replacement_id": "2842667a-fc77-5d1e-a16b-aa9145351bcb",
+   "patch": {
+    "question_text": "Report it (with backshift): Sara said, 'I can swim.'"
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 98,
+   "original_id": "d2fafd1a-5edf-5e9a-90e1-16add4577098",
+   "original_text": "Use standard tense backshift. Report the statement later, from a different place, changing time, place and speaker references where needed. Choose the correct reported sentence: Tom said, 'I am tired.'",
+   "correct_answer": "Tom said that he was tired.",
+   "replacement_id": "9f7adb0f-b854-5cc0-a59c-b90df758ac6f",
+   "patch": {
+    "question_text": "Report it (with backshift): Tom said, 'I am tired.'"
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 99,
+   "original_id": "9921f04b-e60e-5967-b43e-0e79c83e4fbc",
+   "original_text": "Use standard tense backshift. Report the statement later, from a different place, changing time, place and speaker references where needed. Choose the correct sentence.",
+   "correct_answer": "They said that they were happy.",
+   "replacement_id": "23e8dd17-eb2c-5d25-955b-06eab5b6ab4b",
+   "patch": {
+    "question_text": "Choose the correct reported sentence (with backshift)."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 100,
+   "original_id": "9e9bb914-44a1-54a7-be59-04c24a0c4898",
+   "original_text": "Use standard tense backshift. Report the statement later, from a different place, changing time, place and speaker references where needed. Choose the correct sentence.",
+   "correct_answer": "He told me that he would send the file the next day.",
+   "replacement_id": "8860bca5-2eef-5ef2-8cfb-aa684139e6c5",
+   "patch": {
+    "question_text": "Choose the correct reported sentence (with backshift)."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 101,
+   "original_id": "0ce99cdd-916b-589b-a47d-defc363b27c3",
+   "original_text": "Use standard tense backshift. Report the statement later, from a different place, changing time, place and speaker references where needed. Choose the correct sentence.",
+   "correct_answer": "She said that she had lost her keys.",
+   "replacement_id": "15d05fa3-5a27-508c-b2d6-8fe64245b10a",
+   "patch": {
+    "question_text": "Choose the correct reported sentence (with backshift)."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 102,
+   "original_id": "77c4bcc4-4ac0-5dd7-992e-2e3d1eae1f24",
+   "original_text": "Use standard tense backshift. Report the statement later, from a different place, changing time, place and speaker references where needed. Choose the correct sequence: 'I can't come today,' she said.",
+   "correct_answer": "She said that she couldn't come that day.",
+   "replacement_id": "fee188a8-f2f8-53f6-985d-78a29a5fafae",
+   "patch": {
+    "question_text": "Report it the next week: 'I can't come today,' she said."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 103,
+   "original_id": "5c147c0d-375f-5992-a86d-51526cea81b3",
+   "original_text": "Use standard tense backshift. Report the statement later, from a different place, changing time, place and speaker references where needed. Choose the correct time change: He said, 'I saw her yesterday.'",
+   "correct_answer": "He said that he had seen her the day before.",
+   "replacement_id": "b4e45a31-d720-5b81-ab8d-2724b0f2161e",
+   "patch": {
+    "question_text": "Report it a week later: He said, 'I saw her yesterday.'"
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 104,
+   "original_id": "755b7443-2f31-5d2c-8243-08d4e028b69d",
+   "original_text": "Use a passive infinitive, focusing on the thing receiving the action. Choose the best completion: The rules are too complicated ____ in one lesson.",
+   "correct_answer": "to be explained",
+   "replacement_id": "7b707e54-2731-5860-9f34-e672c64ebd3b",
+   "patch": {
+    "question_text": "Passive: The rules are too complicated ____ in one lesson."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 105,
+   "original_id": "044b3158-7051-57df-86f0-cf3e4afed525",
+   "original_text": "Use a passive infinitive, focusing on the thing receiving the action. Choose the correct option: These forms are ready ____.",
+   "correct_answer": "to be signed",
+   "replacement_id": "2c3837ff-542a-5f81-b44a-40f148dfaf71",
+   "patch": {
+    "question_text": "Passive: These forms are ready ____."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 106,
+   "original_id": "c8819d0d-4e05-50af-81f0-1cbe2bbb8faa",
+   "original_text": "Use a passive infinitive, focusing on the thing receiving the action. Complete: These tickets are ready ____.",
+   "correct_answer": "to be printed",
+   "replacement_id": "01d03198-17f3-5c02-8575-30f34c5d473c",
+   "patch": {
+    "question_text": "Passive: These tickets are ready ____."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 107,
+   "original_id": "07b6ec9b-5a94-5aed-b221-95924afe2551",
+   "original_text": "Use might to express an uncertain unreal past result: If they had taken a taxi, they ____ the flight.",
+   "correct_answer": "might not have missed",
+   "replacement_id": "d3e414f9-2c5e-5a52-95e7-77ac3d52573c",
+   "patch": {
+    "question_text": "Third conditional with might: If they had taken a taxi, they ____ the flight."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 108,
+   "original_id": "a442be6d-99d0-56a7-aec3-9d0809437020",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the best completion: If I ____ about the meeting, I would have come.",
+   "correct_answer": "had known",
+   "replacement_id": "551a9cdb-2dc0-547e-9eb1-06c90fd66f8b",
+   "patch": {
+    "question_text": "Third conditional: If I ____ about the meeting, I would have come."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 109,
+   "original_id": "cdb4c947-ac53-53c2-9bee-c6d081c44d7d",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the best completion: If you had told me, I ____ you.",
+   "correct_answer": "would have helped",
+   "replacement_id": "64f74810-85c5-56ad-8a5c-2b789ac1841f",
+   "patch": {
+    "question_text": "Third conditional: If you had told me, I ____ you."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 110,
+   "original_id": "c0db62a0-354e-559c-a2bd-9901a1a3bfa5",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the correct question form.",
+   "correct_answer": "What would you have done if you had seen the accident?",
+   "replacement_id": "e4879e6e-ce94-5cc0-ba2c-056a9fbe9820",
+   "patch": {
+    "question_text": "Choose the correct third conditional question."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 111,
+   "original_id": "59b7aec6-6bd9-569e-a989-81cb96a4e483",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the correct sentence.",
+   "correct_answer": "If he had been more careful, he wouldn't have broken the vase.",
+   "replacement_id": "8025c2ab-2fa2-552d-9bfd-d07469503a34",
+   "patch": {
+    "question_text": "Choose the correct third conditional sentence."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 112,
+   "original_id": "672edd79-dabc-5c8e-9da0-1b3665b46a86",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the correct sentence.",
+   "correct_answer": "If we had booked earlier, we would have got cheaper tickets.",
+   "replacement_id": "849cd05c-78ea-5ab3-b236-92c60c19c631",
+   "patch": {
+    "question_text": "Choose the correct third conditional sentence."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 113,
+   "original_id": "12332815-0072-5cbd-b51c-57c97b10228e",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the correct sentence.",
+   "correct_answer": "If I had woken up earlier, I would have caught the train.",
+   "replacement_id": "70f39088-26fb-53b7-b81d-a4717d8dba78",
+   "patch": {
+    "question_text": "Choose the correct third conditional sentence."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 114,
+   "original_id": "34435ccf-9fda-5394-8c48-15b5c8038172",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the correct sentence.",
+   "correct_answer": "If he had called me, I would have helped him.",
+   "replacement_id": "728dcb5f-50ca-51d8-9f88-e4fde663191d",
+   "patch": {
+    "question_text": "Choose the correct third conditional sentence."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 115,
+   "original_id": "73517ace-007c-5349-aab1-4656f0ab834a",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Complete: If he hadn't forgotten his keys, he ____ outside.",
+   "correct_answer": "wouldn't have waited",
+   "replacement_id": "f9874310-57b9-5843-bdf7-f798fcd6e543",
+   "patch": {
+    "question_text": "Third conditional: If he hadn't forgotten his keys, he ____ outside."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 116,
+   "original_id": "b95347d5-2622-51fa-8f94-52238b7d37cb",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Complete: If she ____ earlier, she would have caught the bus.",
+   "correct_answer": "had left",
+   "replacement_id": "7783c024-cca2-5dfa-9db3-d53820a581df",
+   "patch": {
+    "question_text": "Third conditional: If she ____ earlier, she would have caught the bus."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 117,
+   "original_id": "6b6ee368-3643-5287-8964-eefefe61750e",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Complete: If they had left on time, they ____ late.",
+   "correct_answer": "wouldn't have been",
+   "replacement_id": "45d3d3db-ae73-5edd-be18-0575859a2e69",
+   "patch": {
+    "question_text": "Third conditional: If they had left on time, they ____ late."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 118,
+   "original_id": "70dcdc1a-b9da-5df8-9485-9519657af0a5",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Complete: If we ____ the address, we would have found the place.",
+   "correct_answer": "had known",
+   "replacement_id": "830eabbd-e476-5005-a1fe-603307041826",
+   "patch": {
+    "question_text": "Third conditional: If we ____ the address, we would have found the place."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 119,
+   "original_id": "aa08917e-8133-52ae-8158-844f7c881060",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the correct form.",
+   "correct_answer": "If I had known, I would have helped.",
+   "replacement_id": "3e5da7c3-e475-580e-9da4-755ad25d94ac",
+   "patch": {
+    "question_text": "Choose the correct third conditional sentence."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 120,
+   "original_id": "6e4aedea-bca5-5f35-a4c7-9af47b43b578",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the correct negative sentence.",
+   "correct_answer": "If I hadn't been tired, I would have gone out.",
+   "replacement_id": "bb98c45c-2e17-51f8-9c55-d56f1688aa5a",
+   "patch": {
+    "question_text": "Choose the correct third conditional sentence."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 121,
+   "original_id": "9c3f7896-496c-52b9-804a-49f06afb467d",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the correct question.",
+   "correct_answer": "What would you have done if you had lost your phone?",
+   "replacement_id": "2aca2e10-b2d8-5e90-a523-1c2185a25f39",
+   "patch": {
+    "question_text": "Choose the correct third conditional question."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 122,
+   "original_id": "ba0f6883-1d3c-53d0-877a-244fe64c2d40",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the correct sentence.",
+   "correct_answer": "If I had studied, I would have passed.",
+   "replacement_id": "d575d91b-e406-51d7-9a00-0a4cba240d0e",
+   "patch": {
+    "question_text": "Choose the correct third conditional sentence."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 123,
+   "original_id": "25fdc68a-f1ed-51ba-9b48-419a97b28765",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the correct sentence.",
+   "correct_answer": "If he had practiced, he could have won.",
+   "replacement_id": "b321347a-64f8-53bc-afb7-e82257340ebb",
+   "patch": {
+    "question_text": "Choose the correct third conditional sentence."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 124,
+   "original_id": "a260b6e3-f790-5d58-baac-478a583f2aed",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the correct sentence.",
+   "correct_answer": "If they had left early, they wouldn't have missed the train.",
+   "replacement_id": "8a4e140f-10aa-5fd9-a50f-2dd63e754997",
+   "patch": {
+    "question_text": "Choose the correct third conditional sentence."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 125,
+   "original_id": "777061cf-3cdb-538e-82b9-a98db8ac4e0c",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the correct sentence.",
+   "correct_answer": "If they had listened, they would have understood.",
+   "replacement_id": "b67ad752-5fd2-590c-a05d-32caf019c681",
+   "patch": {
+    "question_text": "Choose the correct third conditional sentence."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 126,
+   "original_id": "7774abdb-8bea-5513-9d80-f66c356fe90c",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the correct sentence.",
+   "correct_answer": "If we had had more time, we would have visited you.",
+   "replacement_id": "d1c19c6a-b490-56fa-a114-492885552a68",
+   "patch": {
+    "question_text": "Choose the correct third conditional sentence."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 127,
+   "original_id": "9b3bfbac-ca84-5b77-acfa-024727e3d311",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the correct sentence.",
+   "correct_answer": "If he had come, we would have started.",
+   "replacement_id": "621d40c5-9001-5695-a899-755b12f42777",
+   "patch": {
+    "question_text": "Choose the correct third conditional sentence."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 128,
+   "original_id": "4412c698-cc0a-5471-b343-e273e50047bf",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Choose the correct sentence.",
+   "correct_answer": "If I had woken up early, I would have been on time.",
+   "replacement_id": "9bbd024a-032d-57bb-899b-0f21db55af6f",
+   "patch": {
+    "question_text": "Choose the correct third conditional sentence."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 129,
+   "original_id": "cd966e05-c3b2-51e4-8821-5babafeb47af",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Complete: If he ____ my message, he would have replied.",
+   "correct_answer": "had seen",
+   "replacement_id": "f159f057-5e59-5ecf-893b-2fef7e40bc37",
+   "patch": {
+    "question_text": "Third conditional: If he ____ my message, he would have replied."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 130,
+   "original_id": "a350716e-f7d7-528e-a1b5-6d11e5d6c7ad",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Complete: If I had had money, I ____ the book.",
+   "correct_answer": "would have bought",
+   "replacement_id": "353b0826-b966-5b7a-aa74-fc7fbe68d699",
+   "patch": {
+    "question_text": "Third conditional: If I had had money, I ____ the book."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 131,
+   "original_id": "e7f5b5fe-0a0e-5b77-9a82-114b842349e0",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Complete: If she ____ earlier, she would have caught the bus.",
+   "correct_answer": "had left",
+   "replacement_id": "a3e33feb-e787-5432-90de-405550841344",
+   "patch": {
+    "question_text": "Third conditional: If she ____ earlier, she would have caught the bus."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 132,
+   "original_id": "3a0806dd-96dc-5ed8-954f-2df738092edf",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Complete: If she had brought an umbrella, she ____ wet.",
+   "correct_answer": "wouldn't have got",
+   "replacement_id": "ee389e51-31e4-545f-88bc-0f35fe594cd5",
+   "patch": {
+    "question_text": "Third conditional: If she had brought an umbrella, she ____ wet."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 133,
+   "original_id": "8e571980-51bf-5fc4-a5eb-4ba59d9a02cb",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Complete: If she had studied, she ____ the exam.",
+   "correct_answer": "would have passed",
+   "replacement_id": "5ca38df4-159b-5f1d-8220-aac3fc9b1e5e",
+   "patch": {
+    "question_text": "Third conditional: If she had studied, she ____ the exam."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 134,
+   "original_id": "a35e9489-02fc-526d-94f7-38b770564c93",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Complete: If she hadn't forgotten the key, we ____ outside.",
+   "correct_answer": "wouldn't have waited",
+   "replacement_id": "3d4dd551-7d94-54f8-914b-99cb7d0af0b7",
+   "patch": {
+    "question_text": "Third conditional: If she hadn't forgotten the key, we ____ outside."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 135,
+   "original_id": "42fec1a8-735d-5045-b7ed-56b2ab9df133",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Complete: If they had called me, I ____ happy.",
+   "correct_answer": "would have been",
+   "replacement_id": "f94db013-4a5d-566e-9184-82abe96cae73",
+   "patch": {
+    "question_text": "Third conditional: If they had called me, I ____ happy."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 136,
+   "original_id": "b87942f7-03b1-5a38-8299-bdeb66db34ad",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Complete: If we ____ a taxi, we would have arrived on time.",
+   "correct_answer": "had taken",
+   "replacement_id": "f3a255bd-9639-5dfc-a3a6-e5d41bd289ea",
+   "patch": {
+    "question_text": "Third conditional: If we ____ a taxi, we would have arrived on time."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 137,
+   "original_id": "97448f38-abd9-5c58-bfe6-e3fc851cdfc8",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Complete: If we had left earlier, we ____ traffic.",
+   "correct_answer": "would have avoided",
+   "replacement_id": "cbce271e-7689-572c-9c41-cfbf7aeece41",
+   "patch": {
+    "question_text": "Third conditional: If we had left earlier, we ____ traffic."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 138,
+   "original_id": "dc2641b0-a031-573e-9726-82aeb7b082a3",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Complete: If you ____ me the truth, I would have believed you.",
+   "correct_answer": "had told",
+   "replacement_id": "116ee0b6-a816-5f59-9930-34577cdbeb47",
+   "patch": {
+    "question_text": "Third conditional: If you ____ me the truth, I would have believed you."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  },
+  {
+   "n": 139,
+   "original_id": "4e9d14da-be82-58b2-aaee-63e99790480a",
+   "original_text": "Use the third conditional to describe an unreal past condition and its past result. Complete: If you had asked, I ____ you.",
+   "correct_answer": "would have helped",
+   "replacement_id": "30605ac9-a6f3-501d-86eb-d0aa64e1e601",
+   "patch": {
+    "question_text": "Third conditional: If you had asked, I ____ you."
+   },
+   "reason": "STEM_LENGTH_SHORT_CUE"
+  }
+ ],
+ "assets": [
+  {
+   "question_id": "d1827e63-1289-54e2-a9bb-d0a5549bbdf1",
+   "path": "public/question-assets/2026-11-13/stem-keys.92e77a77b335.svg",
+   "sha256": "92e77a77b335fd06b32136c9622ee0f53ee15e6e14c896068ac8a59203ac7f2c",
+   "url": "https://www.brainsheist.com/question-assets/2026-11-13/stem-keys.92e77a77b335.svg",
+   "alt": "A set of keys lying on top of a wooden desk."
+  },
+  {
+   "question_id": "9f1484ec-367c-55fc-a670-68202dc3ecaa",
+   "path": "public/question-assets/2026-11-13/stem-pencils.f6e8bae8a6ac.svg",
+   "sha256": "f6e8bae8a6ac22fdea2e01a976c9d23a21bc0cdb257e61cb4d567d01c1f025cb",
+   "url": "https://www.brainsheist.com/question-assets/2026-11-13/stem-pencils.f6e8bae8a6ac.svg",
+   "alt": "Three pencils standing inside an open cardboard box."
+  },
+  {
+   "question_id": "bfc8d37e-c8ed-521e-ad31-67379c71f151",
+   "path": "public/question-assets/2026-11-13/stem-seat.c673fef9e7f9.svg",
+   "sha256": "c673fef9e7f9c66c21e6c2a2ff29ef35129f176e64973391fef323be7a417961",
+   "url": "https://www.brainsheist.com/question-assets/2026-11-13/stem-seat.c673fef9e7f9.svg",
+   "alt": "A chair standing next to a tall window that reaches the floor."
+  }
+ ]
+}

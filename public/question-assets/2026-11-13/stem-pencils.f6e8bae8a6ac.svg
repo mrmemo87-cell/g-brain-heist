@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img"><title>Three pencils standing inside an open cardboard box</title>
+<rect width="640" height="360" fill="#F4F7FB"/>
+<rect x="0" y="300" width="640" height="60" fill="#E3E8EF"/>
+<path d="M200 170 L240 130 L470 130 L430 170 Z" fill="#8A6538"/>
+<g transform="translate(262 92)"><rect width="18" height="150" fill="#E5533D"/><path d="M0 0 L9 -26 L18 0 Z" fill="#F2D2A9"/><path d="M6 -17 L9 -26 L12 -17 Z" fill="#333"/></g>
+<g transform="translate(306 72)"><rect width="18" height="170" fill="#2E7BD6"/><path d="M0 0 L9 -26 L18 0 Z" fill="#F2D2A9"/><path d="M6 -17 L9 -26 L12 -17 Z" fill="#333"/></g>
+<g transform="translate(350 100)"><rect width="18" height="150" fill="#2FA36B"/><path d="M0 0 L9 -26 L18 0 Z" fill="#F2D2A9"/><path d="M6 -17 L9 -26 L12 -17 Z" fill="#333"/></g>
+<rect x="200" y="170" width="230" height="130" fill="#D8B27D"/>
+<path d="M430 170 L470 130 L470 260 L430 300 Z" fill="#BE965F"/>
+<path d="M200 170 L430 170 L470 130" fill="none" stroke="#A9834E" stroke-width="3"/>
+<rect x="290" y="200" width="50" height="10" rx="3" fill="#C9A06A"/>
+</svg>
