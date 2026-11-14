@@ -3,12 +3,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import gsap from 'gsap';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
-import { getCurrentWeeklyPlan, getStudentGenrePathStatuses, getWritingHydrationStatus, getWritingPersistenceStatus, getMonthlyWritingReport, requestWritingAiAssist, persistInitialWritingRichFeedback, ensureWritingHydrationForStudent, retryWritingHydration, subscribeToWritingPersistenceStatus, subscribeToWritingHydrationStatus, getStudentWritingState, getStudentWritingHubSnapshot, listStudentWritingHistoryByGenre, getSmartWritingPromptForStudent, getTodayWritingTask, getWeeklyWritingReview, submitDailyWritingPractice, submitInitialWritingAssessment, recordWritingIntegrityVoid, } from '../../lib/brains_heist/writingIntegrationService.js';
+import { getCurrentWeeklyPlan, getStudentGenrePathStatuses, getWritingHydrationStatus, getWritingPersistenceStatus, getMonthlyWritingReport, requestWritingAiAssist, persistInitialWritingRichFeedback, ensureWritingHydrationForStudent, retryWritingHydration, subscribeToWritingPersistenceStatus, subscribeToWritingHydrationStatus, getStudentWritingState, getStudentWritingHubSnapshot, listStudentWritingHistoryByGenre, getSmartWritingPromptForStudent, getTodayWritingTask, getWeeklyWritingReview, submitDailyWritingPractice, submitInitialWritingAssessment, loadWritingDraftFromServer, saveWritingDraftToServer, } from '../../lib/brains_heist/writingIntegrationService.js';
 import { FALLBACK_PROMPT_BY_GENRE, WEAKNESS_TAG_TO_MISSION_CATEGORY } from '../../lib/brains_heist/writingPromptProgression.js';
 import { assessWritingExam } from '../../lib/brains_heist/writingAssessment.js';
 import { normalizeAuthoritativeWritingAssessment } from '../../lib/brains_heist/writingAssessmentAuthority.js';
 import { createWritingCompositionTelemetry, finalizeWritingCompositionTelemetry, recordWritingFocusLoss, recordWritingInput, recordWritingPaste, recordWritingVisibilityHidden, toWritingIntegrityModeLabel, toWritingIntegrityReviewLabel, } from '../../lib/brains_heist/writingIntegrity.js';
 import { getCambridgeWritingProfile, getCambridgeWritingTaskLabel } from '../../lib/brains_heist/cambridgeWritingProfiles.js';
+import { selectPriorityWritingFixes } from '../../lib/brains_heist/writingPriorityFixes.js';
 import { quest_get_missions } from '../../../services/gameService.js';
 import { getAcademicReportingContext } from '../../../services/academicReportingService.js';
 gsap.registerPlugin(DrawSVGPlugin);
@@ -509,9 +510,9 @@ export const buildValidatedWritingFixes = (text, ai) => {
     if (!text || !ai)
         return [];
     const candidates = [
-        ...(ai.grammar_fixes ?? []).map((item) => ({ kind: 'grammar', original: item.original, betterVersion: item.better_version, explanation: item.issue, providerStart: item.start_char, providerEnd: item.end_char })),
-        ...(ai.punctuation_fixes ?? []).map((item) => ({ kind: 'punctuation', original: item.original, betterVersion: item.better_version, explanation: item.issue, providerStart: item.start_char, providerEnd: item.end_char })),
-        ...(ai.natural_phrase_upgrades ?? []).map((item) => ({ kind: 'phrase', original: item.original, betterVersion: item.better_version, explanation: item.why_it_helps, providerStart: item.start_char, providerEnd: item.end_char })),
+        ...(ai.grammar_fixes ?? []).map((item) => ({ kind: 'grammar', original: item.original, betterVersion: item.better_version, explanation: item.issue, providerStart: item.start_char, providerEnd: item.end_char, weaknessTag: item.weakness_tag })),
+        ...(ai.punctuation_fixes ?? []).map((item) => ({ kind: 'punctuation', original: item.original, betterVersion: item.better_version, explanation: item.issue, providerStart: item.start_char, providerEnd: item.end_char, weaknessTag: item.weakness_tag })),
+        ...(ai.natural_phrase_upgrades ?? []).map((item) => ({ kind: 'phrase', original: item.original, betterVersion: item.better_version, explanation: item.why_it_helps, providerStart: item.start_char, providerEnd: item.end_char, weaknessTag: item.weakness_tag })),
         ...(ai.style_tone_feedback ?? []).map((item) => ({ kind: 'style', original: item.evidence, betterVersion: item.suggestion, explanation: item.issue })),
     ];
     const seen = new Set();
@@ -3449,7 +3450,12 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
     const [compositionTelemetry, setCompositionTelemetry] = useState(() => createWritingCompositionTelemetry('formal', null, initialProfile.time_limit_seconds));
     const [latestIntegritySignals, setLatestIntegritySignals] = useState(null);
     const [revisionOriginText, setRevisionOriginText] = useState('');
+    // Second-draft session: the first draft stays in the editor and its feedback stays visible while the student improves it.
+    const [revisionSession, setRevisionSession] = useState(null);
+    const [draftComparison, setDraftComparison] = useState(null);
     const [promptHistoryCount, setPromptHistoryCount] = useState(0);
+    // Set when the teacher gave this task to the student's whole class.
+    const [classTask, setClassTask] = useState(null);
     const [availablePromptCount, setAvailablePromptCount] = useState(1);
     const [targetWordCount, setTargetWordCount] = useState(() => defaultWritingTarget(grade));
     const [minimumWordCount, setMinimumWordCount] = useState(initialProfile.minimum_word_count);
@@ -3563,6 +3569,8 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         setLastRetryKind('new_prompt');
         setLatestIntegritySignals(null);
         setRevisionOriginText('');
+        setRevisionSession(null);
+        setDraftComparison(null);
         setCompositionTelemetry(createWritingCompositionTelemetry('formal', null, profile.time_limit_seconds));
     }, [genre, grade]);
     useEffect(() => {
@@ -3633,6 +3641,78 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         }, 500);
         return () => window.clearTimeout(timer);
     }, [draft, draftStorageKey]);
+    // The draft is also kept in the student's account, so a failed or changed device does not lose the work.
+    const remainingSecondsRef = useRef(remainingSeconds);
+    remainingSecondsRef.current = remainingSeconds;
+    const tabChangeCountRef = useRef(0);
+    tabChangeCountRef.current = compositionTelemetry.tab_change_count ?? 0;
+    const serverDraftReadyRef = useRef('');
+    const draftRef = useRef(draft);
+    draftRef.current = draft;
+    const [draftSavedAt, setDraftSavedAt] = useState(null);
+    useEffect(() => {
+        if (!promptId || !wizardOpen)
+            return;
+        let cancelled = false;
+        serverDraftReadyRef.current = '';
+        setDraftSavedAt(null);
+        void loadWritingDraftFromServer(promptId).then((result) => {
+            if (cancelled)
+                return;
+            const saved = result.ok ? result.data : null;
+            if (saved) {
+                // Text already in this browser is at least as new as the account copy, so it wins.
+                const restored = !draftRef.current.trim();
+                if (restored)
+                    setDraft(saved.draft);
+                if (saved.remaining_seconds != null) {
+                    const savedSeconds = saved.remaining_seconds;
+                    setRemainingSeconds((current) => Math.min(current, savedSeconds));
+                }
+                if (saved.tab_change_count > 0) {
+                    setCompositionTelemetry((current) => ({
+                        ...current,
+                        // Tab changes are only recorded now, so the teacher sees the full count across refreshes and devices.
+                        tab_change_count: Math.max(current.tab_change_count ?? 0, saved.tab_change_count),
+                    }));
+                }
+                if (restored)
+                    setNotice('Your saved draft is back. Keep going from where you stopped.');
+            }
+            serverDraftReadyRef.current = promptId;
+        });
+        return () => { cancelled = true; };
+    }, [promptId, wizardOpen]);
+    useEffect(() => {
+        if (!promptId || !wizardOpen || assessment)
+            return;
+        // Wait for the saved draft to load first, so an empty editor never erases it.
+        if (serverDraftReadyRef.current !== promptId || !draft.trim())
+            return;
+        const timer = window.setTimeout(() => {
+            // An attempt that is being archived is cleared from the account; a late save must not bring it back.
+            if (voidingAttemptRef.current)
+                return;
+            void saveWritingDraftToServer({
+                prompt_id: promptId,
+                genre: activeGenre,
+                draft,
+                remaining_seconds: revisionSession ? null : remainingSecondsRef.current,
+                tab_change_count: tabChangeCountRef.current,
+            }).then((result) => {
+                if (result.ok && result.data?.saved) {
+                    setDraftSavedAt(new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }));
+                }
+            });
+        }, 3000);
+        return () => window.clearTimeout(timer);
+    }, [draft, promptId, wizardOpen, assessment, activeGenre, revisionSession]);
+    const clearServerDraft = (taskId) => {
+        if (!taskId)
+            return;
+        setDraftSavedAt(null);
+        void saveWritingDraftToServer({ prompt_id: taskId, genre: activeGenre, draft: '', remaining_seconds: null, tab_change_count: 0 });
+    };
     useEffect(() => {
         if (typeof window === 'undefined')
             return;
@@ -3646,9 +3726,23 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [draft]);
     const beginRetrySamePrompt = () => {
-        setRevisionOriginText(submittedText || draft);
+        const firstDraft = submittedText || draft;
+        setRevisionOriginText(firstDraft);
+        setRevisionSession({
+            text: firstDraft,
+            feedback: aiFeedback,
+            totalScore: assessment?.total_score ?? null,
+            subscores: {
+                content: assessment?.subscores.content ?? null,
+                language: assessment?.subscores.language ?? null,
+                organisation: assessment?.subscores.organisation ?? null,
+                communicative_achievement: assessment?.subscores.communicative_achievement ?? null,
+            },
+        });
+        setDraftComparison(null);
         setLastRetryKind('same_prompt');
-        setDraft('');
+        // Improving a draft means editing it, not writing it again from memory.
+        setDraft(firstDraft);
         setAssessment(null);
         setAiFeedback(null);
         setSubmittedText('');
@@ -3659,8 +3753,9 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         setShowFullEssayContext(false);
         setLatestIntegritySignals(null);
         setRemainingSeconds(timeLimitSeconds);
-        setCompositionTelemetry(createWritingCompositionTelemetry('formal', lastAttemptId, timeLimitSeconds));
-        setNotice('Retry this prompt: write an improved version, then submit.');
+        setCompositionTelemetry(createWritingCompositionTelemetry('formal', lastAttemptId, null));
+        setError('');
+        setNotice('Second draft: your first draft is in the editor. Make your changes, then submit. There is no time limit.');
         setTimeout(() => responseFieldRef.current?.focus(), 0);
     };
     const loadFreshPrompt = async (genreOverride, force = false) => {
@@ -3674,8 +3769,8 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         setError('');
         setNotice(hasPromptRotation ? 'Loading a new prompt…' : 'Checking for a different prompt…');
         try {
-            const nextGenre = genreOverride ?? activeGenre;
-            const fallbackProfile = getCambridgeWritingProfile(grade, nextGenre);
+            let nextGenre = genreOverride ?? activeGenre;
+            let fallbackProfile = getCambridgeWritingProfile(grade, nextGenre);
             if (nextGenre !== activeGenre)
                 setActiveGenre(nextGenre);
             const stateRes = getStudentWritingState(studentId, nextGenre);
@@ -3691,6 +3786,15 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
                 weakness_tags: weaknessTags,
                 use_ai_polish: true,
             });
+            const assignedTask = nextPrompt.ok ? nextPrompt.data?.assignment ?? null : null;
+            if (assignedTask && nextPrompt.data && nextPrompt.data.genre !== nextGenre) {
+                // The teacher's class task decides the genre. Mark this genre as loaded so the genre effect does not reload it.
+                nextGenre = nextPrompt.data.genre;
+                fallbackProfile = getCambridgeWritingProfile(grade, nextGenre);
+                managedPromptLoadKeyRef.current = `${studentId}:${nextGenre}`;
+                setActiveGenre(nextGenre);
+            }
+            setClassTask(assignedTask ? { class_name: assignedTask.class_name, closes_at: assignedTask.closes_at } : null);
             let resolvedPrompt = defaultPromptByGenre[nextGenre];
             let resolvedPromptId = null;
             if (nextPrompt.ok && nextPrompt.data?.prompt_text?.trim()) {
@@ -3718,7 +3822,10 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
                 && resolvedPromptId
                 && previousPromptId === resolvedPromptId);
             const samePromptText = normalizePromptForComparison(resolvedPrompt) === normalizePromptForComparison(previousPrompt);
-            if (samePromptIdentity || samePromptText) {
+            if (assignedTask) {
+                setNotice(`Your teacher set this task for ${assignedTask.class_name}. Write and submit it. Other tasks open after you submit.`);
+            }
+            else if (samePromptIdentity || samePromptText) {
                 setNotice(hasPromptRotation
                     ? 'This is still the same task, so it has not been labelled as a new prompt. Choose New prompt again or retry it.'
                     : `Only one active ${toGenreLabel(nextGenre).toLowerCase()} prompt is enabled, so New prompt keeps the same task.`);
@@ -3740,6 +3847,8 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
             setLastAttemptId(null);
             setLastRetryKind('new_prompt');
             setRevisionOriginText('');
+            setRevisionSession(null);
+            setDraftComparison(null);
             setLatestIntegritySignals(null);
             setCompositionTelemetry(createWritingCompositionTelemetry('formal', null, nextPrompt.data?.time_limit_seconds ?? fallbackProfile.time_limit_seconds));
             setShowPromptChooser(false);
@@ -3753,64 +3862,42 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
             setBusy(false);
         }
     };
-    const preserveVoidedAttemptAndRotate = async (reason, signals) => {
-        if (voidingAttemptRef.current || assessment)
-            return;
-        voidingAttemptRef.current = true;
-        setBusy(true);
-        const finalSignals = finalizeWritingCompositionTelemetry({ ...signals, prompt_restart_count: signals.prompt_restart_count + 1 }, draft);
-        const recorded = await recordWritingIntegrityVoid({
-            attempt_key: createWritingAttemptKey(), prompt_id: promptId, prompt_text: promptText,
-            grade, genre: activeGenre, draft_snapshot: draft, integrity_signals: finalSignals, reason,
-        });
-        if (!recorded.ok) {
-            setError(`${recorded.error ?? 'The interrupted attempt could not be archived.'} Your text has been kept; ask a teacher for help.`);
-            setBusy(false);
-            voidingAttemptRef.current = false;
-            return;
-        }
-        if (typeof window !== 'undefined')
-            window.localStorage.removeItem(draftStorageKey);
-        setDraft('');
-        setLatestIntegritySignals(finalSignals);
-        setNotice(reason === 'second_tab_change'
-            ? 'The second tab change ended and archived that attempt. A completely fresh prompt is being issued.'
-            : 'Time expired. The attempt was archived and a fresh prompt is being issued.');
-        setBusy(false);
-        await loadFreshPrompt(activeGenre, true);
-        voidingAttemptRef.current = false;
-    };
     useEffect(() => {
         if (typeof document === 'undefined')
             return;
         const handleVisibility = () => {
             if (document.visibilityState !== 'hidden' || !wizardOpen || !promptId || assessment || voidingAttemptRef.current)
                 return;
+            // Once the student has pressed Submit the writing is finished: leaving the tab while it is being marked must
+            // never archive the attempt. An empty editor has nothing to protect either.
+            if (busy || !draft.trim())
+                return;
             setCompositionTelemetry((current) => {
                 const next = recordWritingVisibilityHidden(current);
-                if (next.tab_change_count === 1) {
-                    setNotice('Warning: you left the assessment tab. A second tab change will archive this attempt, clear the editor, and issue a fresh prompt.');
-                }
-                else if (next.tab_change_count >= 2) {
-                    void preserveVoidedAttemptAndRotate('second_tab_change', next);
-                }
+                // Rule set by the school (13 Nov 2026): record every tab change for the teacher, never clear the student's text.
+                setNotice(next.tab_change_count === 1
+                    ? 'You left the writing tab. This is recorded for your teacher. Stay on this page while you write.'
+                    : `You have left the writing tab ${next.tab_change_count} times. Each time is recorded for your teacher. Your writing is still here.`);
                 return next;
             });
         };
         document.addEventListener('visibilitychange', handleVisibility);
         return () => document.removeEventListener('visibilitychange', handleVisibility);
-    }, [assessment, draft, promptId, promptText, activeGenre, wizardOpen]);
+    }, [assessment, draft, promptId, promptText, activeGenre, wizardOpen, revisionSession, busy]);
     useEffect(() => {
-        if (!wizardOpen || !promptId || assessment || voidingAttemptRef.current)
+        if (!wizardOpen || !promptId || assessment || revisionSession || voidingAttemptRef.current)
             return;
         const timer = window.setInterval(() => setRemainingSeconds((current) => Math.max(0, current - 1)), 1000);
         return () => window.clearInterval(timer);
-    }, [assessment, promptId, wizardOpen]);
+    }, [assessment, promptId, wizardOpen, revisionSession]);
     useEffect(() => {
-        if (remainingSeconds !== 0 || !wizardOpen || !promptId || assessment || voidingAttemptRef.current)
+        if (remainingSeconds !== 0 || !wizardOpen || !promptId || assessment || revisionSession || voidingAttemptRef.current)
             return;
-        void preserveVoidedAttemptAndRotate('time_expired', compositionTelemetry);
-    }, [remainingSeconds, assessment, wizardOpen, promptId]);
+        // The writing is kept when time runs out. The time spent is recorded with the submission for the teacher.
+        setNotice(draft.trim()
+            ? 'Time is up. Your writing is still here: finish your last sentence and submit now. Your teacher can see the time you took.'
+            : 'Time is up. You can still write and submit. Your teacher can see the time you took.');
+    }, [remainingSeconds, assessment, wizardOpen, promptId, revisionSession]);
     useEffect(() => {
         if (!studentHistoryReady)
             return;
@@ -3823,6 +3910,10 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
     const submitAttempt = async (retryKind) => {
         if (!draft.trim()) {
             setError('Please write your response before submitting.');
+            return;
+        }
+        if (retryKind === 'same_prompt' && revisionSession && draft.trim() === revisionSession.text.trim()) {
+            setError('This is still your first draft. Change at least one thing from the feedback, then submit.');
             return;
         }
         setBusy(true);
@@ -3911,10 +4002,17 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
         setRevisionCycleId(currentCycleId);
         setAttemptNumber(currentAttemptNumber + 1);
         setLastRetryKind(retryKind);
+        setDraftComparison(retryKind === 'same_prompt' && revisionSession
+            ? { totalScore: revisionSession.totalScore, subscores: revisionSession.subscores }
+            : null);
+        setRevisionSession(null);
+        // A submitted class task is done; the picker now offers the student's own choice again.
+        setClassTask(null);
         setLatestIntegritySignals(finalizedIntegritySignals);
         if (typeof window !== 'undefined') {
             window.localStorage.removeItem(draftStorageKey);
         }
+        clearServerDraft(promptId);
         setCinematicReplaySource(null);
         setCinematicIndex(null);
         setCinematicDone(false);
@@ -4231,14 +4329,35 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
     }, [showCinematicFeedback, cinematicRanges.length]);
     const strengths = (aiFeedback?.what_is_working ?? aiFeedback?.strengths ?? []).filter(Boolean).slice(0, 4);
     const improvements = (aiFeedback?.what_is_missing ?? aiFeedback?.weaknesses ?? []).filter(Boolean).slice(0, 4);
-    const quickFixes = buildValidatedWritingFixes(submittedText, aiFeedback).map((item) => ({
-        type: item.kind === 'grammar'
-            ? 'Grammar'
-            : item.kind === 'punctuation'
-                ? 'Punctuation'
-                : item.kind === 'style'
-                    ? 'Style & tone'
-                    : 'Better phrasing',
+    const toQuickFixType = (kind) => kind === 'grammar'
+        ? 'Grammar'
+        : kind === 'punctuation'
+            ? 'Punctuation'
+            : kind === 'style'
+                ? 'Style & tone'
+                : 'Better phrasing';
+    // Lead with the few corrections worth acting on first; the complete list stays one tap away.
+    const fixSelection = selectPriorityWritingFixes(buildValidatedWritingFixes(submittedText, aiFeedback), 3);
+    const priorityFixes = fixSelection.priority.map(({ fix, patternCount, patternLabel }) => ({
+        type: toQuickFixType(fix.kind),
+        original: fix.original,
+        betterVersion: fix.betterVersion,
+        explanation: fix.explanation,
+        patternCount,
+        patternLabel,
+    }));
+    const revisionPriorityFixes = revisionSession
+        ? selectPriorityWritingFixes(buildValidatedWritingFixes(revisionSession.text, revisionSession.feedback), 3).priority.map(({ fix, patternCount, patternLabel }) => ({
+            original: fix.original,
+            betterVersion: fix.betterVersion,
+            explanation: fix.explanation,
+            patternCount,
+            patternLabel,
+        }))
+        : [];
+    const formatScoreChange = (delta) => (delta > 0 ? `+${delta}` : delta < 0 ? `−${Math.abs(delta)}` : 'no change');
+    const quickFixes = fixSelection.rest.map((item) => ({
+        type: toQuickFixType(item.kind),
         original: item.original,
         betterVersion: item.betterVersion,
         explanation: item.explanation,
@@ -4322,7 +4441,13 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
                                         color: '#0f172a',
                                         padding: '6px 10px',
                                         cursor: 'pointer',
-                                    }, children: toGenreLabel(item) }, item))) }), _jsx("div", { className: "writing-studio__prompt-copy", children: promptText })] }), _jsxs("section", { "data-testid": "writing-hub-response-section", className: "writing-studio__card writing-studio__response-card", children: [_jsxs("div", { className: "writing-studio__section-heading", children: [_jsxs("div", { children: [_jsx("span", { children: "Step 2" }), _jsx("h3", { children: "Your Response" })] }), _jsxs("span", { style: { color: wordTone.accent }, children: [wordCount, " / ", minimumWordCount, "\u2013", maximumWordCount, " words"] })] }), _jsxs("div", { className: `writing-studio__integrity-mode writing-studio__integrity-mode--${integrityMode}`, children: [_jsxs("div", { children: [_jsx("strong", { children: toWritingIntegrityModeLabel(integrityMode) }), _jsx("span", { children: "Write directly in this editor. Pasting is blocked; tab changes and elapsed time are recorded." })] }), _jsxs("span", { className: "writing-studio__integrity-badge", children: [Math.floor(remainingSeconds / 60), ":", String(remainingSeconds % 60).padStart(2, '0'), " remaining"] })] }), _jsxs("p", { className: "writing-studio__editor-help", children: ["Required range: ", minimumWordCount, "\u2013", maximumWordCount, " words \u00B7 target ", targetWordCount, " words"] }), _jsx("textarea", { ref: responseFieldRef, value: draft, disabled: busy || !promptId, onChange: (event) => {
+                                    }, children: toGenreLabel(item) }, item))) }), classTask && (_jsxs("div", { "data-testid": "writing-hub-class-task", className: "writing-studio__integrity-result", style: { display: 'grid', gap: 2 }, children: [_jsxs("strong", { children: ["Set by your teacher for ", classTask.class_name] }), _jsx("span", { children: Number.isNaN(new Date(classTask.closes_at).getTime())
+                                            ? 'Submit this task to open other tasks.'
+                                            : `Submit it by ${new Date(classTask.closes_at).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}. Other tasks open after you submit.` })] })), _jsx("div", { className: "writing-studio__prompt-copy", children: promptText })] }), _jsxs("section", { "data-testid": "writing-hub-response-section", className: "writing-studio__card writing-studio__response-card", children: [_jsxs("div", { className: "writing-studio__section-heading", children: [_jsxs("div", { children: [_jsx("span", { children: "Step 2" }), _jsx("h3", { children: "Your Response" })] }), _jsxs("span", { style: { color: wordTone.accent }, children: [wordCount, " / ", minimumWordCount, "\u2013", maximumWordCount, " words"] })] }), _jsxs("div", { className: `writing-studio__integrity-mode writing-studio__integrity-mode--${integrityMode}`, children: [_jsxs("div", { children: [_jsx("strong", { children: toWritingIntegrityModeLabel(integrityMode) }), _jsx("span", { children: "Write directly in this editor. Pasting is blocked; tab changes and elapsed time are recorded." })] }), _jsx("span", { className: "writing-studio__integrity-badge", children: revisionSession
+                                            ? 'Second draft · no time limit'
+                                            : remainingSeconds === 0
+                                                ? 'Time is up · submit now'
+                                                : `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, '0')} remaining` })] }), _jsxs("p", { className: "writing-studio__editor-help", children: ["Required range: ", minimumWordCount, "\u2013", maximumWordCount, " words \u00B7 target ", targetWordCount, " words"] }), revisionSession && (_jsxs("div", { "data-testid": "writing-hub-revision-guide", className: "writing-studio__integrity-result", style: { display: 'grid', gap: 8 }, children: [_jsxs("strong", { children: ["Improve your first draft", revisionSession.totalScore != null ? ` (it scored ${revisionSession.totalScore}/20)` : ''] }), revisionPriorityFixes.length > 0 ? (_jsx("ol", { style: { margin: 0, paddingLeft: 22, display: 'grid', gap: 8 }, children: revisionPriorityFixes.map((item, idx) => (_jsxs("li", { style: { lineHeight: 1.5 }, children: [_jsxs("div", { children: [item.original, " \u2192 ", _jsx("strong", { children: item.betterVersion })] }), item.explanation && _jsx("div", { style: { color: '#475569' }, children: simplifyStudentLanguage(item.explanation) }), item.patternCount > 1 && (_jsxs("div", { style: { color: '#b45309', fontSize: 14 }, children: ["Look for ", item.patternCount - 1, " more like this (", item.patternLabel, ")."] }))] }, `rv-${idx}`))) })) : null, (revisionSession.feedback?.next_move || (revisionSession.feedback?.next_steps ?? [])[0]) && (_jsxs("span", { children: [_jsx("strong", { children: "Then:" }), " ", revisionSession.feedback?.next_move || (revisionSession.feedback?.next_steps ?? [])[0]] }))] })), _jsx("textarea", { ref: responseFieldRef, value: draft, disabled: busy || !promptId, onChange: (event) => {
                                     const nextValue = event.target.value;
                                     const ignoredPasteCharacters = pastedCharactersToIgnoreRef.current;
                                     pastedCharactersToIgnoreRef.current = 0;
@@ -4343,7 +4468,13 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
                                     if (!draft.trim())
                                         return;
                                     setCompositionTelemetry((current) => recordWritingFocusLoss(current));
-                                }, placeholder: "Write your response here.", className: "writing-studio__editor", "aria-describedby": "writing-editor-help" }), _jsx("p", { id: "writing-editor-help", className: "writing-studio__editor-help", children: "Your draft saves securely while you work. Accessibility accommodations can be arranged by your teacher." }), isVeryShortDraft && _jsx("p", { className: "writing-studio__gentle-warning", children: "Add a little more detail before submitting so your feedback can be useful." }), _jsxs("div", { style: { display: 'flex', gap: 8, flexWrap: 'wrap' }, children: [_jsx("button", { type: "button", onClick: () => void submitAttempt(lastRetryKind), disabled: busy || !promptId || !draft.trim(), className: "writing-studio__primary-button", children: busy ? 'Analyzing…' : 'Submit formal assessment' }), _jsx("button", { type: "button", onClick: () => void loadFreshPrompt(activeGenre), disabled: busy || Boolean(draft.trim()), className: "writing-studio__secondary-button", children: "Change prompt" })] })] }), assessment && (_jsxs("section", { className: "writing-studio__card writing-studio__feedback-card feedback-result-card", children: [_jsxs("div", { className: "writing-studio__section-heading", children: [_jsxs("div", { children: [_jsx("span", { children: "Step 3" }), _jsx("h3", { children: "Your assessment feedback" })] }), _jsxs("div", { children: [_jsx("span", { className: "writing-studio__score-label", children: "AI assessment \u00B7 teacher review when flagged" }), _jsxs("div", { className: "writing-studio__score", children: [assessment.total_score, _jsx("small", { children: "/20" })] })] })] }), latestIntegritySignals && (_jsxs("div", { className: `writing-studio__integrity-result writing-studio__integrity-result--${latestIntegritySignals.review_status}`, children: [_jsx("strong", { children: toWritingIntegrityReviewLabel(latestIntegritySignals.review_status) }), _jsx("span", { children: latestIntegritySignals.review_status === 'review_recommended'
+                                }, onDrop: (event) => {
+                                    // Text dragged in from another window is outside text, the same as a paste.
+                                    const droppedText = event.dataTransfer?.getData('text') ?? '';
+                                    event.preventDefault();
+                                    setCompositionTelemetry((current) => recordWritingPaste(current, droppedText.length, true));
+                                    setError('Dragging text into the writing box is disabled. The attempt was recorded.');
+                                }, spellCheck: false, autoCorrect: "off", autoCapitalize: "off", autoComplete: "off", "data-gramm": "false", "data-gramm_editor": "false", "data-enable-grammarly": "false", "data-lt-active": "false", placeholder: "Write your response here.", className: "writing-studio__editor", "aria-describedby": "writing-editor-help" }), _jsxs("p", { id: "writing-editor-help", className: "writing-studio__editor-help", children: ["Your draft is saved to your account as you write", draftSavedAt ? ` (last saved ${draftSavedAt})` : '', ". Spelling and grammar helpers are turned off for this task. Accessibility accommodations can be arranged by your teacher."] }), isVeryShortDraft && _jsx("p", { className: "writing-studio__gentle-warning", children: "Add a little more detail before submitting so your feedback can be useful." }), _jsxs("div", { style: { display: 'flex', gap: 8, flexWrap: 'wrap' }, children: [_jsx("button", { type: "button", onClick: () => void submitAttempt(lastRetryKind), disabled: busy || !promptId || !draft.trim(), className: "writing-studio__primary-button", children: busy ? 'Analyzing…' : revisionSession ? 'Submit second draft' : 'Submit formal assessment' }), busy && draft.trim() ? (_jsx("span", { role: "status", style: { alignSelf: 'center', color: '#475569', fontSize: 14 }, children: "Marking can take up to a minute. Your writing is saved. Please wait on this page." })) : null, _jsx("button", { type: "button", onClick: () => void loadFreshPrompt(activeGenre, Boolean(revisionSession)), disabled: busy || (!revisionSession && Boolean(draft.trim())), className: "writing-studio__secondary-button", children: revisionSession ? 'Skip the second draft and get a new task' : 'Change prompt' })] })] }), assessment && (_jsxs("section", { className: "writing-studio__card writing-studio__feedback-card feedback-result-card", children: [_jsxs("div", { className: "writing-studio__section-heading", children: [_jsxs("div", { children: [_jsx("span", { children: "Step 3" }), _jsx("h3", { children: "Your assessment feedback" })] }), _jsxs("div", { children: [_jsx("span", { className: "writing-studio__score-label", children: "AI assessment \u00B7 teacher review when flagged" }), _jsxs("div", { className: "writing-studio__score", children: [assessment.total_score, _jsx("small", { children: "/20" })] })] })] }), latestIntegritySignals && (_jsxs("div", { className: `writing-studio__integrity-result writing-studio__integrity-result--${latestIntegritySignals.review_status}`, children: [_jsx("strong", { children: toWritingIntegrityReviewLabel(latestIntegritySignals.review_status) }), _jsx("span", { children: latestIntegritySignals.review_status === 'review_recommended'
                                             ? 'Your teacher can review the writing-process evidence before using this result.'
                                             : latestIntegritySignals.review_status === 'practice_mode'
                                                 ? 'This result supports learning; it does not verify who wrote the response.'
@@ -4357,7 +4488,13 @@ const WritingHubSimpleLoop = ({ studentId, studentName, grade, genre }) => {
                                     const progress = `${Math.round((safeScore / 5) * 100)}%`;
                                     const barColor = safeScore >= 4 ? '#16a34a' : safeScore >= 3 ? '#ca8a04' : '#dc2626';
                                     return (_jsxs("div", { style: { display: 'grid', gap: 6 }, children: [_jsxs("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 14 }, children: [_jsx("strong", { children: item.label }), _jsx("span", { style: { color: '#475569' }, children: item.value != null ? `${item.value}/5` : '—/5' })] }), _jsx("div", { style: { width: '100%', height: 9, borderRadius: 999, background: '#e2e8f0', overflow: 'hidden' }, children: _jsx("div", { style: { width: progress, height: '100%', borderRadius: 999, background: barColor, transition: 'width 0.45s ease' } }) })] }, item.key));
-                                }) }), _jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: "Task alignment:" }), " ", toAlignmentLabel(aiFeedback?.alignment)] }), aiFeedback?.task_understanding && _jsx("p", { style: { margin: 0 }, children: aiFeedback.task_understanding }), strengths.length > 0 && (_jsxs("div", { children: [_jsx("p", { style: { margin: '0 0 6px' }, children: _jsx("strong", { children: "\u2705 What works well" }) }), _jsx("ul", { style: { margin: 0, paddingLeft: 22 }, children: strengths.map((item, idx) => _jsx("li", { children: simplifyStudentLanguage(item) }, `s-${idx}`)) })] })), improvements.length > 0 && (_jsxs("div", { children: [_jsx("p", { style: { margin: '2px 0 8px' }, children: _jsx("strong", { children: "\u27A1\uFE0F What to improve next" }) }), _jsx("ul", { style: { margin: 0, paddingLeft: 22, display: 'grid', gap: 8 }, children: improvements.map((item, idx) => (_jsx("li", { style: { lineHeight: 1.55 }, children: simplifyStudentLanguage(item) }, `w-${idx}`))) })] })), (currentFocusMemory.length > 0 || currentStrengthMemory.length > 0) && (_jsxs("div", { style: { display: 'grid', gap: 6 }, "aria-label": "Writing learning memory", children: [currentFocusMemory.length > 0 && (_jsxs("p", { style: { margin: 0, color: '#475569', fontSize: 14 }, children: [_jsx("strong", { children: "Focus memory:" }), " ", currentFocusMemory.map(({ tag, count }) => `${tag.replaceAll('_', ' ')}${count > 1 ? ` ×${count}` : ''}`).join(' · ')] })), currentStrengthMemory.length > 0 && (_jsxs("p", { style: { margin: 0, color: '#166534', fontSize: 14 }, children: [_jsx("strong", { children: "Strength memory:" }), " ", currentStrengthMemory.map(({ tag, count }) => `${tag.replace(/^strong_/, '').replaceAll('_', ' ')}${count > 1 ? ` ×${count}` : ''}`).join(' · ')] }))] })), quickFixes.length > 0 && (_jsxs("div", { children: [_jsx("p", { style: { margin: '2px 0 8px' }, children: _jsx("strong", { children: "\u270F\uFE0F Quick fixes" }) }), _jsx("ul", { style: { margin: 0, paddingLeft: 22, display: 'grid', gap: 12 }, children: quickFixes.map((item, idx) => (_jsxs("li", { style: { lineHeight: 1.6 }, children: [_jsx("div", { style: { marginBottom: 4 }, children: _jsx("strong", { children: item.type }) }), _jsxs("div", { children: [item.original, " \u2192 ", _jsx("strong", { children: item.betterVersion })] }), item.explanation && (_jsx("div", { style: { color: '#475569', marginTop: 4 }, children: simplifyStudentLanguage(item.explanation) }))] }, `g-${idx}`))) })] })), _jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: "Next action:" }), " ", aiFeedback?.next_move || (aiFeedback?.next_steps ?? [])[0] || 'Revise one weak sentence and submit again.'] })] }))] }), !wizardOpen && !studentHistoryReady && (_jsxs("section", { className: "writing-studio__card writing-studio__archive", "aria-live": "polite", children: [_jsx("h3", { style: { margin: 0 }, children: "Writing archive" }), _jsx("p", { style: { margin: 0, color: '#475569' }, children: "Loading your saved writing and feedback\u2026" })] })), !wizardOpen && studentHistoryReady && writingHistoryByGenre.ok && (_jsxs("section", { className: "writing-studio__card writing-studio__archive", children: [_jsx("h3", { style: { margin: 0 }, children: isArchivedAcademicYear ? 'Writing archive' : 'Writing this academic year' }), _jsxs("p", { style: { margin: 0, color: '#475569' }, children: [selectedAcademicYear?.name || 'Selected year', " \u00B7 ", isArchivedAcademicYear ? 'Archived · read only, with saved feedback.' : 'Current-year writing and saved feedback.'] }), writingHistoryByGenre.data?.map((genreHistory) => (_jsxs("details", { style: { borderRadius: 8, border: '1px solid #e2e8f0', padding: 10 }, children: [_jsxs("summary", { style: { cursor: 'pointer', fontWeight: 700 }, children: [toGenreLabel(genreHistory.genre), " \u00B7 ", genreHistory.entries.length, " saved ", genreHistory.entries.length === 1 ? 'entry' : 'entries'] }), _jsx("div", { style: { marginTop: 8, display: 'grid', gap: 8 }, children: genreHistory.entries.length === 0 ? (_jsx("p", { style: { margin: 0, color: '#64748b' }, children: "No saved writing for this genre yet." })) : genreHistory.entries.map((entry) => (_jsxs("div", { style: { borderRadius: 8, border: '1px solid #e2e8f0', padding: 10, display: 'grid', gap: 4 }, children: [_jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: toAttemptTypeLabel(entry.attempt_type) }), " \u00B7 ", formatHistoryDate(entry.created_at), " \u00B7 Score ", entry.total_score ?? '--', "/20"] }), entry.total_score != null && (_jsx("div", { style: { height: 8, width: '100%', borderRadius: 999, background: '#e2e8f0', overflow: 'hidden', marginBottom: 4 }, children: _jsx("div", { style: {
+                                }) }), draftComparison && draftComparison.totalScore != null && (_jsxs("div", { "data-testid": "writing-hub-draft-comparison", className: "writing-studio__integrity-result", style: { display: 'grid', gap: 4 }, children: [_jsxs("strong", { children: ["Second draft: ", assessment.total_score, "/20", ' ', "(", formatScoreChange(assessment.total_score - draftComparison.totalScore), " from your first draft)"] }), _jsx("span", { children: rubricScores
+                                            .map((item) => {
+                                            const before = draftComparison.subscores[item.key === 'organization' ? 'organisation' : item.key];
+                                            return before == null || item.value == null ? null : `${item.label} ${formatScoreChange(item.value - before)}`;
+                                        })
+                                            .filter(Boolean)
+                                            .join(' · ') })] })), _jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: "Task alignment:" }), " ", toAlignmentLabel(aiFeedback?.alignment)] }), aiFeedback?.task_understanding && _jsx("p", { style: { margin: 0 }, children: aiFeedback.task_understanding }), strengths.length > 0 && (_jsxs("div", { children: [_jsx("p", { style: { margin: '0 0 6px' }, children: _jsx("strong", { children: "\u2705 What works well" }) }), _jsx("ul", { style: { margin: 0, paddingLeft: 22 }, children: strengths.map((item, idx) => _jsx("li", { children: simplifyStudentLanguage(item) }, `s-${idx}`)) })] })), improvements.length > 0 && (_jsxs("div", { children: [_jsx("p", { style: { margin: '2px 0 8px' }, children: _jsx("strong", { children: "\u27A1\uFE0F What to improve next" }) }), _jsx("ul", { style: { margin: 0, paddingLeft: 22, display: 'grid', gap: 8 }, children: improvements.map((item, idx) => (_jsx("li", { style: { lineHeight: 1.55 }, children: simplifyStudentLanguage(item) }, `w-${idx}`))) })] })), (currentFocusMemory.length > 0 || currentStrengthMemory.length > 0) && (_jsxs("div", { style: { display: 'grid', gap: 6 }, "aria-label": "Writing learning memory", children: [currentFocusMemory.length > 0 && (_jsxs("p", { style: { margin: 0, color: '#475569', fontSize: 14 }, children: [_jsx("strong", { children: "Focus memory:" }), " ", currentFocusMemory.map(({ tag, count }) => `${tag.replaceAll('_', ' ')}${count > 1 ? ` ×${count}` : ''}`).join(' · ')] })), currentStrengthMemory.length > 0 && (_jsxs("p", { style: { margin: 0, color: '#166534', fontSize: 14 }, children: [_jsx("strong", { children: "Strength memory:" }), " ", currentStrengthMemory.map(({ tag, count }) => `${tag.replace(/^strong_/, '').replaceAll('_', ' ')}${count > 1 ? ` ×${count}` : ''}`).join(' · ')] }))] })), priorityFixes.length > 0 && (_jsxs("div", { "data-testid": "writing-hub-priority-fixes", children: [_jsx("p", { style: { margin: '2px 0 4px' }, children: _jsxs("strong", { children: ["\u270F\uFE0F Fix ", priorityFixes.length === 1 ? 'this' : `these ${priorityFixes.length}`, " first"] }) }), _jsx("p", { style: { margin: '0 0 8px', color: '#475569', fontSize: 14 }, children: "Start here. These are the changes that will improve your writing the most." }), _jsx("ol", { style: { margin: 0, paddingLeft: 22, display: 'grid', gap: 12 }, children: priorityFixes.map((item, idx) => (_jsxs("li", { style: { lineHeight: 1.6 }, children: [_jsxs("div", { children: [item.original, " \u2192 ", _jsx("strong", { children: item.betterVersion })] }), item.explanation && (_jsx("div", { style: { color: '#475569', marginTop: 4 }, children: simplifyStudentLanguage(item.explanation) })), item.patternCount > 1 && (_jsxs("div", { style: { color: '#b45309', marginTop: 4, fontSize: 14 }, children: ["You made this kind of mistake (", item.patternLabel, ") ", item.patternCount, " times. Check the others too."] }))] }, `p-${idx}`))) })] })), quickFixes.length > 0 && (_jsxs("details", { "data-testid": "writing-hub-all-fixes", children: [_jsxs("summary", { style: { cursor: 'pointer', fontWeight: 700 }, children: ["See ", quickFixes.length, " more ", quickFixes.length === 1 ? 'correction' : 'corrections'] }), _jsx("ul", { style: { margin: '10px 0 0', paddingLeft: 22, display: 'grid', gap: 12 }, children: quickFixes.map((item, idx) => (_jsxs("li", { style: { lineHeight: 1.6 }, children: [_jsx("div", { style: { marginBottom: 4 }, children: _jsx("strong", { children: item.type }) }), _jsxs("div", { children: [item.original, " \u2192 ", _jsx("strong", { children: item.betterVersion })] }), item.explanation && (_jsx("div", { style: { color: '#475569', marginTop: 4 }, children: simplifyStudentLanguage(item.explanation) }))] }, `g-${idx}`))) })] })), _jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: "Next action:" }), " ", aiFeedback?.next_move || (aiFeedback?.next_steps ?? [])[0] || 'Revise one weak sentence and submit again.'] }), _jsx("div", { children: _jsx("button", { type: "button", "data-testid": "writing-hub-improve-draft", className: "writing-studio__primary-button", disabled: busy, onClick: beginRetrySamePrompt, children: "Improve this draft" }) })] }))] }), !wizardOpen && !studentHistoryReady && (_jsxs("section", { className: "writing-studio__card writing-studio__archive", "aria-live": "polite", children: [_jsx("h3", { style: { margin: 0 }, children: "Writing archive" }), _jsx("p", { style: { margin: 0, color: '#475569' }, children: "Loading your saved writing and feedback\u2026" })] })), !wizardOpen && studentHistoryReady && writingHistoryByGenre.ok && (_jsxs("section", { className: "writing-studio__card writing-studio__archive", children: [_jsx("h3", { style: { margin: 0 }, children: isArchivedAcademicYear ? 'Writing archive' : 'Writing this academic year' }), _jsxs("p", { style: { margin: 0, color: '#475569' }, children: [selectedAcademicYear?.name || 'Selected year', " \u00B7 ", isArchivedAcademicYear ? 'Archived · read only, with saved feedback.' : 'Current-year writing and saved feedback.'] }), writingHistoryByGenre.data?.map((genreHistory) => (_jsxs("details", { style: { borderRadius: 8, border: '1px solid #e2e8f0', padding: 10 }, children: [_jsxs("summary", { style: { cursor: 'pointer', fontWeight: 700 }, children: [toGenreLabel(genreHistory.genre), " \u00B7 ", genreHistory.entries.length, " saved ", genreHistory.entries.length === 1 ? 'entry' : 'entries'] }), _jsx("div", { style: { marginTop: 8, display: 'grid', gap: 8 }, children: genreHistory.entries.length === 0 ? (_jsx("p", { style: { margin: 0, color: '#64748b' }, children: "No saved writing for this genre yet." })) : genreHistory.entries.map((entry) => (_jsxs("div", { style: { borderRadius: 8, border: '1px solid #e2e8f0', padding: 10, display: 'grid', gap: 4 }, children: [_jsxs("p", { style: { margin: 0 }, children: [_jsx("strong", { children: toAttemptTypeLabel(entry.attempt_type) }), " \u00B7 ", formatHistoryDate(entry.created_at), " \u00B7 Score ", entry.total_score ?? '--', "/20"] }), entry.total_score != null && (_jsx("div", { style: { height: 8, width: '100%', borderRadius: 999, background: '#e2e8f0', overflow: 'hidden', marginBottom: 4 }, children: _jsx("div", { style: {
                                                     width: `${Math.max(0, Math.min(100, (entry.total_score / 20) * 100))}%`,
                                                     height: '100%',
                                                     borderRadius: 999,

@@ -1906,10 +1906,24 @@ export const getSmartWritingPromptForStudent = async (input) => {
                 const difficulty = remote?.['difficulty_label'];
                 const focusTags = Array.isArray(remote?.['focus_tags']) ? remote['focus_tags'] : uniqueFocusTargets;
                 const contextTags = Array.isArray(remote?.['context_tags']) ? remote['context_tags'] : [];
+                const remoteGenre = remote?.['genre'];
+                const assignmentRecord = remote?.['assignment'] && typeof remote['assignment'] === 'object'
+                    ? remote['assignment']
+                    : null;
                 return ok({
                     prompt_text: remotePrompt,
                     base_prompt_text: remotePrompt,
-                    genre: input.genre,
+                    // A class task set by the teacher can be in a different genre from the one the student had open.
+                    genre: assignmentRecord && typeof remoteGenre === 'string' && SUPPORTED_WRITING_GENRES.includes(remoteGenre)
+                        ? remoteGenre
+                        : input.genre,
+                    assignment: assignmentRecord && typeof assignmentRecord['assignment_id'] === 'string'
+                        ? {
+                            assignment_id: assignmentRecord['assignment_id'],
+                            class_name: typeof assignmentRecord['class_name'] === 'string' ? assignmentRecord['class_name'] : 'your class',
+                            closes_at: typeof assignmentRecord['closes_at'] === 'string' ? assignmentRecord['closes_at'] : '',
+                        }
+                        : null,
                     prompt_id: typeof remote?.['prompt_id'] === 'string' ? remote['prompt_id'] : null,
                     difficulty_level: difficulty === 'foundational' || difficulty === 'stretch' ? difficulty : 'core',
                     target_word_count: Math.max(15, Math.round(Number(remote?.['target_word_count']) || cambridgeProfile.target_word_count)),
@@ -2551,6 +2565,145 @@ export const getWritingCalibrationMetricsV2 = async (schoolId) => {
     }
     catch (error) {
         return badRequest(error instanceof Error ? error.message : 'Unable to load writing calibration metrics.');
+    }
+};
+const SUPPORTED_WRITING_GENRES = ['email', 'article', 'review', 'story', 'essay', 'report', 'paragraph'];
+/** Teacher: tasks that can be set for one class and genre, plus the class's current task and its progress. */
+export const getWritingClassTaskOptions = async (input) => {
+    try {
+        const { supabase } = await import('../../../services/supabaseClient.js');
+        const { data, error } = await supabase.rpc('rpc_bh_writing_class_task_options', {
+            p_scope_id: input.scope_id,
+            p_genre: input.genre,
+        });
+        if (error || !data || typeof data !== 'object')
+            return badRequest(error?.message ?? 'Unable to load tasks for this class.');
+        const record = data;
+        return ok({
+            scope_id: String(record['scope_id'] ?? input.scope_id),
+            class_name: typeof record['class_name'] === 'string' ? record['class_name'] : 'Class',
+            grade: Number.isInteger(record['grade']) ? Number(record['grade']) : null,
+            roster_student_count: Number(record['roster_student_count']) || 0,
+            tasks: Array.isArray(record['tasks']) ? record['tasks'] : [],
+            current: record['current'] && typeof record['current'] === 'object'
+                ? record['current']
+                : null,
+        });
+    }
+    catch (error) {
+        return badRequest(error instanceof Error ? error.message : 'Unable to load tasks for this class.');
+    }
+};
+/** Teacher: write a new task for this class. It keeps the grade's standard word limits, timing and marking criteria. */
+export const createWritingClassTask = async (input) => {
+    try {
+        const { supabase } = await import('../../../services/supabaseClient.js');
+        const { data, error } = await supabase.rpc('rpc_bh_writing_create_class_task', {
+            p_scope_id: input.scope_id,
+            p_genre: input.genre,
+            p_title: input.title,
+            p_situation: input.situation,
+            p_reader: input.reader,
+            p_points: input.points,
+        });
+        if (error || !data || typeof data !== 'object')
+            return badRequest(error?.message ?? 'Unable to save the task.');
+        return ok(data);
+    }
+    catch (error) {
+        return badRequest(error instanceof Error ? error.message : 'Unable to save the task.');
+    }
+};
+/** Teacher: set one task for every student in the class. Replaces a task that is still open. */
+export const assignWritingClassTask = async (input) => {
+    try {
+        const { supabase } = await import('../../../services/supabaseClient.js');
+        const { data, error } = await supabase.rpc('rpc_bh_writing_assign_class_task', {
+            p_scope_id: input.scope_id,
+            p_prompt_id: input.prompt_id,
+            p_days: input.days,
+        });
+        if (error || !data || typeof data !== 'object')
+            return badRequest(error?.message ?? 'Unable to set the class task.');
+        const record = data;
+        return ok({
+            assignment_id: String(record['assignment_id'] ?? ''),
+            student_count: Number(record['student_count']) || 0,
+            skipped_count: Number(record['skipped_count']) || 0,
+            closes_at: typeof record['closes_at'] === 'string' ? record['closes_at'] : '',
+        });
+    }
+    catch (error) {
+        return badRequest(error instanceof Error ? error.message : 'Unable to set the class task.');
+    }
+};
+/** Student: save the draft in progress to the account. Empty text clears the saved draft. */
+export const saveWritingDraftToServer = async (input) => {
+    try {
+        const { supabase } = await import('../../../services/supabaseClient.js');
+        const { data, error } = await supabase.rpc('rpc_bh_writing_save_draft', {
+            p_prompt_id: input.prompt_id,
+            p_genre: input.genre,
+            p_draft: input.draft,
+            p_remaining_seconds: input.remaining_seconds,
+            p_tab_change_count: input.tab_change_count,
+        });
+        if (error || !data)
+            return badRequest(error?.message ?? 'Unable to save the draft.');
+        return ok({ saved: data['saved'] === true });
+    }
+    catch (error) {
+        return badRequest(error instanceof Error ? error.message : 'Unable to save the draft.');
+    }
+};
+/** Student: the draft saved in the account for this task, or null. */
+export const loadWritingDraftFromServer = async (promptId) => {
+    try {
+        const { supabase } = await import('../../../services/supabaseClient.js');
+        const { data, error } = await supabase.rpc('rpc_bh_writing_load_draft', { p_prompt_id: promptId });
+        if (error)
+            return badRequest(error.message);
+        if (!data || typeof data !== 'object')
+            return ok(null);
+        const record = data;
+        if (typeof record['draft'] !== 'string' || !record['draft'].trim())
+            return ok(null);
+        return ok({
+            draft: record['draft'],
+            remaining_seconds: Number.isInteger(record['remaining_seconds']) ? Number(record['remaining_seconds']) : null,
+            tab_change_count: Number(record['tab_change_count']) || 0,
+            updated_at: typeof record['updated_at'] === 'string' ? record['updated_at'] : '',
+        });
+    }
+    catch (error) {
+        return badRequest(error instanceof Error ? error.message : 'Unable to load the saved draft.');
+    }
+};
+/** Teacher: drafts students in this class have started but not submitted. */
+export const getWritingClassDrafts = async (scopeId) => {
+    try {
+        const { supabase } = await import('../../../services/supabaseClient.js');
+        const { data, error } = await supabase.rpc('rpc_bh_writing_class_drafts', { p_scope_id: scopeId });
+        if (error || !data || typeof data !== 'object')
+            return badRequest(error?.message ?? 'Unable to load drafts in progress.');
+        const drafts = data['drafts'];
+        return ok(Array.isArray(drafts) ? drafts : []);
+    }
+    catch (error) {
+        return badRequest(error instanceof Error ? error.message : 'Unable to load drafts in progress.');
+    }
+};
+/** Teacher: withdraw the class task so students return to their own choice of task. */
+export const cancelWritingClassTask = async (assignmentId) => {
+    try {
+        const { supabase } = await import('../../../services/supabaseClient.js');
+        const { data, error } = await supabase.rpc('rpc_bh_writing_cancel_class_task', { p_assignment_id: assignmentId });
+        if (error || !data)
+            return badRequest(error?.message ?? 'Unable to withdraw the class task.');
+        return ok({ cancelled: true });
+    }
+    catch (error) {
+        return badRequest(error instanceof Error ? error.message : 'Unable to withdraw the class task.');
     }
 };
 export const recordWritingIntegrityVoid = async (input) => {

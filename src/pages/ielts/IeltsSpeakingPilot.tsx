@@ -6,6 +6,12 @@ import {
   speakingRpc,
   speakingAudio,
   speakingAi,
+  shareSpeakingResult,
+  speakingBandsFrom,
+  emptySpeakingBands,
+  SPEAKING_BAND_KEYS,
+  type SpeakingBands,
+  type SpeakingSessionExtras,
   type SpeakingHome,
 } from "../../../services/ieltsSpeakingPilotService";
 import {
@@ -20,6 +26,9 @@ import {
 } from "../../../services/ieltsSpeakingPilot";
 import { SpeakingRecorder } from "../../components/ielts/SpeakingRecorder";
 import SpeakingInterviewInsights from "../../components/ielts/SpeakingInterviewInsights";
+import SpeakingBandsPanel, {
+  BAND_LABEL,
+} from "../../components/ielts/SpeakingBandsPanel";
 import "../../styles/ielts-speaking-pilot.css";
 type Session = SpeakingSession & { source_hash: string; can_record: boolean };
 function SoundMark() {
@@ -153,7 +162,16 @@ export default function IeltsSpeakingPilot() {
     request = useRef<AbortController | null>(null),
     reviewId = useRef<string | null>(null),
     startId = useRef<string | null>(null),
-    beforeAi = useRef<SpeakingFeedback | null>(null);
+    beforeAi = useRef<SpeakingFeedback | null>(null),
+    autoDrafted = useRef(false),
+    bandsTouched = useRef(false),
+    shareRef = useRef<HTMLElement | null>(null);
+  // Guided review (Diagnostic Bible 2.3.0 section 10.8): bands are set before sharing and sent with the feedback.
+  const [bands, setBands] = useState<SpeakingBands>(emptySpeakingBands),
+    [extras, setExtras] = useState<SpeakingSessionExtras | null>(null),
+    [shareGaps, setShareGaps] = useState<string[]>([]),
+    [shareError, setShareError] = useState(""),
+    [sharedAt, setSharedAt] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;
     request.current?.abort();
@@ -170,6 +188,13 @@ export default function IeltsSpeakingPilot() {
     setRecordActive(false);
     reviewId.current = null;
     beforeAi.current = null;
+    autoDrafted.current = false;
+    bandsTouched.current = false;
+    setBands(emptySpeakingBands());
+    setExtras(null);
+    setShareGaps([]);
+    setShareError("");
+    setSharedAt(null);
     (sessionId
       ? speakingSession(sessionId)
       : speakingHome(selectedStudent, appliedSearch)
@@ -324,6 +349,101 @@ export default function IeltsSpeakingPilot() {
       return false;
     }
   })();
+  const studentFirstName =
+    session?.student_name?.trim().split(/\s+/)[0] || "the student";
+  // What is still missing before sharing, in plain words (Visual & UX Bible 1.9.0 section 13.9).
+  const feedbackGaps = (): string[] => {
+    if (!session) return [];
+    const gaps: string[] = [];
+    for (const c of SPEAKING_CRITERIA) {
+      const o = feedback.observations[c.key];
+      if (o.comment.trim().length < 20)
+        gaps.push(`Step 2 · ${c.label}: write a comment of at least 20 characters.`);
+      else if (o.status !== "insufficient_evidence" && !o.evidence.length)
+        gaps.push(`Step 2 · ${c.label}: attach one audio time span.`);
+    }
+    if (feedback.next_step.trim().length < 10)
+      gaps.push("Step 2 · Next practice step: write at least 10 characters.");
+    if (
+      (session.incidents || session.clips.some((c) => c.interrupted)) &&
+      feedback.delivery_comment.trim().length < 10
+    )
+      gaps.push("Step 2 · Interview conditions: add a short note about the interruption.");
+    if (!gaps.length && !readiness)
+      gaps.push("Step 2: check the audio time spans; one is outside its recording.");
+    return gaps;
+  };
+  const bandGaps = SPEAKING_BAND_KEYS.filter((k) => bands[k] === null).map(
+    (k) => `Step 3 · Choose the ${BAND_LABEL[k] === "Teacher Speaking band" ? "Teacher Speaking band" : `${BAND_LABEL[k]} band`}.`,
+  );
+  const setBand = (key: keyof SpeakingBands, value: number | null) => {
+    bandsTouched.current = true;
+    setBands((b) => ({ ...b, [key]: value }));
+    setConfirmed(false);
+    setDirty(true);
+    setShareGaps([]);
+    reviewId.current = null;
+  };
+  const onExtras = (next: SpeakingSessionExtras) => {
+    setExtras(next);
+    if (!bandsTouched.current && next.part_bands)
+      setBands(speakingBandsFrom(next.part_bands));
+  };
+  const share = () => {
+    if (!session) return;
+    const gaps = [
+      ...feedbackGaps(),
+      ...bandGaps,
+      ...(confirmed ? [] : ["Tick the box to confirm you listened to all three parts."]),
+    ];
+    setShareGaps(gaps);
+    setShareError("");
+    if (gaps.length) return;
+    void act(async () => {
+      reviewId.current ??= crypto.randomUUID();
+      try {
+        const s = await shareSpeakingResult<Session>({
+          sessionId: session.id,
+          reviewId: reviewId.current,
+          expectedReviewId: session.review?.id ?? null,
+          sourceHash: session.source_hash,
+          fields: feedback,
+          confirmed,
+          aiDraftId: aiId,
+          bands,
+        });
+        reviewId.current = null;
+        bandsTouched.current = false;
+        setSession(s);
+        setDirty(false);
+        setConfirmed(false);
+        setSharedAt(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+      } catch (e) {
+        setShareError((e as Error).message);
+      }
+    });
+  };
+  // The AI draft starts by itself when the teacher has written nothing yet; a ready draft is reused, not paid again.
+  useEffect(() => {
+    if (
+      !session ||
+      !session.can_review ||
+      session.status !== "submitted" ||
+      session.review ||
+      autoDrafted.current ||
+      aiId ||
+      aiBusy ||
+      dirty
+    )
+      return;
+    const empty =
+      SPEAKING_CRITERIA.every((c) => !feedback.observations[c.key].comment.trim()) &&
+      !feedback.next_step.trim();
+    if (!empty) return;
+    autoDrafted.current = true;
+    void draft();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.id, session?.status, session?.review, aiId, aiBusy, dirty]);
   const header = (
     <header className="sp-hero">
       <div>
@@ -865,6 +985,61 @@ export default function IeltsSpeakingPilot() {
             </section>
           ) : (
             <>
+              {session.can_review && (
+                <nav className="sp-steps" aria-label="Review steps">
+                  {[
+                    {
+                      n: 1,
+                      label: "Listen and read",
+                      hint: extras
+                        ? extras.missing_clips
+                          ? "Transcripts on the way"
+                          : "Transcripts ready"
+                        : "Loading transcripts",
+                      done: !!extras && !extras.missing_clips && extras.analysis.length > 0,
+                      href: "#sp-step-1",
+                    },
+                    {
+                      n: 2,
+                      label: "Check feedback",
+                      hint: aiBusy
+                        ? "AI is drafting…"
+                        : readiness
+                          ? "Ready"
+                          : `${feedbackGaps().length} to finish`,
+                      done: readiness,
+                      href: "#sp-step-2",
+                    },
+                    {
+                      n: 3,
+                      label: "Bands and share",
+                      hint:
+                        session.review && !dirty
+                          ? "Shared with the student"
+                          : bandGaps.length
+                            ? `${bandGaps.length} of 8 bands to set`
+                            : "Ready to share",
+                      done: !!session.review && !dirty,
+                      href: "#sp-step-3",
+                    },
+                  ].map((st) => (
+                    <a
+                      key={st.n}
+                      href={st.href}
+                      className={`sp-step${st.done ? " is-done" : ""}`}
+                    >
+                      <span className="sp-step-dot" aria-hidden="true">
+                        {st.done ? "✓" : st.n}
+                      </span>
+                      <span>
+                        <b>{st.label}</b>
+                        <small>{st.hint}</small>
+                      </span>
+                    </a>
+                  ))}
+                </nav>
+              )}
+              {!session.can_review && (
               <section className="sp-card">
                 <span className="sp-pill">
                   {session.review
@@ -874,9 +1049,10 @@ export default function IeltsSpeakingPilot() {
                 </span>
                 <h2>Your Speaking starting point</h2>
                 <p>
-                  This interview samples all three parts. Your teacher may give
-                  a band for each part; it is not a full Speaking or overall
-                  IELTS band. These observations refer to this sitting.
+                  This interview samples all three parts. Your teacher listens
+                  to every part and gives a Speaking band, a band for each part
+                  and a band for each criterion. It is not an official IELTS
+                  result.
                 </p>
                 {session.evidence_kind === "same_form_practice" && (
                   <p>
@@ -892,8 +1068,16 @@ export default function IeltsSpeakingPilot() {
                   </p>
                 )}
               </section>
-              <div className="sp-review-grid">
-                <section className="sp-card">
+              )}
+              {!session.can_review && (
+                <SpeakingInterviewInsights session={session} />
+              )}
+              <div
+                className={
+                  session.can_review ? "sp-review-flow" : "sp-review-grid"
+                }
+              >
+                <section className="sp-card" id="sp-step-1">
                   <span className="sp-eyebrow">Original recordings</span>
                   <h2>Listen to the evidence</h2>
                   {session.clips.map((c) => (
@@ -914,17 +1098,26 @@ export default function IeltsSpeakingPilot() {
                     <Cue session={session} />
                   </details>
                 </section>
+                {session.can_review && (
+                  <SpeakingInterviewInsights
+                    session={session}
+                    onExtras={onExtras}
+                  />
+                )}
                 {session.can_review ? (
-                  <section className="sp-card sp-review">
+                  <>
+                  <section className="sp-card sp-review" id="sp-step-2">
                     <div className="sp-ai" aria-busy={aiBusy}>
                       <span className="sp-eyebrow">
-                        Your expertise. A little AI help.
+                        Step 2 · Check feedback
                       </span>
-                      <h2>Turn listening into a clear next step.</h2>
+                      <h2>AI writes the first draft. You make it right.</h2>
                       <p>
-                        AI listens to the saved audio and drafts all four
-                        criteria. Check the student’s voice, comments and
-                        suggested time spans before sharing.
+                        {aiBusy
+                          ? "AI is listening to all three parts and writing a comment for each criterion, a next step and audio time spans. It takes about a minute."
+                          : aiId
+                            ? "The AI draft is in the boxes below. Read each criterion, change anything you disagree with, then go to step 3. AI never sets a band."
+                            : "AI can listen to the saved audio and write a first comment for each criterion. You check and edit everything before it is shared. AI never sets a band."}
                       </p>
                       <button
                         className="sp-primary"
@@ -933,7 +1126,9 @@ export default function IeltsSpeakingPilot() {
                       >
                         {aiBusy
                           ? "Listening and preparing your feedback…"
-                          : "Draft feedback with AI"}
+                          : aiId
+                            ? "AI draft added"
+                            : "Draft feedback with AI"}
                       </button>
                       {aiBusy && (
                         <div className="sp-loading" role="status">
@@ -941,7 +1136,13 @@ export default function IeltsSpeakingPilot() {
                           unchanged until the complete draft is ready.
                         </div>
                       )}
-                      {aiId && beforeAi.current && (
+                      {aiId &&
+                        beforeAi.current &&
+                        (SPEAKING_CRITERIA.some(
+                          (c) =>
+                            beforeAi.current!.observations[c.key].comment.trim(),
+                        ) ||
+                          !!beforeAi.current.next_step.trim()) && (
                         <button
                           className="sp-secondary"
                           disabled={busy}
@@ -953,7 +1154,7 @@ export default function IeltsSpeakingPilot() {
                             setDirty(true);
                           }}
                         >
-                          Restore notes from before AI
+                          Restore my notes
                         </button>
                       )}
                     </div>
@@ -1132,62 +1333,82 @@ export default function IeltsSpeakingPilot() {
                           placeholder="Required after an interruption. Explain the conditions without guessing their effect."
                         />
                       </label>
-                      <label className="sp-check">
-                        <input
-                          type="checkbox"
-                          checked={confirmed}
-                          onChange={(e) => setConfirmed(e.target.checked)}
-                        />
-                        I listened to the student, checked all four criteria and
-                        supporting time spans, and approve this feedback for
-                        sharing.
-                      </label>
-                      <button
-                        className="sp-primary"
-                        disabled={!readiness || !confirmed}
-                        onClick={() =>
-                          void act(async () => {
-                            reviewId.current ??= crypto.randomUUID();
-                            const s = await speakingRpc<Session>(
-                              "rpc_ielts_share_speaking_review",
-                              {
-                                p_session_id: session.id,
-                                p_review_id: reviewId.current,
-                                p_expected_review_id:
-                                  session.review?.id ?? null,
-                                p_source_hash: session.source_hash,
-                                p_fields: feedback,
-                                p_confirmed: confirmed,
-                                p_ai_draft_id: aiId,
-                              },
-                            );
-                            setSession(s);
-                            setDirty(false);
-                            setConfirmed(false);
-                          })
-                        }
-                      >
-                        {busy
-                          ? "Sharing…"
-                          : session.review
-                            ? "Share updated feedback"
-                            : "Share feedback with student"}
-                      </button>
-                      {!readiness && (
-                        <p>
-                          Complete all four comments, attach evidence where
-                          required, and add the next practice step before
-                          sharing.
-                        </p>
-                      )}
-                      {session.review && !dirty && (
-                        <p role="status">
-                          Your checked feedback is saved and available to the
-                          student.
-                        </p>
-                      )}
                     </fieldset>
                   </section>
+                  <section
+                    className="sp-card sp-share"
+                    id="sp-step-3"
+                    ref={shareRef}
+                    aria-labelledby="sp-step-3-title"
+                  >
+                    <span className="sp-eyebrow">Step 3 · Bands and share</span>
+                    <h2 id="sp-step-3-title">Give your bands, then share once.</h2>
+                    <p>
+                      Choose a band for each criterion and each part, then the
+                      Teacher Speaking band {studentFirstName} will see first.
+                      Tap a number to choose it, or use − and +. Everything is
+                      sent together.
+                    </p>
+                    <SpeakingBandsPanel
+                      bands={bands}
+                      onChange={setBand}
+                      disabled={busy}
+                      studentName={studentFirstName}
+                      partTitles={Object.fromEntries(
+                        session.package.parts.map((p) => [p.part, p.title]),
+                      )}
+                    />
+                    <label className="sp-check">
+                      <input
+                        type="checkbox"
+                        checked={confirmed}
+                        onChange={(e) => {
+                          setConfirmed(e.target.checked);
+                          setShareGaps([]);
+                        }}
+                      />
+                      I listened to all three parts, checked the feedback and
+                      chose these bands myself.
+                    </label>
+                    <button
+                      className="sp-primary sp-share-button"
+                      aria-busy={busy}
+                      onClick={share}
+                    >
+                      {busy
+                        ? "Sharing…"
+                        : session.review
+                          ? `Share updated result with ${studentFirstName}`
+                          : `Share result with ${studentFirstName}`}
+                    </button>
+                    {shareGaps.length > 0 && (
+                      <div className="sp-gaps" role="alert">
+                        <strong>Almost there. Still to do:</strong>
+                        <ul>
+                          {shareGaps.map((g) => (
+                            <li key={g}>{g}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {shareError && (
+                      <p className="sp-alert" role="alert">
+                        {shareError}
+                      </p>
+                    )}
+                    {session.review && !dirty && (
+                      <p className="sp-shared" role="status">
+                        ✓ Shared{sharedAt ? ` at ${sharedAt}` : ""}.{" "}
+                        {studentFirstName} can see the feedback and every band
+                        now. Change anything and share again to update it.
+                      </p>
+                    )}
+                    <p className="sp-fine">
+                      Every band is your judgment. It is labelled “Not an
+                      official IELTS result” for the student.
+                    </p>
+                  </section>
+                  </>
                 ) : (
                   <section className="sp-card">
                     {session.review ? (
@@ -1246,8 +1467,6 @@ export default function IeltsSpeakingPilot() {
                   </section>
                 )}
               </div>
-              {/* Transcripts, colour highlights, pronunciation and Part 1-3 bands (Bible 2.2.0 section 10.7). */}
-              <SpeakingInterviewInsights session={session} />
             </>
           )}
         </>
