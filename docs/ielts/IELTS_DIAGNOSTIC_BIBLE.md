@@ -1,7 +1,7 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.2.1\
+**Version:** 2.2.2\
 **Effective date:** 2026-11-14\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
@@ -897,6 +897,7 @@ but not silently as a complete IELTS Writing band.
 - Interview Part bands are append-only history; the latest is current.
 
 **Quality safeguards (2.2.1)**
+- Transcripts are checked for completeness (enough words for the recording's length, no looping sentences); an incomplete transcript is redone with another speech-to-text model before any feedback is written.
 - Speech-to-text hints never contain the questions; any echo of a hint or of a question list is removed before marking, and no feedback may rest on echoed text.
 - In an interview, the stretches spoken by the teacher are identified and shown separately; highlights and pronunciation words may only use the student's words.
 - A pronunciation word is listed only when the listening model is sure, the word was spoken by the student, and it is in the pronouncing dictionary. A non-dictionary word (for example "conversate") is a vocabulary matter, never a pronunciation correction.
@@ -1978,6 +1979,10 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.15 Revision record — v2.2.2 (2026-11-14)
+
+A re-run of Aitegin's interview showed the segment speech-to-text model looping on the teacher's Part 3 questions and dropping five minutes of answers. 10.7 now requires a completeness check and a second model before feedback is written.
 
 ### 22.14 Revision record — v2.2.1 (2026-11-14)
 
