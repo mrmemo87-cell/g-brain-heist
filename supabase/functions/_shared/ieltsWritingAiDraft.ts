@@ -1,7 +1,7 @@
-/** Versioned, qualitative Task 2 draft. No score or automatic publication. v2 adds teacher-only colour highlights (Bible 10.9). */
+/** Versioned, qualitative Task 2 draft. No score or automatic publication. v2 adds teacher-only colour highlights (Bible 10.9); v3 IELTS-style corrections. */
 import { cleanWritingHighlights, writingHighlightInstructions, writingHighlightSchema, type WritingHighlight } from './ieltsWritingHighlights.ts';
 
-export const WRITING_AI_PROMPT_VERSION = 'bh-ielts-task2-simple-feedback-v2';
+export const WRITING_AI_PROMPT_VERSION = 'bh-ielts-task2-simple-feedback-v3';
 export const WRITING_AI_KEYS = ['task_response', 'coherence_cohesion', 'lexical_resource', 'grammar_range_accuracy'] as const;
 type Key = typeof WRITING_AI_KEYS[number];
 export type AiObservation = { status: 'observed' | 'developing' | 'insufficient_evidence'; comment: string; evidence: { quote: string; start_char: number; end_char: number }[] };
