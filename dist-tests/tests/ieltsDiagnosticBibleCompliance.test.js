@@ -6,7 +6,7 @@ const read = (relativePath) => fs.readFileSync(path.join(process.cwd(), relative
 test('IELTS Diagnostic Bible is wired into the repository agent contract', () => {
     const agents = read('AGENTS.md');
     const bible = read('docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md');
-    assert.match(bible, /\*\*Version:\*\* 2\.1\.0/i);
+    assert.match(bible, /\*\*Version:\*\* 2\.3\.0/i);
     // v2.0 closed loop: honest ranges, provisional policy and evidence capture, without weakening official-result limits.
     assert.match(bible, /## 0\. What Brains Heist is for, and what makes it different/);
     assert.match(bible, /### 9\.5 Indicative band range policy bh-indicative-v1/);

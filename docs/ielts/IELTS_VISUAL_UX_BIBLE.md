@@ -1,7 +1,7 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.8.1
+**Version:** 1.9.0
 **Effective date:** 2026-11-14\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
@@ -276,6 +276,8 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 - Teachers see transcripts open. Students see them in a collapsible section, closed by default.
 - Interviews read as a dialogue: each teacher question sits on its own grey line with a "T" tag and is never coloured or marked; the colour key adds "Teacher's questions".
 - Feedback made before highlights existed shows a short note instead of an empty colour key, and teachers get an "Upgrade with highlights and pronunciation" button. "Word-by-word pronunciation was not checked" replaces any claim that no words stood out.
+- **Interview review is one guided screen (1.9.0).** A three-step bar (1 Listen and read, 2 Check feedback, 3 Bands and share) shows what is done. Transcripts, the feedback editor and the band panel sit in that order on one page; the AI draft starts by itself when the teacher has written nothing yet, and "Restore my notes" undoes it. Step 3 has a 0–9 half-band picker for each criterion, each Part and the Teacher Speaking band; the plain criterion average is shown as "Average of your criterion bands", never pre-filled. One "Share with student" button sends feedback and bands together; the button stays enabled and says exactly what is still missing when pressed. No message ever asks the teacher to share before grading.
+- The interview student result leads with the **Teacher Speaking band** as the hero number, then the three Part tiles and four criterion tiles, then feedback and collapsible transcripts, with "Checked by", the date, "Not an official IELTS result" and "Confidence: low".
 - The student result leads with a hero card: the teacher's Part band as the headline, "Checked by [teacher], [date]" and "Not an official IELTS result", then one tile per criterion, then the transcript, then teacher feedback. Interview results show three Part tiles. No band animates up to its value.
 
 ## 14. Native app motivation layer — v1.4.0
@@ -305,6 +307,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.14 Revision record — 1.9.0 (2026-11-14)
+
+Guided one-screen interview review and the Teacher Speaking band hero (Diagnostic Bible 2.3.0 section 10.8), after the owner found the separate share-then-grade step confusing.
 
 ### 14.13 Revision record — 1.8.1 (2026-11-14)
 **Change.** 13.9: interview dialogue layout with grey teacher lines, legacy-feedback note and upgrade button, honest wording when pronunciation was not checked.

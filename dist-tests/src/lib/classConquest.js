@@ -302,3 +302,7 @@ export function allTimeMasterminds(results) {
         }
     return [...totals.values()].sort((a, b) => b.podiums - a.podiums || b.firsts - a.firsts || a.name.localeCompare(b.name));
 }
+/** The school-wide arena (grade vs grade), used when a grade has no second class to battle. */
+export const SCHOOL_ARENA = 'school';
+/** "Grade 7", or "All Grades" for the school-wide arena. */
+export const arenaName = (grade) => (grade === SCHOOL_ARENA ? 'All Grades' : `Grade ${grade ?? ''}`);

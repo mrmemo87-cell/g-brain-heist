@@ -90,7 +90,8 @@ export const finalizeWritingCompositionTelemetry = (telemetry, submission, revis
         reasons.push('substantial_paste');
     if (telemetry.blocked_paste_events > 0)
         reasons.push('blocked_paste_attempt');
-    if (elapsedSeconds < 45 && countWords(submission) >= 100)
+    // A second draft starts from the student's own first draft, so a short editing time is expected, not suspicious.
+    if (!revisionOriginText && elapsedSeconds < 45 && countWords(submission) >= 100)
         reasons.push('very_fast_completion');
     if (telemetry.full_replacement_count > 0)
         reasons.push('large_text_replacement');

@@ -217,7 +217,52 @@ export type SpeakingClipAnalysis = {
   prompt_version?: string;
   created_at: string;
 };
-export type SpeakingPartBands = { part_1: number; part_2: number; part_3: number; created_at: string; teacher_name: string | null };
+export type SpeakingPartBands = {
+  part_1: number; part_2: number; part_3: number;
+  // Diagnostic Bible 2.3.0 section 10.8: null on rows saved before the Teacher Speaking band existed.
+  fluency_coherence: number | null; lexical_resource: number | null; grammar_range_accuracy: number | null; pronunciation: number | null;
+  overall: number | null;
+  created_at: string; teacher_name: string | null;
+};
+export const SPEAKING_BAND_KEYS = [
+  "fluency_coherence", "lexical_resource", "grammar_range_accuracy", "pronunciation", "part_1", "part_2", "part_3", "overall",
+] as const;
+export type SpeakingBandKey = (typeof SPEAKING_BAND_KEYS)[number];
+export type SpeakingBands = Record<SpeakingBandKey, number | null>;
+export const emptySpeakingBands = (): SpeakingBands =>
+  Object.fromEntries(SPEAKING_BAND_KEYS.map((k) => [k, null])) as SpeakingBands;
+export const speakingBandsFrom = (b: SpeakingPartBands | null | undefined): SpeakingBands => {
+  const out = emptySpeakingBands();
+  if (b) for (const k of SPEAKING_BAND_KEYS) { const v = b[k]; out[k] = v === null || v === undefined ? null : Number(v); }
+  return out;
+};
+const SHARE_ERRORS: Array<[string, string]> = [
+  ["speaking_bands_required", "Choose every band in step 3 before sharing."],
+  ["speaking_all_parts_required", "A Speaking band needs recordings for Part 1, Part 2 and Part 3."],
+  ["speaking_review_changed", "Someone shared a newer review of this interview. Reload the page to see it before sharing again."],
+  ["speaking_review_conflict", "This share was already sent with different details. Reload the page and share again."],
+  ["speaking_review_confirmation_required", "Tick the box to confirm you listened, then share. If the recordings changed, reload the page."],
+  ["speaking_conditions_note_required", "Add a short note about the interruption in step 2."],
+  ["speaking_audio_evidence_invalid", "One audio time span is outside its recording. Fix it in step 2."],
+  ["speaking_feedback_incomplete", "Finish every comment in step 2 (at least 20 characters each)."],
+  ["speaking_ai_draft_mismatch", "The AI draft is out of date. Reload the page and share again."],
+];
+/** Shares the written feedback and every band together (Diagnostic Bible 2.3.0 section 10.8). */
+export async function shareSpeakingResult<T>(args: {
+  sessionId: string; reviewId: string; expectedReviewId: string | null; sourceHash: string;
+  fields: unknown; confirmed: boolean; aiDraftId: string | null; bands: SpeakingBands;
+}): Promise<T> {
+  const { data, error } = await supabase.rpc("rpc_ielts_share_speaking_result", {
+    p_session_id: args.sessionId, p_review_id: args.reviewId, p_expected_review_id: args.expectedReviewId,
+    p_source_hash: args.sourceHash, p_fields: args.fields, p_confirmed: args.confirmed, p_ai_draft_id: args.aiDraftId,
+    p_bands: args.bands,
+  });
+  if (error) {
+    const hit = SHARE_ERRORS.find(([code]) => error.message?.includes(code));
+    throw new Error(hit ? hit[1] : "The result could not be shared. Nothing was sent. Check your connection and try again.");
+  }
+  return data as T;
+}
 export type SpeakingSessionExtras = {
   analysis: SpeakingClipAnalysis[];
   missing_clips?: number;

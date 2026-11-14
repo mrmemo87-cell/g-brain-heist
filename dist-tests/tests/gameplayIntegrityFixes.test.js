@@ -39,12 +39,12 @@ test('streak guide and HUD clicks expose the complete branded reward ladder', ()
     assert.match(header, /onShowStreak/);
     assert.match(app, /setHelpInitialSection\('streak'\)/);
 });
-test('a claimed server receipt opens one streak celebration with level-up audio and OK close', () => {
+test('a claimed server receipt opens one streak celebration with the streak flame sound and OK close', () => {
     assert.match(service, /pendingDailyStreakReward/);
     assert.match(service, /receipt\.claimed/);
     assert.match(app, /shownStreakRewardRef/);
     assert.match(app, /<StreakRewardModal/);
-    assert.match(streakModal, /audioService\.play\('tada'\)/);
+    assert.match(streakModal, /playBrandSound\(STREAK_MILESTONES\.includes\(streak\) \? 'streakMilestone' : 'streakFlare'\)/);
     assert.match(streakModal, /OK — CONTINUE/);
 });
 test('attack targets expose active shields and mission duplicate submissions resync cleanly', () => {

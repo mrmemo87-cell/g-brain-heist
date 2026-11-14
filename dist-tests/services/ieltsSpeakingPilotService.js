@@ -101,3 +101,50 @@ export async function speakingAi(id, signal) {
         throw new Error("AI could not prepare a complete draft. Your notes are unchanged. Try again, or continue your review.");
     return data;
 }
+export const SPEAKING_BAND_KEYS = [
+    "fluency_coherence", "lexical_resource", "grammar_range_accuracy", "pronunciation", "part_1", "part_2", "part_3", "overall",
+];
+export const emptySpeakingBands = () => Object.fromEntries(SPEAKING_BAND_KEYS.map((k) => [k, null]));
+export const speakingBandsFrom = (b) => {
+    const out = emptySpeakingBands();
+    if (b)
+        for (const k of SPEAKING_BAND_KEYS) {
+            const v = b[k];
+            out[k] = v === null || v === undefined ? null : Number(v);
+        }
+    return out;
+};
+const SHARE_ERRORS = [
+    ["speaking_bands_required", "Choose every band in step 3 before sharing."],
+    ["speaking_all_parts_required", "A Speaking band needs recordings for Part 1, Part 2 and Part 3."],
+    ["speaking_review_changed", "Someone shared a newer review of this interview. Reload the page to see it before sharing again."],
+    ["speaking_review_conflict", "This share was already sent with different details. Reload the page and share again."],
+    ["speaking_review_confirmation_required", "Tick the box to confirm you listened, then share. If the recordings changed, reload the page."],
+    ["speaking_conditions_note_required", "Add a short note about the interruption in step 2."],
+    ["speaking_audio_evidence_invalid", "One audio time span is outside its recording. Fix it in step 2."],
+    ["speaking_feedback_incomplete", "Finish every comment in step 2 (at least 20 characters each)."],
+    ["speaking_ai_draft_mismatch", "The AI draft is out of date. Reload the page and share again."],
+];
+/** Shares the written feedback and every band together (Diagnostic Bible 2.3.0 section 10.8). */
+export async function shareSpeakingResult(args) {
+    const { data, error } = await supabase.rpc("rpc_ielts_share_speaking_result", {
+        p_session_id: args.sessionId, p_review_id: args.reviewId, p_expected_review_id: args.expectedReviewId,
+        p_source_hash: args.sourceHash, p_fields: args.fields, p_confirmed: args.confirmed, p_ai_draft_id: args.aiDraftId,
+        p_bands: args.bands,
+    });
+    if (error) {
+        const hit = SHARE_ERRORS.find(([code]) => error.message?.includes(code));
+        throw new Error(hit ? hit[1] : "The result could not be shared. Nothing was sent. Check your connection and try again.");
+    }
+    return data;
+}
+export const speakingExtras = (sessionId) => speakingRpc("rpc_ielts_speaking_session_extras", { p_session_id: sessionId });
+export async function analyseSpeakingSession(sessionId) {
+    const { data, error } = await supabase.functions.invoke("ielts_speaking_pilot", { body: { action: "analyse", sessionId } });
+    if (error || !data || data.error)
+        throw new Error("The transcript could not be prepared right now. The recordings are safe; try again in a minute.");
+    return data;
+}
+export const setSpeakingPartBands = (sessionId, bands) => speakingRpc("rpc_ielts_set_speaking_part_bands", {
+    p_session_id: sessionId, p_part_1: bands[0], p_part_2: bands[1], p_part_3: bands[2],
+});

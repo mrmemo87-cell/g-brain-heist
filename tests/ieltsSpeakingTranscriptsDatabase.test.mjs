@@ -31,6 +31,7 @@ await db.exec(readFileSync("supabase/migrations/20261007112613_ielts_speaking_in
 await db.exec(readFileSync("supabase/migrations/20261113181000_ielts_speaking_interview_transcripts_part_bands.sql", "utf8"));
 await db.exec(readFileSync("supabase/migrations/20261114090000_ielts_speaking_analysis_versions.sql", "utf8"));
 await db.exec(readFileSync("supabase/migrations/20261114110000_ielts_speaking_analysis_v3.sql", "utf8"));
+await db.exec(readFileSync("supabase/migrations/20261114130000_ielts_speaking_teacher_band.sql", "utf8"));
 const CURRENT = "bh-ielts-speaking-interview-analysis-v3";
 const sha = "a".repeat(64);
 await db.exec(`insert into private.ielts_speaking_sessions(id,student_id,teacher_id,package_code,content_hash,package_snapshot,status,evidence_kind,recording_consent)
@@ -49,7 +50,7 @@ test("teacher sees missing clips; analysis is saved once per clip and only for t
   await actor(teacher);
   let e = await extras();
   assert.equal(e.missing_clips, 3);
-  assert.equal(e.can_set_bands, false, "bands need shared feedback first");
+  assert.equal(e.can_set_bands, true, "Bible 2.3.0 10.8: teachers grade before sharing; bands go out with the feedback");
   await save(clip2, session, "bh-old-analysis-v1");
   assert.equal((await extras()).missing_clips, 3, "an older analysis version still counts as missing");
   await save(clip1);
@@ -83,7 +84,6 @@ test("Part 1-3 bands: reviewer only, after sharing, half bands 0-9, append-only 
   await actor(teacher);
   await assert.rejects(db.query("select public.rpc_ielts_set_speaking_part_bands($1,6,6.5,6)", [session]), /speaking_review_required/);
   await db.exec(`insert into private.ielts_speaking_reviews(id,session_id,source_hash,reviewer_id,fields,teacher_confirmed) values('00000000-0000-0000-0000-000000000031','${session}','h','${teacher}','{}',true)`);
-  assert.equal((await extras()).can_set_bands, true);
   await assert.rejects(db.query("select public.rpc_ielts_set_speaking_part_bands($1,6,null,6)", [session]), /speaking_part_bands_required/);
   await assert.rejects(db.query("select public.rpc_ielts_set_speaking_part_bands($1,6.3,6,6)", [session]), /check/);
   await assert.rejects(db.query("select public.rpc_ielts_set_speaking_part_bands($1,9.5,6,6)", [session]), /check/);
@@ -99,4 +99,59 @@ test("Part 1-3 bands: reviewer only, after sharing, half bands 0-9, append-only 
   assert.equal(s.analysis.length, 2);
   assert.equal(s.missing_clips, 0, "students are not told about unprocessed clips");
   assert.equal(s.can_set_bands, false);
+});
+
+test("Bible 2.3.0 10.8: feedback, criterion bands, Part bands and the Teacher Speaking band are shared in one action", async () => {
+  await actor(teacher);
+  const source = (await db.query("select public.rpc_ielts_speaking_session($1) s", [session])).rows[0].s;
+  const fields = {
+    observations: Object.fromEntries(["fluency_coherence", "lexical_resource", "grammar_range_accuracy", "pronunciation"].map((k) => [k,
+      { status: "observed", comment: "Your answer was clear. Add one example next time.", evidence: [{ clip_id: clip1, start_seconds: 0, end_seconds: 1 }] }])),
+    next_step: "Practise explaining one idea with a reason and an example.",
+    delivery_comment: "",
+  };
+  const bands = { fluency_coherence: 6, lexical_resource: 6, grammar_range_accuracy: 5.5, pronunciation: 6, part_1: 6, part_2: 6, part_3: 5.5, overall: 6 };
+  const prior = (await db.query("select id from private.ielts_speaking_reviews where session_id=$1 order by reviewed_at desc, id desc limit 1", [session])).rows[0]?.id ?? null;
+  const rid = "00000000-0000-0000-0000-000000000060";
+  const share = (b, review = rid, confirmed = true) => db.query("select public.rpc_ielts_share_speaking_result($1,$2,$3,$4,$5,$6,null,$7) s",
+    [session, review, prior, source.source_hash, JSON.stringify(fields), confirmed, JSON.stringify(b)]);
+  const before = (await db.query("select count(*)::int n from private.ielts_speaking_reviews")).rows[0].n;
+  const { overall, ...noOverall } = bands;
+  await assert.rejects(share(noOverall), /speaking_bands_required/);
+  await assert.rejects(share({ ...bands, overall: 6.25 }), /speaking_bands_required/);
+  await assert.rejects(share({ ...bands, pronunciation: "6" }), /speaking_bands_required/);
+  await assert.rejects(share(bands, rid, false), /confirmation/);
+  await actor(student);
+  await assert.rejects(share(bands), /not_authorized/);
+  await actor(teacher);
+  assert.equal((await db.query("select count(*)::int n from private.ielts_speaking_reviews")).rows[0].n, before, "nothing is half-shared");
+  const s = (await share(bands)).rows[0].s;
+  assert.equal(s.review.id, rid);
+  await share(bands); // safe retry
+  await assert.rejects(share({ ...bands, overall: 7 }), /speaking_review_conflict/);
+  const e = await extras();
+  assert.equal(Number(e.part_bands.overall), 6);
+  assert.equal(Number(e.part_bands.grammar_range_accuracy), 5.5);
+  assert.equal(Number(e.part_bands.part_3), 5.5);
+  await actor(student);
+  const st = await extras();
+  assert.equal(Number(st.part_bands.overall), 6, "the student sees the Teacher Speaking band");
+  assert.equal(st.can_set_bands, false);
+});
+
+test("Bible 2.3.0 10.8: a Teacher Speaking band needs all three parts recorded", async () => {
+  await actor(teacher);
+  const short = "00000000-0000-0000-0000-000000000011";
+  await db.exec(`insert into private.ielts_speaking_sessions(id,student_id,teacher_id,package_code,content_hash,package_snapshot,status,evidence_kind,recording_consent)
+   select '${short}','${student}','${teacher}',code,content_hash,content,'submitted','same_form_practice',true from private.ielts_speaking_packages;
+   insert into private.ielts_speaking_clips(id,session_id,part,path,sha256,duration_seconds,mime_type,interrupted) values
+   ('00000000-0000-0000-0000-000000000024','${short}',1,'q1.wav','${sha}',100,'audio/wav',false)`);
+  const src = (await db.query("select public.rpc_ielts_speaking_session($1) s", [short])).rows[0].s;
+  const fields = { observations: Object.fromEntries(["fluency_coherence", "lexical_resource", "grammar_range_accuracy", "pronunciation"].map((k) => [k,
+    { status: "observed", comment: "Your answer was clear. Add one example next time.", evidence: [{ clip_id: "00000000-0000-0000-0000-000000000024", start_seconds: 0, end_seconds: 1 }] }])),
+    next_step: "Practise explaining one idea with a reason and an example.", delivery_comment: "" };
+  const bands = { fluency_coherence: 6, lexical_resource: 6, grammar_range_accuracy: 6, pronunciation: 6, part_1: 6, part_2: 6, part_3: 6, overall: 6 };
+  await assert.rejects(db.query("select public.rpc_ielts_share_speaking_result($1,$2,null,$3,$4,true,null,$5)",
+    [short, "00000000-0000-0000-0000-000000000061", src.source_hash, JSON.stringify(fields), JSON.stringify(bands)]), /speaking_all_parts_required/);
+  assert.equal((await db.query("select count(*)::int n from private.ielts_speaking_reviews where session_id=$1", [short])).rows[0].n, 0, "rolled back");
 });

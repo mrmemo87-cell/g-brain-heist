@@ -1,7 +1,7 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.2.2\
+**Version:** 2.3.0\
 **Effective date:** 2026-11-14\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
@@ -892,8 +892,8 @@ but not silently as a complete IELTS Writing band.
 - The play button uses the learner's own device voice; it is a model of the dictionary word, not a recording of the student.
 
 **Part bands (teacher only)**
-- A teacher may record a band (0–9, half bands) for a single Speaking part: the practice task's part, or Part 1, Part 2 and Part 3 of an interview after sharing feedback. AI suggests at most the per-criterion practice ranges of section 10.5; it never sets a Part band.
-- A Part band is the teacher's judgment for that part of that sitting. It is labelled **Part N band**, **checked by** the teacher with the date, and **Not an official IELTS result**. It is never averaged automatically into an overall Speaking band, never shown as an indicative band range (section 9.5) and never a readiness estimate (section 9.4).
+- A teacher may record a band (0–9, half bands) for a single Speaking part: the practice task's part, or Part 1, Part 2 and Part 3 of an interview. AI suggests at most the per-criterion practice ranges of section 10.5; it never sets a Part band.
+- A Part band is the teacher's judgment for that part of that sitting. It is labelled **Part N band**, **checked by** the teacher with the date, and **Not an official IELTS result**. It is never averaged automatically into an overall Speaking band (the teacher sets that band under section 10.8), never shown as an indicative band range (section 9.5) and never a readiness estimate (section 9.4).
 - Interview Part bands are append-only history; the latest is current.
 
 **Quality safeguards (2.2.1)**
@@ -906,6 +906,36 @@ but not silently as a complete IELTS Writing band.
 
 **Labels and provenance**
 - Highlights and pronunciation words remain AI practice feedback (sections 10.5 and 10.6 labels); the teacher's bands are the checked result. Model, prompt version and time are recorded. Students see interview transcripts and Part bands only after their teacher has shared feedback.
+
+
+### 10.8 Teacher Speaking band for a full interview
+
+**Owner-authorized (2026-11-14).** For a complete Speaking interview the teacher gives the student one clear Speaking band, not only a range. This is an explicit, narrow exception to the "range, never a single number" rules in sections 1.5, 9.4 and 9.5. It applies to nothing else.
+
+**Eligibility**
+- A submitted Speaking interview with recordings for Part 1, Part 2 and Part 3, reviewed by an authorized school IELTS teacher who listened to the audio.
+- Practice tasks, single parts, screeners without all three parts, transcript-only evidence and AI output are not eligible.
+
+**What the teacher records, all in one share**
+- The written feedback for the four criteria (section 10.5 fields) and the next step.
+- A band (0–9, half bands) for each criterion: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, Pronunciation.
+- A band for Part 1, Part 2 and Part 3 (section 10.7).
+- One **Teacher Speaking band** (0–9, half bands) for the whole interview.
+- Feedback and bands are shared together in one action, so the student never sees a half-finished result. Every share is append-only history; the latest is current.
+
+**How the band is set**
+- The teacher chooses the Speaking band. The platform never sets it, never rounds it and never computes it from Part bands.
+- To help, the screen may show the plain average of the teacher's own four criterion bands (each criterion is worth 25 %). IELTS does not publish a rounding rule for that average, so the platform shows it as a number to consider, not as a band.
+- AI never sets, suggests or pre-fills a criterion band, Part band or Speaking band. AI ranges (section 10.5) may sit beside the controls as hints only.
+
+**Required presentation**
+- Title: **Teacher Speaking band**, with **checked by** the teacher and the date, **Not an official IELTS result** and **Confidence: low**.
+- The four criterion bands and three Part bands are shown with it.
+- Never call it an official, real or exam band score.
+
+**Limits that stay**
+- It is not an indicative band range (section 9.5), not a readiness estimate (section 9.4) and never enters an indicative overall range. Reports may show it only with the label above.
+- It never proves improvement on a repeated form (same-form practice stays practice).
 
 ---
 
@@ -1979,6 +2009,14 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.16 Revision record — v2.3.0 (2026-11-14)
+
+**Authority.** On 2026-11-14 (16:05–16:12 Asia/Bishkek) the owner reported that teachers saw no clear band for the whole Speaking interview and a confusing "Share your feedback first, then record a band for each part" step. Offered a Bible-compliant indicative range or a single teacher-set band, the owner chose "One overall band (make the bible changes)".
+
+**What changed.** New section 10.8: a teacher-set Teacher Speaking band, four criterion bands and three Part bands for complete interviews, shared together with the written feedback in one action. 10.7 no longer requires sharing before Part bands. Official sources (British Council) state each Speaking criterion is worth 25 %; no published rounding rule for the criterion average was found, so the platform shows the plain average as a hint and never rounds it.
+
+**What did not change.** AI never sets or suggests a band; practice feedback is never evidence; indicative ranges (9.5), provisional estimates (9.4) and official-result limits (1.3) are unchanged for every other case.
 
 ### 22.15 Revision record — v2.2.2 (2026-11-14)
 
