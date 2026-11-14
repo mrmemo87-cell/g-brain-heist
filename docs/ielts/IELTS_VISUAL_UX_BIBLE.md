@@ -1,7 +1,7 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.11.0
+**Version:** 1.12.0
 **Effective date:** 2026-11-14\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
@@ -278,6 +278,7 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 - Feedback made before highlights existed shows a short note instead of an empty colour key, and teachers get an "Upgrade with highlights and pronunciation" button. "Word-by-word pronunciation was not checked" replaces any claim that no words stood out.
 - **Interview review is one guided screen (1.9.0).** A three-step bar (1 Listen and read, 2 Check feedback, 3 Bands and share) shows what is done. Transcripts, the feedback editor and the band panel sit in that order on one page; the AI draft starts by itself when the teacher has written nothing yet, and "Restore my notes" undoes it. Step 3 has a 0–9 half-band picker for each criterion, each Part and the Teacher Speaking band; the plain criterion average is shown as "Average of your criterion bands", never pre-filled. One "Share with student" button sends feedback and bands together; the button stays enabled and says exactly what is still missing when pressed. No message ever asks the teacher to share before grading.
 - **AI estimates (1.11.0, Diagnostic Bible 10.10).** Step 3 opens with a violet bar: a spinner while AI estimates, then "AI estimates are ready" with the basis and a "Use the AI estimates" button. Each band tile shows an "AI estimate 5.5" chip and the one-line reason; the chip turns orange when the teacher's band differs. The overall panel shows the AI estimate under the criterion average. Nothing about Speaking AI estimates appears in any student view.
+- **Result polish (1.12.0).** Once feedback is shared, the student page opens straight on the result hero (the "Your Speaking starting point" card stays only while waiting, or for same-form and interruption notes). People are shown by full name when stored. On phones the criterion tiles sit two by two, Part names stay readable on the dark card and the hero labels wrap left. In step 3 a short amber note appears when the Teacher Speaking band is above or below every criterion band. The AI's "Pronunciation was not assessed" placeholder can never be shared: Share lists it as still to do, and the server refuses it. Cached AI drafts written with older instructions are not reused.
 - The interview student result leads with the **Teacher Speaking band** as the hero number, then the three Part tiles and four criterion tiles, then feedback and collapsible transcripts, with "Checked by", the date, "Not an official IELTS result" and "Confidence: low".
 - The student result leads with a hero card: the teacher's Part band as the headline, "Checked by [teacher], [date]" and "Not an official IELTS result", then one tile per criterion, then the transcript, then teacher feedback. Interview results show three Part tiles. No band animates up to its value.
 
@@ -318,6 +319,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.17 Revision record — 1.12.0 (2026-11-14)
+
+After the owner reviewed what Aitegin and Dair saw: result-first student page, full names, phone layout, overall-band check, no shared placeholders, no stale AI drafts.
 
 ### 14.16 Revision record — 1.11.0 (2026-11-14)
 

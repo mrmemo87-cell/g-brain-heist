@@ -19,7 +19,7 @@
 .rr-chip--quiet { background: transparent; color: #e0e7ff; }
 .rr-hero-note { position: relative; margin-top: .9rem !important; font-size: .84rem; color: #c7d2fe; max-width: 40rem; }
 
-.rr-criteria { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr)); }
+.rr-criteria { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr)); }
 .rr-tone-fc { --c: #1d4ed8; --c-bg: #dbeafe; }
 .rr-tone-lr { --c: #6d28d9; --c-bg: #ede9fe; }
 .rr-tone-gr { --c: #b45309; --c-bg: #fef3c7; }
@@ -63,3 +63,15 @@
 .rr-hero-meta--row { position: relative; display: flex; flex-wrap: wrap; justify-items: start; gap: .4rem; margin-top: .9rem; }
 .sp-insights-student { margin-top: 1rem; }
 .rr-tone-tr { --c: #0f766e; --c-bg: #ccfbf1; }
+
+/* Visual & UX Bible 1.12.0: readable Part names, tidy chips and 2x2 criteria on phones. */
+.rr-hero .rr-part small { color: #dbe4ff; font-weight: 600; }
+@media (max-width: 640px) {
+  .rr-hero-meta { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: .4rem; width: 100%; }
+  .rr-part-bands { gap: .4rem; }
+  .rr-part { padding: .65rem .6rem; }
+  .rr-criteria { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
+  .rr-crit { padding: .8rem; }
+  .rr-crit h3 { font-size: .82rem; }
+  .rr-crit-band { font-size: 1.7rem; }
+}

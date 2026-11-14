@@ -238,6 +238,7 @@ export const speakingBandsFrom = (b: SpeakingPartBands | null | undefined): Spea
 };
 const SHARE_ERRORS: Array<[string, string]> = [
   ["speaking_bands_required", "Choose every band in step 3 before sharing."],
+  ["speaking_placeholder_comment", "Replace the AI's \"not assessed\" note in step 2 with your own comment before sharing."],
   ["speaking_all_parts_required", "A Speaking band needs recordings for Part 1, Part 2 and Part 3."],
   ["speaking_review_changed", "Someone shared a newer review of this interview. Reload the page to see it before sharing again."],
   ["speaking_review_conflict", "This share was already sent with different details. Reload the page and share again."],
