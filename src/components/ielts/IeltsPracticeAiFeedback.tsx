@@ -134,25 +134,33 @@ export default function IeltsPracticeAiFeedback({ attemptId, mode, skill = 'writ
           {skill === 'speaking' && typeof fields.transcript === 'string' && (
             mode === 'teacher' ? (
               <div className="pf-transcript pf-transcript--open">
+                {fields.highlights === undefined && loadRecording ? (
+                  <div className="pf-upgrade" role="note">
+                    <p><strong>Older feedback.</strong> It was made before colour highlights and word-by-word pronunciation corrections were added.</p>
+                    <button type="button" className="pf-cta" disabled={busy} onClick={() => void request()}>
+                      {busy ? 'Upgrading…' : 'Upgrade with highlights and pronunciation'}
+                    </button>
+                  </div>
+                ) : null}
                 <SpeakingTranscript
                   title="Transcript with assessment highlights"
                   audience="teacher"
                   transcript={fields.transcript}
-                  highlights={fields.highlights ?? []}
-                  pronunciationWords={fields.pronunciation_words ?? []}
+                  highlights={fields.highlights}
+                  pronunciationWords={fields.pronunciation_words}
                   pronunciationAssessed={fields.pronunciation_assessed !== false}
                 />
               </div>
             ) : (
               <div className="pf-transcript">
                 <button type="button" className="pf-link" aria-expanded={showTranscript} onClick={() => setShowTranscript(v => !v)}>
-                  {showTranscript ? 'Hide' : 'Show'} what we heard, with colour highlights
+                  {showTranscript ? 'Hide' : 'Show'} what we heard{fields.highlights ? ', with colour highlights' : ''}
                 </button>
                 {showTranscript && (
                   <SpeakingTranscript
                     transcript={fields.transcript}
-                    highlights={fields.highlights ?? []}
-                    pronunciationWords={fields.pronunciation_words ?? []}
+                    highlights={fields.highlights}
+                    pronunciationWords={fields.pronunciation_words}
                     pronunciationAssessed={fields.pronunciation_assessed !== false}
                   />
                 )}

@@ -63,3 +63,7 @@
 .pf-estimate b { font-size: 1.3rem; font-weight: 900; letter-spacing: -.02em; background: linear-gradient(90deg, #4f46e5, #0e7490); -webkit-background-clip: text; background-clip: text; color: transparent; font-variant-numeric: tabular-nums; }
 .pf-card-head { flex-wrap: nowrap; align-items: flex-start; }
 .pf-estimate b { white-space: nowrap; }
+
+/* Older Speaking feedback can be upgraded with highlights (Diagnostic Bible 2.2.1 section 10.7). */
+.pf-upgrade { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem .9rem; margin-bottom: .8rem; padding: .8rem 1rem; border-radius: 14px; background: linear-gradient(135deg, #eef2ff, #f5f3ff); border: 1px solid #c7d2fe; }
+.pf-upgrade p { margin: 0; flex: 1 1 18rem; color: #312e81; font-size: .92rem; }

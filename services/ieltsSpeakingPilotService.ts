@@ -212,6 +212,9 @@ export type SpeakingClipAnalysis = {
   transcript: string;
   highlights: SpeakingHighlight[];
   pronunciation: { assessed: boolean; words: PronunciationWord[] };
+  /** Exact stretches spoken by the teacher, shown in grey (Bible 2.2.1 section 10.7). */
+  speaker_turns?: { teacher?: string[] };
+  prompt_version?: string;
   created_at: string;
 };
 export type SpeakingPartBands = { part_1: number; part_2: number; part_3: number; created_at: string; teacher_name: string | null };

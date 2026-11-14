@@ -14,6 +14,7 @@ import {
 import { claudeValidated, primaryModel, providerTag } from '../_shared/aiProvider.ts';
 import {
   PRONUNCIATION_PASS_INSTRUCTIONS,
+  stripLeadingEcho,
   validatePronunciationPass,
   withIpa,
   type PronunciationPass,
@@ -84,7 +85,7 @@ async function pronunciationPass(bytes: ArrayBuffer, apiKey: string, task: unkno
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST', signal, headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: pronunciationModel, modalities: ['text'], store: false, max_completion_tokens: 1400,
+          model: pronunciationModel, modalities: ['text'], store: false, max_completion_tokens: 2000,
           messages: [
             { role: 'system', content: PRONUNCIATION_PASS_INSTRUCTIONS + (attempt ? '\nThe previous output failed validation. Return only the JSON keys requested, copy words and quotes exactly from the transcript and keep high = low + 1.' : '') },
             { role: 'user', content: [
@@ -150,22 +151,24 @@ Deno.serve(async (req: Request) => {
     const bytes = await audio.arrayBuffer();
     inspectSpeakingWav(bytes);
     const task = { part: context.part, question: context.prompt, follow_ups: context.follow_ups };
-    const signal = AbortSignal.timeout(110000);
+    const signal = AbortSignal.timeout(130000);
     // Two passes: write down the words first, then judge with both the transcript and the audio.
-    const transcript = await transcribe(bytes, apiKey, speakingTranscriptionHint(task), signal);
+    // Speech-to-text can copy its hint (which includes the question) into the transcript: strip any such echo.
+    const hint = speakingTranscriptionHint(task);
+    const transcript = stripLeadingEcho(await transcribe(bytes, apiKey, hint, signal), hint, String(context.prompt ?? ''));
     let fields: SpeakingPracticeFeedback | undefined; let providerId: string | null = null;
     // Claude first (Max plan API credit): it marks from the OpenAI transcript only, so pronunciation is
     // recorded as not assessed (Bible 10.3). The original audio model below is the fallback and can hear it.
     const claude = await claudeValidated('ielts_practice_speaking_feedback', attempt => ({
       system: SPEAKING_PRACTICE_TRANSCRIPT_INSTRUCTIONS + (attempt ? '\nThe previous output failed validation. Return only the JSON keys requested, copy every quote exactly from the supplied transcript, keep high = low + 1, and use short simple sentences.' : ''),
-      user: JSON.stringify({ task, transcript }), maxTokens: 2600, schema: speakingPracticeFeedbackSchema, timeoutMs: 40000,
+      user: JSON.stringify({ task, transcript }), maxTokens: 8000, schema: speakingPracticeFeedbackSchema, timeoutMs: 55000,
     }), text => withPronunciationNotAssessed(validateSpeakingPracticeFeedback(parseSpeakingJson(text), { part: context.part, transcript })));
     if (claude) { fields = claude.value; providerId = claude.tag; }
     for (let attempt = 0; !fields && attempt < 2; attempt++) {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST', signal, headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model, modalities: ['text'], store: false, max_completion_tokens: 2600,
+          model, modalities: ['text'], store: false, max_completion_tokens: 4000,
           messages: [
             { role: 'system', content: SPEAKING_PRACTICE_FEEDBACK_INSTRUCTIONS + (attempt ? '\nThe previous output failed validation. Return only the JSON keys requested, copy every quote exactly from the supplied transcript, keep high = low + 1, and use short simple sentences.' : '') },
             { role: 'user', content: [
@@ -190,7 +193,7 @@ Deno.serve(async (req: Request) => {
     }
     if (!fields) throw new Error('validation_failed');
     const pass = await pronunciationPass(bytes, apiKey, task, transcript, signal);
-    if (pass) fields = withPronunciationPass(fields, pass, withIpa(pass.words, dictionary as Record<string, string>));
+    if (pass) fields = withPronunciationPass(fields, pass, withIpa(pass.words, dictionary as Record<string, string>, true));
     const { error: finishError } = await admin.rpc('rpc_ielts_practice_speaking_feedback_finish', { p_id: claim.id, p_fields: fields, p_provider: providerId });
     if (finishError) throw new Error('save_failed');
     const { data: view, error: viewError } = await caller.rpc('rpc_ielts_practice_speaking_feedback', { p_attempt: body.attemptId });

@@ -61,3 +61,23 @@ test('when pronunciation was not assessed, no word corrections are invented', as
   try { assert.match(m.doc.body.textContent, /Pronunciation was not assessed for this recording/); assert.equal(m.doc.querySelectorAll('.st-play').length, 0); }
   finally { m.close(); }
 });
+test('interview: teacher questions are shown in grey and never marked; legacy feedback hides the colour key', async () => {
+  const m = await mount({ transcript: 'What do you like? I like the quiet streets. Thank you.', teacherLines: ['What do you like?', 'Thank you.'],
+    highlights: [{ criterion: 'lexical_resource', kind: 'strength', quote: 'quiet streets', note: 'Good.' }],
+    pronunciationWords: [{ word: 'like', tip: 'Long i.', ipa: 'laɪk' }] });
+  try {
+    const teacher = [...m.doc.querySelectorAll('.st-teacher')];
+    assert.equal(teacher.length, 2);
+    assert.match(teacher[0].textContent, /What do you like\?/);
+    assert.equal(teacher[0].querySelectorAll('mark').length, 0, 'teacher words are never marked');
+    assert.equal(m.doc.querySelectorAll('mark.st-pron').length, 1, 'only the student\'s "like" is marked');
+    assert.match(m.doc.querySelector('.st-legend').textContent, /Teacher's questions/);
+  } finally { m.close(); }
+  const legacy = await mount({ highlights: undefined, pronunciationWords: undefined });
+  try {
+    assert.equal(legacy.doc.querySelector('.st-legend'), null);
+    assert.match(legacy.doc.body.textContent, /made before colour highlights were added/);
+    assert.match(legacy.doc.body.textContent, /Word-by-word pronunciation was not checked/);
+    assert.doesNotMatch(legacy.doc.body.textContent, /👏/);
+  } finally { legacy.close(); }
+});

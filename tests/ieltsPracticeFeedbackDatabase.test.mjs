@@ -71,6 +71,7 @@ test('IELTS-only learners without a public.users row can request writing feedbac
 // Diagnostic Bible 2.2.0 section 10.7: a school IELTS teacher can run Speaking feedback for a student's attempt.
 test('teacher-run speaking feedback: school teacher only, WAV in the teacher folder, one row per attempt, requester recorded',async()=>{
  await db.exec(readFileSync('supabase/migrations/20261113180000_ielts_speaking_practice_teacher_feedback_run.sql','utf8'));
+ await db.exec(readFileSync('supabase/migrations/20261114091000_ielts_practice_speaking_feedback_upgrade.sql','utf8'));
  const rclaim=a=>db.query("select public.rpc_ielts_practice_speaking_feedback_claim_review($1,'audio-model') j",[a]).then(r=>r.rows[0].j);
  const A='40000000-0000-0000-0000-000000000004';
  await as(stu);await assert.rejects(rclaim(A),/not_available/,'students use their own claim');
@@ -85,4 +86,18 @@ test('teacher-run speaking feedback: school teacher only, WAV in the teacher fol
  await db.query("select public.rpc_ielts_practice_speaking_feedback_finish($1,$2::jsonb,'p')",[c.id,JSON.stringify({part:1,criteria:{},next_step:'x',prompt_version:'v3',highlights:[]})]);
  assert.equal((await rclaim(A)).ready,true,'a ready result is returned, not regenerated');
  await as(stu);assert.equal((await db.query('select public.rpc_ielts_practice_speaking_feedback($1) j',[A])).rows[0].j.status,'ready','the student sees it too');
+});
+// Diagnostic Bible 2.2.1: feedback made before highlights can be upgraded; a failed upgrade keeps the old feedback.
+test('teacher upgrade of older speaking feedback keeps the old feedback if the run fails',async()=>{
+ const A='40000000-0000-0000-0000-000000000004';
+ await db.query("update private.ielts_practice_speaking_feedback set fields=$2::jsonb where attempt_id=$1",[A,JSON.stringify({part:1,transcript:'old words',criteria:{},next_step:'x',prompt_version:'v2'})]);
+ await as(teacher);
+ const c=(await db.query("select public.rpc_ielts_practice_speaking_feedback_claim_review($1,'m') j",[A])).rows[0].j;
+ assert.equal(c.ready,false,'older feedback without highlights is re-run');
+ await db.query("select public.rpc_ielts_practice_speaking_feedback_finish($1,null,null)",[c.id]);
+ const row=(await db.query('select status,fields from private.ielts_practice_speaking_feedback where id=$1',[c.id])).rows[0];
+ assert.equal(row.status,'ready');assert.equal(row.fields.transcript,'old words','old feedback kept');
+ const c2=(await db.query("select public.rpc_ielts_practice_speaking_feedback_claim_review($1,'m') j",[A])).rows[0].j;
+ await db.query("select public.rpc_ielts_practice_speaking_feedback_finish($1,$2::jsonb,'p')",[c2.id,JSON.stringify({part:1,transcript:'new',criteria:{},next_step:'x',prompt_version:'v4',highlights:[]})]);
+ assert.equal((await db.query("select public.rpc_ielts_practice_speaking_feedback_claim_review($1,'m') j",[A])).rows[0].j.ready,true,'upgraded feedback is not re-run again');
 });

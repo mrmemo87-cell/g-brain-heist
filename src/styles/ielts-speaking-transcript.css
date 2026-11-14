@@ -56,3 +56,11 @@
   .st-play, .st-hint { display: none; }
   .st-hl, .st-pron, .st-key, .st-swatch, .st-tag, .st-note-tag { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* Interview dialogue: teacher questions stand on their own line, in grey (Visual & UX Bible 13.9, v1.8.1). */
+.st-teacher { display: block; margin: .7rem 0 .25rem; padding: .3rem .7rem .3rem .45rem; border-radius: 10px; background: #f1f5f9; color: #475569; font-size: .92rem; line-height: 1.6; font-style: italic; }
+.st-teacher:first-child { margin-top: 0; }
+.st-teacher-tag { display: inline-grid; place-items: center; width: 1.35rem; height: 1.35rem; margin-right: .45rem; border-radius: 999px; background: #64748b; color: #fff; font-size: .66rem; font-weight: 800; font-style: normal; vertical-align: 1px; }
+.st-key--teacher { --c: #64748b; --c-bg: #f1f5f9; }
+.st-legacy { padding: .55rem .8rem; border-radius: 12px; background: #f8fafc; border: 1px dashed #cbd5e1; color: #475569; font-size: .86rem; }
+.st-good { color: #047857; font-weight: 600; }

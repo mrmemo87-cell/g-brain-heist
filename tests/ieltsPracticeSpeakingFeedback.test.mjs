@@ -18,7 +18,7 @@ test('valid speaking feedback keeps ranges per criterion and quotes from the tra
   const f = validateSpeakingPracticeFeedback(output(), { part: 1 });
   assert.equal(f.criteria.pronunciation.indication?.low, 6);
   assert.equal(f.criteria.fluency_coherence.evidence[0]?.quote, 'because my classes start early');
-  assert.equal(f.prompt_version, 'bh-ielts-speaking-practice-feedback-v3');
+  assert.equal(f.prompt_version, 'bh-ielts-speaking-practice-feedback-v4');
 });
 test('quotes not in the transcript, single numbers, overall bands, extra keys and unheard pronunciation ranges are rejected', () => {
   const fake = output(); fake.criteria['lexical_resource'].quotes = ['I love travelling']; assert.throws(() => validateSpeakingPracticeFeedback(fake, { part: 1 }));

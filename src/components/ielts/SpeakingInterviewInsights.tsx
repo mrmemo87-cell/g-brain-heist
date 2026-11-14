@@ -71,7 +71,8 @@ export default function SpeakingInterviewInsights({ session }: Props) {
         audience={teacher ? 'teacher' : 'student'}
         transcript={a.transcript}
         highlights={a.highlights}
-        pronunciationWords={a.pronunciation?.words ?? []}
+        pronunciationWords={a.pronunciation?.words}
+        teacherLines={a.speaker_turns?.teacher ?? []}
         pronunciationAssessed={a.pronunciation?.assessed !== false}
       />
     ));
@@ -112,10 +113,10 @@ export default function SpeakingInterviewInsights({ session }: Props) {
         <span className="sp-eyebrow">Transcripts · highlights · pronunciation</span>
         <h2 id="sp-insights-title">What the student said, part by part</h2>
         <p>Colours show the criterion each phrase relates to. Pronunciation corrections come from an AI that listened to the audio; check them against the recording.</p>
-        {analysing && <div className="sp-loading" role="status">Transcribing and listening to each part… this can take up to a minute.</div>}
+        {analysing && <div className="sp-loading" role="status">Transcribing and listening to each part… this can take up to two minutes.</div>}
         {error && <p role="alert" className="sp-alert">{error}</p>}
         {!analysing && extras && extras.missing_clips ? (
-          <button type="button" className="sp-secondary" onClick={() => void analyse()}>Transcribe the remaining recordings</button>
+          <button type="button" className="sp-secondary" onClick={() => void analyse()}>Refresh the transcripts and highlights</button>
         ) : null}
         {transcripts(false)}
         <div className="sp-insight-save">

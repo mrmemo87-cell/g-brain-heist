@@ -1,8 +1,8 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.2.0\
-**Effective date:** 2026-11-13\
+**Version:** 2.2.1\
+**Effective date:** 2026-11-14\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
 
@@ -895,6 +895,13 @@ but not silently as a complete IELTS Writing band.
 - A teacher may record a band (0–9, half bands) for a single Speaking part: the practice task's part, or Part 1, Part 2 and Part 3 of an interview after sharing feedback. AI suggests at most the per-criterion practice ranges of section 10.5; it never sets a Part band.
 - A Part band is the teacher's judgment for that part of that sitting. It is labelled **Part N band**, **checked by** the teacher with the date, and **Not an official IELTS result**. It is never averaged automatically into an overall Speaking band, never shown as an indicative band range (section 9.5) and never a readiness estimate (section 9.4).
 - Interview Part bands are append-only history; the latest is current.
+
+**Quality safeguards (2.2.1)**
+- Speech-to-text hints never contain the questions; any echo of a hint or of a question list is removed before marking, and no feedback may rest on echoed text.
+- In an interview, the stretches spoken by the teacher are identified and shown separately; highlights and pronunciation words may only use the student's words.
+- A pronunciation word is listed only when the listening model is sure, the word was spoken by the student, and it is in the pronouncing dictionary. A non-dictionary word (for example "conversate") is a vocabulary matter, never a pronunciation correction.
+- Highlights cover the clearest language problems first; a strength must be correct, natural English.
+- Improved analyses may replace older ones on screen. Interview analyses keep every earlier version as history; older practice feedback can be upgraded by a school teacher, and a failed upgrade keeps the earlier feedback.
 
 **Labels and provenance**
 - Highlights and pronunciation words remain AI practice feedback (sections 10.5 and 10.6 labels); the teacher's bands are the checked result. Model, prompt version and time are recorded. Students see interview transcripts and Part bands only after their teacher has shared feedback.
@@ -1971,6 +1978,12 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.14 Revision record — v2.2.1 (2026-11-14)
+
+**Authority.** On 2026-11-14 the owner asked for Speaking feedback whose outcome is always top level. A review of Gulzada's practice recording and Aitegin's interview found echoed questions in transcripts, pronunciation "corrections" of words only the speech-to-text had invented, too few and weak highlights after a Claude token limit, teacher and student speech mixed together, and older feedback shown with an empty colour key.
+
+**What changed.** Section 10.7 quality safeguards (echo removal, teacher lines, sure dictionary-only pronunciation words from student speech, error-first highlights, versioned re-runs). No assessment rule, band rule or label changed.
 
 ### 22.13 Revision record — v2.2.0 (2026-11-13)
 

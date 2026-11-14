@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { build } from 'esbuild';
+import { readFileSync } from 'node:fs';
 const load = async (entry) => {
   const out = (await build({ entryPoints: [entry], bundle: true, format: 'esm', write: false, logLevel: 'silent' })).outputFiles[0].text;
   return import('data:text/javascript;base64,' + Buffer.from(out).toString('base64'));
@@ -9,6 +10,7 @@ const {
   arpabetToIpa, cleanHighlights, cleanInterviewHighlights, validatePronunciationPass, withIpa,
   PRONUNCIATION_PASS_INSTRUCTIONS, INTERVIEW_HIGHLIGHT_INSTRUCTIONS, pronunciationInstructions,
 } = await load('supabase/functions/_shared/ieltsSpeakingAnnotations.ts');
+const ann = await load('supabase/functions/_shared/ieltsSpeakingAnnotations.ts');
 const { validateSpeakingPracticeFeedback, withPronunciationNotAssessed, withPronunciationPass, speakingKeys } = await load('supabase/functions/_shared/ieltsPracticeSpeakingFeedback.ts');
 // Diagnostic Bible 2.2.0 section 10.7.
 const transcript = 'I have live here since two years and I really enjoy the quiet streets near the vegetable market.';
@@ -84,4 +86,45 @@ test('interview highlights are split per clip and the prompts keep the safeguard
   assert.match(PRONUNCIATION_PASS_INSTRUCTIONS, /Do not write phonetic symbols/);
   assert.match(PRONUNCIATION_PASS_INSTRUCTIONS, /Do NOT give an overall Speaking score/);
   assert.match(pronunciationInstructions(true), /Judge ONLY the student/);
+});
+
+test('speech-to-text echoes of the hint or JSON question lists are removed, real speech is kept', () => {
+  const hint = ann.INTERVIEW_TRANSCRIPTION_HINT;
+  const segs = ann.dropPromptEcho([
+    { text: 'ou want to work?","What do you want to do when you grow up?" I was listening to my father' },
+    { text: 'your parents help you?","Who should be responsible for helping adults learn new skills?"' },
+    { text: 'at Silk Road International School. Write exactly what is said' },
+    { text: 'I started to analyse his speech.' },
+  ], hint);
+  assert.deepEqual(segs.map((s) => s.text), ['I was listening to my father', 'I started to analyse his speech.']);
+  assert.doesNotMatch(hint, /\?/, 'the hint never contains questions');
+  assert.equal(ann.stripLeadingEcho("Let's talk about your daily routine. What time do you usually get up on weekdays? I get up at seven.", "Let's talk about your daily routine. What time do you usually get up on weekdays?"), 'I get up at seven.');
+  assert.equal(ann.stripLeadingEcho('I get up at seven.', 'What time do you usually get up on weekdays?'), 'I get up at seven.');
+});
+
+test('teacher lines are separated: highlights and pronunciation words use only the student\'s words', () => {
+  const t = 'Do you work or are you a student? I am a student. I am educating in a school. Perfect. What do you enjoy most? I enjoy science.';
+  const teacher = ann.cleanTeacherLines({ teacher_lines: [
+    { clip_id: 'c', quote: 'Do you work or are you a student?' }, { clip_id: 'c', quote: 'Perfect. What do you enjoy most?' }, { clip_id: 'c', quote: 'Not said at all' },
+  ] }, [{ id: 'c', transcript: t }]);
+  assert.deepEqual(teacher.c, ['Do you work or are you a student?', 'Perfect. What do you enjoy most?']);
+  const student = ann.studentOnlyText(t, teacher.c);
+  assert.doesNotMatch(student, /What do you enjoy/);
+  const hl = ann.cleanInterviewHighlights({ highlights: [
+    { clip_id: 'c', criterion: 'lexical_resource', kind: 'fix', quote: 'educating in a school', note: 'Say: studying at a school.' },
+    { clip_id: 'c', criterion: 'fluency_coherence', kind: 'strength', quote: 'What do you enjoy most', note: 'Teacher words are never highlighted.' },
+  ] }, [{ id: 'c', transcript: t, teacherLines: teacher.c }]);
+  assert.deepEqual(hl.c.map((h) => h.quote), ['educating in a school']);
+  const pass = ann.validatePronunciationPass({ assessed: true, comment: 'Clear speech overall in this answer.', action: 'Keep word endings clear.', quotes: [], low: 6, high: 7,
+    words: [{ word: 'enjoy', tip: 'Stress the second part.', confidence: 'high' }, { word: 'student', tip: 'Clear t at the end.', confidence: 'low' }, { word: 'work', tip: 'Teacher word.', confidence: 'high' }] }, student);
+  assert.deepEqual(pass.words.map((w) => w.word), ['enjoy'], 'only sure words from the student');
+});
+
+test('production IPA keeps only dictionary words (non-words are vocabulary problems)', () => {
+  const dict = { flexible: 'F L EH1 K S AH0 B AH0 L' };
+  assert.deepEqual(ann.withIpa([{ word: 'flexible', tip: 'x' }, { word: 'conversate', tip: 'y' }], dict, true).map((w) => w.word), ['flexible']);
+  assert.equal(ann.INTERVIEW_ANALYSIS_VERSION, 'bh-ielts-speaking-interview-analysis-v2');
+  assert.match(readFileSync('supabase/migrations/20261114090000_ielts_speaking_analysis_versions.sql', 'utf8'), /'bh-ielts-speaking-interview-analysis-v2'/, 'SQL and edge function agree on the current version');
+  assert.match(ann.HIGHLIGHT_INSTRUCTIONS, /never praise a phrase that is awkward or wrong/);
+  assert.match(ann.INTERVIEW_HIGHLIGHT_INSTRUCTIONS, /teacher_lines/);
 });
