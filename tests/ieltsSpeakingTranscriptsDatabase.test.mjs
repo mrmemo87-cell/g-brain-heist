@@ -30,7 +30,8 @@ insert into school_members values('${student}','${school}','active','student'),(
 await db.exec(readFileSync("supabase/migrations/20261007112613_ielts_speaking_interview_pilot.sql", "utf8"));
 await db.exec(readFileSync("supabase/migrations/20261113181000_ielts_speaking_interview_transcripts_part_bands.sql", "utf8"));
 await db.exec(readFileSync("supabase/migrations/20261114090000_ielts_speaking_analysis_versions.sql", "utf8"));
-const CURRENT = "bh-ielts-speaking-interview-analysis-v2";
+await db.exec(readFileSync("supabase/migrations/20261114110000_ielts_speaking_analysis_v3.sql", "utf8"));
+const CURRENT = "bh-ielts-speaking-interview-analysis-v3";
 const sha = "a".repeat(64);
 await db.exec(`insert into private.ielts_speaking_sessions(id,student_id,teacher_id,package_code,content_hash,package_snapshot,status,evidence_kind,recording_consent)
  select '${session}','${student}','${teacher}',code,content_hash,content,'submitted','first_sitting',true from private.ielts_speaking_packages;

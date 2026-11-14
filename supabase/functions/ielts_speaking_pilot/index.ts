@@ -18,6 +18,8 @@ import {
   cleanTeacherLines,
   dropPromptEcho,
   studentOnlyText,
+  stripLeadingEcho,
+  transcriptLooksComplete,
   interviewHighlightSchema,
   pronunciationInstructions,
   validatePronunciationPass,
@@ -55,6 +57,46 @@ async function transcribeSegments(bytes: ArrayBuffer, key: string, hint: string)
 /** Interview transcription: plain hint (never the questions) and echo removal (Bible 2.2.1 section 10.7). */
 async function transcribeInterview(bytes: ArrayBuffer, key: string): Promise<SpeakingSegment[]> {
   return dropPromptEcho(await transcribeSegments(bytes, key, INTERVIEW_TRANSCRIPTION_HINT), INTERVIEW_TRANSCRIPTION_HINT);
+}
+/** Plain-text transcription with the stronger model (no timestamps needed for transcripts and highlights). */
+const textTranscribeModel = Deno.env.get("IELTS_SPEAKING_TEXT_TRANSCRIBE_MODEL")?.trim() || "gpt-4o-transcribe";
+async function transcribeText(bytes: ArrayBuffer, key: string): Promise<string> {
+  const form = new FormData();
+  form.append("file", new Blob([bytes], { type: "audio/wav" }), "clip.wav");
+  form.append("model", textTranscribeModel);
+  form.append("language", "en");
+  form.append("response_format", "json");
+  form.append("prompt", INTERVIEW_TRANSCRIPTION_HINT);
+  const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+    method: "POST", signal: AbortSignal.timeout(90000), headers: { Authorization: `Bearer ${key}` }, body: form,
+  });
+  if (!response.ok) throw new Error(`transcribe_text_${response.status}`);
+  const out = await response.json().catch(() => null) as { text?: unknown } | null;
+  if (typeof out?.text !== "string") throw new Error("transcribe_invalid");
+  const echoFree = dropPromptEcho([{ text: out.text }], INTERVIEW_TRANSCRIPTION_HINT).map((s) => s.text).join(" ");
+  return stripLeadingEcho(echoFree, INTERVIEW_TRANSCRIPTION_HINT);
+}
+/**
+ * Transcript for the teacher view (Bible 2.2.1 section 10.7): the stronger model first, the segment model as a
+ * fallback, and the more complete of the two when neither passes the completeness check (no loops, no lost speech).
+ */
+async function transcribeForAnalysis(bytes: ArrayBuffer, key: string, seconds: number): Promise<string> {
+  const attempts: Array<() => Promise<string>> = [
+    () => transcribeText(bytes, key),
+    async () => (await transcribeInterview(bytes, key)).map((s) => s.text).join(" "),
+  ];
+  let best = "";
+  for (const attempt of attempts) {
+    try {
+      const text = (await attempt()).replace(/\s+/g, " ").trim().slice(0, 20000);
+      if (transcriptLooksComplete(text, seconds)) return text;
+      why("transcript_incomplete", `${text.split(/\s+/).length} words in ${Math.round(seconds)}s`);
+      if (text.length > best.length) best = text;
+    } catch (e) {
+      why("transcript_attempt", reasonOf(e));
+    }
+  }
+  return best;
 }
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -194,14 +236,13 @@ async function analyse(sessionId: string, session: any, caller: any, admin: any)
   const done = new Set((extras?.analysis ?? []).filter((a: { prompt_version?: string }) => a.prompt_version === INTERVIEW_ANALYSIS_VERSION).map((a: { clip_id: string }) => a.clip_id));
   const todo = (session.clips ?? []).filter((c: { id: string }) => !done.has(c.id));
   if (!todo.length) return extras;
-  const transcribed = await Promise.all(todo.map(async (clip: { id: string; part: number; path: string; sha256: string }) => {
+  const transcribed = await Promise.all(todo.map(async (clip: { id: string; part: number; path: string; sha256: string; duration_seconds: number }) => {
     const { data: audio, error } = await admin.storage.from("ielts-speaking-pilot").download(clip.path);
     if (error || !audio) throw new Error("missing_audio");
     const bytes = await audio.arrayBuffer();
     inspectSpeakingWav(bytes);
     if ((await sha(bytes)) !== clip.sha256) throw new Error("source_mismatch");
-    const segments = await transcribeInterview(bytes, key);
-    const transcript = segments.map((s) => s.text).join(" ").replace(/\s+/g, " ").trim().slice(0, 20000);
+    const transcript = await transcribeForAnalysis(bytes, key, Number(clip.duration_seconds) || 0);
     return { id: clip.id, part: clip.part, transcript, bytes };
   }));
   // Who said what first, so highlights and pronunciation words use only the student's speech.

@@ -123,8 +123,16 @@ test('teacher lines are separated: highlights and pronunciation words use only t
 test('production IPA keeps only dictionary words (non-words are vocabulary problems)', () => {
   const dict = { flexible: 'F L EH1 K S AH0 B AH0 L' };
   assert.deepEqual(ann.withIpa([{ word: 'flexible', tip: 'x' }, { word: 'conversate', tip: 'y' }], dict, true).map((w) => w.word), ['flexible']);
-  assert.equal(ann.INTERVIEW_ANALYSIS_VERSION, 'bh-ielts-speaking-interview-analysis-v2');
-  assert.match(readFileSync('supabase/migrations/20261114090000_ielts_speaking_analysis_versions.sql', 'utf8'), /'bh-ielts-speaking-interview-analysis-v2'/, 'SQL and edge function agree on the current version');
+  assert.equal(ann.INTERVIEW_ANALYSIS_VERSION, 'bh-ielts-speaking-interview-analysis-v3');
+  assert.match(readFileSync('supabase/migrations/20261114110000_ielts_speaking_analysis_v3.sql', 'utf8'), /'bh-ielts-speaking-interview-analysis-v3'/, 'SQL and edge function agree on the current version');
   assert.match(ann.HIGHLIGHT_INSTRUCTIONS, /never praise a phrase that is awkward or wrong/);
   assert.match(ann.INTERVIEW_HIGHLIGHT_INSTRUCTIONS, /teacher_lines/);
+});
+
+test('looping or speech-dropping transcripts are rejected; normal answers pass', () => {
+  const loop = 'Should schools give more time to practical skills? Why or why not? '.repeat(6) + 'How might technology change learning?';
+  assert.equal(ann.transcriptLooksComplete(loop, 295), false, 'too few words for five minutes and repeated');
+  const answer = Array.from({ length: 30 }, (_, i) => `I think answer number ${i} has its own reason and example.`).join(' ');
+  assert.equal(ann.transcriptLooksComplete(answer, 200), true);
+  assert.equal(ann.transcriptLooksComplete('Thank you.', 3), true, 'very short clips are not judged by speed');
 });
