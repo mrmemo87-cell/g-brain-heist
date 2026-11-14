@@ -119,7 +119,14 @@ export default function SpeakingTranscript({ transcript, highlights: rawHighligh
   const highlights = useMemo(() => rawHighlights ?? [], [rawHighlights]);
   const pronunciationWords = useMemo(() => rawWords ?? [], [rawWords]);
   const { pieces, placed } = useMemo(() => annotate(transcript, highlights, pronunciationWords, teacherLines), [transcript, highlights, pronunciationWords, teacherLines]);
-  const number = useMemo(() => new Map(placed.slice().sort((a, b) => a - b).map((i, n) => [i, n + 1])), [placed]);
+  // Tags are numbered in reading order, so FC1, GR2, LR3… follow the transcript from top to bottom.
+  const order = useMemo(() => {
+    const first = new Map<number, number>();
+    let at = 0;
+    for (const piece of pieces) { if (piece.h >= 0 && !first.has(piece.h)) first.set(piece.h, at); at += piece.text.length; }
+    return placed.slice().sort((a, b) => (first.get(a) ?? 0) - (first.get(b) ?? 0));
+  }, [pieces, placed]);
+  const number = useMemo(() => new Map(order.map((i, n) => [i, n + 1])), [order]);
   const speechOk = canSpeak();
   const counts = SPEAKING_CRITERIA_LEGEND.map(c => ({
     ...c,
@@ -185,7 +192,7 @@ export default function SpeakingTranscript({ transcript, highlights: rawHighligh
 
       {placed.length ? (
         <ol className="st-notes" aria-label="Highlight notes">
-          {placed.slice().sort((a, b) => a - b).map(i => {
+          {order.map(i => {
             const hl = highlights[i];
             return (
               <li key={i} className={`st-note st-c-${hl.criterion}`}>
