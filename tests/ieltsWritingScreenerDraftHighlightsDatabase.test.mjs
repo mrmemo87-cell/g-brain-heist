@@ -5,7 +5,8 @@ const essay='Nowadays many peoples is using phones. However, a relevant example 
 await db.exec(`create role anon;create role authenticated;create role service_role;create schema private;
 create table private.ielts_writing_ai_drafts(id uuid primary key,state text,prompt_version text,source_context jsonb,fields jsonb,provider_response_id text,completed_at timestamptz);`);
 const sql=readFileSync('supabase/migrations/20261114141000_ielts_writing_screener_draft_highlights.sql','utf8');
-await db.exec(sql.slice(sql.indexOf('create or replace function public.rpc_ielts_finish_writing_ai_draft')));
+// Only the finish function: the claim function needs the full screener schema (covered by the governed-evidence suite).
+await db.exec(sql.slice(sql.indexOf('create or replace function public.rpc_ielts_finish_writing_ai_draft'), sql.indexOf('revoke all on function public.rpc_ielts_claim_writing_ai_draft')));
 const at=(q)=>{const s=Array.from(essay.slice(0,essay.indexOf(q))).length;return{start_char:s,end_char:s+Array.from(q).length};};
 const quote='a relevant example helps.';
 const base=()=>({observations:Object.fromEntries(['task_response','coherence_cohesion','lexical_resource','grammar_range_accuracy'].map(k=>[k,{status:'developing',comment:'Add a clear example to explain your reason.',evidence:[{quote,...at(quote)}]}])),next_step:'Add one example. Check that it supports your reason.',delivery_comment:''});
