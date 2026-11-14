@@ -2037,7 +2037,7 @@ Affected components to review: teacher lesson packs, course inventory, intake/ca
 
 **Authority.** On 2026-11-14 (16:26 Asia/Bishkek) the owner asked that Writing review uses the smart checking and colour-coded highlights of Speaking, shows the estimated band, and gives students great, useful feedback. Asked about the section 10.5 conflict, the owner chose "the AI gives an estimated band and the teacher needs to confirm it", and highlights on practice and the screener.
 
-**Why the old rules were insufficient.** The audit found: no colour highlights on Writing; no corrections; teachers could not run the AI check (3 of 5 live practice essays had no feedback); feedback did not start on submit; the student's finalized Writing result was plain text; and section 10.5 allowed no estimated band for a task.
+**Why the old rules were insufficient.** The audit found: no colour highlights on Writing; no corrections; teachers could not run the AI check (3 of 5 live practice essays had no feedback; all three were empty submissions, so the gap matters for future essays); feedback did not start on submit; the student's finalized Writing result was plain text; and section 10.5 allowed no estimated band for a task.
 
 **What changed.** New section 10.9; one cross-reference in 10.5.
 
