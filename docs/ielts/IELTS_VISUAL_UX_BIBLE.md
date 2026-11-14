@@ -1,8 +1,8 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.8.0
-**Effective date:** 2026-11-13\
+**Version:** 1.8.1
+**Effective date:** 2026-11-14\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
 
@@ -274,6 +274,8 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 - *To improve* highlights add a wavy underline; *done well* highlights do not. Tapping or pressing Enter on a highlight shows its note.
 - Pronunciation words show the word, the dictionary transcription between slashes and a 44 px ▶ Play button; the source of the transcription is named in small print. Without device speech, the button is hidden.
 - Teachers see transcripts open. Students see them in a collapsible section, closed by default.
+- Interviews read as a dialogue: each teacher question sits on its own grey line with a "T" tag and is never coloured or marked; the colour key adds "Teacher's questions".
+- Feedback made before highlights existed shows a short note instead of an empty colour key, and teachers get an "Upgrade with highlights and pronunciation" button. "Word-by-word pronunciation was not checked" replaces any claim that no words stood out.
 - The student result leads with a hero card: the teacher's Part band as the headline, "Checked by [teacher], [date]" and "Not an official IELTS result", then one tile per criterion, then the transcript, then teacher feedback. Interview results show three Part tiles. No band animates up to its value.
 
 ## 14. Native app motivation layer — v1.4.0
@@ -303,6 +305,9 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.13 Revision record — 1.8.1 (2026-11-14)
+**Change.** 13.9: interview dialogue layout with grey teacher lines, legacy-feedback note and upgrade button, honest wording when pronunciation was not checked.
 
 ### 14.12 Revision record — 1.8.0 (2026-11-13)
 **Authority.** Owner request on 2026-11-13 for colour-highlighted Speaking transcripts, pronunciation transcription with a play button, Part bands, and a premium student result with a collapsible transcript. Diagnostic Bible 2.2.0 section 10.7 defines what these mean.

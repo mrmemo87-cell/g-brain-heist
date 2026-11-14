@@ -5,7 +5,7 @@
  */
 import { HIGHLIGHT_INSTRUCTIONS, PRONUNCIATION_PASS_PROMPT_VERSION, cleanHighlights, highlightSchema, type PronunciationPass, type PronunciationWord, type SpeakingHighlight } from './ieltsSpeakingAnnotations.ts';
 
-export const SPEAKING_PRACTICE_FEEDBACK_PROMPT_VERSION = 'bh-ielts-speaking-practice-feedback-v3';
+export const SPEAKING_PRACTICE_FEEDBACK_PROMPT_VERSION = 'bh-ielts-speaking-practice-feedback-v4';
 export const speakingKeys = ['fluency_coherence', 'lexical_resource', 'grammar_range_accuracy', 'pronunciation'] as const;
 export type SpeakingKey = typeof speakingKeys[number];
 export type SpeakingCriterion = { comment: string; action: string; evidence: { quote: string }[]; indication: { low: number; high: number } | null };
@@ -44,7 +44,9 @@ Speech-to-text can mishear. If a word in the transcript looks unlikely, odd or o
 Names are not language errors. Never comment on the pronunciation, spelling, stress or repetition of names of people, places, brands, schools, tests (for example IELTS) or acronyms, and never tell the learner to replace a name with another word. Repeating a necessary name is fine.
 Only give pronunciation advice you are certain is correct for standard English. Describe the problem (for example a sound, a dropped ending or flat intonation) rather than writing stress patterns or respellings you are unsure of.
 Criteria: Fluency and Coherence (sustained speech, natural pauses, logical development, linking); Lexical Resource (accurate, suitable words, range, paraphrase - never demand fancy words or idioms); Grammatical Range and Accuracy (spoken sentence variety and control; allow normal spoken fragments and self-correction); Pronunciation (judge from the AUDIO: intelligibility, sounds, word and sentence stress, rhythm, intonation; never require a native accent).
-Judge the answer against THIS task: note whether the learner answered the question that was asked.
+Judge the answer against THIS task. If the learner did not answer the question that was asked (for example the question asks for a time and no time is given), say so plainly in the fluency_coherence comment and let it lower that range.
+Give each criterion its own range from its own evidence; do not copy the same range to every criterion when the evidence differs.
+Grammar comments must name real errors from the transcript with their correction; never call a correct sentence a mistake, and credit correct complex forms (for example the present perfect).
 Write directly to the learner in SIMPLE, kind, specific English: short sentences and common words.
 For EACH criterion: comment = 2-3 short sentences on what worked and the main issue; action = ONE concrete thing to practise next time (a short better example is welcome); quotes = 1-2 EXACT short quotes copied from the TRANSCRIPT that support the comment.
 For EACH criterion also give a practice indication as a range on the 0-9 scale: low and high are whole or half numbers and high = low + 1, based on public descriptors and this one recording only. If a criterion cannot be judged, set low and high to null and quotes may be empty.
@@ -60,7 +62,7 @@ Return ONLY JSON with exactly these keys: criteria (with exactly fluency_coheren
  * 10.3/10.5: pronunciation is never scored from text, so the server marks it "not assessed" after validation
  * (withPronunciationNotAssessed). Recorded under its own prompt version.
  */
-export const SPEAKING_PRACTICE_TRANSCRIPT_PROMPT_VERSION = 'bh-ielts-speaking-practice-feedback-v3-transcript';
+export const SPEAKING_PRACTICE_TRANSCRIPT_PROMPT_VERSION = 'bh-ielts-speaking-practice-feedback-v4-transcript';
 export const SPEAKING_PRACTICE_TRANSCRIPT_INSTRUCTIONS = `You give FAST FIRST-PASS PRACTICE FEEDBACK to ONE learner on ONE IELTS-style Speaking practice answer for Brains Heist.
 Your output is a provisional practice estimate and is not an official IELTS result. It is not an examiner judgement.
 You receive the task (part and question) and a TRANSCRIPT of the learner's recording made by a speech-to-text system. You cannot hear the recording. Only the learner speaks.
@@ -69,7 +71,9 @@ Speech-to-text can mishear and usually removes pauses, fillers and hesitation. I
 Names are not language errors. Never comment on the spelling or repetition of names of people, places, brands, schools, tests (for example IELTS) or acronyms, and never tell the learner to replace a name with another word.
 Criteria you CAN judge from the transcript: Fluency and Coherence (length and development of the answer, logical order, linking; not pauses or speed); Lexical Resource (accurate, suitable words, range, paraphrase - never demand fancy words or idioms); Grammatical Range and Accuracy (spoken sentence variety and control; allow normal spoken fragments and self-correction).
 Pronunciation: you CANNOT judge it. For pronunciation set comment to "Pronunciation was not assessed because this feedback was made from a written transcript of your recording, not from the sound.", action to "Listen to your recording and compare it with a model answer for this question.", quotes to [], low and high to null. Set pronunciation_assessed to false.
-Judge the answer against THIS task: note whether the learner answered the question that was asked.
+Judge the answer against THIS task. If the learner did not answer the question that was asked (for example the question asks for a time and no time is given), say so plainly in the fluency_coherence comment and let it lower that range.
+Give each criterion its own range from its own evidence; do not copy the same range to every criterion when the evidence differs.
+Grammar comments must name real errors from the transcript with their correction; never call a correct sentence a mistake, and credit correct complex forms (for example the present perfect).
 Write directly to the learner in SIMPLE, kind, specific English: short sentences and common words.
 For EACH of the other three criteria: comment = 2-3 short sentences on what worked and the main issue; action = ONE concrete thing to practise next time (a short better example is welcome); quotes = 1-2 EXACT short quotes copied from the TRANSCRIPT that support the comment.
 For each of those three criteria also give a practice indication as a range on the 0-9 scale: low and high are whole or half numbers and high = low + 1, based on public descriptors and this one answer only. If a criterion cannot be judged, set low and high to null and quotes may be empty.

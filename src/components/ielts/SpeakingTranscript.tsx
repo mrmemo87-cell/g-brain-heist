@@ -37,18 +37,31 @@ export function findWord(transcript: string, word: string): Span[] {
   return out;
 }
 
-type Piece = { text: string; h: number; p: number };
-/** Splits the transcript into runs labelled with at most one highlight and one pronunciation word. */
-export function annotate(transcript: string, highlights: SpeakingHighlight[], words: PronunciationWord[]): { pieces: Piece[]; placed: number[] } {
+type Piece = { text: string; h: number; p: number; t: boolean };
+/**
+ * Splits the transcript into runs labelled with at most one highlight and one pronunciation word, and whether the
+ * teacher spoke it. Teacher stretches are placed first; highlights and pronunciation marks never land on them.
+ */
+export function annotate(transcript: string, highlights: SpeakingHighlight[], words: PronunciationWord[], teacherLines: string[] = []): { pieces: Piece[]; placed: number[] } {
   const h = new Array<number>(transcript.length).fill(-1);
   const p = new Array<number>(transcript.length).fill(-1);
+  const t = new Array<boolean>(transcript.length).fill(false);
   const placed: number[] = [];
+  teacherLines.forEach(line => {
+    let from = 0;
+    for (;;) {
+      const span = findQuote(transcript, line, from);
+      if (!span) return;
+      if (t.slice(span.start, span.end).every(v => !v)) { for (let k = span.start; k < span.end; k++) t[k] = true; return; }
+      from = span.start + 1;
+    }
+  });
   highlights.forEach((hl, i) => {
     let from = 0;
     for (;;) {
       const span = findQuote(transcript, hl.quote, from);
       if (!span) return;
-      if (h.slice(span.start, span.end).every(v => v === -1)) {
+      if (h.slice(span.start, span.end).every(v => v === -1) && t.slice(span.start, span.end).every(v => !v)) {
         for (let k = span.start; k < span.end; k++) h[k] = i;
         placed.push(i);
         return;
@@ -56,12 +69,15 @@ export function annotate(transcript: string, highlights: SpeakingHighlight[], wo
       from = span.start + 1;
     }
   });
-  words.forEach((w, i) => findWord(transcript, w.word).forEach(span => { for (let k = span.start; k < span.end; k++) p[k] = i; }));
+  words.forEach((w, i) => findWord(transcript, w.word).forEach(span => {
+    if (t[span.start]) return; // never mark the teacher's words
+    for (let k = span.start; k < span.end; k++) p[k] = i;
+  }));
   const pieces: Piece[] = [];
   for (let k = 0; k < transcript.length; k++) {
     const last = pieces[pieces.length - 1];
-    if (last && last.h === h[k] && last.p === p[k]) last.text += transcript[k];
-    else pieces.push({ text: transcript[k], h: h[k], p: p[k] });
+    if (last && last.h === h[k] && last.p === p[k] && last.t === t[k]) last.text += transcript[k];
+    else pieces.push({ text: transcript[k], h: h[k], p: p[k], t: t[k] });
   }
   return { pieces, placed };
 }
@@ -83,8 +99,12 @@ const canSpeak = () => typeof window !== 'undefined' && 'speechSynthesis' in win
 
 type Props = {
   transcript: string;
+  /** Undefined when the feedback was made before highlights existed (the colour key is then hidden). */
   highlights?: SpeakingHighlight[];
+  /** Undefined when no listening pass ran for this recording. */
   pronunciationWords?: PronunciationWord[];
+  /** Interview only: exact stretches the teacher spoke, shown in grey and never marked. */
+  teacherLines?: string[];
   /** False when the audio pass did not run or could not hear the learner. */
   pronunciationAssessed?: boolean;
   /** "teacher" adds the short criterion codes to each note; "student" uses friendlier headings. */
@@ -92,9 +112,13 @@ type Props = {
   title?: string;
 };
 
-export default function SpeakingTranscript({ transcript, highlights = [], pronunciationWords = [], pronunciationAssessed = true, audience = 'student', title }: Props) {
+export default function SpeakingTranscript({ transcript, highlights: rawHighlights, pronunciationWords: rawWords, teacherLines = [], pronunciationAssessed = true, audience = 'student', title }: Props) {
   const [active, setActive] = useState<number | null>(null);
-  const { pieces, placed } = useMemo(() => annotate(transcript, highlights, pronunciationWords), [transcript, highlights, pronunciationWords]);
+  const annotated = rawHighlights !== undefined;
+  const wordsChecked = rawWords !== undefined;
+  const highlights = useMemo(() => rawHighlights ?? [], [rawHighlights]);
+  const pronunciationWords = useMemo(() => rawWords ?? [], [rawWords]);
+  const { pieces, placed } = useMemo(() => annotate(transcript, highlights, pronunciationWords, teacherLines), [transcript, highlights, pronunciationWords, teacherLines]);
   const number = useMemo(() => new Map(placed.slice().sort((a, b) => a - b).map((i, n) => [i, n + 1])), [placed]);
   const speechOk = canSpeak();
   const counts = SPEAKING_CRITERIA_LEGEND.map(c => ({
@@ -103,31 +127,39 @@ export default function SpeakingTranscript({ transcript, highlights = [], pronun
   }));
 
   // Group consecutive pieces sharing a highlight so one <mark> wraps the whole phrase.
-  const groups: Array<{ h: number; parts: Piece[] }> = [];
+  const groups: Array<{ h: number; t: boolean; parts: Piece[] }> = [];
   for (const piece of pieces) {
     const g = groups[groups.length - 1];
-    if (g && g.h === piece.h) g.parts.push(piece); else groups.push({ h: piece.h, parts: [piece] });
+    if (g && g.h === piece.h && g.t === piece.t) g.parts.push(piece); else groups.push({ h: piece.h, t: piece.t, parts: [piece] });
   }
   const renderParts = (parts: Piece[]) => parts.map((part, k) => part.p >= 0
     ? <mark key={k} className="st-pron" title={`Pronunciation: ${pronunciationWords[part.p].tip}`}>{part.text}<span className="st-sr"> (pronunciation word)</span></mark>
     : <React.Fragment key={k}>{part.text}</React.Fragment>);
+  const hasTeacher = groups.some(g => g.t);
 
   const activeNote = active !== null ? highlights[active] : null;
 
   return (
     <section className="st-panel" aria-label={title ?? 'Transcript with feedback highlights'}>
       {title ? <h3 className="st-title">{title}</h3> : null}
-      <ul className="st-legend" aria-label="Colour key">
-        {counts.map(c => (
-          <li key={c.key} className={`st-key st-c-${c.key}`}>
-            <span className="st-swatch" aria-hidden="true">{c.short}</span>{c.label}
-            <span className="st-count">{c.n}</span>
-          </li>
-        ))}
-      </ul>
+      {annotated ? (
+        <ul className="st-legend" aria-label="Colour key">
+          {counts.filter(c => c.key !== 'pronunciation' || wordsChecked).map(c => (
+            <li key={c.key} className={`st-key st-c-${c.key}`}>
+              <span className="st-swatch" aria-hidden="true">{c.short}</span>{c.label}
+              <span className="st-count">{c.n}</span>
+            </li>
+          ))}
+          {hasTeacher ? <li className="st-key st-key--teacher"><span className="st-swatch" aria-hidden="true">T</span>Teacher's questions</li> : null}
+        </ul>
+      ) : (
+        <p className="st-legacy">This feedback was made before colour highlights were added, so the transcript is shown without them.</p>
+      )}
 
       <p className="st-text">
-        {transcript.trim() ? groups.map((g, gi) => g.h >= 0 ? (
+        {transcript.trim() ? groups.map((g, gi) => g.t ? (
+          <span key={gi} className="st-teacher"><span className="st-teacher-tag" aria-hidden="true">T</span><span className="st-sr">Teacher: </span>{g.parts.map(p => p.text).join('')}</span>
+        ) : g.h >= 0 ? (
           <mark
             key={gi}
             className={`st-hl st-c-${highlights[g.h].criterion} st-${highlights[g.h].kind}${active === g.h ? ' is-active' : ''}`}
@@ -170,10 +202,12 @@ export default function SpeakingTranscript({ transcript, highlights = [], pronun
 
       <div className="st-pron-block">
         <h4>Pronunciation corrections</h4>
-        {!pronunciationAssessed ? (
+        {!wordsChecked ? (
+          <p className="st-muted">Word-by-word pronunciation was not checked for this recording.</p>
+        ) : !pronunciationAssessed ? (
           <p className="st-muted">Pronunciation was not assessed for this recording, so no word corrections are shown.</p>
         ) : pronunciationWords.length === 0 ? (
-          <p className="st-muted">No individual words stood out as hard to understand. 👏</p>
+          <p className="st-muted st-good">No individual words were clearly mispronounced in this recording.</p>
         ) : (
           <>
             <ul className="st-words">

@@ -10,10 +10,14 @@ import {
 } from "../_shared/ieltsSpeakingAudio.ts";
 import { claudeEnabled, claudeText, primaryModel, providerTag, reasonOf } from "../_shared/aiProvider.ts";
 import {
+  INTERVIEW_ANALYSIS_VERSION,
   INTERVIEW_HIGHLIGHT_INSTRUCTIONS,
-  INTERVIEW_HIGHLIGHT_PROMPT_VERSION,
+  INTERVIEW_TRANSCRIPTION_HINT,
   PRONUNCIATION_PASS_PROMPT_VERSION,
   cleanInterviewHighlights,
+  cleanTeacherLines,
+  dropPromptEcho,
+  studentOnlyText,
   interviewHighlightSchema,
   pronunciationInstructions,
   validatePronunciationPass,
@@ -47,6 +51,10 @@ async function transcribeSegments(bytes: ArrayBuffer, key: string, hint: string)
     .map((s) => ({ start: Math.round(Number(s.start) * 10) / 10, end: Math.round(Number(s.end) * 10) / 10, text: String(s.text).trim().slice(0, 600) }))
     .filter((s) => s.text && s.end > s.start)
     .slice(0, 400);
+}
+/** Interview transcription: plain hint (never the questions) and echo removal (Bible 2.2.1 section 10.7). */
+async function transcribeInterview(bytes: ArrayBuffer, key: string): Promise<SpeakingSegment[]> {
+  return dropPromptEcho(await transcribeSegments(bytes, key, INTERVIEW_TRANSCRIPTION_HINT), INTERVIEW_TRANSCRIPTION_HINT);
 }
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -101,9 +109,9 @@ const why = (stage: string, detail: unknown) =>
  * Speech-to-text and the pronunciation listening pass stay on OpenAI; Claude writes the highlights from the text.
  */
 const analyseModel = Deno.env.get("IELTS_SPEAKING_PRONUNCIATION_MODEL")?.trim() || Deno.env.get("IELTS_SPEAKING_DRAFT_MODEL")?.trim() || "gpt-audio-1.5";
-async function listenForPronunciation(bytes: ArrayBuffer, key: string, part: number, transcript: string): Promise<ClipPronunciation> {
+async function listenForPronunciation(bytes: ArrayBuffer, key: string, part: number, transcript: string, studentText: string): Promise<ClipPronunciation> {
   const none: ClipPronunciation = { assessed: false, words: [], prompt_version: PRONUNCIATION_PASS_PROMPT_VERSION };
-  if (!transcript.trim()) return none;
+  if (!studentText.replace(/[|\s]/g, "")) return none;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -111,7 +119,7 @@ async function listenForPronunciation(bytes: ArrayBuffer, key: string, part: num
         signal: AbortSignal.timeout(70000),
         headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: analyseModel, modalities: ["text"], store: false, max_completion_tokens: 1400,
+          model: analyseModel, modalities: ["text"], store: false, max_completion_tokens: 2000,
           messages: [
             { role: "system", content: pronunciationInstructions(true) + (attempt ? "\nThe previous output failed validation. Return only the JSON keys requested and copy words exactly from the transcript." : "") },
             { role: "user", content: [
@@ -130,8 +138,9 @@ async function listenForPronunciation(bytes: ArrayBuffer, key: string, part: num
       const choice = out.choices?.[0];
       if (choice?.finish_reason !== "stop" || !choice.message?.content) throw new Error("incomplete");
       const raw = String(choice.message.content).trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "");
-      const pass = validatePronunciationPass(JSON.parse(raw), transcript);
-      return { assessed: pass.assessed, words: pass.assessed ? withIpa(pass.words, dictionary as Record<string, string>) : [], prompt_version: PRONUNCIATION_PASS_PROMPT_VERSION };
+      // Words must come from the STUDENT's speech: teacher lines and speech-to-text echoes never count.
+      const pass = validatePronunciationPass(JSON.parse(raw), studentText);
+      return { assessed: pass.assessed, words: pass.assessed ? withIpa(pass.words, dictionary as Record<string, string>, true) : [], prompt_version: PRONUNCIATION_PASS_PROMPT_VERSION };
     } catch (e) {
       if (attempt > 0) { why("pronunciation", reasonOf(e)); return none; }
     }
@@ -139,30 +148,38 @@ async function listenForPronunciation(bytes: ArrayBuffer, key: string, part: num
   return none;
 }
 
-async function interviewHighlights(key: string, clips: Array<{ id: string; part: number; transcript: string }>): Promise<{ byClip: Record<string, ReturnType<typeof cleanInterviewHighlights>[string]>; provider: string }> {
+type Highlighted = { highlights: ReturnType<typeof cleanInterviewHighlights>; teacher: Record<string, string[]>; provider: string };
+async function interviewHighlights(key: string, clips: Array<{ id: string; part: number; transcript: string }>): Promise<Highlighted> {
   const user = JSON.stringify({ clips: clips.map((c) => ({ id: c.id, part: c.part, transcript: c.transcript })) });
+  const read = (value: unknown, provider: string): Highlighted => {
+    const teacher = cleanTeacherLines(value, clips);
+    return { teacher, highlights: cleanInterviewHighlights(value, clips.map((c) => ({ ...c, teacherLines: teacher[c.id] ?? [] }))), provider };
+  };
   if (claudeEnabled()) {
-    try {
-      const result = await claudeText({ system: INTERVIEW_HIGHLIGHT_INSTRUCTIONS, user, maxTokens: 3000, schema: interviewHighlightSchema, timeoutMs: 45000 });
-      return { byClip: cleanInterviewHighlights(JSON.parse(result.text), clips), provider: providerTag("anthropic", result.model, result.id) };
-    } catch (e) {
-      why("highlights_claude", reasonOf(e));
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const result = await claudeText({ system: INTERVIEW_HIGHLIGHT_INSTRUCTIONS, user, maxTokens: 12000, schema: interviewHighlightSchema, timeoutMs: 90000 });
+        return read(JSON.parse(result.text), providerTag("anthropic", result.model, result.id));
+      } catch (e) {
+        why(`highlights_claude_${attempt}`, reasonOf(e));
+        if (!(e instanceof Error && e.name === "SyntaxError")) break;
+      }
     }
   }
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      signal: AbortSignal.timeout(45000),
+      signal: AbortSignal.timeout(90000),
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "gpt-4o-mini", store: false, response_format: { type: "json_object" },
+      body: JSON.stringify({ model: Deno.env.get("IELTS_SPEAKING_HIGHLIGHT_FALLBACK_MODEL")?.trim() || "gpt-4.1", store: false, response_format: { type: "json_object" },
         messages: [{ role: "system", content: INTERVIEW_HIGHLIGHT_INSTRUCTIONS }, { role: "user", content: user }] }),
     });
     if (!response.ok) throw new Error(`highlights_${response.status}`);
     const out = await response.json();
-    return { byClip: cleanInterviewHighlights(JSON.parse(out.choices?.[0]?.message?.content ?? "{}"), clips), provider: providerTag("openai", "gpt-4o-mini", out.id) };
+    return read(JSON.parse(out.choices?.[0]?.message?.content ?? "{}"), providerTag("openai", String(out.model ?? "gpt-4.1"), out.id));
   } catch (e) {
     why("highlights_openai", reasonOf(e));
-    return { byClip: Object.fromEntries(clips.map((c) => [c.id, []])), provider: "none" };
+    return { highlights: Object.fromEntries(clips.map((c) => [c.id, []])), teacher: Object.fromEntries(clips.map((c) => [c.id, []])), provider: "none" };
   }
 }
 
@@ -173,31 +190,37 @@ async function analyse(sessionId: string, session: any, caller: any, admin: any)
   if (!key) throw new Error("unavailable");
   const { data: extras, error: extrasError } = await caller.rpc("rpc_ielts_speaking_session_extras", { p_session_id: sessionId });
   if (extrasError) throw new Error("extras_failed");
-  const done = new Set((extras?.analysis ?? []).map((a: { clip_id: string }) => a.clip_id));
+  // Re-analyse clips with no analysis at the current version; older versions are kept as history.
+  const done = new Set((extras?.analysis ?? []).filter((a: { prompt_version?: string }) => a.prompt_version === INTERVIEW_ANALYSIS_VERSION).map((a: { clip_id: string }) => a.clip_id));
   const todo = (session.clips ?? []).filter((c: { id: string }) => !done.has(c.id));
   if (!todo.length) return extras;
-  const question = JSON.stringify(session.package ?? "").slice(0, 300);
-  const prepared = await Promise.all(todo.map(async (clip: { id: string; part: number; path: string; sha256: string }) => {
+  const transcribed = await Promise.all(todo.map(async (clip: { id: string; part: number; path: string; sha256: string }) => {
     const { data: audio, error } = await admin.storage.from("ielts-speaking-pilot").download(clip.path);
     if (error || !audio) throw new Error("missing_audio");
     const bytes = await audio.arrayBuffer();
     inspectSpeakingWav(bytes);
     if ((await sha(bytes)) !== clip.sha256) throw new Error("source_mismatch");
-    const segments = await transcribeSegments(bytes, key, `An IELTS-style speaking interview: a teacher asks questions and a student answers. Write exactly what is said, including mistakes. Task: ${question}`);
+    const segments = await transcribeInterview(bytes, key);
     const transcript = segments.map((s) => s.text).join(" ").replace(/\s+/g, " ").trim().slice(0, 20000);
-    const pronunciation = await listenForPronunciation(bytes, key, clip.part, transcript);
-    return { id: clip.id, part: clip.part, transcript, pronunciation };
+    return { id: clip.id, part: clip.part, transcript, bytes };
   }));
-  const { byClip, provider } = await interviewHighlights(key, prepared);
+  // Who said what first, so highlights and pronunciation words use only the student's speech.
+  const { highlights, teacher, provider } = await interviewHighlights(key, transcribed);
+  const prepared = await Promise.all(transcribed.map(async (clip) => ({
+    ...clip,
+    teacherLines: teacher[clip.id] ?? [],
+    pronunciation: await listenForPronunciation(clip.bytes, key, clip.part, clip.transcript, studentOnlyText(clip.transcript, teacher[clip.id] ?? [])),
+  })));
   for (const clip of prepared) {
     const { error } = await admin.rpc("rpc_ielts_save_speaking_clip_analysis", {
       p_session_id: sessionId,
       p_clip_id: clip.id,
       p_transcript: clip.transcript,
-      p_highlights: byClip[clip.id] ?? [],
+      p_highlights: highlights[clip.id] ?? [],
       p_pronunciation: clip.pronunciation,
-      p_prompt_version: `${INTERVIEW_HIGHLIGHT_PROMPT_VERSION}+${PRONUNCIATION_PASS_PROMPT_VERSION}`,
+      p_prompt_version: INTERVIEW_ANALYSIS_VERSION,
       p_provider: `${provider}+openai/${analyseModel}`.slice(0, 200),
+      p_speaker_turns: { teacher: clip.teacherLines },
     });
     if (error) throw new Error("save_failed");
   }
@@ -351,13 +374,12 @@ Deno.serve(async (req: Request) => {
     // pronunciation is recorded as not assessed (Bible 10.3). The original audio model below is the fallback.
     if (claudeEnabled()) {
       try {
-        const question = JSON.stringify(context.package ?? "").slice(0, 300);
         const transcripts = await Promise.all(clipAudio.map(async (clip) => ({
           id: clip.id,
           part: clip.part,
           duration_seconds: clip.duration_seconds,
           interrupted: clip.interrupted,
-          segments: await transcribeSegments(clip.bytes, key, `An IELTS-style speaking interview: a teacher asks questions and a student answers. Write exactly what is said, including mistakes. Task: ${question}`),
+          segments: await transcribeInterview(clip.bytes, key),
         })));
         const user = JSON.stringify({ task: context.package, incidents: context.incidents, clips: transcripts });
         for (let attempt = 0; attempt < 2 && !fields; attempt++) {
@@ -365,9 +387,9 @@ Deno.serve(async (req: Request) => {
             const result = await claudeText({
               system: SPEAKING_AI_TRANSCRIPT_INSTRUCTIONS + (attempt ? " Your last draft was invalid. Check the JSON fields, segment timestamps and simple wording carefully." : ""),
               user,
-              maxTokens: 2300,
+              maxTokens: 6000,
               schema: speakingAiDraftSchema,
-              timeoutMs: 45000,
+              timeoutMs: 60000,
             });
             const draft = checkTranscriptSpeakingDraft(JSON.parse(result.text), transcripts);
             validateSimple(draft);
@@ -406,7 +428,7 @@ Deno.serve(async (req: Request) => {
             model,
             modalities: ["text"],
             store: false,
-            max_completion_tokens: 2300,
+            max_completion_tokens: 4000,
             messages: [
               {
                 role: "system",

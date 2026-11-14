@@ -67,8 +67,8 @@ function SpeakingResult({ data, attemptId }: { data: Awaited<ReturnType<typeof r
           <div className="rr-transcript-body">
             <SpeakingTranscript
               transcript={fields.transcript}
-              highlights={fields.highlights ?? []}
-              pronunciationWords={fields.pronunciation_words ?? []}
+              highlights={fields.highlights}
+              pronunciationWords={fields.pronunciation_words}
               pronunciationAssessed={fields.pronunciation_assessed !== false}
             />
             <p className="rr-fine">Highlights and word corrections are AI practice feedback; your teacher's bands above are the checked result.</p>

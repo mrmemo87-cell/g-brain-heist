@@ -29,6 +29,8 @@ insert into users values('${student}','gulzada','Gulzada','student','${school}',
 insert into school_members values('${student}','${school}','active','student'),('${other}','${school}','active','student');`);
 await db.exec(readFileSync("supabase/migrations/20261007112613_ielts_speaking_interview_pilot.sql", "utf8"));
 await db.exec(readFileSync("supabase/migrations/20261113181000_ielts_speaking_interview_transcripts_part_bands.sql", "utf8"));
+await db.exec(readFileSync("supabase/migrations/20261114090000_ielts_speaking_analysis_versions.sql", "utf8"));
+const CURRENT = "bh-ielts-speaking-interview-analysis-v2";
 const sha = "a".repeat(64);
 await db.exec(`insert into private.ielts_speaking_sessions(id,student_id,teacher_id,package_code,content_hash,package_snapshot,status,evidence_kind,recording_consent)
  select '${session}','${student}','${teacher}',code,content_hash,content,'submitted','first_sitting',true from private.ielts_speaking_packages;
@@ -36,25 +38,34 @@ await db.exec(`insert into private.ielts_speaking_sessions(id,student_id,teacher
  ('${clip1}','${session}',1,'p1.wav','${sha}',200,'audio/wav',false),('${clip2}','${session}',2,'p2.wav','${sha}',150,'audio/wav',false),('${clip3}','${session}',3,'p3.wav','${sha}',200,'audio/wav',false);`);
 const actor = (u) => db.query("select set_config('request.jwt.claim.sub',$1,false)", [u ?? ""]);
 const extras = () => db.query("select public.rpc_ielts_speaking_session_extras($1) j", [session]).then((r) => r.rows[0].j);
-const save = (clip, sessionId = session) => db.query(
-  "select public.rpc_ielts_save_speaking_clip_analysis($1,$2,$3,$4::jsonb,$5::jsonb,'test-v1','test')",
+const save = (clip, sessionId = session, version = CURRENT) => db.query(
+  "select public.rpc_ielts_save_speaking_clip_analysis($1,$2,$3,$4::jsonb,$5::jsonb,$6,'test',$7::jsonb)",
   [sessionId, clip, "I have live here since two years.", JSON.stringify([{ criterion: "grammar_range_accuracy", kind: "fix", quote: "have live here", note: "Say: I have lived here." }]),
-   JSON.stringify({ assessed: true, words: [{ word: "years", tip: "Say the s.", ipa: "jɪrz" }] })]);
+   JSON.stringify({ assessed: true, words: [{ word: "years", tip: "Say the s.", ipa: "jɪrz" }] }), version,
+   JSON.stringify({ teacher: version === CURRENT ? ["How long have you lived here?"] : [] })]);
 
 test("teacher sees missing clips; analysis is saved once per clip and only for the session's own clips", async () => {
   await actor(teacher);
   let e = await extras();
   assert.equal(e.missing_clips, 3);
   assert.equal(e.can_set_bands, false, "bands need shared feedback first");
+  await save(clip2, session, "bh-old-analysis-v1");
+  assert.equal((await extras()).missing_clips, 3, "an older analysis version still counts as missing");
   await save(clip1);
-  await save(clip1); // insert-once: a repeat is ignored
+  await save(clip1); // insert-once per version: a repeat is ignored
   await assert.rejects(save(clip2, "00000000-0000-0000-0000-000000000099"), /speaking_clip_mismatch/);
   e = await extras();
-  assert.equal(e.analysis.length, 1);
+  assert.equal(e.analysis.length, 2, "latest analysis per clip");
   assert.equal(e.analysis[0].part, 1);
+  assert.equal(e.analysis[0].prompt_version, CURRENT);
+  assert.deepEqual(e.analysis[0].speaker_turns.teacher, ["How long have you lived here?"]);
   assert.equal(e.analysis[0].highlights[0].criterion, "grammar_range_accuracy");
   assert.equal(e.analysis[0].pronunciation.words[0].ipa, "jɪrz");
-  assert.equal(e.missing_clips, 2);
+  assert.equal(e.missing_clips, 2, "clip 2 has only an old version, clip 3 none");
+  await save(clip2);
+  e = await extras();
+  assert.equal(e.analysis.find((a) => a.clip_id === clip2).prompt_version, CURRENT, "the newer version replaces the old one on screen");
+  assert.equal((await db.query("select count(*)::int n from private.ielts_speaking_clip_analysis where clip_id=$1", [clip2])).rows[0].n, 2, "old version kept as history");
   await assert.rejects(db.query("delete from private.ielts_speaking_clip_analysis"), /speaking_history_immutable/);
 });
 
@@ -84,7 +95,7 @@ test("Part 1-3 bands: reviewer only, after sharing, half bands 0-9, append-only 
   await assert.rejects(db.query("select public.rpc_ielts_set_speaking_part_bands($1,9,9,9)", [session]), /not_authorized/);
   const s = await extras();
   assert.equal(Number(s.part_bands.part_2), 7);
-  assert.equal(s.analysis.length, 1);
+  assert.equal(s.analysis.length, 2);
   assert.equal(s.missing_clips, 0, "students are not told about unprocessed clips");
   assert.equal(s.can_set_bands, false);
 });
