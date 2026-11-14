@@ -39,14 +39,14 @@ export function BandPicker({ id, label, value, onChange, big, disabled }: Picker
     onChange(next);
   };
   return (
-    <div className={`sb-picker${big ? ' sb-picker--big' : ''}${value === null ? ' is-empty' : ''}`}>
-      <button type="button" className="sb-nudge" aria-label={`Lower ${label} by half a band`} disabled={disabled || value === 0} onClick={() => step(-0.5)}>−</button>
+    <div className={`spb-picker${big ? ' spb-picker--big' : ''}${value === null ? ' is-empty' : ''}`}>
+      <button type="button" className="spb-nudge" aria-label={`Lower ${label} by half a band`} disabled={disabled || value === 0} onClick={() => step(-0.5)}>−</button>
       <select id={id} aria-label={label} value={value ?? ''} disabled={disabled}
         onChange={e => onChange(e.target.value === '' ? null : Number(e.target.value))}>
         <option value="">Set</option>
         {BAND_OPTIONS.map(b => <option key={b} value={b}>{b.toFixed(1)}</option>)}
       </select>
-      <button type="button" className="sb-nudge" aria-label={`Raise ${label} by half a band`} disabled={disabled || value === 9} onClick={() => step(0.5)}>+</button>
+      <button type="button" className="spb-nudge" aria-label={`Raise ${label} by half a band`} disabled={disabled || value === 9} onClick={() => step(0.5)}>+</button>
     </div>
   );
 }
@@ -62,41 +62,41 @@ type Props = {
 export default function SpeakingBandsPanel({ bands, onChange, partTitles, studentName, disabled }: Props) {
   const avg = criterionAverage(bands);
   return (
-    <div className="sb-panel">
-      <div className="sb-group">
+    <div className="spb-panel">
+      <div className="spb-group">
         <h3>Criteria <small>whole interview</small></h3>
-        <div className="sb-grid">
+        <div className="spb-grid">
           {CRITERION_BANDS.map(c => (
-            <div key={c.key} className={`sb-tile rr-tone-${c.tone}`}>
-              <span className="sb-tag" aria-hidden="true">{c.short}</span>
-              <label htmlFor={`sb-${c.key}`}>{c.label}</label>
-              <BandPicker id={`sb-${c.key}`} label={c.label} value={bands[c.key]} disabled={disabled} onChange={v => onChange(c.key, v)} />
+            <div key={c.key} className={`spb-tile rr-tone-${c.tone}`}>
+              <span className="spb-tag" aria-hidden="true">{c.short}</span>
+              <label htmlFor={`spb-${c.key}`}>{c.label}</label>
+              <BandPicker id={`spb-${c.key}`} label={c.label} value={bands[c.key]} disabled={disabled} onChange={v => onChange(c.key, v)} />
             </div>
           ))}
         </div>
       </div>
-      <div className="sb-group">
+      <div className="spb-group">
         <h3>Parts</h3>
-        <div className="sb-grid sb-grid--3">
+        <div className="spb-grid spb-grid--3">
           {PART_BANDS.map(p => (
-            <div key={p.key} className="sb-tile">
-              <label htmlFor={`sb-${p.key}`}>Part {p.part}<small>{partTitles[p.part] ?? ''}</small></label>
-              <BandPicker id={`sb-${p.key}`} label={`Part ${p.part} band`} value={bands[p.key]} disabled={disabled} onChange={v => onChange(p.key, v)} />
+            <div key={p.key} className="spb-tile">
+              <label htmlFor={`spb-${p.key}`}>Part {p.part}<small>{partTitles[p.part] ?? ''}</small></label>
+              <BandPicker id={`spb-${p.key}`} label={`Part ${p.part} band`} value={bands[p.key]} disabled={disabled} onChange={v => onChange(p.key, v)} />
             </div>
           ))}
         </div>
       </div>
-      <div className="sb-overall">
+      <div className="spb-overall">
         <div>
-          <span className="sb-overall-eyebrow">The headline {studentName} sees</span>
-          <label htmlFor="sb-overall" className="sb-overall-label">Teacher Speaking band</label>
-          <p className="sb-avg" aria-live="polite">
+          <span className="spb-overall-eyebrow">The headline {studentName} sees</span>
+          <label htmlFor="spb-overall" className="spb-overall-label">Teacher Speaking band</label>
+          <p className="spb-avg" aria-live="polite">
             {avg === null
               ? 'Set the four criterion bands to see their average.'
               : <>Average of your criterion bands: <b>{avg.toFixed(2)}</b>. Each criterion is worth 25%. The final band is your call.</>}
           </p>
         </div>
-        <BandPicker id="sb-overall" label="Teacher Speaking band" big value={bands.overall} disabled={disabled} onChange={v => onChange('overall', v)} />
+        <BandPicker id="spb-overall" label="Teacher Speaking band" big value={bands.overall} disabled={disabled} onChange={v => onChange('overall', v)} />
       </div>
     </div>
   );
