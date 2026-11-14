@@ -64,3 +64,17 @@
 .st-key--teacher { --c: #64748b; --c-bg: #f1f5f9; }
 .st-legacy { padding: .55rem .8rem; border-radius: 12px; background: #f8fafc; border: 1px dashed #cbd5e1; color: #475569; font-size: .86rem; }
 .st-good { color: #047857; font-weight: 600; }
+
+/* Colour-coded Writing essay (Visual & UX Bible 13.10). Same panel; Writing criteria get their own colours + tags. */
+.we-panel { --tr: #0f766e; --tr-bg: #ccfbf1; }
+.st-c-task_response, .st-c-task_achievement { --c: var(--tr, #0f766e); --c-bg: var(--tr-bg, #ccfbf1); }
+.st-c-coherence_cohesion { --c: var(--fc); --c-bg: var(--fc-bg); }
+.we-text { white-space: pre-wrap; font-family: var(--bh-ielts-font-reading, Georgia, 'Times New Roman', serif); font-size: 1.04rem; }
+.we-filter { display: flex; flex-wrap: wrap; gap: .35rem; }
+.we-filter button { min-height: 36px; padding: .25rem .8rem; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: .82rem; font-weight: 700; cursor: pointer; }
+.we-filter button[aria-pressed='true'] { background: #0f172a; border-color: #0f172a; color: #fff; }
+.we-filter button:focus-visible { outline: 3px solid var(--bh-ielts-focus, #2563eb); outline-offset: 2px; }
+.we-fix { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: .3rem; }
+.we-fix s { color: #9a3412; text-decoration-thickness: 1.5px; }
+.we-fix b { padding: .05rem .4rem; border-radius: 6px; background: #dcfce7; color: #065f46; font-weight: 800; }
+@media print { .we-filter { display: none; } .we-fix b { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }

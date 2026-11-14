@@ -67,3 +67,17 @@
 /* Older Speaking feedback can be upgraded with highlights (Diagnostic Bible 2.2.1 section 10.7). */
 .pf-upgrade { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem .9rem; margin-bottom: .8rem; padding: .8rem 1rem; border-radius: 14px; background: linear-gradient(135deg, #eef2ff, #f5f3ff); border: 1px solid #c7d2fe; }
 .pf-upgrade p { margin: 0; flex: 1 1 18rem; color: #312e81; font-size: .92rem; }
+
+/* AI estimated Writing task band (Visual & UX Bible 13.10): a range always sits beside the number. */
+.pf-band { position: relative; overflow: hidden; margin-top: 1rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem 1.2rem; padding: 1.1rem 1.25rem; border-radius: 20px; color: #fff; background: radial-gradient(120% 140% at 0% 0%, #4f46e5 0%, #1746B0 45%, #0e7490 100%); box-shadow: 0 14px 34px rgba(23, 70, 176, .28); animation: pf-rise .5s ease-out both; }
+.pf-band-main { display: grid; gap: .1rem; }
+.pf-band-label { font-size: .74rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #c7d2fe; }
+.pf-band-num { font-size: clamp(2.6rem, 9vw, 3.4rem); font-weight: 900; line-height: 1; letter-spacing: -.03em; }
+.pf-band-range { font-size: .98rem; font-weight: 700; color: #e0e7ff; }
+.pf-band-none { font-size: 1rem; font-weight: 700; color: #e0e7ff; }
+.pf-band-meta { display: grid; gap: .4rem; justify-items: start; max-width: 20rem; }
+.pf-band-chip { display: inline-flex; padding: .3rem .7rem; border-radius: 999px; background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .3); font-size: .78rem; font-weight: 700; color: #fff; }
+.pf-band-chip--ok { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+.pf-band-chip--quiet { background: transparent; color: #c7d2fe; }
+@media (prefers-reduced-motion: reduce) { .pf-band { animation: none; } }
+@media print { .pf-band { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }

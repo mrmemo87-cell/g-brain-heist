@@ -1,7 +1,7 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.3.0\
+**Version:** 2.4.0\
 **Effective date:** 2026-11-14\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
@@ -839,7 +839,7 @@ but not silently as a complete IELTS Writing band.
 **What AI may do on practice tasks** (not screeners, mocks or independent checks)
 - Return first-pass feedback to the student directly, within minutes.
 - Comment on each of the four criteria, with two or three specific, quoted examples from the student's own text or transcript and one concrete revision action.
-- Give an **AI practice indication**: a criterion range on the band scale, for example *Coherence and Cohesion: about 5.5–6.5*. Never a single number, and never an overall Writing or Speaking band.
+- Give an **AI practice indication**: a criterion range on the band scale, for example *Coherence and Cohesion: about 5.5–6.5*. Never a single number, and never an overall Writing or Speaking band. The one exception is the **AI estimated band for one Writing practice task** in section 10.9, which the server works out from these ranges and the teacher confirms.
 
 **How it must be labelled**
 - Every item carries the visible label **AI practice feedback: your teacher may adjust it**, with the model, prompt version and time recorded (section 10.2).
@@ -936,6 +936,29 @@ but not silently as a complete IELTS Writing band.
 **Limits that stay**
 - It is not an indicative band range (section 9.5), not a readiness estimate (section 9.4) and never enters an indicative overall range. Reports may show it only with the label above.
 - It never proves improvement on a repeated form (same-form practice stays practice).
+
+### 10.9 Writing highlights, corrections and the AI estimated task band
+
+**Owner-authorized (2026-11-14).** The owner asked that Writing review uses the same smart checking as Speaking: colour-coded highlights, an estimated band, and feedback the student finds genuinely useful. After the conflict with section 10.5 (AI ranges only) was raised, the owner chose: *"the AI gives an estimated band and the teacher needs to confirm it"*, and asked for the highlights on Writing practice and on the Writing starting-point check (screener).
+
+**Highlights and corrections (practice and screener)**
+- AI may mark short phrases copied exactly from the student's essay, each tagged with ONE criterion (Task Achievement for Task 1 or Task Response for Task 2, Coherence and Cohesion, Lexical Resource, Grammatical Range and Accuracy), as *done well* or *to improve*, with one short note.
+- A *to improve* language highlight carries the corrected wording of exactly the quoted words. Ideas and organisation problems may have no correction; the note says what to do instead. A *done well* phrase must be correct English and never carries a correction.
+- The server keeps only quotes found in the essay and stores their exact position. Problems come first. Invalid highlights are dropped without failing the feedback.
+- On a screener, highlights are part of the teacher's private AI draft only. The student never sees AI output on a screener (section 10.6); the teacher's shared observations are unchanged and the screener still produces no band (sections 9.3, 10.4).
+
+**AI estimated band for one Writing practice task**
+- Practice tasks only, never screeners, mocks or independent checks.
+- The AI never writes the number. The server calculates it from the four criterion ranges of section 10.5: the mean of the range midpoints, rounded to the nearest half band (halves round up), shown with its likely range of ± 0.5. If any criterion has no range, no estimate is shown.
+- Label: **AI estimated band · Task N**, its likely range beside it, and **Not an official IELTS result**. School learners also see **Waiting for your teacher to confirm** until the review is finalized; self-paced learners see **Brains Heist estimate** wording (section 10.6).
+- The estimate covers that one task only. It is never a full Writing band, never an overall band, never an indicative band range (section 9.5) and never a readiness estimate (section 9.4).
+
+**Teacher confirmation**
+- A school IELTS teacher may run the practice check for a student's essay the student never sent, or upgrade feedback made before highlights existed; a failed run keeps the earlier feedback.
+- The teacher sees the AI estimate as a suggestion and can copy it, with the criterion midpoints, into their own bands with one button. Nothing is filled in without that action. The **task band** the teacher finalizes is the checked result; the student then sees it labelled as checked by the teacher, beside the earlier AI estimate.
+- Only the teacher's finalized bands may become evidence (sections 8A.3, 10.5). The AI estimate and highlights stay practice feedback.
+
+**Provenance.** Model, prompt version (practice `bh-ielts-practice-feedback-v3`, screener draft `bh-ielts-task2-simple-feedback-v2`) and time are recorded. AI and teacher bands are kept side by side so disagreements can be reviewed (section 10.2).
 
 ---
 
@@ -2009,6 +2032,22 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.17 Revision record — v2.4.0 (2026-11-14)
+
+**Authority.** On 2026-11-14 (16:26 Asia/Bishkek) the owner asked that Writing review uses the smart checking and colour-coded highlights of Speaking, shows the estimated band, and gives students great, useful feedback. Asked about the section 10.5 conflict, the owner chose "the AI gives an estimated band and the teacher needs to confirm it", and highlights on practice and the screener.
+
+**Why the old rules were insufficient.** The audit found: no colour highlights on Writing; no corrections; teachers could not run the AI check (3 of 5 live practice essays had no feedback); feedback did not start on submit; the student's finalized Writing result was plain text; and section 10.5 allowed no estimated band for a task.
+
+**What changed.** New section 10.9; one cross-reference in 10.5.
+
+**What did not change.** No overall Writing band from AI; screeners, mocks and independent checks get no AI band; teacher confirmation remains the only route into evidence; indicative ranges (9.5) and provisional estimates (9.4) keep their own rules; server-side authorization, rate limits and logging rules.
+
+**Implementation to review**
+- `supabase/functions/_shared/ieltsWritingHighlights.ts`, `_shared/ieltsPracticeFeedback.ts`, `_shared/ieltsWritingAiDraft.ts`; edge functions `ielts_practice_writing_feedback` (asTeacher) and `ielts_writing_teacher_ai`.
+- Migrations `20261114140000_ielts_writing_highlights_teacher_run.sql` and `20261114141000_ielts_writing_screener_draft_highlights.sql`.
+- `src/components/ielts/WritingEssayHighlights.tsx`, `IeltsPracticeAiFeedback.tsx`, `IeltsWritingReviewWorkspace.tsx`, `src/pages/ielts/IeltsSubmissionReview.tsx`, `IeltsReviewResult.tsx`, `IeltsWritingScreenerReview.tsx`, `WritingPractice.tsx`.
+- `docs/ielts/IELTS_VISUAL_UX_BIBLE.md` 13.10.
 
 ### 22.16 Revision record — v2.3.0 (2026-11-14)
 

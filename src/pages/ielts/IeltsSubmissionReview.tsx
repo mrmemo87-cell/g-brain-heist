@@ -98,6 +98,17 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
     setImprovements(entries.map(([k, c]) => `• ${criterionLabel[k] ?? k}: ${c.action}`).join('\n'));
     setNextSteps(aiFields.next_step);
   };
+  // Writing (Bible 10.9): the AI estimated task band and the midpoint of each criterion range, for the teacher to
+  // confirm or change. Nothing is set until the teacher presses the button.
+  const aiEstimate = skill === 'writing' ? aiFields?.estimate ?? null : null;
+  const applyAiBands = () => {
+    if (!aiEstimate) return;
+    setRubric((current) => Object.fromEntries(Object.keys(current).map((key) => {
+      const i = aiFor(key)?.indication;
+      return [key, i ? (i.low + i.high) / 2 : current[key]];
+    })));
+    setOverallBand(aiEstimate.band);
+  };
   const rubricKeys = useMemo(() => skill === 'writing' ? writingRubricKeys : speakingRubricKeys, [skill]);
 
   const { data: detail, isLoading, error, refetch } = useQuery({
@@ -316,7 +327,7 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
                 <>
                   <h2>Student answer <span className="ir-muted ir-small">· Word count: {detail.word_count ?? 'unknown'}</span></h2>
                   <div className="ir-answer">{detail.student_answer ?? 'No answer text available.'}</div>
-                  <IeltsPracticeAiFeedback attemptId={attemptId} mode="teacher" />
+                  <IeltsPracticeAiFeedback attemptId={attemptId} mode="teacher" onFeedback={() => { void aiFeedbackQuery.refetch(); }} />
                 </>
               ) : (
                 <>
@@ -347,6 +358,15 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
 
             <aside className="ir-card ir-form">
               <h2>Your bands</h2>
+              {aiEstimate && !locked ? (
+                <div className="ir-ai-band">
+                  <p><span className="ir-small">AI estimated {aiFields?.task_number === 1 ? "Task 1" : "Task 2"} band</span>
+                    <strong>{aiEstimate.band.toFixed(1)}</strong>
+                    <span className="ir-small">range {aiEstimate.low.toFixed(1)}–{aiEstimate.high.toFixed(1)}</span></p>
+                  <IeltsButton type="button" onClick={applyAiBands}>Use AI bands, then check</IeltsButton>
+                  <p className="ir-small ir-muted">Fills the four criteria and the task band with the AI suggestion. Change any band you disagree with before you finalize.</p>
+                </div>
+              ) : null}
               <div className="ir-bands">
                 {rubricKeys.map((key) => (
                   <label key={key} className="ir-field">{rubricLabels[key] ?? key}
@@ -358,11 +378,12 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
                   </label>
                 ))}
               </div>
-              <label className="ir-field ir-field--strong">{skill === 'speaking' && detail.part ? `Part ${detail.part} band (required to finalize)` : 'Task-level reviewed band (required to finalize)'}
+              <label className="ir-field ir-field--strong">{skill === 'speaking' && detail.part ? `Part ${detail.part} band (required to finalize)` : 'Task-level reviewed band — you confirm it (required to finalize)'}
                 <select disabled={locked} value={overallBand ?? ''} onChange={(e) => setOverallBand(e.target.value ? Number(e.target.value) : null)}>
                   <option value="">{skill === 'speaking' && detail.part ? `Select Part ${detail.part} band` : 'Select task band'}</option>
                   {bandOptions.map((band) => <option key={band} value={band}>{band}</option>)}
                 </select>
+                {aiEstimate ? <span className="ir-hint">AI estimates {aiEstimate.band.toFixed(1)} · you decide</span> : null}
               </label>
 
               <h2>Feedback for the student</h2>

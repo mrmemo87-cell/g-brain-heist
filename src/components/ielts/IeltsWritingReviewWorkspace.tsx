@@ -1,6 +1,8 @@
 import React from 'react';
 import { IELTS_WRITING_CRITERIA, type WritingCriterion, type WritingEvidenceSpan, type WritingObservations, type WritingObservationStatus, type WritingScreenerResult } from '../../../services/ieltsWritingScreener';
 import { getWritingReviewReadiness, isWritingObservationComplete } from '../../../services/ieltsWritingReviewUx';
+import type { WritingHighlight } from '../../../services/ieltsPracticeFeedback';
+import WritingEssayHighlights from './WritingEssayHighlights';
 
 type Props = {
   result: WritingScreenerResult; observations: WritingObservations; activeCriterion: WritingCriterion;
@@ -11,6 +13,8 @@ type Props = {
   saving: boolean; saved: boolean; onSave: () => void;
   aiBusy?: boolean; aiApplied?: boolean; aiConfirmed?: boolean; onAi?: () => void;
   onAiConfirm?: (value: boolean) => void; onAiRemove?: () => void; onAiReplace?: () => void;
+  /** Teacher-only AI colour highlights for this essay (Bible 10.9). */
+  aiHighlights?: WritingHighlight[];
 };
 const choices: { status: WritingObservationStatus; label: string; hint: string }[] = [
   { status: 'observed', label: 'Demonstrated', hint: 'Working well in this essay' },
@@ -39,6 +43,10 @@ export const IeltsWritingReviewWorkspace: React.FC<Props> = (props) => {
         <p>{selected ? `“${selected.quote.length > 180 ? `${selected.quote.slice(0, 180)}…` : selected.quote}”` : 'Choose a short excerpt that supports what you want to say.'}</p>
         {selected && <button type="button" className="wr-secondary" disabled={saving} onClick={() => props.onEdit(activeCriterion, { evidence: [selected] })}>Attach to {criterion.label}</button>}
       </div>
+      {props.aiHighlights && <details className="wr-task wr-highlights" open><summary>AI colour highlights · {props.aiHighlights.length}</summary>
+        <WritingEssayHighlights essay={result.response_text} taskNumber={2} highlights={props.aiHighlights} audience="teacher" title="Essay with AI assessment highlights" />
+        <p className="wr-help">Only you see these highlights. Use them to choose excerpts; the student sees only the feedback you share.</p>
+      </details>}
     </section>
     <div className="wr-feedback">
       {props.onAi && <section className={`wr-card wr-ai ${props.aiBusy ? 'wr-ai-working' : ''}`} aria-labelledby="ai-help-heading" aria-busy={!!props.aiBusy}>

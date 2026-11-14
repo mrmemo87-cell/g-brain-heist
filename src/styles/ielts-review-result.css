@@ -62,3 +62,4 @@
 .rr-part small { color: #c7d2fe; font-size: .78rem; }
 .rr-hero-meta--row { position: relative; display: flex; flex-wrap: wrap; justify-items: start; gap: .4rem; margin-top: .9rem; }
 .sp-insights-student { margin-top: 1rem; }
+.rr-tone-tr { --c: #0f766e; --c-bg: #ccfbf1; }

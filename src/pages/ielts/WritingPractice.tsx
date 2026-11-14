@@ -559,7 +559,7 @@ const WritingPractice: React.FC = () => {
               <div style={{ whiteSpace: 'pre-wrap', color: '#0f172a', marginTop: '0.75rem', lineHeight: 1.6 }}>{submittedText ?? answer}</div>
             </details>
           ) : null}
-          {lastAttemptId && <IeltsPracticeAiFeedback attemptId={lastAttemptId} mode="student" />}
+          {lastAttemptId && <IeltsPracticeAiFeedback attemptId={lastAttemptId} mode="student" autoStart={wordCount >= 50} />}
 
           <AssignmentCompletionStatus
             context={assignmentContext}

@@ -40,15 +40,15 @@ Deno.serve(async (req: Request) => {
     let fields; let providerId: string | null = null; let usedModel = model;
     // Claude first (Max plan API credit); the original OpenAI request below is the fallback.
     const claude = await claudeValidated('ielts_writing_teacher_ai', attempt => ({
-      system: WRITING_AI_INSTRUCTIONS + (attempt ? retryNote : ''), user: userContent, maxTokens: 2200,
-      schema: WRITING_AI_SCHEMA, timeoutMs: 40000,
+      system: WRITING_AI_INSTRUCTIONS + (attempt ? retryNote : ''), user: userContent, maxTokens: 6000,
+      schema: WRITING_AI_SCHEMA, timeoutMs: 60000,
     }), text => validateWritingAiOutput(JSON.parse(text), context));
     if (claude) { fields = claude.value; providerId = claude.tag; usedModel = claude.model; }
-    const signal = AbortSignal.timeout(45000);
+    const signal = AbortSignal.timeout(60000);
     for (let attempt = 0; !fields && apiKey && attempt < 2; attempt++) {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST', signal, headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model, store: false, max_completion_tokens: 2200,
+        body: JSON.stringify({ model, store: false, max_completion_tokens: 6000,
           messages: [{ role: 'system', content: WRITING_AI_INSTRUCTIONS + (attempt ? retryNote : '') },
             { role: 'user', content: userContent }],
           response_format: { type: 'json_schema', json_schema: { name: 'writing_teacher_draft', strict: true, schema: WRITING_AI_SCHEMA } },

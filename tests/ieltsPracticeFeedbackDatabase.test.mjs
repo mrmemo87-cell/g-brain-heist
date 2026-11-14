@@ -101,3 +101,30 @@ test('teacher upgrade of older speaking feedback keeps the old feedback if the r
  await db.query("select public.rpc_ielts_practice_speaking_feedback_finish($1,$2::jsonb,'p')",[c2.id,JSON.stringify({part:1,transcript:'new',criteria:{},next_step:'x',prompt_version:'v4',highlights:[]})]);
  assert.equal((await db.query("select public.rpc_ielts_practice_speaking_feedback_claim_review($1,'m') j",[A])).rows[0].j.ready,true,'upgraded feedback is not re-run again');
 });
+// Diagnostic Bible 2.4.0 section 10.9: a school IELTS teacher can run or upgrade Writing practice feedback.
+test('teacher-run writing feedback: school teacher only, one row per attempt, requester recorded, failed upgrade keeps old feedback',async()=>{
+ await db.exec(readFileSync('supabase/migrations/20261114140000_ielts_writing_highlights_teacher_run.sql','utf8'));
+ const rclaim=a=>db.query("select public.rpc_ielts_practice_feedback_claim_review($1,'m') j",[a]).then(r=>r.rows[0].j);
+ const finish=(id,f)=>db.query("select public.rpc_ielts_practice_feedback_finish($1,$2::jsonb,'p')",[id,f===null?null:JSON.stringify(f)]);
+ const W='10000000-0000-0000-0000-000000000004';
+ await as(stu);await assert.rejects(rclaim(W),/not_available/,'students use their own claim');
+ await as(other);await assert.rejects(rclaim(W),/not_authorized/);
+ await as(teacher);
+ await assert.rejects(rclaim('10000000-0000-0000-0000-000000000003'),/too_short/);
+ await db.exec(`delete from private.ielts_practice_ai_feedback where attempt_id='${W}'`);
+ const c=await rclaim(W);
+ assert.equal(c.ready,false);assert.equal(c.context.task_number,1);assert.equal(c.context.essay,essay);
+ const row=(await db.query('select student_id,requested_by from private.ielts_practice_ai_feedback where id=$1',[c.id])).rows[0];
+ assert.equal(row.student_id,stu,'feedback still belongs to the student');assert.equal(row.requested_by,teacher);
+ await assert.rejects(rclaim(W),/ai_already_working/);
+ await finish(c.id,{task_number:1,criteria:{},next_step:'x',prompt_version:'v2'});
+ const up=await rclaim(W);assert.equal(up.ready,false,'feedback without highlights is upgraded');
+ await finish(up.id,null);
+ const kept=(await db.query('select status,fields,previous_fields from private.ielts_practice_ai_feedback where id=$1',[c.id])).rows[0];
+ assert.equal(kept.status,'ready');assert.equal(kept.fields.prompt_version,'v2','a failed upgrade keeps the earlier feedback');
+ const up2=await rclaim(W);
+ await finish(up2.id,{task_number:1,criteria:{},next_step:'x',prompt_version:'bh-ielts-practice-feedback-v3',essay,highlights:[],estimate:null});
+ assert.equal((await rclaim(W)).ready,true,'upgraded feedback is returned, not regenerated');
+ assert.equal((await db.query('select previous_fields from private.ielts_practice_ai_feedback where id=$1',[c.id])).rows[0].previous_fields,null);
+ await as(stu);assert.equal((await db.query('select public.rpc_ielts_practice_feedback($1) j',[W])).rows[0].j.fields.prompt_version,'bh-ielts-practice-feedback-v3','the student sees it too');
+});

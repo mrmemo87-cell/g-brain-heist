@@ -1,7 +1,7 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.9.0
+**Version:** 1.10.0
 **Effective date:** 2026-11-14\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
@@ -247,7 +247,7 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 - For learners without a school (Diagnostic Bible 10.6) the label at the top is "Brains Heist feedback — an estimate, not an official IELTS result". Never show "teacher" wording to them.
 - When a teacher has confirmed the feedback, the label changes to "Checked by [teacher name], [date]".
 - Quoted examples from the student's work are highlighted inline, each with one revision action.
-- Practice indications appear as ranges per criterion, never as an overall band.
+- Practice indications appear as ranges per criterion, never as an overall band. Writing practice adds the AI estimated task band of 13.10.
 
 ### 13.4 Weekly loop batch view (Diagnostic Bible section 15B.5)
 - One screen per batch, with four groups in this order:
@@ -280,6 +280,16 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 - The interview student result leads with the **Teacher Speaking band** as the hero number, then the three Part tiles and four criterion tiles, then feedback and collapsible transcripts, with "Checked by", the date, "Not an official IELTS result" and "Confidence: low".
 - The student result leads with a hero card: the teacher's Part band as the headline, "Checked by [teacher], [date]" and "Not an official IELTS result", then one tile per criterion, then the transcript, then teacher feedback. Interview results show three Part tiles. No band animates up to its value.
 
+### 13.10 Writing highlights and the AI estimated task band (Diagnostic Bible section 10.9) — v1.10.0
+- Writing uses the same highlight panel as Speaking. Criterion colours: Task Response / Task Achievement teal (TR / TA), Coherence & Cohesion blue (CC), Vocabulary violet (LR), Grammar amber (GR). Each highlight carries its tag and number, and a colour key with counts sits above the essay.
+- The essay keeps its paragraphs and uses the reading font. *To improve* highlights have a wavy underline. The note shows the student's words struck through, an arrow, and the correction in a green chip, so the fix is readable without colour.
+- Filter buttons show All, To improve and Done well with counts.
+- The AI estimated band sits in a gradient card above the criteria: "AI estimated band · Task N", the number, "Likely range x–y" directly under it, and "Not an official IELTS result". School learners see "Waiting for your teacher to confirm"; teachers see "Suggestion only · you confirm or change it in Your bands".
+- Teachers see the highlighted essay open. Students see it in a collapsible section, closed by default inside the practice panel and open on the finalized result.
+- The teacher's "Your bands" panel shows the AI estimate with a "Use AI bands, then check" button and an "AI estimates x · you decide" hint under the task band. Nothing is filled in automatically.
+- The finalized student result uses the 13.9 hero: "Task N band" from the teacher, "Checked by your teacher, date", the earlier AI estimate in a quiet chip, criterion tiles, the essay, then teacher feedback.
+- On a screener, the teacher's AI draft shows the highlighted essay under the original, with the line "Only you see these highlights".
+
 ## 14. Native app motivation layer — v1.4.0
 
 This section applies **only inside the installed iPhone and Android apps** (`isNativeApp()`). The website keeps sections 12.4 and 13.6 unchanged. Where this section allows more than 12.4 or 13.6, it overrides them for the app only.
@@ -307,6 +317,11 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.15 Revision record — 1.10.0 (2026-11-14)
+**Authority.** Owner request on 2026-11-14 for Writing review with the Speaking-style colour highlights, an estimated band the teacher confirms, and feedback students find genuinely useful. Diagnostic Bible 2.4.0 section 10.9 defines what these mean.
+
+**Change.** Added 13.10; 13.3 cross-reference.
 
 ### 14.14 Revision record — 1.9.0 (2026-11-14)
 

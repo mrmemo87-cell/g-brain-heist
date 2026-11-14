@@ -7,6 +7,7 @@ import { IeltsWritingReviewWorkspace } from '../../components/ielts/IeltsWriting
 import { getWritingReviewReadiness } from '../../../services/ieltsWritingReviewUx';
 import { generateWritingAiReview, mergeWritingAiDraft, type WritingAiDraft } from '../../../services/ieltsWritingAiReview';
 import '../../styles/ielts-writing-review.css';
+import '../../styles/ielts-speaking-transcript.css';
 const emptyObservations = (): WritingObservations => Object.fromEntries(IELTS_WRITING_CRITERIA.map(({ key }) => [key, { status: 'insufficient_evidence', comment: '', evidence: [] }])) as WritingObservations;
 const IeltsWritingScreenerReview: React.FC = () => {
   const { attemptId } = useParams<{ attemptId?: string }>();
@@ -25,6 +26,8 @@ const IeltsWritingScreenerReview: React.FC = () => {
   const [aiBusy, setAiBusy] = useState(false); const [aiDraftId, setAiDraftId] = useState<string | undefined>();
   const [aiConfirmed, setAiConfirmed] = useState(false);
   const [completeAiDraft, setCompleteAiDraft] = useState<WritingAiDraft | null>(null);
+  // Teacher-only colour highlights from the AI draft (Bible 10.9); the student never sees them on a screener.
+  const [aiHighlights, setAiHighlights] = useState<WritingAiDraft['fields']['highlights']>(undefined);
   const aiRequest = useRef<AbortController | null>(null);
   const beforeAi = useRef<{ observations: WritingObservations; nextStep: string; delivery: string; dirty: boolean } | null>(null);
   useEffect(() => () => { aiRequest.current?.abort(); aiRequest.current = null; }, []);
@@ -35,7 +38,7 @@ const IeltsWritingScreenerReview: React.FC = () => {
     return () => window.removeEventListener('beforeunload', protectDraft);
   }, [dirty]);
   useEffect(() => {
-    aiRequest.current?.abort(); aiRequest.current = null; setAiBusy(false); setAiDraftId(undefined); setAiConfirmed(false); setCompleteAiDraft(null); beforeAi.current = null;
+    aiRequest.current?.abort(); aiRequest.current = null; setAiBusy(false); setAiDraftId(undefined); setAiConfirmed(false); setCompleteAiDraft(null); setAiHighlights(undefined); beforeAi.current = null;
     let active = true; setLoading(true); setResult(null); setError(''); setSaved(false); setDirty(false); setSelected(null); setActiveCriterion('task_response');
     const load = async () => {
       try {
@@ -57,14 +60,14 @@ const IeltsWritingScreenerReview: React.FC = () => {
   const draftWithAi = async () => {
     if (!result?.can_review || aiRequest.current || saving || aiDraftId) return;
     const controller = new AbortController(); aiRequest.current = controller; setAiBusy(true); setError('');
-    const timeout = window.setTimeout(() => controller.abort(), 70000);
+    const timeout = window.setTimeout(() => controller.abort(), 140000);
     try {
       const draft = await generateWritingAiReview(result, controller.signal);
       if (aiRequest.current !== controller || controller.signal.aborted) return;
       beforeAi.current = { observations, nextStep, delivery, dirty };
       const merged = mergeWritingAiDraft(observations, nextStep, delivery, draft);
       setObservations(merged.observations); setNextStep(merged.nextStep); setDelivery(merged.delivery);
-      setAiDraftId(draft.draft_id); setAiConfirmed(false); setDirty(true); setSaved(false); reviewId.current = null; setSelected(null); setActiveCriterion('task_response');
+      setAiDraftId(draft.draft_id); setAiHighlights(Array.isArray(draft.fields.highlights) ? draft.fields.highlights : undefined); setAiConfirmed(false); setDirty(true); setSaved(false); reviewId.current = null; setSelected(null); setActiveCriterion('task_response');
       setCompleteAiDraft(IELTS_WRITING_CRITERIA.some(({ key }) => observations[key].comment.trim() || observations[key].evidence.length) || nextStep.trim() || delivery.trim() ? draft : null);
     } catch (reason) {
       if (aiRequest.current === controller) setError(reason instanceof Error && !controller.signal.aborted ? reason.message : 'AI help took too long. Your notes are unchanged. Try again, or continue your review.');
@@ -74,7 +77,7 @@ const IeltsWritingScreenerReview: React.FC = () => {
     if (!beforeAi.current || saving) return;
     const previous = beforeAi.current;
     setObservations(previous.observations); setNextStep(previous.nextStep); setDelivery(previous.delivery); setDirty(previous.dirty);
-    setAiDraftId(undefined); setAiConfirmed(false); setCompleteAiDraft(null); setSaved(false); reviewId.current = null; beforeAi.current = null;
+    setAiDraftId(undefined); setAiConfirmed(false); setCompleteAiDraft(null); setAiHighlights(undefined); setSaved(false); reviewId.current = null; beforeAi.current = null;
   };
   const useCompleteAiDraft = () => {
     if (!completeAiDraft || saving) return;
@@ -119,6 +122,7 @@ const IeltsWritingScreenerReview: React.FC = () => {
       saving={saving} saved={saved} onSave={() => void save()}
       aiBusy={aiBusy} aiApplied={!!aiDraftId} aiConfirmed={aiConfirmed} onAi={() => void draftWithAi()} onAiConfirm={setAiConfirmed} onAiRemove={removeAiDraft}
       onAiReplace={completeAiDraft ? useCompleteAiDraft : undefined}
+      aiHighlights={aiHighlights}
     />}
   </div></main>;
 };
