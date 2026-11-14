@@ -349,8 +349,11 @@ export default function IeltsSpeakingPilot() {
       return false;
     }
   })();
-  const studentFirstName =
-    session?.student_name?.trim().split(/\s+/)[0] || "the student";
+  // Usernames (no space) read badly in sentences; use the first name only when a real name is stored.
+  const studentFirstName = (() => {
+    const n = session?.student_name?.trim() ?? "";
+    return /\s/.test(n) ? n.split(/\s+/)[0] : "the student";
+  })();
   // What is still missing before sharing, in plain words (Visual & UX Bible 1.9.0 section 13.9).
   const feedbackGaps = (): string[] => {
     if (!session) return [];
@@ -1031,7 +1034,7 @@ export default function IeltsSpeakingPilot() {
                       <span className="sp-step-dot" aria-hidden="true">
                         {st.done ? "✓" : st.n}
                       </span>
-                      <span>
+                      <span className="sp-step-text">
                         <b>{st.label}</b>
                         <small>{st.hint}</small>
                       </span>
