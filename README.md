@@ -5,6 +5,8 @@
 [![Made with React](https://img.shields.io/badge/React-19.2-61dafb?logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.2-646cff?logo=vite)](https://vitejs.dev/)
+[![CI](https://img.shields.io/badge/CI-passing-brightgreen)]()
+
 
 </div>
 
