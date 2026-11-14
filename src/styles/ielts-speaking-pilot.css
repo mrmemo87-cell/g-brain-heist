@@ -666,3 +666,4 @@
 .spb-reason { color: #475569; font-size: .78rem; line-height: 1.35; }
 .spb-overall .spb-avg + .spb-avg { color: #ddd6fe; }
 @media (prefers-reduced-motion: reduce) { .spb-spinner { animation: none; } }
+.spb-check { margin: 6px 0 0; padding: 6px 10px; border-radius: 10px; background: #fef3c7; color: #78350f; font-size: .84rem; font-weight: 650; }

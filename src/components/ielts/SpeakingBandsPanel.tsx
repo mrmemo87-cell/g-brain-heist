@@ -74,6 +74,9 @@ function AiChip({ estimates, k, bands }: { estimates?: SpeakingAiEstimates | nul
 
 export default function SpeakingBandsPanel({ estimates, estimating, estimateError, onUseEstimates, bands, onChange, partTitles, studentName, disabled }: Props) {
   const avg = criterionAverage(bands);
+  const crit = CRITERION_BANDS.map(c => bands[c.key]).filter((v): v is number => v !== null);
+  const outside = bands.overall === null || crit.length < 4 ? null
+    : bands.overall > Math.max(...crit) ? 'above' : bands.overall < Math.min(...crit) ? 'below' : null;
   const hasAny = !!estimates && Object.values(estimates.bands).some(v => v !== null);
   return (
     <div className="spb-panel">
@@ -126,6 +129,13 @@ export default function SpeakingBandsPanel({ estimates, estimating, estimateErro
               ? 'Set the four criterion bands to see their average.'
               : <>Average of your criterion bands: <b>{avg.toFixed(2)}</b>. Each criterion is worth 25%. The final band is your call.</>}
           </p>
+          {outside && (
+            <p className="spb-check" role="status">
+              {outside === 'above'
+                ? 'This is above every criterion band. Students often ask why, so check it is what you mean.'
+                : 'This is below every criterion band. Students often ask why, so check it is what you mean.'}
+            </p>
+          )}
           {estimates && (
             <p className="spb-avg">
               {estimates.bands.overall === null

@@ -372,6 +372,8 @@ export default function IeltsSpeakingPilot() {
       const o = feedback.observations[c.key];
       if (o.comment.trim().length < 20)
         gaps.push(`Step 2 · ${c.label}: write a comment of at least 20 characters.`);
+      else if (/was not assessed in this draft/i.test(o.comment))
+        gaps.push(`Step 2 · ${c.label}: replace the AI's "not assessed" note with your own comment on what you heard.`);
       else if (o.status !== "insufficient_evidence" && !o.evidence.length)
         gaps.push(`Step 2 · ${c.label}: attach one audio time span.`);
     }
@@ -1089,21 +1091,27 @@ export default function IeltsSpeakingPilot() {
                   ))}
                 </nav>
               )}
-              {!session.can_review && (
+              {/* Once shared, the result hero says it all; this card stays only for waiting students or special notes. */}
+              {!session.can_review &&
+                (!session.review ||
+                  session.evidence_kind === "same_form_practice" ||
+                  session.incidents > 0 ||
+                  session.clips.some((c) => c.interrupted)) && (
               <section className="sp-card">
-                <span className="sp-pill">
-                  {session.review
-                    ? "Teacher reviewed"
-                    : "Awaiting teacher review"}{" "}
-                  · Confidence: low
-                </span>
-                <h2>Your Speaking starting point</h2>
-                <p>
-                  This interview samples all three parts. Your teacher listens
-                  to every part and gives a Speaking band, a band for each part
-                  and a band for each criterion. It is not an official IELTS
-                  result.
-                </p>
+                {!session.review && (
+                  <>
+                    <span className="sp-pill">
+                      Awaiting teacher review · Confidence: low
+                    </span>
+                    <h2>Your Speaking starting point</h2>
+                    <p>
+                      This interview samples all three parts. Your teacher
+                      listens to every part and gives a Speaking band, a band
+                      for each part and a band for each criterion. It is not an
+                      official IELTS result.
+                    </p>
+                  </>
+                )}
                 {session.evidence_kind === "same_form_practice" && (
                   <p>
                     These questions were used before. This repeat is practice

@@ -33,6 +33,7 @@ await db.exec(readFileSync("supabase/migrations/20261114090000_ielts_speaking_an
 await db.exec(readFileSync("supabase/migrations/20261114110000_ielts_speaking_analysis_v3.sql", "utf8"));
 await db.exec(readFileSync("supabase/migrations/20261114130000_ielts_speaking_teacher_band.sql", "utf8"));
 await db.exec(readFileSync("supabase/migrations/20261114150000_ielts_speaking_ai_estimates.sql", "utf8"));
+await db.exec(readFileSync("supabase/migrations/20261114170000_ielts_speaking_result_polish.sql", "utf8"));
 const CURRENT = "bh-ielts-speaking-interview-analysis-v3";
 const sha = "a".repeat(64);
 await db.exec(`insert into private.ielts_speaking_sessions(id,student_id,teacher_id,package_code,content_hash,package_snapshot,status,evidence_kind,recording_consent)
@@ -181,4 +182,23 @@ test("Bible 2.5.0 10.10: AI band estimates are validated, append-only and visibl
   await actor(student);
   assert.equal((await extras()).ai_estimates, null, "students never see AI estimates");
   // Execute rights: service_role only (checked by the migration security guard; PGlite runs as superuser).
+});
+
+test("Visual & UX 1.12.0: full names, no shared AI placeholder, no reuse of drafts from older instructions", async () => {
+  await actor(teacher);
+  const src = (await db.query("select public.rpc_ielts_speaking_session($1) s", [session])).rows[0].s;
+  assert.equal(src.student_name, "Gulzada", "full name, not the username");
+  const fields = { observations: Object.fromEntries(["fluency_coherence", "lexical_resource", "grammar_range_accuracy", "pronunciation"].map((k) => [k,
+    { status: "observed", comment: "Your answer was clear. Add one example next time.", evidence: [{ clip_id: clip1, start_seconds: 0, end_seconds: 1 }] }])),
+    next_step: "Practise explaining one idea with a reason and an example.", delivery_comment: "" };
+  fields.observations.pronunciation = { status: "insufficient_evidence", comment: "Pronunciation was not assessed in this draft because it was made from a written transcript, not from the sound.", evidence: [] };
+  const bands = { fluency_coherence: 6, lexical_resource: 6, grammar_range_accuracy: 6, pronunciation: 6, part_1: 6, part_2: 6, part_3: 6, overall: 6 };
+  await assert.rejects(db.query("select public.rpc_ielts_share_speaking_result($1,$2,$3,$4,$5,true,null,$6)",
+    [session, "00000000-0000-0000-0000-000000000070", src.review?.id ?? null, src.source_hash, JSON.stringify(fields), JSON.stringify(bands)]), /speaking_placeholder_comment/);
+  // A ready draft from before the current instructions is not reused; a new one is claimed instead.
+  await db.exec(`insert into private.ielts_speaking_ai_drafts(session_id,requested_by,source_hash,prompt_version,model,state,fields,created_at,completed_at)
+    values('${session}','${teacher}',private.ielts_speaking_source_hash('${session}'),'bh-speaking-audio-simple-v1','m-test','ready','{}','2026-11-13 11:00+00','2026-11-13 11:05+00')`);
+  const c = (await db.query("select public.rpc_ielts_claim_speaking_ai($1,'m-test') c", [session])).rows[0].c;
+  assert.equal(c.fields, undefined, "old draft not reused");
+  assert.ok(c.context, "a fresh draft is started");
 });
