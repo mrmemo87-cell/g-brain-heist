@@ -8,7 +8,7 @@ import { Profile } from '../types';
  */
 export function isAdmin(profile: Profile | null | undefined): boolean {
   if (!profile) return false;
-  return profile.role === 'admin' || (profile.role as string) === 'superadmin';
+  return profile.role === 'admin';
 }
 
 /**
