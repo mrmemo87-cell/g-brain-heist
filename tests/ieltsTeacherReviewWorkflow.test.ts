@@ -121,7 +121,8 @@ test('IELTS review frontend maps queue/detail/submit RPCs and exposes student re
   assert.match(review, /Task-level reviewed band/i, 'productive-skill review must label the score as task-level');
   assert.match(review, /Reviewer record/i, 'private print copy must be a reviewer record');
   assert.doesNotMatch(review, /Examiner record|Private examiner notes|Confidential examiner copy/i, 'school review language must not present reviewers as IELTS examiners');
-  assert.match(result, /Reviewed task band[\s\S]*Rubric breakdown[\s\S]*Teacher feedback/i, 'student result must show finalized task-level review fields');
+  assert.match(result, /function WritingResult[\s\S]*Task \{task\} band[\s\S]*Band for each criterion[\s\S]*Teacher feedback/i, 'student result must show finalized task-level review fields');
+  assert.match(result, /This band is for this one Writing task only/i, 'the Writing task band must be labelled as one task, not a full Writing band');
   assert.match(routes, /path:\s*'\/ielts\/reviews',[\s\S]*?<IeltsReviewAdminGuard>[\s\S]*?<IeltsReviewQueue \/>[\s\S]*?<\/IeltsReviewAdminGuard>/i, 'queue route must be school-admin guarded');
   assert.match(routes, /path:\s*'\/ielts\/reviews\/:skill\/:attemptId',[\s\S]*?<IeltsReviewAdminGuard>[\s\S]*?<IeltsSubmissionReview \/>[\s\S]*?<\/IeltsReviewAdminGuard>/i, 'review detail route must be school-admin guarded');
   assert.match(routes, /path:\s*'\/ielts\/review-result\/:skill\/:attemptId'/i, 'student result route must be registered');

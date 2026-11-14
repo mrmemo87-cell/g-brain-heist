@@ -1,13 +1,20 @@
 /**
- * Diagnostic Bible 2.1.0 sections 10.5-10.6: first-pass feedback returned to the student on PRACTICE writing.
- * Criterion comments with exact quotes, one action each, and an "AI practice indication" range per criterion.
+ * Diagnostic Bible 2.4.0 sections 10.5, 10.6 and 10.9: first-pass feedback returned to the student on PRACTICE writing.
+ * Criterion comments with exact quotes, one action each, an "AI practice indication" range per criterion, colour
+ * highlights with corrections, and an AI estimated band for THIS task worked out on the server from the four ranges.
  * Never an overall Writing band; never evidence until a teacher confirms it.
  */
-export const PRACTICE_FEEDBACK_PROMPT_VERSION = 'bh-ielts-practice-feedback-v2';
+import { cleanWritingHighlights, taskEstimate, writingHighlightInstructions, writingHighlightSchema, type TaskEstimate, type WritingHighlight } from './ieltsWritingHighlights.ts';
+
+export const PRACTICE_FEEDBACK_PROMPT_VERSION = 'bh-ielts-practice-feedback-v3';
 export const taskKeys = (task: 1 | 2) => [task === 1 ? 'task_achievement' : 'task_response', 'coherence_cohesion', 'lexical_resource', 'grammar_range_accuracy'] as const;
 export type FeedbackKey = 'task_achievement' | 'task_response' | 'coherence_cohesion' | 'lexical_resource' | 'grammar_range_accuracy';
 export type CriterionFeedback = { comment: string; action: string; evidence: { quote: string; start_char: number; end_char: number }[]; indication: { low: number; high: number } | null };
-export type PracticeFeedback = { task_number: 1 | 2; criteria: Partial<Record<FeedbackKey, CriterionFeedback>>; next_step: string; prompt_version: string };
+export type PracticeFeedback = {
+  task_number: 1 | 2; criteria: Partial<Record<FeedbackKey, CriterionFeedback>>; next_step: string; prompt_version: string;
+  /** Exact essay the highlights point into (a snapshot, so offsets stay valid). */
+  essay: string; highlights: WritingHighlight[]; estimate: TaskEstimate | null;
+};
 export type PracticeContext = { task_number: 1 | 2; module?: 'academic' | 'general'; prompt: string; essay: string; word_count: number };
 
 export const PRACTICE_FEEDBACK_INSTRUCTIONS = `You give FAST FIRST-PASS PRACTICE FEEDBACK to a student on ONE IELTS-style Writing practice response (Academic or General Training) for Brains Heist.
@@ -21,13 +28,17 @@ Do NOT give an overall Writing score, a single number, a band headline, a diagno
 next_step = 2-3 short sentences: the single most useful change for the next draft and how to check it. If the response is shorter than the task minimum (150 words for Task 1, 250 for Task 2), mention it kindly.
 Return only the requested JSON.`;
 
+/** Full instructions for one task: criterion feedback plus colour highlights (section 10.9). */
+export const practiceFeedbackInstructions = (task: 1 | 2) => `${PRACTICE_FEEDBACK_INSTRUCTIONS}\n${writingHighlightInstructions(task)}`;
+
 const criterionSchema = { type: 'object', additionalProperties: false, required: ['comment', 'action', 'quotes', 'low', 'high'], properties: {
   comment: { type: 'string' }, action: { type: 'string' }, quotes: { type: 'array', items: { type: 'string' } },
   low: { type: ['number', 'null'] }, high: { type: ['number', 'null'] },
 } };
-export const practiceFeedbackSchema = (task: 1 | 2) => ({ type: 'object', additionalProperties: false, required: ['criteria', 'next_step'], properties: {
+export const practiceFeedbackSchema = (task: 1 | 2) => ({ type: 'object', additionalProperties: false, required: ['criteria', 'next_step', 'highlights'], properties: {
   criteria: { type: 'object', additionalProperties: false, required: [...taskKeys(task)], properties: Object.fromEntries(taskKeys(task).map(k => [k, criterionSchema])) },
   next_step: { type: 'string' },
+  highlights: writingHighlightSchema(task),
 } });
 
 const record = (value: unknown): Record<string, unknown> => { if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('invalid_feedback'); return value as Record<string, unknown>; };
@@ -43,7 +54,10 @@ const half = (n: unknown) => typeof n === 'number' && n >= 0 && n <= 9 && n * 2 
 
 /** Rejects fabricated quotes, single-number scores and malformed ranges atomically. */
 export function validatePracticeFeedback(value: unknown, context: PracticeContext): PracticeFeedback {
-  const root = record(value); exactKeys(root, ['criteria', 'next_step']);
+  const root = record(value);
+  // Highlights are optional and cleaned leniently; criteria and next step stay strict.
+  const { highlights: rawHighlights, ...rest } = root;
+  exactKeys(rest, ['criteria', 'next_step']);
   const keys = taskKeys(context.task_number);
   const source = record(root['criteria']); exactKeys(source, keys);
   const criteria: Partial<Record<FeedbackKey, CriterionFeedback>> = {};
@@ -65,5 +79,9 @@ export function validatePracticeFeedback(value: unknown, context: PracticeContex
     }
     criteria[key] = { comment: text(c['comment'], 20, 700), action: text(c['action'], 10, 500), evidence, indication };
   }
-  return { task_number: context.task_number, criteria, next_step: text(root['next_step'], 10, 700), prompt_version: PRACTICE_FEEDBACK_PROMPT_VERSION };
+  return {
+    task_number: context.task_number, criteria, next_step: text(root['next_step'], 10, 700), prompt_version: PRACTICE_FEEDBACK_PROMPT_VERSION,
+    essay: context.essay, highlights: cleanWritingHighlights(rawHighlights, context.essay, context.task_number),
+    estimate: taskEstimate(criteria, context.task_number),
+  };
 }

@@ -66,3 +66,8 @@
   .ir-row .ir-status { justify-self: start; }
 }
 .ir-page h1, .ir-page h2, .ir-page h3 { font-weight: 700 !important; font-family: var(--bh-ielts-font-heading); }
+
+/* AI estimated Writing task band, for the teacher to confirm (Visual & UX Bible 13.10). */
+.ir-ai-band { display: grid; gap: .5rem; margin-bottom: .9rem; padding: .85rem 1rem; border-radius: 14px; background: linear-gradient(135deg, #eef2ff, #ecfeff); border: 1px solid #c7d2fe; }
+.ir-ai-band p:first-child { display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem .6rem; margin: 0; }
+.ir-ai-band strong { font-size: 1.8rem; font-weight: 900; color: #1746B0; line-height: 1; }
