@@ -72,3 +72,21 @@ test("screener teacher draft (v2) adds highlights but still gives no band", () =
   const blank = validateWritingAiOutput({ observations: Object.fromEntries(Object.keys(observations).map((k) => [k, { status: "insufficient_evidence", comment: "There is not enough writing to judge this yet.", quotes: [] }])), next_step: "Write a full essay next time.", highlights: [] }, { ...ctx, response_state: "blank" });
   assert.deepEqual(blank.highlights, []);
 });
+
+test('corrections must read as formal IELTS writing and fit in place of the quote (Bible 2.5.1 section 10.9)', async () => {
+  const { correctionFits } = await load("export { correctionFits } from './supabase/functions/_shared/ieltsWritingHighlights';");
+  assert.equal(correctionFits('Both opinions think differently so let\'s compare them.', 'This essay will discuss both views before giving my own opinion.'), true);
+  assert.equal(correctionFits('a IT university', 'an IT university'), true);
+  assert.equal(correctionFits('Both opinions think differently so let\'s compare them.', 'The two views differ, so let\'s compare them.'), false, 'spoken "let\'s" is not IELTS style');
+  assert.equal(correctionFits('work for the jobs they want to', "do the jobs they'd like"), false, 'no contractions');
+  assert.equal(correctionFits('Both opinions think differently.', 'the views differ.'), false, 'keeps the capital at the start of a sentence');
+  assert.equal(correctionFits('students that explore', 'students who explore.'), false, 'keeps the same end punctuation');
+  assert.equal(correctionFits('a IT university', 'an IT university that offers a broad range of computing courses for every student'), false, 'not far longer than the quote');
+  assert.equal(correctionFits('students that explore', 'students that explore'), false);
+});
+test('the highlight prompt asks for band 7+ formal academic corrections with examples', async () => {
+  const { writingHighlightInstructions } = await load("export { writingHighlightInstructions } from './supabase/functions/_shared/ieltsWritingHighlights';");
+  const t = writingHighlightInstructions(2);
+  assert.match(t, /band 7 or higher/); assert.match(t, /formal academic written English/); assert.match(t, /quote the WHOLE sentence/);
+  assert.match(t, /This essay will discuss both views before giving my own opinion\./);
+});

@@ -1,7 +1,7 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.5.0\
+**Version:** 2.5.1\
 **Effective date:** 2026-11-14\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
@@ -944,6 +944,7 @@ but not silently as a complete IELTS Writing band.
 **Highlights and corrections (practice and screener)**
 - AI may mark short phrases copied exactly from the student's essay, each tagged with ONE criterion (Task Achievement for Task 1 or Task Response for Task 2, Coherence and Cohesion, Lexical Resource, Grammatical Range and Accuracy), as *done well* or *to improve*, with one short note.
 - A *to improve* language highlight carries the corrected wording of exactly the quoted words. Ideas and organisation problems may have no correction; the note says what to do instead. A *done well* phrase must be correct English and never carries a correction.
+- **Corrections model strong IELTS writing (2.5.1).** A correction is written as a band 7+ candidate would write it in that essay: formal academic English, no contractions or spoken phrases ("let's"), precise natural collocations, the student's own meaning and no new ideas. It upgrades weak or informal wording, not only grammar. A broken sentence is quoted and corrected as a whole. The server drops a correction that does not fit in place of the quote (different end punctuation, a lower-case start where the quote starts a sentence, far longer than the quote, or informal); the note still shows.
 - The server keeps only quotes found in the essay and stores their exact position. Problems come first. Invalid highlights are dropped without failing the feedback.
 - On a screener, highlights are part of the teacher's private AI draft only. The student never sees AI output on a screener (section 10.6); the teacher's shared observations are unchanged and the screener still produces no band (sections 9.3, 10.4).
 
@@ -2055,6 +2056,14 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.19 Revision record — v2.5.1 (2026-11-14)
+
+**Authority.** On 2026-11-14 (19:46 Asia/Bishkek) the owner reviewed AI highlights on a Writing screener and asked that "the correction needs to be better for IELTS". Examples seen: "Both opinions think differently so let's compare them." corrected only to plain English, and a broken sentence given a correction that did not fit it.
+
+**What changed.** Section 10.9 adds the IELTS-style correction rule and the server fit check. Prompts: practice `bh-ielts-practice-feedback-v4`, screener draft `bh-ielts-task2-simple-feedback-v3`. Migration `20261114200000_ielts_writing_ielts_style_corrections.sql`.
+
+**What did not change.** Bands, labels, teacher confirmation, screener privacy and every other rule of 10.9.
 
 ### 22.18 Revision record — v2.5.0 (2026-11-14)
 
