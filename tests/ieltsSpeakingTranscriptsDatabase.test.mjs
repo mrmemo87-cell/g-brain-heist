@@ -32,6 +32,7 @@ await db.exec(readFileSync("supabase/migrations/20261113181000_ielts_speaking_in
 await db.exec(readFileSync("supabase/migrations/20261114090000_ielts_speaking_analysis_versions.sql", "utf8"));
 await db.exec(readFileSync("supabase/migrations/20261114110000_ielts_speaking_analysis_v3.sql", "utf8"));
 await db.exec(readFileSync("supabase/migrations/20261114130000_ielts_speaking_teacher_band.sql", "utf8"));
+await db.exec(readFileSync("supabase/migrations/20261114150000_ielts_speaking_ai_estimates.sql", "utf8"));
 const CURRENT = "bh-ielts-speaking-interview-analysis-v3";
 const sha = "a".repeat(64);
 await db.exec(`insert into private.ielts_speaking_sessions(id,student_id,teacher_id,package_code,content_hash,package_snapshot,status,evidence_kind,recording_consent)
@@ -154,4 +155,30 @@ test("Bible 2.3.0 10.8: a Teacher Speaking band needs all three parts recorded",
   await assert.rejects(db.query("select public.rpc_ielts_share_speaking_result($1,$2,null,$3,$4,true,null,$5)",
     [short, "00000000-0000-0000-0000-000000000061", src.source_hash, JSON.stringify(fields), JSON.stringify(bands)]), /speaking_all_parts_required/);
   assert.equal((await db.query("select count(*)::int n from private.ielts_speaking_reviews where session_id=$1", [short])).rows[0].n, 0, "rolled back");
+});
+
+test("Bible 2.5.0 10.10: AI band estimates are validated, append-only and visible to the teacher only", async () => {
+  const est = (over = {}) => ({
+    version: "bh-ielts-speaking-estimate-v1",
+    bands: { fluency_coherence: 5.5, lexical_resource: 5.5, grammar_range_accuracy: 5, pronunciation: 5.5, part_1: 5.5, part_2: 5.5, part_3: 5, overall: 5.5 },
+    reasons: { fluency_coherence: "Answers were short." },
+    basis: "Based on 500 words.",
+    ...over,
+  });
+  const save = (e) => db.query("select public.rpc_ielts_save_speaking_ai_estimates($1,$2,$3,'test')", [session, teacher, JSON.stringify(e)]);
+  await assert.rejects(save(est({ version: "old" })), /speaking_estimate_invalid/);
+  await assert.rejects(save(est({ bands: { ...est().bands, overall: 5.25 } })), /speaking_estimate_invalid/);
+  await assert.rejects(save(est({ bands: { ...est().bands, overall: "6" } })), /speaking_estimate_invalid/);
+  await assert.rejects(save(est({ reasons: { overall: "x" } })), /speaking_estimate_invalid/);
+  await save(est({ bands: { ...est().bands, pronunciation: null, overall: null } })); // pronunciation pass failed: allowed
+  await save(est()); // same recordings and version: the first estimate stays
+  assert.equal((await db.query("select count(*)::int n from private.ielts_speaking_ai_estimates")).rows[0].n, 1);
+  await assert.rejects(db.query("delete from private.ielts_speaking_ai_estimates"), /speaking_history_immutable/);
+  await actor(teacher);
+  const t = await extras();
+  assert.equal(t.ai_estimates.bands.overall, null);
+  assert.equal(t.ai_estimates.bands.fluency_coherence, 5.5);
+  await actor(student);
+  assert.equal((await extras()).ai_estimates, null, "students never see AI estimates");
+  // Execute rights: service_role only (checked by the migration security guard; PGlite runs as superuser).
 });
