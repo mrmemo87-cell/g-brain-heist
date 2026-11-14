@@ -26,6 +26,13 @@ import {
   withIpa,
   type ClipPronunciation,
 } from "../_shared/ieltsSpeakingAnnotations.ts";
+import {
+  ESTIMATE_INSTRUCTIONS,
+  PRONUNCIATION_ESTIMATE_INSTRUCTIONS,
+  estimateSchema,
+  finalizeEstimates,
+  wordCount,
+} from "../_shared/ieltsSpeakingEstimate.ts";
 // CMU Pronouncing Dictionary (American English): IPA comes from the dictionary, never from the AI.
 import { dictionary } from "npm:cmu-pronouncing-dictionary@3.0.0";
 
@@ -270,6 +277,102 @@ async function analyse(sessionId: string, session: any, caller: any, admin: any)
   return fresh;
 }
 
+/**
+ * Teacher-only AI band estimates (Diagnostic Bible 2.5.0 section 10.10). Runs after the transcripts exist, reads the
+ * student's words only, listens to the Part 2 long turn for Pronunciation (Part 1 too when Part 2 is short) and
+ * applies the cautious server rules in finalizeEstimates. One estimate per recording set and version is reused.
+ */
+// deno-lint-ignore no-explicit-any
+async function estimate(sessionId: string, session: any, caller: any, admin: any): Promise<unknown> {
+  if (session.status !== "submitted") throw new Error("not_submitted");
+  const key = Deno.env.get("OPENAI_API_KEY");
+  if (!key) throw new Error("unavailable");
+  const { data: extras, error: extrasError } = await caller.rpc("rpc_ielts_speaking_session_extras", { p_session_id: sessionId });
+  if (extrasError) throw new Error("extras_failed");
+  if (extras?.ai_estimates) return { ai_estimates: extras.ai_estimates };
+  if (extras?.missing_clips) throw new Error("transcripts_not_ready");
+  type Analysis = { clip_id: string; part: number; transcript: string; speaker_turns?: { teacher?: string[] } };
+  const analysis: Analysis[] = extras?.analysis ?? [];
+  const parts = [1, 2, 3].map((part) => {
+    const rows = analysis.filter((a) => a.part === part);
+    const text = rows.map((a) => studentOnlyText(a.transcript, a.speaker_turns?.teacher ?? [])).join(" | ");
+    const seconds = (session.clips ?? []).filter((c: { part: number }) => c.part === part)
+      .reduce((sum: number, c: { duration_seconds: number }) => sum + Number(c.duration_seconds || 0), 0);
+    return {
+      part,
+      questions: (session.package?.parts ?? []).find((p: { part: number }) => p.part === part)?.questions ?? [],
+      recording_seconds: Math.round(seconds),
+      student_words: wordCount(text),
+      student_words_only: text.slice(0, 12000),
+    };
+  });
+  const words = { 1: parts[0].student_words, 2: parts[1].student_words, 3: parts[2].student_words } as Record<1 | 2 | 3, number>;
+  const languageTask = (async () => {
+    const user = JSON.stringify({ parts });
+    if (claudeEnabled()) {
+      try {
+        const result = await claudeText({ system: ESTIMATE_INSTRUCTIONS, user, maxTokens: 1500, schema: estimateSchema, timeoutMs: 60000 });
+        return { value: JSON.parse(result.text), provider: providerTag("anthropic", result.model, result.id) };
+      } catch (e) {
+        why("estimate_claude", reasonOf(e));
+      }
+    }
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST", signal: AbortSignal.timeout(60000),
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: Deno.env.get("IELTS_SPEAKING_HIGHLIGHT_FALLBACK_MODEL")?.trim() || "gpt-4.1", store: false,
+        response_format: { type: "json_object" }, messages: [{ role: "system", content: ESTIMATE_INSTRUCTIONS }, { role: "user", content: user }] }),
+    });
+    if (!response.ok) throw new Error(`estimate_${response.status}`);
+    const out = await response.json();
+    return { value: JSON.parse(out.choices?.[0]?.message?.content ?? "{}"), provider: providerTag("openai", String(out.model ?? "gpt-4.1"), out.id) };
+  })();
+  const pronunciationTask = (async () => {
+    // The long turn is the cleanest sample of the student's own voice; Part 1 is added when Part 2 is short.
+    const clips = (session.clips ?? []).filter((c: { part: number }) => c.part === 2);
+    const p2 = clips.reduce((sum: number, c: { duration_seconds: number }) => sum + Number(c.duration_seconds || 0), 0);
+    const chosen = p2 >= 60 ? clips : [...clips, ...(session.clips ?? []).filter((c: { part: number }) => c.part === 1)];
+    if (!chosen.length) return null;
+    const content: unknown[] = [];
+    for (const clip of chosen.slice(0, 3)) {
+      const { data: audio, error } = await admin.storage.from("ielts-speaking-pilot").download(clip.path);
+      if (error || !audio) throw new Error("missing_audio");
+      const bytes = await audio.arrayBuffer();
+      inspectSpeakingWav(bytes);
+      if ((await sha(bytes)) !== clip.sha256) throw new Error("source_mismatch");
+      content.push({ type: "text", text: `Part ${clip.part} recording.` }, { type: "input_audio", input_audio: { data: base64(bytes), format: "wav" } });
+    }
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST", signal: AbortSignal.timeout(80000),
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: analyseModel, modalities: ["text"], store: false, max_completion_tokens: 400,
+          messages: [{ role: "system", content: PRONUNCIATION_ESTIMATE_INSTRUCTIONS }, { role: "user", content }] }),
+      });
+      if (!response.ok) {
+        if (attempt === 0 && (response.status === 429 || response.status >= 500)) continue;
+        throw new Error(`pron_estimate_${response.status}`);
+      }
+      const out = await response.json();
+      const raw = String(out.choices?.[0]?.message?.content ?? "").trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "");
+      try { return JSON.parse(raw); } catch { if (attempt) throw new Error("pron_estimate_invalid"); }
+    }
+    return null;
+  })().catch((e) => { why("estimate_pronunciation", reasonOf(e)); return null; });
+  const [language, pronunciation] = await Promise.all([languageTask, pronunciationTask]);
+  const estimates = finalizeEstimates(language.value, pronunciation, words);
+  const { error } = await admin.rpc("rpc_ielts_save_speaking_ai_estimates", {
+    p_session_id: sessionId,
+    p_requested_by: (await caller.auth.getUser()).data.user?.id,
+    p_estimates: estimates,
+    p_provider: `${language.provider}+openai/${analyseModel}`.slice(0, 200),
+  });
+  if (error) { why("estimate_save", error.message); throw new Error("save_failed"); }
+  const { data: fresh, error: freshError } = await caller.rpc("rpc_ielts_speaking_session_extras", { p_session_id: sessionId });
+  if (freshError) throw new Error("extras_failed");
+  return { ai_estimates: fresh?.ai_estimates ?? null };
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers });
   if (req.method !== "POST") return reply({ error: "method_not_allowed" }, 405);
@@ -291,7 +394,7 @@ Deno.serve(async (req: Request) => {
     const raw = await req.text();
     if (raw.length > 1500) return reply({ error: "invalid_request" }, 400);
     const body = JSON.parse(raw);
-    if (!uuid(body.sessionId) || !["attach", "draft", "analyse"].includes(body.action))
+    if (!uuid(body.sessionId) || !["attach", "draft", "analyse", "estimate"].includes(body.action))
       return reply({ error: "invalid_request" }, 400);
     const { data: session, error: sessionError } = await caller.rpc(
       "rpc_ielts_speaking_session",
@@ -350,6 +453,7 @@ Deno.serve(async (req: Request) => {
     if (Object.keys(body).some((k) => !["action", "sessionId"].includes(k)))
       return reply({ error: "invalid_request" }, 400);
     if (body.action === "analyse") return reply(await analyse(body.sessionId, session, caller, admin));
+    if (body.action === "estimate") return reply(await estimate(body.sessionId, session, caller, admin));
     const key = Deno.env.get("OPENAI_API_KEY");
     if (!key) return reply({ error: "unavailable" }, 503);
     const model = Deno.env.get("IELTS_SPEAKING_DRAFT_MODEL") ?? "gpt-audio-1.5";

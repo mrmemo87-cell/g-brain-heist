@@ -654,3 +654,15 @@
   .sp-step small { display: none; }
   .spb-picker--big { grid-template-columns: 48px minmax(0, 1fr) 48px; width: 100%; }
 }
+.spb-ai-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 14px;
+  background: #f5f3ff; border: 1px solid #ddd6fe; color: #3b0764; font-size: .9rem; }
+.spb-ai-bar > span { flex: 1 1 280px; }
+.sp-page .spb-use { min-height: 44px; padding: 8px 16px; background: #fff; border-color: #a78bfa; color: #5b21b6 !important; }
+.spb-spinner { display: inline-block; flex: 0 0 auto !important; width: 16px; height: 16px; border-radius: 50%; border: 2px solid #c4b5fd; border-top-color: #6d28d9; animation: spb-spin .8s linear infinite; }
+@keyframes spb-spin { to { transform: rotate(360deg); } }
+.spb-ai { justify-self: start; padding: 2px 9px; border-radius: 999px; background: #f5f3ff; border: 1px solid #ddd6fe; color: #5b21b6; font-size: .76rem; font-weight: 750; }
+.spb-ai--differs { background: #fff7ed; border-color: #fdba74; color: #9a3412; }
+.spb-ai--none { background: #f8fafc; border-color: #e2e8f0; color: #64748b; }
+.spb-reason { color: #475569; font-size: .78rem; line-height: 1.35; }
+.spb-overall .spb-avg + .spb-avg { color: #ddd6fe; }
+@media (prefers-reduced-motion: reduce) { .spb-spinner { animation: none; } }

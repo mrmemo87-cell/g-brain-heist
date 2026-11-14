@@ -7,6 +7,8 @@ import {
   speakingAudio,
   speakingAi,
   shareSpeakingResult,
+  estimateSpeakingBands,
+  type SpeakingAiEstimates,
   speakingBandsFrom,
   emptySpeakingBands,
   SPEAKING_BAND_KEYS,
@@ -171,7 +173,11 @@ export default function IeltsSpeakingPilot() {
     [extras, setExtras] = useState<SpeakingSessionExtras | null>(null),
     [shareGaps, setShareGaps] = useState<string[]>([]),
     [shareError, setShareError] = useState(""),
-    [sharedAt, setSharedAt] = useState<string | null>(null);
+    [sharedAt, setSharedAt] = useState<string | null>(null),
+    [aiEstimates, setAiEstimates] = useState<SpeakingAiEstimates | null>(null),
+    [estimating, setEstimating] = useState(false),
+    [estimateError, setEstimateError] = useState("");
+  const estimateTried = useRef(false);
   useEffect(() => {
     let alive = true;
     request.current?.abort();
@@ -195,6 +201,10 @@ export default function IeltsSpeakingPilot() {
     setShareGaps([]);
     setShareError("");
     setSharedAt(null);
+    setAiEstimates(null);
+    setEstimating(false);
+    setEstimateError("");
+    estimateTried.current = false;
     (sessionId
       ? speakingSession(sessionId)
       : speakingHome(selectedStudent, appliedSearch)
@@ -389,6 +399,7 @@ export default function IeltsSpeakingPilot() {
   };
   const onExtras = (next: SpeakingSessionExtras) => {
     setExtras(next);
+    if (next.ai_estimates) setAiEstimates(next.ai_estimates);
     if (!bandsTouched.current && next.part_bands)
       setBands(speakingBandsFrom(next.part_bands));
   };
@@ -425,6 +436,42 @@ export default function IeltsSpeakingPilot() {
         setShareError((e as Error).message);
       }
     });
+  };
+  // Teacher-only AI band estimates (Bible 2.5.0 section 10.10) start once the transcripts are ready; one per recording set.
+  useEffect(() => {
+    if (
+      !session?.can_review ||
+      session.status !== "submitted" ||
+      !extras ||
+      extras.missing_clips ||
+      !extras.analysis.length ||
+      extras.ai_estimates ||
+      estimateTried.current
+    )
+      return;
+    estimateTried.current = true;
+    setEstimating(true);
+    setEstimateError("");
+    estimateSpeakingBands(session.id)
+      .then((e) => setAiEstimates(e))
+      .catch((e) => setEstimateError((e as Error).message))
+      .finally(() => setEstimating(false));
+  }, [session?.id, session?.can_review, session?.status, extras]);
+  const applyEstimates = () => {
+    if (!aiEstimates) return;
+    bandsTouched.current = true;
+    setBands((b) => {
+      const next = { ...b };
+      for (const k of SPEAKING_BAND_KEYS) {
+        const v = aiEstimates.bands[k];
+        if (v !== null && v !== undefined) next[k] = v;
+      }
+      return next;
+    });
+    setConfirmed(false);
+    setDirty(true);
+    setShareGaps([]);
+    reviewId.current = null;
   };
   // The AI draft starts by itself when the teacher has written nothing yet; a ready draft is reused, not paid again.
   useEffect(() => {
@@ -1347,12 +1394,17 @@ export default function IeltsSpeakingPilot() {
                     <span className="sp-eyebrow">Step 3 · Bands and share</span>
                     <h2 id="sp-step-3-title">Give your bands, then share once.</h2>
                     <p>
-                      Choose a band for each criterion and each part, then the
-                      Teacher Speaking band {studentFirstName} will see first.
-                      Tap a number to choose it, or use − and +. Everything is
-                      sent together.
+                      AI suggests a cautious estimate for every band. Check each
+                      one against what you heard, change any you disagree with,
+                      then confirm. The Teacher Speaking band is what{" "}
+                      {studentFirstName} sees first. Everything is sent
+                      together.
                     </p>
                     <SpeakingBandsPanel
+                      estimates={aiEstimates}
+                      estimating={estimating}
+                      estimateError={estimateError}
+                      onUseEstimates={applyEstimates}
                       bands={bands}
                       onChange={setBand}
                       disabled={busy}

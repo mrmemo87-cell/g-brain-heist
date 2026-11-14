@@ -263,12 +263,27 @@ export async function shareSpeakingResult<T>(args: {
   }
   return data as T;
 }
+/** Teacher-only AI band estimates (Diagnostic Bible 2.5.0 section 10.10). Never shown to students. */
+export type SpeakingAiEstimates = {
+  version: string;
+  bands: Record<"fluency_coherence" | "lexical_resource" | "grammar_range_accuracy" | "pronunciation" | "part_1" | "part_2" | "part_3" | "overall", number | null>;
+  reasons: Partial<Record<"fluency_coherence" | "lexical_resource" | "grammar_range_accuracy" | "pronunciation", string>>;
+  basis: string;
+  created_at?: string;
+};
 export type SpeakingSessionExtras = {
   analysis: SpeakingClipAnalysis[];
   missing_clips?: number;
   part_bands: SpeakingPartBands | null;
   can_set_bands: boolean;
+  ai_estimates?: SpeakingAiEstimates | null;
 };
+export async function estimateSpeakingBands(sessionId: string): Promise<SpeakingAiEstimates | null> {
+  const { data, error } = await supabase.functions.invoke("ielts_speaking_pilot", { body: { action: "estimate", sessionId } });
+  if (error || !data || (data as { error?: string }).error)
+    throw new Error("AI band estimates are not available right now. You can still choose every band yourself.");
+  return (data as { ai_estimates?: SpeakingAiEstimates | null }).ai_estimates ?? null;
+}
 export const speakingExtras = (sessionId: string) =>
   speakingRpc<SpeakingSessionExtras>("rpc_ielts_speaking_session_extras", { p_session_id: sessionId });
 export async function analyseSpeakingSession(sessionId: string): Promise<SpeakingSessionExtras> {

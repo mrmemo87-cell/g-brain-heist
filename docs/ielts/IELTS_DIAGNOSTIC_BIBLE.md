@@ -1,7 +1,7 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.4.0\
+**Version:** 2.5.0\
 **Effective date:** 2026-11-14\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
@@ -926,7 +926,7 @@ but not silently as a complete IELTS Writing band.
 **How the band is set**
 - The teacher chooses the Speaking band. The platform never sets it, never rounds it and never computes it from Part bands.
 - To help, the screen may show the plain average of the teacher's own four criterion bands (each criterion is worth 25 %). IELTS does not publish a rounding rule for that average, so the platform shows it as a number to consider, not as a band.
-- AI never sets, suggests or pre-fills a criterion band, Part band or Speaking band. AI ranges (section 10.5) may sit beside the controls as hints only.
+- AI never sets or shares a band. Since 2.5.0, the teacher may see teacher-only AI estimates under section 10.10 and copy them into the controls with one deliberate action; the teacher still checks every band and confirms before sharing.
 
 **Required presentation**
 - Title: **Teacher Speaking band**, with **checked by** the teacher and the date, **Not an official IELTS result** and **Confidence: low**.
@@ -959,6 +959,29 @@ but not silently as a complete IELTS Writing band.
 - Only the teacher's finalized bands may become evidence (sections 8A.3, 10.5). The AI estimate and highlights stay practice feedback.
 
 **Provenance.** Model, prompt version (practice `bh-ielts-practice-feedback-v3`, screener draft `bh-ielts-task2-simple-feedback-v2`) and time are recorded. AI and teacher bands are kept side by side so disagreements can be reviewed (section 10.2).
+
+
+### 10.10 Teacher-only AI band estimates for a full Speaking interview
+
+**Owner-authorized (2026-11-14 16:49 Asia/Bishkek):** "I need the AI to give estimated Band score, that will still be verified by the teacher (but don't be too optimistic, be as close to realistic as possible)." This narrows section 10.5 (ranges only, never a single number) for Speaking interviews, in the same spirit as the Writing estimate in section 10.9.
+
+**Scope**
+- Only the review of a complete Speaking interview (section 10.8), only for the reviewing teacher. Students never see these AI estimates, and they never enter results, reports, ranges (9.5) or readiness estimates (9.4).
+- Speaking practice feedback (10.5) keeps its ranges.
+
+**What the AI gives**
+- One half-band estimate for each of the four criteria, each Part and the whole interview, with a one-line reason per criterion.
+- Fluency and Coherence, Lexical Resource and Grammatical Range and Accuracy, and the Part estimates come from the student's words only (teacher lines removed, section 10.7).
+- Pronunciation comes only from a model that listens to the audio (Part 2, plus Part 1 when Part 2 is shorter than a minute; section 10.3). If that fails, Pronunciation and the overall estimate stay empty.
+
+**Realistic, never optimistic**
+- The prompt tells the model that clean transcripts hide hesitation, to choose the lower band when between two, and that band 7 and above needs strong evidence in all parts.
+- The server snaps every estimate down to a half band, caps all estimates at 4.5 when the student said fewer than 120 words, and caps a Part with fewer than 25 student words at 4.0.
+- The overall estimate is the mean of the four criterion estimates rounded down to a half band; no Part estimate may exceed it by more than half a band.
+
+**Teacher control**
+- Estimates appear beside the band controls as "AI estimate". "Use the AI estimates" copies them in; a band the teacher changes is marked as differing. The teacher still ticks the confirmation and presses Share; the shared bands are the teacher's (10.8).
+- Estimates are append-only, one per recording set and version, kept beside the teacher's bands so their agreement can be measured (section 18A). Until that data exists, the estimates carry no claim of accuracy.
 
 ---
 
@@ -2032,6 +2055,14 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.18 Revision record — v2.5.0 (2026-11-14)
+
+**Authority.** The owner asked for AI-estimated Speaking band scores, verified by the teacher, "not too optimistic, as close to realistic as possible" (16:49 Asia/Bishkek).
+
+**What changed.** New section 10.10: teacher-only AI half-band estimates for complete Speaking interviews, with cautious prompts and server rules (round down, thin-evidence caps, overall from criteria, Part caps). 10.8 now allows the teacher to copy the estimates in deliberately. Students never see Speaking estimates.
+
+**What did not change.** The teacher sets and shares every Speaking band; Speaking practice feedback keeps ranges; pronunciation is never judged from text; 9.4, 9.5, 10.9 and 1.3 are unchanged.
 
 ### 22.17 Revision record — v2.4.0 (2026-11-14)
 
