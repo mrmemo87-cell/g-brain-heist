@@ -41,3 +41,35 @@ examiner script, feedback forms, administration guide and results record; the re
 which plays the recording with part markers and runs the transfer, Reading and Writing timers. Recordings are not
 committed to the repository (MP3, 96 kbps mono, kept under the 20 MB pack limit); their SHA-256 values are in the
 production records.
+
+## Computer delivery (from 2026-11-16)
+
+IELTS-M2 v1.1.0 is also delivered on screen at `/ielts/mocks` (Diagnostic Bible 2.1A, 5.1, 9.5, 12A), modelled on the
+computer-delivered IELTS layout:
+
+- **Listening:** the approved recording, played once (no pause or replay), then 2 minutes to check.
+- **Reading:** split passage and questions, with highlighting.
+- **Writing:** task and typing box, with a live word count.
+
+The server owns timing, keys and marking:
+
+- **Timing:** Listening `listen_end` + 120 s; Reading and Writing 3600 s each; 20 s network grace.
+- **Marking:** one mark per question. Completion answers must be an accepted answer within the word limit, ignoring case, spacing and a final full stop. Choose TWO gives one mark per correct letter.
+
+What the learner sees:
+
+- **Indicative ranges** follow bh-indicative-v1 on a first, unseen attempt. A repeat is practice.
+- **Writing** gets a range once a superadmin has marked all eight criteria at `/ielts/mocks/marking`.
+- **Learning record:** item outcomes join it through the approved mock construct maps.
+
+Build:
+
+```
+python3 scripts/ielts/build-mock-cbt.py --source docs/ielts/mocks/mock-2/mock.json \
+  --audio-record docs/ielts/mocks/mock-2/AUDIO_PRODUCTION_v1.json --audio-url <governed public URL> \
+  --listen-end 1231.6 --sample-end 4.7 --migration supabase/migrations/<timestamp>_ielts_mock_cbt_m2_content.sql
+```
+
+- **Recording:** stored at `ielts-audio/governed/mock-2/audio-v1/<sha256>.mp3`. It was copied from the v1.1.0 pack and its SHA-256 matched the production record.
+- **Playback:** stops at 1231.6 s, before the paper-only closing line about the ten-minute transfer.
+- **Release:** named-user pilot first (`release_scope = 'pilot'`). Opening it to everyone with course access (`full_access`) is an owner decision.

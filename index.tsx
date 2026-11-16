@@ -75,6 +75,9 @@ const IeltsCoursePath = lazyRetry(() => import('./src/pages/ielts/IeltsCoursePat
 const IeltsCourseUnit = lazyRetry(() => import('./src/pages/ielts/IeltsCourseUnit'), 'IeltsCourseUnit');
 const IeltsCourseVocabStep = lazyRetry(() => import('./src/pages/ielts/IeltsCourseVocabStep'), 'IeltsCourseVocabStep');
 const IeltsCourseLeague = lazyRetry(() => import('./src/pages/ielts/IeltsCourseLeague'), 'IeltsCourseLeague');
+const IeltsMockHome = lazyRetry(() => import('./src/pages/ielts/IeltsMockHome'), 'IeltsMockHome');
+const IeltsMockTest = lazyRetry(() => import('./src/pages/ielts/IeltsMockTest'), 'IeltsMockTest');
+const IeltsMockMarking = lazyRetry(() => import('./src/pages/ielts/IeltsMockMarking'), 'IeltsMockMarking');
 const IeltsGrowthDashboard = lazyRetry(() => import('./src/pages/ielts/IeltsGrowthDashboard'), 'IeltsGrowthDashboard');
 const IeltsGuestStart = lazyRetry(() => import('./src/pages/ielts/IeltsGuestStart'), 'IeltsGuestStart');
 const IeltsSession = lazyRetry(() => import('./src/pages/ielts/IeltsSession'), 'IeltsSession');
@@ -832,6 +835,9 @@ const router = createBrowserRouter([
   { path: '/ielts/course/:unitId', element: <ProtectedRoute element={<IeltsCourseUnit />} /> },
   { path: '/ielts/vocabulary/:code', element: <ProtectedRoute element={<IeltsCourseVocabStep />} /> },
   { path: '/ielts/league', element: <ProtectedRoute element={<IeltsCourseLeague />} /> },
+  { path: '/ielts/mocks', element: <ProtectedRoute element={<IeltsMockHome />} /> },
+  { path: '/ielts/mocks/marking', element: <ProtectedRoute element={<IeltsMockMarking />} /> },
+  { path: '/ielts/mocks/:attemptId', element: <ProtectedRoute element={<IeltsMockTest />} /> },
   { path: '/ielts/growth', element: <ProtectedRoute element={<IeltsGrowthDashboard />} /> },
   {
     path: '/ielts/journey',
