@@ -5,6 +5,7 @@ import { useSheetDismiss } from '../../components/ielts/useSheetDismiss';
 import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell';
 import { IeltsCourseHabitBar, IeltsHabitCelebration, useIeltsCourseHabit } from '../../components/ielts/IeltsCourseHabit';
 import { IeltsLeagueCard } from './IeltsCourseLeague';
+import { IeltsMockCard } from './IeltsMockHome';
 import { IeltsExamCountdown, IeltsExamPlanSheet } from '../../components/ielts/IeltsExamPlan';
 import { useIeltsAudience } from '../../lib/ieltsAudience';
 import {
@@ -202,6 +203,7 @@ const IeltsCoursePath: React.FC = () => {
           {!firstVisit && <IeltsHabitCelebration habit={habit} />}
           <IeltsCourseHabitBar habit={habit} onChange={setHabit} />
           <IeltsLeagueCard />
+          <IeltsMockCard />
           {habit?.exam?.onboarded && <IeltsExamCountdown exam={habit.exam} onEdit={() => setPlanOpen(true)} />}
 
           <div className="ic-tracks" role="tablist" aria-label="Course paths">
