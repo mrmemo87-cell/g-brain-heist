@@ -132,6 +132,8 @@ const FRAGMENT_MESSAGES: Record<string, TranslationPair> = {
   'No critical alerts right now.': { ar: 'لا توجد تنبيهات حرجة حالياً.', ru: 'Сейчас критических предупреждений нет.' },
   'Class Health Dashboard': { ar: 'لوحة صحة الفصل', ru: 'Состояние класса' },
   'No data': { ar: 'لا توجد بيانات', ru: 'Нет данных' },
+  'No assignments yet': { ar: 'لا توجد واجبات بعد', ru: 'Заданий пока нет' },
+  '⏰ Past due': { ar: '⏰ فات الموعد', ru: '⏰ Срок истёк' },
   'At-Risk Students': { ar: 'الطلاب المعرضون للتعثر', ru: 'Ученики в группе риска' },
   'No high-risk students detected from current submissions.': { ar: 'لم يتم رصد طلاب ذوي مخاطر مرتفعة في التسليمات الحالية.', ru: 'По текущим работам учеников с высоким риском не выявлено.' },
   'Top Issues': { ar: 'أبرز المشكلات', ru: 'Основные проблемы' },
