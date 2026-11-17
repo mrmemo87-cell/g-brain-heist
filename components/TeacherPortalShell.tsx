@@ -20,6 +20,7 @@ type TeacherDashboardAssignmentMetrics = {
   submission_count: number;
   answered_question_count: number;
   correct_answer_count: number;
+  overdue_assignment_count?: number;
 };
 
 const resolveAcademicTool = (button: HTMLButtonElement | null): AcademicTool | null => {
@@ -54,7 +55,11 @@ const applyCurrentYearDashboardMetrics = (
     if (currentTitle === 'Assignments' || currentTitle === 'Active Assignments') {
       setDashboardText(title, 'Active Assignments');
       setDashboardText(value, numberFormat.format(metrics.active_assignment_count));
-      setDashboardText(subtitle, `${numberFormat.format(metrics.assignment_count)} total assignments`);
+      const overdue = metrics.overdue_assignment_count || 0;
+      setDashboardText(
+        subtitle,
+        `${numberFormat.format(metrics.assignment_count)} total assignments${overdue > 0 ? ` · ${numberFormat.format(overdue)} past due` : ''}`,
+      );
       card.setAttribute('aria-label', 'Open Active Assignments');
       return;
     }

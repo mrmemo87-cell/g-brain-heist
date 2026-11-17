@@ -63,6 +63,7 @@ import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage.js';
 import { notificationService } from './notificationService.js';
 import { fetchMyXpStatus } from './xpStatus.js';
 import { normalizeTeacherRoster, type TeacherRosterRow } from '../src/lib/teacherRoster.js';
+import type { DashboardAssignmentFollowup, DashboardAssignmentResult, DashboardStudentFollowup } from '../src/lib/teacherDashboardInsights.js';
 import { audioService } from './audioService.js';
 import {
     regenerateUserAp,
@@ -5424,6 +5425,17 @@ export type TeacherAssignmentSuccessSummary = {
     answered_question_count: number;
     correct_answer_count: number;
     success_rate: number;
+    /** Open assignments whose due date has passed. */
+    overdue_assignment_count: number;
+    /** Per-assignment follow-up totals, most missing work first. */
+    assignment_followups: DashboardAssignmentFollowup[];
+    /** Students with missing or low-accuracy work, most missing first. */
+    student_followups: DashboardStudentFollowup[];
+    student_followup_count: number;
+    /** Submissions and answer accuracy for every assignment in scope. */
+    assignment_results: DashboardAssignmentResult[];
+    /** False while the database still serves the pre-insight summary shape. */
+    has_insights: boolean;
 };
 
 export const get_teacher_assignment_success_summary = async (): Promise<TeacherAssignmentSuccessSummary> => {
@@ -5440,6 +5452,12 @@ export const get_teacher_assignment_success_summary = async (): Promise<TeacherA
         answered_question_count: Number(row?.answered_question_count || 0),
         correct_answer_count: Number(row?.correct_answer_count || 0),
         success_rate: Number(row?.success_rate || 0),
+        overdue_assignment_count: Number(row?.overdue_assignment_count || 0),
+        assignment_followups: Array.isArray(row?.assignment_followups) ? row.assignment_followups : [],
+        student_followups: Array.isArray(row?.student_followups) ? row.student_followups : [],
+        student_followup_count: Number(row?.student_followup_count || 0),
+        assignment_results: Array.isArray(row?.assignment_results) ? row.assignment_results : [],
+        has_insights: Array.isArray(row?.assignment_results),
     };
 };
 

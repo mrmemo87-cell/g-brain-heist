@@ -80,6 +80,15 @@ import {
 } from '../src/lib/schoolDocument';
 import { buildTeacherAssignmentClassReport } from '../src/lib/teacherAssignmentClassReport';
 import {
+  assignmentAlerts,
+  assignmentProgressStatus,
+  combinedAccuracy,
+  describeTopMissingAssignment,
+  describeWeakestAssignment,
+  rankStudentRisks,
+  type DashboardAssignmentResult,
+} from '../src/lib/teacherDashboardInsights';
+import {
   parseTeacherQuestionImport,
   TEACHER_QUESTION_IMPORT_TEMPLATE,
   type TeacherQuestionImportPreview,
@@ -4512,6 +4521,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       ? teachingGroups.map((group) => group.name)
       : Array.from(new Set(allocatedClasses.map((cls) => cls.class_code)));
     const activeAssignments = assignments.filter((a) => a.completed_count < a.student_count).length;
+    const dashboardNow = new Date();
+    // The summary RPC adds per-assignment and per-student insight. Older
+    // database versions omit it, in which case the legacy wording is kept.
+    const hasInsights = assignmentSuccess?.has_insights === true;
+    const assignmentResults = new Map<string, DashboardAssignmentResult>(
+      (assignmentSuccess?.assignment_results || []).map((result) => [result.assignment_id, result])
+    );
+    const overdueAssignments = assignments.filter((a) => assignmentProgressStatus(a, dashboardNow) === 'overdue').length;
+    const openTargetedPractice = assignments.filter((a) =>
+      (a.student_count || 0) === 1 && (a.completed_count || 0) < 1 && /Targeted Practice$/i.test(a.title || '')
+    ).length;
     const totalSubmissions = assignmentSuccess?.submission_count ?? 0;
     const hasAssignmentSuccess = totalSubmissions > 0;
     const successRate = assignmentSuccess?.success_rate ?? 0;
@@ -4573,9 +4593,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           || (!score.student_id && score.student_class === label)
         )
       );
+      // Cambridge test average when the class has scored tests; otherwise the
+      // class's answer accuracy on its own assignments, so the column is not
+      // blank for classes that only use assignments.
       const averageScore = classCambridgeScores.length > 0
         ? Math.round(classCambridgeScores.reduce((sum, score) => sum + Number(score.percentage || 0), 0) / classCambridgeScores.length)
-        : null;
+        : combinedAccuracy(assignmentsForRow.map((assignment) => assignmentResults.get(assignment.id)));
 
       return {
         key,
@@ -4583,6 +4606,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         studentIds,
         studentCount: studentIds.size,
         assignmentsInProgress: assignmentsForRow.filter(isAssignmentInProgress).length,
+        assignmentCount: assignmentsForRow.length,
         completionRate,
         averageScore,
       };
@@ -4608,19 +4632,35 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       }
     });
 
-    lowCompletionClasses.forEach((row) => {
-      availableStudents
-        .filter((student) => row.studentIds.has(student.id))
-        .forEach((student) => {
-          markRisk(
-            student.id,
-            student.display_name || student.username,
-            student.batch || 'Unknown',
-            `${row.classCode} completion is ${row.completionRate}%`,
-            2
-          );
-        });
-    });
+    if (hasInsights) {
+      // A student is at risk because of their own record, never because the
+      // class as a whole is behind.
+      const studentById = new Map(availableStudents.map((student) => [student.id, student]));
+      rankStudentRisks(assignmentSuccess?.student_followups || [], 12).forEach((risk) => {
+        const student = studentById.get(risk.studentId);
+        markRisk(
+          risk.studentId,
+          student?.display_name || risk.name,
+          student?.batch || '',
+          risk.detail ? `${risk.reason} · ${risk.detail}` : risk.reason,
+          risk.score
+        );
+      });
+    } else {
+      lowCompletionClasses.forEach((row) => {
+        availableStudents
+          .filter((student) => row.studentIds.has(student.id))
+          .forEach((student) => {
+            markRisk(
+              student.id,
+              student.display_name || student.username,
+              student.batch || 'Unknown',
+              `${row.classCode} completion is ${row.completionRate}%`,
+              2
+            );
+          });
+      });
+    }
 
     cambridgeScores
       .filter((score) => Number(score.percentage || 0) < 60)
@@ -4643,27 +4683,55 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     const topIssues: string[] = [];
     if (!teacherHasClassAllocations) topIssues.push('No class allocations are configured for this teacher account.');
     if (lowCompletionClasses.length > 0) topIssues.push(`${lowCompletionClasses.length} class(es) are below ${LOW_COMPLETION_THRESHOLD}% assignment completion.`);
+    if (overdueAssignments > 0) topIssues.push(`${overdueAssignments} assignment(s) are past the due date with work still outstanding.`);
     if (studentsWithoutClass > 0) topIssues.push(`${studentsWithoutClass} student(s) have no class mapping.`);
     if (hasAssignmentSuccess && successRate < 65) topIssues.push(`Assignment success rate is ${successRate}% (below target).`);
     if (pendingWriting > 0) topIssues.push(`${pendingWriting} Cambridge writing submission(s) still need marking.`);
 
-    const recommendedActions = [
-      lowCompletionClasses.length > 0
-        ? `Run a catch-up check with ${lowCompletionClasses[0].classCode} and review missed assignment blockers.`
-        : 'Keep assignment momentum by scheduling the next formative check this week.',
-      pendingWriting > 0
-        ? 'Open Cambridge Tests and clear pending writing to unlock score release.'
-        : 'Review Cambridge trends and release marked scores to students.',
-      studentsWithoutClass > 0
-        ? 'Coordinate with school admin to map unassigned students into classes.'
-        : 'Use Reports to target the bottom-performing students with a custom assignment.',
-    ];
+    const topMissingAction = describeTopMissingAssignment(assignmentSuccess?.assignment_followups || []);
+    const weakestAssignmentAction = describeWeakestAssignment(assignments, assignmentResults);
+    const repeatMissingStudents = (assignmentSuccess?.student_followups || []).filter((row) => row.missing_count >= 3);
+    // Only actions backed by this teacher's data; generic advice is a last resort.
+    const specificActions = [
+      topMissingAction,
+      weakestAssignmentAction,
+      repeatMissingStudents.length > 0
+        ? `Talk to ${repeatMissingStudents.slice(0, 3).map((row) => row.student_name).join(', ')}${repeatMissingStudents.length > 3 ? ` and ${repeatMissingStudents.length - 3} more` : ''} — each is missing 3 or more assignments.`
+        : null,
+      openTargetedPractice > 0
+        ? `${openTargetedPractice} targeted practice task${openTargetedPractice > 1 ? 's are' : ' is'} still waiting for the student to start.`
+        : null,
+      pendingWriting > 0 ? 'Open Cambridge Tests and clear pending writing to unlock score release.' : null,
+      studentsWithoutClass > 0 ? 'Coordinate with school admin to map unassigned students into classes.' : null,
+    ].filter((action): action is string => !!action);
+    const recommendedActions = hasInsights
+      ? (specificActions.length > 0
+        ? specificActions.slice(0, 4)
+        : ['Keep assignment momentum by scheduling the next formative check this week.'])
+      : [
+        lowCompletionClasses.length > 0
+          ? `Run a catch-up check with ${lowCompletionClasses[0].classCode} and review missed assignment blockers.`
+          : 'Keep assignment momentum by scheduling the next formative check this week.',
+        pendingWriting > 0
+          ? 'Open Cambridge Tests and clear pending writing to unlock score release.'
+          : 'Review Cambridge trends and release marked scores to students.',
+        studentsWithoutClass > 0
+          ? 'Coordinate with school admin to map unassigned students into classes.'
+          : 'Use Reports to target the bottom-performing students with a custom assignment.',
+      ];
 
+    const classesWithoutAssignments = classHealthRows.filter((row) => row.assignmentCount === 0 && row.studentCount > 0);
     const priorityItems = [
-      activeAssignments > 0 ? `Review ${activeAssignments} assignment${activeAssignments > 1 ? 's' : ''} still in progress.` : 'No pending assignments — great pacing today.',
-      teacherHasClassAllocations
-        ? `Prepare next class for ${myClasses.slice(0, 2).join(' • ')}${myClasses.length > 2 ? '…' : ''}.`
-        : 'Coordinate with your school admin to finalize class allocations.',
+      activeAssignments > 0
+        ? `${activeAssignments} assignment${activeAssignments > 1 ? 's are' : ' is'} still open${overdueAssignments > 0 ? ` — ${overdueAssignments} past the due date` : ''}.`
+        : 'No pending assignments — great pacing today.',
+      !teacherHasClassAllocations
+        ? 'Coordinate with your school admin to finalize class allocations.'
+        : hasInsights && (assignmentSuccess?.student_followup_count || 0) > 0
+        ? `${assignmentSuccess?.student_followup_count} student${(assignmentSuccess?.student_followup_count || 0) > 1 ? 's have' : ' has'} missing or low-scoring work — see Student Alerts.`
+        : classesWithoutAssignments.length > 0
+        ? `${classesWithoutAssignments.slice(0, 2).map((row) => row.classCode).join(' • ')}${classesWithoutAssignments.length > 2 ? ` and ${classesWithoutAssignments.length - 2} more` : ''} ${classesWithoutAssignments.length > 1 ? 'have' : 'has'} no assignments yet this year.`
+        : `Prepare next class for ${myClasses.slice(0, 2).join(' • ')}${myClasses.length > 2 ? '…' : ''}.`,
       !hasAssignmentSuccess
         ? 'Assignment success will appear after the first student submission.'
         : successRate < 65
@@ -4672,18 +4740,31 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     ];
 
     const alertItems: Array<{ tone: 'warning' | 'info'; text: string }> = [];
-    for (const row of assignmentSuccess?.followups || []) {
-      alertItems.push({
-        tone: row.kind === 'missing' ? 'warning' : 'info',
-        text: row.kind === 'missing'
-          ? `${row.student_name} has not completed “${row.assignment_title}”.`
-          : `${row.student_name} needs help with “${row.assignment_title}” (${Math.round(Number(row.accuracy))}% accuracy).`,
-      });
-    }
-    const visibleStudentAlerts = alertItems.slice(0, 8);
-    const remainingFollowups = (assignmentSuccess?.followup_count || 0) - visibleStudentAlerts.length;
-    if (remainingFollowups > 0) {
-      visibleStudentAlerts.push({ tone: 'warning', text: `${remainingFollowups} more student follow-ups — open Reports for the full list.` });
+    const visibleStudentAlerts: Array<{ tone: 'warning' | 'info'; text: string }> = [];
+    if (hasInsights) {
+      // One line per assignment, most missing work first, instead of one line
+      // per student for whichever assignment happens to be newest.
+      const followupAssignments = assignmentSuccess?.assignment_followups || [];
+      alertItems.push(...assignmentAlerts(followupAssignments, dashboardNow, 6));
+      visibleStudentAlerts.push(...alertItems);
+      const hiddenAssignments = followupAssignments.length - alertItems.length;
+      if (hiddenAssignments > 0) {
+        visibleStudentAlerts.push({ tone: 'info', text: `${hiddenAssignments} more assignment${hiddenAssignments > 1 ? 's have' : ' has'} follow-ups — open Reports for the full list.` });
+      }
+    } else {
+      for (const row of assignmentSuccess?.followups || []) {
+        alertItems.push({
+          tone: row.kind === 'missing' ? 'warning' : 'info',
+          text: row.kind === 'missing'
+            ? `${row.student_name} has not completed “${row.assignment_title}”.`
+            : `${row.student_name} needs help with “${row.assignment_title}” (${Math.round(Number(row.accuracy))}% accuracy).`,
+        });
+      }
+      visibleStudentAlerts.push(...alertItems.slice(0, 8));
+      const remainingFollowups = (assignmentSuccess?.followup_count || 0) - visibleStudentAlerts.length;
+      if (remainingFollowups > 0) {
+        visibleStudentAlerts.push({ tone: 'warning', text: `${remainingFollowups} more student follow-ups — open Reports for the full list.` });
+      }
     }
 
     if (activeAssignments > 0 && alertItems.length === 0) {
@@ -4911,20 +4992,23 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   </tr>
                 </thead>
                 <tbody>
-                  {assignments.slice(0, 5).map((a) => (
+                  {assignments.slice(0, 5).map((a) => {
+                    const status = assignmentProgressStatus(a, dashboardNow);
+                    return (
                     <tr key={a.id}>
                       <td data-label="Assignment" style={{ fontWeight: 500 }}>{a.title}</td>
                       <td data-label="Subject">{a.subject_name}</td>
                       <td data-label="Completed" style={{ textAlign: 'center' }}>{a.completed_count}/{a.student_count}</td>
                       <td data-label="Status" style={{ textAlign: 'center' }}>
                         <span className={`teacher-badge ${
-                          a.completed_count >= a.student_count ? 'success' : 'warning'
+                          status === 'complete' ? 'success' : status === 'overdue' ? 'danger' : 'warning'
                         }`}>
-                          {a.completed_count >= a.student_count ? '✅ Complete' : '⏳ In Progress'}
+                          {status === 'complete' ? '✅ Complete' : status === 'overdue' ? '⏰ Past due' : '⏳ In Progress'}
                         </span>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -4978,7 +5062,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                       <td data-label="In progress" style={{ textAlign: 'center' }}>{row.assignmentsInProgress}</td>
                       <td data-label="Completion" style={{ textAlign: 'center' }}>
                         {row.completionRate === null
-                          ? <span className="teacher-badge neutral">No data</span>
+                          ? <span className="teacher-badge neutral">No assignments yet</span>
                           : <span className={`teacher-badge ${row.completionRate >= 75 ? 'success' : row.completionRate >= LOW_COMPLETION_THRESHOLD ? 'warning' : 'danger'}`}>
                               {row.completionRate}%
                             </span>}
@@ -5001,10 +5085,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           ) : (
             <ul className="space-y-3">
               {atRiskStudents.map((student, index) => (
-                <li key={`${student.name}-${index}`} className="rounded-lg border border-red-200 bg-red-50 p-3">
+                <li key={`${student.name}-${index}`} className="rounded-lg border border-red-200 bg-red-50 p-3" data-testid="teacher-at-risk-student">
                   <div className="flex items-center justify-between gap-2">
                     <div className="font-semibold text-red-800">{student.name}</div>
-                    <span className="text-xs text-red-700">{student.batch}</span>
+                    {student.batch ? <span className="text-xs text-red-700">{student.batch}</span> : null}
                   </div>
                   <p className="text-xs text-red-700 mt-1">{student.reasons[0]}</p>
                 </li>
