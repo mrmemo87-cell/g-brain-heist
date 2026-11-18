@@ -33,3 +33,10 @@ The font in `ep1/fonts` is Fredoka (SIL Open Font License).
 `node gen.mjs` builds `scene.html` from Episode 1's character library plus `tail.js` (this
 episode's scenes). The narrator is the free Chatterbox voice (`voice/narrator.py`, lines in
 `ep2/narr.txt`, raw takes in `ep2/narr_raw/`); Bo and Ob are in `ep2/voice/`.
+
+## Episode 3
+
+`ep3/` — "What If You Woke Up in the Wrong Life?" Same workflow as Episode 2 (`node gen.mjs`,
+`node build.mjs`, `node render.mjs frames 6`). New in the character library here: the mother, the
+girl (Yasmine), the cat, and writing on fogged glass. `narr_fix.txt` holds the three narrator lines
+re-recorded after the girl was renamed; they replace takes 003, 007 and 021 in `narr_raw/`.
