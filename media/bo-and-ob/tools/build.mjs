@@ -36,6 +36,7 @@ const Vd = {}, C = {};
 let t = 0;
 for (const tok of ep.seq.trim().split(/\s+/)) {
   if (/^g[0-9.]+$/.test(tok)) t += +tok.slice(1);
+  else if (/^u[A-Za-z0-9]+\+[0-9.]+$/.test(tok)) { const [c, sec] = tok.slice(1).split('+'); const target = C[c] + +sec; if (t > target + 0.05) console.warn('WARNING: timeline is', (t - target).toFixed(2) + 's late for', tok); else t = target; } // wait until a cue plus N seconds
   else if (/^c[A-Za-z]/.test(tok) && !fs.existsSync(V(tok + '.wav'))) C[tok.slice(1)] = +t.toFixed(3);
   else {
     const f = V(tok + '.wav'), d = dur(f);
