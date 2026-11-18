@@ -56,3 +56,21 @@ node thumb.mjs                  # thumb_raw.png
 
 `tools/split.mjs` checks where a batched voice recording should be cut; `tools/save-episode.sh` copies a
 working episode folder into the repo.
+
+## Episodes 5–10 (the second half of the series)
+
+| Ep | Title | Length |
+|----|-------|--------|
+| 5 | What If the Impostor Loved Her? | 5:44 |
+| 6 | What If She Came Back and Forgot? | 5:18 |
+| 7 | What If You Were the Reflection? | 6:08 |
+| 8 | What If Nobody Remembered You? | 5:59 |
+| 9 | What If the Mirror Was Watching Back? | 6:26 |
+| 10 | What If You Had to Choose Which One of You Is Real? | 7:08 |
+
+Notes for future episodes:
+
+- The narrator reads at about 20 characters a second, so a 7-minute episode needs roughly 6,500 characters of narration plus dialogue.
+- Run only one narrator process at a time and avoid rendering alongside it: two together are several times slower than one after the other.
+- `tools/thumb.mjs` draws `thumbnail.jpg` from an episode's `thumb.js`.
+- Extra narration can be appended to `narr.txt` (new numbers at the end) and placed anywhere in `seq`, so nothing has to be renumbered.
