@@ -65,7 +65,7 @@ test('the placeholder still cannot be shared and the teacher still confirms', ()
 });
 
 test('floating player controls the clip audio, never autoplays and stays accessible', () => {
-  assert.match(page, /registerSpeakingAudio\(audio\.current, `Part \$\{clip\.part\}`\)/);
+  assert.match(page, /registerSpeakingAudio\(audio\.current, `Part \$\{clip\.part\}`, clip\.id\)/);
   assert.match(page, /<SpeakingAudioDock \/>/);
   assert.match(dock, /element\.addEventListener\('play', onPlay\)/);
   assert.match(dock, /if \(active && active\.element !== element\) active\.element\.pause\(\)/);
@@ -75,6 +75,5 @@ test('floating player controls the clip audio, never autoplays and stays accessi
   assert.match(css, /\.sp-dock button \{[^}]*min-width: 44px;[^}]*min-height: 44px;/);
   assert.match(css, /\.sp-page:has\(\.sp-dock\) \{\s*padding-bottom:/);
   assert.match(css, /env\(safe-area-inset-bottom/);
-  assert.match(visualBible, /\*\*Version:\*\* 1\.13\.0/);
   assert.match(visualBible, /Floating player and listening-based Pronunciation draft \(1\.13\.0/);
 });

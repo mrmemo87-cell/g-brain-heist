@@ -1,7 +1,7 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.13.0
+**Version:** 1.14.0
 **Effective date:** 2026-11-14\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
@@ -280,6 +280,7 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 - **AI estimates (1.11.0, Diagnostic Bible 10.10).** Step 3 opens with a violet bar: a spinner while AI estimates, then "AI estimates are ready" with the basis and a "Use the AI estimates" button. Each band tile shows an "AI estimate 5.5" chip and the one-line reason; the chip turns orange when the teacher's band differs. The overall panel shows the AI estimate under the criterion average. Nothing about Speaking AI estimates appears in any student view.
 - **Result polish (1.12.0).** Once feedback is shared, the student page opens straight on the result hero (the "Your Speaking starting point" card stays only while waiting, or for same-form and interruption notes). People are shown by full name when stored. On phones the criterion tiles sit two by two, Part names stay readable on the dark card and the hero labels wrap left. In step 3 a short amber note appears when the Teacher Speaking band is above or below every criterion band. The AI's "Pronunciation was not assessed" placeholder can never be shared: Share lists it as still to do, and the server refuses it. Cached AI drafts written with older instructions are not reused.
 - **Floating player and listening-based Pronunciation draft (1.13.0, owner request 2026-11-18).** The recording played last stays in a small bar fixed to the bottom of the interview page (play/pause, back and forward 5 seconds, position, speed, close; 44 px targets, labelled controls). It controls the clip's own audio element, never starts by itself, and the page gains bottom padding while it is open so it cannot cover Share or any other action. When the AI draft leaves the "not assessed" Pronunciation placeholder and the audio listening pass (Diagnostic Bible 10.7) listed mispronounced words, those words and tips become the Pronunciation draft with the recording they were heard in as its audio span; the teacher checks and confirms it like every other criterion. When the listening pass listed nothing, the placeholder stays, still cannot be shared, and Share tells the teacher the comment is theirs and shows the teacher-only AI listening note. No band is set and nothing is built from transcript text.
+- **Words in time with the audio (1.14.0, owner request 2026-11-18).** When a recording has word times, the word being spoken is ringed and underlined in its transcript while that recording plays (never colour alone), and tapping any word, the teacher's questions included, opens a small "Play from here? 1:23" prompt with Play and Cancel (44 px targets, Escape and outside tap close it). Play opens the recording if needed and starts it at that word in the floating player. The page never scrolls by itself to follow the audio. Word times come from the transcription the AI draft already makes; a recording without them shows the teacher a "Match words to the audio" button that says it runs one extra transcription per recording. The timed words are never displayed, scored or used as evidence; they only place times on the transcript already shown, and students get them only for transcripts they may already see. Without word times the transcript reads exactly as before.
 - The interview student result leads with the **Teacher Speaking band** as the hero number, then the three Part tiles and four criterion tiles, then feedback and collapsible transcripts, with "Checked by", the date, "Not an official IELTS result" and "Confidence: low".
 - The student result leads with a hero card: the teacher's Part band as the headline, "Checked by [teacher], [date]" and "Not an official IELTS result", then one tile per criterion, then the transcript, then teacher feedback. Interview results show three Part tiles. No band animates up to its value.
 
@@ -320,6 +321,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.19 Revision record — 1.14.0 (2026-11-18)
+
+The owner approved word-by-word highlighting during playback and "play from here", with no extra cost for new interviews and one extra transcription per older recording only when a teacher asks. Section 13.9 adds the presentation rules. Diagnostic Bible 2.5.1 is unchanged: the transcript still carries no score, timed words are not shown or assessed, and access follows the transcript.
 
 ### 14.18 Revision record — 1.13.0 (2026-11-18)
 

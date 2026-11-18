@@ -1,4 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { tokenAtTime, transcriptTokens } from '../../lib/speakingWordAlignment';
+import { canPlaySpeakingClip, playSpeakingClipFrom, useSpeakingClipPosition } from './SpeakingAudioDock';
 import type { PronunciationWord, SpeakingHighlight } from '../../../services/ieltsPracticeFeedback';
 import '../../styles/ielts-speaking-transcript.css';
 
@@ -110,10 +112,70 @@ type Props = {
   /** "teacher" adds the short criterion codes to each note; "student" uses friendlier headings. */
   audience?: 'teacher' | 'student';
   title?: string;
+  /** The recording this transcript belongs to, when it can be played on this page. */
+  clipId?: string;
+  /** Start time in seconds of each whitespace-separated word of the transcript (null where unknown). */
+  wordTimes?: Array<number | null>;
 };
 
-export default function SpeakingTranscript({ transcript, highlights: rawHighlights, pronunciationWords: rawWords, teacherLines = [], pronunciationAssessed = true, audience = 'student', title }: Props) {
+const clock = (seconds: number) => {
+  const total = Math.max(0, Math.floor(seconds));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+};
+
+export default function SpeakingTranscript({ transcript, highlights: rawHighlights, pronunciationWords: rawWords, teacherLines = [], pronunciationAssessed = true, audience = 'student', title, clipId, wordTimes }: Props) {
   const [active, setActive] = useState<number | null>(null);
+  // Word times (Visual & UX Bible 1.14.0, section 13.9): the word being spoken is marked while the recording
+  // plays, and tapping a word offers to play from there. Without times the transcript reads exactly as before.
+  const tokens = useMemo(() => transcriptTokens(transcript), [transcript]);
+  const timed = !!clipId && !!wordTimes && wordTimes.length === tokens.length && wordTimes.some(t => t !== null);
+  const times = timed ? (wordTimes as Array<number | null>) : null;
+  const nowIndex = useSpeakingClipPosition(timed ? clipId : undefined, useCallback((seconds: number) => (times ? tokenAtTime(times, seconds) : -1), [times]));
+  const wrap = useRef<HTMLDivElement>(null);
+  const [ask, setAsk] = useState<{ index: number; top: number; left: number } | null>(null);
+  useEffect(() => {
+    if (!ask) return;
+    const outside = (event: PointerEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target?.closest?.('.st-playfrom') && !target?.closest?.('.st-w')) setAsk(null);
+    };
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') setAsk(null); };
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('keydown', escape);
+    return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
+  }, [ask]);
+  const tokenIndexAt = (position: number) => {
+    let low = 0, high = tokens.length - 1;
+    while (low <= high) {
+      const mid = (low + high) >> 1;
+      if (tokens[mid].end <= position) low = mid + 1; else if (tokens[mid].start > position) high = mid - 1; else return mid;
+    }
+    return -1;
+  };
+  const askFrom = (event: React.MouseEvent<HTMLElement>, index: number) => {
+    const box = wrap.current?.getBoundingClientRect();
+    const word = event.currentTarget.getBoundingClientRect();
+    if (!box || !clipId || !canPlaySpeakingClip(clipId)) return;
+    setAsk({ index, top: word.bottom - box.top + 6, left: Math.max(0, Math.min(word.left - box.left, box.width - 230)) });
+  };
+  /** Text of one run with each timed word wrapped so it can be marked and tapped. */
+  const timedText = (text: string, offset: number, key: string | number) => {
+    if (!times) return <React.Fragment key={key}>{text}</React.Fragment>;
+    const out: React.ReactNode[] = [];
+    const re = /\s+|\S+/gu;
+    for (let m = re.exec(text); m; m = re.exec(text)) {
+      const index = /\S/u.test(m[0]) ? tokenIndexAt(offset + m.index) : -1;
+      if (index < 0 || times[index] === null) { out.push(m[0]); continue; }
+      out.push(
+        <span
+          key={m.index}
+          className={`st-w${index === nowIndex ? ' is-now' : ''}${ask?.index === index ? ' is-asked' : ''}`}
+          onClick={event => askFrom(event, index)}
+        >{m[0]}</span>,
+      );
+    }
+    return <React.Fragment key={key}>{out}</React.Fragment>;
+  };
   const annotated = rawHighlights !== undefined;
   const wordsChecked = rawWords !== undefined;
   const highlights = useMemo(() => rawHighlights ?? [], [rawHighlights]);
@@ -139,9 +201,12 @@ export default function SpeakingTranscript({ transcript, highlights: rawHighligh
     const g = groups[groups.length - 1];
     if (g && g.h === piece.h && g.t === piece.t) g.parts.push(piece); else groups.push({ h: piece.h, t: piece.t, parts: [piece] });
   }
+  // Character position of each run in the transcript (runs are consecutive slices of it).
+  const startOf = new Map<Piece, number>();
+  { let at = 0; for (const piece of pieces) { startOf.set(piece, at); at += piece.text.length; } }
   const renderParts = (parts: Piece[]) => parts.map((part, k) => part.p >= 0
-    ? <mark key={k} className="st-pron" title={`Pronunciation: ${pronunciationWords[part.p].tip}`}>{part.text}<span className="st-sr"> (pronunciation word)</span></mark>
-    : <React.Fragment key={k}>{part.text}</React.Fragment>);
+    ? <mark key={k} className="st-pron" title={`Pronunciation: ${pronunciationWords[part.p].tip}`}>{timedText(part.text, startOf.get(part) ?? 0, 'w')}<span className="st-sr"> (pronunciation word)</span></mark>
+    : timedText(part.text, startOf.get(part) ?? 0, k));
   const hasTeacher = groups.some(g => g.t);
 
   const activeNote = active !== null ? highlights[active] : null;
@@ -163,9 +228,11 @@ export default function SpeakingTranscript({ transcript, highlights: rawHighligh
         <p className="st-legacy">This feedback was made before colour highlights were added, so the transcript is shown without them.</p>
       )}
 
+      {times ? <p className="st-hint st-hint--sync">The word being spoken is marked while the recording plays. Tap any word to play from there.</p> : null}
+      <div className="st-text-wrap" ref={wrap}>
       <p className="st-text">
         {transcript.trim() ? groups.map((g, gi) => g.t ? (
-          <span key={gi} className="st-teacher"><span className="st-teacher-tag" aria-hidden="true">T</span><span className="st-sr">Teacher: </span>{g.parts.map(p => p.text).join('')}</span>
+          <span key={gi} className="st-teacher"><span className="st-teacher-tag" aria-hidden="true">T</span><span className="st-sr">Teacher: </span>{g.parts.map((p, k) => timedText(p.text, startOf.get(p) ?? 0, k))}</span>
         ) : g.h >= 0 ? (
           <mark
             key={gi}
@@ -182,6 +249,19 @@ export default function SpeakingTranscript({ transcript, highlights: rawHighligh
           </mark>
         ) : <React.Fragment key={gi}>{renderParts(g.parts)}</React.Fragment>) : <span className="st-empty">No words were heard in this recording.</span>}
       </p>
+      {ask && times && clipId && times[ask.index] !== null ? (
+        <div className="st-playfrom" role="dialog" aria-label="Play from this word" style={{ top: ask.top, left: ask.left }}>
+          <span>Play from here? <b>{clock(times[ask.index] as number)}</b></span>
+          <button
+            type="button"
+            className="st-playfrom-go"
+            autoFocus
+            onClick={() => { playSpeakingClipFrom(clipId, Math.max(0, (times[ask.index] as number) - 0.2)); setAsk(null); }}
+          >▶ Play</button>
+          <button type="button" className="st-playfrom-no" onClick={() => setAsk(null)}>Cancel</button>
+        </div>
+      ) : null}
+      </div>
 
       {activeNote ? (
         <div className={`st-callout st-c-${activeNote.criterion}`} role="status">

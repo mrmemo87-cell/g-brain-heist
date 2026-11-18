@@ -761,3 +761,17 @@
     flex-basis: 100%;
   }
 }
+
+.sp-sync-words {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  border: 1px dashed var(--bh-ielts-border, #dce5ef);
+  border-radius: 13px;
+  background: var(--bh-ielts-surface-muted, #f5f8fc);
+}
+.sp-sync-words p {
+  margin: 0;
+}
