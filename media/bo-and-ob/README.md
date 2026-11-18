@@ -26,3 +26,10 @@ node short/make.mjs
 ```
 
 The font in `ep1/fonts` is Fredoka (SIL Open Font License).
+
+## Episode 2
+
+`ep2/` — "What If You Couldn't Get Back Out?" Same workflow as Episode 1, with one extra step:
+`node gen.mjs` builds `scene.html` from Episode 1's character library plus `tail.js` (this
+episode's scenes). The narrator is the free Chatterbox voice (`voice/narrator.py`, lines in
+`ep2/narr.txt`, raw takes in `ep2/narr_raw/`); Bo and Ob are in `ep2/voice/`.
