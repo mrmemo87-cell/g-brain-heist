@@ -40,3 +40,19 @@ episode's scenes). The narrator is the free Chatterbox voice (`voice/narrator.py
 `node build.mjs`, `node render.mjs frames 6`). New in the character library here: the mother, the
 girl (Yasmine), the cat, and writing on fogged glass. `narr_fix.txt` holds the three narrator lines
 re-recorded after the girl was renamed; they replace takes 003, 007 and 021 in `narr_raw/`.
+
+## Episode 4 onward
+
+From Episode 4 each episode folder holds `episode.mjs` (voice batches, the timeline, sound cues and the
+Short's captions) and `tail.js` (its scenes). Build with the shared tools:
+
+```
+node gen.mjs                    # assemble scene.html
+node ../tools/build.mjs         # voices, timeline (data.js) and soundtrack (mix.wav)
+node render.mjs frames 6        # frames/
+node ../tools/short.mjs         # short.mp4
+node thumb.mjs                  # thumb_raw.png
+```
+
+`tools/split.mjs` checks where a batched voice recording should be cut; `tools/save-episode.sh` copies a
+working episode folder into the repo.
