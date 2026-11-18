@@ -85,41 +85,6 @@ function keepWords(admin: any, sessionId: string, clipId: string): WordSink {
       .then(({ error }: { error: { message?: string } | null }) => { if (error) why("word_times_save", error.message); });
   };
 }
-/**
- * Word times for recordings that have none yet (older interviews, or drafts made by the audio fallback).
- * One extra transcription per missing recording, run only when the reviewing teacher asks for it.
- */
-// deno-lint-ignore no-explicit-any
-async function wordTimes(sessionId: string, session: any, caller: any, admin: any): Promise<unknown> {
-  if (session.status !== "submitted") throw new Error("not_submitted");
-  const key = Deno.env.get("OPENAI_API_KEY");
-  if (!key) throw new Error("unavailable");
-  const read = async () => {
-    const { data, error } = await caller.rpc("rpc_ielts_speaking_clip_words", { p_session_id: sessionId });
-    if (error) throw new Error("words_failed");
-    return (data ?? []) as Array<{ clip_id: string }>;
-  };
-  const have = new Set((await read()).map((w) => w.clip_id));
-  const todo = (session.clips ?? []).filter((c: { id: string }) => !have.has(c.id)).slice(0, 12);
-  if (todo.reduce((sum: number, c: { duration_seconds: number }) => sum + Number(c.duration_seconds || 0), 0) > 1800) throw new Error("audio_limit");
-  await Promise.all(todo.map(async (clip: { id: string; path: string; sha256: string }) => {
-    try {
-      const { data: audio, error } = await admin.storage.from("ielts-speaking-pilot").download(clip.path);
-      if (error || !audio) throw new Error("missing_audio");
-      const bytes = await audio.arrayBuffer();
-      inspectSpeakingWav(bytes);
-      if ((await sha(bytes)) !== clip.sha256) throw new Error("source_mismatch");
-      let words: TimedWord[] = [];
-      await transcribeSegments(bytes, key, INTERVIEW_TRANSCRIPTION_HINT, (w) => { words = w; });
-      if (!words.length) return;
-      const { error: saveError } = await admin.rpc("rpc_ielts_save_speaking_clip_words", { p_session_id: sessionId, p_clip_id: clip.id, p_words: words, p_model: transcribeModel });
-      if (saveError) throw new Error("save_failed");
-    } catch (e) {
-      why("word_times", reasonOf(e));
-    }
-  }));
-  return { words: await read() };
-}
 /** Plain-text transcription with the stronger model (no timestamps needed for transcripts and highlights). */
 const textTranscribeModel = Deno.env.get("IELTS_SPEAKING_TEXT_TRANSCRIBE_MODEL")?.trim() || "gpt-4o-transcribe";
 async function transcribeText(bytes: ArrayBuffer, key: string): Promise<string> {
@@ -449,7 +414,7 @@ Deno.serve(async (req: Request) => {
     const raw = await req.text();
     if (raw.length > 1500) return reply({ error: "invalid_request" }, 400);
     const body = JSON.parse(raw);
-    if (!uuid(body.sessionId) || !["attach", "draft", "analyse", "estimate", "word_times"].includes(body.action))
+    if (!uuid(body.sessionId) || !["attach", "draft", "analyse", "estimate"].includes(body.action))
       return reply({ error: "invalid_request" }, 400);
     const { data: session, error: sessionError } = await caller.rpc(
       "rpc_ielts_speaking_session",
@@ -509,7 +474,6 @@ Deno.serve(async (req: Request) => {
       return reply({ error: "invalid_request" }, 400);
     if (body.action === "analyse") return reply(await analyse(body.sessionId, session, caller, admin));
     if (body.action === "estimate") return reply(await estimate(body.sessionId, session, caller, admin));
-    if (body.action === "word_times") return reply(await wordTimes(body.sessionId, session, caller, admin));
     const key = Deno.env.get("OPENAI_API_KEY");
     if (!key) return reply({ error: "unavailable" }, 503);
     const model = Deno.env.get("IELTS_SPEAKING_DRAFT_MODEL") ?? "gpt-audio-1.5";

@@ -4,6 +4,9 @@ import test from 'node:test';
 import { alignWordTimes, tokenAtTime, transcriptTokens, type TimedWord } from '../src/lib/speakingWordAlignment';
 
 const fn = readFileSync('supabase/functions/ielts_speaking_pilot/index.ts', 'utf8');
+const wordFn = readFileSync('supabase/functions/ielts_speaking_word_times/index.ts', 'utf8');
+const config = readFileSync('supabase/config.toml', 'utf8');
+const service = readFileSync('services/ieltsSpeakingPilotService.ts', 'utf8');
 const migration = readFileSync('supabase/migrations/20261118190000_ielts_speaking_clip_word_times.sql', 'utf8');
 const transcriptView = readFileSync('src/components/ielts/SpeakingTranscript.tsx', 'utf8');
 const insights = readFileSync('src/components/ielts/SpeakingInterviewInsights.tsx', 'utf8');
@@ -66,9 +69,17 @@ test('word times ride on the existing transcription and cost nothing extra for n
   assert.match(fn, /segments: await transcribeInterview\(clip\.bytes, key, keepWords\(admin, body\.sessionId, clip\.id\)\)/);
   // Saving times can never fail a draft or transcript.
   assert.match(fn, /try \{ onWords\(words\); \} catch \{/);
-  assert.match(fn, /\["attach", "draft", "analyse", "estimate", "word_times"\]\.includes\(body\.action\)/);
-  // The teacher-requested pass verifies each recording and never uses the questions as a hint.
-  assert.match(fn, /async function wordTimes[\s\S]*?if \(\(await sha\(bytes\)\) !== clip\.sha256\) throw new Error\("source_mismatch"\);[\s\S]*?transcribeSegments\(bytes, key, INTERVIEW_TRANSCRIPTION_HINT/);
+});
+
+test('older recordings are timed only when the reviewing teacher asks, after the recording is verified', () => {
+  assert.match(wordFn, /rpc_ielts_speaking_session", \{ p_session_id: body\.sessionId \}\);\s+if \(sessionError \|\| !session\?\.can_review\) return reply\(\{ error: "not_authorized" \}, 403\);/);
+  assert.match(wordFn, /if \(\(await sha\(bytes\)\) !== clip\.sha256\) throw new Error\("source_mismatch"\);\s+const words = await timeWords\(bytes, key\);/);
+  assert.match(wordFn, /\.filter\(\(c\) => !have\.has\(c\.id\)\)/);
+  assert.match(wordFn, /MAX_SECONDS = 1800/);
+  // The questions are never sent as a hint, and nothing about the speech is logged.
+  assert.doesNotMatch(wordFn, /package|questions\b.*prompt/);
+  assert.match(config, /\[functions\.ielts_speaking_word_times\]\nverify_jwt = true/);
+  assert.match(service, /functions\.invoke\("ielts_speaking_word_times", \{ body: \{ sessionId \} \}\)/);
 });
 
 test('word times are private, service-written and readable only with the transcript', () => {

@@ -302,7 +302,7 @@ export async function speakingClipWords(sessionId: string): Promise<SpeakingClip
 }
 /** Teacher only: times the words of recordings that have none yet (one extra transcription per recording). */
 export async function syncSpeakingClipWords(sessionId: string): Promise<SpeakingClipWords[]> {
-  const { data, error } = await supabase.functions.invoke("ielts_speaking_pilot", { body: { action: "word_times", sessionId } });
+  const { data, error } = await supabase.functions.invoke("ielts_speaking_word_times", { body: { sessionId } });
   if (error || !data || (data as { error?: string }).error || !Array.isArray((data as { words?: unknown }).words))
     throw new Error("The words could not be matched to the audio right now. Nothing was changed; try again in a minute.");
   return (data as { words: SpeakingClipWords[] }).words;
