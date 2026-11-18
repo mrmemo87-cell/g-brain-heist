@@ -1105,6 +1105,12 @@ export interface TeacherAssignmentSummary {
   published_at?: string | null;
   question_ids?: string[];
   student_ids?: string[];
+  /** Set when this is one-student practice created from a learning intervention. */
+  targeted_practice?: {
+    student_id: string | null;
+    student_name: string | null;
+    diagnostic_targets: string[];
+  } | null;
 }
 
 export interface StudentAssignmentTask {
