@@ -1,0 +1,30 @@
+.targeted-practice { display:grid; gap:12px; }
+@media(min-width:1280px) { .targeted-practice { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; } }
+.targeted-practice__student { min-width:0; border:1px solid var(--teacher-border,#e2e8f0); border-radius:16px; background:var(--teacher-surface,#fff); color:var(--teacher-text,#1e293b); box-shadow:0 4px 18px rgb(15 23 42 / 4%); overflow:hidden; }
+.targeted-practice__student-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 18px; border-bottom:1px solid var(--teacher-border,#e2e8f0); }
+.targeted-practice__student-header h3 { margin:0; font-size:16px; font-weight:650; overflow-wrap:anywhere; }
+.targeted-practice__student-header p { margin:2px 0 0; font-size:12px; color:var(--teacher-text-muted,#64748b); }
+.targeted-practice__count { flex-shrink:0; padding:3px 9px; border-radius:999px; font-size:12px; font-weight:600; background:#ecfdf5; color:#047857; }
+.targeted-practice__count--open { background:#fff7ed; color:#c2410c; }
+.targeted-practice__tasks { list-style:none; margin:0; padding:0; }
+.targeted-practice__task { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:12px; padding:12px 18px; }
+.targeted-practice__task + .targeted-practice__task { border-top:1px solid var(--teacher-bg-alt,#f1f5f9); }
+.targeted-practice__task-main { display:grid; gap:2px; min-width:0; }
+.targeted-practice__skill { font-size:14px; font-weight:600; overflow-wrap:anywhere; }
+.targeted-practice__meta { font-size:12px; color:var(--teacher-text-muted,#64748b); }
+.targeted-practice__status { padding:3px 8px; border-radius:6px; font-size:12px; font-weight:600; white-space:nowrap; }
+.targeted-practice__status--completed { background:#ecfdf5; color:#047857; }
+.targeted-practice__status--not-started { background:var(--teacher-bg-alt,#f1f5f9); color:var(--teacher-text-secondary,#475569); }
+.targeted-practice__status--overdue { background:#fef2f2; color:#b91c1c; }
+.targeted-practice__actions { display:flex; gap:6px; }
+.targeted-practice__actions button { min-height:36px; padding:0 12px; border:1px solid var(--teacher-border,#e2e8f0); border-radius:9px; background:var(--teacher-surface,#fff); color:#1d4ed8; font:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+.targeted-practice__actions button:hover:not(:disabled) { background:#eff6ff; }
+.targeted-practice__actions button:disabled { opacity:.45; cursor:not-allowed; }
+.targeted-practice__actions button:focus-visible { outline:3px solid #60a5fa; outline-offset:2px; }
+.targeted-practice__actions .targeted-practice__delete { color:#b91c1c; }
+.targeted-practice__actions .targeted-practice__delete:hover:not(:disabled) { background:#fef2f2; }
+@media(max-width:639px) {
+  .targeted-practice__task { grid-template-columns:minmax(0,1fr) auto; }
+  .targeted-practice__actions { grid-column:1 / -1; }
+  .targeted-practice__actions button { flex:1; min-height:44px; }
+}

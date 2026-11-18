@@ -2,7 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import './AssignmentToolbar.css';
 
 type Status = 'all' | 'in-progress' | 'completed';
+export type AssignmentKind = 'class' | 'targeted';
 interface Props {
+  /** Which kind of work is listed. The switch is shown only when targeted practice exists. */
+  kind: AssignmentKind;
+  onKind: (value: AssignmentKind) => void;
+  classTotal: number;
+  targetedTotal: number;
+  targetedOpen: number;
   classes: string[];
   counts: Map<string, number>;
   total: number;
@@ -43,12 +50,14 @@ export default function AssignmentToolbar(props: Props) {
     ...props.classes.map(value => ({ value, label: value, count: props.counts.get(value.toLocaleLowerCase()) || 0 })),
     { value: 'individual', label: 'Individual', count: props.counts.get('individual') || 0 },
   ];
-  const filtered = props.search !== '' || props.subject !== 'all' || props.status !== 'all' || props.selectedClass !== 'all';
+  const targeted = props.kind === 'targeted';
+  const noun = targeted ? 'targeted practice task' : 'assignment';
+  const filtered = props.search !== '' || props.subject !== 'all' || props.status !== 'all' || (!targeted && props.selectedClass !== 'all');
   const clear = () => { props.onClass('all'); props.onSearch(''); props.onSubject('all'); props.onStatus('all'); };
   const create = (action: () => void) => { setCreateOpen(false); action(); };
   return <section className="assignment-toolbar" aria-label="Assignment workspace controls">
     <header className="assignment-toolbar__heading">
-      <div><h2>Assignments</h2><p>{props.total} assignment{props.total === 1 ? '' : 's'}</p></div>
+      <div><h2>Assignments</h2><p>{props.total} {noun}{props.total === 1 ? '' : 's'}</p></div>
       <div className="assignment-toolbar__create" ref={createRef}>
         <button ref={triggerRef} type="button" className="assignment-toolbar__primary" disabled={!props.canCreate} aria-expanded={createOpen} aria-controls="assignment-create-options" onClick={() => setCreateOpen(open => !open)}><span aria-hidden="true">+</span> Create</button>
         {createOpen && <div id="assignment-create-options" className="assignment-toolbar__create-options">
@@ -57,12 +66,16 @@ export default function AssignmentToolbar(props: Props) {
         </div>}
       </div>
     </header>
-    <div className="assignment-toolbar__classes" aria-label="Assignment folders by class">
+    {props.targetedTotal > 0 && <div className="assignment-toolbar__kind" role="group" aria-label="Type of work">
+      <button type="button" aria-pressed={!targeted} onClick={() => props.onKind('class')}><strong>Class assignments</strong><span>{props.classTotal}</span></button>
+      <button type="button" aria-pressed={targeted} onClick={() => props.onKind('targeted')}><strong>Targeted practice</strong><span>{props.targetedTotal}</span>{props.targetedOpen > 0 && <em>{props.targetedOpen} open</em>}</button>
+    </div>}
+    {!targeted && <div className="assignment-toolbar__classes" aria-label="Assignment folders by class">
       {options.map(option => <button type="button" key={option.value} aria-pressed={props.selectedClass.toLocaleLowerCase() === option.value.toLocaleLowerCase()} onClick={() => props.onClass(option.value)}>{option.label}<span>{option.count}</span></button>)}
-    </div>
-    <label className="assignment-toolbar__mobile-class"><span>Class</span><select value={props.selectedClass} onChange={event => props.onClass(event.target.value)}>{options.map(option => <option key={option.value} value={option.value}>{option.label} · {option.count}</option>)}</select></label>
+    </div>}
+    {!targeted && <label className="assignment-toolbar__mobile-class"><span>Class</span><select value={props.selectedClass} onChange={event => props.onClass(event.target.value)}>{options.map(option => <option key={option.value} value={option.value}>{option.label} · {option.count}</option>)}</select></label>}
     <div className="assignment-toolbar__filters">
-      <label className="assignment-toolbar__search"><span className="assignment-toolbar__sr">Search assignments</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input type="search" placeholder="Search assignments" value={props.search} onChange={event => props.onSearch(event.target.value)}/></label>
+      <label className="assignment-toolbar__search"><span className="assignment-toolbar__sr">Search assignments</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input type="search" placeholder={targeted ? 'Search by student or skill' : 'Search assignments'} value={props.search} onChange={event => props.onSearch(event.target.value)}/></label>
       <button type="button" className="assignment-toolbar__filter-button" aria-expanded={filtersOpen} aria-controls="assignment-subject-filter" onClick={() => setFiltersOpen(open => !open)}>Filters{props.subject !== 'all' && <span aria-label="1 active subject filter">1</span>}</button>
       <div className="assignment-toolbar__status" role="group" aria-label="Assignment progress">{([['all', 'All'], ['in-progress', 'In progress'], ['completed', 'Completed']] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={props.status === value} onClick={() => props.onStatus(value)}>{label}</button>)}</div>
     </div>

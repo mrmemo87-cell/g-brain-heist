@@ -32,7 +32,9 @@ const AssignmentWizard = React.lazy(() => import('./teacher/AssignmentWizard'));
 const DiagnosticComposer = React.lazy(() => import('./teacher/DiagnosticComposer'));
 import DiagnosticIntelligencePanel, { DiagnosticStudentSkillMap } from './teacher/DiagnosticIntelligencePanel';
 import AssignmentCard from './teacher/AssignmentCard';
-import AssignmentToolbar from './teacher/AssignmentToolbar';
+import TargetedPracticeList from './teacher/TargetedPracticeList';
+import { isTargetedPractice, targetedPracticeSkill, targetedPracticeStatus } from '../src/lib/teacherTargetedPractice';
+import AssignmentToolbar, { type AssignmentKind } from './teacher/AssignmentToolbar';
 import TeacherWorkspaceIcon, { teacherMobileLabel } from './teacher/TeacherWorkspaceIcon';
 import JoinSchoolCard from './JoinSchoolCard';
 import '../src/styles/teacher-theme.css';
@@ -722,6 +724,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentSubjectFilter, setAssignmentSubjectFilter] = useState<'all' | Subject>('all');
   const [assignmentStatusFilter, setAssignmentStatusFilter] = useState<'all' | 'in-progress' | 'completed'>('all');
   const [assignmentClassFilter, setAssignmentClassFilter] = useState<string>('all');
+  const [assignmentKind, setAssignmentKind] = useState<AssignmentKind>('class');
 
   // Assignment Analysis State
   const [questionAnalysis, setQuestionAnalysis] = useState<AssignmentQuestionAnalysis[]>([]);
@@ -1043,6 +1046,26 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     return Array.from(subjects).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
   }, [assignments]);
 
+  // Class assignments and one-student targeted practice are listed apart.
+  const classAssignments = useMemo(() => assignments.filter((a) => !isTargetedPractice(a)), [assignments]);
+  const targetedAssignments = useMemo(() => assignments.filter(isTargetedPractice), [assignments]);
+  const targetedOpenCount = useMemo(
+    () => targetedAssignments.filter((a) => targetedPracticeStatus(a) !== 'completed').length,
+    [targetedAssignments]
+  );
+  const studentNameById = useMemo(() => {
+    const names = new Map<string, string>();
+    availableStudents.forEach((student) => names.set(student.id, student.display_name || student.username));
+    return names;
+  }, [availableStudents]);
+  const resolveTargetedStudentName = useCallback(
+    (studentId: string | null) => (studentId ? studentNameById.get(studentId) || null : null),
+    [studentNameById]
+  );
+  useEffect(() => {
+    if (assignmentKind === 'targeted' && targetedAssignments.length === 0) setAssignmentKind('class');
+  }, [assignmentKind, targetedAssignments.length]);
+
   const assignmentClassFolders = useMemo(() => {
     const labels = new Map<string, string>();
     const rememberClass = (value?: string | null) => {
@@ -1056,7 +1079,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     allocatedClasses.forEach((item) => {
       if (item.is_active) rememberClass(item.class_code);
     });
-    assignments.forEach((assignment) => {
+    classAssignments.forEach((assignment) => {
       if (assignment.subject_group_name) {
         rememberClass(assignment.subject_group_name);
       } else if (assignment.assignment_mode !== 'custom') {
@@ -1065,11 +1088,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     });
 
     return [...labels.values()].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
-  }, [allocatedClasses, assignments, teachingGroups]);
+  }, [allocatedClasses, classAssignments, teachingGroups]);
 
   const assignmentFolderCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    assignments.forEach((assignment) => {
+    classAssignments.forEach((assignment) => {
       const groupKey = assignment.subject_group_name?.trim().toLocaleLowerCase();
       if (groupKey) {
         counts.set(groupKey, (counts.get(groupKey) || 0) + 1);
@@ -1083,7 +1106,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       if (key) counts.set(key, (counts.get(key) || 0) + 1);
     });
     return counts;
-  }, [assignments]);
+  }, [classAssignments]);
 
   useEffect(() => {
     if (assignmentClassFilter === 'all' || assignmentClassFilter === 'individual') return;
@@ -1093,10 +1116,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
   // Filtered assignments based on class folder, search, subject, and status filters
   const filteredAssignments = useMemo(() => {
-    return assignments.filter(a => {
+    const targetedView = assignmentKind === 'targeted';
+    return (targetedView ? targetedAssignments : classAssignments).filter(a => {
       const assignmentFolder = a.subject_group_name?.trim()
         || (a.assignment_mode === 'custom' ? 'individual' : (a.batch || '').trim());
-      if (assignmentClassFilter === 'individual') {
+      if (targetedView) {
+        // Targeted practice is grouped by student, not filed under a class folder.
+      } else if (assignmentClassFilter === 'individual') {
         if (assignmentFolder.toLocaleLowerCase() !== 'individual') return false;
       } else if (assignmentClassFilter !== 'all') {
         if (assignmentFolder.toLocaleLowerCase() !== assignmentClassFilter.trim().toLocaleLowerCase()) return false;
@@ -1104,10 +1130,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       // Search filter
       if (assignmentSearchTerm.trim()) {
         const search = assignmentSearchTerm.toLowerCase();
+        const studentName = targetedView
+          ? (resolveTargetedStudentName(a.targeted_practice?.student_id ?? null) || a.targeted_practice?.student_name || '')
+          : '';
         const matchesSearch = 
           (a.title?.toLowerCase().includes(search)) ||
           a.topic_name.toLowerCase().includes(search) ||
-          a.subject_name.toLowerCase().includes(search);
+          a.subject_name.toLowerCase().includes(search) ||
+          studentName.toLowerCase().includes(search);
         if (!matchesSearch) return false;
       }
       // Subject filter
@@ -1122,7 +1152,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       }
       return true;
     });
-  }, [assignments, assignmentClassFilter, assignmentSearchTerm, assignmentSubjectFilter, assignmentStatusFilter]);
+  }, [classAssignments, targetedAssignments, assignmentKind, resolveTargetedStudentName, assignmentClassFilter, assignmentSearchTerm, assignmentSubjectFilter, assignmentStatusFilter]);
 
 
   const teacherOwnedTopics = useMemo(() => {
@@ -1334,13 +1364,31 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     try {
       const summary = await GameService.get_teacher_assignment_success_summary();
       setAssignmentSuccess(summary);
-      onAssignmentSummary?.(summary);
     } catch (error) {
       console.error('Error loading assignment success:', error);
       setAssignmentSuccess(null);
       onAssignmentSummary?.(null);
     }
   }, [onAssignmentSummary]);
+
+  // Headline assignment counts describe class assignments only; one-student
+  // targeted practice is listed apart and must not inflate them.
+  useEffect(() => {
+    if (!assignmentSuccess) return;
+    if (!assignmentSuccess.has_insights || targetedAssignments.length === 0) {
+      onAssignmentSummary?.(assignmentSuccess);
+      return;
+    }
+    const targetedIds = new Set(targetedAssignments.map((a) => a.id));
+    const classResults = assignmentSuccess.assignment_results.filter((row) => !targetedIds.has(row.assignment_id));
+    const now = new Date();
+    onAssignmentSummary?.({
+      ...assignmentSuccess,
+      assignment_count: classResults.length,
+      active_assignment_count: classResults.filter((row) => row.completed_count < row.student_count).length,
+      overdue_assignment_count: classAssignments.filter((a) => assignmentProgressStatus(a, now) === 'overdue').length,
+    });
+  }, [assignmentSuccess, classAssignments, targetedAssignments, onAssignmentSummary]);
 
   useEffect(() => {
     if (view === 'dashboard' && canUseTeacherFeature(FEATURE_KEYS.REPORTS)) {
@@ -4520,6 +4568,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     const myClasses = teachingGroups.length
       ? teachingGroups.map((group) => group.name)
       : Array.from(new Set(allocatedClasses.map((cls) => cls.class_code)));
+    // The dashboard describes class assignments; targeted practice is counted separately.
+    const assignments = classAssignments;
     const activeAssignments = assignments.filter((a) => a.completed_count < a.student_count).length;
     const dashboardNow = new Date();
     // The summary RPC adds per-assignment and per-student insight. Older
@@ -4529,9 +4579,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       (assignmentSuccess?.assignment_results || []).map((result) => [result.assignment_id, result])
     );
     const overdueAssignments = assignments.filter((a) => assignmentProgressStatus(a, dashboardNow) === 'overdue').length;
-    const openTargetedPractice = assignments.filter((a) =>
-      (a.student_count || 0) === 1 && (a.completed_count || 0) < 1 && /Targeted Practice$/i.test(a.title || '')
-    ).length;
+    const openTargetedPractice = targetedOpenCount;
+    const targetedAssignmentIds = new Set(targetedAssignments.map((a) => a.id));
     const totalSubmissions = assignmentSuccess?.submission_count ?? 0;
     const hasAssignmentSuccess = totalSubmissions > 0;
     const successRate = assignmentSuccess?.success_rate ?? 0;
@@ -4699,7 +4748,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         ? `Talk to ${repeatMissingStudents.slice(0, 3).map((row) => row.student_name).join(', ')}${repeatMissingStudents.length > 3 ? ` and ${repeatMissingStudents.length - 3} more` : ''} — each is missing 3 or more assignments.`
         : null,
       openTargetedPractice > 0
-        ? `${openTargetedPractice} targeted practice task${openTargetedPractice > 1 ? 's are' : ' is'} still waiting for the student to start.`
+        ? `${openTargetedPractice} targeted practice task${openTargetedPractice > 1 ? 's are' : ' is'} still waiting for the student to finish.`
         : null,
       pendingWriting > 0 ? 'Open Cambridge Tests and clear pending writing to unlock score release.' : null,
       studentsWithoutClass > 0 ? 'Coordinate with school admin to map unassigned students into classes.' : null,
@@ -4744,10 +4793,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     if (hasInsights) {
       // One line per assignment, most missing work first, instead of one line
       // per student for whichever assignment happens to be newest.
-      const followupAssignments = assignmentSuccess?.assignment_followups || [];
+      // Class assignments get a line each; one-student targeted practice is
+      // summarised in a single line so it does not crowd the list.
+      const followupAssignments = (assignmentSuccess?.assignment_followups || [])
+        .filter((row) => !targetedAssignmentIds.has(row.assignment_id));
       alertItems.push(...assignmentAlerts(followupAssignments, dashboardNow, 6));
+      if (openTargetedPractice > 0) {
+        alertItems.push({
+          tone: 'info',
+          text: `${openTargetedPractice} targeted practice task${openTargetedPractice > 1 ? 's have' : ' has'} not been completed — see Assignments › Targeted practice.`,
+        });
+      }
       visibleStudentAlerts.push(...alertItems);
-      const hiddenAssignments = followupAssignments.length - alertItems.length;
+      const hiddenAssignments = followupAssignments.length - Math.min(followupAssignments.length, 6);
       if (hiddenAssignments > 0) {
         visibleStudentAlerts.push({ tone: 'info', text: `${hiddenAssignments} more assignment${hiddenAssignments > 1 ? 's have' : ' has'} follow-ups — open Reports for the full list.` });
       }
@@ -6262,8 +6320,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const renderAssignments = () => (
     <div className="teacher-assignment-workspace">
       <AssignmentToolbar
+        kind={assignmentKind} onKind={setAssignmentKind}
+        classTotal={classAssignments.length} targetedTotal={targetedAssignments.length} targetedOpen={targetedOpenCount}
         classes={assignmentClassFolders} counts={assignmentFolderCounts}
-        total={assignments.length} shown={filteredAssignments.length}
+        total={assignmentKind === 'targeted' ? targetedAssignments.length : classAssignments.length} shown={filteredAssignments.length}
         selectedClass={assignmentClassFilter} onClass={setAssignmentClassFilter}
         search={assignmentSearchTerm} onSearch={setAssignmentSearchTerm}
         subjects={assignmentSubjects} subject={assignmentSubjectFilter}
@@ -6295,6 +6355,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             Clear all filters
           </button>
         </div>
+      ) : assignmentKind === 'targeted' ? (
+        <TargetedPracticeList
+          assignments={filteredAssignments}
+          resolveStudentName={resolveTargetedStudentName}
+          canManage={(assignment) => assignment.teacher_id === teacher?.id}
+          deletingId={deletingAssignmentId}
+          onReport={(assignment) => handleOpenReport(assignment)}
+          onDelete={(assignment) => void handleDeleteAssignment(assignment)}
+        />
       ) : (
         <section aria-label={assignmentClassFilter === 'all' ? 'All assignments' : assignmentClassFilter === 'individual' ? 'Individual assignments' : `${assignmentClassFilter} assignments`}>
           <div className="teacher-assignment-workspace__list">

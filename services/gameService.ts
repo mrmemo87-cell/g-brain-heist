@@ -64,6 +64,7 @@ import { notificationService } from './notificationService.js';
 import { fetchMyXpStatus } from './xpStatus.js';
 import { normalizeTeacherRoster, type TeacherRosterRow } from '../src/lib/teacherRoster.js';
 import type { DashboardAssignmentFollowup, DashboardAssignmentResult, DashboardStudentFollowup } from '../src/lib/teacherDashboardInsights.js';
+import { markTargetedPractice, type TargetedPracticeLink } from '../src/lib/teacherTargetedPractice.js';
 import { audioService } from './audioService.js';
 import {
     regenerateUserAp,
@@ -5327,10 +5328,11 @@ export const get_teacher_assignments = async (teacherId?: string): Promise<Teach
     if (error) throw new Error(error.message || 'Failed to load assignments');
 
     const assignments = (data as TeacherAssignmentSummary[]) || [];
-    const [{ data: contextData, error: contextError }, { data: groupContextData, error: groupContextError }, { data: deliveryContext, error: deliveryError }] = await Promise.all([
+    const [{ data: contextData, error: contextError }, { data: groupContextData, error: groupContextError }, { data: deliveryContext, error: deliveryError }, { data: targetedData, error: targetedError }] = await Promise.all([
         supabase.rpc('rpc_teacher_assignment_category_context', { p_teacher_id: resolvedTeacherId }),
         supabase.rpc('rpc_teacher_assignment_group_context', { p_teacher_id: resolvedTeacherId }),
         supabase.rpc('rpc_teacher_assignment_delivery_context', { p_assignment_ids: assignments.map((a) => a.id) }),
+        supabase.rpc('rpc_teacher_targeted_practice_assignments'),
     ]);
     if (contextError) throw new Error(contextError.message || 'Failed to load assignment category context');
     if (groupContextError) throw new Error(groupContextError.message || 'Failed to load assignment teaching-group context');
@@ -5345,7 +5347,10 @@ export const get_teacher_assignments = async (teacherId?: string): Promise<Teach
         subject_group_id?: string | null;
         subject_group_name?: string | null;
     }>) || []).map((row) => [row.assignment_id, row]));
-    return withCategory.map((assignment) => {
+    // The targeted-practice link is optional context: if it cannot be loaded the
+    // list still opens and the title-based fallback identifies these tasks.
+    const targetedRows = !targetedError && Array.isArray(targetedData) ? targetedData as TargetedPracticeLink[] : null;
+    return markTargetedPractice(withCategory.map((assignment) => {
         const extra = groupContext.get(assignment.id);
         return extra ? {
             ...assignment,
@@ -5354,7 +5359,7 @@ export const get_teacher_assignments = async (teacherId?: string): Promise<Teach
             subject_group_id: extra.subject_group_id ?? undefined,
             subject_group_name: extra.subject_group_name ?? undefined,
         } : assignment;
-    });
+    }), targetedRows);
 };
 
 export const delete_teacher_assignment = async (assignmentId: string): Promise<void> => {
