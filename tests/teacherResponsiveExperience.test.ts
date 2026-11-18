@@ -104,7 +104,7 @@ test('Game Settings presents a focused four-step wizard on desktop and mobile', 
 test('teacher assignment navigation uses its canonical label on phones', () => {
   assert.match(teacherPortal, /teacherMobileLabel\(tab\.id, tab\.label\)/);
   assert.doesNotMatch(teacherPortal, /\? 'Tasks'/);
-  assert.match(teacherPortal, /label: 'Assignments'/);
+  assert.match(teacherPortal, /label: 'Classwork'/);
  });
 
 
