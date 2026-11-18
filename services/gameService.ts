@@ -5698,6 +5698,22 @@ export const get_all_assignment_reports = async (
     if (!teacher) throw new Error('User is not a teacher');
 
     const results: Record<string, TeacherAssignmentReportRow[]> = {};
+    if (assignmentIds.length === 0) return results;
+
+    // One request for every assignment. Older databases without the bulk RPC
+    // fall through to the per-assignment requests below.
+    const bulk = await supabase.rpc('rpc_teacher_assignment_reports_bulk', {
+        p_teacher_id: teacher.id,
+        p_assignment_ids: assignmentIds,
+    });
+    if (!bulk.error && Array.isArray(bulk.data)) {
+        assignmentIds.forEach((id) => { results[id] = []; });
+        (bulk.data as Array<TeacherAssignmentReportRow & { assignment_id: string }>).forEach(({ assignment_id, ...row }) => {
+            (results[assignment_id] ||= []).push(row as TeacherAssignmentReportRow);
+        });
+        return results;
+    }
+    console.warn('Bulk assignment report unavailable; loading reports one by one:', bulk.error?.message);
 
     // Fetch reports in parallel batches (max 6 concurrent)
     const BATCH_SIZE = 6;

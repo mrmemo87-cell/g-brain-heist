@@ -7,6 +7,7 @@ import * as GameService from '../services/gameService';
 import { brainsAlert } from '../src/utils/brainsAlert';
 import './CollectiveAssignmentReport.css';
 import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
+import { isAssignedTo } from '../src/lib/collectiveReportScope';
 import { createSchoolDocumentId, registerSchoolDocumentRecord, schoolDocumentFileName } from '../src/lib/schoolDocument';
 
 // localStorage key prefix for persisted custom orders
@@ -33,7 +34,7 @@ export interface CollectiveReportData {
   report: { title: string; academicYear?: string; term?: string; dateFrom: string; dateTo: string; generatedAt: string; generatedBy: string };
   context: { className: string; subjects: string[]; assignmentCount: number; studentCount: number };
   assignments: Array<{ id: string; title: string; subject: string; date?: string; category?: AssignmentCategory | null }>;
-  students: Array<{ id: string; name: string; className: string; results: Array<{ assignmentId: string; percentage: number | null; status: 'submitted' | 'not_submitted' }>; completedCount: number; assignmentCount: number; average: number | null; status: string }>;
+  students: Array<{ id: string; name: string; className: string; results: Array<{ assignmentId: string; percentage: number | null; status: 'submitted' | 'not_submitted' | 'not_assigned' }>; completedCount: number; assignmentCount: number; average: number | null; status: string }>;
   summary: { classAverage: number | null; completionRate: number; supportCount: number; highestAverage: number | null; lowestAverage: number | null };
 }
 
@@ -58,6 +59,9 @@ interface StudentRow {
   averageAccuracy: number;
   /** Number of assignments completed */
   completedCount: number;
+  /** Assignments in view that were set for this student */
+  assignedIds: Set<string>;
+  assignedCount: number;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -262,6 +266,8 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
         scores: {},
         averageAccuracy: 0,
         completedCount: 0,
+        assignedIds: new Set<string>(),
+        assignedCount: 0,
       });
     });
 
@@ -276,6 +282,8 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
             scores: {},
             averageAccuracy: 0,
             completedCount: 0,
+            assignedIds: new Set<string>(),
+            assignedCount: 0,
           });
         }
         const student = studentMap.get(row.student_id)!;
@@ -302,6 +310,13 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
       }
       student.averageAccuracy = count > 0 ? Math.round(total / count) : 0;
       student.completedCount = count;
+      // Only assignments set for this student count towards their completion.
+      student.assignedIds = new Set(
+        filteredAssignments
+          .filter((assignment) => isAssignedTo(assignment, student.studentId, Boolean(student.scores[assignment.id])))
+          .map((assignment) => assignment.id)
+      );
+      student.assignedCount = student.assignedIds.size;
     }
 
     return Array.from(studentMap.values());
@@ -594,11 +609,14 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
       escape(row.batch),
       ...filteredAssignments.flatMap((a) => {
         const s = row.scores[a.id];
-        if (!s) return [escape('Not submitted'), escape('Not submitted')];
+        if (!s) {
+          const label = row.assignedIds.has(a.id) ? 'Not submitted' : 'Not assigned';
+          return [escape(label), escape(label)];
+        }
         return [escape(`${s.accuracy}%`), escape(s.score)];
       }),
       escape(row.completedCount ? row.averageAccuracy : '—'),
-      escape(`${row.completedCount}/${filteredAssignments.length}`),
+      escape(`${row.completedCount}/${row.assignedCount}`),
     ]);
 
     const csv = [headers.map(escape).join(','), ...csvRows.map((r) => r.join(','))].join('\n');
@@ -633,9 +651,9 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
       ? Math.round(evidence.reduce((total, score) => total + score.accuracy, 0) / evidence.length)
       : 0;
     const totalCompleted = displayRows.reduce((s, r) => s + r.completedCount, 0);
-    const totalPossible = displayRows.length * filteredAssignments.length;
+    const totalPossible = displayRows.reduce((s, r) => s + r.assignedCount, 0);
     const completionRate = totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
-    const needsAttention = displayRows.filter((row) => row.completedCount < filteredAssignments.length || (row.completedCount > 0 && row.averageAccuracy < 60)).length;
+    const needsAttention = displayRows.filter((row) => row.completedCount < row.assignedCount || (row.completedCount > 0 && row.averageAccuracy < 60)).length;
     return { avgAcc, totalCompleted, totalPossible, completionRate, needsAttention };
   }, [displayRows, filteredAssignments]);
 
@@ -649,7 +667,8 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
   }, [displayRows, filteredAssignments]);
 
   const getStudentStatus = (row: StudentRow) => {
-    if (row.completedCount < filteredAssignments.length) return { label: 'Incomplete', className: 'is-incomplete' };
+    if (row.assignedCount === 0) return { label: 'Not assigned', className: 'is-review' };
+    if (row.completedCount < row.assignedCount) return { label: 'Incomplete', className: 'is-incomplete' };
     if (row.averageAccuracy < 60) return { label: 'Support', className: 'is-support' };
     if (row.averageAccuracy < 80) return { label: 'Review', className: 'is-review' };
     return { label: 'On track', className: 'is-on-track' };
@@ -682,7 +701,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
       report: { title: reportTitle.trim() || 'Class Achievement Report', academicYear, term: term || undefined, dateFrom, dateTo, generatedAt, generatedBy: teacherName },
       context: { className: [...new Set(displayRows.map(row => row.batch))].join(', '), subjects: [...new Set(filteredAssignments.map(a => a.subject_name))], assignmentCount: filteredAssignments.length, studentCount: displayRows.length },
       assignments: filteredAssignments.map(a => ({ id: a.id, title: a.title || a.topic_name, subject: a.subject_name, date: a.assigned_at, category: a.assignment_category })),
-      students: displayRows.map(row => ({ id: row.studentId, name: row.studentName, className: row.batch, results: filteredAssignments.map(a => ({ assignmentId: a.id, percentage: row.scores[a.id]?.accuracy ?? null, status: row.scores[a.id] ? 'submitted' : 'not_submitted' })), completedCount: row.completedCount, assignmentCount: filteredAssignments.length, average: row.completedCount ? row.averageAccuracy : null, status: getStudentStatus(row).label })),
+      students: displayRows.map(row => ({ id: row.studentId, name: row.studentName, className: row.batch, results: filteredAssignments.map(a => ({ assignmentId: a.id, percentage: row.scores[a.id]?.accuracy ?? null, status: row.scores[a.id] ? 'submitted' as const : row.assignedIds.has(a.id) ? 'not_submitted' as const : 'not_assigned' as const })), completedCount: row.completedCount, assignmentCount: row.assignedCount, average: row.completedCount ? row.averageAccuracy : null, status: getStudentStatus(row).label })),
       summary: { classAverage: summaryStats?.totalCompleted ? summaryStats.avgAcc : null, completionRate: summaryStats?.completionRate ?? 0, supportCount: summaryStats?.needsAttention ?? 0, highestAverage: averages.length ? Math.max(...averages) : null, lowestAverage: averages.length ? Math.min(...averages) : null },
     };
   }, [academicYear, dateFrom, dateTo, displayRows, filteredAssignments, generatedAt, previewReportId, reportTitle, school.id, schoolLogoUrl, schoolName, summaryStats, teacherName, term]);
@@ -739,7 +758,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
         <p className="text-slate-600 font-medium">
-          Preparing report data… ({progress.done}/{progress.total} assignments)
+          Preparing report data for {progress.total} assignment{progress.total === 1 ? '' : 's'}…
         </p>
       </div>
     );
@@ -789,9 +808,9 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                       {filteredAssignments.map((assignment) => {
                         const score = row.scores[assignment.id];
                         const band = !score ? '' : score.accuracy >= 80 ? 'collective-grade--strong' : score.accuracy >= 60 ? 'collective-grade--developing' : 'collective-grade--support';
-                        return <td key={assignment.id} className={band}>{score ? `${score.accuracy}%` : <span className="collective-not-submitted">Not submitted</span>}</td>;
+                        return <td key={assignment.id} className={band}>{score ? `${score.accuracy}%` : row.assignedIds.has(assignment.id) ? <span className="collective-not-submitted">Not submitted</span> : <span className="collective-not-submitted" title="Not assigned to this student" aria-label="Not assigned">—</span>}</td>;
                       })}
-                      <td>{row.completedCount}/{filteredAssignments.length}</td>
+                      <td>{row.completedCount}/{row.assignedCount}</td>
                       <td className={row.completedCount ? row.averageAccuracy >= 80 ? 'collective-grade--strong' : row.averageAccuracy >= 60 ? 'collective-grade--developing' : 'collective-grade--support' : ''}><strong>{row.completedCount ? `${row.averageAccuracy}%` : 'Not assessed'}</strong></td>
                       <td>{getStudentStatus(row).label}</td>
                     </tr>
@@ -1138,7 +1157,9 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                       if (!s) {
                         return (
                           <td key={a.id} className="collective-results-assignment-cell py-3 px-2 text-center">
-                          <span className="text-slate-400 text-xs" title="Not submitted" aria-label="Not submitted">Not submitted</span>
+                          {row.assignedIds.has(a.id)
+                            ? <span className="text-slate-400 text-xs" title="Not submitted" aria-label="Not submitted">Not submitted</span>
+                            : <span className="text-slate-300 text-xs" title="Not assigned to this student" aria-label="Not assigned">—</span>}
                           </td>
                         );
                       }
@@ -1155,7 +1176,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                       );
                     })}
 
-                    <td className="collective-results-summary-cell collective-results-completion-cell py-3 px-2 text-center text-slate-600 text-xs font-semibold">{row.completedCount}/{filteredAssignments.length}</td>
+                    <td className="collective-results-summary-cell collective-results-completion-cell py-3 px-2 text-center text-slate-600 text-xs font-semibold">{row.completedCount}/{row.assignedCount}</td>
                     {/* Average */}
                     <td className="collective-results-summary-cell collective-results-average-cell py-3 px-2 text-center bg-slate-50">
                       <span className={`inline-block px-2 py-0.5 rounded-md text-xs font-bold ${row.completedCount ? accuracyColor(row.averageAccuracy) : 'text-slate-400 bg-slate-100'}`}>
