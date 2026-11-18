@@ -30,7 +30,7 @@ import {
 } from "../../../services/ieltsSpeakingPilot";
 import { SpeakingRecorder } from "../../components/ielts/SpeakingRecorder";
 import SpeakingInterviewInsights from "../../components/ielts/SpeakingInterviewInsights";
-import SpeakingAudioDock, { registerSpeakingAudio } from "../../components/ielts/SpeakingAudioDock";
+import SpeakingAudioDock, { registerSpeakingAudio, registerSpeakingClipLoader } from "../../components/ielts/SpeakingAudioDock";
 import SpeakingBandsPanel, {
   BAND_LABEL,
 } from "../../components/ielts/SpeakingBandsPanel";
@@ -86,8 +86,11 @@ function ClipPlayer({ clip }: { clip: SpeakingClip }) {
   // The floating player follows whichever recording was played last.
   useEffect(() => {
     if (!url || !audio.current) return;
-    return registerSpeakingAudio(audio.current, `Part ${clip.part}`);
-  }, [url, clip.part]);
+    return registerSpeakingAudio(audio.current, `Part ${clip.part}`, clip.id);
+  }, [url, clip.part, clip.id]);
+  // Lets the transcript open this recording when the reader chooses "play from here".
+  const loadRef = useRef<() => void>(() => undefined);
+  useEffect(() => registerSpeakingClipLoader(clip.id, () => loadRef.current()), [clip.id]);
   const load = async () => {
     if (busy) return;
     setBusy(true);
@@ -100,6 +103,7 @@ function ClipPlayer({ clip }: { clip: SpeakingClip }) {
       setBusy(false);
     }
   };
+  loadRef.current = () => { if (!url) void load(); };
   return (
     <article className="sp-clip">
       <div>

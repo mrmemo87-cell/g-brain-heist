@@ -38,13 +38,18 @@ import { dictionary } from "npm:cmu-pronouncing-dictionary@3.0.0";
 
 // Speech-to-text stays on OpenAI (Claude cannot take audio). whisper-1 returns segment timestamps for the draft.
 const transcribeModel = Deno.env.get("IELTS_PILOT_TRANSCRIBE_MODEL")?.trim() || "whisper-1";
-async function transcribeSegments(bytes: ArrayBuffer, key: string, hint: string): Promise<SpeakingSegment[]> {
+/** [word, start_seconds] pairs from the same transcription request; used only to time the shown transcript. */
+type TimedWord = [string, number];
+type WordSink = (words: TimedWord[]) => void;
+async function transcribeSegments(bytes: ArrayBuffer, key: string, hint: string, onWords?: WordSink): Promise<SpeakingSegment[]> {
   const form = new FormData();
   form.append("file", new Blob([bytes], { type: "audio/wav" }), "clip.wav");
   form.append("model", transcribeModel);
   form.append("language", "en");
   form.append("response_format", "verbose_json");
   form.append("timestamp_granularities[]", "segment");
+  // Word times come back in the same response at no extra charge (Visual & UX Bible 1.14.0, section 13.9).
+  form.append("timestamp_granularities[]", "word");
   form.append("prompt", hint.slice(0, 400));
   const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
     method: "POST",
@@ -53,8 +58,15 @@ async function transcribeSegments(bytes: ArrayBuffer, key: string, hint: string)
     body: form,
   });
   if (!response.ok) throw new Error(`transcribe_${response.status}`);
-  const out = await response.json().catch(() => null) as { segments?: Array<{ start?: unknown; end?: unknown; text?: unknown }> } | null;
+  const out = await response.json().catch(() => null) as { segments?: Array<{ start?: unknown; end?: unknown; text?: unknown }>; words?: Array<{ word?: unknown; start?: unknown }> } | null;
   if (!Array.isArray(out?.segments)) throw new Error("transcribe_invalid");
+  if (onWords && Array.isArray(out.words)) {
+    const words = out.words
+      .filter((w) => typeof w.word === "string" && w.word.trim() && Number.isFinite(Number(w.start)))
+      .map((w): TimedWord => [String(w.word).trim().slice(0, 60), Math.round(Number(w.start) * 100) / 100])
+      .slice(0, 8000);
+    if (words.length) { try { onWords(words); } catch { /* word times are optional */ } }
+  }
   return out.segments
     .filter((s) => typeof s.text === "string" && Number.isFinite(Number(s.start)) && Number.isFinite(Number(s.end)))
     .map((s) => ({ start: Math.round(Number(s.start) * 10) / 10, end: Math.round(Number(s.end) * 10) / 10, text: String(s.text).trim().slice(0, 600) }))
@@ -62,8 +74,16 @@ async function transcribeSegments(bytes: ArrayBuffer, key: string, hint: string)
     .slice(0, 400);
 }
 /** Interview transcription: plain hint (never the questions) and echo removal (Bible 2.2.1 section 10.7). */
-async function transcribeInterview(bytes: ArrayBuffer, key: string): Promise<SpeakingSegment[]> {
-  return dropPromptEcho(await transcribeSegments(bytes, key, INTERVIEW_TRANSCRIPTION_HINT), INTERVIEW_TRANSCRIPTION_HINT);
+async function transcribeInterview(bytes: ArrayBuffer, key: string, onWords?: WordSink): Promise<SpeakingSegment[]> {
+  return dropPromptEcho(await transcribeSegments(bytes, key, INTERVIEW_TRANSCRIPTION_HINT, onWords), INTERVIEW_TRANSCRIPTION_HINT);
+}
+/** Keeps a recording's word times. Failure never blocks a draft or a transcript. */
+// deno-lint-ignore no-explicit-any
+function keepWords(admin: any, sessionId: string, clipId: string): WordSink {
+  return (words) => {
+    void admin.rpc("rpc_ielts_save_speaking_clip_words", { p_session_id: sessionId, p_clip_id: clipId, p_words: words, p_model: transcribeModel })
+      .then(({ error }: { error: { message?: string } | null }) => { if (error) why("word_times_save", error.message); });
+  };
 }
 /** Plain-text transcription with the stronger model (no timestamps needed for transcripts and highlights). */
 const textTranscribeModel = Deno.env.get("IELTS_SPEAKING_TEXT_TRANSCRIBE_MODEL")?.trim() || "gpt-4o-transcribe";
@@ -524,7 +544,7 @@ Deno.serve(async (req: Request) => {
           part: clip.part,
           duration_seconds: clip.duration_seconds,
           interrupted: clip.interrupted,
-          segments: await transcribeInterview(clip.bytes, key),
+          segments: await transcribeInterview(clip.bytes, key, keepWords(admin, body.sessionId, clip.id)),
         })));
         const user = JSON.stringify({ task: context.package, incidents: context.incidents, clips: transcripts });
         for (let attempt = 0; attempt < 2 && !fields; attempt++) {

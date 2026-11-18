@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 /**
  * Floating player for Speaking recordings (Visual & UX Bible 13.9, 1.13.0). The recording that was last played
@@ -6,7 +6,7 @@ import React, { useEffect, useState, useSyncExternalStore } from 'react';
  * jump back or forward while reading the transcript and feedback further down the page. It controls the same
  * audio element as the clip's own player: no second copy of the audio is loaded and nothing plays by itself.
  */
-type ActiveAudio = { element: HTMLAudioElement; label: string };
+type ActiveAudio = { element: HTMLAudioElement; label: string; clipId?: string };
 
 let active: ActiveAudio | null = null;
 const listeners = new Set<() => void>();
@@ -14,17 +14,94 @@ const notify = () => listeners.forEach((listener) => listener());
 const subscribe = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; };
 const snapshot = () => active;
 
+// Recordings by clip id, so a transcript can start its own recording from a chosen word.
+const elements = new Map<string, HTMLAudioElement>();
+const loaders = new Map<string, () => void>();
+let pending: { clipId: string; seconds: number } | null = null;
+
+const startAt = (element: HTMLAudioElement, seconds: number) => {
+  const go = () => {
+    element.currentTime = Math.max(0, seconds);
+    // Some browsers refuse to start audio that was opened a moment ago; the player then shows it ready to play.
+    void element.play().catch(() => undefined);
+  };
+  if (element.readyState >= 1) go(); else element.addEventListener('loadedmetadata', go, { once: true });
+};
+
 /** Register a clip's audio element. Starting one recording pauses the one that was playing. */
-export function registerSpeakingAudio(element: HTMLAudioElement, label: string): () => void {
+export function registerSpeakingAudio(element: HTMLAudioElement, label: string, clipId?: string): () => void {
   const onPlay = () => {
     if (active && active.element !== element) active.element.pause();
-    if (!active || active.element !== element) { active = { element, label }; notify(); }
+    if (!active || active.element !== element) { active = { element, label, clipId }; notify(); }
   };
   element.addEventListener('play', onPlay);
+  if (clipId) {
+    elements.set(clipId, element);
+    if (pending?.clipId === clipId) {
+      const { seconds } = pending;
+      pending = null;
+      active = { element, label, clipId };
+      notify();
+      startAt(element, seconds);
+    }
+  }
   return () => {
     element.removeEventListener('play', onPlay);
+    if (clipId && elements.get(clipId) === element) elements.delete(clipId);
     if (active?.element === element) { active = null; notify(); }
   };
+}
+
+/** A clip that has not been opened yet registers how to open it, so "play from here" can load it on demand. */
+export function registerSpeakingClipLoader(clipId: string, load: () => void): () => void {
+  loaders.set(clipId, load);
+  return () => { if (loaders.get(clipId) === load) loaders.delete(clipId); };
+}
+
+/** True when this recording can be started from the transcript (it is open, or can be opened on this page). */
+export const canPlaySpeakingClip = (clipId: string) => elements.has(clipId) || loaders.has(clipId);
+
+/** Start a recording at a given second, opening it first when needed. Only ever called from a tap or key press. */
+export function playSpeakingClipFrom(clipId: string, seconds: number): boolean {
+  const element = elements.get(clipId);
+  if (element) { startAt(element, seconds); return true; }
+  const load = loaders.get(clipId);
+  if (!load) return false;
+  pending = { clipId, seconds };
+  load();
+  return true;
+}
+
+/**
+ * A value derived from a recording's position while it is the one in the player; null otherwise. `map` turns the
+ * position in seconds into what the caller shows (for example the index of the word being spoken), so the caller
+ * re-renders only when that value changes, not on every animation frame.
+ */
+export function useSpeakingClipPosition(clipId: string | undefined, map: (seconds: number) => number): number | null {
+  const current = useSyncExternalStore(subscribe, snapshot, () => null);
+  const element = clipId && current?.clipId === clipId ? current.element : null;
+  const [time, setTime] = useState<number | null>(null);
+  const mapRef = useRef(map);
+  mapRef.current = map;
+  useEffect(() => {
+    if (!element) { setTime(null); return; }
+    let frame = 0;
+    const read = () => setTime(mapRef.current(element.currentTime));
+    const loop = () => { read(); if (!element.paused && !element.ended) frame = requestAnimationFrame(loop); };
+    const onPlay = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(loop); };
+    read();
+    if (!element.paused) onPlay();
+    element.addEventListener('play', onPlay);
+    element.addEventListener('seeked', read);
+    element.addEventListener('pause', read);
+    return () => {
+      cancelAnimationFrame(frame);
+      element.removeEventListener('play', onPlay);
+      element.removeEventListener('seeked', read);
+      element.removeEventListener('pause', read);
+    };
+  }, [element]);
+  return time;
 }
 
 const clock = (seconds: number) => {

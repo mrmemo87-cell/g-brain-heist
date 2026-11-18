@@ -293,6 +293,20 @@ export async function analyseSpeakingSession(sessionId: string): Promise<Speakin
     throw new Error("The transcript could not be prepared right now. The recordings are safe; try again in a minute.");
   return data as SpeakingSessionExtras;
 }
+/** Word times for the recordings whose transcript the caller may see (Visual & UX Bible 1.14.0, section 13.9). */
+export type SpeakingClipWords = { clip_id: string; words: Array<[string, number]> };
+export async function speakingClipWords(sessionId: string): Promise<SpeakingClipWords[]> {
+  const { data, error } = await supabase.rpc("rpc_ielts_speaking_clip_words", { p_session_id: sessionId });
+  if (error || !Array.isArray(data)) return [];
+  return data as SpeakingClipWords[];
+}
+/** Teacher only: times the words of recordings that have none yet (one extra transcription per recording). */
+export async function syncSpeakingClipWords(sessionId: string): Promise<SpeakingClipWords[]> {
+  const { data, error } = await supabase.functions.invoke("ielts_speaking_word_times", { body: { sessionId } });
+  if (error || !data || (data as { error?: string }).error || !Array.isArray((data as { words?: unknown }).words))
+    throw new Error("The words could not be matched to the audio right now. Nothing was changed; try again in a minute.");
+  return (data as { words: SpeakingClipWords[] }).words;
+}
 export const setSpeakingPartBands = (sessionId: string, bands: [number, number, number]) =>
   speakingRpc<SpeakingSessionExtras>("rpc_ielts_set_speaking_part_bands", {
     p_session_id: sessionId, p_part_1: bands[0], p_part_2: bands[1], p_part_3: bands[2],

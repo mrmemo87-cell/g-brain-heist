@@ -1,9 +1,13 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   analyseSpeakingSession,
   speakingExtras,
+  speakingClipWords,
+  syncSpeakingClipWords,
+  type SpeakingClipWords,
   type SpeakingSessionExtras,
 } from '../../../services/ieltsSpeakingPilotService';
+import { alignWordTimes, transcriptTokens } from '../../lib/speakingWordAlignment';
 import type { SpeakingSession } from '../../../services/ieltsSpeakingPilot';
 import SpeakingTranscript from './SpeakingTranscript';
 import { CRITERION_BANDS } from './SpeakingBandsPanel';
@@ -47,6 +51,34 @@ export default function SpeakingInterviewInsights({ session, onExtras }: Props) 
   }, [analysing, session.id, setExtras]);
 
   useEffect(() => { void load(); }, [load, reviewKey]);
+
+  // Word times (Visual & UX Bible 1.14.0, section 13.9): loaded with the transcripts; older recordings can be
+  // timed by the teacher with one extra transcription each.
+  const [clipWords, setClipWords] = useState<SpeakingClipWords[]>([]);
+  const [syncing, setSyncing] = useState(false);
+  const [syncError, setSyncError] = useState('');
+  const analysisKey = (extras?.analysis ?? []).map(a => a.clip_id).join(',');
+  useEffect(() => {
+    if (!analysisKey) return;
+    let cancelled = false;
+    void speakingClipWords(session.id).then(words => { if (!cancelled) setClipWords(words); });
+    return () => { cancelled = true; };
+  }, [session.id, analysisKey]);
+  const wordTimesByClip = useMemo(() => {
+    const timedWords = new Map(clipWords.map(w => [w.clip_id, w.words]));
+    return new Map((extras?.analysis ?? []).map(a => {
+      const words = timedWords.get(a.clip_id);
+      return [a.clip_id, words ? alignWordTimes(transcriptTokens(a.transcript), words) : undefined] as const;
+    }));
+  }, [clipWords, extras?.analysis]);
+  const untimedClips = (extras?.analysis ?? []).filter(a => a.transcript.trim() && !clipWords.some(w => w.clip_id === a.clip_id)).length;
+  const syncWords = async () => {
+    if (syncing) return;
+    setSyncing(true); setSyncError('');
+    try { setClipWords(await syncSpeakingClipWords(session.id)); }
+    catch (e) { setSyncError((e as Error).message); }
+    finally { setSyncing(false); }
+  };
   useEffect(() => {
     if (!teacher || autoRan.current || !extras || session.status !== 'submitted' || !extras.missing_clips) return;
     autoRan.current = true;
@@ -72,6 +104,8 @@ export default function SpeakingInterviewInsights({ session, onExtras }: Props) 
         pronunciationWords={a.pronunciation?.words}
         teacherLines={a.speaker_turns?.teacher ?? []}
         pronunciationAssessed={a.pronunciation?.assessed !== false}
+        clipId={a.clip_id}
+        wordTimes={wordTimesByClip.get(a.clip_id)}
       />
     ));
     return collapsible ? (
@@ -104,6 +138,18 @@ export default function SpeakingInterviewInsights({ session, onExtras }: Props) 
         {error && <p role="alert" className="sp-alert">{error}</p>}
         {!analysing && extras && extras.missing_clips ? (
           <button type="button" className="sp-secondary" onClick={() => void analyse()}>Prepare the missing transcripts</button>
+        ) : null}
+        {!analysing && untimedClips > 0 && extras && !extras.missing_clips ? (
+          <div className="sp-sync-words">
+            <p>
+              {untimedClips === (extras?.analysis ?? []).length ? 'These recordings are' : `${untimedClips} of these recordings ${untimedClips === 1 ? 'is' : 'are'}`} not yet matched word by word to the audio.
+              Matching lets you see each word as it is spoken and play from any word. It runs one extra transcription for each recording.
+            </p>
+            <button type="button" className="sp-secondary" disabled={syncing} onClick={() => void syncWords()}>
+              {syncing ? 'Matching words to the audio…' : 'Match words to the audio'}
+            </button>
+            {syncError && <p role="alert" className="sp-alert">{syncError}</p>}
+          </div>
         ) : null}
         {transcripts(false)}
       </section>
