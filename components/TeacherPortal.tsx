@@ -35,6 +35,8 @@ import AssignmentCard from './teacher/AssignmentCard';
 import TargetedPracticeList from './teacher/TargetedPracticeList';
 import { isTargetedPractice, targetedPracticeSkill, targetedPracticeStatus } from '../src/lib/teacherTargetedPractice';
 import AssignmentToolbar, { type AssignmentKind } from './teacher/AssignmentToolbar';
+import Classwork, { type ClassworkMode } from './teacher/Classwork';
+import type { ClassworkGroup } from '../src/lib/classworkModel';
 import TeacherWorkspaceIcon, { teacherMobileLabel } from './teacher/TeacherWorkspaceIcon';
 import JoinSchoolCard from './JoinSchoolCard';
 import '../src/styles/teacher-theme.css';
@@ -725,6 +727,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [assignmentStatusFilter, setAssignmentStatusFilter] = useState<'all' | 'in-progress' | 'completed'>('all');
   const [assignmentClassFilter, setAssignmentClassFilter] = useState<string>('all');
   const [assignmentKind, setAssignmentKind] = useState<AssignmentKind>('class');
+  const [classworkMode, setClassworkMode] = useState<ClassworkMode>('class');
 
   // Assignment Analysis State
   const [questionAnalysis, setQuestionAnalysis] = useState<AssignmentQuestionAnalysis[]>([]);
@@ -1058,6 +1061,38 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     availableStudents.forEach((student) => names.set(student.id, student.display_name || student.username));
     return names;
   }, [availableStudents]);
+  const classworkStudentName = useCallback((studentId: string) => studentNameById.get(studentId) || 'Student', [studentNameById]);
+  // Classwork groups: each teaching group with the students it covers (roster plus its registration class),
+  // matching the Class Health rows on the dashboard. Without teaching groups, fall back to class codes.
+  const classworkGroups = useMemo<ClassworkGroup[]>(() => {
+    if (teachingGroups.length === 0) {
+      const classCodes = [...new Set(availableStudents.map((student) => student.batch).filter((code): code is string => !!code))].sort();
+      return classCodes.map((classCode) => ({
+        id: classCode,
+        name: classCode,
+        studentIds: availableStudents.filter((student) => student.batch === classCode).map((student) => student.id),
+        classCodes: [classCode],
+      }));
+    }
+    return teachingGroups
+      .filter((group) => group.status !== 'archived')
+      .map((group) => {
+        const roster = teachingGroupRosters[group.id] || [];
+        const studentIds = new Set(roster.map((member) => member.student_id));
+        if (group.registrationClassId) {
+          availableStudents.forEach((student) => {
+            const studentClassId = (student as StudentForAssignment & { class_id?: string | null }).class_id;
+            if (studentClassId && studentClassId === group.registrationClassId) studentIds.add(student.id);
+          });
+        }
+        return {
+          id: group.id,
+          name: group.name,
+          studentIds: [...studentIds],
+          classCodes: [...new Set(roster.map((member) => member.class_code).filter((code): code is string => !!code))],
+        };
+      });
+  }, [teachingGroups, teachingGroupRosters, availableStudents]);
   const resolveTargetedStudentName = useCallback(
     (studentId: string | null) => (studentId ? studentNameById.get(studentId) || null : null),
     [studentNameById]
@@ -6318,6 +6353,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   };
 
   const renderAssignments = () => (
+    <Classwork
+      mode={classworkMode} onMode={setClassworkMode}
+      assignments={assignments} groups={classworkGroups} studentName={classworkStudentName}
+      canCreate={canUseTeacherFeature(FEATURE_KEYS.ASSIGNMENTS)}
+      onCreateAssignment={openBlankAssignmentForm} onCreateDiagnostic={() => openDiagnosticComposer()}
+      onOpenReport={(assignment) => handleOpenReport(assignment)}
+      onPrintExport={() => setView('collective-report')}
+    >
+      {renderAssignmentManager()}
+    </Classwork>
+  );
+
+  const renderAssignmentManager = () => (
     <div className="teacher-assignment-workspace">
       <AssignmentToolbar
         kind={assignmentKind} onKind={setAssignmentKind}
@@ -9293,7 +9341,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     ...(ieltsProgramme.entry ? [{ id: 'ielts-programme' as const, label: 'IELTS Programme', icon: <IeltsProgrammeIcon />, description: 'Review, plan & guide your school programme', highlight: true }] : []),
     { id: 'students', label: 'My Classes', icon: <TeacherWorkspaceIcon name="classes" />, description: 'Allocated Classes & Students' },
     ...(!profile.school_id ? [{ id: 'join-school' as const, label: 'Join Your School', icon: <TeacherWorkspaceIcon name="classes" />, description: 'Use your invite code to unlock school features', highlight: true }] : []),
-    { id: 'assignments', label: 'Assignments', icon: <TeacherWorkspaceIcon name="assignments" />, description: 'Assign Work to Students', proOnly: true },
+    { id: 'assignments', label: 'Classwork', icon: <TeacherWorkspaceIcon name="assignments" />, description: 'Set work and see results', proOnly: true },
     { id: 'reports', label: 'Reports', icon: <TeacherWorkspaceIcon name="reports" />, description: 'Student Performance', proOnly: true },
     { id: 'academic-profiles', label: 'Academic Profiles', icon: <TeacherWorkspaceIcon name="profiles" />, description: 'Progress, Strengths & Focus Areas', proOnly: true },
     { id: 'curriculum-intelligence', label: 'Curriculum Intelligence', icon: <TeacherWorkspaceIcon name="curriculum" />, description: 'Curriculum Map & Evidence Readiness', proOnly: true },

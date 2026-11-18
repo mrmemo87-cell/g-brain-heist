@@ -10,7 +10,7 @@ const teacherTheme = readFileSync('src/styles/teacher-theme.css', 'utf8');
 
 test('teacher navigation uses the requested labels and order', () => {
   assert.match(portal, /label: 'My Classes'/);
-  assert.match(portal, /label: 'Assignments'[\s\S]*label: 'Reports'[\s\S]*label: 'Question Bank'/);
+  assert.match(portal, /label: 'Classwork'[\s\S]*label: 'Reports'[\s\S]*label: 'Question Bank'/);
   assert.doesNotMatch(portal, /label: 'Quest Builder'/);
   assert.match(portal, /label: 'Cambridge Tests'[\s\S]*label: 'Clan Wars'/);
   assert.doesNotMatch(portal, /label: 'My Students'/);
