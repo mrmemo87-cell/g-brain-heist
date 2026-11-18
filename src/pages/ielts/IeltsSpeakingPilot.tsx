@@ -21,6 +21,8 @@ import {
   emptySpeakingFeedback,
   validateSpeakingFeedback,
   speakingTime,
+  SPEAKING_PRONUNCIATION_PLACEHOLDER,
+  pronunciationDraftFromListening,
   type SpeakingSession,
   type SpeakingFeedback,
   type SpeakingKey,
@@ -28,6 +30,7 @@ import {
 } from "../../../services/ieltsSpeakingPilot";
 import { SpeakingRecorder } from "../../components/ielts/SpeakingRecorder";
 import SpeakingInterviewInsights from "../../components/ielts/SpeakingInterviewInsights";
+import SpeakingAudioDock, { registerSpeakingAudio } from "../../components/ielts/SpeakingAudioDock";
 import SpeakingBandsPanel, {
   BAND_LABEL,
 } from "../../components/ielts/SpeakingBandsPanel";
@@ -80,6 +83,11 @@ function ClipPlayer({ clip }: { clip: SpeakingClip }) {
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   const audio = useRef<HTMLAudioElement>(null);
+  // The floating player follows whichever recording was played last.
+  useEffect(() => {
+    if (!url || !audio.current) return;
+    return registerSpeakingAudio(audio.current, `Part ${clip.part}`);
+  }, [url, clip.part]);
   const load = async () => {
     if (busy) return;
     setBusy(true);
@@ -372,8 +380,11 @@ export default function IeltsSpeakingPilot() {
       const o = feedback.observations[c.key];
       if (o.comment.trim().length < 20)
         gaps.push(`Step 2 · ${c.label}: write a comment of at least 20 characters.`);
-      else if (/was not assessed in this draft/i.test(o.comment))
-        gaps.push(`Step 2 · ${c.label}: replace the AI's "not assessed" note with your own comment on what you heard.`);
+      else if (SPEAKING_PRONUNCIATION_PLACEHOLDER.test(o.comment))
+        gaps.push(
+          `Step 2 · ${c.label}: the AI listening check found no words to report, so this comment is yours. Write what you heard in one or two sentences.` +
+            (aiEstimates?.reasons?.pronunciation ? ` AI listening note for you only: “${aiEstimates.reasons.pronunciation}”` : ""),
+        );
       else if (o.status !== "insufficient_evidence" && !o.evidence.length)
         gaps.push(`Step 2 · ${c.label}: attach one audio time span.`);
     }
@@ -399,6 +410,22 @@ export default function IeltsSpeakingPilot() {
     setShareGaps([]);
     reviewId.current = null;
   };
+  // When the AI draft was written from text it leaves a "not assessed" placeholder for Pronunciation. If the audio
+  // listening pass (Diagnostic Bible 10.7) heard mispronounced words, use those as the Pronunciation draft so the
+  // teacher checks a real comment instead of writing one from nothing. The teacher still confirms before sharing.
+  const pronunciationComment = feedback.observations.pronunciation.comment;
+  useEffect(() => {
+    if (!session?.can_review || !extras || !SPEAKING_PRONUNCIATION_PLACEHOLDER.test(pronunciationComment)) return;
+    const heard = pronunciationDraftFromListening(extras.analysis, session.clips);
+    if (!heard) return;
+    setFeedback((current) =>
+      SPEAKING_PRONUNCIATION_PLACEHOLDER.test(current.observations.pronunciation.comment)
+        ? { ...current, observations: { ...current.observations, pronunciation: heard } }
+        : current,
+    );
+    setConfirmed(false);
+    setDirty(true);
+  }, [session?.can_review, session?.clips, extras, pronunciationComment]);
   const onExtras = (next: SpeakingSessionExtras) => {
     setExtras(next);
     if (next.ai_estimates) setAiEstimates(next.ai_estimates);
@@ -1130,6 +1157,7 @@ export default function IeltsSpeakingPilot() {
               {!session.can_review && (
                 <SpeakingInterviewInsights session={session} />
               )}
+              <SpeakingAudioDock />
               <div
                 className={
                   session.can_review ? "sp-review-flow" : "sp-review-grid"

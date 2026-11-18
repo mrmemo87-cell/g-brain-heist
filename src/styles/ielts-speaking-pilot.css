@@ -667,3 +667,97 @@
 .spb-overall .spb-avg + .spb-avg { color: #ddd6fe; }
 @media (prefers-reduced-motion: reduce) { .spb-spinner { animation: none; } }
 .spb-check { margin: 6px 0 0; padding: 6px 10px; border-radius: 10px; background: #fef3c7; color: #78350f; font-size: .84rem; font-weight: 650; }
+
+/* Floating recording player (Visual & UX Bible 13.9, 1.13.0). Sits above the page so audio stays in reach while
+   reading; the page gets bottom padding while it is open so it never covers the Share button or other actions. */
+.sp-dock {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 60;
+  width: min(680px, calc(100vw - 24px));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--bh-ielts-border, #dce5ef);
+  border-radius: 999px;
+  background: var(--bh-ielts-surface, #fff);
+  color: var(--bh-ielts-foreground, #15243a);
+  box-shadow: 0 12px 32px rgb(21 36 58 / 18%);
+}
+.sp-page:has(.sp-dock) {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+}
+.sp-dock button {
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bh-ielts-secondary, #eef3fa);
+  color: var(--bh-ielts-secondary-foreground, #284b72);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.sp-dock button:focus-visible,
+.sp-dock input:focus-visible {
+  outline: 3px solid var(--bh-ielts-focus, #0e7490);
+  outline-offset: 2px;
+}
+.sp-dock .sp-dock-play {
+  background: var(--bh-ielts-primary, #1746b0);
+  color: var(--bh-ielts-primary-foreground, #fff);
+}
+.sp-dock svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+.sp-dock .sp-dock-close {
+  background: transparent;
+}
+.sp-dock .sp-dock-close svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.sp-dock-track {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.sp-dock-track strong {
+  white-space: nowrap;
+}
+.sp-dock-track span {
+  color: var(--bh-ielts-foreground-muted, #4c6076);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.sp-dock-track input {
+  width: 100%;
+  min-width: 0;
+  accent-color: var(--bh-ielts-primary, #1746b0);
+}
+@media (max-width: 560px) {
+  .sp-dock {
+    border-radius: 20px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .sp-dock-track {
+    order: -1;
+    flex-basis: 100%;
+  }
+}

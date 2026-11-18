@@ -9838,7 +9838,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           {view === 'report-analysis' && renderReportAnalysis()}
           {view === 'collective-report' && (
             <CollectiveAssignmentReport
-              assignments={assignments}
+              assignments={classAssignments}
               students={availableStudents}
               allocatedClassCodes={allocatedCambridgeClassCodes}
               school={{ id: profile.school_id, name: profile.school_name || teacher?.school_name || 'School', logoUrl: profile.school_logo_url }}
