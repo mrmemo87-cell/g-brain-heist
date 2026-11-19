@@ -83,3 +83,5 @@ private.ielts_material_codes
 private.ielts_material_code_counters
 private.ielts_learning_tasks
 private.ielts_learning_releases
+# Mock test forms (shared content; production migrations add versions that reference them)
+private.ielts_mock_forms
