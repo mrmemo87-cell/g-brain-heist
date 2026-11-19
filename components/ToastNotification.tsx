@@ -40,7 +40,9 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ maxToasts = 3, o
   };
 
   return (
-    <div className="fixed inset-0 z-[10001] flex flex-col items-center justify-center gap-2 px-4 pointer-events-none">
+    // Top-right stack on wider screens (top-centre on phones) so notices never cover the
+    // middle of a dashboard; executive decisions still stay until opened or dismissed.
+    <div className="fixed inset-x-0 top-0 z-[10001] flex flex-col items-center gap-2 px-4 pt-[calc(env(safe-area-inset-top,0px)+5.25rem)] pointer-events-none sm:inset-x-auto sm:right-4 sm:items-end sm:px-0">
       {toasts.map((toast, index) => (
         <Toast 
           key={toast.id} 

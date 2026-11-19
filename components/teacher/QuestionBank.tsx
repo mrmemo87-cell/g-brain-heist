@@ -9,6 +9,7 @@ import './QuestionBank.css';
 import { brainsAlert } from '../../src/utils/brainsAlert';
 import { fetchQuestionFacets, fetchQuestionSet, type QuestionFacet } from '../../services/questionBrowserService';
 import { useQuestionBrowser } from '../../src/hooks/useQuestionBrowser';
+import { countLabel, formatTopicLabel } from '../../src/utils/displayText';
 import {
   createSchoolDocumentId,
   escapeSchoolDocumentHtml,
@@ -340,8 +341,8 @@ export default function QuestionBank({
             <button type="button" key={group.key} className="qb-topic-card" onClick={() => { ++topicRequest.current; setActionLoading(false); setSelectedTopic(group); setTopicName(group.topic); }}>
               <span className="qb-topic-card__subject">{group.subject}</span>
               <span className="qb-topic-card__icon">{isOfficialPool ? '▣' : '□'}</span>
-              <strong>{group.topic}</strong>
-              <small>{group.count ?? group.questions.length} question{group.questions.length === 1 ? '' : 's'}</small>
+              <strong>{formatTopicLabel(group.topic)}</strong>
+              <small>{countLabel(group.count ?? group.questions.length, 'question')}</small>
               <span className="qb-topic-card__status">{isOfficialPool ? activePool === 'school' ? 'School verified · read-only' : 'Global verified · read-only' : reviewCountForGroup(group) ? `${reviewCountForGroup(group)} in review` : 'Managed by you'}</span>
               <span className="qb-topic-card__open">Open topic →</span>
             </button>

@@ -18,7 +18,9 @@ export const SchoolBrand: React.FC<SchoolBrandProps> = ({ brand, className = '',
       {logoUrl ? (
         <img src={logoUrl} alt={`${brand.name} logo`} className={imageClassName} onError={() => setFailedUrl(logoUrl)} />
       ) : (
-        <span aria-hidden="true" className={`inline-grid place-items-center rounded-lg bg-slate-700 font-bold text-white ${imageClassName}`}>
+        // Inline colours: logo classes set a white image background, which would otherwise
+        // turn the fallback initial into an empty white square.
+        <span aria-hidden="true" className={`inline-grid place-items-center rounded-lg bg-slate-700 font-bold text-white ${imageClassName}`} style={{ background: '#334155', color: '#ffffff' }}>
           {brand.name.slice(0, 1).toUpperCase()}
         </span>
       )}

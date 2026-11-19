@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../services/supabaseClient';
 import type { SchoolHeadSnapshot, SchoolHeadTab } from '../services/schoolHeadService';
+import { greetingName } from '../src/utils/displayText';
 
 interface SchoolHeadOverviewProps {
   snapshot: SchoolHeadSnapshot;
@@ -57,8 +58,10 @@ const ExecutiveKpi: React.FC<{
   note: string;
   tone: 'blue' | 'purple' | 'cyan' | 'red';
   meta?: string;
-}> = ({ kind, label, value, note, tone, meta }) => (
-  <article className={`school-head-v3-kpi is-${tone}`}>
+  /** Show the meta line as good news (green) whatever the tile's colour. */
+  metaPositive?: boolean;
+}> = ({ kind, label, value, note, tone, meta, metaPositive }) => (
+  <article className={`school-head-v3-kpi is-${tone}${metaPositive ? ' has-positive-meta' : ''}`}>
     <div className="school-head-v3-kpi-icon"><ExecutiveIcon kind={kind} /></div>
     <div className="school-head-v3-kpi-copy">
       <span>{label}</span>
@@ -208,7 +211,7 @@ const SchoolHeadOverview: React.FC<SchoolHeadOverviewProps> = ({ snapshot, onOpe
   const academicTrend = snapshot.academics.average !== null && snapshot.academics.previous_average !== null
     ? Math.round((snapshot.academics.average - snapshot.academics.previous_average) * 10) / 10
     : null;
-  const headFirstName = (snapshot.head?.name || 'School Head').trim().split(/\s+/)[0] || 'School Head';
+  const headFirstName = greetingName(snapshot.head?.name);
 
   const activeThisWeek = Math.min(snapshot.engagement.active_students_7d, snapshot.totals.students);
   const activeThisMonth = Math.min(snapshot.engagement.active_students_30d, snapshot.totals.students);
@@ -252,7 +255,7 @@ const SchoolHeadOverview: React.FC<SchoolHeadOverviewProps> = ({ snapshot, onOpe
         <ExecutiveKpi kind="learners" label="Learners" value={snapshot.totals.students.toLocaleString()} note={`${snapshot.engagement.active_students_7d.toLocaleString()} with recorded activity in 7 days`} tone="blue" meta={`${studentActivityRate}% weekly`} />
         <ExecutiveKpi kind="classes" label="Active Classes" value={snapshot.totals.classes.toLocaleString()} note={`${snapshot.structure.covered_classes} with teaching coverage`} tone="purple" meta={`${classCoverageRate}% covered`} />
         <ExecutiveKpi kind="progress" label="Academic Average" value={formatPercent(snapshot.academics.average)} note={snapshot.academics.assignment_total ? `${snapshot.academics.assignment_completed} of ${snapshot.academics.assignment_total} assignments completed` : 'Recorded assessment evidence'} tone="cyan" meta={academicTrend === null ? 'Current period' : `${academicTrend >= 0 ? '+' : ''}${academicTrend} pp`} />
-        <ExecutiveKpi kind="risk" label="At Risk" value={snapshot.engagement.inactive_students_14d.toLocaleString()} note="No recorded activity for 14+ days" tone="red" meta={snapshot.engagement.inactive_students_14d > 0 ? 'Needs support' : 'All active'} />
+        <ExecutiveKpi kind="risk" label="At Risk" value={snapshot.engagement.inactive_students_14d.toLocaleString()} note="No recorded activity for 14+ days" tone="red" meta={snapshot.engagement.inactive_students_14d > 0 ? 'Needs support' : 'All active'} metaPositive={snapshot.engagement.inactive_students_14d === 0} />
       </section>
 
       <div className="school-head-v3-main-grid">

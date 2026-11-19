@@ -288,7 +288,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
 
   const renderAcademic = () => (
     <div className="school-head-page">
-      <section className="school-head-page-heading"><div><p className="school-head-kicker">Academic performance</p><h2>Outcomes and engagement</h2><p>Aggregated school intelligence for the last {snapshot.period.days} days. Individual records remain in controlled operational reports.</p></div><div className="school-head-trend"><span>Average trend</span><strong>{academicTrend === null ? '—' : `${academicTrend >= 0 ? '+' : ''}${academicTrend}%`}</strong><small>vs previous {snapshot.period.days} days</small></div></section>
+      <section className="school-head-page-heading"><div><p className="school-head-kicker">Academic performance</p><h2>Outcomes and engagement</h2><p>Aggregated school intelligence for the last {snapshot.period.days} days. Individual records remain in controlled operational reports.</p></div><div className="school-head-trend"><span>Average trend</span><strong>{academicTrend === null ? '—' : `${academicTrend >= 0 ? '+' : ''}${academicTrend} pp`}</strong><small>percentage points vs previous {snapshot.period.days} days</small></div></section>
       <section className="school-head-metric-grid school-head-metric-grid-four">
         <MetricCard label="Assessment average" value={formatPercent(snapshot.academics.average)} note="Cambridge and recorded quizzes" tone={(snapshot.academics.average ?? 100) >= 70 ? 'healthy' : 'monitor'} />
         <MetricCard label="Completion rate" value={formatPercent(snapshot.academics.completion_rate)} note={`${snapshot.academics.assignment_total} assignment records`} tone={(snapshot.academics.completion_rate ?? 100) >= 75 ? 'healthy' : 'monitor'} />

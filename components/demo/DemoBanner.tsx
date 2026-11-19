@@ -27,6 +27,11 @@ const STYLE = `
   /* keep clear of the teacher/student bottom navigation */
   .demo-banner { bottom: calc(4.6rem + env(safe-area-inset-bottom, 0px)); }
 }
+/* The student bottom menu (shown up to 1024px wide) is 4.7rem tall and sits 0.75rem above the
+   bottom edge. Sit above it so the menu never covers the banner's buttons. */
+@media (max-width: 1024px) {
+  body:has(.student-dashboard-bottom-nav) .demo-banner { bottom: calc(6.1rem + env(safe-area-inset-bottom, 0px)); }
+}
 `;
 
 const DemoBanner: React.FC<DemoBannerProps> = ({ onSwitchPersona }) => {
@@ -65,7 +70,7 @@ const DemoBanner: React.FC<DemoBannerProps> = ({ onSwitchPersona }) => {
       <style>{STYLE}</style>
       <span className="demo-banner-dot" aria-hidden="true" />
       <span className="demo-banner-text">
-        Demo school · you are {current === 'teacher' ? 'the teacher' : 'a student'}
+        Demo school · you are {current === 'teacher' ? 'the School Head & teacher' : 'a student'}
         <small>Resets nightly · emails, push and AI feedback are off here</small>
       </span>
       <button type="button" onClick={() => void switchPersona()} disabled={switching}>

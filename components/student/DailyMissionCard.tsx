@@ -8,6 +8,7 @@ import {
 } from '../../services/dailyMissionService';
 import type { DailyStreakRewardReceipt } from '../../types';
 import { celebrateWithMascot, mascotMoment } from '../../src/features/studentMascot/mascotMoments';
+import { formatTopicLabel } from '../../src/utils/displayText';
 import './DailyMissionCard.css';
 
 interface DailyMissionCardProps {
@@ -43,10 +44,15 @@ const DailyMissionCard: React.FC<DailyMissionCardProps> = ({ currentStreak, onPr
 
   const current = mission.questions.find((question) => !question.answered) || null;
   const position = Math.min(mission.answered + 1, mission.total);
+  // The mission's label is its most common topic; only name it when every question is on it.
+  const missionTopics = new Set(mission.questions.map((question) => (question.topic_name || '').trim().toLowerCase()).filter(Boolean));
+  const singleTopic = Boolean(mission.focus_label) && missionTopics.size <= 1;
   const focusText = mission.teacher_topic
-    ? t('Practice from your teacher: {topic}', { topic: mission.teacher_topic })
-    : mission.focus_label
-    ? (mission.source === 'review' ? t('Fix your mistakes in {topic}', { topic: mission.focus_label }) : t('Focus: {topic}', { topic: mission.focus_label }))
+    ? t('Practice from your teacher: {topic}', { topic: formatTopicLabel(mission.teacher_topic) })
+    : mission.source === 'review'
+    ? (singleTopic ? t('Fix your mistakes in {topic}', { topic: formatTopicLabel(mission.focus_label) }) : t('Fix your recent mistakes'))
+    : singleTopic
+    ? t('Focus: {topic}', { topic: formatTopicLabel(mission.focus_label) })
     : t('Picked for your level');
 
   const choose = async (questionId: string, option: string) => {
@@ -150,7 +156,7 @@ const DailyMissionCard: React.FC<DailyMissionCardProps> = ({ currentStreak, onPr
         <span style={{ width: `${(mission.answered / mission.total) * 100}%` }} />
       </div>
       {shown.subject || shown.topic_name ? (
-        <p className="dmc-topic">{[shown.subject, shown.topic_name].filter(Boolean).join(' · ')}</p>
+        <p className="dmc-topic">{[shown.subject, formatTopicLabel(shown.topic_name)].filter(Boolean).join(' · ')}</p>
       ) : null}
       <h2 id="dmc-question" className="dmc-question" dir="auto">{shown.question_text}</h2>
       {shown.image_url ? (

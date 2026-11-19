@@ -24,6 +24,8 @@ interface AcademicProgressHeaderProps {
   onBack?: () => void;
   backLabel?: string;
   actions?: React.ReactNode;
+  /** Label for the workspace the page is opened from (e.g. "Teacher"); defaults to the viewer's role. */
+  viewerLabel?: string;
 }
 
 export const AcademicProgressHeader: React.FC<AcademicProgressHeaderProps> = ({
@@ -34,6 +36,7 @@ export const AcademicProgressHeader: React.FC<AcademicProgressHeaderProps> = ({
   onBack,
   backLabel,
   actions,
+  viewerLabel,
 }) => {
   const fallback = academicProgressBackDestination(context?.viewer.role);
   const brand = createSchoolBrand({
@@ -51,7 +54,7 @@ export const AcademicProgressHeader: React.FC<AcademicProgressHeaderProps> = ({
     <header className="aps-header" data-viewer-role={context?.viewer.role || 'unknown'}>
       <div className="aps-brand-row">
         <SchoolBrand brand={brand} className="aps-school-brand" imageClassName="aps-school-logo" />
-        <span className="aps-viewer-chip">{academicProgressViewerLabel(context?.viewer.role)}</span>
+        <span className="aps-viewer-chip">{viewerLabel || academicProgressViewerLabel(context?.viewer.role)}</span>
       </div>
       <div className="aps-header-main">
         <div>
@@ -141,8 +144,8 @@ export const AcademicStudentPicker: React.FC<AcademicStudentPickerProps> = ({
   return (
     <section className="aps-picker" aria-label="Student selection">
       <div className="aps-picker-heading">
-        <div><span>Student selection</span><h2>Find the right student in three steps</h2></div>
-        <p>Choose the academic year first, then the class, then the student. This mirrors the normal school workflow.</p>
+        <div><span>Student selection</span><h2>{showSubject ? 'Find the right student in four steps' : 'Find the right student in three steps'}</h2></div>
+        <p>{showSubject ? 'Choose the grade, then the class, the student and the subject.' : 'Choose the grade, then the class, then the student.'} This mirrors the normal school workflow.</p>
       </div>
       <div className={`aps-picker-grid ${showSubject ? 'has-subject' : ''}`}>
         <label><span><b>1</b> Grade</span><select value={grade} onChange={(event) => onGradeChange(event.target.value)}><option value="">Choose grade</option>{grades.map((value) => <option key={value} value={value}>{displayGrade(value)}</option>)}</select></label>

@@ -386,7 +386,7 @@ const MainActions: React.FC<MainActionsProps> = ({
                     <img src="/mission-console-images/attack.webp" alt="" className="gh-card__art gh-card__art--attack" loading="eager" decoding="async" aria-hidden />
                   </span>
                   <span className="gh-card__label">{t("Attack")}</span>
-                  <span className="gh-card__tag">{t("Raid a classmate")}</span>
+                  <span className="gh-card__tag">{t("Challenge a classmate")}</span>
                 </button>
                 <button
                   type="button"
