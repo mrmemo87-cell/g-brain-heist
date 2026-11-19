@@ -46,6 +46,7 @@ import {
   WritingIntegrityReviewStatus,
 } from './writingIntegrity.js';
 import { isAcademicProfileWritingAssessment } from './writingAssessmentAuthority.js';
+import { classifyGrammarFix, normalizeWeaknessTag } from './writingWeaknessTags.js';
 import type { WritingStrengthEvidence, WritingStrengthTag } from './writingAssessmentAuthority.js';
 import { getCambridgeWritingProfile } from './cambridgeWritingProfiles.js';
 
@@ -618,33 +619,20 @@ const inferFeedbackWeaknessTagCounts = (feedback: Record<string, unknown>): Part
     const issue = typeof fix['issue'] === 'string' ? fix['issue'].toLowerCase() : '';
     const original = typeof fix['original'] === 'string' ? fix['original'] : '';
     const better = typeof fix['better_version'] === 'string' ? fix['better_version'] : '';
-    const explicitFixTag = typeof fix['weakness_tag'] === 'string' && WRITING_WEAKNESS_TAG_SET.has(fix['weakness_tag'])
-      ? fix['weakness_tag'] as WeaknessTag
-      : null;
+    const explicitFixTag = normalizeWeaknessTag(fix['weakness_tag'], WRITING_WEAKNESS_TAG_SET);
     if (explicitFixTag) {
       increment(explicitFixTag);
       return;
     }
-    const combined = `${issue} ${original} ${better}`;
-    if (/agreement|subject.?verb|\bthere is\b.*\bthere are\b|\bthere are\b.*\bthere is\b|\bhas\b.*\bhave\b|\bhave\b.*\bhas\b/i.test(combined)) increment('agreement_error');
-    else if (/tense|past tense|present tense|verb time/i.test(combined)) increment('tense_error');
-    else if (/\barticle\b|\ba\b.*\ban\b|\ban\b.*\ba\b|\bthe\b/i.test(issue)) increment('article_error');
-    else if (/preposition/i.test(issue)) increment('preposition_error');
-    else if (/fragment|incomplete sentence/i.test(issue)) increment('fragment');
-    else if (/run.?on|sentence boundary/i.test(issue)) increment('run_on');
+    const classified = classifyGrammarFix(issue, original, better);
+    if (classified) increment(classified);
     else if (/spelling|misspell|typo/i.test(issue) || containsLikelySpellingCorrection(original, better)) increment('spelling_error');
   });
   readObjectArray(feedback['punctuation_fixes']).forEach((fix) => {
-    const tag = typeof fix['weakness_tag'] === 'string' && WRITING_WEAKNESS_TAG_SET.has(fix['weakness_tag'])
-      ? fix['weakness_tag'] as WeaknessTag
-      : 'punctuation_error';
-    increment(tag);
+    increment(normalizeWeaknessTag(fix['weakness_tag'], WRITING_WEAKNESS_TAG_SET) ?? 'punctuation_error');
   });
   readObjectArray(feedback['natural_phrase_upgrades']).forEach((fix) => {
-    const tag = typeof fix['weakness_tag'] === 'string' && WRITING_WEAKNESS_TAG_SET.has(fix['weakness_tag'])
-      ? fix['weakness_tag'] as WeaknessTag
-      : 'weak_word_choice';
-    increment(tag);
+    increment(normalizeWeaknessTag(fix['weakness_tag'], WRITING_WEAKNESS_TAG_SET) ?? 'weak_word_choice');
   });
   increment('weak_register_control', readObjectArray(feedback['style_tone_feedback']).length);
   explicitTags.forEach((tag) => {
