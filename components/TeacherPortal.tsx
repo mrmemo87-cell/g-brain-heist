@@ -270,6 +270,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [teachingGroups, setTeachingGroups] = useState<SchoolSubjectGroup[]>([]);
   const [teachingGroupRosters, setTeachingGroupRosters] = useState<Record<string, SubjectGroupRosterStudent[]>>({});
   const [teacherHasClassAllocations, setTeacherHasClassAllocations] = useState(false);
+  // False until the allocation lookup has answered, so the portal never flashes
+  // "no teaching groups" warnings while it is still loading.
+  const [classAllocationsLoaded, setClassAllocationsLoaded] = useState(false);
+  const classAllocationsMissing = classAllocationsLoaded && !teacherHasClassAllocations;
   const [selectedClassFilter, setSelectedClassFilter] = useState<string>('all');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '/BRAINS.svg');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -3573,6 +3577,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           setTeachingGroups(groups);
           setTeachingGroupRosters(Object.fromEntries(rosterEntries));
           setTeacherHasClassAllocations(groups.length > 0 || classes.length > 0);
+          setClassAllocationsLoaded(true);
         })
         .catch((error) => {
           console.error('Error loading teaching groups and legacy class allocations:', error);
@@ -3580,11 +3585,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           setTeachingGroups([]);
           setTeachingGroupRosters({});
           setTeacherHasClassAllocations(false);
+          setClassAllocationsLoaded(true);
         });
 
     } catch (error) {
       console.error('Error loading teacher data:', error);
       setLoading(false);
+      setClassAllocationsLoaded(true);
     }
   };
 
@@ -4765,7 +4772,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       .slice(0, 6);
 
     const topIssues: string[] = [];
-    if (!teacherHasClassAllocations) topIssues.push('No class allocations are configured for this teacher account.');
+    if (classAllocationsMissing) topIssues.push('No class allocations are configured for this teacher account.');
     if (lowCompletionClasses.length > 0) topIssues.push(`${lowCompletionClasses.length} class(es) are below ${LOW_COMPLETION_THRESHOLD}% assignment completion.`);
     if (overdueAssignments > 0) topIssues.push(`${overdueAssignments} assignment(s) are past the due date with work still outstanding.`);
     if (studentsWithoutClass > 0) topIssues.push(`${studentsWithoutClass} student(s) have no class mapping.`);
@@ -4809,7 +4816,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       activeAssignments > 0
         ? `${activeAssignments} assignment${activeAssignments > 1 ? 's are' : ' is'} still open${overdueAssignments > 0 ? ` — ${overdueAssignments} past the due date` : ''}.`
         : 'No pending assignments — great pacing today.',
-      !teacherHasClassAllocations
+      classAllocationsMissing
         ? 'Coordinate with your school admin to finalize class allocations.'
         : hasInsights && (assignmentSuccess?.student_followup_count || 0) > 0
         ? `${assignmentSuccess?.student_followup_count} student${(assignmentSuccess?.student_followup_count || 0) > 1 ? 's have' : ' has'} missing or low-scoring work — see Student Alerts.`
@@ -4866,7 +4873,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         text: `${activeAssignments} in-progress assignment${activeAssignments > 1 ? 's' : ''} — open Reports to review the assigned students.`,
       });
     }
-    if (!teacherHasClassAllocations) {
+    if (classAllocationsMissing) {
       visibleStudentAlerts.push({ tone: 'warning', text: 'No class allocations found for this teacher account.' });
     }
 
@@ -4894,8 +4901,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         <button type="button" onClick={() => setView('students')} className="teacher-dashboard-stat cyan text-left" aria-label="Open My Classes">
           <div className="teacher-dashboard-stat-info">
             <h4>My Classes</h4>
-            <div className="teacher-dashboard-stat-value">{myClasses.length || 0}</div>
-            <p className="teacher-dashboard-stat-sub">{myClasses.join(' · ') || 'No classes assigned'}</p>
+            <div className="teacher-dashboard-stat-value">{classAllocationsLoaded ? myClasses.length : '…'}</div>
+            <p className="teacher-dashboard-stat-sub">{myClasses.join(' · ') || (classAllocationsLoaded ? 'No classes assigned' : 'Loading your classes…')}</p>
           </div>
           <div className="teacher-dashboard-stat-icon"><TeacherWorkspaceIcon name="classes" /></div>
         </button>
@@ -9696,7 +9703,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 </details>
               )}
               
-              {!teacherHasClassAllocations && (
+              {classAllocationsMissing && (
                 <div className="mt-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-4 py-3">
                   <p className="text-sm text-amber-900">
                     ⚠️ No teaching groups allocated yet. Contact your school admin to allocate your subject teaching responsibilities.

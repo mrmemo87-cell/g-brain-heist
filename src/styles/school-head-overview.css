@@ -320,6 +320,7 @@
 }
 .school-head-v3-kpi.is-blue > b { color: #168b77; }
 .school-head-v3-kpi.is-red > b { color: #d74656; }
+.school-head-v3-kpi.has-positive-meta > b { color: #168b77; }
 
 .school-head-v3-main-grid {
   display: grid;

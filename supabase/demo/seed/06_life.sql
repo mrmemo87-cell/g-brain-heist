@@ -82,6 +82,13 @@ declare
     + make_interval(mins => floor(private.demo_rand(p_key || p_day || 'time') * 300)::int);
   v_i integer := 0;
 begin
+  -- Today's missions must not be stamped later than the reset itself (no activity in the
+  -- future). Before 07:00 school time nobody has played yet today.
+  if v_at > now() - interval '5 minutes' then
+    if now() - interval '10 minutes' <= (p_day + time '07:00') at time zone 'Europe/London' then return; end if;
+    v_at := (p_day + time '07:00') at time zone 'Europe/London'
+      + (now() - interval '5 minutes' - ((p_day + time '07:00') at time zone 'Europe/London')) * private.demo_rand(p_key || p_day || 'past')::float8;
+  end if;
   perform private.demo_as(p_key);
   v_mission := private.ensure_daily_mission(v_uid, p_day);
   if v_mission.user_id is null or v_mission.completed_at is not null then return; end if;

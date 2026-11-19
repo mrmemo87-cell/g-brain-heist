@@ -195,6 +195,7 @@ const TeacherWeeklyFollowUpsPage: React.FC<TeacherWeeklyFollowUpsPageProps> = ({
         subtitle="Students who didn't finish, scored low, or stopped practising. Follow up in a few minutes."
         onBack={onBack}
         backLabel="Back to Teacher Workspace"
+        viewerLabel="Teacher"
       />
 
       <main className="tfu-main">
