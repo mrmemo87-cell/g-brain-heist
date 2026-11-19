@@ -1,0 +1,6 @@
+# Small shared reference tables copied from production into the demo before new production
+# migrations are applied (sync_migrations.py). Only rows the demo is missing are inserted.
+# Use for content that production migrations reference by key. Keep this list short; never
+# add tables holding students, teachers, schools, answers, emails, billing or personal data.
+# Every table here must also be listed in content-tables.txt so the nightly reset keeps it.
+private.ielts_mock_forms
