@@ -92,3 +92,22 @@ begin
    where verified_by is not null and not exists (select 1 from auth.users u where u.id = q.verified_by);
   set local session_replication_role = origin;
 end $$;
+
+-- 6. Storage for IELTS Speaking recordings, configured as in production (bucket and owner
+--    policies). The demo's seeded practice recording lives here; storage is not emptied by
+--    the nightly reset.
+insert into storage.buckets(id, name, public) values ('ielts-recordings', 'ielts-recordings', true)
+on conflict (id) do nothing;
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'IELTS users view recordings') then
+    create policy "IELTS users view recordings" on storage.objects for select to authenticated
+      using ((bucket_id = 'ielts-recordings') and ((storage.foldername(name))[2] = (auth.uid())::text));
+    create policy "IELTS users upload recordings" on storage.objects for insert to authenticated
+      with check ((bucket_id = 'ielts-recordings') and ((storage.foldername(name))[1] = 'speaking') and ((storage.foldername(name))[2] = (auth.uid())::text));
+    create policy "IELTS users update recordings" on storage.objects for update to authenticated
+      using ((bucket_id = 'ielts-recordings') and ((storage.foldername(name))[2] = (auth.uid())::text));
+    create policy "IELTS users delete recordings" on storage.objects for delete to authenticated
+      using ((bucket_id = 'ielts-recordings') and ((storage.foldername(name))[2] = (auth.uid())::text));
+  end if;
+end $$;

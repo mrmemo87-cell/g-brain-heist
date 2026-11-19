@@ -31,7 +31,7 @@ export const getDemoPersonas = (): DemoPersona[] => {
       key: 'student',
       email: studentEmail,
       password: studentPassword,
-      title: 'Aibek · Student, class 7A',
+      title: 'Lucas · Student, class 7A',
       description: 'Daily missions, Class Conquest, clans, battles, streaks and a recovered learning plan.',
     },
   ];
