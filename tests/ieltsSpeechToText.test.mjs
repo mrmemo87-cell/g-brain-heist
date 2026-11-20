@@ -127,3 +127,40 @@ test('all three Speaking functions use Scribe first and keep their OpenAI fallba
   assert.match(pilot, /withoutUnsureHighlights/);
   assert.match(pilot, /clip\.heardBy/, 'the speech-to-text model is recorded with each analysis');
 });
+
+test('a transcription is kept once and rebuilt exactly, so the review step does not pay for it again', () => {
+  const heard = stt.readScribeResponse(scribe, 'scribe_v2');
+  const detail = stt.wordDetail(heard.words);
+  assert.equal(detail.length, stt.timedWords(heard.words).length, 'detail and public word times have the same length');
+  assert.deepEqual(detail[3], ['swimming.', 6.96, 7.4, -0.25]);
+  const back = stt.wordsFromDetail(JSON.parse(JSON.stringify(detail)));
+  assert.deepEqual(back.map(({ speaker, ...w }) => w), heard.words.map(({ speaker, ...w }) => w));
+  assert.deepEqual(stt.unsureWords(stt.wordConfidence(back)), ['at', 'remembered', 'swimming'], 'confidences survive storage');
+  assert.equal(stt.textFromWords(back), "Uh, as remembered, swimming. first at all, pa-pa-patient. it's make life.");
+  assert.deepEqual(stt.segmentsFromWords(back).map((s) => s.text), stt.segmentsFromWords(heard.words).map((s) => s.text));
+  assert.deepEqual(stt.wordsFromDetail([['ok', 1, 0.5, null], ['', 1, 2, null], 'x', ['fine', 2, 3, 'bad']]),
+    [{ text: 'fine', start: 2, end: 3, logprob: null, speaker: null }], 'malformed entries are dropped');
+  assert.deepEqual(stt.wordsFromDetail(null), []);
+});
+
+test('the interview reuses kept words in both steps and only transcribes when they are missing or incomplete', () => {
+  const pilot = readFileSync('supabase/functions/ielts_speaking_pilot/index.ts', 'utf8');
+  assert.match(pilot, /const kept = await keptScribeWords\(admin, sessionId\);/, 'review step reads kept words');
+  assert.match(pilot, /const kept = await keptScribeWords\(admin, body\.sessionId\);/, 'draft step reads kept words');
+  assert.match(pilot, /transcribeForAnalysis\(bytes, key, Number\(clip\.duration_seconds\) \|\| 0, kept\.get\(clip\.id\)\)/);
+  assert.match(pilot, /transcriptLooksComplete\(textFromWords\(kept\.words\), seconds\)/, 'kept words pass the same completeness check');
+  assert.match(pilot, /if \(heard\.scribe\) await keepScribeWords\(admin, sessionId, clip\.id, heard\.scribe\);/);
+});
+
+test('the kept detail is service-only: browsers never receive confidences', () => {
+  const sql = readFileSync('supabase/migrations/20261120230000_ielts_speaking_clip_words_detail.sql', 'utf8');
+  assert.match(sql, /alter table private\.ielts_speaking_clip_words add column if not exists detail jsonb;/);
+  for (const fn of ['rpc_ielts_save_speaking_clip_transcript_words\\(uuid,uuid,jsonb,jsonb,text\\)', 'rpc_ielts_speaking_clip_words_detail\\(uuid\\)']) {
+    assert.match(sql, new RegExp(`revoke all on function public\\.${fn}\\s+from public,anon,authenticated`));
+    assert.match(sql, new RegExp(`grant execute on function public\\.${fn}\\s+to service_role`));
+  }
+  assert.doesNotMatch(sql, /to authenticated|to anon/);
+  assert.match(sql, /on conflict \(clip_id\) do nothing/, 'insert-once, like the word times');
+  assert.match(sql, /jsonb_array_length\(p_detail\)<>jsonb_array_length\(p_words\)/);
+  assert.doesNotMatch(sql, /create or replace function public\.rpc_ielts_speaking_clip_words\(/, 'the public word-time read is unchanged');
+});

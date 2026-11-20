@@ -104,6 +104,34 @@ export function timedWords(words: SpokenWord[]): Array<[string, number]> {
 }
 
 /**
+ * Service-only copy of a transcription, so a recording is transcribed once and the later review step reuses it:
+ * [word, start, end, log_probability|null] in spoken order (same length as timedWords).
+ */
+export type WordDetail = [string, number, number, number | null];
+export function wordDetail(words: SpokenWord[]): WordDetail[] {
+  return words.map((w): WordDetail => [w.text, w.start, w.end, w.logprob]).slice(0, 8000);
+}
+
+/** Rebuilds the words kept by wordDetail. Malformed entries are dropped; an empty result means "transcribe again". */
+export function wordsFromDetail(value: unknown): SpokenWord[] {
+  if (!Array.isArray(value)) return [];
+  const words: SpokenWord[] = [];
+  for (const raw of value) {
+    if (!Array.isArray(raw) || typeof raw[0] !== 'string' || !raw[0].trim()) continue;
+    const start = num(raw[1]); const end = num(raw[2]);
+    if (start === null || end === null || end < start) continue;
+    words.push({ text: raw[0].trim().slice(0, 60), start, end, logprob: num(raw[3]), speaker: null });
+    if (words.length >= 8000) break;
+  }
+  return words;
+}
+
+/** The transcript text rebuilt from kept words (each Scribe word already carries its punctuation). */
+export function textFromWords(words: SpokenWord[]): string {
+  return words.map((w) => w.text).join(' ').replace(/\s+/g, ' ').trim().slice(0, 20000);
+}
+
+/**
  * Timestamped segments for the teacher draft: a new segment after a sentence end, a pause over 1.2 seconds, a
  * change of speaker or 30 seconds of speech.
  */
