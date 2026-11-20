@@ -107,8 +107,8 @@ test('teacher dashboard summary render', () => {
   });
 
   const html = renderToStaticMarkup(React.createElement(WritingMonitoringView, { month: '2026-03' }));
-  assert.ok(html.includes('Teacher/Admin Writing Monitor'));
-  assert.ok(html.includes('Weekly target'));
+  assert.ok(html.includes('Writing Monitor'));
+  assert.ok(html.includes('Choose a class'));
   assert.ok(html.includes('Grade'));
 });
 
@@ -508,7 +508,7 @@ test('cross-page admin filter query normalization behavior', () => {
     React.createElement(WritingMonitoringView, { filterQuery: '?status=stalled&grade=9' })
   );
   assert.ok(
-    monitoringHtml.includes('Teacher/Admin Writing Monitor') || monitoringHtml.includes('No monitoring matches')
+    monitoringHtml.includes('Writing Monitor') || monitoringHtml.includes('No monitoring matches')
   );
 
   const promptHtml = renderToStaticMarkup(
@@ -560,7 +560,7 @@ test('admin help content and filtered empty-state copy render', () => {
   });
 
   const monitoringHelp = renderToStaticMarkup(React.createElement(WritingMonitoringView, { month: '2026-03' }));
-  assert.ok(monitoringHelp.includes('Teacher/Admin Writing Monitor'));
+  assert.ok(monitoringHelp.includes('Writing Monitor'));
 
   const promptHelp = renderToStaticMarkup(React.createElement(WritingPromptBankManager, {}));
   assert.ok(promptHelp.includes('Overused prompt'));

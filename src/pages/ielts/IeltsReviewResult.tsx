@@ -7,6 +7,7 @@ import SpeakingTranscript from '../../components/ielts/SpeakingTranscript';
 import WritingEssayHighlights from '../../components/ielts/WritingEssayHighlights';
 import '../../styles/ielts-review-result.css';
 import { markFeedbackSeen } from '../../components/ielts/student/useIeltsStudentWork';
+import { DISPLAY_DATE, displayDateLocale } from '../../utils/displayDate';
 
 const speakingLabels: Record<string, { name: string; short: string; tone: string }> = {
   fluency: { name: 'Fluency & Coherence', short: 'FC', tone: 'fc' },
@@ -36,7 +37,7 @@ function SpeakingResult({ data, attemptId }: { data: Awaited<ReturnType<typeof r
             <p className="rr-band">{fmt(data.overall_band)}</p>
           </div>
           <div className="rr-hero-meta">
-            <span className="rr-chip">Checked by your teacher{data.reviewed_at ? ` · ${new Date(data.reviewed_at).toLocaleDateString()}` : ''}</span>
+            <span className="rr-chip">Checked by your teacher{data.reviewed_at ? ` · ${new Date(data.reviewed_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}` : ''}</span>
             <span className="rr-chip rr-chip--quiet">Not an official IELTS result</span>
           </div>
         </div>
@@ -123,7 +124,7 @@ function WritingResult({ data, attemptId }: { data: Awaited<ReturnType<typeof rp
             <p className="rr-band">{fmt(data.overall_band)}</p>
           </div>
           <div className="rr-hero-meta">
-            <span className="rr-chip">Checked by your teacher{data.reviewed_at ? ` · ${new Date(data.reviewed_at).toLocaleDateString()}` : ''}</span>
+            <span className="rr-chip">Checked by your teacher{data.reviewed_at ? ` · ${new Date(data.reviewed_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}` : ''}</span>
             {estimate ? <span className="rr-chip rr-chip--quiet">AI estimate was {estimate.band.toFixed(1)}{typeof data.overall_band === 'number' && data.overall_band === estimate.band ? ' · confirmed' : ''}</span> : null}
             <span className="rr-chip rr-chip--quiet">Not an official IELTS result</span>
           </div>

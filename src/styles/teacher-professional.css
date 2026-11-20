@@ -98,3 +98,16 @@
 
 /* The full assignment label gets room without shrinking phone text. */
 .teacher-professional .teacher-mobile-bottom-nav { grid-template-columns:.9fr .9fr 1.3fr .9fr .9fr; }
+
+/* One neutral KPI card style: no per-card colour themes. */
+.teacher-professional .teacher-dashboard-stat:is(.cyan,.green,.amber,.purple) { background:white; border-color:#e2e8f0; }
+.teacher-professional .teacher-dashboard-stat::before { display:none; }
+.teacher-professional .teacher-dashboard-stat:is(.cyan,.green,.amber,.purple) h4 { color:#475569; }
+.teacher-professional .teacher-dashboard-stat:is(.cyan,.green,.amber,.purple) .teacher-dashboard-stat-value { color:#0f172a; }
+.teacher-professional .teacher-dashboard-stat:is(.cyan,.green,.amber,.purple) .teacher-dashboard-stat-sub { color:#64748b; }
+.teacher-professional .teacher-dashboard-stat-icon { display:grid; place-items:center; font-size:0; opacity:1; }
+.teacher-professional .teacher-dashboard-stat-icon .ap-icon { width:22px; height:22px; }
+.teacher-professional :is(.teacher-action-icon,.teacher-tool-icon) .ap-icon { width:24px; height:24px; }
+.teacher-professional .teacher-writing-hub__tabs button { display:inline-flex; align-items:center; gap:8px; }
+.teacher-professional .teacher-writing-hub__tabs .ap-icon { width:18px; height:18px; }
+.teacher-professional .teacher-pro-badge, .teacher-professional .teacher-pro-badge-sm { text-transform:none; letter-spacing:0; }

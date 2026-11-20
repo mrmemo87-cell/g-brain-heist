@@ -74,9 +74,9 @@ test('Clan Wars stays inside the teacher workspace without an app-level reload',
 test('teacher navigation consolidates writing tools into one Writing Hub', () => {
   assert.match(teacherPortal, /id: 'writing-hub' as const, label: 'Writing Hub'/);
   assert.match(teacherPortal, /aria-label="Writing Hub sections"/);
-  assert.match(teacherPortal, /\['monitor', '📝', 'Monitor'\]/);
-  assert.match(teacherPortal, /\['analytics', '📈', 'Analytics'\]/);
-  assert.match(teacherPortal, /\['reports', '📤', 'Reports'\]/);
+  assert.match(teacherPortal, /\['monitor', 'pencil', 'Monitor'\]/);
+  assert.match(teacherPortal, /\['analytics', 'trend', 'Analytics'\]/);
+  assert.match(teacherPortal, /\['reports', 'send', 'Reports'\]/);
   assert.doesNotMatch(teacherPortal, /label: 'Writing Monitor'/);
   assert.doesNotMatch(teacherPortal, /label: 'Writing Analytics'/);
   assert.doesNotMatch(teacherPortal, /label: 'Writing Reports'/);

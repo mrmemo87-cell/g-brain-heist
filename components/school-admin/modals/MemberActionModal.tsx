@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import { verifyStudentFullName } from '../../../services/schoolAdminService';
 import type { SchoolRole } from '../../../types';
+import { DISPLAY_DATE, displayDateLocale } from '../../../src/utils/displayDate';
 
 const MemberActionModal: React.FC = () => {
   const {
@@ -95,7 +96,7 @@ const MemberActionModal: React.FC = () => {
 
           <div className="member-record-strip">
             <span><small>Access</small><strong>{accessLabel}</strong></span>
-            <span><small>Date joined</small><strong>{selectedMember.joined_at ? new Date(selectedMember.joined_at).toLocaleDateString() : 'Not recorded'}</strong></span>
+            <span><small>Date joined</small><strong>{selectedMember.joined_at ? new Date(selectedMember.joined_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE) : 'Not recorded'}</strong></span>
             <span><small>Record status</small><strong>{selectedMember.is_banned ? 'Restricted' : 'Active'}</strong></span>
           </div>
 

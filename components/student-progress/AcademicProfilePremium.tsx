@@ -1,8 +1,12 @@
 import React, { useId, useState } from 'react';
 import type { StudentAcademicProfile } from '../../services/studentAcademicProfileService';
 
-export type ProfileIconName = 'result' | 'target' | 'support' | 'document' | 'trend' | 'strength' | 'clock' | 'calendar' | 'info' | 'back' | 'shield' | 'bell' | 'menu' | 'home' | 'book';
+export type ProfileIconName = 'result' | 'target' | 'support' | 'document' | 'trend' | 'strength' | 'clock' | 'calendar' | 'info' | 'back' | 'shield' | 'bell' | 'menu' | 'home' | 'book' | 'megaphone' | 'alert' | 'check' | 'lock' | 'ruler' | 'chat' | 'bolt' | 'settings' | 'school' | 'send' | 'pencil';
 const paths: Record<ProfileIconName, React.ReactNode> = {
+  settings: <><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/></>,
+  school: <><path d="m3 9 9-5 9 5-9 5Z"/><path d="M7 11v5c3 2 7 2 10 0v-5"/></>,
+  send: <><path d="M4 12h12M12 6l6 6-6 6"/><path d="M20 4v16"/></>,
+  pencil: <><path d="M4 20h4L19 9l-4-4L4 16Z"/><path d="m13 7 4 4"/></>,
   result: <><rect x="4" y="13" width="3" height="7" rx="1"/><rect x="10" y="8" width="3" height="12" rx="1"/><rect x="16" y="3" width="3" height="17" rx="1"/></>,
   target: <><circle cx="11" cy="13" r="8"/><circle cx="11" cy="13" r="4"/><path d="m11 13 9-10M15 3h5v5"/></>,
   support: <><circle cx="12" cy="7" r="3"/><path d="M6 20v-3a6 6 0 0 1 12 0v3ZM3 9a2.5 2.5 0 0 1 3-4M21 9a2.5 2.5 0 0 0-3-4M2 19v-3a4 4 0 0 1 3-4M22 19v-3a4 4 0 0 0-3-4"/></>,
@@ -18,6 +22,13 @@ const paths: Record<ProfileIconName, React.ReactNode> = {
   menu: <path d="M4 6h16M4 12h16M4 18h16"/>,
   home: <path d="m3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9"/>,
   book: <path d="M12 5v16M12 5C9 3 6 3 3 4v16c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Z"/>,
+  megaphone: <><path d="M3 10v4h3l9 5V5L6 10Z"/><path d="M18 9a4 4 0 0 1 0 6M7 14l1 6h3l-1-5"/></>,
+  alert: <><path d="M12 3 2 20h20Z"/><path d="M12 10v4M12 17v.5"/></>,
+  check: <><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></>,
+  lock: <><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></>,
+  ruler: <><path d="M3 17 17 3l4 4L7 21Z"/><path d="m7 13 2 2m1-5 2 2m1-5 2 2"/></>,
+  chat: <path d="M4 5h16v11H9l-5 4Z"/>,
+  bolt: <path d="M13 2 4 14h7l-1 8 9-12h-7Z"/>,
 };
 export const ProfileIcon: React.FC<{ name: ProfileIconName; className?: string }> = ({ name, className = '' }) => <svg className={`ap-icon ${className}`} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 

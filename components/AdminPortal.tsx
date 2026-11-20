@@ -38,6 +38,7 @@ import SystemTab from './admin/tabs/SystemTab';
 import ReportModal from './admin/modals/ReportModal';
 import AnswerReflectionModal from './admin/modals/AnswerReflectionModal';
 import AnnouncementModal from './admin/modals/AnnouncementModal';
+import { DISPLAY_DATE, displayDateLocale } from '../src/utils/displayDate';
 
 const SCHOOL_PLANS = ['none', 'pilot', 'core', 'standard', 'pro', 'enterprise'] as const;
 const QuestionBankInspectorTab = React.lazy(() => import('./admin/tabs/QuestionBankInspectorTab'));
@@ -481,7 +482,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         addToast(error?.message || data?.error || 'Failed to extend trial', 'error');
         return;
       }
-      const newEnd = new Date(data.new_trial_ends_at).toLocaleDateString();
+      const newEnd = new Date(data.new_trial_ends_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE);
       addToast(`✅ Trial extended by ${days} days — new end: ${newEnd}`, 'success');
       setPilotTrialEnd(data.new_trial_ends_at);
     } catch {

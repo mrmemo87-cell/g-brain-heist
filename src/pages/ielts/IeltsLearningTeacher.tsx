@@ -19,6 +19,7 @@ import { IeltsEmailOptions, IeltsEmailStatusLine } from "../../components/ielts/
 import { notifyIeltsStudents, type IeltsEmailQueued } from "../../../services/ieltsEmailService";
 import TargetedTaskPicker from "../../components/ielts/teacher/TargetedTaskPicker";
 import { targetedCatalogue } from "../../../services/ieltsTargetedCatalogue";
+import { DISPLAY_DATE, displayDateLocale } from '../../utils/displayDate';
 export default function IeltsLearningTeacher({
   schoolId,
   reviewOnly = false,
@@ -211,7 +212,7 @@ export default function IeltsLearningTeacher({
                 <strong>Previous assignments for this student</strong>
                 {usage.loading ? <p>Checking this material’s history…</p> : usage.error ? <><p>{usage.error}</p><button onClick={usage.retry}>Retry history check</button></> : prior ? <>
                   <p>{materialUsageLabel(prior)}</p>
-                  {prior.last_assigned_at && <p>Last assigned {new Date(prior.last_assigned_at).toLocaleDateString()}</p>}
+                  {prior.last_assigned_at && <p>Last assigned {new Date(prior.last_assigned_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</p>}
                   {prior.latest_assignment_id && <Link to={"/ielts/practice/targeted/"+prior.latest_assignment_id}>Open existing assignment →</Link>}
                   {exposedCheck && <p>This task has already been given. Choose a different fresh check.</p>}
                   {!!prior.assigned_count && !activeAssignment && !exposedCheck && <label className="il-answer"><span><input type="checkbox" checked={repeatConfirmed} onChange={e=>setRepeatConfirmed(e.target.checked)}/> I intend to repeat this material for practice.</span></label>}

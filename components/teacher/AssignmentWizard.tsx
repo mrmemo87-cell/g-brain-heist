@@ -20,6 +20,7 @@ import { isBrainsHeistPoolQuestion, isMyPoolQuestion, isSchoolPoolQuestion } fro
 import AssignmentDeliveryPicker, { DELIVERY_LABELS } from './AssignmentDeliveryPicker';
 import type { AssignmentDelivery } from '../../services/assignmentPaperService';
 import './AssignmentWizard.css';
+import { DISPLAY_DATE, displayDateLocale } from '../../src/utils/displayDate';
 
 type AssignmentMode = 'batch' | 'custom';
 type WizardStep = 1 | 2 | 3 | 4 | 5 | 6;
@@ -1013,7 +1014,7 @@ export default function AssignmentWizard({
               <div className="aw-due-grid">
                 {[['Today', 0], ['Tomorrow', 1], ['3 days', 3], ['1 week', 7]].map(([label, days]) => {
                   const value = dueDateValue(Number(days));
-                  return <button key={label} type="button" className={assignmentDueAt === value ? 'aw-due-card is-selected' : 'aw-due-card'} onClick={() => { setCustomDueDate(false); setAssignmentDueAt(value); }}><span>◷</span><strong>{label}</strong><small>{new Date(value).toLocaleDateString()}</small></button>;
+                  return <button key={label} type="button" className={assignmentDueAt === value ? 'aw-due-card is-selected' : 'aw-due-card'} onClick={() => { setCustomDueDate(false); setAssignmentDueAt(value); }}><span>◷</span><strong>{label}</strong><small>{new Date(value).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</small></button>;
                 })}
                 <button type="button" className={customDueDate ? 'aw-due-card is-selected' : 'aw-due-card'} onClick={() => setCustomDueDate(true)}><span>▦</span><strong>Custom date</strong><small>Choose date and time</small></button>
               </div>

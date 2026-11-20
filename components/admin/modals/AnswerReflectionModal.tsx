@@ -3,6 +3,7 @@ import { useAdmin } from '../AdminContext';
 import { buildBiologyAnswerKeyFromSavedMetadata, isBiologyCambridgeQuiz, parseSavedAnswersPayload } from '../../biologyReviewAnswerKey';
 import { getPrimaryCambridgeAnswer, isCambridgeAnswerCorrect, parseCambridgeResponses } from '../../cambridgeListeningReview';
 import { useSchoolBranding } from '../../../src/hooks/useSchoolBranding';
+import { DISPLAY_DATE, displayDateLocale } from '../../../src/utils/displayDate';
 
 const AnswerReflectionModal: React.FC = () => {
   const {
@@ -88,7 +89,7 @@ const AnswerReflectionModal: React.FC = () => {
               <div className="bg-gradient-to-r from-blue-700 to-purple-800 text-white p-5 flex justify-between items-center">
                 <div>
                   <h2 className="text-xl font-bold">{reportStudent.student_name}</h2>
-                  <p className="text-sm opacity-80">Class: {reportStudent.student_class || 'N/A'} | {new Date(reportStudent.submitted_at).toLocaleDateString()}</p>
+                  <p className="text-sm opacity-80">Class: {reportStudent.student_class || 'N/A'} | {new Date(reportStudent.submitted_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</p>
                 </div>
                 <div className="text-right">
                   <div className="text-3xl font-bold">{reportStudent.score}/{reportStudent.total_questions}</div>

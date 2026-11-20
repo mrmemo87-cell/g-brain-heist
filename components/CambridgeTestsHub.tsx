@@ -6,6 +6,7 @@ import ProfessionalCambridgeReport, { generateSerialNumber } from './Professiona
 import type { ProfessionalReportData } from './ProfessionalCambridgeReport';
 import { sanitizeCommunicativeAchievementText } from '../src/lib/writingCommunicativeAchievement';
 import { BIOLOGY_IMAGE_CHAPTERS, getBiologyChapterPartRanges } from './biologyCambridgeCatalog';
+import { DISPLAY_DATE, displayDateLocale } from '../src/utils/displayDate';
 
 interface CambridgeTest {
   id: string;
@@ -2338,7 +2339,7 @@ const CambridgeTestsHub: React.FC<CambridgeTestsHubProps> = ({ profile, onExit }
                           const trend = !prev ? '—' : item.percentage > prev.percentage ? '↑' : item.percentage < prev.percentage ? '↓' : '→';
                           return (
                             <div key={`${item.submittedAt}-${index}`} style={{ display: 'grid', gridTemplateColumns: '1.2fr .8fr .8fr .8fr .5fr', gap: '8px', alignItems: 'center', color: 'rgba(255,255,255,0.9)', fontSize: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '8px' }}>
-                              <span>{new Date(item.submittedAt).toLocaleDateString()}</span>
+                              <span>{new Date(item.submittedAt).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</span>
                               <span>{item.score}/35</span>
                               <span>{item.percentage}%</span>
                               <span>G:{item.grammarIssues} • P:{item.punctuationIssues}</span>

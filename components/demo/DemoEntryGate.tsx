@@ -196,7 +196,7 @@ const DemoEntryGate: React.FC<DemoEntryGateProps> = ({ onLogin }) => {
         </header>
 
         <h1>See a school where no student slips through.</h1>
-        <p className="demo-gate-lede">A real Grade 7 school: 46 students, 8 weeks of data, Class Conquest, clans and battles. Resets nightly.</p>
+        <p className="demo-gate-lede">A Grade 7 demo school: 46 students, 8 weeks of data, Class Conquest, clans and battles. Resets nightly.</p>
 
         <section className="demo-gate-card" aria-live="polite">
           {!returning ? (
@@ -268,7 +268,7 @@ const DemoEntryGate: React.FC<DemoEntryGateProps> = ({ onLogin }) => {
 
         <footer className="demo-gate-foot">
           <a href="https://www.brainsheist.com/booked" target="_blank" rel="noreferrer">Prefer a guided demo? Book one ↗</a>
-          <span>Shared demo · names are fictional · emails and AI are off</span>
+          <span>Shared demo · names are fictional · no emails are sent · AI feedback shown is saved from real runs</span>
         </footer>
       </div>
     </div>

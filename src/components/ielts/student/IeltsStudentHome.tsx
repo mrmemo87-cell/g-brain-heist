@@ -46,7 +46,8 @@ export default function IeltsStudentHome() {
   const waiting = tasks.filter((t) => t.status === 'submitted' && !t.reviewed);
   const newCount = newSets.length + newTasks.length;
   const goingCount = goingSets.length + goingTasks.length;
-  const loading = work.tasks === null && !work.tasksError;
+  // Wait for the practice reviews too, so Home never says "all caught up" while feedback is still loading.
+  const loading = (work.tasks === null && !work.tasksError) || practiceReviews === null;
   const checksDone = point ? startingPointSkills.filter((s) => startingPointCompleted(point, s)).length : 4;
   const firstName = point?.student_name?.split(/\s+/)[0];
   const today = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
@@ -63,10 +64,8 @@ export default function IeltsStudentHome() {
   return (
     <div className="isn-home">
       <section className="isn-hero" aria-labelledby="isn-hello">
-        <span className="isn-orb isn-orb--a" aria-hidden="true" />
-        <span className="isn-orb isn-orb--b" aria-hidden="true" />
         <p className="isn-date">{today}</p>
-        <h2 id="isn-hello">{greeting()}{firstName ? `, ${firstName}` : ''} <span className="isn-wave" aria-hidden="true">👋</span></h2>
+        <h2 id="isn-hello">{greeting()}{firstName ? `, ${firstName}` : ''}</h2>
         <p className="isn-summary" aria-live="polite">{summary}</p>
         <div className="isn-stats">
           <span className={'isn-stat' + (newCount ? ' is-hot' : '')}><b>{loading ? '–' : newCount}</b> New</span>

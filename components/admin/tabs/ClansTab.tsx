@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAdmin } from '../AdminContext';
 import * as CompetitionService from '../../../services/competitionService';
+import { DISPLAY_DATE, displayDateLocale } from '../../../src/utils/displayDate';
 
 const IGNORED_DETAIL_KEYS = new Set(['crest_url', 'description', 'name', 'leader_id']);
 
@@ -114,7 +115,7 @@ const ClansTab: React.FC = () => {
                       {c.crest_url && <img src={c.crest_url} alt="" className="w-10 h-10 rounded-lg object-cover border border-blue-300/30" />}
                       <div>
                         <p className="font-bold text-white text-lg">{c.name}</p>
-                        <p className="text-xs text-gray-400">{c.member_count ?? 0} members • Created {c.created_at ? new Date(c.created_at).toLocaleDateString() : 'N/A'}</p>
+                        <p className="text-xs text-gray-400">{c.member_count ?? 0} members • Created {c.created_at ? new Date(c.created_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE) : 'N/A'}</p>
                         <p className="text-xs text-cyan-300/90 mt-0.5">🏫 {c.school_name || 'Independent / No school'}</p>
                         {c.description && <p className="text-xs text-gray-400 mt-1">{c.description}</p>}
                       </div>

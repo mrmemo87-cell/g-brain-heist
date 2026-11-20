@@ -53,6 +53,7 @@ import {
   shouldLaunchFtueTrainingMission,
 } from '../src/features/onboarding/trainingMission';
 import { getOnboardingState, markOnboardingStepComplete, updateOnboardingState } from '../src/features/onboarding/onboardingService';
+import { DISPLAY_DATE, displayDateLocale } from '../src/utils/displayDate';
 
 // Helper to get option text (handles both string and QuestionOption formats)
 const getOptionText = (option: string | QuestionOption): string => {
@@ -2636,7 +2637,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
                       </div>
                       <div className="text-xs text-slate-300 text-right">
                         <p>{assignment.question_count ?? assignment.questions?.length ?? 0} questions</p>
-                        <p>Due {assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : 'anytime'}</p>
+                        <p>Due {assignment.due_at ? new Date(assignment.due_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE) : 'anytime'}</p>
                       </div>
                     </div>
                   </button>

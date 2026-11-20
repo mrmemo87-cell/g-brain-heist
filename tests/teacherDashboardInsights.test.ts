@@ -147,7 +147,7 @@ test('dashboard reads the insight keys and keeps the legacy wording as a fallbac
   assert.match(portal, /const hasInsights = assignmentSuccess\?\.has_insights === true/);
   assert.match(portal, /assignmentAlerts\(followupAssignments, dashboardNow, 6\)/);
   assert.match(portal, /has not completed “\$\{row\.assignment_title\}”/);
-  assert.match(portal, /⏰ Past due/);
+  assert.match(portal, /'Past due'/);
   assert.match(portalShell, /past due/);
 });
 

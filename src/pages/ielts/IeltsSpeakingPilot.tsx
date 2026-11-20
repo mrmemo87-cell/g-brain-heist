@@ -35,6 +35,7 @@ import SpeakingBandsPanel, {
   BAND_LABEL,
 } from "../../components/ielts/SpeakingBandsPanel";
 import "../../styles/ielts-speaking-pilot.css";
+import { DISPLAY_DATE, displayDateLocale } from '../../utils/displayDate';
 type Session = SpeakingSession & { source_hash: string; can_record: boolean };
 function SoundMark() {
   return (
@@ -830,7 +831,7 @@ export default function IeltsSpeakingPilot() {
                             : "Interview in progress"}
                       </strong>
                       <p>
-                        {new Date(s.created_at).toLocaleDateString()} ·{" "}
+                        {new Date(s.created_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)} ·{" "}
                         {s.evidence_kind === "same_form_practice"
                           ? "Same-form practice"
                           : "First sitting"}

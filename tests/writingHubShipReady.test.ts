@@ -201,7 +201,7 @@ test('premium Writing Hub keeps authorship context, score meaning, and teacher r
   // Tab changes are recorded as authorship evidence for the teacher; the attempt itself is never archived (13 Nov 2026).
   assert.match(hub, /recordWritingVisibilityHidden/);
   assert.match(hub, /recordWritingPaste/);
-  assert.match(monitoring, /Writing Command Center/);
+  assert.match(monitoring, /writing-monitor__eyebrow">Writing Hub</);
   assert.doesNotMatch(monitoring, /Class writing mode/);
   assert.match(monitoring, /Across all genres · \{monitoringPeriod\}/);
   assert.match(monitoring, /All-time saved writing evidence/);

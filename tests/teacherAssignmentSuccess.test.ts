@@ -25,8 +25,8 @@ test('teacher dashboard uses submitted assignments for success metrics', () => {
 test('teacher dashboard presents current-year assignment metrics with accurate labels', () => {
   assert.match(portalShell, /onAssignmentSummary=\{setDashboardAssignmentMetrics\}/);
   assert.doesNotMatch(portalShell, /supabase\.rpc/);
-  assert.match(portalShell, /Active Assignments/);
-  assert.match(portalShell, /total assignments/);
+  assert.match(portalShell, /Open assignments/);
+  assert.match(portalShell, /past due · /);
   assert.match(portalShell, /Completed Submissions/);
   assert.match(portalShell, /Student submissions received/);
   assert.match(portalShell, /Answer Accuracy/);

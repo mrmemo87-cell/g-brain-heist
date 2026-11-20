@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useAdmin } from '../AdminContext';
+import { DISPLAY_DATE, displayDateLocale } from '../../../src/utils/displayDate';
 
 const SchoolsTab: React.FC = () => {
   const {
@@ -127,7 +128,7 @@ const SchoolsTab: React.FC = () => {
                 <div className="flex flex-wrap items-center gap-2">
                   {pilotTrialEnd && (
                     <span className="text-xs text-amber-300/80">
-                      Trial ends: {new Date(pilotTrialEnd).toLocaleDateString()}
+                      Trial ends: {new Date(pilotTrialEnd).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}
                       {new Date(pilotTrialEnd) <= new Date() && <span className="ml-1 text-red-400 font-bold">(EXPIRED)</span>}
                       {new Date(pilotTrialEnd) > new Date() && (
                         <span className="ml-1">({Math.ceil((new Date(pilotTrialEnd).getTime() - Date.now()) / 86400000)}d left)</span>

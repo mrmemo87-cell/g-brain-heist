@@ -3,6 +3,7 @@ import type { Grade } from '../../../types';
 import { useAdmin } from '../AdminContext';
 import ClickableUsername from '../../ClickableUsername';
 import UserIntelligencePanel from '../users/UserIntelligencePanel';
+import { DISPLAY_DATE, displayDateLocale } from '../../../src/utils/displayDate';
 
 type UserAction =
   | 'details'
@@ -95,7 +96,7 @@ const UsersTab: React.FC = () => {
     if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
     if (days < 30) return `${days}d ago`;
-    return date.toLocaleDateString();
+    return date.toLocaleDateString(displayDateLocale(), DISPLAY_DATE);
   };
 
   const roleOptions = useMemo(() => {
@@ -323,7 +324,7 @@ const UsersTab: React.FC = () => {
                     <td className="px-3 py-3.5 text-xs text-slate-400"><span className="text-slate-300">{grade ? `Grade ${grade}` : '—'}</span>{user.batch ? <span className="ml-1 text-slate-600">· {user.batch}</span> : null}</td>
                     <td className="px-3 py-3.5">{statusBadge(user)}</td>
                     <td className="px-3 py-3.5"><p className="text-xs font-semibold text-slate-200">{Number(user.xp ?? 0).toLocaleString()} XP</p><p className="mt-0.5 text-[11px] text-amber-300/75">{Number(user.coins ?? 0).toLocaleString()} coins</p></td>
-                    <td className="px-3 py-3.5"><p className="text-xs font-medium text-slate-300">{lastActiveLabel(user)}</p>{lastActiveDate(user) && <p className="mt-0.5 text-[10px] text-slate-600">{lastActiveDate(user)?.toLocaleDateString()}</p>}</td>
+                    <td className="px-3 py-3.5"><p className="text-xs font-medium text-slate-300">{lastActiveLabel(user)}</p>{lastActiveDate(user) && <p className="mt-0.5 text-[10px] text-slate-600">{lastActiveDate(user)?.toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</p>}</td>
                     <td className="px-4 py-3.5 text-right" onClick={(event) => event.stopPropagation()}>
                       <select
                         aria-label={`Manage ${resolveUserLabel(user)}`}

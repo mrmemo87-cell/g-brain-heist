@@ -71,7 +71,7 @@ const DemoBanner: React.FC<DemoBannerProps> = ({ onSwitchPersona }) => {
       <span className="demo-banner-dot" aria-hidden="true" />
       <span className="demo-banner-text">
         Demo school · you are {current === 'teacher' ? 'the School Head & teacher' : 'a student'}
-        <small>Resets nightly · emails, push and AI feedback are off here</small>
+        <small>Resets nightly · no emails or push · AI feedback is saved from real runs</small>
       </span>
       <button type="button" onClick={() => void switchPersona()} disabled={switching}>
         {switching ? 'Switching…' : current === 'teacher' ? 'See it as a student' : 'Back to the teacher'}

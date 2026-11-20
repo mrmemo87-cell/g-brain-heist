@@ -6,6 +6,7 @@ import {
   type CommanderPvpLobby,
   type CommanderPvpTarget,
 } from '../../../services/commanderPvpService';
+import { DISPLAY_DATE, displayDateLocale } from '../../utils/displayDate';
 
 export type CommanderPvpLaunch = {
   userId: string;
@@ -316,7 +317,7 @@ const CommanderPvpLobby: React.FC<Props> = ({ onClose, onBattle }) => {
                   <span className={`rounded-full border px-2 py-1 text-[9px] font-black tracking-wider ${resultClass(entry.result)}`}>{resultLabel(entry.result)}</span>
                   <div className="min-w-0 flex-1">
                     <strong className="block truncate text-sm text-white">{entry.opponent_username}</strong>
-                    <span className="text-[10px] text-slate-500">{entry.was_attacker ? 'You attacked' : 'Your defense was challenged'} · {new Date(entry.created_at).toLocaleDateString()}</span>
+                    <span className="text-[10px] text-slate-500">{entry.was_attacker ? 'You attacked' : 'Your defense was challenged'} · {new Date(entry.created_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</span>
                   </div>
                 </div>
               ))}

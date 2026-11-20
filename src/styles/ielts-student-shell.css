@@ -224,3 +224,7 @@
 .isn-page .ij-skill-card .ij-repeat { font-size: .8rem; }
 .isn-page .ij-caption { font-size: .78rem; margin: .4rem .2rem 0; }
 .isn-page .ij-student { display: grid; gap: 1rem; }
+
+/* Plain header: solid surface, no glow or decorative orbs. */
+.isn-hero { background: #1e293b; box-shadow: none; }
+.isn-orb { display: none; }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
+import { consumeRequestedTeacherView } from '../src/lib/teacherPortalRequest';
 import RetentionTrialGate from '../src/features/retention/RetentionTrialGate';
 const RetentionTeacherPanel = React.lazy(() => import('../src/features/retention/RetentionTeacherPanel'));
 import { createPortal } from 'react-dom';
@@ -103,6 +104,7 @@ import { useIeltsTeacherProgrammeEntry } from '../src/hooks/useIeltsTeacherProgr
 import TeacherIeltsProgrammeShortcut, { IeltsProgrammeIcon } from './teacher/TeacherIeltsProgrammeShortcut';
 import ArenaTeacherCard from './arena/ArenaTeacherCard';
 import { teacherProgrammeRoute } from '../services/ieltsTeacherProgrammeEntry';
+import { DISPLAY_DATE, displayDateLocale } from '../src/utils/displayDate';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -225,20 +227,24 @@ const splitGrammarAndPunctuation = (items: { wrong: string; correct: string; exp
   return { grammar, punctuation };
 };
 
+const countNoun = (count: number, one: string, many: string): string => `${count} ${count === 1 ? one : many}`;
+
 const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLogout, onLockdown, isSchoolAdmin, onOpenSchoolAdmin, initialView = 'dashboard', onAssignmentSummary, academicProfilePresentation = false, activeNavigationSection, onNavigateSection }) => {
   const ieltsProgramme = useIeltsTeacherProgrammeEntry(profile.id, profile.role, profile.school_id);
   const resolvedBranding = useSchoolBranding({ schoolId: profile.school_id, schoolName: profile.school_name, schoolLogoUrl: profile.school_logo_url });
   const schoolBrand = createSchoolBrand({ schoolId: profile.school_id, ...resolvedBranding });
+  // Another workspace (e.g. the School Head's programme cards) can ask for a starting view once.
+  const [startView] = useState<PortalView>(() => consumeRequestedTeacherView() ?? initialView);
   const initialWritingSection: WritingHubSection =
-    initialView === 'writing-analytics' ? 'analytics' :
-      initialView === 'writing-export-center' ? 'reports' :
+    startView === 'writing-analytics' ? 'analytics' :
+      startView === 'writing-export-center' ? 'reports' :
         'monitor';
   const normalizedInitialView: PortalView =
-    initialView === 'documents'
+    startView === 'documents'
       ? 'dashboard'
-      : ['writing-monitoring', 'writing-analytics', 'writing-export-center'].includes(initialView)
+      : ['writing-monitoring', 'writing-analytics', 'writing-export-center'].includes(startView)
         ? 'writing-hub'
-        : initialView;
+        : startView;
   const [view, setView] = useState<PortalView>(normalizedInitialView);
   const [writingHubSection, setWritingHubSection] = useState<WritingHubSection>(initialWritingSection);
   const [writingHubFilterQuery, setWritingHubFilterQuery] = useState('');
@@ -4773,11 +4779,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
     const topIssues: string[] = [];
     if (classAllocationsMissing) topIssues.push('No class allocations are configured for this teacher account.');
-    if (lowCompletionClasses.length > 0) topIssues.push(`${lowCompletionClasses.length} class(es) are below ${LOW_COMPLETION_THRESHOLD}% assignment completion.`);
-    if (overdueAssignments > 0) topIssues.push(`${overdueAssignments} assignment(s) are past the due date with work still outstanding.`);
-    if (studentsWithoutClass > 0) topIssues.push(`${studentsWithoutClass} student(s) have no class mapping.`);
+    if (lowCompletionClasses.length > 0) topIssues.push(`${countNoun(lowCompletionClasses.length, 'class is', 'classes are')} below ${LOW_COMPLETION_THRESHOLD}% assignment completion.`);
+    if (overdueAssignments > 0) topIssues.push(`${countNoun(overdueAssignments, 'assignment is', 'assignments are')} past the due date with work still missing.`);
+    if (studentsWithoutClass > 0) topIssues.push(`${countNoun(studentsWithoutClass, 'student is', 'students are')} not in a class.`);
     if (hasAssignmentSuccess && successRate < 65) topIssues.push(`Assignment success rate is ${successRate}% (below target).`);
-    if (pendingWriting > 0) topIssues.push(`${pendingWriting} Cambridge writing submission(s) still need marking.`);
+    if (pendingWriting > 0) topIssues.push(`${countNoun(pendingWriting, 'Cambridge writing submission needs', 'Cambridge writing submissions need')} marking.`);
 
     const topMissingAction = describeTopMissingAssignment(assignmentSuccess?.assignment_followups || []);
     const weakestAssignmentAction = describeWeakestAssignment(assignments, assignmentResults);
@@ -4787,7 +4793,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       topMissingAction,
       weakestAssignmentAction,
       repeatMissingStudents.length > 0
-        ? `Talk to ${repeatMissingStudents.slice(0, 3).map((row) => row.student_name).join(', ')}${repeatMissingStudents.length > 3 ? ` and ${repeatMissingStudents.length - 3} more` : ''} — each is missing 3 or more assignments.`
+        ? `Talk to ${repeatMissingStudents.slice(0, 3).map((row) => row.student_name).join(', ')}${repeatMissingStudents.length > 3 ? ` and ${repeatMissingStudents.length - 3} more` : ''}: ${repeatMissingStudents.length > 1 ? 'each has' : 'has'} 3 or more assignments missing.`
         : null,
       openTargetedPractice > 0
         ? `${openTargetedPractice} targeted practice task${openTargetedPractice > 1 ? 's are' : ' is'} still waiting for the student to finish.`
@@ -4815,7 +4821,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
     const priorityItems = [
       activeAssignments > 0
         ? `${activeAssignments} assignment${activeAssignments > 1 ? 's are' : ' is'} still open${overdueAssignments > 0 ? ` — ${overdueAssignments} past the due date` : ''}.`
-        : 'No pending assignments — great pacing today.',
+        : 'No open assignments.',
       classAllocationsMissing
         ? 'Coordinate with your school admin to finalize class allocations.'
         : hasInsights && (assignmentSuccess?.student_followup_count || 0) > 0
@@ -4826,8 +4832,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       !hasAssignmentSuccess
         ? 'Assignment success will appear after the first student submission.'
         : successRate < 65
-        ? 'Success rate is below 65% — prioritize revision and targeted support.'
-        : 'Success trend is healthy — keep momentum with formative checks.',
+        ? `Assignment success is ${successRate}%, below the 65% target.`
+        : `Assignment success is ${successRate}%.`,
     ];
 
     const alertItems: Array<{ tone: 'warning' | 'info'; text: string }> = [];
@@ -4882,7 +4888,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       {/* Welcome Section */}
       <div className="teacher-section-header">
         <h2 className="teacher-section-title">
-          <span>📊</span> Dashboard Overview
+          Dashboard Overview
         </h2>
         <p className="teacher-section-subtitle">Manage your classes, questions, and track student progress</p>
       </div>
@@ -4934,7 +4940,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <div className="teacher-dashboard-stat-value">{assignmentSuccess ? totalSubmissions : '—'}</div>
             <p className="teacher-dashboard-stat-sub">Completed assignment submissions</p>
           </div>
-          <div className="teacher-dashboard-stat-icon">💬</div>
+          <div className="teacher-dashboard-stat-icon"><ProfileIcon name="chat"/></div>
         </button>
 
         <button
@@ -4953,14 +4959,14 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 : 'Appears after the first submission'}
             </p>
           </div>
-          <div className="teacher-dashboard-stat-icon">📈</div>
+          <div className="teacher-dashboard-stat-icon"><ProfileIcon name="trend"/></div>
         </button>
       </div>
 
       <div className="teacher-dashboard-grid">
         <div className="teacher-panel-card">
           <h3 className="teacher-subsection-title">
-            <span>🎯</span> Today&apos;s Priorities
+            Today&apos;s Priorities
           </h3>
           <ul className="teacher-priority-list">
             {priorityItems.map((item, index) => (
@@ -4972,7 +4978,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         {/* Quick Actions Section */}
         <div className="teacher-panel-card">
           <h3 className="teacher-subsection-title">
-            <span>⚡</span> Quick Actions
+            Quick Actions
           </h3>
           <div className="teacher-actions-grid teacher-actions-grid-compact">
           {(() => {
@@ -4993,7 +4999,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               if (!q) return null;
               const fid = FEATURE_TO_QUOTA[label];
               const ql = fid ? QUOTA_LABELS[fid] : '';
-              if (q.exhausted) return <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', borderColor: '#ef4444' }}>⚡ UPGRADE</span>;
+              if (q.exhausted) return <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', borderColor: '#ef4444' }}>Upgrade</span>;
               return <span className="teacher-pro-badge" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', borderColor: '#22d3ee' }}>{q.remaining}/{q.limit} {ql}</span>;
             };
             return <>
@@ -5063,7 +5069,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 disabled={lockdownLocked}
               >
                 {lockdownLocked && <span className="teacher-pro-badge">PRO</span>}
-                <div className="teacher-action-icon">🔒</div>
+                <div className="teacher-action-icon"><ProfileIcon name="lock"/></div>
                 <h4 className="teacher-action-title">Lockdown Mode</h4>
                 <p className="teacher-action-desc">Run an official live class battle</p>
               </button>
@@ -5078,7 +5084,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         {/* Recent Activity Section */}
         <div className="teacher-panel-card">
           <h3 className="teacher-subsection-title">
-            <span>📅</span> Recent Assignments
+            Recent Assignments
           </h3>
           {assignments.length > 0 ? (
             <div className="teacher-table-container">
@@ -5103,7 +5109,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                         <span className={`teacher-badge ${
                           status === 'complete' ? 'success' : status === 'overdue' ? 'danger' : 'warning'
                         }`}>
-                          {status === 'complete' ? '✅ Complete' : status === 'overdue' ? '⏰ Past due' : '⏳ In Progress'}
+                          {status === 'complete' ? 'Complete' : status === 'overdue' ? 'Past due' : 'In progress'}
                         </span>
                       </td>
                     </tr>
@@ -5119,7 +5125,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
         <div className="teacher-panel-card">
           <h3 className="teacher-subsection-title">
-            <span>🚨</span> Student Alerts
+            Student Alerts
           </h3>
           {visibleStudentAlerts.length > 0 ? (
             <ul className="teacher-alert-list">
@@ -5138,7 +5144,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       <div className="teacher-dashboard-grid teacher-dashboard-grid-bottom">
         <div className="teacher-panel-card">
           <h3 className="teacher-subsection-title">
-            <span>🩺</span> Class Health Dashboard
+            Class Health Dashboard
           </h3>
           {classHealthRows.length === 0 ? (
             <p className="text-sm text-slate-500">No classes are allocated to your account yet. Ask your school admin to add you to a teaching group, and class metrics will appear here.</p>
@@ -5178,7 +5184,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
         <div className="teacher-panel-card">
           <h3 className="teacher-subsection-title">
-            <span>🧯</span> At-Risk Students
+            At-Risk Students
           </h3>
           {atRiskStudents.length === 0 ? (
             <p className="text-sm text-slate-500">No high-risk students detected from current submissions.</p>
@@ -5201,7 +5207,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       <div className="teacher-dashboard-grid teacher-dashboard-grid-bottom">
         <div className="teacher-panel-card">
           <h3 className="teacher-subsection-title">
-            <span>⚠️</span> Top Issues
+            Top Issues
           </h3>
           {topIssues.length === 0 ? (
             <p className="text-sm text-slate-500">No major issues detected right now.</p>
@@ -5217,7 +5223,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         </div>
         <div className="teacher-panel-card">
           <h3 className="teacher-subsection-title">
-            <span>✅</span> Recommended Actions
+            Recommended Actions
           </h3>
           <ul className="teacher-priority-list">
             {recommendedActions.map((action, index) => (
@@ -5230,7 +5236,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
       {/* Geometry Builder is the only dashboard tool without its own portal navigation route. */}
       <div className="teacher-mb-8">
         <h3 className="teacher-subsection-title">
-          <span>📐</span> Specialist Tool
+          Specialist Tool
         </h3>
         <div className="teacher-tools-grid teacher-tools-grid--single">
           {(() => {
@@ -5244,7 +5250,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               if (!q) return null;
               const fid = FEATURE_TO_QUOTA[label];
               const ql = fid ? QUOTA_LABELS[fid] : '';
-              if (q.exhausted) return <span className="teacher-pro-badge-sm" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', borderColor: '#ef4444' }}>⚡ UPGRADE</span>;
+              if (q.exhausted) return <span className="teacher-pro-badge-sm" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', borderColor: '#ef4444' }}>Upgrade</span>;
               return <span className="teacher-pro-badge-sm" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', borderColor: '#22d3ee', color: '#e0f2fe' }}>{q.remaining}/{q.limit} {ql}</span>;
             };
             return <>
@@ -5254,7 +5260,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             className={`teacher-tool-card teacher-tool-card--geometry orange ${isDisabledT('Geometry Builder') ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={isDisabledT('Geometry Builder')}
           >
-            <div className="teacher-tool-icon">📐</div>
+            <div className="teacher-tool-icon"><ProfileIcon name="ruler"/></div>
             <div className="teacher-tool-info">
               <h4 className="teacher-tool-title">Geometry Builder</h4>
               <p className="teacher-tool-desc">Create interactive diagram questions</p>
@@ -6589,8 +6595,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   <dl className="teacher-mobile-record-meta">
                     <div><dt>Class</dt><dd>{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</dd></div>
                     <div><dt>Questions</dt><dd>{assignment.question_count}</dd></div>
-                    <div><dt>Created</dt><dd>{new Date(assignment.assigned_at).toLocaleDateString()}</dd></div>
-                    <div><dt>Due</dt><dd>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : 'No deadline'}</dd></div>
+                    <div><dt>Created</dt><dd>{new Date(assignment.assigned_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</dd></div>
+                    <div><dt>Due</dt><dd>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE) : 'No deadline'}</dd></div>
                   </dl>
                   <div className="teacher-mobile-record-progress">
                     <div>
@@ -6630,10 +6636,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   <td className="font-medium">{assignment.title || assignment.topic_name}</td>
                   <td>{assignment.topic_name}</td>
                   <td>{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</td>
-                  <td>{new Date(assignment.assigned_at).toLocaleDateString()}</td>
+                  <td>{new Date(assignment.assigned_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</td>
                   <td>{assignment.question_count}</td>
                   <td>{assignment.student_count}</td>
-                  <td>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString() : '—'}</td>
+                  <td>{assignment.due_at ? new Date(assignment.due_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE) : '—'}</td>
                   <td>
                     <span className="teacher-badge teacher-badge-primary">
                       {assignment.completed_count}/{assignment.student_count}
@@ -6693,11 +6699,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               </button>
             </div>
             <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
-              <div><dt className="text-xs font-semibold uppercase text-slate-400">Created</dt><dd>{new Date(selectedReportAssignment.assigned_at).toLocaleDateString()}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Created</dt><dd>{new Date(selectedReportAssignment.assigned_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</dd></div>
               <div><dt className="text-xs font-semibold uppercase text-slate-400">Class</dt><dd>{selectedReportAssignment.assignment_mode === 'custom' ? 'Selected students' : selectedReportAssignment.batch || '—'}</dd></div>
               <div><dt className="text-xs font-semibold uppercase text-slate-400">Questions</dt><dd>{selectedReportAssignment.question_count}</dd></div>
               <div><dt className="text-xs font-semibold uppercase text-slate-400">Students</dt><dd>{selectedReportAssignment.student_count}</dd></div>
-              <div><dt className="text-xs font-semibold uppercase text-slate-400">Due</dt><dd>{selectedReportAssignment.due_at ? new Date(selectedReportAssignment.due_at).toLocaleDateString() : 'No deadline'}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-400">Due</dt><dd>{selectedReportAssignment.due_at ? new Date(selectedReportAssignment.due_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE) : 'No deadline'}</dd></div>
             </dl>
           </div>
 
@@ -6953,7 +6959,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               {studentAnswers.filter(a => !a.is_correct).length > 0 && (
                 <div className="mb-6">
                   <h4 className="text-lg font-semibold text-red-700 mb-3 flex items-center gap-2">
-                    <span>❌</span> Questions to Review ({studentAnswers.filter(a => !a.is_correct).length})
+                    Questions to Review ({studentAnswers.filter(a => !a.is_correct).length})
                   </h4>
                   {studentAnswers.filter(a => !a.is_correct).map((answer, idx) => (
                     <div key={answer.question_id} className="bg-red-50 border border-red-200 rounded-xl p-4 mb-3">
@@ -6987,7 +6993,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               {studentAnswers.filter(a => a.is_correct).length > 0 && (
                 <div>
                   <h4 className="text-lg font-semibold text-green-700 mb-3 flex items-center gap-2">
-                    <span>✅</span> Correct Answers ({studentAnswers.filter(a => a.is_correct).length})
+                    Correct Answers ({studentAnswers.filter(a => a.is_correct).length})
                   </h4>
                   {studentAnswers.filter(a => a.is_correct).map((answer, idx) => (
                     <div key={answer.question_id} className="bg-green-50 border border-green-200 rounded-xl p-4 mb-3">
@@ -7011,7 +7017,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           {studentAnswers.filter(a => !a.is_correct).length > 0 && (
             <div className="teacher-card bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
               <h4 className="text-lg font-bold text-purple-800 mb-3 flex items-center gap-2">
-                <span>🎯</span> Personalized Recommendations
+                Personalized Recommendations
               </h4>
               <ul className="space-y-2 text-slate-700">
                 <li className="flex items-start gap-2">
@@ -7375,7 +7381,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 onClick={() => setCambridgeFiltersOpen(true)}
                 className="lg:hidden border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 flex items-center gap-1"
               >
-                <span>🔍</span> Filters
+                Filters
               </button>
               <span className="text-xs text-slate-600">
                 <strong className="text-slate-900">{visibleScores.length}</strong> results
@@ -8042,7 +8048,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 <div className="bg-gradient-to-r from-blue-700 to-purple-800 text-white p-5 flex justify-between items-center">
                   <div>
                     <h2 className="text-xl font-bold">{selectedCambridgeStudent.student_name}</h2>
-                    <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString()}</p>
+                    <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</p>
                   </div>
                   <div className="text-right">
                     {answers.requires_marking ? (
@@ -8073,7 +8079,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                           const part2Marks = attemptAnswers?.marks?.part2 || null;
                           return (
                             <div key={attempt.id || `${attempt.submitted_at}-${index}`} className="grid grid-cols-5 gap-2 text-xs items-center bg-white border border-slate-200 rounded-lg p-2">
-                              <span>{new Date(attempt.submitted_at).toLocaleDateString()}</span>
+                              <span>{new Date(attempt.submitted_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</span>
                               <span>{attempt.score}/35</span>
                               <span>{attempt.percentage}%</span>
                               <span>G:{grammar.length} • P:{punctuation.length}</span>
@@ -8248,7 +8254,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
                   {answers.marked_by && (
                     <div className="text-center text-sm text-gray-500">
-                      Marked by {answers.marked_by} on {new Date(answers.marked_at).toLocaleDateString()}
+                      Marked by {answers.marked_by} on {new Date(answers.marked_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}
                     </div>
                   )}
                 </div>
@@ -8390,7 +8396,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               <div className="bg-gradient-to-r from-blue-700 to-purple-800 text-white p-5 flex justify-between items-center">
                 <div>
                   <h2 className="text-xl font-bold">{selectedCambridgeStudent.student_name}</h2>
-                  <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString()}</p>
+                  <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</p>
                 </div>
                 <div className="text-right">
                   <div className="text-3xl font-bold">{selectedCambridgeStudent.score}/{selectedCambridgeStudent.total_questions}</div>
@@ -8683,7 +8689,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 <div className="bg-gray-100 text-black p-5 flex justify-between items-center gap-4">
                   <div>
                     <h2 className="text-xl font-bold">{selectedCambridgeStudent.student_name}</h2>
-                    <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | Submitted: {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString()}</p>
+                    <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | Submitted: {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</p>
                   </div>
                   <button onClick={autoMarkTravelTourism} disabled={autoProofreadLoading} className="px-5 py-3 rounded-xl font-bold bg-gradient-to-r from-cyan-500 to-blue-500 text-white disabled:opacity-60">
                     {autoProofreadLoading ? 'AI analyzing…' : '🤖 Generate AI marking suggestion'}
@@ -8758,7 +8764,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               <div className="bg-gray-100 text-black p-5 flex justify-between items-center">
                 <div>
                   <h2 className="text-xl font-bold">{selectedCambridgeStudent.student_name}</h2>
-                  <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | Submitted: {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString()}</p>
+                  <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | Submitted: {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</p>
                 </div>
                 
                 {/* Auto-Proofread Button */}
@@ -8778,7 +8784,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     </>
                   ) : (
                     <>
-                      <span>🤖</span>
+                      
                       AI Proofread (GPT)
                     </>
                   )}
@@ -9475,7 +9481,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               title="Send a notification to students"
               data-testid="open-teacher-announcement"
             >
-              📣
+              <ProfileIcon name="megaphone"/>
             </button>
             <button
               type="button"
@@ -9487,7 +9493,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               aria-label="Open notifications"
               title="Notifications"
             >
-              {academicProfilePresentation ? <ProfileIcon name="bell"/> : '🔔'}
+              <ProfileIcon name="bell"/>
               {unreadCount > 0 && (
                 <span className="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-bold text-white">
                   {unreadCount > 9 ? '9+' : unreadCount}
@@ -9501,7 +9507,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               aria-label="Open help and guide"
               title="Guide & Help"
             >
-              {academicProfilePresentation ? <ProfileIcon name="info"/> : '❓'}
+              <ProfileIcon name="info"/>
             </button>
             <button
               type="button"
@@ -9509,7 +9515,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/70 text-xl text-slate-200 shadow-sm shadow-slate-950/40 transition hover:border-cyan-500/60 hover:text-white"
               aria-label="Open quick menu"
             >
-              {academicProfilePresentation ? <ProfileIcon name="menu"/> : '☰'}
+              <ProfileIcon name="menu"/>
             </button>
             <button
               type="button"
@@ -9535,7 +9541,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   }}
                   className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60 sm:hidden"
                 >
-                  <span className="flex items-center gap-2"><span className="text-lg">🔔</span>Notifications</span>
+                  <span className="flex items-center gap-2"><ProfileIcon name="bell"/>Notifications</span>
                   {unreadCount > 0 && (
                     <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-bold text-white">
                       {unreadCount > 9 ? '9+' : unreadCount}
@@ -9550,7 +9556,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   }}
                   className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-cyan-200 transition hover:bg-cyan-500/20"
                 >
-                  <span className="text-lg">❓</span>
+                  <ProfileIcon name="info"/>
                   Guide & Help
                 </button>
                 <button
@@ -9561,7 +9567,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   }}
                   className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60"
                 >
-                  <span className="text-lg">📣</span>
+                  <ProfileIcon name="megaphone"/>
                   Send notification
                 </button>
                 <button
@@ -9572,7 +9578,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   }}
                   className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800/60"
                 >
-                  <span className="text-lg">⚙️</span>
+                  <ProfileIcon name="settings"/>
                   Settings
                 </button>
                 {isSchoolAdmin && onOpenSchoolAdmin && (
@@ -9584,7 +9590,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     }}
                     className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-purple-200 transition hover:bg-purple-500/20"
                   >
-                    <span className="text-lg">🏫</span>
+                    <ProfileIcon name="school"/>
                     School Admin Portal
                   </button>
                 )}
@@ -9668,7 +9674,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           <div className="teacher-header-content">
             <div className="teacher-header-info">
               <div className="teacher-header-badge">
-                <span>🎓</span> Educator Workspace
+                Educator Workspace
               </div>
               <h1 className="teacher-header-title">
                 <SchoolBrand brand={schoolBrand} showName={false} imageClassName="h-9 w-9 rounded-md object-contain inline-block mr-2" />
@@ -9706,7 +9712,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               {classAllocationsMissing && (
                 <div className="mt-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-4 py-3">
                   <p className="text-sm text-amber-900">
-                    ⚠️ No teaching groups allocated yet. Contact your school admin to allocate your subject teaching responsibilities.
+                    No teaching groups allocated yet. Contact your school admin to allocate your subject teaching responsibilities.
                   </p>
                 </div>
               )}
@@ -9760,7 +9766,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                         <span className="teacher-nav-label">
                           {tab.label}
                           {locked && !isPilot && <span className="teacher-nav-pro-tag">PRO</span>}
-                          {pilotExhausted && <span className="teacher-nav-pro-tag" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)' }}>⚡ UPGRADE</span>}
+                          {pilotExhausted && <span className="teacher-nav-pro-tag" style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)' }}>Upgrade</span>}
                           {isPilot && tq && !tq.exhausted && <span className="teacher-nav-pro-tag" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)' }}>{tq.remaining}/{tq.limit}</span>}
                         </span>
                         <span className="teacher-nav-desc">{tab.description}</span>
@@ -9842,9 +9848,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 </div>
                 <div className="teacher-writing-hub__tabs" role="tablist" aria-label="Writing Hub sections">
                   {([
-                    ['monitor', '📝', 'Monitor'],
-                    ['analytics', '📈', 'Analytics'],
-                    ['reports', '📤', 'Reports'],
+                    ['monitor', 'pencil', 'Monitor'],
+                    ['analytics', 'trend', 'Analytics'],
+                    ['reports', 'send', 'Reports'],
                   ] as const).map(([section, icon, label]) => (
                     <button
                       key={section}
@@ -9854,7 +9860,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                       className={writingHubSection === section ? 'is-active' : ''}
                       onClick={() => setWritingHubSection(section)}
                     >
-                      <span aria-hidden="true">{icon}</span>
+                      <ProfileIcon name={icon}/>
                       <span>{label}</span>
                     </button>
                   ))}
@@ -10063,7 +10069,7 @@ const TeacherPlanBanner: React.FC<{
     return (
       <div className="teacher-plan-callout mx-4 my-2 rounded-lg border border-cyan-500/30 bg-cyan-500/5 px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
         <span className="text-sm text-cyan-200">
-          🚀 <strong>Pilot Trial</strong> — {daysLeft} day{daysLeft !== 1 ? 's' : ''} remaining.
+          <strong>Pilot Trial</strong> — {daysLeft} day{daysLeft !== 1 ? 's' : ''} remaining.
           {' '}All features unlocked.
         </span>
         {isSchoolAdmin && onOpenSchoolAdmin && (
@@ -10083,7 +10089,7 @@ const TeacherPlanBanner: React.FC<{
     return (
       <div className="mx-4 my-2 rounded-lg border border-red-500/30 bg-red-500/5 px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
         <span className="text-sm text-red-200">
-          ⏰ <strong>Pilot trial expired.</strong> Some features are now locked.
+          <strong>Pilot trial expired.</strong> Some features are now locked.
         </span>
         {isSchoolAdmin && onOpenSchoolAdmin ? (
           <button
@@ -10104,7 +10110,7 @@ const TeacherPlanBanner: React.FC<{
     return (
       <div className="mx-4 my-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
         <span className="text-sm text-amber-200">
-          🔓 <strong>Free plan</strong> — Lockdown mode only.
+          <strong>Free plan</strong> — Lockdown mode only.
           {' '}Upgrade to unlock Cambridge tests, IELTS, assignments & more.
         </span>
         {isSchoolAdmin && onOpenSchoolAdmin ? (
