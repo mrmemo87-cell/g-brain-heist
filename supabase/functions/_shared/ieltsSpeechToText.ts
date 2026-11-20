@@ -214,3 +214,73 @@ export function withoutUnsureHighlights<T extends Pick<SpeakingHighlight, 'quote
 export function withoutUnsureWords<T extends { word: string }>(items: T[], confidence: WordConfidence): T[] {
   return items.filter((item) => !onlyHeardUnsure(item.word, confidence));
 }
+
+/** Words of one recording, ready for the transcript, highlights and draft segments. */
+export type ScribeWords = { text: string; words: SpokenWord[]; model: string };
+
+/** What transcribeOnce needs from the database and from Scribe (injected so the race can be tested). */
+export type TranscribeOnceSteps = {
+  /** Words already kept for this recording, if any. */
+  kept: () => Promise<{ words: SpokenWord[]; model: string } | undefined>;
+  /** 'done' (words kept), 'claimed' (transcribe now) or 'busy' (another step is transcribing). Throws on failure. */
+  claim: () => Promise<string>;
+  release: () => Promise<void>;
+  /** A complete Scribe transcription, or null when it failed or looked incomplete. */
+  transcribe: () => Promise<SpeechToTextResult | null>;
+  keep: (heard: SpeechToTextResult) => Promise<void>;
+  /** The same completeness check used for fresh transcripts (no lost speech, no loops). */
+  complete: (text: string) => boolean;
+  log?: (stage: string, detail: unknown) => void;
+  sleep?: (ms: number) => Promise<void>;
+  now?: () => number;
+  waitMs?: number;
+  pollMs?: number;
+};
+
+/**
+ * One Scribe transcription per recording, even when the teacher's AI draft and the transcript analysis start at
+ * the same moment (they both start when a review is opened). The step that claims the recording transcribes it and
+ * keeps the words; the other waits (its screen keeps showing that the recording is being transcribed) and reuses
+ * them. A step that waits longer than waitMs transcribes the recording itself, so nothing waits forever.
+ * Returns null when OpenAI should be used instead.
+ */
+export async function transcribeOnce(steps: TranscribeOnceSteps): Promise<ScribeWords | null> {
+  const sleep = steps.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+  const now = steps.now ?? (() => Date.now());
+  const waitMs = steps.waitMs ?? 45000;
+  const pollMs = steps.pollMs ?? 2500;
+  const reuse = async (): Promise<ScribeWords | null> => {
+    const kept = await steps.kept();
+    if (!kept?.words.length) return null;
+    const text = textFromWords(kept.words);
+    return steps.complete(text) ? { text, words: kept.words, model: kept.model } : null;
+  };
+  const started = now();
+  for (;;) {
+    const ready = await reuse();
+    if (ready) return ready;
+    let status = 'claimed';
+    try {
+      status = await steps.claim();
+    } catch (e) {
+      // Without the claim, transcribe anyway: a lock problem must never stop a transcript.
+      steps.log?.('transcription_claim', e instanceof Error ? e.message : e);
+    }
+    // The other step finished between our check and our claim. If its words fail the completeness check, Scribe
+    // has already tried this recording, so OpenAI is used instead.
+    if (status === 'done') return reuse();
+    if (status === 'busy' && now() - started < waitMs) {
+      await sleep(pollMs);
+      continue;
+    }
+    if (status === 'busy') steps.log?.('transcription_wait', 'gave_up_waiting');
+    try {
+      const heard = await steps.transcribe();
+      if (!heard) return null;
+      await steps.keep(heard);
+      return { text: heard.text, words: heard.words, model: `elevenlabs/${heard.model}` };
+    } finally {
+      if (status === 'claimed') await steps.release();
+    }
+  }
+}

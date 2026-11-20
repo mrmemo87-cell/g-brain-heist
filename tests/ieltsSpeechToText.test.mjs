@@ -143,13 +143,104 @@ test('a transcription is kept once and rebuilt exactly, so the review step does 
   assert.deepEqual(stt.wordsFromDetail(null), []);
 });
 
-test('the interview reuses kept words in both steps and only transcribes when they are missing or incomplete', () => {
+test('the interview transcribes through transcribeOnce in both steps', () => {
   const pilot = readFileSync('supabase/functions/ielts_speaking_pilot/index.ts', 'utf8');
-  assert.match(pilot, /const kept = await keptScribeWords\(admin, sessionId\);/, 'review step reads kept words');
-  assert.match(pilot, /const kept = await keptScribeWords\(admin, body\.sessionId\);/, 'draft step reads kept words');
-  assert.match(pilot, /transcribeForAnalysis\(bytes, key, Number\(clip\.duration_seconds\) \|\| 0, kept\.get\(clip\.id\)\)/);
-  assert.match(pilot, /transcriptLooksComplete\(textFromWords\(kept\.words\), seconds\)/, 'kept words pass the same completeness check');
-  assert.match(pilot, /if \(heard\.scribe\) await keepScribeWords\(admin, sessionId, clip\.id, heard\.scribe\);/);
+  assert.match(pilot, /const heard = await scribeOnce\(admin, sessionId, clipId, bytes, seconds\);/, 'draft step');
+  assert.match(pilot, /transcribeForAnalysis\(bytes, key, Number\(clip\.duration_seconds\) \|\| 0, admin, sessionId, clip\.id\)/, 'review step');
+  assert.match(pilot, /rpc_ielts_claim_speaking_clip_transcription/);
+  assert.match(pilot, /rpc_ielts_release_speaking_clip_transcription/);
+  assert.match(pilot, /complete: \(text\) => transcriptLooksComplete\(text, seconds\)/, 'kept words pass the same completeness check');
+});
+
+// A shared fake database with the same claim rules as the migration, and a fake clock.
+function world({ scribeSeconds = 20, scribeResult = 'ok' } = {}) {
+  const db = { kept: undefined, claim: null };
+  let clock = 0; let calls = 0;
+  const heard = stt.readScribeResponse(scribe, 'scribe_v2');
+  const step = (name, overrides = {}) => ({
+    kept: async () => db.kept,
+    claim: async () => {
+      if (db.kept) return 'done';
+      if (db.claim && clock - db.claim.at < 180000) return 'busy';
+      db.claim = { by: name, at: clock }; return 'claimed';
+    },
+    release: async () => { if (db.claim?.by === name) db.claim = null; },
+    transcribe: async () => { calls += 1; clock += scribeSeconds * 1000; return scribeResult === 'ok' ? heard : null; },
+    keep: async (h) => { db.kept ??= { words: h.words, model: `elevenlabs/${h.model}` }; },
+    complete: () => true,
+    sleep: async (ms) => { clock += ms; },
+    now: () => clock,
+    ...overrides,
+  });
+  return { db, step, calls: () => calls };
+}
+
+test('two steps starting together: one transcribes, the other waits and reuses the same words', async () => {
+  const w = world();
+  // The analysis claims first and transcribes; the draft finds the recording busy, waits, then reuses.
+  const first = w.step('analysis');
+  const second = w.step('draft');
+  let releaseFirst;
+  const gate = new Promise((r) => { releaseFirst = r; });
+  const slowFirst = { ...first, transcribe: async () => { await gate; return first.transcribe(); } };
+  const a = stt.transcribeOnce(slowFirst);
+  await new Promise((r) => setImmediate(r));
+  assert.equal(w.db.claim?.by, 'analysis');
+  let waits = 0;
+  const b = stt.transcribeOnce({ ...second, sleep: async (ms) => { waits += 1; if (waits === 2) releaseFirst(); await second.sleep(ms); await new Promise((r) => setImmediate(r)); } });
+  const [ra, rb] = await Promise.all([a, b]);
+  assert.equal(w.calls(), 1, 'Scribe is paid once');
+  assert.ok(waits >= 2, 'the second step waited');
+  assert.equal(rb.text, stt.textFromWords(ra.words));
+  assert.equal(rb.model, 'elevenlabs/scribe_v2');
+  assert.equal(w.db.claim, null, 'the claim is released');
+});
+
+test('a step that waits too long transcribes the recording itself, so nothing waits forever', async () => {
+  const w = world();
+  w.db.claim = { by: 'crashed', at: 0 };
+  const logs = [];
+  const result = await stt.transcribeOnce({ ...w.step('draft'), log: (stage, detail) => logs.push(`${stage}:${detail}`) });
+  assert.equal(w.calls(), 1);
+  assert.ok(result.words.length);
+  assert.deepEqual(logs, ['transcription_wait:gave_up_waiting']);
+  assert.equal(w.db.claim.by, 'crashed', 'it never releases a claim it does not hold');
+});
+
+test('a claim older than three minutes is treated as abandoned', async () => {
+  const w = world();
+  w.db.claim = { by: 'crashed', at: -200000 };
+  const result = await stt.transcribeOnce(w.step('analysis'));
+  assert.ok(result);
+  assert.equal(w.calls(), 1);
+  assert.equal(w.db.claim, null);
+});
+
+test('words already kept are reused without a claim or a charge', async () => {
+  const w = world();
+  w.db.kept = { words: stt.readScribeResponse(scribe, 'scribe_v2').words, model: 'elevenlabs/scribe_v2' };
+  let claimed = false;
+  const result = await stt.transcribeOnce({ ...w.step('draft'), claim: async () => { claimed = true; return 'done'; } });
+  assert.equal(w.calls(), 0);
+  assert.equal(claimed, false);
+  assert.equal(result.model, 'elevenlabs/scribe_v2');
+});
+
+test('failures fall back to OpenAI and never block: failed Scribe, broken lock, incomplete kept words', async () => {
+  const failed = world({ scribeResult: 'fail' });
+  assert.equal(await stt.transcribeOnce(failed.step('draft')), null);
+  assert.equal(failed.db.claim, null, 'released after a failed transcription');
+
+  const broken = world();
+  const logs = [];
+  const result = await stt.transcribeOnce({ ...broken.step('draft'), claim: async () => { throw new Error('lock_down'); }, log: (s, d) => logs.push(`${s}:${d}`) });
+  assert.ok(result, 'a lock problem still produces a transcript');
+  assert.deepEqual(logs, ['transcription_claim:lock_down']);
+
+  const incomplete = world();
+  incomplete.db.kept = { words: stt.readScribeResponse(scribe, 'scribe_v2').words, model: 'elevenlabs/scribe_v2' };
+  assert.equal(await stt.transcribeOnce({ ...incomplete.step('draft'), complete: () => false }), null, 'Scribe already tried: use OpenAI');
+  assert.equal(incomplete.calls(), 0);
 });
 
 test('the kept detail is service-only: browsers never receive confidences', () => {
