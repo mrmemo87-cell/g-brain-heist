@@ -66,14 +66,18 @@ test('the spoken word is the last one that has started', () => {
 
 test('word times ride on the existing transcription and cost nothing extra for new drafts', () => {
   assert.match(fn, /form\.append\("timestamp_granularities\[\]", "segment"\);[\s\S]{0,200}form\.append\("timestamp_granularities\[\]", "word"\);/);
-  assert.match(fn, /segments: await transcribeInterview\(clip\.bytes, key, keepWords\(admin, body\.sessionId, clip\.id\)\)/);
+  // Scribe's words carry their times; the OpenAI segment request (with word times) stays as the fallback.
+  assert.match(fn, /segments: await transcribeDraftSegments\(clip\.bytes, key, Number\(clip\.duration_seconds\) \|\| 0, admin, body\.sessionId, clip\.id\)/);
+  assert.match(fn, /keepWords\(admin, sessionId, clipId, `elevenlabs\/\$\{heard\.model\}`\)\(timedWords\(heard\.words\)\)/);
+  assert.match(fn, /return transcribeInterview\(bytes, key, keepWords\(admin, sessionId, clipId\)\);/);
   // Saving times can never fail a draft or transcript.
   assert.match(fn, /try \{ onWords\(words\); \} catch \{/);
 });
 
 test('older recordings are timed only when the reviewing teacher asks, after the recording is verified', () => {
   assert.match(wordFn, /rpc_ielts_speaking_session", \{ p_session_id: body\.sessionId \}\);\s+if \(sessionError \|\| !session\?\.can_review\) return reply\(\{ error: "not_authorized" \}, 403\);/);
-  assert.match(wordFn, /if \(\(await sha\(bytes\)\) !== clip\.sha256\) throw new Error\("source_mismatch"\);\s+const words = await timeWords\(bytes, key\);/);
+  assert.match(wordFn, /if \(\(await sha\(bytes\)\) !== clip\.sha256\) throw new Error\("source_mismatch"\);\s+const \{ words, model \} = await timeWordsAnyModel\(bytes, key\);/);
+  assert.match(wordFn, /return \{ words: await timeWords\(bytes, key\), model: MODEL \};/, 'whisper-1 remains the fallback');
   assert.match(wordFn, /\.filter\(\(c\) => !have\.has\(c\.id\)\)/);
   assert.match(wordFn, /MAX_SECONDS = 1800/);
   // The questions are never sent as a hint, and nothing about the speech is logged.

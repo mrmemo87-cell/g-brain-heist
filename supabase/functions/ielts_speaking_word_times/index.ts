@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.78.0";
+import { SCRIBE_DEFAULT_MODEL, scribeTranscribe, timedWords } from "../_shared/ieltsSpeechToText.ts";
 
 /**
  * Word times for saved IELTS Speaking interview recordings (Visual & UX Bible 1.14.0, section 13.9).
@@ -38,6 +39,21 @@ const MAX_CLIPS = 12;
 const MAX_SECONDS = 1800;
 
 type TimedWord = [string, number];
+// ElevenLabs Scribe returns word times with its transcript; whisper-1 stays as the fallback.
+const SCRIBE_KEY = Deno.env.get("ELEVENLABS_API_KEY")?.trim() || "";
+const SCRIBE_MODEL = Deno.env.get("IELTS_SPEAKING_SCRIBE_MODEL")?.trim() || SCRIBE_DEFAULT_MODEL;
+async function timeWordsAnyModel(bytes: ArrayBuffer, key: string): Promise<{ words: TimedWord[]; model: string }> {
+  if (SCRIBE_KEY) {
+    try {
+      const heard = await scribeTranscribe(bytes, { apiKey: SCRIBE_KEY, model: SCRIBE_MODEL, timeoutMs: 90000 });
+      const words = timedWords(heard.words);
+      if (words.length) return { words, model: `elevenlabs/${heard.model}` };
+    } catch (e) {
+      why("scribe", e instanceof Error ? e.message : e);
+    }
+  }
+  return { words: await timeWords(bytes, key), model: MODEL };
+}
 
 async function timeWords(bytes: ArrayBuffer, key: string): Promise<TimedWord[]> {
   const form = new FormData();
@@ -107,13 +123,13 @@ Deno.serve(async (req: Request) => {
         if (error || !audio) throw new Error("missing_audio");
         const bytes = await audio.arrayBuffer();
         if ((await sha(bytes)) !== clip.sha256) throw new Error("source_mismatch");
-        const words = await timeWords(bytes, key);
+        const { words, model } = await timeWordsAnyModel(bytes, key);
         if (!words.length) return;
         const { error: saveError } = await admin.rpc("rpc_ielts_save_speaking_clip_words", {
           p_session_id: body.sessionId,
           p_clip_id: clip.id,
           p_words: words,
-          p_model: MODEL,
+          p_model: model,
         });
         if (saveError) throw new Error("save_failed");
       } catch (e) {

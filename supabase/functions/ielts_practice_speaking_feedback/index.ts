@@ -15,11 +15,20 @@ import { claudeValidated, primaryModel, providerTag } from '../_shared/aiProvide
 import {
   PRONUNCIATION_PASS_INSTRUCTIONS,
   stripLeadingEcho,
+  transcriptLooksComplete,
   validatePronunciationPass,
   withIpa,
   type PronunciationPass,
 } from '../_shared/ieltsSpeakingAnnotations.ts';
 import { withPronunciationPass } from '../_shared/ieltsPracticeSpeakingFeedback.ts';
+import {
+  SCRIBE_DEFAULT_MODEL,
+  NO_CONFIDENCE,
+  scribeTranscribe,
+  wordConfidence,
+  withoutUnsureHighlights,
+  withoutUnsureWords,
+} from '../_shared/ieltsSpeechToText.ts';
 // CMU Pronouncing Dictionary (American English): IPA comes from the dictionary, never from the AI.
 import { dictionary } from 'npm:cmu-pronouncing-dictionary@3.0.0';
 
@@ -30,6 +39,10 @@ const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers
 const json = (status: number, value: unknown) => new Response(JSON.stringify(value), { status, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 const model = Deno.env.get('IELTS_PRACTICE_SPEAKING_MODEL')?.trim() || Deno.env.get('IELTS_SPEAKING_DRAFT_MODEL')?.trim() || 'gpt-audio-1.5';
 const transcribeModel = Deno.env.get('IELTS_PRACTICE_TRANSCRIBE_MODEL')?.trim() || 'gpt-4o-transcribe';
+// ElevenLabs Scribe writes what the learner actually said (mistakes, repeats, fillers). Without its key, or when its
+// transcript fails the completeness check, the OpenAI transcription above is used exactly as before.
+const scribeKey = Deno.env.get('ELEVENLABS_API_KEY')?.trim() || '';
+const scribeModel = Deno.env.get('IELTS_SPEAKING_SCRIBE_MODEL')?.trim() || SCRIBE_DEFAULT_MODEL;
 // Pronunciation is judged only by a model that hears the audio (Bible 10.3), even when Claude wrote the rest.
 const pronunciationModel = Deno.env.get('IELTS_PRACTICE_PRONUNCIATION_MODEL')?.trim() || model;
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -149,13 +162,28 @@ Deno.serve(async (req: Request) => {
       return json(409, { error: 'audio_missing' });
     }
     const bytes = await audio.arrayBuffer();
-    inspectSpeakingWav(bytes);
+    const { duration } = inspectSpeakingWav(bytes);
     const task = { part: context.part, question: context.prompt, follow_ups: context.follow_ups };
     const signal = AbortSignal.timeout(130000);
     // Two passes: write down the words first, then judge with both the transcript and the audio.
-    // Speech-to-text can copy its hint (which includes the question) into the transcript: strip any such echo.
-    const hint = speakingTranscriptionHint(task);
-    const transcript = stripLeadingEcho(await transcribe(bytes, apiKey, hint, signal), hint, String(context.prompt ?? ''));
+    // Scribe first (no hint, so the question can never be echoed); words it was unsure of are never highlighted.
+    let transcript = ''; let confidence = NO_CONFIDENCE; let heardBy = '';
+    if (scribeKey) {
+      try {
+        const heard = await scribeTranscribe(bytes, { apiKey: scribeKey, model: scribeModel, signal });
+        if (transcriptLooksComplete(heard.text, duration)) {
+          transcript = heard.text.slice(0, 6000); confidence = wordConfidence(heard.words); heardBy = `elevenlabs/${heard.model}`;
+        } else console.warn('Speaking transcript incomplete', { feedbackId: claim.id, reason: 'scribe_incomplete' });
+      } catch (e) {
+        console.warn('Speaking transcript unavailable', { feedbackId: claim.id, reason: e instanceof Error ? e.message.slice(0, 80) : 'unknown' });
+      }
+    }
+    if (!transcript) {
+      // Speech-to-text can copy its hint (which includes the question) into the transcript: strip any such echo.
+      const hint = speakingTranscriptionHint(task);
+      transcript = stripLeadingEcho(await transcribe(bytes, apiKey, hint, signal), hint, String(context.prompt ?? ''));
+      heardBy = `openai/${transcribeModel}`;
+    }
     let fields: SpeakingPracticeFeedback | undefined; let providerId: string | null = null;
     // Claude first (Max plan API credit): it marks from the OpenAI transcript only, so pronunciation is
     // recorded as not assessed (Bible 10.3). The original audio model below is the fallback and can hear it.
@@ -192,9 +220,12 @@ Deno.serve(async (req: Request) => {
       } catch { if (attempt > 0) throw new Error('validation_failed'); }
     }
     if (!fields) throw new Error('validation_failed');
+    fields = { ...fields, highlights: withoutUnsureHighlights(fields.highlights ?? [], confidence) };
     const pass = await pronunciationPass(bytes, apiKey, task, transcript, signal);
-    if (pass) fields = withPronunciationPass(fields, pass, withIpa(pass.words, dictionary as Record<string, string>, true));
-    const { error: finishError } = await admin.rpc('rpc_ielts_practice_speaking_feedback_finish', { p_id: claim.id, p_fields: fields, p_provider: providerId });
+    if (pass) fields = withPronunciationPass(fields, pass, withIpa(withoutUnsureWords(pass.words, confidence), dictionary as Record<string, string>, true));
+    // Provenance: which speech-to-text model wrote the transcript is kept beside the marking model.
+    const provider = providerId ? `${providerId}+${heardBy}` : providerId;
+    const { error: finishError } = await admin.rpc('rpc_ielts_practice_speaking_feedback_finish', { p_id: claim.id, p_fields: fields, p_provider: provider });
     if (finishError) throw new Error('save_failed');
     const { data: view, error: viewError } = await caller.rpc('rpc_ielts_practice_speaking_feedback', { p_attempt: body.attemptId });
     if (viewError || !view) return json(403, { error: 'not_available' });
