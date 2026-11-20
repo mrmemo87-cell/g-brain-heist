@@ -9,6 +9,7 @@ import { BAN_MESSAGE, isBannedFlag, storeBanMessage } from './banMessage.js';
 import { notificationService } from './notificationService.js';
 import { fetchMyXpStatus } from './xpStatus.js';
 import { normalizeTeacherRoster } from '../src/lib/teacherRoster.js';
+import { markTargetedPractice } from '../src/lib/teacherTargetedPractice.js';
 import { audioService } from './audioService.js';
 import { regenerateUserAp, notifyApFull, performHackAttempt, checkAchievements as rpcCheckAchievements, createTeacherProfile as rpcCreateTeacherProfile, recordQuestionAttempt, createAssignment as rpcCreateAssignment, getAssignmentsForTeacher as rpcGetAssignmentsForTeacher, deleteTeacherAssignment as rpcDeleteTeacherAssignment, updateTeacherAssignment as rpcUpdateTeacherAssignment, getTeacherAssignmentSuccessSummary as rpcGetTeacherAssignmentSuccessSummary, getStudentsForAssignment as rpcGetStudentsForAssignment, getStudentActiveAssignment as rpcGetStudentActiveAssignment, getStudentPendingAssignments as rpcGetStudentPendingAssignments, submitAssignmentResult as rpcSubmitAssignmentResult, teacherAssignmentReport as rpcTeacherAssignmentReport, submitAssignmentAnswer as rpcSubmitAssignmentAnswer, getAssignmentStudentAnswers as rpcGetAssignmentStudentAnswers, getAssignmentQuestionAnalysis as rpcGetAssignmentQuestionAnalysis, getStudentCompletedAssignments as rpcGetStudentCompletedAssignments, checkAssignmentAchievements as rpcCheckAssignmentAchievements, getMyAssignmentAnswers as rpcGetMyAssignmentAnswers } from './rpcGateway.js';
 const MOCK_DELAY = 500;
@@ -4272,10 +4273,11 @@ export const get_teacher_assignments = async (teacherId) => {
     if (error)
         throw new Error(error.message || 'Failed to load assignments');
     const assignments = data || [];
-    const [{ data: contextData, error: contextError }, { data: groupContextData, error: groupContextError }, { data: deliveryContext, error: deliveryError }] = await Promise.all([
+    const [{ data: contextData, error: contextError }, { data: groupContextData, error: groupContextError }, { data: deliveryContext, error: deliveryError }, { data: targetedData, error: targetedError }] = await Promise.all([
         supabase.rpc('rpc_teacher_assignment_category_context', { p_teacher_id: resolvedTeacherId }),
         supabase.rpc('rpc_teacher_assignment_group_context', { p_teacher_id: resolvedTeacherId }),
         supabase.rpc('rpc_teacher_assignment_delivery_context', { p_assignment_ids: assignments.map((a) => a.id) }),
+        supabase.rpc('rpc_teacher_targeted_practice_assignments'),
     ]);
     if (contextError)
         throw new Error(contextError.message || 'Failed to load assignment category context');
@@ -4287,7 +4289,10 @@ export const get_teacher_assignments = async (teacherId) => {
     assignments.forEach((assignment) => { assignment.delivery_mode = deliveryById.get(assignment.id) || 'online'; });
     const withCategory = mergeAssignmentCategoryContext(assignments, contextData || []);
     const groupContext = new Map((groupContextData || []).map((row) => [row.assignment_id, row]));
-    return withCategory.map((assignment) => {
+    // The targeted-practice link is optional context: if it cannot be loaded the
+    // list still opens and the title-based fallback identifies these tasks.
+    const targetedRows = !targetedError && Array.isArray(targetedData) ? targetedData : null;
+    return markTargetedPractice(withCategory.map((assignment) => {
         const extra = groupContext.get(assignment.id);
         return extra ? {
             ...assignment,
@@ -4296,7 +4301,7 @@ export const get_teacher_assignments = async (teacherId) => {
             subject_group_id: extra.subject_group_id ?? undefined,
             subject_group_name: extra.subject_group_name ?? undefined,
         } : assignment;
-    });
+    }), targetedRows);
 };
 export const delete_teacher_assignment = async (assignmentId) => {
     if (!assignmentId)
@@ -4374,6 +4379,12 @@ export const get_teacher_assignment_success_summary = async () => {
         answered_question_count: Number(row?.answered_question_count || 0),
         correct_answer_count: Number(row?.correct_answer_count || 0),
         success_rate: Number(row?.success_rate || 0),
+        overdue_assignment_count: Number(row?.overdue_assignment_count || 0),
+        assignment_followups: Array.isArray(row?.assignment_followups) ? row.assignment_followups : [],
+        student_followups: Array.isArray(row?.student_followups) ? row.student_followups : [],
+        student_followup_count: Number(row?.student_followup_count || 0),
+        assignment_results: Array.isArray(row?.assignment_results) ? row.assignment_results : [],
+        has_insights: Array.isArray(row?.assignment_results),
     };
 };
 export const get_students_for_assignment = async (teacherId) => {
@@ -4567,6 +4578,22 @@ export const get_all_assignment_reports = async (assignmentIds) => {
     if (!teacher)
         throw new Error('User is not a teacher');
     const results = {};
+    if (assignmentIds.length === 0)
+        return results;
+    // One request for every assignment. Older databases without the bulk RPC
+    // fall through to the per-assignment requests below.
+    const bulk = await supabase.rpc('rpc_teacher_assignment_reports_bulk', {
+        p_teacher_id: teacher.id,
+        p_assignment_ids: assignmentIds,
+    });
+    if (!bulk.error && Array.isArray(bulk.data)) {
+        assignmentIds.forEach((id) => { results[id] = []; });
+        bulk.data.forEach(({ assignment_id, ...row }) => {
+            (results[assignment_id] ||= []).push(row);
+        });
+        return results;
+    }
+    console.warn('Bulk assignment report unavailable; loading reports one by one:', bulk.error?.message);
     // Fetch reports in parallel batches (max 6 concurrent)
     const BATCH_SIZE = 6;
     for (let i = 0; i < assignmentIds.length; i += BATCH_SIZE) {

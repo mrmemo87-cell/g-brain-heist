@@ -73,6 +73,31 @@ export const loadWritingStoreSnapshot = async (options = {}) => {
         Promise.resolve({ data: [], error: null }),
         supabase.from('bh_writing_calibration_followups').select('*').eq('student_id', activeStudentId),
     ]);
+    // The student may read their own final teacher reviews (RLS "writing assessment review student read final").
+    // The teacher's total replaces the AI total wherever a score is shown.
+    const finalReviewsRes = await supabase
+        .from('bh_writing_assessment_reviews')
+        .select('total_score, criterion_scores, rationale, created_at, bh_writing_assessments!inner(attempt_key)')
+        .eq('student_id', activeStudentId)
+        .eq('review_status', 'final');
+    const finalTeacherReviewsByAttemptKey = {};
+    if (finalReviewsRes.error) {
+        console.warn(`[writingRepository] Partial DB load failed for final_reviews: ${finalReviewsRes.error.message}`);
+    }
+    else {
+        for (const row of (finalReviewsRes.data ?? [])) {
+            const joined = Array.isArray(row?.bh_writing_assessments) ? row.bh_writing_assessments[0] : row?.bh_writing_assessments;
+            const key = typeof joined?.attempt_key === 'string' ? joined.attempt_key : null;
+            if (!key || typeof row?.total_score !== 'number')
+                continue;
+            finalTeacherReviewsByAttemptKey[key] = {
+                total_score: row.total_score,
+                criterion_scores: row.criterion_scores && typeof row.criterion_scores === 'object' ? row.criterion_scores : {},
+                rationale: typeof row.rationale === 'string' ? row.rationale : null,
+                reviewed_at: typeof row.created_at === 'string' ? row.created_at : '',
+            };
+        }
+    }
     const readRows = (result, label) => {
         if (result.error) {
             console.warn(`[writingRepository] Partial DB load failed for ${label}: ${result.error.message}`);
@@ -155,6 +180,7 @@ export const loadWritingStoreSnapshot = async (options = {}) => {
         promptBank: promptRows.map((row) => row.payload),
         reviewSignals: signalRows.map((row) => row.payload),
         calibrationFollowUpByStudent: Object.fromEntries(followupRows.map((row) => [row.student_id, row.payload])),
+        finalTeacherReviewsByAttemptKey,
     };
 };
 export const persistWritingStoreSnapshot = async (snapshot) => {

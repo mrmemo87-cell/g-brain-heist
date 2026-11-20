@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import IeltsMaterialProvenance from './IeltsMaterialProvenance';
+import IeltsShellIcon from './IeltsShellIcon';
 import { ieltsMaterialTitle } from '../../../services/ieltsMaterialCode';
 import type { LearningAllocation } from '../../../services/ieltsLearningService';
 import { IeltsCardGroup } from './student/IeltsStudentShell';
@@ -30,7 +31,7 @@ export function IeltsWaitingForScreeners({ count }: { count: number }) {
   if (count <= 0) return null;
   return (
     <Link to="/ielts/journey" className="isn-locked">
-      <span className="isn-locked-icon" aria-hidden="true">🔒</span>
+      <span className="isn-locked-icon" aria-hidden="true"><IeltsShellIcon name="lock" /></span>
       <span className="isn-locked-text"><strong>{count === 1 ? '1 task from your teacher is waiting' : `${count} tasks from your teacher are waiting`}</strong><small>{count === 1 ? 'It appears' : 'They appear'} here when you finish your Listening, Reading and Writing starting checks.</small></span>
       <span className="isn-locked-go" aria-hidden="true">→</span>
     </Link>

@@ -5,6 +5,7 @@ import { WRITING_PILOT_GUARDRAILS } from './writingAdminConfig.js';
 import { getWritingRepositoryMode, loadWritingStoreSnapshot, persistWritingStoreSnapshot, persistMonthlyWritingReport, } from './writingRepository.js';
 import { EMAIL_STARTER_PROMPT_TEXT, FALLBACK_PROMPT_BY_GENRE, gradeToDifficultyLevel, parseFocusAndContextTags, STRUCTURED_WRITING_PROMPT_BANK, toCurriculumTagsForStructuredPrompt, WEAKNESS_TAG_TO_MISSION_CATEGORY, WEAKNESS_TAG_TO_PROMPT_FOCUS, } from './writingPromptProgression.js';
 import { isAcademicProfileWritingAssessment } from './writingAssessmentAuthority.js';
+import { classifyGrammarFix, normalizeWeaknessTag } from './writingWeaknessTags.js';
 import { getCambridgeWritingProfile } from './cambridgeWritingProfiles.js';
 const store = {
     profiles: new Map(),
@@ -36,6 +37,10 @@ const getStorage = () => {
     }
     return null;
 };
+// Final teacher reviews for the signed-in student, keyed by attempt key. Kept outside `store` so they are never
+// persisted back with the snapshot; the review table is the authority.
+let finalTeacherReviewsByAttemptKey = {};
+export const getFinalTeacherWritingReview = (attemptId) => finalTeacherReviewsByAttemptKey[attemptId] ?? null;
 const serializeStore = () => ({
     ownerStudentId: hydratedStudentId ?? undefined,
     profiles: [...store.profiles.entries()],
@@ -206,6 +211,7 @@ const applyHydratedSnapshot = (parsed, hydrateStartVersion, reason, generation) 
     store.promptBank = (parsed.promptBank ?? []);
     store.reviewSignals = (parsed.reviewSignals ?? []);
     store.calibrationFollowUpByStudent = parsed.calibrationFollowUpByStudent ?? {};
+    finalTeacherReviewsByAttemptKey = parsed.finalTeacherReviewsByAttemptKey ?? {};
     hydrationState = 'ready';
     notifyHydrationListeners();
 };
@@ -317,6 +323,7 @@ export const retryWritingHydration = () => {
     return hydrateStore();
 };
 const clearStudentScopedWritingStore = () => {
+    finalTeacherReviewsByAttemptKey = {};
     store.profiles.clear();
     store.usernamesById = {};
     store.states.clear();
@@ -436,40 +443,22 @@ const inferFeedbackWeaknessTagCounts = (feedback) => {
         const issue = typeof fix['issue'] === 'string' ? fix['issue'].toLowerCase() : '';
         const original = typeof fix['original'] === 'string' ? fix['original'] : '';
         const better = typeof fix['better_version'] === 'string' ? fix['better_version'] : '';
-        const explicitFixTag = typeof fix['weakness_tag'] === 'string' && WRITING_WEAKNESS_TAG_SET.has(fix['weakness_tag'])
-            ? fix['weakness_tag']
-            : null;
+        const explicitFixTag = normalizeWeaknessTag(fix['weakness_tag'], WRITING_WEAKNESS_TAG_SET);
         if (explicitFixTag) {
             increment(explicitFixTag);
             return;
         }
-        const combined = `${issue} ${original} ${better}`;
-        if (/agreement|subject.?verb|\bthere is\b.*\bthere are\b|\bthere are\b.*\bthere is\b|\bhas\b.*\bhave\b|\bhave\b.*\bhas\b/i.test(combined))
-            increment('agreement_error');
-        else if (/tense|past tense|present tense|verb time/i.test(combined))
-            increment('tense_error');
-        else if (/\barticle\b|\ba\b.*\ban\b|\ban\b.*\ba\b|\bthe\b/i.test(issue))
-            increment('article_error');
-        else if (/preposition/i.test(issue))
-            increment('preposition_error');
-        else if (/fragment|incomplete sentence/i.test(issue))
-            increment('fragment');
-        else if (/run.?on|sentence boundary/i.test(issue))
-            increment('run_on');
+        const classified = classifyGrammarFix(issue, original, better);
+        if (classified)
+            increment(classified);
         else if (/spelling|misspell|typo/i.test(issue) || containsLikelySpellingCorrection(original, better))
             increment('spelling_error');
     });
     readObjectArray(feedback['punctuation_fixes']).forEach((fix) => {
-        const tag = typeof fix['weakness_tag'] === 'string' && WRITING_WEAKNESS_TAG_SET.has(fix['weakness_tag'])
-            ? fix['weakness_tag']
-            : 'punctuation_error';
-        increment(tag);
+        increment(normalizeWeaknessTag(fix['weakness_tag'], WRITING_WEAKNESS_TAG_SET) ?? 'punctuation_error');
     });
     readObjectArray(feedback['natural_phrase_upgrades']).forEach((fix) => {
-        const tag = typeof fix['weakness_tag'] === 'string' && WRITING_WEAKNESS_TAG_SET.has(fix['weakness_tag'])
-            ? fix['weakness_tag']
-            : 'weak_word_choice';
-        increment(tag);
+        increment(normalizeWeaknessTag(fix['weakness_tag'], WRITING_WEAKNESS_TAG_SET) ?? 'weak_word_choice');
     });
     increment('weak_register_control', readObjectArray(feedback['style_tone_feedback']).length);
     explicitTags.forEach((tag) => {
@@ -782,15 +771,20 @@ export const listStudentWritingHistoryByGenre = (studentId) => {
             academic_year_id: attempt.academic_year_id ?? null,
             prompt_text: attempt.prompt_text?.trim() ?? '',
             student_submission: attempt.student_submission?.trim() ?? '',
-            total_score: attempt.assessment?.total_score ?? null,
+            // A final teacher review is the score of record; the AI total is kept in `ai_total_score`.
+            total_score: finalTeacherReviewsByAttemptKey[attempt.id]?.total_score ?? attempt.assessment?.total_score ?? null,
+            ai_total_score: attempt.assessment?.total_score ?? null,
+            teacher_review: finalTeacherReviewsByAttemptKey[attempt.id] ?? null,
             assessment: attempt.assessment ?? null,
             rich_feedback: feedback,
             integrity_signals: attempt.integrity_signals ?? null,
+            // Recomputed from the saved feedback with the current rules, so a label stored by an older classifier
+            // (e.g. agreement fixes once filed as "article error") is not shown again.
             weakness_tags: [...new Set([
                     ...(attempt.assessment?.weakness_tags ?? []),
-                    ...Object.keys(attempt.feedback_weakness_tag_counts ?? {}),
+                    ...Object.keys(feedback ? inferFeedbackWeaknessTagCounts(feedback) : attempt.feedback_weakness_tag_counts ?? {}),
                 ])],
-            weakness_tag_counts: attempt.feedback_weakness_tag_counts ?? {},
+            weakness_tag_counts: feedback ? inferFeedbackWeaknessTagCounts(feedback) : attempt.feedback_weakness_tag_counts ?? {},
             strength_evidence: attempt.feedback_strength_evidence ?? inferFeedbackStrengthEvidence(feedback ?? {}),
             strength_tag_counts: attempt.feedback_strength_tag_counts ?? inferFeedbackStrengthTagCounts(feedback ?? {}),
             has_feedback: Boolean(feedback),
@@ -3011,6 +3005,7 @@ export const getWritingPersistenceDiagnostics = () => {
     });
 };
 export const __resetWritingIntegrationStoreForTests = () => {
+    finalTeacherReviewsByAttemptKey = {};
     store.profiles.clear();
     store.usernamesById = {};
     store.states.clear();

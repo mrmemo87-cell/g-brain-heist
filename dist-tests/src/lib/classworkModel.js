@@ -1,0 +1,119 @@
+// Model behind the teacher Classwork view: one grid of students against class assignments (the old collective
+// report, always open) and one timeline per student. Pure functions so the wording and counting can be tested.
+const time = (value) => {
+    const t = value ? new Date(value).getTime() : NaN;
+    return Number.isFinite(t) ? t : 0;
+};
+const titleOf = (a) => a.title || a.topic_name || 'Untitled assignment';
+const isLive = (a, now) => (a.publish_status ?? 'published') !== 'draft' && time(a.assigned_at) <= now.getTime();
+const mean = (values) => (values.length ? Math.round(values.reduce((s, v) => s + v, 0) / values.length) : null);
+/** Class assignments (never targeted practice) that belong to a group, newest first. */
+export function assignmentsForGroup(assignments, group) {
+    const codes = new Set((group.classCodes ?? []).map((code) => code.trim().toLowerCase()).filter(Boolean));
+    return assignments
+        .filter((a) => !a.targeted_practice)
+        .filter((a) => (a.subject_group_id
+        ? a.subject_group_id === group.id
+        : a.assignment_mode !== 'custom' && !!a.batch && codes.has(a.batch.trim().toLowerCase())))
+        .sort((a, b) => time(b.assigned_at) - time(a.assigned_at));
+}
+/**
+ * Was this assignment set for this student? A recorded result always counts. Without a recipient list the
+ * assignment is treated as set for the whole group.
+ */
+const wasSet = (a, studentId, hasResult) => hasResult || !Array.isArray(a.student_ids) || a.student_ids.length === 0 || a.student_ids.includes(studentId);
+export function buildClassworkGrid(input) {
+    const now = input.now ?? new Date();
+    const classAssignments = assignmentsForGroup(input.assignments, input.group).filter((a) => isLive(a, now));
+    const scoreMaps = classAssignments.map((a) => new Map((input.results[a.id] ?? []).map((r) => [r.student_id, r.accuracy])));
+    const targetedOpen = new Map();
+    input.assignments.forEach((a) => {
+        const studentId = a.targeted_practice?.student_id;
+        if (!studentId || !isLive(a, now))
+            return;
+        if ((a.completed_count || 0) >= Math.max(1, a.student_count || 1))
+            return;
+        targetedOpen.set(studentId, (targetedOpen.get(studentId) || 0) + 1);
+    });
+    const rows = input.group.studentIds.map((studentId) => {
+        const cells = classAssignments.map((a, i) => {
+            const accuracy = scoreMaps[i].get(studentId);
+            if (accuracy !== undefined)
+                return { kind: 'score', accuracy: Math.round(accuracy) };
+            return wasSet(a, studentId, false) ? { kind: 'missing' } : { kind: 'not-set' };
+        });
+        const scores = cells.filter((c) => c.kind === 'score').map((c) => c.accuracy);
+        const setCount = cells.filter((c) => c.kind !== 'not-set').length;
+        return {
+            studentId,
+            name: input.nameOf(studentId),
+            cells,
+            doneCount: scores.length,
+            setCount,
+            average: mean(scores),
+            missingCount: setCount - scores.length,
+            openTargeted: targetedOpen.get(studentId) || 0,
+        };
+    }).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+    const columns = classAssignments.map((assignment, i) => {
+        const cells = rows.map((row) => row.cells[i]);
+        const scores = cells.filter((c) => c.kind === 'score').map((c) => c.accuracy);
+        const setCount = cells.filter((c) => c.kind !== 'not-set').length;
+        const due = time(assignment.due_at);
+        return {
+            assignment,
+            title: titleOf(assignment),
+            setCount,
+            doneCount: scores.length,
+            average: mean(scores),
+            pastDue: due > 0 && due < now.getTime() && scores.length < setCount,
+        };
+    });
+    return { columns, rows };
+}
+/** The three things worth a teacher's attention first. Counts come straight from the grid. */
+export function classworkAttention(grid) {
+    const mostMissing = grid.columns
+        .map((c) => ({ title: c.title, missing: c.setCount - c.doneCount, set: c.setCount }))
+        .filter((c) => c.missing > 0 && c.set > 1)
+        .sort((a, b) => b.missing - a.missing)[0] ?? null;
+    const repeat = grid.rows.filter((r) => r.missingCount >= 3).sort((a, b) => b.missingCount - a.missingCount);
+    return {
+        pastDue: grid.columns.filter((c) => c.pastDue).length,
+        mostMissing,
+        repeatMissing: { count: repeat.length, names: repeat.slice(0, 3).map((r) => r.name) },
+    };
+}
+/** Everything set for one student, class work and targeted practice together, newest first. */
+export function studentTimeline(input) {
+    const now = input.now ?? new Date();
+    return input.assignments
+        .filter((a) => isLive(a, now))
+        .map((a) => {
+        const result = (input.results[a.id] ?? []).find((r) => r.student_id === input.studentId);
+        const targeted = !!a.targeted_practice;
+        const set = targeted
+            ? a.targeted_practice?.student_id === input.studentId || (a.student_ids ?? []).includes(input.studentId)
+            : !!result || (Array.isArray(a.student_ids) && a.student_ids.includes(input.studentId));
+        if (!set)
+            return null;
+        const due = time(a.due_at);
+        const status = result
+            ? 'done'
+            : due > 0 && due < now.getTime()
+                ? 'past-due'
+                : targeted ? 'not-started' : 'missing';
+        return {
+            assignment: a,
+            kind: targeted ? 'targeted' : 'class',
+            title: titleOf(a).replace(/\s*·\s*Targeted Practice\s*$/i, ''),
+            groupName: a.subject_group_name || a.batch || null,
+            status,
+            accuracy: result ? Math.round(result.accuracy) : null,
+            date: result?.completed_at || a.assigned_at || null,
+        };
+    })
+        .filter((item) => item !== null)
+        .sort((a, b) => time(b.assignment.assigned_at) - time(a.assignment.assigned_at));
+}
+export const scoreBand = (accuracy) => accuracy >= 80 ? 'strong' : accuracy >= 60 ? 'developing' : 'support';

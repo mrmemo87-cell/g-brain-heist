@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import IeltsSkillIcon from '../IeltsSkillIcon';
+import IeltsShellIcon from '../IeltsShellIcon';
 import { displayDateLocale } from '../../../utils/displayDate';
 
 export type IeltsWorkTone = 'new' | 'continue' | 'feedback' | 'waiting' | 'done' | 'closed';
@@ -27,7 +28,7 @@ export default function IeltsWorkCard({ tone, chip, kicker, title, meta, note, n
   const known = SKILLS.includes(skill as Skill) ? (skill as Skill) : null;
   return (
     <article className={'it-task isn-card isn-card--' + tone} style={{ ['--n' as string]: index } as React.CSSProperties}>
-      <span className={'isn-skill isn-skill--' + (known ?? 'set')} aria-hidden="true">{known ? <IeltsSkillIcon skill={known} /> : '📋'}</span>
+      <span className={'isn-skill isn-skill--' + (known ?? 'set')} aria-hidden="true">{known ? <IeltsSkillIcon skill={known} /> : <IeltsShellIcon name="practice" size={22} />}</span>
       <div className="isn-card-body">
         <p className="isn-kicker"><span className={'isn-chip isn-chip--' + tone}>{chip}</span><span>{kicker}</span></p>
         <h3>{title}</h3>

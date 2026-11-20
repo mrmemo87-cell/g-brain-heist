@@ -17,6 +17,7 @@ import IeltsTeacherToday, { TeacherFeedbackCard, TeacherWaitingCard, type Teache
 import { IeltsCardGroup } from "../../components/ielts/student/IeltsStudentShell";
 import { learningWorkspace, type LearningAllocation } from "../../../services/ieltsLearningService";
 import IeltsAssignmentEntry from "./IeltsAssignmentEntry";
+import IeltsShellIcon from "../../components/ielts/IeltsShellIcon";
 import "../../styles/ielts-teacher-navigation.css";
 import "../../styles/ielts-speaking-pilot.css";
 import "../../styles/ielts-programme.css";
@@ -311,7 +312,7 @@ export default function IeltsProgrammeWorkspace({
           <div className="isn-skeletons" role="status" aria-label="Opening your programme workspace"><span /><span /><span /></div>
         ) : !data ? (
           <section className="it-task isn-empty">
-            <span aria-hidden="true">🔒</span>
+            <span aria-hidden="true"><IeltsShellIcon name="lock" size={26} /></span>
             <div>
               <h3>No school IELTS workspace is available.</h3>
               <p>An active IELTS agreement and an authorized staff allocation are required. Your school administrator can assign a programme lead in School Administration → IELTS Programme.</p>

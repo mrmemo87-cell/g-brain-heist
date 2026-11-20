@@ -63,9 +63,9 @@ test('Clan Wars stays inside the teacher workspace without an app-level reload',
 test('teacher navigation consolidates writing tools into one Writing Hub', () => {
     assert.match(teacherPortal, /id: 'writing-hub' as const, label: 'Writing Hub'/);
     assert.match(teacherPortal, /aria-label="Writing Hub sections"/);
-    assert.match(teacherPortal, /\['monitor', '📝', 'Monitor'\]/);
-    assert.match(teacherPortal, /\['analytics', '📈', 'Analytics'\]/);
-    assert.match(teacherPortal, /\['reports', '📤', 'Reports'\]/);
+    assert.match(teacherPortal, /\['monitor', 'pencil', 'Monitor'\]/);
+    assert.match(teacherPortal, /\['analytics', 'trend', 'Analytics'\]/);
+    assert.match(teacherPortal, /\['reports', 'send', 'Reports'\]/);
     assert.doesNotMatch(teacherPortal, /label: 'Writing Monitor'/);
     assert.doesNotMatch(teacherPortal, /label: 'Writing Analytics'/);
     assert.doesNotMatch(teacherPortal, /label: 'Writing Reports'/);
@@ -90,7 +90,7 @@ test('Game Settings presents a focused four-step wizard on desktop and mobile', 
 test('teacher assignment navigation uses its canonical label on phones', () => {
     assert.match(teacherPortal, /teacherMobileLabel\(tab\.id, tab\.label\)/);
     assert.doesNotMatch(teacherPortal, /\? 'Tasks'/);
-    assert.match(teacherPortal, /label: 'Assignments'/);
+    assert.match(teacherPortal, /label: 'Classwork'/);
 });
 test('short desktop sidebars scroll content-sized navigation rows without compressing labels', () => {
     const grid = teacherTheme.match(/\.teacher-sidebar \.teacher-nav-grid--sidebar\s*\{([^}]+)\}/)?.[1] ?? '';

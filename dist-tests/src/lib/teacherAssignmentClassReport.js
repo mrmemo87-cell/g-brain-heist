@@ -1,9 +1,10 @@
 import { escapeSchoolDocumentHtml as escape } from './schoolDocument.js';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../utils/displayDate.js';
 // Use only the authorised, already-loaded report; printing never fetches new results.
 export const buildTeacherAssignmentClassReport = (assignment, rows) => {
     const date = (value) => {
         const parsed = new Date(value);
-        return Number.isNaN(parsed.getTime()) ? 'Unavailable' : parsed.toLocaleString();
+        return Number.isNaN(parsed.getTime()) ? 'Unavailable' : parsed.toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME);
     };
     const average = rows.length
         ? `${(rows.reduce((total, row) => total + row.accuracy, 0) / rows.length).toFixed(1)}%`

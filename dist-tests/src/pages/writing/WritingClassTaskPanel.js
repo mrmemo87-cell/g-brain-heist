@@ -1,6 +1,7 @@
 import { jsxs as _jsxs, jsx as _jsx } from "react/jsx-runtime";
 import { useCallback, useEffect, useState } from 'react';
 import { assignWritingClassTask, cancelWritingClassTask, createWritingClassTask, getWritingClassDrafts, getWritingClassTaskOptions, } from '../../lib/brains_heist/writingIntegrationService.js';
+import { displayDateLocale } from '../../utils/displayDate.js';
 const GENRES = [
     { value: 'email', label: 'Email' },
     { value: 'essay', label: 'Essay' },
@@ -36,7 +37,7 @@ const formatDate = (value) => {
     const date = new Date(value);
     return Number.isNaN(date.getTime())
         ? ''
-        : date.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+        : date.toLocaleDateString(displayDateLocale(), { weekday: 'short', day: 'numeric', month: 'short' });
 };
 /**
  * Lets a teacher set one Writing Hub task for a whole class, see how many students have submitted it, and withdraw it.

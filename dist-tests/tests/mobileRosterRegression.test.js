@@ -28,6 +28,6 @@ test('portal transitions reset scroll and empty class completion is neutral', ()
     assert.match(teacherPortal, /window\.scrollTo\(\{ top: 0, left: 0, behavior: 'auto' \}\)/);
     assert.match(schoolAdminPortal, /window\.scrollTo\(\{ top: 0, left: 0, behavior: 'auto' \}\)/);
     assert.match(teacherPortal, /completionRate === null/);
-    assert.match(teacherPortal, />No data</);
+    assert.match(teacherPortal, />No assignments yet</);
     assert.match(viewport, /viewport-fit=cover/);
 });

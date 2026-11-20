@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSmartCollapsedNavigation } from '../../../hooks/useSmartCollapsedNavigation';
 import { openSet, openTargeted, useIeltsStudentWork } from './useIeltsStudentWork';
 import { useIeltsAccount, useIeltsAudience } from '../../../lib/ieltsAudience';
+import IeltsShellIcon, { type IeltsShellIconName } from '../IeltsShellIcon';
 import '../../../styles/ielts-navigation.css';
 import '../../../styles/ielts-student-shell.css';
 
@@ -13,12 +14,12 @@ const useNavMotion: typeof useSmartCollapsedNavigation = typeof window !== 'unde
 
 export type IeltsStudentTab = 'home' | 'course' | 'assigned' | 'targeted' | 'journey';
 
-const TABS: { id: IeltsStudentTab; route: string; label: string; icon: string; hint: string }[] = [
-  { id: 'home', route: '/ielts', label: 'Home', icon: '🏠', hint: 'What is new for you' },
-  { id: 'course', route: '/ielts/course', label: 'Course', icon: '📚', hint: 'The self-paced IELTS course' },
-  { id: 'assigned', route: '/ielts/practice/assigned', label: 'Assignments', icon: '📋', hint: 'Practice sets from your teachers' },
-  { id: 'targeted', route: '/ielts/practice/targeted', label: 'Targeted', icon: '🎯', hint: 'Short tasks chosen for you' },
-  { id: 'journey', route: '/ielts/journey', label: 'Journey', icon: '🧭', hint: 'Checks, feedback and your record' },
+const TABS: { id: IeltsStudentTab; route: string; label: string; icon: IeltsShellIconName; hint: string }[] = [
+  { id: 'home', route: '/ielts', label: 'Home', icon: 'home', hint: 'What is new for you' },
+  { id: 'course', route: '/ielts/course', label: 'Course', icon: 'lessons', hint: 'The self-paced IELTS course' },
+  { id: 'assigned', route: '/ielts/practice/assigned', label: 'Assignments', icon: 'practice', hint: 'Practice sets from your teachers' },
+  { id: 'targeted', route: '/ielts/practice/targeted', label: 'Targeted', icon: 'target', hint: 'Short tasks chosen for you' },
+  { id: 'journey', route: '/ielts/journey', label: 'Journey', icon: 'journey', hint: 'Checks, feedback and your record' },
 ];
 
 /** Teacher assignments and targeted tasks exist only for learners whose school includes IELTS. */
@@ -66,10 +67,10 @@ function IeltsStudentNav({ active }: { active: IeltsStudentTab }) {
             }}
           >
             <span className="isn-icon" aria-hidden="true">
-              {tab.icon}
+              <IeltsShellIcon name={tab.icon} />
               {badge > 0 && <span className="isn-badge" aria-hidden="true">{badge > 9 ? '9+' : badge}</span>}
             </span>
-            <span className="isn-label">{tab.label}{badge > 0 && <span className="il-sr-only"> ({badge} to do)</span>}</span>
+            <span className="isn-label">{tab.label}{badge > 0 && <span className="isn-sr-only"> ({badge} to do)</span>}</span>
             {badge > 0 && <span className="isn-badge isn-badge--inline" aria-hidden="true">{badge > 9 ? '9+' : badge}</span>}
           </a>
         );

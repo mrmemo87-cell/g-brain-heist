@@ -83,8 +83,8 @@ test('teacher dashboard summary render', () => {
         attempted_at: '2026-03-01T10:00:00.000Z',
     });
     const html = renderToStaticMarkup(React.createElement(WritingMonitoringView, { month: '2026-03' }));
-    assert.ok(html.includes('Teacher/Admin Writing Monitor'));
-    assert.ok(html.includes('Weekly target'));
+    assert.ok(html.includes('Writing Monitor'));
+    assert.ok(html.includes('Choose a class'));
     assert.ok(html.includes('Grade'));
 });
 test('teacher dashboard stalled/improving indicators render', () => {
@@ -414,7 +414,7 @@ test('cross-page admin filter query normalization behavior', () => {
         attempted_at: '2026-03-01T10:00:00.000Z',
     });
     const monitoringHtml = renderToStaticMarkup(React.createElement(WritingMonitoringView, { filterQuery: '?status=stalled&grade=9' }));
-    assert.ok(monitoringHtml.includes('Teacher/Admin Writing Monitor') || monitoringHtml.includes('No monitoring matches'));
+    assert.ok(monitoringHtml.includes('Writing Monitor') || monitoringHtml.includes('No monitoring matches'));
     const promptHtml = renderToStaticMarkup(React.createElement(WritingPromptBankManager, { filterQuery: `?prompt_id=${promptRecord.data.id}&active=true` }));
     assert.ok(promptHtml.includes('Filter Prompt'));
     const calibrationHtml = renderToStaticMarkup(React.createElement(WritingCalibrationReview, { studentId: 'flt-1', filterQuery: '?weakness_tag=under_length' }));
@@ -449,7 +449,7 @@ test('admin help content and filtered empty-state copy render', () => {
         attempted_at: '2026-03-01T10:00:00.000Z',
     });
     const monitoringHelp = renderToStaticMarkup(React.createElement(WritingMonitoringView, { month: '2026-03' }));
-    assert.ok(monitoringHelp.includes('Teacher/Admin Writing Monitor'));
+    assert.ok(monitoringHelp.includes('Writing Monitor'));
     const promptHelp = renderToStaticMarkup(React.createElement(WritingPromptBankManager, {}));
     assert.ok(promptHelp.includes('Overused prompt'));
     const calibrationHelp = renderToStaticMarkup(React.createElement(WritingCalibrationReview, { studentId: 'help-1', month: '2026-03' }));
