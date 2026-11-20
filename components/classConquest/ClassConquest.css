@@ -36,7 +36,7 @@
 .ccq-grade { display: grid; gap: 0.25rem; color: #334155; font-size: 0.8rem; font-weight: 700; }
 .ccq-grade select { min-height: 44px; min-width: 9rem; padding: 0 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.75rem; background: #fff; color: #0f172a; font-size: 0.95rem; }
 .ccq-present { min-height: 48px; padding: 0 1.25rem; border: 0; border-radius: 0.85rem; background: #7c3aed; color: #fff; font-size: 0.95rem; font-weight: 800; cursor: pointer; }
-.ccq-present:disabled { background: #c4b5fd; cursor: not-allowed; }
+.ccq-present:disabled { background: #e2e8f0; color: #64748b; cursor: not-allowed; }
 .ccq-back:focus-visible, .ccq-present:focus-visible, .ccq-grade select:focus-visible { outline: 3px solid #a78bfa; outline-offset: 2px; }
 .ccq-empty { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; border: 1px dashed #cbd5e1; border-radius: 1rem; background: #fff; color: #475569; text-align: center; }
 

@@ -211,7 +211,7 @@ const TeacherWeeklyFollowUpsPage: React.FC<TeacherWeeklyFollowUpsPageProps> = ({
             <section className="tfu-today" aria-labelledby="tfu-today-title">
               <div className="tfu-today-head">
                 <h2 id="tfu-today-title">Today</h2>
-                {today.wins.length ? <span className="tfu-today-win">🎉 {plural(today.wins.length, 'student', 'students')} improved in the last 2 weeks</span> : null}
+                {today.wins.length ? <span className="tfu-today-win">{plural(today.wins.length, 'student', 'students')} improved in the last 2 weeks</span> : null}
               </div>
               {items.length === 0 ? (
                 <p className="tfu-today-clear"><b>✓</b> You’re all caught up. Brains Heist will tell you here when someone needs you.</p>

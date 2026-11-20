@@ -5297,7 +5297,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <p className="text-amber-700 mb-4">
               You need to be assigned to at least one class and subject by your school admin before you can create questions.
             </p>
-            <p className="text-sm text-amber-600">
+            <p className="text-sm text-amber-700">
               Please contact your school administrator to assign you to classes.
             </p>
           </div>
@@ -5368,7 +5368,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           >
             <span className="grid mx-auto h-10 w-10 rounded-lg shrink-0 place-items-center bg-slate-100 text-slate-600 mb-1"><SchoolAdminIcon name="edit" className="h-5 w-5" /></span>
             <div className="font-semibold text-slate-500">Short Answer</div>
-            <div className="mt-1 text-xs text-slate-400">Unavailable</div>
+            <div className="mt-1 text-xs text-slate-500">Unavailable</div>
           </button>
           
           <button
@@ -5378,7 +5378,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           >
             <div className="text-2xl mb-1">↕</div>
             <div className="font-semibold text-slate-500">Drag &amp; Drop</div>
-            <div className="mt-1 text-xs text-slate-400">Coming soon</div>
+            <div className="mt-1 text-xs text-slate-500">Coming soon</div>
           </button>
         </div>
       </div>
@@ -5815,7 +5815,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 </div>
               )}
               <div className="flex items-center gap-3">
-                <label className="cursor-pointer bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded-lg px-4 py-2 text-purple-700 font-medium transition-all">
+                <label className="cursor-pointer bg-white hover:bg-slate-50 border border-slate-300 rounded-lg px-4 py-2 text-slate-700 font-medium transition-all">
                   {questionImage || questionImageUrl ? 'Change Image' : 'Upload Image'}
                   <input
                     id="question-image-input"
@@ -5936,7 +5936,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                           </button>
                         </div>
                       )}
-                      <label className="cursor-pointer text-xs bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded px-2 py-1 text-purple-700 font-medium transition-all">
+                      <label className="cursor-pointer text-xs bg-white hover:bg-slate-50 border border-slate-300 rounded px-2 py-1 text-slate-700 font-medium transition-all">
                         {option.image_url || optionImages[index] ? 'Change' : 'Add Image'}
                         <input
                           type="file"
@@ -6282,7 +6282,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     <div>
                       <h3 className="font-bold text-slate-800">{group.title}</h3>
                       {group.sourceType === 'teaching-group' && (
-                        <span className="mt-1 block text-xs font-medium text-slate-400">
+                        <span className="mt-1 block text-xs font-medium text-slate-500">
                           {group.groupType === 'custom' ? 'Custom teaching group' : group.groupType === 'whole_grade' ? 'Whole-grade teaching group' : 'Class teaching group'}
                         </span>
                       )}
@@ -6295,7 +6295,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   <div className="mt-2 flex flex-wrap gap-2">
                     {group.subjects.length
                       ? group.subjects.map((subjectName) => <span key={subjectName} className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600">{subjectName}</span>)
-                      : <span className="text-xs text-slate-400">No subject linked</span>}
+                      : <span className="text-xs text-slate-500">No subject linked</span>}
                   </div>
                 </div>
                 {group.students.length ? (
@@ -6399,7 +6399,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         <div className="teacher-card p-12 text-center">
           <span className="grid mx-auto h-12 w-12 rounded-xl shrink-0 place-items-center bg-slate-100 text-slate-600 mb-4"><SchoolAdminIcon name="search" className="h-6 w-6" /></span>
           <p className="text-xl text-slate-500 mb-4">No assignments yet</p>
-          <p className="text-slate-400">Choose Create to add an assignment or diagnostic.</p>
+          <p className="text-slate-500">Choose Create to add an assignment or diagnostic.</p>
         </div>
       ) : filteredAssignments.length === 0 ? (
         <div className="teacher-card p-12 text-center">
@@ -6464,7 +6464,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <p className="text-amber-700 mb-4">
               Your school administrator must allocate you to at least one teaching group before you can create school assignments.
             </p>
-            <p className="text-sm text-amber-600">Teaching groups can follow a registration class, a whole grade, or a cross-class elective roster.</p>
+            <p className="text-sm text-amber-700">Teaching groups can follow a registration class, a whole grade, or a cross-class elective roster.</p>
           </div>
         </div>
       );
@@ -6700,11 +6700,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               </button>
             </div>
             <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
-              <div><dt className="text-xs font-semibold uppercase text-slate-400">Created</dt><dd>{new Date(selectedReportAssignment.assigned_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</dd></div>
-              <div><dt className="text-xs font-semibold uppercase text-slate-400">Class</dt><dd>{selectedReportAssignment.assignment_mode === 'custom' ? 'Selected students' : selectedReportAssignment.batch || '—'}</dd></div>
-              <div><dt className="text-xs font-semibold uppercase text-slate-400">Questions</dt><dd>{selectedReportAssignment.question_count}</dd></div>
-              <div><dt className="text-xs font-semibold uppercase text-slate-400">Students</dt><dd>{selectedReportAssignment.student_count}</dd></div>
-              <div><dt className="text-xs font-semibold uppercase text-slate-400">Due</dt><dd>{selectedReportAssignment.due_at ? new Date(selectedReportAssignment.due_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE) : 'No deadline'}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-500">Created</dt><dd>{new Date(selectedReportAssignment.assigned_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-500">Class</dt><dd>{selectedReportAssignment.assignment_mode === 'custom' ? 'Selected students' : selectedReportAssignment.batch || '—'}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-500">Questions</dt><dd>{selectedReportAssignment.question_count}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-500">Students</dt><dd>{selectedReportAssignment.student_count}</dd></div>
+              <div><dt className="text-xs font-semibold uppercase text-slate-500">Due</dt><dd>{selectedReportAssignment.due_at ? new Date(selectedReportAssignment.due_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE) : 'No deadline'}</dd></div>
             </dl>
           </div>
 
@@ -6774,10 +6774,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                         <td className="py-3 px-4 text-slate-800 font-medium">{row.student_name}{row.completion_source === 'paper' && <span className="mt-1 block text-xs font-medium text-blue-700">Paper · Teacher confirmed</span>}</td>
                         <td className="py-3 px-4 text-slate-600">{row.batch ?? '—'}</td>
                         <td className="py-3 px-4 text-slate-700">{row.score}</td>
-                        <td className="py-3 px-4 text-green-600 font-medium">{row.correct}</td>
+                        <td className="py-3 px-4 text-green-700 font-medium">{row.correct}</td>
                         <td className="py-3 px-4 text-red-600 font-medium">{row.incorrect}</td>
                         <td className="py-3 px-4">
-                          <span className={`font-bold ${row.accuracy >= 70 ? 'text-green-600' : row.accuracy >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                          <span className={`font-bold ${row.accuracy >= 70 ? 'text-green-700' : row.accuracy >= 50 ? 'text-amber-700' : 'text-red-600'}`}>
                             {row.accuracy}%
                           </span>
                         </td>
@@ -6785,7 +6785,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                         <td className="py-3 px-4">
                           <button
                             onClick={() => handleViewStudentAnalysis(row)}
-                            className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg text-xs font-medium transition-colors"
+                            className="px-3 py-1 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-medium transition-colors"
                           >
                             Analyze
                           </button>
@@ -6816,8 +6816,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <p className="text-sm font-semibold text-slate-600">Choose how questions are arranged</p>
                         <div className="inline-flex rounded-lg border border-slate-300 p-1 text-xs" aria-label="Question order">
-                          <button type="button" onClick={() => setAnswerOrder('assignment')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'assignment' ? 'bg-cyan-600 text-white' : 'text-slate-600'}`}>Assignment order</button>
-                          <button type="button" onClick={() => setAnswerOrder('review')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'review' ? 'bg-cyan-600 text-white' : 'text-slate-600'}`}>Needs review first</button>
+                          <button type="button" onClick={() => setAnswerOrder('assignment')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'assignment' ? 'bg-blue-600 text-white' : 'text-slate-600'}`}>Assignment order</button>
+                          <button type="button" onClick={() => setAnswerOrder('review')} className={`rounded-md px-3 py-1.5 font-semibold ${answerOrder === 'review' ? 'bg-blue-600 text-white' : 'text-slate-600'}`}>Needs review first</button>
                         </div>
                       </div>
                       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -6834,7 +6834,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                           >
                             <div className="mb-2 flex items-start justify-between">
                               <span className="text-xs font-bold text-slate-500">Q{qa.order_index ?? idx + 1}</span>
-                              <span className={`text-lg font-bold ${qa.accuracy_percent < 50 ? 'text-red-600' : qa.accuracy_percent < 70 ? 'text-amber-600' : 'text-green-600'}`}>
+                              <span className={`text-lg font-bold ${qa.accuracy_percent < 50 ? 'text-red-600' : qa.accuracy_percent < 70 ? 'text-amber-700' : 'text-green-700'}`}>
                                 {qa.accuracy_percent}%
                               </span>
                             </div>
@@ -6910,9 +6910,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               <div className="text-center">
                 <div className={`text-4xl font-bold ${
                   selectedAnalysisStudent.accuracy >= 70 
-                    ? 'text-green-600' 
+                    ? 'text-green-700'
                     : selectedAnalysisStudent.accuracy >= 50 
-                      ? 'text-amber-600' 
+                      ? 'text-amber-700'
                       : 'text-red-600'
                 }`}>
                   {selectedAnalysisStudent.accuracy}%
@@ -6924,7 +6924,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             {/* Performance Summary */}
             <div className="grid grid-cols-3 gap-4 mt-6 pt-4 border-t border-slate-200">
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{selectedAnalysisStudent.correct}</div>
+                <div className="text-2xl font-bold text-green-700">{selectedAnalysisStudent.correct}</div>
                 <div className="text-xs text-slate-500">Correct</div>
               </div>
               <div className="text-center">
@@ -6934,7 +6934,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600">{selectedAnalysisStudent.score}</div>
                 <div className="text-xs text-slate-500">Total Score</div>
-                <div className="mt-1 max-w-[180px] text-xs leading-4 text-slate-400">XP points earned from correct answers; questions may have different point values.</div>
+                <div className="mt-1 max-w-[180px] text-xs leading-4 text-slate-500">XP points earned from correct answers; questions may have different point values.</div>
               </div>
             </div>
           </div>
@@ -6948,7 +6948,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
               <span className="grid mx-auto h-12 w-12 rounded-xl shrink-0 place-items-center bg-slate-100 text-slate-600 mb-2"><SchoolAdminIcon name="edit" className="h-6 w-6" /></span>
               <p className="text-amber-800 font-medium">No detailed answer data available yet.</p>
-              <p className="text-amber-600 text-sm mt-1">
+              <p className="text-amber-700 text-sm mt-1">
                 Answer tracking is enabled for new assignments. Students who complete assignments going forward will have their answers recorded for analysis.
               </p>
             </div>
@@ -6999,7 +6999,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   {studentAnswers.filter(a => a.is_correct).map((answer, idx) => (
                     <div key={answer.question_id} className="bg-green-50 border border-green-200 rounded-xl p-4 mb-3">
                       <div className="flex items-start justify-between mb-2">
-                        <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded">CORRECT</span>
+                        <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded">CORRECT</span>
                         <span className="text-xs text-slate-500">{selectedAnalysisStudent?.completion_source === 'paper' ? 'Paper · Timing unavailable' : `${Math.round(answer.time_taken_ms / 1000)}s`}</span>
                       </div>
                       <p className="text-slate-800 font-medium mb-2">{answer.question_text}</p>
@@ -7016,8 +7016,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
           {/* Learning Recommendations */}
           {studentAnswers.filter(a => !a.is_correct).length > 0 && (
-            <div className="teacher-card bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
-              <h4 className="text-lg font-bold text-purple-800 mb-3 flex items-center gap-2">
+            <div className="teacher-card bg-slate-50 border-slate-200">
+              <h4 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
                 Personalized Recommendations
               </h4>
               <ul className="space-y-2 text-slate-700">
@@ -7123,7 +7123,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 );
               })}
               {filteredTests.length === 0 && (
-                <p className="text-xs text-slate-400">No tests found.</p>
+                <p className="text-xs text-slate-500">No tests found.</p>
               )}
             </div>
           </div>
@@ -7154,7 +7154,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-slate-700">Students</summary>
           <div className="px-3 pb-3">
             {cambridgeClassFilter === 'all' ? (
-              <p className="text-xs text-slate-400">Select a class to filter students.</p>
+              <p className="text-xs text-slate-500">Select a class to filter students.</p>
             ) : (
               <select
                 value={cambridgeStudentFilter}
@@ -7291,13 +7291,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 </div>
               </details>
               <details className="relative">
-                <summary className="list-none cursor-pointer select-none bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-teal-700">
+                <summary className="list-none cursor-pointer select-none border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
                   Student Report ▾
                 </summary>
                 <div className="absolute right-0 mt-2 w-64 rounded-lg border border-slate-200 bg-white shadow-lg p-2 text-sm z-10 max-h-60 overflow-y-auto">
                   {(() => {
                     const studentNames = [...new Set(cambridgeScores.map(s => s.student_name))].sort();
-                    if (studentNames.length === 0) return <p className="text-slate-400 px-3 py-2">No students found.</p>;
+                    if (studentNames.length === 0) return <p className="text-slate-500 px-3 py-2">No students found.</p>;
                     return studentNames.map(name => {
                       const count = cambridgeScores.filter(s => s.student_name === name).length;
                       return (
@@ -7307,7 +7307,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                           className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 text-slate-700 flex justify-between items-center"
                         >
                           <span className="truncate">{name}</span>
-                          <span className="text-xs text-slate-400 ml-2 shrink-0">{count} test{count !== 1 ? 's' : ''}</span>
+                          <span className="text-xs text-slate-500 ml-2 shrink-0">{count} test{count !== 1 ? 's' : ''}</span>
                         </button>
                       );
                     });
@@ -7333,7 +7333,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   setShowVisibilityManager(true);
                   loadTestVisibilitySettings();
                 }}
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-purple-700"
+                className="border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-semibold"
                 title="Manage which tests students can see"
               >
                 Test Visibility
@@ -7585,7 +7585,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                             </td>
                             <td className="px-4 py-3">
                               <div className="font-medium text-slate-900">{score.student_name}</div>
-                              <div className="mt-0.5 text-[11px] font-semibold text-slate-400">Attempt {score.attempt_number || 1}</div>
+                              <div className="mt-0.5 text-[11px] font-semibold text-slate-500">Attempt {score.attempt_number || 1}</div>
                             </td>
                             <td className="px-4 py-3 text-slate-500">{score.student_class || '-'}</td>
                             <td className="px-4 py-3">
@@ -7602,17 +7602,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                               ) : (
                                 <div>
                                   <span className="font-mono text-slate-800">{score.score}/{score.total_questions}</span>
-                                  <div className="mt-0.5 text-[11px] text-slate-400">{attemptedCount}/{score.total_questions} answered</div>
+                                  <div className="mt-0.5 text-[11px] text-slate-500">{attemptedCount}/{score.total_questions} answered</div>
                                 </div>
                               )}
                             </td>
                             <td className="px-4 py-3 text-center">
                               {needsMarking ? (
-                                <span className="text-amber-600">—</span>
+                                <span className="text-amber-700">—</span>
                               ) : (
                                 <span className={`font-semibold ${
-                                  score.percentage >= 70 ? 'text-green-600' :
-                                  score.percentage >= 50 ? 'text-amber-600' : 'text-red-600'
+                                  score.percentage >= 70 ? 'text-green-700' :
+                                  score.percentage >= 50 ? 'text-amber-700' : 'text-red-600'
                                 }`}>{score.percentage}%</span>
                               )}
                             </td>
@@ -7647,7 +7647,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                                         openCambridgeDrawer(score);
                                         openCambridgeAnswers(score);
                                       }}
-                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200"
+                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200"
                                     >
                                       Answers
                                     </button>
@@ -7660,7 +7660,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                                         openCambridgeDrawer(score);
                                         openCambridgeAnswers(score);
                                       }}
-                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200"
+                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200"
                                     >
                                       Answers
                                     </button>
@@ -7670,7 +7670,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                                         openCambridgeDrawer(score);
                                         openCambridgeReport(score);
                                       }}
-                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-purple-100 text-purple-700 hover:bg-purple-200"
+                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200"
                                     >
                                       Report
                                     </button>
@@ -7679,7 +7679,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                                         event.stopPropagation();
                                         openStudentOverviewReport(score.student_name);
                                       }}
-                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-teal-100 text-teal-700 hover:bg-teal-200"
+                                      className="px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200"
                                       title="View all test results for this student"
                                     >
                                       Overview
@@ -7718,12 +7718,12 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <div className="w-full max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] bg-white shadow-2xl flex flex-col rounded-2xl overflow-hidden">
             <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-wide text-slate-400">Attempt Details</p>
+                <p className="text-xs uppercase tracking-wide text-slate-500">Attempt Details</p>
                 <h3 className="text-lg font-semibold text-slate-900">Attempt Details</h3>
               </div>
               <button
                 onClick={closeCambridgeDrawer}
-                className="text-slate-400 hover:text-slate-700 rounded-md px-2 py-1"
+                className="text-slate-500 hover:text-slate-700 rounded-md px-2 py-1"
                 aria-label="Close details"
               >
                 <SchoolAdminIcon name="close" className="h-4 w-4" />
@@ -7743,35 +7743,35 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="border border-slate-200 rounded-xl p-3">
-                  <p className="text-xs uppercase text-slate-400">Score</p>
+                  <p className="text-xs uppercase text-slate-500">Score</p>
                   <p className="text-lg font-semibold text-slate-900">
                     {drawerNeedsMarking ? 'Pending' : `${drawerAttempt.score}/${drawerAttempt.total_questions}`}
                   </p>
                 </div>
                 <div className="border border-slate-200 rounded-xl p-3">
-                  <p className="text-xs uppercase text-slate-400">Percentage</p>
+                  <p className="text-xs uppercase text-slate-500">Percentage</p>
                   <p className="text-lg font-semibold text-slate-900">
                     {drawerNeedsMarking ? '—' : `${drawerAttempt.percentage}%`}
                   </p>
                 </div>
                 <div className="border border-slate-200 rounded-xl p-3">
-                  <p className="text-xs uppercase text-slate-400">Time taken</p>
+                  <p className="text-xs uppercase text-slate-500">Time taken</p>
                   <p className="text-sm font-medium text-slate-700">{formatCambridgeTime(drawerAttempt.time_taken_seconds)}</p>
                 </div>
                 <div className="border border-slate-200 rounded-xl p-3">
-                  <p className="text-xs uppercase text-slate-400">Status</p>
+                  <p className="text-xs uppercase text-slate-500">Status</p>
                   <p className="text-sm font-medium text-slate-700">
                     {drawerNeedsMarking ? 'Needs marking' : drawerAttempt.scores_released ? 'Released' : 'Pending release'}
                   </p>
                 </div>
                 <div className="border border-slate-200 rounded-xl p-3">
-                  <p className="text-xs uppercase text-slate-400">Submitted</p>
+                  <p className="text-xs uppercase text-slate-500">Submitted</p>
                   <p className="text-sm font-medium text-slate-700">
                     {drawerAttempt.submitted_at ? new Date(drawerAttempt.submitted_at).toLocaleString('en-GB') : '—'}
                   </p>
                 </div>
                 <div className="border border-slate-200 rounded-xl p-3">
-                  <p className="text-xs uppercase text-slate-400">Released state</p>
+                  <p className="text-xs uppercase text-slate-500">Released state</p>
                   <p className="text-sm font-medium text-slate-700">
                     {drawerAttempt.scores_released ? 'Released' : 'Pending'}
                   </p>
@@ -7789,28 +7789,28 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               {drawerIsWriting ? (
                 <button
                   onClick={() => openWritingMarking(drawerAttempt)}
-                  className="w-full px-4 py-2 rounded-md bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600"
+                  className="w-full px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700"
                 >
                   {drawerNeedsMarking ? 'Open marking' : 'View marking'}
                 </button>
               ) : (
                 <button
                   onClick={() => openCambridgeReport(drawerAttempt)}
-                  className="w-full px-4 py-2 rounded-md bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700"
+                  className="w-full px-4 py-2 rounded-md text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
                 >
                   Create report
                 </button>
               )}
               <button
                 onClick={() => openStudentOverviewReport(drawerAttempt.student_name)}
-                className="w-full px-4 py-2 rounded-md bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700"
+                className="w-full px-4 py-2 rounded-md text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
                 title="View all test results for this student"
               >
                 Student Overview
               </button>
               {drawerAttempt.scores_released ? (
                 <button
-                  className="w-full px-4 py-2 rounded-md border border-slate-200 text-sm font-semibold text-slate-400 cursor-not-allowed"
+                  className="w-full px-4 py-2 rounded-md border border-slate-200 text-sm font-semibold text-slate-500 cursor-not-allowed"
                   disabled
                 >
                   Scores released
@@ -7825,7 +7825,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 </button>
               ) : (
                 <button
-                  className="w-full px-4 py-2 rounded-md border border-slate-200 text-sm font-semibold text-slate-400 cursor-not-allowed"
+                  className="w-full px-4 py-2 rounded-md border border-slate-200 text-sm font-semibold text-slate-500 cursor-not-allowed"
                   disabled
                   title="Not available yet"
                 >
@@ -7856,7 +7856,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           />
           <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden">
             <div className="border-b border-slate-200 px-6 py-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">Cambridge attempt</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Cambridge attempt</p>
               <h3 id="cambridge-retake-title" className="mt-1 text-xl font-bold text-slate-900">Allow this student to retake?</h3>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 The original attempt will be preserved in the audit history. It will stop appearing as the active result, and the student can start a fresh attempt.
@@ -7869,7 +7869,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 <p className="mt-1 text-slate-500">Current result: {cambridgeRetakeAttempt.score}/{cambridgeRetakeAttempt.total_questions} ({cambridgeRetakeAttempt.percentage}%)</p>
               </div>
               <label className="block text-sm font-semibold text-slate-800" htmlFor="cambridge-retake-reason">
-                Reason <span className="font-normal text-slate-400">(optional)</span>
+                Reason <span className="font-normal text-slate-500">(optional)</span>
               </label>
               <textarea
                 id="cambridge-retake-reason"
@@ -7881,7 +7881,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 placeholder="For example: interrupted connection, approved absence, or teacher-authorized second attempt"
                 className="w-full resize-y rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
               />
-              <p className="text-right text-xs text-slate-400">{cambridgeRetakeReason.length}/500</p>
+              <p className="text-right text-xs text-slate-500">{cambridgeRetakeReason.length}/500</p>
               {cambridgeRetakeError && (
                 <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {cambridgeRetakeError}
@@ -7920,7 +7920,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               <h3 className="text-lg font-semibold text-slate-900">Filters</h3>
               <button
                 onClick={() => setCambridgeFiltersOpen(false)}
-                className="text-slate-400 hover:text-slate-700"
+                className="text-slate-500 hover:text-slate-700"
               >
                 <SchoolAdminIcon name="close" className="h-4 w-4" />
               </button>
@@ -7941,7 +7941,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
             <div key={cls} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
               <p className="font-semibold text-gray-800">{cls}</p>
               <p className="text-xs text-gray-600">
-                {stats.count} students • <span className={`font-bold ${stats.avg >= 70 ? 'text-green-600' : stats.avg >= 50 ? 'text-amber-600' : 'text-red-600'}`}>{stats.avg}%</span>
+                {stats.count} students • <span className={`font-bold ${stats.avg >= 70 ? 'text-green-700' : stats.avg >= 50 ? 'text-amber-700' : 'text-red-600'}`}>{stats.avg}%</span>
               </p>
             </div>
           ))}
@@ -8046,7 +8046,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 </div>
 
                 {/* Student Info */}
-                <div className="bg-gradient-to-r from-blue-700 to-purple-800 text-white p-5 flex justify-between items-center">
+                <div className="bg-slate-900 text-white p-5 flex justify-between items-center">
                   <div>
                     <h2 className="text-xl font-bold">{selectedCambridgeStudent.student_name}</h2>
                     <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</p>
@@ -8084,7 +8084,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                               <span>{attempt.score}/35</span>
                               <span>{attempt.percentage}%</span>
                               <span>G:{grammar.length} • P:{punctuation.length}</span>
-                              <span className={trend === '↑' ? 'text-green-600 font-semibold' : trend === '↓' ? 'text-red-600 font-semibold' : 'text-slate-500'}>{trend}</span>
+                              <span className={trend === '↑' ? 'text-green-700 font-semibold' : trend === '↓' ? 'text-red-600 font-semibold' : 'text-slate-500'}>{trend}</span>
                               <div className="col-span-5 mt-1 grid gap-1">
                                 {part1Marks && (
                                   <p className="text-[11px] text-slate-600 m-0">
@@ -8267,7 +8267,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     {(answers.requires_marking || !feedback.releasedToStudent) && (
                       <button
                         onClick={() => { setShowCambridgeAnswers(false); openWritingMarking(selectedCambridgeStudent); }}
-                        className="px-4 py-2 bg-purple-100 text-black rounded-lg font-semibold hover:bg-purple-200"
+                        className="px-4 py-2 border border-slate-300 bg-white text-slate-700 rounded-lg font-semibold hover:bg-slate-50"
                       >
                         {answers.requires_marking ? 'Mark This' : 'Edit Feedback'}
                       </button>
@@ -8394,7 +8394,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               </div>
 
               {/* Student Info Banner */}
-              <div className="bg-gradient-to-r from-blue-700 to-purple-800 text-white p-5 flex justify-between items-center">
+              <div className="bg-slate-900 text-white p-5 flex justify-between items-center">
                 <div>
                   <h2 className="text-xl font-bold">{selectedCambridgeStudent.student_name}</h2>
                   <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</p>
@@ -8441,9 +8441,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                       {mistakes.map((m) => (
                         <div key={m.q} className={`p-2 rounded-lg text-sm ${m.unanswered ? 'bg-amber-50 border border-amber-300' : 'bg-red-50 border border-red-300'}`}>
                           <span className="font-bold text-gray-700">Q{m.q}:</span>
-                          <span className={`ml-2 ${m.unanswered ? 'text-amber-600' : 'text-red-600'}`}>{m.studentAns}</span>
+                          <span className={`ml-2 ${m.unanswered ? 'text-amber-700' : 'text-red-600'}`}>{m.studentAns}</span>
                           <span className="text-gray-400 mx-1">→</span>
-                          <span className="text-green-600 font-semibold">{m.correctAns}</span>
+                          <span className="text-green-700 font-semibold">{m.correctAns}</span>
                         </div>
                       ))}
                     </div>
@@ -8485,11 +8485,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                                   title={`Q${q}: Student: "${studentAns || '(empty)'}" | Correct: "${correctAns}"`}
                                 >
                                   <div className="font-bold text-gray-700">Q{q}</div>
-                                  <div className={`font-semibold ${isEmpty ? 'text-amber-600' : isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                                  <div className={`font-semibold ${isEmpty ? 'text-amber-700' : isCorrect ? 'text-green-700' : 'text-red-600'}`}>
                                     {isEmpty ? '—' : studentAns}
                                   </div>
                                   {!isCorrect && !isEmpty && (
-                                    <div className="text-green-600 text-xs mt-1">✓ {correctAns}</div>
+                                    <div className="text-green-700 text-xs mt-1">✓ {correctAns}</div>
                                   )}
                                 </div>
                               );
@@ -8505,11 +8505,11 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     <div className="bg-slate-50 px-4 py-3 flex items-center justify-between">
                       <h4 className="font-semibold text-slate-800">Full Answer Review {questionMap.size > 0 && <span className="text-xs font-normal text-indigo-500 ml-2">with question details</span>}</h4>
                       {hasAnswerKey ? (
-                        <span className="text-xs text-green-600 font-semibold">Answer key verified</span>
+                        <span className="text-xs text-green-700 font-semibold">Answer key verified</span>
                       ) : biologyMetadataUnavailable ? (
-                        <span className="text-xs text-amber-600 font-semibold">Answer metadata unavailable</span>
+                        <span className="text-xs text-amber-700 font-semibold">Answer metadata unavailable</span>
                       ) : (
-                        <span className="text-xs text-amber-600 font-semibold">Answer key unavailable</span>
+                        <span className="text-xs text-amber-700 font-semibold">Answer key unavailable</span>
                       )}
                     </div>
                     <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-100">
@@ -8568,7 +8568,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                                         <td className="border border-slate-300 px-2 py-1 font-bold text-slate-600">
                                           {row.label}
                                           {isStudentChoice && !isCorrectChoice && <span className="ml-1 text-red-500">✗</span>}
-                                          {isCorrectChoice && <span className="ml-1 text-green-600">✓</span>}
+                                          {isCorrectChoice && <span className="ml-1 text-green-700">✓</span>}
                                         </td>
                                         {row.values.map((v, vi) => (
                                           <td key={vi} className="border border-slate-300 px-2 py-1" dangerouslySetInnerHTML={{ __html: fixChemHtml(v) }} />
@@ -8621,7 +8621,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                           {/* Answer summary line (when question data is present) */}
                           {qData && (
                             <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 ml-2">
-                              <span>Student chose: <strong className={detail.status === 'correct' ? 'text-green-700' : detail.status === 'unanswered' ? 'text-amber-600' : 'text-red-600'}>{detail.studentAns || '—'}</strong></span>
+                              <span>Student chose: <strong className={detail.status === 'correct' ? 'text-green-700' : detail.status === 'unanswered' ? 'text-amber-700' : 'text-red-600'}>{detail.studentAns || '—'}</strong></span>
                               <span>•</span>
                               <span>Correct: <strong className="text-emerald-600">{detail.correctAns || '—'}</strong></span>
                             </div>
@@ -8676,9 +8676,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           return createPortal(
             <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
               <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
-                <div className="p-6 border-b-4 border-cyan-600 bg-gradient-to-r from-cyan-50 to-indigo-50 flex justify-between items-start">
+                <div className="p-6 border-b border-slate-200 bg-slate-50 flex justify-between items-start">
                   <div>
-                    <h1 className="text-2xl font-bold text-cyan-800">Travel & Tourism Marking</h1>
+                    <h1 className="text-2xl font-bold text-slate-900">Travel & Tourism Marking</h1>
                     <p className="text-sm text-gray-600">Cambridge 9395 Paper 1 style • Teacher remains final authority</p>
                   </div>
                   <button onClick={() => setShowWritingMarkingModal(false)} className="p-2 hover:bg-gray-200 rounded-full text-xl"><SchoolAdminIcon name="close" className="h-4 w-4" /></button>
@@ -8688,7 +8688,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     <h2 className="text-xl font-bold">{selectedCambridgeStudent.student_name}</h2>
                     <p className="text-sm opacity-80">Class: {selectedCambridgeStudent.student_class || 'N/A'} | Submitted: {new Date(selectedCambridgeStudent.submitted_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</p>
                   </div>
-                  <button onClick={autoMarkTravelTourism} disabled={autoProofreadLoading} className="px-5 py-3 rounded-xl font-bold bg-gradient-to-r from-cyan-500 to-blue-500 text-white disabled:opacity-60">
+                  <button onClick={autoMarkTravelTourism} disabled={autoProofreadLoading} className="px-5 py-3 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60">
                     {autoProofreadLoading ? 'AI analyzing…' : 'Generate AI marking suggestion'}
                   </button>
                   <div className="text-right text-black"><div className="text-3xl font-bold">{travelTourismMark}/80</div><div className="text-lg font-semibold">{percentage}%</div></div>
@@ -8739,7 +8739,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 overflow-y-auto">
             <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto" style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}>
               {/* Header */}
-              <div className="p-6 border-b-4 border-purple-600 bg-gradient-to-r from-purple-50 to-indigo-50">
+              <div className="p-6 border-b border-slate-200 bg-slate-50">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
                     <span className="inline-grid h-12 w-12 rounded-xl shrink-0 place-items-center bg-slate-100 text-slate-600"><SchoolAdminIcon name="edit" className="h-6 w-6" /></span>
@@ -8771,7 +8771,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                   className={`px-5 py-3 rounded-xl font-bold flex items-center gap-2 transition-all ${
                     autoProofreadLoading
                       ? 'bg-gray-200 cursor-wait text-black'
-                      : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 shadow-lg hover:shadow-xl text-white'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}
                 >
                   {autoProofreadLoading ? (
@@ -8883,7 +8883,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                             <div key={i} className="text-sm bg-white p-2 rounded border">
                               <span className="text-red-600 line-through">{m.wrong}</span>
                               <span className="mx-2">→</span>
-                              <span className="text-green-600 font-semibold">{m.correct}</span>
+                              <span className="text-green-700 font-semibold">{m.correct}</span>
                               <p className="text-gray-600 text-xs mt-1">{m.explanation}</p>
                             </div>
                           ))}
@@ -8900,7 +8900,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                             <div key={i} className="text-sm bg-white p-2 rounded border">
                               <span className="text-red-600 line-through">{m.wrong}</span>
                               <span className="mx-2">→</span>
-                              <span className="text-green-600 font-semibold">{m.correct}</span>
+                              <span className="text-green-700 font-semibold">{m.correct}</span>
                               <p className="text-gray-600 text-xs mt-1">{m.explanation}</p>
                             </div>
                           ))}
@@ -8956,7 +8956,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                         <label className="text-sm font-semibold text-gray-700 block mb-2">
                           Model Answer (high-band example):
                         </label>
-                        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-lg border-2 border-purple-300 text-sm whitespace-pre-wrap">
+                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm whitespace-pre-wrap">
                           {writingFeedback.part1.modelAnswer}
                         </div>
                       </div>
@@ -9067,7 +9067,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                             <div key={i} className="text-sm bg-white p-2 rounded border">
                               <span className="text-red-600 line-through">{m.wrong}</span>
                               <span className="mx-2">→</span>
-                              <span className="text-green-600 font-semibold">{m.correct}</span>
+                              <span className="text-green-700 font-semibold">{m.correct}</span>
                               <p className="text-gray-600 text-xs mt-1">{m.explanation}</p>
                             </div>
                           ))}
@@ -9084,7 +9084,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                             <div key={i} className="text-sm bg-white p-2 rounded border">
                               <span className="text-red-600 line-through">{m.wrong}</span>
                               <span className="mx-2">→</span>
-                              <span className="text-green-600 font-semibold">{m.correct}</span>
+                              <span className="text-green-700 font-semibold">{m.correct}</span>
                               <p className="text-gray-600 text-xs mt-1">{m.explanation}</p>
                             </div>
                           ))}
@@ -9141,7 +9141,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                         <label className="text-sm font-semibold text-gray-700 block mb-2">
                           Model Answer (high-band example - 110-130 words):
                         </label>
-                        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-lg border-2 border-purple-300 text-sm whitespace-pre-wrap">
+                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm whitespace-pre-wrap">
                           {writingFeedback.part2.modelAnswer}
                         </div>
                       </div>
@@ -9190,7 +9190,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     {answers.marked_by ? (
                       <span>
                         Previously marked by <strong>{answers.marked_by}</strong>
-                        {answers.feedback?.releasedToStudent && <span className="ml-2 text-green-600">✓ Released to student</span>}
+                        {answers.feedback?.releasedToStudent && <span className="ml-2 text-green-700">✓ Released to student</span>}
                       </span>
                     ) : 'Not yet marked'}
                   </div>
@@ -9251,7 +9251,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         return createPortal(
           <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-3" role="dialog" aria-modal="true" aria-labelledby="cambridge-release-title">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-[1000px] max-h-[90vh] flex flex-col overflow-hidden">
-              <div className="bg-gradient-to-r from-purple-700 to-indigo-700 text-white p-5 sm:p-6">
+              <div className="bg-slate-900 text-white p-5 sm:p-6">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-wider text-purple-200">Teacher release control</p>
@@ -9705,7 +9705,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
               )}
               
               {classAllocationsMissing && (
-                <div className="mt-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-4 py-3">
+                <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
                   <p className="text-sm text-amber-900">
                     No teaching groups allocated yet. Contact your school admin to allocate your subject teaching responsibilities.
                   </p>

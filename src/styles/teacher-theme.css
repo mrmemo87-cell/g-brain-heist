@@ -3627,7 +3627,7 @@
 }
 
 .cambridge-attempt-card__metrics dt {
-  color: #94a3b8;
+  color: #64748b;
   font-size: 0.58rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -3650,7 +3650,7 @@
   margin-top: 0.9rem;
   border: 0;
   border-radius: 12px;
-  background: linear-gradient(135deg, #0ea5e9, #4f46e5);
+  background: var(--teacher-primary);
   padding: 0.65rem 0.85rem;
   color: #fff;
   font-size: 0.8rem;
@@ -4252,50 +4252,51 @@
    TEACHER DASHBOARD INTERFACE COLOR PARITY
    Uses the same saved interface colour selected in Settings.
    ============================================================ */
+/* Teacher shades are darker than the student ones so white button text stays readable; no gradients. */
 body[data-student-theme-color="blue"] .teacher-portal {
-  --teacher-primary: #0ea5e9;
-  --teacher-primary-dark: #0369a1;
-  --teacher-primary-light: #38bdf8;
+  --teacher-primary: #2563eb;
+  --teacher-primary-dark: #1d4ed8;
+  --teacher-primary-light: #60a5fa;
   --teacher-accent: #6366f1;
-  --teacher-primary-soft: #e0f2fe;
-  --teacher-primary-ink: #075985;
-  --teacher-gradient-primary: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+  --teacher-primary-soft: #eff6ff;
+  --teacher-primary-ink: #1d4ed8;
+  --teacher-gradient-primary: linear-gradient(135deg, #2563eb, #2563eb);
 }
 body[data-student-theme-color="pink"] .teacher-portal {
-  --teacher-primary: #ec4899;
-  --teacher-primary-dark: #be185d;
+  --teacher-primary: #be185d;
+  --teacher-primary-dark: #9d174d;
   --teacher-primary-light: #f472b6;
   --teacher-accent: #a855f7;
   --teacher-primary-soft: #fce7f3;
   --teacher-primary-ink: #9d174d;
-  --teacher-gradient-primary: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+  --teacher-gradient-primary: linear-gradient(135deg, #be185d, #be185d);
 }
 body[data-student-theme-color="green"] .teacher-portal {
-  --teacher-primary: #10b981;
-  --teacher-primary-dark: #047857;
+  --teacher-primary: #047857;
+  --teacher-primary-dark: #065f46;
   --teacher-primary-light: #34d399;
   --teacher-accent: #14b8a6;
   --teacher-primary-soft: #d1fae5;
   --teacher-primary-ink: #065f46;
-  --teacher-gradient-primary: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+  --teacher-gradient-primary: linear-gradient(135deg, #047857, #047857);
 }
 body[data-student-theme-color="purple"] .teacher-portal {
-  --teacher-primary: #8b5cf6;
-  --teacher-primary-dark: #6d28d9;
+  --teacher-primary: #6d28d9;
+  --teacher-primary-dark: #5b21b6;
   --teacher-primary-light: #a78bfa;
   --teacher-accent: #ec4899;
   --teacher-primary-soft: #ede9fe;
   --teacher-primary-ink: #5b21b6;
-  --teacher-gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  --teacher-gradient-primary: linear-gradient(135deg, #6d28d9, #6d28d9);
 }
 body[data-student-theme-color="red"] .teacher-portal {
-  --teacher-primary: #ef4444;
-  --teacher-primary-dark: #b91c1c;
+  --teacher-primary: #b91c1c;
+  --teacher-primary-dark: #991b1b;
   --teacher-primary-light: #fb7185;
   --teacher-accent: #f59e0b;
   --teacher-primary-soft: #fee2e2;
   --teacher-primary-ink: #991b1b;
-  --teacher-gradient-primary: linear-gradient(135deg, #ef4444 0%, #f59e0b 100%);
+  --teacher-gradient-primary: linear-gradient(135deg, #b91c1c, #b91c1c);
 }
 body[data-student-theme-color="dark"] .teacher-portal {
   --teacher-primary: #475569;
@@ -4304,7 +4305,7 @@ body[data-student-theme-color="dark"] .teacher-portal {
   --teacher-accent: #0ea5e9;
   --teacher-primary-soft: #e2e8f0;
   --teacher-primary-ink: #1e293b;
-  --teacher-gradient-primary: linear-gradient(135deg, #475569 0%, #0ea5e9 100%);
+  --teacher-gradient-primary: linear-gradient(135deg, #475569, #475569);
 }
 .teacher-portal .teacher-nav-btn.active,
 .teacher-portal .teacher-cambridge-tab.active,

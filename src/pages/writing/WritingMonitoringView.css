@@ -133,7 +133,7 @@
   gap: 0.55rem;
   padding: 0.58rem 0.65rem;
   border-radius: 12px;
-  color: #8692a5;
+  color: #64748b;
   background: #f7f9fc;
 }
 
@@ -392,7 +392,7 @@
 
 .writing-monitor__mini-metrics small {
   margin-top: 0.12rem;
-  color: #7a879b;
+  color: #64748b;
   font-size: 0.62rem;
 }
 
