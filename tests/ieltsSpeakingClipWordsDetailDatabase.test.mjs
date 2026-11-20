@@ -52,3 +52,19 @@ test("older word times saved without detail are not offered for reuse", async ()
   const kept = (await db.query(`select public.rpc_ielts_speaking_clip_words_detail($1) r`, [session])).rows[0].r;
   assert.deepEqual(kept.map((k) => k.clip_id), [clip1]);
 });
+
+test("a recording timed before Scribe gets Scribe's words once; kept detail is never overwritten", async () => {
+  await db.exec(readFileSync("supabase/migrations/20261121001000_ielts_speaking_clip_words_fill_detail.sql", "utf8"));
+  // clip2 holds only whisper-1 word times (saved in the previous test).
+  const scribeWords = JSON.stringify([["Scribe", 0.5]]), scribeDetail = JSON.stringify([["Scribe", 0.5, 0.9, -0.02]]);
+  await db.query(`select public.rpc_ielts_save_speaking_clip_transcript_words($1,$2,$3::jsonb,$4::jsonb,'elevenlabs/scribe_v2')`, [session, clip2, scribeWords, scribeDetail]);
+  let row = (await db.query(`select words, detail, model from private.ielts_speaking_clip_words where clip_id=$1`, [clip2])).rows[0];
+  assert.deepEqual(row, { words: JSON.parse(scribeWords), detail: JSON.parse(scribeDetail), model: "elevenlabs/scribe_v2" });
+  await db.query(`select public.rpc_ielts_save_speaking_clip_transcript_words($1,$2,'[["later",1]]'::jsonb,'[["later",1,2,0]]'::jsonb,'elevenlabs/scribe_v2')`, [session, clip2]);
+  row = (await db.query(`select words from private.ielts_speaking_clip_words where clip_id=$1`, [clip2])).rows[0];
+  assert.deepEqual(row.words, JSON.parse(scribeWords), "once detail is kept it never changes");
+  const kept = (await db.query(`select public.rpc_ielts_speaking_clip_words_detail($1) r`, [session])).rows[0].r;
+  assert.deepEqual(kept.map((k) => k.clip_id).sort(), [clip1, clip2].sort());
+  const { rows } = await db.query(`select has_function_privilege('authenticated','public.rpc_ielts_save_speaking_clip_transcript_words(uuid,uuid,jsonb,jsonb,text)','execute') ok`);
+  assert.equal(rows[0].ok, false);
+});

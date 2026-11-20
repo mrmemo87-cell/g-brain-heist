@@ -222,7 +222,8 @@ export type ScribeWords = { text: string; words: SpokenWord[]; model: string };
 export type TranscribeOnceSteps = {
   /** Words already kept for this recording, if any. */
   kept: () => Promise<{ words: SpokenWord[]; model: string } | undefined>;
-  /** 'done' (words kept), 'claimed' (transcribe now) or 'busy' (another step is transcribing). Throws on failure. */
+  /** 'done' (words kept), 'claimed' (transcribe now) or 'busy' (another step is transcribing). Throws on failure.
+   *  This is the only call repeated while waiting; the kept words are read once, after 'done'. */
   claim: () => Promise<string>;
   release: () => Promise<void>;
   /** A complete Scribe transcription, or null when it failed or looked incomplete. */
@@ -257,8 +258,7 @@ export async function transcribeOnce(steps: TranscribeOnceSteps): Promise<Scribe
   };
   const started = now();
   for (;;) {
-    const ready = await reuse();
-    if (ready) return ready;
+    // Ask the claim first: it is a tiny request, so a waiting step never re-reads every kept word while it waits.
     let status = 'claimed';
     try {
       status = await steps.claim();
@@ -266,8 +266,8 @@ export async function transcribeOnce(steps: TranscribeOnceSteps): Promise<Scribe
       // Without the claim, transcribe anyway: a lock problem must never stop a transcript.
       steps.log?.('transcription_claim', e instanceof Error ? e.message : e);
     }
-    // The other step finished between our check and our claim. If its words fail the completeness check, Scribe
-    // has already tried this recording, so OpenAI is used instead.
+    // The words are kept (by the other step, or earlier). If they fail the completeness check, Scribe has already
+    // tried this recording, so OpenAI is used instead.
     if (status === 'done') return reuse();
     if (status === 'busy' && now() - started < waitMs) {
       await sleep(pollMs);
