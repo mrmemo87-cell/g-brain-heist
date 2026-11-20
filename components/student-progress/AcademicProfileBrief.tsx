@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getInterventionIntelligence, type LearningIntervention } from '../../services/studentInterventionService';
 import './AcademicProfileBrief.css';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 export interface ProfileBriefNeed { key: string; label: string; status: string; evidence: number }
 export interface ProfileBriefProps {
@@ -19,7 +20,7 @@ export interface ProfileBriefProps {
   interventionsLink?: { studentId: string; subject?: string | null; studentName: string } | null;
 }
 
-const fmt = (value?: string | null) => (value ? new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '');
+const fmt = (value?: string | null) => (value ? new Date(value).toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short' }) : '');
 const tone = (average: number | null) => (average == null ? 'none' : average >= 80 ? 'strong' : average >= 60 ? 'developing' : 'focus');
 const statusWord: Record<string, string> = { new_focus: 'new', recurring: 'repeated', persistent: 'long-running', improving: 'improving' };
 

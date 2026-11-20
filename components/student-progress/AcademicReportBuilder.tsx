@@ -14,6 +14,7 @@ import {
 import { createSchoolBrand } from '../../src/lib/schoolBranding';
 import './AcademicReportBuilder.css';
 import './AcademicReportBuilder.school-head-light.css';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 interface Props {
   appearance?: 'default' | 'school-head-light';
@@ -28,7 +29,7 @@ interface Props {
 }
 
 const labels: Record<AcademicReportType, string> = { student: 'Student', class: 'Class', grade: 'Grade', subject: 'Subject', school: 'Whole school' };
-const formatDate = (value?: string | null) => value ? new Date(value).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+const formatDate = (value?: string | null) => value ? new Date(value).toLocaleDateString(displayDateLocale(), { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 const formatPercent = (value?: number | null) => value == null ? 'Not assessed' : `${Math.round(value * 10) / 10}%`;
 const shortHash = (value: string) => `${value.slice(0, 12)}…${value.slice(-8)}`;
 const rolePermission: Record<AcademicReportType, keyof AcademicReportingContext['permissions']> = {

@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Announcement } from '../../types';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 interface AnnouncementBannerProps {
   announcement: Announcement;
@@ -16,7 +17,7 @@ const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({ announcement, o
             <div className="font-heading text-lg mb-1">Broadcast from Control</div>
             <div className="text-sm sm:text-base whitespace-pre-line">{announcement.text}</div>
             <div className="text-xs text-white/70 mt-2">
-              {new Date(announcement.created_at).toLocaleString(undefined, {
+              {new Date(announcement.created_at).toLocaleString(displayDateLocale(), {
                 timeZone: 'Asia/Bishkek',
               })}
             </div>

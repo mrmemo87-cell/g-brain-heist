@@ -21,6 +21,7 @@ import {
 } from '../../services/yearRolloverService';
 import { useSchoolAdmin } from './SchoolAdminContext';
 import './AcademicYearRolloverWizard.css';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 type WizardStep = 1 | 2 | 3;
 type StudentFilter = 'review' | 'all';
@@ -70,7 +71,7 @@ const metric = (value?: number) => new Intl.NumberFormat().format(value || 0);
 const formatDate = (value?: string | null) => {
   if (!value) return '—';
   const date = new Date(`${value}T00:00:00Z`);
-  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString(undefined, {
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString(displayDateLocale(), {
     day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
   });
 };

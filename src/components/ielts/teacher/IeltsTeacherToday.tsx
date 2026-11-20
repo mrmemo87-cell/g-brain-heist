@@ -4,6 +4,7 @@ import type { LearningAllocation } from '../../../../services/ieltsLearningServi
 import IeltsWorkCard, { skillName } from '../student/IeltsWorkCard';
 import { IeltsCardGroup } from '../student/IeltsStudentShell';
 import type { IeltsTeacherTab } from './IeltsTeacherNav';
+import { displayDateLocale } from '../../../utils/displayDate';
 
 export type TeacherWaitingItem = { key: string; name: string; at: string; kind: string; skill: 'writing' | 'speaking'; route: string; started: boolean };
 
@@ -14,7 +15,7 @@ const greeting = () => {
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 export const formatDay = (iso: string) => {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short' });
 };
 const ago = (iso: string) => {
   const t = Date.parse(iso);
@@ -60,7 +61,7 @@ export default function IeltsTeacherToday({ schoolName, canManage, waiting, wait
 }) {
   const toGive = feedback ?? [];
   const total = waitingCount + toGive.length;
-  const today = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+  const today = new Date().toLocaleDateString(displayDateLocale(), { weekday: 'long', day: 'numeric', month: 'long' });
   const summary = total === 0
     ? 'Nothing is waiting for you. A good moment to prepare the next lesson.'
     : [waitingCount && plural(waitingCount, 'submission to review', 'submissions to review'), toGive.length && plural(toGive.length, 'targeted task needs feedback', 'targeted tasks need feedback')].filter(Boolean).join(' · ');

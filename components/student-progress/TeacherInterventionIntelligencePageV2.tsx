@@ -23,8 +23,9 @@ import ClassLearningNeeds from './ClassLearningNeeds';
 import { practiceRecommendationForGroup, rollUpRecommendations, type SkillRollupGroup } from './interventionSkillRollup';
 import './TeacherInterventionIntelligencePage.css';
 import './TeacherInterventionIntelligencePageV2.css';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
-const fmt = (value?: string | null) => value ? new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+const fmt = (value?: string | null) => value ? new Date(value).toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 const schoolStatus = (value: string) => ({
   insufficient_evidence: 'New support signal', new_focus: 'New support need', recurring: 'Repeated need', persistent: 'Long-running need', improving: 'Improving', resolved: 'Secure now', emerging_strength: 'Emerging strength', consistent_strength: 'Consistent strength',
 }[value] || value.replaceAll('_', ' '));

@@ -34,6 +34,7 @@ import IeltsStudentShell from '../../components/ielts/student/IeltsStudentShell'
 import IeltsStudentHome from '../../components/ielts/student/IeltsStudentHome';
 import { createIeltsViewCache } from '../../lib/ieltsViewCache';
 import { useIeltsAccount } from '../../lib/ieltsAudience';
+import { displayDateLocale } from '../../utils/displayDate';
 
 /**
  * What this learner's IELTS home looked like on the last visit in this tab. Returning to Home paints it at once
@@ -552,7 +553,7 @@ const IeltsHome: React.FC = () => {
     if (!value) return 'Not available yet';
     if (value === 'Practice activity available') return value;
     const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? 'Not available yet' : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    return Number.isNaN(date.getTime()) ? 'Not available yet' : date.toLocaleDateString(displayDateLocale(), { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   if (isAuthenticated && dashboardSummary && !isIeltsAdminLandingRole) {

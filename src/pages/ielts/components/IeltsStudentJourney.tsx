@@ -17,11 +17,12 @@ import { IeltsCardGroup } from '../../../components/ielts/student/IeltsStudentSh
 import '../../../styles/ielts-journey.css';
 import { useIeltsAudience } from '../../../lib/ieltsAudience';
 import { useIeltsPracticeReviews } from '../../../components/ielts/student/useIeltsStudentWork';
+import { displayDateLocale } from '../../../utils/displayDate';
 const IeltsStudentLearningPlan = React.lazy(() => import('./IeltsStudentLearningPlan'));
 const title = (s: string) => s[0].toUpperCase() + s.slice(1);
 const date = (v?: string | null) =>
   v && Number.isFinite(Date.parse(v))
-    ? new Date(v).toLocaleDateString(undefined, { dateStyle: 'medium' })
+    ? new Date(v).toLocaleDateString(displayDateLocale(), { dateStyle: 'medium' })
     : 'Date unavailable';
 const observationLabels = {
   observed: 'Shown in this task',

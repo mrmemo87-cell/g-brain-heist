@@ -6,6 +6,7 @@ import {
 } from '../../services/academicYearContinuityService';
 import { useSchoolAdmin } from './SchoolAdminContext';
 import './AcademicYearContinuityCard.css';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 const formatDateRange = (year: AcademicYearContinuityYear) => {
   const formatter = new Intl.DateTimeFormat('en-GB', {
@@ -155,7 +156,7 @@ const AcademicYearContinuityCard: React.FC = () => {
           </p>
         </div>
         {selectedYear.latestEvidenceAt ? (
-          <small>Latest evidence {new Date(selectedYear.latestEvidenceAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</small>
+          <small>Latest evidence {new Date(selectedYear.latestEvidenceAt).toLocaleDateString(displayDateLocale(), { year: 'numeric', month: 'short', day: 'numeric' })}</small>
         ) : <small>No evidence recorded yet</small>}
       </div>
 

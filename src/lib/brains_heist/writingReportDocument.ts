@@ -1,5 +1,6 @@
 import type { TeacherWritingReport } from './writingIntegrationService.js';
 import { createSchoolDocumentId, schoolDocumentFileName } from '../schoolDocument.js';
+import { displayDateLocale } from '../../utils/displayDate';
 
 export type WritingReportAudience = 'parent' | 'teacher';
 
@@ -79,7 +80,7 @@ export const buildProfessionalWritingReportHtml = (
     ? schoolLogoUrl
     : null;
   const teacherName = report.institution?.teacher_name || 'Writing teacher';
-  const generated = new Date(report.generated_at || Date.now()).toLocaleDateString(undefined, {
+  const generated = new Date(report.generated_at || Date.now()).toLocaleDateString(displayDateLocale(), {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

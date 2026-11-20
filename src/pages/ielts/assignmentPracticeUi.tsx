@@ -5,6 +5,7 @@ import {
   getAssignmentProgressSummaryFromProgress,
   type AssignmentProgressSummary,
 } from '../../../services/ieltsAssignmentUx';
+import { displayDateLocale } from '../../utils/displayDate';
 
 export interface IeltsPracticeAssignmentContext {
   assignmentId: string | null;
@@ -39,7 +40,7 @@ export const formatAssignmentDueDate = (dueAt: string | null | undefined): strin
   if (!dueAt) return null;
   const parsed = new Date(dueAt);
   if (Number.isNaN(parsed.getTime())) return null;
-  return parsed.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  return parsed.toLocaleString(displayDateLocale(), { dateStyle: 'medium', timeStyle: 'short' });
 };
 
 export interface AssignmentProgressBarProps {

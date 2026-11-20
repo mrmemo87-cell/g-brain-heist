@@ -8,13 +8,14 @@ import { createSchoolBrand } from '../../src/lib/schoolBranding';
 import AcademicReportBuilder from '../student-progress/AcademicReportBuilder';
 import './SchoolHeadLearningIntelligence.css';
 import './SchoolHeadLearningIntelligence.light.css';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 const AcademicIntelligenceGovernance = lazy(() => import('./AcademicIntelligenceGovernance'));
 
 interface Props { schoolId: string; schoolName?: string | null; schoolLogoUrl?: string | null; onBack?: () => void; }
 
 const formatPercent = (value: number | null) => value == null ? 'No data' : `${Math.round(value * 10) / 10}%`;
-const formatDate = (value?: string | null) => value ? new Date(value).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+const formatDate = (value?: string | null) => value ? new Date(value).toLocaleDateString(displayDateLocale(), { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 const ratio = (value: number, total: number) => total > 0 ? Math.round((value / total) * 100) : 0;
 
 const SchoolHeadLearningIntelligence: React.FC<Props> = ({ schoolId, schoolName, schoolLogoUrl, onBack }) => {

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { getGuardianChildProgress, type GuardianChild, type GuardianChildProgress } from '../../services/guardianService';
 import ParentDashboardPremium from './ParentDashboardPremium';
 import './ParentAcademicYearDashboard.css';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 interface ParentAcademicYearDashboardProps {
   children: GuardianChild[];
@@ -23,7 +24,7 @@ const formatYearDate = (value?: string | null) => {
   if (!value) return '';
   const date = new Date(`${value}T00:00:00`);
   if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  return date.toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
 const escapeCssContent = (value: string) => value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');

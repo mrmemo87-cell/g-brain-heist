@@ -9,6 +9,7 @@ import {
 import { useAdmin } from '../AdminContext';
 import './QuestionTaxonomyReviewQueue.css';
 import './AiRecheckQueue.css';
+import { displayDateLocale } from '../../../src/utils/displayDate';
 
 const PAGE_SIZE = 20;
 const LETTERS = 'ABCDEFGH';
@@ -18,7 +19,7 @@ const optionText = (option: string | { text?: string }) => typeof option === 'st
   : option.text || 'Image option';
 
 const formatDate = (value?: string | null) => value
-  ? new Date(value).toLocaleString(undefined, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+  ? new Date(value).toLocaleString(displayDateLocale(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
   : 'Not recorded';
 
 const resolveImageUrl = (url?: string | null) => {

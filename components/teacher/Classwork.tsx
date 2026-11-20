@@ -11,6 +11,7 @@ import {
   type TimelineItem,
 } from '../../src/lib/classworkModel';
 import './Classwork.css';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 export type ClassworkMode = 'class' | 'student' | 'manage';
 
@@ -33,7 +34,7 @@ const RECENT_COLUMNS = 5;
 const shortDate = (value?: string | null) => {
   if (!value) return null;
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short' });
 };
 const STATUS_LABEL: Record<TimelineItem['status'], string> = {
   done: 'Done', missing: 'Missing', 'past-due': 'Past due', 'not-started': 'Not started',

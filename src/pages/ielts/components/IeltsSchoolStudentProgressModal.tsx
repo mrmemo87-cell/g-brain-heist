@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { bandGapLabel, humanizeIeltsSnapshotStatus, type IeltsSchoolStudentSnapshot } from '../../../../services/ieltsSchoolStudentSnapshotService';
+import { displayDateLocale } from '../../../utils/displayDate';
 
 type ModalState = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -23,7 +24,7 @@ const formatDate = (value?: string | null, fallback = 'Not available') => {
   if (!value) return fallback;
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return fallback;
-  return parsed.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  return parsed.toLocaleString(displayDateLocale(), { dateStyle: 'medium', timeStyle: 'short' });
 };
 
 const gaugeColor = (band?: number | null) => {

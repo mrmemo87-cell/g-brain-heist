@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import IeltsAdminBadgeRow from '../src/pages/ielts/components/IeltsAdminBadgeRow';
 import { supabase } from '../services/supabaseClient';
 import { fetchAllIeltsUsers, fetchIeltsAdminStats, fetchIeltsRecentAttempts } from '../services/ieltsService';
+import { displayDateLocale } from '../src/utils/displayDate';
 
 const NAV_SECTIONS = [
   { id: 'overview', label: 'Overview' },
@@ -94,7 +95,7 @@ const formatDate = (value?: string | null) => {
   if (!value) return '—';
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return '—';
-  return parsed.toLocaleString('en-US', {
+  return parsed.toLocaleString(displayDateLocale(), {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -107,7 +108,7 @@ const formatDateOnly = (value?: string | null) => {
   if (!value) return '—';
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return '—';
-  return parsed.toLocaleDateString('en-US', {
+  return parsed.toLocaleDateString(displayDateLocale(), {
     month: 'short',
     day: 'numeric',
     year: 'numeric',

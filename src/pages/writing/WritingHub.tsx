@@ -48,6 +48,7 @@ import { getCambridgeWritingProfile, getCambridgeWritingTaskLabel } from '../../
 import { selectPriorityWritingFixes } from '../../lib/brains_heist/writingPriorityFixes.js';
 import { quest_get_missions, QuestMissionRow } from '../../../services/gameService.js';
 import { getAcademicReportingContext, type AcademicReportingYear } from '../../../services/academicReportingService.js';
+import { displayDateLocale } from '../../utils/displayDate';
 
 interface WritingHubProps {
   studentId: string;
@@ -1534,7 +1535,7 @@ const toAttemptTypeLabel = (attemptType: 'initial_assessment' | 'daily_practice'
 const formatHistoryDate = (isoDate: string): string => {
   const parsed = new Date(isoDate);
   if (Number.isNaN(parsed.getTime())) return 'Unknown date';
-  return parsed.toLocaleString(undefined, {
+  return parsed.toLocaleString(displayDateLocale(), {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -5301,7 +5302,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
         tab_change_count: tabChangeCountRef.current,
       }).then((result) => {
         if (result.ok && result.data?.saved) {
-          setDraftSavedAt(new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }));
+          setDraftSavedAt(new Date().toLocaleTimeString(displayDateLocale(), { hour: '2-digit', minute: '2-digit' }));
         }
       });
     }, 3000);
@@ -6202,7 +6203,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
             <span>
               {Number.isNaN(new Date(classTask.closes_at).getTime())
                 ? 'Submit this task to open other tasks.'
-                : `Submit it by ${new Date(classTask.closes_at).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}. Other tasks open after you submit.`}
+                : `Submit it by ${new Date(classTask.closes_at).toLocaleDateString(displayDateLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}. Other tasks open after you submit.`}
             </span>
           </div>
         )}

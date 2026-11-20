@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../services/supabaseClient';
 import type { SchoolHeadSnapshot, SchoolHeadTab } from '../services/schoolHeadService';
 import { greetingName } from '../src/utils/displayText';
+import { displayDateLocale } from '../src/utils/displayDate';
 
 const SUPPORT_ICON_PATHS = {
   learner: <><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></>,
@@ -144,7 +145,11 @@ const EngagementTrendChart: React.FC<{ schoolId: string }> = ({ schoolId }) => {
         const activeStudents = Number(row['active_students']);
         const activityRate = Number(row['activity_rate']);
         return [{
-          label: typeof row['label'] === 'string' ? row['label'] : '',
+          label: (() => {
+            const start = typeof row['starts_at'] === 'string' ? new Date(row['starts_at']) : null;
+            if (start && !Number.isNaN(start.getTime())) return start.toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short', timeZone: 'UTC' });
+            return typeof row['label'] === 'string' ? row['label'] : '';
+          })(),
           starts_at: typeof row['starts_at'] === 'string' ? row['starts_at'] : '',
           ends_at: typeof row['ends_at'] === 'string' ? row['ends_at'] : '',
           active_students: Number.isFinite(activeStudents) ? activeStudents : 0,
@@ -244,7 +249,7 @@ const SchoolHeadOverview: React.FC<SchoolHeadOverviewProps> = ({ snapshot, onOpe
   const generatedAt = new Date(snapshot.generated_at);
   const generatedLabel = Number.isNaN(generatedAt.getTime())
     ? 'Live school records'
-    : `Updated ${generatedAt.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}`;
+    : `Updated ${generatedAt.toLocaleString(displayDateLocale(), { dateStyle: 'medium', timeStyle: 'short' })}`;
 
   return (
     <div className="school-head-page school-head-overview-v3">

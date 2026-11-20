@@ -18,6 +18,7 @@ import {
 } from './academicReportingSemantics';
 import './StudentAcademicProfile.css';
 import './StudentAcademicProfileV2Enhancements.css';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 interface IndividualStudentAcademicReportProps {
   profile: StudentAcademicProfile;
@@ -31,7 +32,7 @@ type TimelineItem = StudentAcademicProfile['timeline'][number];
 type PrintTrendEvent = { key: string; observedAt: string; score: number; comparableKey: string; source: string; detail: string; label: string; result: string };
 
 const safeText = (value: unknown) => String(value ?? '').trim();
-const formatDate = (value?: string | null) => value ? new Date(value).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+const formatDate = (value?: string | null) => value ? new Date(value).toLocaleDateString(displayDateLocale(), { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 const formatSectionNumber = (value: number | null) => value == null ? '' : String(value).padStart(2, '0');
 const normalizeSubject = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^maths$/, 'mathematics');
 const sourceLabel = (item: TimelineItem) => {

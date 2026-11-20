@@ -14,6 +14,7 @@ import {
   type ReportEvidence,
 } from "../../../services/ieltsLearningReportService";
 import "../../styles/ielts-student-progress.css";
+import { displayDateLocale } from '../../utils/displayDate';
 
 const skills = ["listening", "reading", "writing", "speaking"] as const;
 type Skill = (typeof skills)[number];
@@ -164,7 +165,7 @@ function nextSteps(student: ProgrammeStudent): NextStep[] {
 function readableDate(raw: string | null | undefined) {
   if (!raw) return "Date unavailable";
   const value = new Date(raw);
-  return Number.isNaN(value.getTime()) ? "Date unavailable" : value.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  return Number.isNaN(value.getTime()) ? "Date unavailable" : value.toLocaleDateString(displayDateLocale(), { year: "numeric", month: "short", day: "numeric" });
 }
 
 function activityTitle(e: ReportEvidence) {

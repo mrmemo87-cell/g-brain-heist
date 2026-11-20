@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import type { TeacherAssignmentSummary } from '../../types';
 import './AssignmentCard.css';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 interface AssignmentCardProps {
   assignment: TeacherAssignmentSummary;
@@ -35,7 +36,7 @@ function validDate(value?: string | null): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 function readableDate(date: Date): string {
-  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  return date.toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export default function AssignmentCard({ assignment, canManage, printing, printDisabled, deleting, deleteDisabled, onReport, onPrint, onRecord, onEdit, onDelete }: AssignmentCardProps) {

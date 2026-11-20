@@ -13,8 +13,9 @@ import { fetchIeltsStartingPoint, type IeltsStartingPoint } from '../../../servi
 import IeltsSchoolStudentProgressModal from './components/IeltsSchoolStudentProgressModal';
 import { friendlyIeltsAdminError } from '../../lib/schoolAdminPresentation';
 import { resolveIeltsDashboardMode, type IeltsDashboardMode } from './ieltsDashboardMode';
+import { displayDateLocale } from '../../utils/displayDate';
 
-const formatDate = (value?: string | null, empty = 'No activity yet') => value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleDateString(undefined, { dateStyle: 'medium' }) : empty;
+const formatDate = (value?: string | null, empty = 'No activity yet') => value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleDateString(displayDateLocale(), { dateStyle: 'medium' }) : empty;
 
 type LoadState = 'loading' | 'ready' | 'error';
 type SnapshotModalState = 'idle' | 'loading' | 'ready' | 'error';

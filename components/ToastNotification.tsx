@@ -158,8 +158,8 @@ const Toast: React.FC<ToastProps> = ({ notification, onDismiss, onAction, index 
             </div>
 
             <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2.5 py-1">
-              <span className={`text-base leading-none ${style.color}`}>{style.emoji}</span>
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-white/70">{notification.priority}</span>
+              {notification.type !== 'school_head_decision' && <span className={`text-base leading-none ${style.color}`}>{style.emoji}</span>}
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-white/70">{notification.type === 'school_head_decision' ? `${notification.priority} priority` : notification.priority}</span>
             </div>
 
             <p className="text-sm text-gray-200 leading-relaxed break-words">

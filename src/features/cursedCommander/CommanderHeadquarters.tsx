@@ -40,6 +40,7 @@ import {
 import "./commanderJuice.css";
 import "./commanderHeadquarters.css";
 import "./commanderHeadquartersCommandCenter.css";
+import { displayDateLocale } from '../../utils/displayDate';
 
 type Tab = "overview" | "army" | "armory" | "training" | "supplies" | "records";
 type Choice = {
@@ -1199,7 +1200,7 @@ export default function CommanderHeadquarters({
                               </strong>
                               <p>
                                 {find(entry.payload.target)?.name ?? entry.payload.target ?? hq.campaign.title} ·{" "}
-                                {new Date(entry.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                {new Date(entry.created_at).toLocaleDateString(displayDateLocale(), { month: "short", day: "numeric" })}
                               </p>
                             </div>
                             <span className={entry.coins_delta > 0 ? "cc-hq-positive" : ""}>

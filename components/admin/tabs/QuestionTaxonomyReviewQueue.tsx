@@ -12,6 +12,7 @@ import {
 } from '../../../services/adminQuestionBankService';
 import { useAdmin } from '../AdminContext';
 import './QuestionTaxonomyReviewQueue.css';
+import { displayDateLocale } from '../../../src/utils/displayDate';
 
 const PAGE_SIZE = 20;
 
@@ -55,7 +56,7 @@ const COGNITION_BY_AO: Record<AdminAssessmentProcessCode, AdminTaxonomyReplaceme
 };
 
 const formatDateTime = (value?: string | null) => value
-  ? new Date(value).toLocaleString(undefined, {
+  ? new Date(value).toLocaleString(displayDateLocale(), {
     day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
   })
   : 'Not recorded';

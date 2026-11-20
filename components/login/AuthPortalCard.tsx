@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { GoogleIcon } from '../icons';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 type Mode = 'login' | 'signup' | 'reset' | 'confirm';
 
@@ -97,7 +98,7 @@ const AuthPortalCard: React.FC<AuthPortalCardProps> = ({
                         placeholder="000000"
                         className="block h-14 w-full rounded-2xl border border-slate-600/70 bg-slate-800/70 px-4 text-center font-mono text-2xl tracking-[0.45em] text-white outline-none transition focus:border-cyan-300 focus:ring-4 focus:ring-cyan-300/10"
                     />
-                    <p className="text-center text-xs text-slate-500">{pendingExpiresAt ? `Pending account expires ${new Date(pendingExpiresAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}.` : 'Confirm within seven days.'}</p>
+                    <p className="text-center text-xs text-slate-500">{pendingExpiresAt ? `Pending account expires ${new Date(pendingExpiresAt).toLocaleDateString(displayDateLocale(), { dateStyle: 'medium' })}.` : 'Confirm within seven days.'}</p>
 
                     <button type="submit" disabled={isLoading || confirmationCode.length !== 6} className="flex h-14 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-300 via-cyan-400 to-teal-300 font-black text-[#06101d] disabled:opacity-50">{isLoading ? 'Confirming…' : 'Confirm and continue'}</button>
 
