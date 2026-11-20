@@ -355,6 +355,16 @@ async function interviewHighlights(key: string, clips: Array<{ id: string; part:
   }
 }
 
+/** Replaces broken characters (half an emoji left by shortening text) so the database API never refuses a save. */
+function wellFormed<T>(value: T): T {
+  if (typeof value === "string") {
+    const fix = (value as unknown as { toWellFormed?: () => string }).toWellFormed;
+    return (fix ? fix.call(value) : value) as T;
+  }
+  if (Array.isArray(value)) return value.map((v) => wellFormed(v)) as T;
+  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, wellFormed(v)])) as T;
+  return value;
+}
 // deno-lint-ignore no-explicit-any
 async function analyse(sessionId: string, session: any, caller: any, admin: any): Promise<unknown> {
   if (session.status !== "submitted") throw new Error("not_submitted");
@@ -393,15 +403,16 @@ async function analyse(sessionId: string, session: any, caller: any, admin: any)
     const { error } = await admin.rpc("rpc_ielts_save_speaking_clip_analysis", {
       p_session_id: sessionId,
       p_clip_id: clip.id,
-      p_transcript: clip.transcript,
-      p_highlights: highlights[clip.id] ?? [],
-      p_pronunciation: clip.pronunciation,
+      p_transcript: wellFormed(clip.transcript),
+      p_highlights: wellFormed(highlights[clip.id] ?? []),
+      p_pronunciation: wellFormed(clip.pronunciation),
       p_prompt_version: INTERVIEW_ANALYSIS_VERSION,
       // Provenance: highlight model, speech-to-text model and pronunciation model.
       p_provider: `${provider}+${clip.heardBy}+openai/${analyseModel}`.slice(0, 200),
-      p_speaker_turns: { teacher: clip.teacherLines },
+      p_speaker_turns: wellFormed({ teacher: clip.teacherLines }),
     });
-    if (error) throw new Error("save_failed");
+    // Short database or API codes only (never transcript text), so a refused save can be diagnosed.
+    if (error) { why("analysis_save", `${error.code ?? ""} ${String(error.message ?? "").slice(0, 160)}`); throw new Error("save_failed"); }
   }
   const { data: fresh, error: freshError } = await caller.rpc("rpc_ielts_speaking_session_extras", { p_session_id: sessionId });
   if (freshError) throw new Error("extras_failed");

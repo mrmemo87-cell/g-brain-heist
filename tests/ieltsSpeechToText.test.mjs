@@ -149,6 +149,8 @@ test('the interview transcribes through transcribeOnce in both steps', () => {
   assert.match(pilot, /transcribeForAnalysis\(bytes, key, Number\(clip\.duration_seconds\) \|\| 0, admin, sessionId, clip\.id\)/, 'review step');
   assert.match(pilot, /rpc_ielts_claim_speaking_clip_transcription/);
   assert.match(pilot, /if \(!extras\?\.missing_clips\) return extras;/, 'a shared interview is never re-analysed');
+  assert.match(pilot, /p_transcript: wellFormed\(clip\.transcript\)/, 'broken characters never make the database API refuse a save');
+  assert.match(pilot, /why\("analysis_save", /, 'a refused save logs its short error code');
   assert.match(pilot, /rpc_ielts_release_speaking_clip_transcription/);
   assert.match(pilot, /complete: \(text\) => transcriptLooksComplete\(text, seconds\)/, 'kept words pass the same completeness check');
 });
@@ -217,14 +219,28 @@ test('a claim older than three minutes is treated as abandoned', async () => {
   assert.equal(w.db.claim, null);
 });
 
-test('words already kept are reused without a claim or a charge', async () => {
+test('words already kept are reused without a charge', async () => {
   const w = world();
   w.db.kept = { words: stt.readScribeResponse(scribe, 'scribe_v2').words, model: 'elevenlabs/scribe_v2' };
-  let claimed = false;
-  const result = await stt.transcribeOnce({ ...w.step('draft'), claim: async () => { claimed = true; return 'done'; } });
+  const result = await stt.transcribeOnce(w.step('draft'));
   assert.equal(w.calls(), 0);
-  assert.equal(claimed, false);
   assert.equal(result.model, 'elevenlabs/scribe_v2');
+});
+
+test('a waiting step only asks the small claim question; it reads the kept words once, when they are ready', async () => {
+  const w = world();
+  w.db.claim = { by: 'analysis', at: 0 };
+  let reads = 0; let polls = 0;
+  const base = w.step('draft');
+  const result = await stt.transcribeOnce({
+    ...base,
+    kept: async () => { reads += 1; return base.kept(); },
+    claim: async () => { polls += 1; if (polls === 5) { w.db.kept = { words: stt.readScribeResponse(scribe, 'scribe_v2').words, model: 'elevenlabs/scribe_v2' }; } return base.claim(); },
+  });
+  assert.equal(polls, 5);
+  assert.equal(reads, 1, 'kept words are read once, not on every poll');
+  assert.equal(w.calls(), 0);
+  assert.ok(result.words.length);
 });
 
 test('failures fall back to OpenAI and never block: failed Scribe, broken lock, incomplete kept words', async () => {
