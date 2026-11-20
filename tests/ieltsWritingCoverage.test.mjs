@@ -45,6 +45,7 @@ test("deterministic checks leave numbers, abbreviations, names and web addresses
   for (const safe of ["3.5", "e.g.", "Kyrgyzstan", "Bishkek", "www.example.com", "2025"]) assert.ok(!quotes.includes(safe), `false positive on ${safe}: ${quotes}`);
   assert.deepEqual(mechanicalWritingHighlights("Clean, correct writing. It has no slips, and I like it."), []);
   assert.equal(applyMechanicalFixes("The pupils' needs,so they learn.then"), "The pupils' needs, so they learn. Then");
+  assert.equal(applyMechanicalFixes("education remains important,so"), "education remains important, so", "a mid-sentence correction keeps its small first letter");
 });
 
 test("the first pass is told to mark every error, and the proofreading pass looks only for what it left", () => {
@@ -101,4 +102,16 @@ test("a deterministic slip inside an AI fix is merged into that fix, and AI corr
   const merged = completeWritingHighlights(nullFix, [], text, 2);
   assert.equal(merged.length, 1);
   assert.match(merged[0].note, /Also: Put a space after the comma/);
+});
+
+test("a correct strength next to a slip is kept and the slip is narrowed to the words outside it", () => {
+  const text = "On the one hand,letting students choose can raise their motivation.";
+  const strength = "letting students choose can raise their motivation";
+  const out = completeWritingHighlights([{ criterion: "lexical_resource", kind: "strength", quote: strength, note: "Clear, formal idea.", correction: null, ...at(text, strength) }], [], text, 2);
+  const q = byQuote(out);
+  assert.ok(q[strength], "the strength stays");
+  assert.ok(q["hand,"], "the slip is still marked");
+  assert.equal(q["hand,"].correction, null);
+  assert.match(q["hand,"].note, /space after the comma/);
+  for (let i = 1; i < out.length; i++) assert.ok(out[i].start_char >= out[i - 1].end_char, "no overlaps");
 });

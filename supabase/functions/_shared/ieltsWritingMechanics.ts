@@ -49,7 +49,7 @@ const WEB = /^(?:com|org|net|edu|gov|uk|kg|ru|io|ai|co|html?|php)\b/i;
 const LETTER = /\p{L}/u;
 const upperFirst = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
 
-function collectEdits(text: string): Edit[] {
+function collectEdits(text: string, fragment = false): Edit[] {
   const edits: Edit[] = [];
   const lowerWords = new Set((text.match(/\p{L}+/gu) ?? []).filter(w => w === w.toLowerCase()));
   // Capital after a comma: only when the essay itself spells that word in small letters (so names stay untouched).
@@ -92,6 +92,7 @@ function collectEdits(text: string): Edit[] {
     edits.push({ at, end: at + 1, insert: m[3].toUpperCase(), criterion: 'grammar_range_accuracy', note: 'Start a new sentence with a capital letter.' });
   }
   for (const m of text.matchAll(/(^|\n)([ \t]*)(\p{Ll})/gu)) {
+    if (fragment && !m[1]) continue; // a correction is part of a sentence, not the start of a paragraph
     const at = (m.index ?? 0) + m[1].length + m[2].length;
     edits.push({ at, end: at + 1, insert: m[3].toUpperCase(), criterion: 'grammar_range_accuracy', note: 'Start a new paragraph with a capital letter.' });
   }
@@ -165,9 +166,9 @@ export function mechanicalWritingHighlights(essay: string): WritingHighlight[] {
   }).filter(h => h.quote.trim() && h.correction !== h.quote);
 }
 
-/** Applies the deterministic fixes to a piece of text (used to clean an AI correction before it is shown). */
+/** Applies the deterministic fixes to a piece of a sentence (used to clean an AI correction before it is shown). */
 export function applyMechanicalFixes(text: string): string {
   let out = ''; let at = 0;
-  for (const edit of collectEdits(text)) { out += text.slice(at, edit.at) + edit.insert; at = edit.end; }
+  for (const edit of collectEdits(text, true)) { out += text.slice(at, edit.at) + edit.insert; at = edit.end; }
   return out + text.slice(at);
 }

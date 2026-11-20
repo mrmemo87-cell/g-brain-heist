@@ -174,6 +174,23 @@ export const writingProofreadSchema = (task: 1 | 2) => ({
 export const writingProofreadUserContent = (task: string, essay: string, marked: WritingHighlight[]) =>
   JSON.stringify({ task, essay, already_marked: marked.map(h => h.quote) });
 
+/**
+ * A fixed-check finding that touches a correct strength (for example "hand,letting" next to the strength "letting
+ * students explore") is narrowed to the part outside the strength and shown with its note only.
+ * Returns null when nothing sensible is left, so the caller removes the strength instead.
+ */
+function narrowFinding(finding: WritingHighlight, strength: WritingHighlight, essay: string): WritingHighlight | null {
+  const chars = Array.from(essay);
+  let s = finding.start_char; let e = finding.end_char;
+  if (strength.start_char <= s && strength.end_char >= e) return null;
+  if (strength.start_char <= s) s = strength.end_char; else e = strength.start_char;
+  while (e > s && /\s/.test(chars[e - 1])) e--;
+  while (s < e && /\s/.test(chars[s])) s++;
+  const quote = chars.slice(s, e).join('');
+  if (!/[\p{L},.;:!?'’]/u.test(quote)) return null;
+  return { ...finding, quote, start_char: s, end_char: e, correction: null };
+}
+
 const overlaps = (a: WritingHighlight, b: WritingHighlight) => a.start_char < b.end_char && b.start_char < a.end_char;
 const addNote = (note: string, extra: string) => {
   const joined = `${note} Also: ${extra}`;
@@ -201,8 +218,13 @@ export function completeWritingHighlights(first: WritingHighlight[], proofread: 
     const hits = list.filter(h => overlaps(h, m));
     const fixes = hits.filter(h => h.kind === 'fix');
     if (!fixes.length) {
-      list = list.filter(h => !hits.includes(h)); // a strength never contains a mistake
-      list.push(m);
+      // A strength that itself contains a slip is removed; next to a correct one the finding is narrowed instead.
+      let finding: WritingHighlight | null = m;
+      for (const strength of hits) {
+        const narrowed = finding && applyMechanicalFixes(strength.quote) === strength.quote ? narrowFinding(finding, strength, essay) : null;
+        if (narrowed) finding = narrowed; else list = list.filter(h => h !== strength);
+      }
+      list.push(finding && hits.every(h => !list.includes(h) || !overlaps(h, finding!)) ? finding : m);
       continue;
     }
     const covering = fixes.find(h => h.correction && h.start_char <= m.start_char && h.end_char >= m.end_char);
