@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSmartCollapsedNavigation } from '../../../hooks/useSmartCollapsedNavigation';
+import IeltsShellIcon, { type IeltsShellIconName } from '../IeltsShellIcon';
 
 /** Browsers without matchMedia (old webviews, test DOMs) keep a plain, always-visible bar. */
 const useNavMotion: typeof useSmartCollapsedNavigation = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
@@ -8,16 +9,16 @@ const useNavMotion: typeof useSmartCollapsedNavigation = typeof window !== 'unde
 
 export type IeltsTeacherTab = 'today' | 'reviews' | 'students' | 'batches' | 'practice' | 'lessons' | 'exams' | 'team';
 
-type Tab = { id: IeltsTeacherTab; label: string; icon: string; hint: string; manageOnly?: boolean; phone?: boolean };
+type Tab = { id: IeltsTeacherTab; label: string; icon: IeltsShellIconName; hint: string; manageOnly?: boolean; phone?: boolean };
 const TABS: Tab[] = [
-  { id: 'today', label: 'Today', icon: '🏠', hint: 'What needs you now', phone: true },
-  { id: 'reviews', label: 'Reviews', icon: '✍️', hint: 'Writing and Speaking waiting for feedback', phone: true },
-  { id: 'students', label: 'Students', icon: '👥', hint: 'Progress, plans and reports', phone: true },
-  { id: 'batches', label: 'Batches', icon: '🗂️', hint: 'Course batches and their practice', manageOnly: true, phone: true },
-  { id: 'lessons', label: 'Lessons', icon: '📚', hint: 'Lesson packs, slides and audio', manageOnly: true },
-  { id: 'practice', label: 'Practice', icon: '📋', hint: 'Assignments and practice history', manageOnly: true },
-  { id: 'exams', label: 'Exams', icon: '⏱️', hint: 'Schedule and monitor exam sessions', manageOnly: true },
-  { id: 'team', label: 'Team', icon: '🤝', hint: 'Programme lead and access' },
+  { id: 'today', label: 'Today', icon: 'home', hint: 'What needs you now', phone: true },
+  { id: 'reviews', label: 'Reviews', icon: 'review', hint: 'Writing and Speaking waiting for feedback', phone: true },
+  { id: 'students', label: 'Students', icon: 'students', hint: 'Progress, plans and reports', phone: true },
+  { id: 'batches', label: 'Batches', icon: 'batches', hint: 'Course batches and their practice', manageOnly: true, phone: true },
+  { id: 'lessons', label: 'Lessons', icon: 'lessons', hint: 'Lesson packs, slides and audio', manageOnly: true },
+  { id: 'practice', label: 'Practice', icon: 'practice', hint: 'Assignments and practice history', manageOnly: true },
+  { id: 'exams', label: 'Exams', icon: 'exams', hint: 'Schedule and monitor exam sessions', manageOnly: true },
+  { id: 'team', label: 'Team', icon: 'team', hint: 'Programme lead and access' },
 ];
 
 /**
@@ -58,8 +59,8 @@ export default function IeltsTeacherNav({ active, onNavigate, canManage, reviewC
   const label = (tab: Tab) => {
     const n = badge(tab);
     return <>
-      <span className="isn-icon" aria-hidden="true">{tab.icon}{n > 0 && <span className="isn-badge">{n > 9 ? '9+' : n}</span>}</span>
-      <span className="isn-label">{tab.label}{n > 0 && <span className="il-sr-only"> ({n} waiting)</span>}</span>
+      <span className="isn-icon" aria-hidden="true"><IeltsShellIcon name={tab.icon} />{n > 0 && <span className="isn-badge">{n > 9 ? '9+' : n}</span>}</span>
+      <span className="isn-label">{tab.label}{n > 0 && <span className="isn-sr-only"> ({n} waiting)</span>}</span>
       {n > 0 && <span className="isn-badge isn-badge--inline" aria-hidden="true">{n > 9 ? '9+' : n}</span>}
     </>;
   };
@@ -102,14 +103,14 @@ export default function IeltsTeacherNav({ active, onNavigate, canManage, reviewC
             disabled={disabled}
             onClick={() => setMoreOpen((open) => !open)}
           >
-            <span className="isn-icon" aria-hidden="true">{activeInMore?.icon ?? '☰'}</span>
+            <span className="isn-icon" aria-hidden="true"><IeltsShellIcon name={activeInMore?.icon ?? 'more'} /></span>
             <span className="isn-label">{activeInMore?.label ?? 'More'}</span>
           </button>
           {moreOpen && (
             <div className="itn-sheet" role="group" aria-label="More teaching tools">
               {moreTabs.map((tab) => (
                 <button key={tab.id} type="button" className={'itn-sheet-item' + (tab.id === active ? ' is-active' : '')} aria-current={tab.id === active ? 'page' : undefined} onClick={() => go(tab.id)}>
-                  <span className="itn-sheet-icon" aria-hidden="true">{tab.icon}</span>
+                  <span className="itn-sheet-icon" aria-hidden="true"><IeltsShellIcon name={tab.icon} /></span>
                   <span><strong>{tab.label}</strong><small>{tab.hint}</small></span>
                 </button>
               ))}

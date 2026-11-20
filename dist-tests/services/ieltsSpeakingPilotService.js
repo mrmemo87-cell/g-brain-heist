@@ -116,6 +116,7 @@ export const speakingBandsFrom = (b) => {
 };
 const SHARE_ERRORS = [
     ["speaking_bands_required", "Choose every band in step 3 before sharing."],
+    ["speaking_placeholder_comment", "Replace the AI's \"not assessed\" note in step 2 with your own comment before sharing."],
     ["speaking_all_parts_required", "A Speaking band needs recordings for Part 1, Part 2 and Part 3."],
     ["speaking_review_changed", "Someone shared a newer review of this interview. Reload the page to see it before sharing again."],
     ["speaking_review_conflict", "This share was already sent with different details. Reload the page and share again."],
@@ -138,12 +139,31 @@ export async function shareSpeakingResult(args) {
     }
     return data;
 }
+export async function estimateSpeakingBands(sessionId) {
+    const { data, error } = await supabase.functions.invoke("ielts_speaking_pilot", { body: { action: "estimate", sessionId } });
+    if (error || !data || data.error)
+        throw new Error("AI band estimates are not available right now. You can still choose every band yourself.");
+    return data.ai_estimates ?? null;
+}
 export const speakingExtras = (sessionId) => speakingRpc("rpc_ielts_speaking_session_extras", { p_session_id: sessionId });
 export async function analyseSpeakingSession(sessionId) {
     const { data, error } = await supabase.functions.invoke("ielts_speaking_pilot", { body: { action: "analyse", sessionId } });
     if (error || !data || data.error)
         throw new Error("The transcript could not be prepared right now. The recordings are safe; try again in a minute.");
     return data;
+}
+export async function speakingClipWords(sessionId) {
+    const { data, error } = await supabase.rpc("rpc_ielts_speaking_clip_words", { p_session_id: sessionId });
+    if (error || !Array.isArray(data))
+        return [];
+    return data;
+}
+/** Teacher only: times the words of recordings that have none yet (one extra transcription per recording). */
+export async function syncSpeakingClipWords(sessionId) {
+    const { data, error } = await supabase.functions.invoke("ielts_speaking_word_times", { body: { sessionId } });
+    if (error || !data || data.error || !Array.isArray(data.words))
+        throw new Error("The words could not be matched to the audio right now. Nothing was changed; try again in a minute.");
+    return data.words;
 }
 export const setSpeakingPartBands = (sessionId, bands) => speakingRpc("rpc_ielts_set_speaking_part_bands", {
     p_session_id: sessionId, p_part_1: bands[0], p_part_2: bands[1], p_part_3: bands[2],

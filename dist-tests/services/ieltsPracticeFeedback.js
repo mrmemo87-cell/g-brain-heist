@@ -8,7 +8,7 @@ export const criterionLabel = {
 const errors = {
     ai_rate_limit: 'You have used today\'s feedback for this skill. Try again tomorrow; your work is saved.',
     ai_already_working: 'Feedback is already being prepared. Wait a moment and try again.',
-    too_short: 'This response is too short for useful feedback. Write at least 50 words, or speak for at least 15 seconds.',
+    too_short: 'This response is too short for useful feedback. It needs at least 50 words, or at least 15 seconds of speaking.',
     not_available: 'Feedback is not available for this task.',
     sign_in_required: 'Please sign in again to get feedback.',
     audio_missing: 'Your recording could not be prepared. Try again.',
@@ -22,10 +22,10 @@ const failure = async (error, fallback) => {
     catch { /* generic below */ }
     return new Error(errors[code] ?? fallback);
 };
-export async function requestPracticeFeedback(attemptId) {
-    const { data, error } = await supabase.functions.invoke('ielts_practice_writing_feedback', { body: { attemptId } });
+export async function requestPracticeFeedback(attemptId, options = {}) {
+    const { data, error } = await supabase.functions.invoke('ielts_practice_writing_feedback', { body: options.asTeacher ? { attemptId, asTeacher: true } : { attemptId } });
     if (error)
-        throw await failure(error, 'Feedback could not be prepared right now. Your writing is saved; try again later.');
+        throw await failure(error, options.asTeacher ? 'The AI check could not run right now. The essay is safe; try again in a minute.' : 'Feedback could not be prepared right now. Your writing is saved; try again later.');
     return data;
 }
 export async function practiceFeedback(attemptId) {

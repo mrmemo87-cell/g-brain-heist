@@ -7,7 +7,10 @@
   --isn-ink: #0f172a;
   --isn-muted: #52617a;
   --isn-line: #e2e8f0;
-  --isn-accent: #4f46e5;
+  /* Shell chrome (brand mark, active tab, hero) uses the Evidence Blue tokens so every role sees one product. */
+  --isn-brand: var(--bh-ielts-primary);
+  --isn-brand-deep: #172554;
+  --isn-accent: var(--bh-ielts-primary);
   --isn-accent-2: #7c3aed;
   position: relative;
   min-height: 100vh;
@@ -29,21 +32,25 @@
 .isn-back:hover { box-shadow: 0 6px 16px rgba(15,23,42,.1); }
 .isn-back:active { transform: scale(.97); }
 .isn-brand { display: inline-flex; align-items: center; gap: .5rem; color: var(--isn-muted); font-weight: 700; font-size: .82rem; }
-.isn-mark { padding: .28rem .55rem; border-radius: 8px; background: linear-gradient(135deg, #1e1b4b, #4f46e5 60%, #7c3aed); color: #fff; font-weight: 800; letter-spacing: .08em; font-size: .72rem; box-shadow: 0 4px 12px rgba(79,70,229,.3); }
+.isn-mark { padding: .28rem .55rem; border-radius: 8px; background: var(--isn-brand); color: #fff; font-weight: 700; letter-spacing: .08em; font-size: .72rem; }
 
 /* Navigation. One element: a sticky tab bar on desktop, a bottom bar like Brains Heist on phones and tablets. */
-.isn-nav { position: sticky; top: .6rem; z-index: 30; display: grid; grid-template-columns: repeat(var(--isn-cols, 4), minmax(0, 1fr)); width: min(640px, calc(100% - 2rem)); margin: .4rem auto 1.2rem; padding: .3rem; border: 1px solid rgba(226,232,240,.9); border-radius: 999px; background: rgba(255,255,255,.82); box-shadow: 0 10px 30px rgba(15,23,42,.08); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
-.isn-indicator { position: absolute; top: .3rem; bottom: .3rem; left: .3rem; width: calc((100% - .6rem) / var(--isn-cols, 4)); border-radius: 999px; background: linear-gradient(135deg, #1e1b4b, #4f46e5 55%, #7c3aed); box-shadow: 0 6px 18px rgba(79,70,229,.35); transform: translateX(calc(var(--isn-i, 0) * 100%)); transition: transform .45s cubic-bezier(.3,1.3,.5,1); }
-.isn-link { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: .45rem; min-height: 44px; padding: .45rem .6rem; border-radius: 999px; color: #334155; font-weight: 700; font-size: .9rem; text-decoration: none; transition: color .25s ease; -webkit-tap-highlight-color: transparent; }
+.isn-nav { container: isn-nav / inline-size; position: sticky; top: .6rem; z-index: 30; display: grid; grid-template-columns: repeat(var(--isn-cols, 4), minmax(0, 1fr)); width: min(calc(var(--isn-cols, 4) * 152px), calc(100% - 2rem)); margin: .4rem auto 1.2rem; padding: .3rem; border: 1px solid rgba(226,232,240,.9); border-radius: 999px; background: rgba(255,255,255,.82); box-shadow: 0 10px 30px rgba(15,23,42,.08); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.isn-indicator { position: absolute; top: .3rem; bottom: .3rem; left: .3rem; width: calc((100% - .6rem) / var(--isn-cols, 4)); border-radius: 999px; background: var(--isn-brand); box-shadow: 0 4px 12px rgba(23,70,176,.25); transform: translateX(calc(var(--isn-i, 0) * 100%)); transition: transform .3s ease; }
+.isn-link { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: .45rem; min-height: 44px; padding: .45rem .6rem; border-radius: 999px; color: #334155; font-weight: 700; font-size: .9rem; white-space: nowrap; text-decoration: none; transition: color .25s ease; -webkit-tap-highlight-color: transparent; }
 .isn-link:hover { color: var(--isn-accent); }
 .isn-link.is-active { color: #fff; }
 .isn-link:focus-visible { outline: 3px solid #0284c7; outline-offset: 2px; }
-.isn-icon { position: relative; display: grid; place-items: center; font-size: 1.05rem; line-height: 1; }
-.isn-badge { position: absolute; top: -.5rem; right: -.75rem; min-width: 1.05rem; height: 1.05rem; padding: 0 .25rem; border-radius: 999px; display: grid; place-items: center; background: linear-gradient(135deg, #f43f5e, #e11d48); color: #fff; font-size: .62rem; font-weight: 800; border: 2px solid #fff; animation: isn-pop .4s .3s both; }
+.isn-icon { position: relative; flex: none; display: grid; place-items: center; width: 1.25rem; height: 1.25rem; line-height: 1; }
+.isn-svg { display: block; flex: none; }
+.isn-icon .isn-svg { width: 100%; height: 100%; }
+.isn-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+/* One count per tab: after the label on the desktop bar, on the icon corner on the phone bar. */
+.isn-badge { position: absolute; top: -.4rem; right: -.55rem; box-sizing: content-box; min-width: .7rem; height: 1rem; padding: 0 .15rem; border-radius: 999px; display: grid; place-items: center; background: #e11d48; color: #fff; font-size: .62rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; border: 2px solid #fff; animation: isn-pop .4s .3s both; }
 .isn-reveal { display: none; }
 .isn-icon .isn-badge { display: none; }
-.isn-badge--inline { position: static; display: inline-grid; margin-left: .1rem; border-color: transparent; }
-.isn-link.is-active .isn-badge--inline { background: #fff; color: #4338ca; }
+.isn-badge--inline { position: static; display: inline-grid; flex: none; border-color: transparent; }
+.isn-link.is-active .isn-badge--inline { background: #fff; color: var(--isn-brand); }
 
 @media (max-width: 1024px) {
   .isn-page.has-nav { padding-bottom: 7.2rem; }
@@ -57,9 +64,8 @@
   .isn-link { flex-direction: column; gap: .15rem; min-height: 3.4rem; border-radius: 14px; color: #94a3b8; font-size: .68rem; font-weight: 800; }
   .isn-link:hover { color: #c7d2fe; }
   .isn-link.is-active { color: #c7d2fe; }
-  .isn-icon { width: 2rem; height: 2rem; font-size: 1.25rem; border-radius: .7rem; transition: transform .2s ease, filter .2s ease; }
-  .isn-link.is-active .isn-icon { transform: translateY(-1px) scale(1.08); filter: saturate(1.3) brightness(1.1); }
-  .isn-icon .isn-badge { display: grid; top: -.3rem; right: -.45rem; border-color: #020617; }
+  .isn-icon { width: 1.5rem; height: 1.5rem; margin: .25rem 0; }
+  .isn-icon .isn-badge { display: grid; border-color: #020617; }
   .isn-badge--inline { display: none; }
   .isn-nav[data-hidden='true'] > .isn-link { pointer-events: none; }
   .isn-nav > .isn-reveal { position: absolute; top: .14rem; left: 50%; z-index: 3; display: none; width: 3rem; height: .68rem; padding: 0; border: 0; background: transparent; transform: translateX(-50%); }
@@ -81,7 +87,7 @@
 .isn-orb { position: absolute !important; border-radius: 50%; filter: blur(30px); opacity: .55; pointer-events: none; }
 .isn-orb--a { width: 220px; height: 220px; right: -60px; top: -80px; background: #7c3aed; animation: isn-float 9s ease-in-out infinite; }
 .isn-orb--b { width: 180px; height: 180px; right: 22%; bottom: -110px; background: #0e7490; animation: isn-float 11s ease-in-out infinite reverse; }
-.isn-date { margin: 0; color: #a5b4fc; font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.isn-date { margin: 0; color: #bfdbfe; font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .isn-hero h2 { margin: .35rem 0 .3rem; font-size: clamp(1.55rem, 4.5vw, 2.3rem); line-height: 1.15; letter-spacing: -.02em; }
 .isn-wave { display: inline-block; transform-origin: 70% 70%; animation: isn-wave 1.8s .6s ease-in-out 2; }
 .isn-summary { margin: 0; color: #cbd5e1; font-size: 1rem; line-height: 1.5; }
@@ -115,7 +121,7 @@
 .isn-card-body { min-width: 0; }
 .isn-kicker { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; margin: 0 !important; color: var(--isn-muted) !important; font-size: .76rem !important; font-weight: 700; line-height: 1.3 !important; }
 .isn-chip { display: inline-flex; align-items: center; padding: .14rem .5rem; border-radius: 999px; font-size: .7rem; font-weight: 800; letter-spacing: .02em; }
-.isn-chip--new { background: linear-gradient(135deg, #7c3aed, #4f46e5); color: #fff; }
+.isn-chip--new { background: #6d28d9; color: #fff; }
 .isn-chip--continue { background: #dbeafe; color: #1d4ed8; }
 .isn-chip--feedback { background: #d1fae5; color: #047857; }
 .isn-chip--waiting { background: #fef3c7; color: #92400e; }
@@ -146,7 +152,7 @@
 .isn-group > summary::-webkit-details-marker { display: none; }
 .isn-group-title { flex: 1; font-size: 1rem; }
 .isn-count { min-width: 1.6rem; padding: .1rem .5rem; border-radius: 999px; text-align: center; font-size: .78rem; background: #eef2ff; color: #4338ca; }
-.isn-tone-todo .isn-count { background: linear-gradient(135deg, #7c3aed, #4f46e5); color: #fff; }
+.isn-tone-todo .isn-count { background: #6d28d9; color: #fff; }
 .isn-tone-feedback .isn-count { background: #d1fae5; color: #047857; }
 .isn-tone-waiting .isn-count { background: #fef3c7; color: #92400e; }
 .isn-tone-done .isn-count { background: #f1f5f9; color: #475569; }
@@ -170,26 +176,26 @@
 .isn-check::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid #10b981; animation: isn-ping 2s .6s ease-out 2; }
 .isn-nudge { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .8rem; width: 100%; padding: .85rem 1rem; border: 1px dashed #c7d2fe; border-radius: 16px; background: #fff; text-align: left; cursor: pointer; font: inherit; color: inherit; transition: border-color .2s ease, box-shadow .2s ease; }
 .isn-nudge:hover { border-color: var(--isn-accent); box-shadow: 0 8px 20px rgba(79,70,229,.1); }
-.isn-nudge-icon { font-size: 1.4rem; }
+.isn-nudge-icon { display: grid; place-items: center; color: var(--isn-brand); }
 .isn-nudge-text strong { display: block; font-size: .95rem; }
 .isn-nudge-text small { display: block; color: var(--isn-muted); margin-top: .1rem; }
 /* Batch tasks locked until the starting checks are done. */
 .isn-locked { box-sizing: border-box; width: 100%; font: inherit; text-align: left; cursor: pointer; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .8rem; padding: .85rem 1rem; border-radius: 16px; border: 1px solid #fde68a; background: linear-gradient(135deg, #fffbeb, #fff 75%); color: #78350f; text-decoration: none; transition: box-shadow .2s ease, transform .2s ease; animation: isn-rise .4s both; }
 .isn-locked:hover { box-shadow: 0 8px 20px rgba(217,119,6,.14); transform: translateY(-1px); }
 .isn-locked:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
-.isn-locked-icon { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 12px; background: #fef3c7; font-size: 1.15rem; }
+.isn-locked-icon { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 12px; background: #fef3c7; color: #b45309; }
 .isn-locked-text strong { display: block; font-size: .95rem; color: #78350f; }
 .isn-locked-text small { display: block; margin-top: .1rem; color: #92400e; }
 .isn-locked-go { font-weight: 700; color: #b45309; }
 .isn-segments { display: flex; gap: 4px; }
 .isn-segments i { width: 18px; height: 6px; border-radius: 999px; background: #e2e8f0; }
-.isn-segments i.is-done { background: linear-gradient(90deg, #4f46e5, #7c3aed); }
-.isn-alert { padding: .9rem 1rem; border-radius: 14px; border: 1px solid #fcd34d; background: #fffbeb; color: #78350f; }
-.isn-alert p { margin: 0 0 .3rem; }
+.isn-segments i.is-done { background: var(--isn-brand); }
+.isn-alert { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem 1rem; padding: .8rem 1rem; border-radius: 14px; border: 1px solid #fcd34d; background: #fffbeb; color: #78350f; }
+.isn-alert p { margin: 0; }
 .isn-waiting { margin: 0; color: var(--isn-muted); font-size: .9rem; }
 .isn-foot { margin: .4rem 0 0; }
 .isn-empty { display: flex !important; gap: .9rem; align-items: flex-start; border-radius: 16px !important; }
-.isn-empty > span { font-size: 1.6rem; }
+.isn-empty > span { flex: none; display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 12px; background: var(--bh-ielts-secondary); color: var(--bh-ielts-secondary-foreground); }
 .isn-empty h3 { margin: 0 0 .2rem !important; }
 .isn-skeletons { display: grid; gap: .6rem; }
 .isn-skeletons span { height: 4.6rem; border-radius: 16px; background: linear-gradient(90deg, #eef2f7 25%, #f8fafc 50%, #eef2f7 75%); background-size: 200% 100%; animation: isn-shimmer 1.3s linear infinite; }
@@ -226,5 +232,5 @@
 .isn-page .ij-student { display: grid; gap: 1rem; }
 
 /* Plain header: solid surface, no glow or decorative orbs. */
-.isn-hero { background: #1e293b; box-shadow: none; }
+.isn-hero { background: var(--isn-brand-deep); box-shadow: none; }
 .isn-orb { display: none; }

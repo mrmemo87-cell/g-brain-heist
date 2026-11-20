@@ -1,4 +1,5 @@
 import { createSchoolDocumentId, schoolDocumentFileName } from '../schoolDocument.js';
+import { displayDateLocale } from '../../utils/displayDate.js';
 const escapeHtml = (value) => String(value ?? '')
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
@@ -57,7 +58,7 @@ export const buildProfessionalWritingReportHtml = (report, options) => {
         ? schoolLogoUrl
         : null;
     const teacherName = report.institution?.teacher_name || 'Writing teacher';
-    const generated = new Date(report.generated_at || Date.now()).toLocaleDateString(undefined, {
+    const generated = new Date(report.generated_at || Date.now()).toLocaleDateString(displayDateLocale(), {
         year: 'numeric',
         month: 'long',
         day: 'numeric',

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { exportAdminCalibrationReport, exportStudentMonthlyWritingReport, getTeacherAttemptListScoped, getTeacherExportRowsScoped, getTeacherSavedReportsScoped, getTeacherWritingReport, saveTeacherReportScoped, } from '../../lib/brains_heist/writingIntegrationService.js';
 import { humanizeWritingTag, openProfessionalWritingReport, } from '../../lib/brains_heist/writingReportDocument.js';
 import { safeCsvCell } from '../../lib/schoolDocument.js';
+import { displayDateLocale } from '../../utils/displayDate.js';
 const EMPTY_DRAFT = {
     status: 'draft',
     strengths: '',
@@ -19,7 +20,7 @@ const formatPeriod = (month) => {
     const [year, monthNumber] = month.split('-').map(Number);
     if (!year || !monthNumber)
         return month;
-    return new Date(year, monthNumber - 1, 1).toLocaleDateString(undefined, {
+    return new Date(year, monthNumber - 1, 1).toLocaleDateString(displayDateLocale(), {
         month: 'long',
         year: 'numeric',
     });
@@ -28,7 +29,7 @@ const formatDate = (value) => {
     const parsed = new Date(value);
     if (Number.isNaN(parsed.getTime()))
         return 'Date unavailable';
-    return parsed.toLocaleDateString(undefined, {
+    return parsed.toLocaleDateString(displayDateLocale(), {
         day: 'numeric',
         month: 'short',
         year: 'numeric',

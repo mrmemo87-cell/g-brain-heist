@@ -4,6 +4,7 @@ import type { LearningAllocation } from '../../../../services/ieltsLearningServi
 import IeltsWorkCard, { skillName } from '../student/IeltsWorkCard';
 import { IeltsCardGroup } from '../student/IeltsStudentShell';
 import type { IeltsTeacherTab } from './IeltsTeacherNav';
+import IeltsShellIcon, { type IeltsShellIconName } from '../IeltsShellIcon';
 import { displayDateLocale } from '../../../utils/displayDate';
 
 export type TeacherWaitingItem = { key: string; name: string; at: string; kind: string; skill: 'writing' | 'speaking'; route: string; started: boolean };
@@ -68,14 +69,14 @@ export default function IeltsTeacherToday({ schoolName, canManage, waiting, wait
   const shown = waiting.slice(0, 4), feedbackShown = toGive.slice(0, 3);
   const more = waiting.length - shown.length + toGive.length - feedbackShown.length;
   let n = 0;
-  const shortcuts: { id: Parameters<typeof onOpen>[0]; icon: string; title: string; text: string }[] = canManage ? [
-    { id: 'lessons', icon: '📚', title: 'Prepare a lesson', text: 'Plans, slides, workbooks and audio' },
-    { id: 'batches', icon: '🗂️', title: 'Assign to a batch', text: 'Whole batch or chosen students' },
-    { id: 'students', icon: '👥', title: 'Student progress', text: 'Four-skill evidence, plans, reports' },
-    { id: 'assign', icon: '➕', title: 'Create assignment', text: 'A class, a batch or one student' },
+  const shortcuts: { id: Parameters<typeof onOpen>[0]; icon: IeltsShellIconName; title: string; text: string }[] = canManage ? [
+    { id: 'lessons', icon: 'lessons', title: 'Prepare a lesson', text: 'Plans, slides, workbooks and audio' },
+    { id: 'batches', icon: 'batches', title: 'Assign to a batch', text: 'Whole batch or chosen students' },
+    { id: 'students', icon: 'students', title: 'Student progress', text: 'Four-skill evidence, plans, reports' },
+    { id: 'assign', icon: 'plus', title: 'Create assignment', text: 'A class, a batch or one student' },
   ] : [
-    { id: 'students', icon: '👥', title: 'Student progress', text: 'Four-skill evidence, plans, reports' },
-    { id: 'reviews', icon: '✍️', title: 'Reviews', text: 'Writing and Speaking feedback' },
+    { id: 'students', icon: 'students', title: 'Student progress', text: 'Four-skill evidence, plans, reports' },
+    { id: 'reviews', icon: 'review', title: 'Reviews', text: 'Writing and Speaking feedback' },
   ];
 
   return (
@@ -126,7 +127,7 @@ export default function IeltsTeacherToday({ schoolName, canManage, waiting, wait
         <div className="itn-tiles">
           {shortcuts.map((s, i) => (
             <button key={s.id} type="button" className="itn-tile" style={{ ['--n' as string]: i } as React.CSSProperties} onClick={() => onOpen(s.id)}>
-              <span className="itn-tile-icon" aria-hidden="true">{s.icon}</span>
+              <span className="itn-tile-icon" aria-hidden="true"><IeltsShellIcon name={s.icon} size={22} /></span>
               <strong>{s.title}</strong>
               <small>{s.text}</small>
             </button>

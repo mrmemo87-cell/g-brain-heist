@@ -11,6 +11,7 @@ import IeltsWorkCard, { dueText, skillName } from './IeltsWorkCard';
 import { IeltsWaitingForScreeners } from '../IeltsTargetedPractice';
 import { openSet, seenFeedback, useIeltsPracticeReviews, useIeltsStudentWork } from './useIeltsStudentWork';
 import { IeltsWaitingDots } from '../IeltsMotion';
+import IeltsShellIcon from '../IeltsShellIcon';
 import { displayDateLocale } from '../../../utils/displayDate';
 import { supabase } from '../../../../services/supabaseClient';
 
@@ -159,7 +160,7 @@ export default function IeltsStudentHome() {
 
       {point && checksDone < 4 && (
         <button type="button" className="isn-nudge" onClick={() => navigate('/ielts/journey')}>
-          <span className="isn-nudge-icon" aria-hidden="true">🧭</span>
+          <span className="isn-nudge-icon" aria-hidden="true"><IeltsShellIcon name="journey" size={24} /></span>
           <span className="isn-nudge-text"><strong>Starting checks · {checksDone} of 4 done</strong><small>Finish them to complete your starting point.</small></span>
           <span className="isn-segments" aria-hidden="true">{startingPointSkills.map((s) => <i key={s} className={startingPointCompleted(point, s) ? 'is-done' : ''} />)}</span>
         </button>

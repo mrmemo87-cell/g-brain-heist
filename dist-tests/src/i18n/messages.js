@@ -945,6 +945,10 @@ export const messages = {
         "ar": "أصلح أخطاءك في {topic}",
         "ru": "Исправь ошибки: {topic}"
     },
+    "Fix your recent mistakes": {
+        "ar": "أصلح أخطاءك الأخيرة",
+        "ru": "Исправь недавние ошибки"
+    },
     "Focus: {topic}": {
         "ar": "التركيز: {topic}",
         "ru": "Тема: {topic}"
@@ -1817,9 +1821,9 @@ export const messages = {
         "ar": "معركة الصف",
         "ru": "Битва класса"
     },
-    "Raid a classmate": {
-        "ar": "أغِر على زميل",
-        "ru": "Налёт на одноклассника"
+    "Challenge a classmate": {
+        "ar": "تحدَّ زميلًا",
+        "ru": "Вызови одноклассника"
     },
     "Your teacher starts it": {
         "ar": "يبدأها معلّمك",

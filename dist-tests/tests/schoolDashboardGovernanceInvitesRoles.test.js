@@ -71,8 +71,8 @@ test('School Admin navigation uses SVG icons instead of initials on desktop and 
 });
 test('School Head setup is removed and responsive navigation uses icons', () => {
     assert.doesNotMatch(head, /First login setup|School launch checklist|setupChecklist/);
-    assert.match(head, /Important school matters, in priority order/);
-    assert.match(head, /Day-to-day school alerts stay in School Administration/);
+    assert.match(head, /Matters for the School Head/);
+    assert.match(head, /Day-to-day alerts go to School Administration/);
     assert.match(head, /HeadNavIcon/);
     assert.doesNotMatch(head, /code: 'EO'|code: 'DC'|>•••</);
     assert.match(head, /useSmartCollapsedNavigation/);
