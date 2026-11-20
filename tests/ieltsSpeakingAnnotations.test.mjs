@@ -123,8 +123,8 @@ test('teacher lines are separated: highlights and pronunciation words use only t
 test('production IPA keeps only dictionary words (non-words are vocabulary problems)', () => {
   const dict = { flexible: 'F L EH1 K S AH0 B AH0 L' };
   assert.deepEqual(ann.withIpa([{ word: 'flexible', tip: 'x' }, { word: 'conversate', tip: 'y' }], dict, true).map((w) => w.word), ['flexible']);
-  assert.equal(ann.INTERVIEW_ANALYSIS_VERSION, 'bh-ielts-speaking-interview-analysis-v4');
-  assert.match(readFileSync('supabase/migrations/20261120234500_ielts_speaking_scribe_analysis_v4.sql', 'utf8'), /'bh-ielts-speaking-interview-analysis-v4'/, 'SQL and edge function agree on the current version');
+  assert.equal(ann.INTERVIEW_ANALYSIS_VERSION, 'bh-ielts-speaking-interview-analysis-v5');
+  assert.match(readFileSync('supabase/migrations/20261121013000_ielts_speaking_analysis_v5_pronunciation.sql', 'utf8'), /'bh-ielts-speaking-interview-analysis-v5'/, 'SQL and edge function agree on the current version');
   assert.match(ann.HIGHLIGHT_INSTRUCTIONS, /never praise a phrase that is awkward or wrong/);
   assert.match(ann.INTERVIEW_HIGHLIGHT_INSTRUCTIONS, /teacher_lines/);
 });
@@ -135,4 +135,41 @@ test('looping or speech-dropping transcripts are rejected; normal answers pass',
   const answer = Array.from({ length: 30 }, (_, i) => `I think answer number ${i} has its own reason and example.`).join(' ');
   assert.equal(ann.transcriptLooksComplete(answer, 200), true);
   assert.equal(ann.transcriptLooksComplete('Thank you.', 3), true, 'very short clips are not judged by speed');
+});
+
+test('Bible 2.5.2 10.7: a word the student used wrongly is never a pronunciation correction', async () => {
+  // CMU Pronouncing Dictionary entries for every quoted word below (the edge function uses the full dictionary).
+  const dictionary = {
+    themselves: 'DH AH0 M S EH1 L V Z', respond: 'R IH0 S P AA1 N D', went: 'W EH1 N T', information: 'IH2 N F ER0 M EY1 SH AH0 N',
+    children: 'CH IH1 L D R AH0 N', develop: 'D IH0 V EH1 L AH0 P', develops: 'D IH0 V EH1 L AH0 P S', theirself: 'DH EH2 R S EH1 L F',
+    response: 'R IH0 S P AA1 N S', patient: 'P EY1 SH AH0 N T', emergency: 'IH0 M ER1 JH AH0 N S IY0', ed: 'EH1 D', ing: 'IH1 NG',
+  };
+  // Ahmeer's interview (2026-11-21): the first two were grammar/word-choice mistakes listed as pronunciation.
+  const real = [
+    { word: 'theirself', tip: "Pronounce it clearly as 'themselves' with stress on the second part: them-SELVES" },
+    { word: 'response', tip: "Use 'respond' and say the 'd' at the end clearly" },
+    { word: 'patient', tip: 'Smooth out the repeated sounds and stress the first syllable: PAY-shent' },
+    { word: 'emergency', tip: 'Emphasize the second syllable: e-MER-gen-cy' },
+  ];
+  assert.deepEqual(ann.withoutWordSwaps(real, dictionary).map((w) => w.word), ['patient', 'emergency']);
+  const keep = [
+    { word: 'three', tip: "Say the 'th' with your tongue between your teeth." },
+    { word: 'worked', tip: "Say the 'ed' ending as a short t sound." },
+    { word: 'develops', tip: "Say 'develops' with a clear s at the end." },
+    { word: 'develops', tip: "It is 'develop' plus a clear s sound." },
+    { word: 'vegetable', tip: 'Stress the first part: VEG-tuh-bul' },
+    { word: "student's", tip: "Say the 's' clearly." },
+  ];
+  for (const w of keep) assert.equal(ann.swapsWord(w.word, w.tip, dictionary), false, `${w.word}: ${w.tip}`);
+  const drop = [
+    { word: 'goed', tip: "Say 'went', not 'goed'." },
+    { word: 'informations', tip: 'Use "information" without an s.' },
+    { word: 'childs', tip: 'The word is “children”.' },
+  ];
+  for (const w of drop) assert.equal(ann.swapsWord(w.word, w.tip, dictionary), true, `${w.word}: ${w.tip}`);
+  assert.match(ann.PRONUNCIATION_PASS_INSTRUCTIONS, /A word the learner USED wrongly is a grammar or vocabulary problem/);
+  assert.match(ann.PRONUNCIATION_PASS_INSTRUCTIONS, /it must never tell the learner to use a different word/);
+  assert.equal(ann.PRONUNCIATION_PASS_PROMPT_VERSION, 'bh-ielts-speaking-pronunciation-words-v3');
+  for (const fn of ['ielts_practice_speaking_feedback', 'ielts_speaking_pilot'])
+    assert.match(readFileSync(`supabase/functions/${fn}/index.ts`, 'utf8'), /withIpa\(withoutWordSwaps\(/, `${fn} applies the rule before listing words`);
 });

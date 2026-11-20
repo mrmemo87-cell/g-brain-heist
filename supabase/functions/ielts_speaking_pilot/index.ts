@@ -24,6 +24,7 @@ import {
   pronunciationInstructions,
   validatePronunciationPass,
   withIpa,
+  withoutWordSwaps,
   type ClipPronunciation,
 } from "../_shared/ieltsSpeakingAnnotations.ts";
 import {
@@ -312,7 +313,7 @@ async function listenForPronunciation(bytes: ArrayBuffer, key: string, part: num
       const raw = String(choice.message.content).trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "");
       // Words must come from the STUDENT's speech: teacher lines and speech-to-text echoes never count.
       const pass = validatePronunciationPass(JSON.parse(raw), studentText);
-      return { assessed: pass.assessed, words: pass.assessed ? withIpa(pass.words, dictionary as Record<string, string>, true) : [], prompt_version: PRONUNCIATION_PASS_PROMPT_VERSION };
+      return { assessed: pass.assessed, words: pass.assessed ? withIpa(withoutWordSwaps(pass.words, dictionary as Record<string, string>), dictionary as Record<string, string>, true) : [], prompt_version: PRONUNCIATION_PASS_PROMPT_VERSION };
     } catch (e) {
       if (attempt > 0) { why("pronunciation", reasonOf(e)); return none; }
     }
