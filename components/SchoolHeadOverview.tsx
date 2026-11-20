@@ -183,7 +183,7 @@ const EngagementTrendChart: React.FC<{ schoolId: string }> = ({ schoolId }) => {
     <section className="school-head-v3-panel school-head-v3-trend-panel">
       <div className="school-head-v3-panel-heading">
         <div><span>Student engagement</span><h3>Engagement Trend</h3><p>Distinct enrolled learners with recorded Brains Heist learning or gameplay activity in each 7-day window.</p></div>
-        {delta !== null && <b className={delta >= 0 ? 'is-positive' : 'is-negative'}>{delta >= 0 ? '↗' : '↘'} {delta >= 0 ? '+' : ''}{delta} pp <small>vs prior week</small></b>}
+        {delta !== null && <b className={delta > 0 ? 'is-positive' : delta < 0 ? 'is-negative' : 'is-flat'}>{delta > 0 ? '↗ +' : delta < 0 ? '↘ ' : '→ '}{delta} pp <small>vs prior week</small></b>}
       </div>
       {loading ? <div className="school-head-v3-chart-loading"><i /><i /><i /></div> : unavailable ? (
         <div className="school-head-v3-chart-empty"><strong>Trend temporarily unavailable</strong><span>The executive snapshot is still live; this chart will return when weekly activity analytics are available.</span></div>

@@ -26,6 +26,7 @@ import {
   persistWritingStoreSnapshot,
   persistMonthlyWritingReport,
   SerializedWritingPersistenceStore,
+  type FinalTeacherWritingReview,
 } from './writingRepository.js';
 import {
   EMAIL_STARTER_PROMPT_TEXT,
@@ -187,6 +188,12 @@ const getStorage = (): Storage | null => {
   }
   return null;
 };
+
+// Final teacher reviews for the signed-in student, keyed by attempt key. Kept outside `store` so they are never
+// persisted back with the snapshot; the review table is the authority.
+let finalTeacherReviewsByAttemptKey: Record<string, FinalTeacherWritingReview> = {};
+export const getFinalTeacherWritingReview = (attemptId: string): FinalTeacherWritingReview | null =>
+  finalTeacherReviewsByAttemptKey[attemptId] ?? null;
 
 const serializeStore = (): SerializedWritingPersistenceStore => ({
   ownerStudentId: hydratedStudentId ?? undefined,
@@ -358,6 +365,7 @@ const applyHydratedSnapshot = (
   store.promptBank = (parsed.promptBank ?? []) as WritingPromptRecord[];
   store.reviewSignals = (parsed.reviewSignals ?? []) as AdminReviewSignal[];
   store.calibrationFollowUpByStudent = parsed.calibrationFollowUpByStudent ?? {};
+  finalTeacherReviewsByAttemptKey = parsed.finalTeacherReviewsByAttemptKey ?? {};
   hydrationState = 'ready';
   notifyHydrationListeners();
 };
@@ -478,6 +486,7 @@ export const retryWritingHydration = (): Promise<void> => {
 };
 
 const clearStudentScopedWritingStore = (): void => {
+  finalTeacherReviewsByAttemptKey = {};
   store.profiles.clear();
   store.usernamesById = {};
   store.states.clear();
@@ -964,6 +973,9 @@ export interface StudentWritingHubSnapshot {
 
 export interface StudentWritingHistoryEntry {
   id: string;
+  /** The AI total when a teacher has finalized a different score (`total_score` is then the teacher's). */
+  ai_total_score?: number | null;
+  teacher_review?: FinalTeacherWritingReview | null;
   genre: SupportedGenre;
   attempt_type: WritingAttempt['attempt_type'];
   prompt_id: string | null;
@@ -1073,15 +1085,20 @@ export const listStudentWritingHistoryByGenre = (studentId: string): ServiceResp
       academic_year_id: attempt.academic_year_id ?? null,
       prompt_text: attempt.prompt_text?.trim() ?? '',
       student_submission: attempt.student_submission?.trim() ?? '',
-      total_score: attempt.assessment?.total_score ?? null,
+      // A final teacher review is the score of record; the AI total is kept in `ai_total_score`.
+      total_score: finalTeacherReviewsByAttemptKey[attempt.id]?.total_score ?? attempt.assessment?.total_score ?? null,
+      ai_total_score: attempt.assessment?.total_score ?? null,
+      teacher_review: finalTeacherReviewsByAttemptKey[attempt.id] ?? null,
       assessment: attempt.assessment ?? null,
       rich_feedback: feedback,
       integrity_signals: attempt.integrity_signals ?? null,
+      // Recomputed from the saved feedback with the current rules, so a label stored by an older classifier
+      // (e.g. agreement fixes once filed as "article error") is not shown again.
       weakness_tags: [...new Set([
         ...(attempt.assessment?.weakness_tags ?? []),
-        ...(Object.keys(attempt.feedback_weakness_tag_counts ?? {}) as WeaknessTag[]),
+        ...(Object.keys(feedback ? inferFeedbackWeaknessTagCounts(feedback) : attempt.feedback_weakness_tag_counts ?? {}) as WeaknessTag[]),
       ])],
-      weakness_tag_counts: attempt.feedback_weakness_tag_counts ?? {},
+      weakness_tag_counts: feedback ? inferFeedbackWeaknessTagCounts(feedback) : attempt.feedback_weakness_tag_counts ?? {},
       strength_evidence: attempt.feedback_strength_evidence ?? inferFeedbackStrengthEvidence(feedback ?? {}),
       strength_tag_counts: attempt.feedback_strength_tag_counts ?? inferFeedbackStrengthTagCounts(feedback ?? {}),
       has_feedback: Boolean(feedback),
@@ -4080,6 +4097,7 @@ export const getWritingPersistenceDiagnostics = (): ServiceResponse<{
 };
 
 export const __resetWritingIntegrationStoreForTests = (): void => {
+  finalTeacherReviewsByAttemptKey = {};
   store.profiles.clear();
   store.usernamesById = {};
   store.states.clear();

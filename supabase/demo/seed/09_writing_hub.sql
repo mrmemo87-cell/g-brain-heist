@@ -40,6 +40,11 @@ begin
          || jsonb_build_object('started_at', to_char(((v_rest#>>'{integrity_signals,started_at}')::timestamptz + v_shift) at time zone 'UTC', v_iso),
                                'submitted_at', to_char(((v_rest#>>'{integrity_signals,submitted_at}')::timestamptz + v_shift) at time zone 'UTC', v_iso)));
 
+  -- The app derives these labels from the feedback above when the attempt is saved. The run on 19 Nov used the
+  -- old rules, which filed the agreement fix as "article_error" (fixed in #1926). Store what the current rules
+  -- derive from the same unchanged feedback: one agreement fix and one punctuation fix.
+  v_rest := v_rest || jsonb_build_object('feedback_weakness_tag_counts', jsonb_build_object('agreement_error', 1, 'punctuation_error', 1));
+
   set local session_replication_role = replica;
   insert into public.bh_writing_assessments(id, school_id, created_at, student_id, attempt_key, total_score, adjudication,
     content_score, language_score, rubric_version, evaluator_model, feedback_payload, request_metadata, assessment_status,
@@ -55,6 +60,15 @@ begin
   values ('12113c50-0c9c-433d-810a-ad590e8b5fcb',
     v_rest || jsonb_build_object('assessment', v_ap || v_extra, 'rich_feedback', v_fb),
     timestamptz '2026-11-19 16:25:35.543479+00' + v_shift, v_attempt_key, v_year);
+
+  -- The writing profile the app creates on a student's first Writing Hub submission (same shape as
+  -- writingRepository.persistWritingStoreSnapshot). The School Head's programme card counts these.
+  insert into public.bh_writing_student_profiles(student_id, grade, genre, profile, created_at, updated_at)
+  values (v_student, 7, 'essay',
+    jsonb_build_object('student_id', v_student, 'grade', 7, 'current_genre', 'essay',
+      'created_at', to_char((timestamptz '2026-11-19 16:24:32.763+00' + v_shift) at time zone 'UTC', v_iso),
+      'updated_at', to_char((timestamptz '2026-11-19 16:25:35.543+00' + v_shift) at time zone 'UTC', v_iso)),
+    timestamptz '2026-11-19 16:24:32.763+00' + v_shift, timestamptz '2026-11-19 16:25:35.543+00' + v_shift);
   set local session_replication_role = origin;
 
   -- Ms. Mitchell reviews it the next morning: she checks the process flag and lowers Organisation by one.

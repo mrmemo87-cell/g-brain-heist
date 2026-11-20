@@ -9,7 +9,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../services/supabaseClient';
 import { ensureIeltsProfile, getUserTier, isIeltsPrime } from '../../../services/ieltsService';
-import { rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
+import { rpcIeltsPracticeAssignmentProgress, rpcIeltsPracticeMarkItemCompleted, rpcIeltsPracticeMarkItemSubmitted, type IeltsPracticeAssignmentProgress } from '../../../services/ieltsPracticeAssignmentService';
 import { AssignmentCompletionStatus, readIeltsPracticeAssignmentContext } from './assignmentPracticeUi';
 import { ieltsCourseUnitRoute, readIeltsCourseUnitFromSearch } from '../../../services/ieltsCourseService';
 import { notifyTeachersOfExamGuard } from '../../../services/notificationService';
@@ -63,6 +63,7 @@ const WritingPractice: React.FC = () => {
   // Success screen state
   const [isAssignmentCompletedBySubmission, setIsAssignmentCompletedBySubmission] = useState(false);
   const [hasFinalizedReview, setHasFinalizedReview] = useState(false);
+  const [teacherBand, setTeacherBand] = useState<number | null>(null);
   const promptContainerRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<HTMLTextAreaElement | null>(null);
   const autoSubmitTriggeredRef = useRef(false);
@@ -179,7 +180,7 @@ const WritingPractice: React.FC = () => {
         if (!alive || !item?.practice_attempt_id || item.practice_attempt_type !== 'writing' || !['submitted', 'completed'].includes(String(item.status))) return;
         const { data: attempt } = await supabase
           .from('ielts_writing_attempts')
-          .select('id, answer_text, word_count, review_status')
+          .select('id, answer_text, word_count, review_status, band_overall')
           .eq('id', item.practice_attempt_id)
           .maybeSingle();
         if (!alive || !attempt) return;
@@ -189,7 +190,17 @@ const WritingPractice: React.FC = () => {
         setWordCount(attempt.word_count ?? 0);
         setIsAssignmentCompletedBySubmission(item.status === 'completed');
         setHasFinalizedReview(attempt.review_status === 'finalized');
+        setTeacherBand(attempt.review_status === 'finalized' && attempt.band_overall != null ? Number(attempt.band_overall) : null);
         setHasSubmitted(true);
+        // Without this the progress card reads "0 of N completed" on a reopened, finished assignment.
+        if (assignmentId) {
+          try {
+            const progress = await rpcIeltsPracticeAssignmentProgress(assignmentId);
+            if (alive) setAssignmentProgress(progress);
+          } catch {
+            // The card falls back to its own summary; the saved attempt is unaffected.
+          }
+        }
       } catch {
         // Fall back to the editor; nothing is lost because the saved attempt is untouched.
       } finally {
@@ -197,7 +208,7 @@ const WritingPractice: React.FC = () => {
       }
     })();
     return () => { alive = false; };
-  }, [assignmentItemId]);
+  }, [assignmentId, assignmentItemId]);
   const [assignmentCompletionError, setAssignmentCompletionError] = useState<string | null>(null);
 
   // Submit mutation
@@ -559,7 +570,7 @@ const WritingPractice: React.FC = () => {
               <div style={{ whiteSpace: 'pre-wrap', color: '#0f172a', marginTop: '0.75rem', lineHeight: 1.6 }}>{submittedText ?? answer}</div>
             </details>
           ) : null}
-          {lastAttemptId && <IeltsPracticeAiFeedback attemptId={lastAttemptId} mode="student" autoStart={wordCount >= 50} />}
+          {lastAttemptId && <IeltsPracticeAiFeedback attemptId={lastAttemptId} mode="student" autoStart={wordCount >= 50} teacherBand={teacherBand} />}
 
           <AssignmentCompletionStatus
             context={assignmentContext}

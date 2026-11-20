@@ -4205,7 +4205,7 @@ const WritingHubLegacy: React.FC<WritingHubProps> = ({ studentId, studentName, g
                             }}
                           >
                             <p style={{ margin: 0, color: 'var(--hub-text-accent)', fontSize: 12, fontWeight: 700 }}>
-                              {toAttemptTypeLabel(entry.attempt_type)} · {formatHistoryDate(entry.created_at)} · Score {entry.total_score ?? '--'}/20
+                              {toAttemptTypeLabel(entry.attempt_type)} · {formatHistoryDate(entry.created_at)} · {entry.teacher_review ? 'Teacher score' : 'Score'} {entry.total_score ?? '--'}/20
                             </p>
                             <p style={{ margin: 0, color: 'var(--hub-text)', fontSize: 13 }}>
                               <strong>Prompt:</strong> {compactSnippet(entry.prompt_text, 140)}
@@ -6051,7 +6051,9 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
     ...sortedArchivedEntries.flatMap((entry) => entry.weakness_tags),
   ])).filter(Boolean);
   const scoredHistory = sortedArchivedEntries.filter((entry) => entry.total_score != null);
-  const currentDashboardScore = selectedYearAssessment?.total_score ?? scoredHistory[0]?.total_score ?? null;
+  // A final teacher review on the latest piece is the score of record, even if the in-session AI result is loaded.
+  const latestTeacherReviewed = sortedArchivedEntries[0]?.teacher_review ? sortedArchivedEntries[0] : null;
+  const currentDashboardScore = latestTeacherReviewed?.total_score ?? selectedYearAssessment?.total_score ?? scoredHistory[0]?.total_score ?? null;
   const priorDashboardScore = scoredHistory[selectedYearAssessment ? 0 : 1]?.total_score ?? null;
   const scoreChange = currentDashboardScore != null && priorDashboardScore != null
     ? currentDashboardScore - priorDashboardScore
@@ -6548,7 +6550,7 @@ const WritingHubSimpleLoop: React.FC<WritingHubProps> = ({ studentId, studentNam
                   <p style={{ margin: 0, color: '#64748b' }}>No saved writing for this genre yet.</p>
                 ) : genreHistory.entries.map((entry) => (
                   <div key={entry.id} style={{ borderRadius: 8, border: '1px solid #e2e8f0', padding: 10, display: 'grid', gap: 4 }}>
-                    <p style={{ margin: 0 }}><strong>{toAttemptTypeLabel(entry.attempt_type)}</strong> · {formatHistoryDate(entry.created_at)} · Score {entry.total_score ?? '--'}/20</p>
+                    <p style={{ margin: 0 }}><strong>{toAttemptTypeLabel(entry.attempt_type)}</strong> · {formatHistoryDate(entry.created_at)} · {entry.teacher_review ? 'Teacher score' : 'Score'} {entry.total_score ?? '--'}/20{entry.teacher_review && entry.ai_total_score != null && entry.ai_total_score !== entry.total_score ? ` (AI ${entry.ai_total_score}/20)` : ''}</p>
                     {entry.total_score != null && (
                       <div style={{ height: 8, width: '100%', borderRadius: 999, background: '#e2e8f0', overflow: 'hidden', marginBottom: 4 }}>
                         <div

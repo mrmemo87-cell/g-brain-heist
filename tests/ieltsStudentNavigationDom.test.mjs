@@ -13,6 +13,7 @@ async function mount({path='/ielts',independentNav=false,failPractice=false,deny
   else if(name==='rpc_ielts_learning_workspace'){if(failPractice){failPractice=false;return new Response(JSON.stringify({message:'test unavailable'}),{status:503,headers:{'Content-Type':'application/json'}});}result={manager:false,pilot_only:true,tasks:[],allocations:tasks};}
   else if(name==='rpc_ielts_starting_point_summary')return new Promise(()=>{}); // slow section must not block navigation or practice
   else if(name==='rpc_ielts_practice_student_assignments')result=[];
+  else if(name==='ielts_writing_attempts'||name==='ielts_speaking_attempts')result=[]; // finalized practice reviews for Home
   else if(name==='get_my_effective_entitlements')result={success:true,plan:'school',school_id:independentNav?null:'school',modules:{ielts:true},programme_catalogue:{ielts:{available:true,purchased:true,seat_allocated:true}},entitlements:{}};
   else if(name==='rpc_ielts_course_state')result={access:{full:true,reason:'school_seat'},current_unit_id:1,units_total:20,units_completed:0,units:[{id:1,position:1,title:'Welcome: how IELTS works',lesson_viewed:false,unlocked:true,tasks:[]}]};
   else if(name.includes('funnel'))result=null;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { studentLearningWorkspace, type LearningAllocation } from '../../../../services/ieltsLearningService';
 import { rpcIeltsPracticeStudentAssignments, type IeltsPracticeStudentAssignment } from '../../../../services/ieltsPracticeAssignmentService';
+import { supabase } from '../../../../services/supabaseClient';
 
 /**
  * One shared read of the student's work (targeted tasks and teacher assignment sets) for the IELTS student shell and
@@ -75,3 +76,44 @@ export const openSet = (a: IeltsPracticeStudentAssignment) => a.status !== 'clos
 
 /** After a student opens a task its status may change, so the next Home or tab visit reads fresh data. */
 export function invalidateIeltsStudentWork() { tasksAt = 0; setsAt = 0; }
+
+/**
+ * The student's own Writing and Speaking practice that a teacher has finalized (most recent first). Practice
+ * assignment reviews are not part of the targeted-task feed above, so without this Home said "0 Feedback" and
+ * Journey said "Your feedback will appear here" while finalized reviews were waiting. Read-only; own rows via RLS.
+ */
+export type IeltsPracticeReview = { id: string; skill: 'writing' | 'speaking'; title: string; reviewed_at: string | null };
+
+export async function loadIeltsPracticeReviews(): Promise<IeltsPracticeReview[]> {
+  const { data: auth } = await supabase.auth.getUser();
+  const userId = auth.user?.id;
+  if (!userId) return [];
+  const [writing, speaking] = await Promise.all([
+    supabase.from('ielts_writing_attempts').select('id, task_id, reviewed_at').eq('user_id', userId).eq('review_status', 'finalized').order('reviewed_at', { ascending: false }).limit(20),
+    supabase.from('ielts_speaking_attempts').select('id, task_id, reviewed_at').eq('user_id', userId).eq('review_status', 'finalized').order('reviewed_at', { ascending: false }).limit(20),
+  ]);
+  const ids = (rows: Array<{ task_id: unknown }>) => [...new Set(rows.map((r) => r.task_id).filter((v) => v != null))] as never[];
+  const w = (writing.data ?? []) as Array<{ id: string; task_id: unknown; reviewed_at: string | null }>;
+  const s = (speaking.data ?? []) as Array<{ id: string; task_id: unknown; reviewed_at: string | null }>;
+  const [wTasks, sTasks] = await Promise.all([
+    ids(w).length ? supabase.from('ielts_writing_tasks').select('id, title').in('id', ids(w)) : Promise.resolve({ data: [] }),
+    ids(s).length ? supabase.from('ielts_speaking_tasks').select('id, part').in('id', ids(s)) : Promise.resolve({ data: [] }),
+  ]);
+  const wt = new Map(((wTasks.data ?? []) as Array<{ id: unknown; title: string | null }>).map((t) => [String(t.id), t.title ?? '']));
+  const st = new Map(((sTasks.data ?? []) as Array<{ id: unknown; part: number | null }>).map((t) => [String(t.id), t.part ? `Speaking Part ${t.part}` : '']));
+  return [
+    ...w.map((r) => ({ id: r.id, skill: 'writing' as const, title: wt.get(String(r.task_id)) || 'Writing practice', reviewed_at: r.reviewed_at })),
+    ...s.map((r) => ({ id: r.id, skill: 'speaking' as const, title: st.get(String(r.task_id)) || 'Speaking practice', reviewed_at: r.reviewed_at })),
+  ].sort((a, b) => String(b.reviewed_at ?? '').localeCompare(String(a.reviewed_at ?? '')));
+}
+
+export function useIeltsPracticeReviews(enabled = true): IeltsPracticeReview[] | null {
+  const [reviews, setReviews] = useState<IeltsPracticeReview[] | null>(null);
+  useEffect(() => {
+    if (!enabled) return undefined;
+    let alive = true;
+    loadIeltsPracticeReviews().then((r) => { if (alive) setReviews(r); }).catch(() => { if (alive) setReviews([]); });
+    return () => { alive = false; };
+  }, [enabled]);
+  return reviews;
+}
