@@ -11,6 +11,7 @@ import { fetchIeltsDiagnosticResult, getIeltsScreenerAudio, type IeltsDiagnostic
 import { ieltsRequestDelay } from '../../../services/ieltsDeliveryRequestPolicy';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '../../styles/ielts-exam.css';
+import '../../styles/ielts-feedback.css';
 import { useParams } from 'react-router-dom';
 import {
   createExamIdempotencyKey,

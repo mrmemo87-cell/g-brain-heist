@@ -15,7 +15,7 @@ test("valid feedback anchors quotes and keeps each indication a one-band range",
   const f = validatePracticeFeedback(output(), context);
   assert.equal(f.criteria["task_response"]?.indication?.low, 5.5);
   assert.equal(f.criteria["task_response"]?.evidence[0].start_char, essay.indexOf("phones"));
-  assert.equal(f.prompt_version, "bh-ielts-practice-feedback-v4");
+  assert.equal(f.prompt_version, "bh-ielts-practice-feedback-v5");
   assert.deepEqual(f.estimate, { band: 6, low: 5.5, high: 6.5 }, "estimate is the server mean of the criterion ranges");
   assert.equal(f.essay, essay);
   assert.deepEqual(f.highlights, []);

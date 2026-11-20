@@ -1,6 +1,8 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.78.0';
 import { practiceFeedbackInstructions, practiceFeedbackSchema, validatePracticeFeedback, type PracticeContext } from '../_shared/ieltsPracticeFeedback.ts';
 import { claudeEnabled, claudeValidated, primaryModel, providerTag } from '../_shared/aiProvider.ts';
+import { completeWritingHighlights } from '../_shared/ieltsWritingHighlights.ts';
+import { proofreadWritingEssay } from '../_shared/ieltsWritingProofread.ts';
 
 // Diagnostic Bible 2.4.0 sections 10.5, 10.6 and 10.9: practice writing only. The student asks for their own essay
 // (rpc_ielts_practice_feedback_claim); a school IELTS teacher may run it for a student's essay
@@ -66,6 +68,10 @@ Deno.serve(async (req: Request) => {
       } catch { if (attempt > 0) throw new Error('validation_failed'); }
     }
     if (!fields) throw new Error('validation_failed');
+    // Bible 2.6.0 section 10.9: a second pass for errors the first pass left unmarked, then the deterministic checks.
+    const extra = await proofreadWritingEssay({ label: 'ielts_practice_writing_feedback', task: context.task_number, prompt: context.prompt, essay: context.essay,
+      marked: fields.highlights, openAiKey: apiKey, openAiModel: model });
+    fields = { ...fields, highlights: completeWritingHighlights(fields.highlights, extra, context.essay, context.task_number) };
     const { error: finishError } = await admin.rpc('rpc_ielts_practice_feedback_finish', { p_id: claim.id, p_fields: fields, p_provider: providerId });
     if (finishError) throw new Error('save_failed');
     const { data: view, error: viewError } = await caller.rpc('rpc_ielts_practice_feedback', { p_attempt: body.attemptId });

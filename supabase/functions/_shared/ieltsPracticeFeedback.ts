@@ -6,7 +6,7 @@
  */
 import { cleanWritingHighlights, taskEstimate, writingHighlightInstructions, writingHighlightSchema, type TaskEstimate, type WritingHighlight } from './ieltsWritingHighlights.ts';
 
-export const PRACTICE_FEEDBACK_PROMPT_VERSION = 'bh-ielts-practice-feedback-v4';
+export const PRACTICE_FEEDBACK_PROMPT_VERSION = 'bh-ielts-practice-feedback-v5';
 export const taskKeys = (task: 1 | 2) => [task === 1 ? 'task_achievement' : 'task_response', 'coherence_cohesion', 'lexical_resource', 'grammar_range_accuracy'] as const;
 export type FeedbackKey = 'task_achievement' | 'task_response' | 'coherence_cohesion' | 'lexical_resource' | 'grammar_range_accuracy';
 export type CriterionFeedback = { comment: string; action: string; evidence: { quote: string; start_char: number; end_char: number }[]; indication: { low: number; high: number } | null };

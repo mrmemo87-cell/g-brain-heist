@@ -1,6 +1,8 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.78.0';
 import { WRITING_AI_INSTRUCTIONS, WRITING_AI_PROMPT_VERSION, WRITING_AI_SCHEMA, validateWritingAiOutput, type WritingAiContext } from '../_shared/ieltsWritingAiDraft.ts';
 import { claudeEnabled, claudeValidated, primaryModel, providerTag } from '../_shared/aiProvider.ts';
+import { completeWritingHighlights } from '../_shared/ieltsWritingHighlights.ts';
+import { proofreadWritingEssay } from '../_shared/ieltsWritingProofread.ts';
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
 const json = (status: number, value: unknown) => new Response(JSON.stringify(value), { status, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
@@ -63,6 +65,12 @@ Deno.serve(async (req: Request) => {
       } catch { if (attempt > 0) throw new Error('draft_validation_failed'); }
     }
     if (!fields) throw new Error('draft_validation_failed');
+    // Bible 2.6.0 section 10.9: a second pass for errors the first pass left unmarked, then the deterministic checks.
+    if (context.response_state === 'answered') {
+      const extra = await proofreadWritingEssay({ label: 'ielts_writing_teacher_ai', task: 2, prompt: context.prompt, essay: context.response_text,
+        marked: fields.highlights, openAiKey: apiKey, openAiModel: model });
+      fields = { ...fields, highlights: completeWritingHighlights(fields.highlights, extra, context.response_text, 2) };
+    }
     const { error: finishError } = await admin.rpc('rpc_ielts_finish_writing_ai_draft', { p_draft_id: claim.draft_id, p_fields: fields, p_provider_response_id: providerId });
     if (finishError) throw new Error('draft_save_failed');
     // Recheck revoked allocation/banned account before returning private feedback.

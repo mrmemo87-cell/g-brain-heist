@@ -1,5 +1,6 @@
 import { IeltsWritingRevision } from './IeltsWritingRevision';
 import React from 'react';
+import { WritingStartingBandCard } from './WritingStartingBand';
 import { IELTS_WRITING_CRITERIA, type WritingScreenerResult } from '../../../services/ieltsWritingScreener';
 const labels = { observed: 'Demonstrated in this essay', developing: 'Develop in practice', insufficient_evidence: 'More evidence needed' };
 const TeacherNote: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-4">
@@ -13,7 +14,8 @@ export const IeltsWritingResult: React.FC<{ result: WritingScreenerResult; onRef
     <h2 id="writing-result-heading" className="mt-3 text-2xl font-bold text-slate-950">{result.review_status === 'pending' ? 'Your essay is saved.' : 'Your teacher’s feedback is ready.'}</h2>
     <p className="mt-3 leading-7 text-slate-700">{result.review_status === 'pending' ? 'Awaiting teacher review. Your original essay is locked and available below. Check back here for feedback.' : 'Use these observations to choose your next practice step. They refer to this essay only.'}</p>
     <p className="mt-4 text-sm text-slate-600">{result.word_count} words · One Task 2 essay · Confidence: low</p>
-    <p className="mt-2 text-sm leading-6 text-slate-600">This is a Writing development snapshot. It does not give a full Writing or overall IELTS band.</p>
+    {result.response_state === 'answered' && <WritingStartingBandCard point={result.starting_point} pending={result.review_status === 'pending'} />}
+    <p className="mt-2 text-sm leading-6 text-slate-600">This starting point comes from one Task 2 essay. It is not a full Writing or overall IELTS band.</p>
     {result.response_state !== 'answered' && <p className="mt-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">No usable essay was received. Missing evidence is not a judgement of your ability. Ask your teacher about a fresh assessment.</p>}
     {result.evidence_kind === 'same_prompt_practice' && <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm">Same-prompt practice. This repeat does not measure improvement.</p>}
     {result.incident_count > 0 && <p className="mt-4 text-sm text-amber-900">An interruption was recorded. Your teacher should consider the assessment conditions when reviewing your essay.</p>}
