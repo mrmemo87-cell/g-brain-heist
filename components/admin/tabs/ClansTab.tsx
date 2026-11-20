@@ -1,3 +1,4 @@
+import SchoolAdminIcon from '../../school-admin/SchoolAdminIcon';
 import React from 'react';
 import { useAdmin } from '../AdminContext';
 import * as CompetitionService from '../../../services/competitionService';
@@ -90,15 +91,15 @@ const ClansTab: React.FC = () => {
     <div className="space-y-6">
       <div className="card-glass p-6 border-2 border-blue-400/50">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-3xl font-heading font-bold text-blue-300">🛡️ Clan Management</h3>
+          <h3 className="text-3xl font-heading font-bold text-blue-300">Clan Management</h3>
           <button onClick={refreshClans} className="bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-white px-4 py-2 rounded-lg font-semibold">
-            🔄 Refresh Clans
+            Refresh Clans
           </button>
         </div>
 
         {clanList.length === 0 && (
           <div className="text-center py-8 text-gray-400">
-            <p className="text-5xl mb-3">🛡️</p>
+            <span className="inline-grid h-12 w-12 rounded-xl shrink-0 place-items-center bg-slate-100 text-slate-600 mb-3"><SchoolAdminIcon name="lock" className="h-6 w-6" /></span>
             <p>Click "Refresh Clans" to load all clans</p>
           </div>
         )}
@@ -116,7 +117,7 @@ const ClansTab: React.FC = () => {
                       <div>
                         <p className="font-bold text-white text-lg">{c.name}</p>
                         <p className="text-xs text-gray-400">{c.member_count ?? 0} members • Created {c.created_at ? new Date(c.created_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE) : 'N/A'}</p>
-                        <p className="text-xs text-cyan-300/90 mt-0.5">🏫 {c.school_name || 'Independent / No school'}</p>
+                        <p className="text-xs text-cyan-300/90 mt-0.5">{c.school_name || 'Independent / No school'}</p>
                         {c.description && <p className="text-xs text-gray-400 mt-1">{c.description}</p>}
                       </div>
                     </div>
@@ -127,7 +128,7 @@ const ClansTab: React.FC = () => {
                         setClanEditDescription(c.description || '');
                         loadClanMembers(c.id);
                       }} className="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400 text-white text-xs px-3 py-1.5 rounded">
-                        👁️ Manage
+                        Manage
                       </button>
                       <button onClick={async () => {
                         if (!confirm(`Disband "${c.name}"? This permanently deletes the clan and all its data.`)) return;
@@ -138,7 +139,7 @@ const ClansTab: React.FC = () => {
                           if (selectedClan?.id === c.id) setSelectedClan(null);
                         } catch (error) { reportRpcError('Failed to disband:', error, 'Failed to disband clan'); }
                       }} className="bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-white text-xs px-3 py-1.5 rounded">
-                        💣 Disband
+                        Disband
                       </button>
                     </div>
                   </div>
@@ -174,9 +175,9 @@ const ClansTab: React.FC = () => {
         <div className="card-glass p-6 border-2 border-blue-400/50">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-2xl font-heading font-bold text-blue-200">
-              🛡️ {selectedClan.name} — Members
+              {selectedClan.name} — Members
             </h4>
-            <button onClick={() => { setSelectedClan(null); setClanMembers([]); }} className="text-gray-400 hover:text-white text-sm">✕ Close</button>
+            <button onClick={() => { setSelectedClan(null); setClanMembers([]); }} className="text-gray-400 hover:text-white text-sm">Close</button>
           </div>
 
           {/* Edit Clan Details */}
@@ -227,13 +228,13 @@ const ClansTab: React.FC = () => {
                   <div key={m.user_id} className="flex items-center justify-between bg-black/30 border border-blue-400/20 rounded-lg p-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden flex items-center justify-center">
-                        {memberInfo.avatar_url ? <img src={memberInfo.avatar_url} className="w-full h-full object-cover" /> : <span>👤</span>}
+                        {memberInfo.avatar_url ? <img src={memberInfo.avatar_url} className="w-full h-full object-cover" /> : <span className="inline-flex align-middle"><SchoolAdminIcon name="user" className="h-4 w-4" /></span>}
                       </div>
                       <div>
                         <p className="font-semibold text-white">{memberInfo.username || memberInfo.email || m.user_id}</p>
                         <div className="flex gap-2 text-xs text-gray-400">
                           <span className={`px-1.5 py-0.5 rounded ${m.role === 'leader' ? 'bg-yellow-600/30 text-yellow-300' : 'bg-gray-600/30 text-gray-400'}`}>
-                            {m.role === 'leader' ? '👑 Leader' : m.role || 'Member'}
+                            {m.role === 'leader' ? 'Leader' : m.role || 'Member'}
                           </span>
                           {memberInfo.level && <span>Lvl {memberInfo.level}</span>}
                         </div>
@@ -242,11 +243,11 @@ const ClansTab: React.FC = () => {
                     <div className="flex gap-2">
                       {m.role !== 'leader' && (
                         <button onClick={() => transferClanLeadership(selectedClan.id, m.user_id, memberInfo.username || 'this member')} className="bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-400 text-white text-xs px-2.5 py-1 rounded">
-                          👑 Make Leader
+                          Make Leader
                         </button>
                       )}
                       <button onClick={() => removeClanMember(selectedClan.id, m.user_id, memberInfo.username || 'member')} className="bg-red-500/20 hover:bg-red-500/30 border border-red-400 text-white text-xs px-2.5 py-1 rounded">
-                        ❌ Remove
+                        Remove
                       </button>
                     </div>
                   </div>

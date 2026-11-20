@@ -335,8 +335,8 @@ const Phase1AdminDashboard: React.FC<Phase1AdminDashboardProps> = ({ profile, on
         <div className="text-gray-400 text-sm">System Status</div>
         <div className="text-sm text-white">
           {overview?.last_error_message
-            ? `⚠️ ${overview.last_error_message}`
-            : '✅ OK'}
+            ? `${overview.last_error_message}`
+            : 'OK'}
         </div>
         {overview?.last_error_at && (
           <div className="text-xs text-gray-500">Last error: {new Date(overview.last_error_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}</div>
@@ -454,7 +454,7 @@ const Phase1AdminDashboard: React.FC<Phase1AdminDashboardProps> = ({ profile, on
               <div className="text-xs text-gray-400">
                 Grade {player.grade ?? '—'} • {player.batch ?? '—'} • XP {player.xp} • Coins {player.coins}
               </div>
-              {player.is_banned && <div className="text-xs text-danger-red">🚫 Banned</div>}
+              {player.is_banned && <div className="text-xs text-danger-red">Banned</div>}
             </button>
           ))}
           {searchResults.length === 0 && (
@@ -477,7 +477,7 @@ const Phase1AdminDashboard: React.FC<Phase1AdminDashboardProps> = ({ profile, on
                 <div className="text-xs text-gray-500">
                   Last attempt {selectedPlayerLastAttempt ? new Date(selectedPlayerLastAttempt).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME) : '—'}
                 </div>
-                {selectedPlayer.is_banned && <div className="text-xs text-danger-red">🚫 Currently banned</div>}
+                {selectedPlayer.is_banned && <div className="text-xs text-danger-red">Currently banned</div>}
               </div>
 
               <div className="grid grid-cols-2 gap-3">

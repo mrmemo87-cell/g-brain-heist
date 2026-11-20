@@ -440,7 +440,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         addToast(error?.message || data?.error || 'Failed to reset quotas', 'error');
         return;
       }
-      addToast(`✅ All quotas reset to 0 for this school`, 'success');
+      addToast(`All quotas reset to 0 for this school`, 'success');
       loadSchoolQuotas(schoolId);
     } catch {
       addToast('Failed to reset quotas', 'error');
@@ -461,7 +461,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         addToast(error?.message || data?.error || 'Failed to set quota', 'error');
         return;
       }
-      addToast(`✅ ${featureId} set to ${newUsed}/${data.limit}`, 'success');
+      addToast(`${featureId} set to ${newUsed}/${data.limit}`, 'success');
       setQuotaEditFeature(null);
       loadSchoolQuotas(schoolId);
     } catch {
@@ -483,7 +483,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         return;
       }
       const newEnd = new Date(data.new_trial_ends_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE);
-      addToast(`✅ Trial extended by ${days} days — new end: ${newEnd}`, 'success');
+      addToast(`Trial extended by ${days} days — new end: ${newEnd}`, 'success');
       setPilotTrialEnd(data.new_trial_ends_at);
     } catch {
       addToast('Failed to extend trial', 'error');
@@ -985,11 +985,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
   // Get encouragement message
   const getEncouragement = (grade: string) => {
     const messages: Record<string, { title: string; message: string }> = {
-      'A': { title: "Outstanding Achievement! 🏆", message: "You've demonstrated excellent skills. Challenge yourself with more advanced material!" },
-      'B': { title: "Great Work! ⭐", message: "You're performing above average. Focus on weak areas to reach the top!" },
-      'C': { title: "Good Progress! 👍", message: "You're building solid foundations. Targeted practice will help you improve!" },
-      'D': { title: "Keep Pushing! 💪", message: "Every expert was once a beginner. Follow the action plan and practice consistently!" },
-      'F': { title: "Time for a Fresh Start 📚", message: "This is a learning opportunity. Work through the action plan step by step." }
+      'A': { title: "Outstanding Achievement! ", message: "You've demonstrated excellent skills. Challenge yourself with more advanced material!" },
+      'B': { title: "Great Work! ", message: "You're performing above average. Focus on weak areas to reach the top!" },
+      'C': { title: "Good Progress! ", message: "You're building solid foundations. Targeted practice will help you improve!" },
+      'D': { title: "Keep Pushing! ", message: "Every expert was once a beginner. Follow the action plan and practice consistently!" },
+      'F': { title: "Time for a Fresh Start ", message: "This is a learning opportunity. Work through the action plan step by step." }
     };
     return messages[grade] || messages['C'];
   };
@@ -1029,7 +1029,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
     a.href = URL.createObjectURL(blob);
     a.download = `cambridge_test_results_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
-    addToast('📥 CSV exported successfully', 'success');
+    addToast('CSV exported successfully', 'success');
   };
 
   const updateUserInState = (userId: string, patch: Record<string, unknown>) => {
@@ -1193,7 +1193,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
       setAdminVisible(newVisibility);
       addToast(
-        newVisibility ? '👁️ Admin now VISIBLE in leaderboards & PvP' : '👻 Admin now HIDDEN from leaderboards & PvP',
+        newVisibility ? 'Admin now VISIBLE in leaderboards & PvP' : 'Admin now HIDDEN from leaderboards & PvP',
         'success'
       );
     } catch (error) {
@@ -1216,7 +1216,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       if (error) throw error;
 
       updateUserInState(userId, { coins: Number(user.coins ?? 0) + amount });
-      addToast(`✨ Granted ${amount} coins to ${user.username ?? user.email ?? 'Unknown'}`, 'success');
+      addToast(`Granted ${amount} coins to ${user.username ?? user.email ?? 'Unknown'}`, 'success');
       await refreshAdminData();
     } catch (error) {
       reportRpcError('Failed to grant coins:', error, 'Failed to grant coins');
@@ -1238,7 +1238,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       if (error) throw error;
 
       updateUserInState(userId, { xp: Number(user.xp ?? 0) + amount });
-      addToast(`⚡ Granted ${amount} XP to ${user.username ?? user.email ?? 'Unknown'}`, 'success');
+      addToast(`Granted ${amount} XP to ${user.username ?? user.email ?? 'Unknown'}`, 'success');
       await refreshAdminData();
     } catch (error) {
       reportRpcError('Failed to grant XP:', error, 'Failed to grant XP');
@@ -1266,7 +1266,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       }
 
       updateUserInState(userId, { level: nextLevel });
-      addToast(`📈 Level updated for ${user.username ?? user.email ?? 'Unknown'}`, 'success');
+      addToast(`Level updated for ${user.username ?? user.email ?? 'Unknown'}`, 'success');
       await refreshAdminData();
     } catch (error) {
       reportRpcError('Failed to set level:', error, 'Failed to set level');
@@ -1288,7 +1288,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         throw error;
       }
 
-      addToast('⚡ AP reset to 20', 'success');
+      addToast('AP reset to 20', 'success');
       await refreshAdminData();
     } catch (error) {
       reportRpcError('Failed to reset AP:', error, 'Failed to reset AP');
@@ -1303,7 +1303,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       }
 
       await CompetitionService.resetPlayerProgress(userId);
-      addToast(`♻️ Progress reset for ${username}`, 'success');
+      addToast(`Progress reset for ${username}`, 'success');
       await refreshAdminData();
       window.dispatchEvent(new CustomEvent('leaderboards:refresh'));
     } catch (error) {
@@ -1320,7 +1320,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
       setIsResettingAll(true);
       const affected = await CompetitionService.resetAllPlayerProgress();
-      addToast(`🧨 Reset all records + caps for ${affected} players`, 'success');
+      addToast(`Reset all records + caps for ${affected} players`, 'success');
       await refreshAdminData();
       window.dispatchEvent(new CustomEvent('leaderboards:refresh'));
     } catch (error) {
@@ -1351,7 +1351,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
     try {
       await CompetitionService.updatePlayerAcademics(userId, grade, batch);
-      addToast(`🎓 Updated grade${batch ? ' and class' : ''} for ${user.username ?? user.email ?? 'Unknown'}`, 'success');
+      addToast(`Updated grade${batch ? ' and class' : ''} for ${user.username ?? user.email ?? 'Unknown'}`, 'success');
       updateUserInState(userId, { grade, batch });
     } catch (error) {
       reportRpcError('Failed to update grade:', error, 'Failed to update grade');
@@ -1367,7 +1367,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
 
     try {
       await CompetitionService.updatePlayerAcademics(userId, grade, batch);
-      addToast(`🏫 Updated class for ${user.username ?? user.email ?? 'Unknown'}`, 'success');
+      addToast(`Updated class for ${user.username ?? user.email ?? 'Unknown'}`, 'success');
       updateUserInState(userId, { batch });
     } catch (error) {
       reportRpcError('Failed to update class:', error, 'Failed to update class');
@@ -1382,7 +1382,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       }
 
       await CompetitionService.resetPlayerAcademics(userId);
-      addToast(`🏫 Reset school/grade/class for ${username}`, 'success');
+      addToast(`Reset school/grade/class for ${username}`, 'success');
       updateUserInState(userId, { school: null, grade: null, batch: null });
     } catch (error) {
       reportRpcError('Failed to reset academics:', error, 'Failed to reset academics');
@@ -1469,7 +1469,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
         class: `class "${targetSchoolClasses.find(c => c.id === announcementTargetClassId)?.class_code || announcementTargetClassId}"`,
         teachers: 'all teachers',
       };
-      addToast(`📢 Announcement sent to ${audienceLabels[announcementAudience] || 'selected audience'}`, 'success');
+      addToast(`Announcement sent to ${audienceLabels[announcementAudience] || 'selected audience'}`, 'success');
 
       setAnnouncementText('');
       setAnnouncementExpiry('never');
@@ -1502,7 +1502,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       if (error) throw error;
 
       updateUserInState(userId, { gemstones: Number(user.gemstones ?? 0) + amount });
-      addToast(`💎 Granted ${amount} gemstones to ${user.username ?? user.email ?? 'Unknown'}`, 'success');
+      addToast(`Granted ${amount} gemstones to ${user.username ?? user.email ?? 'Unknown'}`, 'success');
       await refreshAdminData();
     } catch (error) {
       reportRpcError('Failed to grant gemstones:', error, 'Failed to grant gemstones');
@@ -1518,7 +1518,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       const { error } = await supabase.rpc('rpc_admin_grant', { p_user_id: userId, p_xp_delta: 0, p_coins_delta: amount, p_gemstones_delta: 0 });
       if (error) throw error;
       updateUserInState(userId, { coins: Number(user.coins ?? 0) + amount });
-      addToast(`✨ Granted ${amount.toLocaleString()} coins to ${resolveUserLabel(user)}`, 'success');
+      addToast(`Granted ${amount.toLocaleString()} coins to ${resolveUserLabel(user)}`, 'success');
       setCustomCoinAmount(prev => ({ ...prev, [userId]: '' }));
     } catch (error) { reportRpcError('Failed to grant coins:', error, 'Failed to grant coins'); }
   };
@@ -1531,7 +1531,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       const { error } = await supabase.rpc('rpc_admin_grant', { p_user_id: userId, p_xp_delta: amount, p_coins_delta: 0, p_gemstones_delta: 0 });
       if (error) throw error;
       updateUserInState(userId, { xp: Number(user.xp ?? 0) + amount });
-      addToast(`⚡ Granted ${amount.toLocaleString()} XP to ${resolveUserLabel(user)}`, 'success');
+      addToast(`Granted ${amount.toLocaleString()} XP to ${resolveUserLabel(user)}`, 'success');
       setCustomXpAmount(prev => ({ ...prev, [userId]: '' }));
     } catch (error) { reportRpcError('Failed to grant XP:', error, 'Failed to grant XP'); }
   };
@@ -1544,7 +1544,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       const { error } = await supabase.rpc('rpc_admin_grant', { p_user_id: userId, p_xp_delta: 0, p_coins_delta: 0, p_gemstones_delta: amount });
       if (error) throw error;
       updateUserInState(userId, { gemstones: Number(user.gemstones ?? 0) + amount });
-      addToast(`💎 Granted ${amount.toLocaleString()} gemstones to ${resolveUserLabel(user)}`, 'success');
+      addToast(`Granted ${amount.toLocaleString()} gemstones to ${resolveUserLabel(user)}`, 'success');
       setCustomGemstoneAmount(prev => ({ ...prev, [userId]: '' }));
     } catch (error) { reportRpcError('Failed to grant gemstones:', error, 'Failed to grant gemstones'); }
   };
@@ -1557,7 +1557,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       const { error } = await supabase.rpc('rpc_admin_set_level', { p_user_id: userId, p_level: level });
       if (error) throw error;
       updateUserInState(userId, { level });
-      addToast(`📈 Set level to ${level} for ${resolveUserLabel(user)}`, 'success');
+      addToast(`Set level to ${level} for ${resolveUserLabel(user)}`, 'success');
       setCustomLevelAmount(prev => ({ ...prev, [userId]: '' }));
     } catch (error) { reportRpcError('Failed to set level:', error, 'Failed to set level'); }
   };
@@ -1573,7 +1573,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       const { error } = await supabase.from('users').update({ role: newRole }).eq('id', userId);
       if (error) throw error;
       updateUserInState(userId, { role: newRole, is_admin: newRole === 'admin' || newRole === 'superadmin' });
-      addToast(`👤 Role updated to "${newRole}" for ${resolveUserLabel(user)}`, 'success');
+      addToast(`Role updated to "${newRole}" for ${resolveUserLabel(user)}`, 'success');
     } catch (error) { reportRpcError('Failed to change role:', error, 'Failed to change role'); }
     finally { setRoleChangeLoading(null); }
   };
@@ -1659,7 +1659,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       // Update member roles
       await supabase.from('clan_members').update({ role: 'member' }).eq('clan_id', clanId).eq('role', 'leader');
       await supabase.from('clan_members').update({ role: 'leader' }).eq('clan_id', clanId).eq('user_id', newLeaderId);
-      addToast(`👑 Leadership transferred to ${newLeaderName}`, 'success');
+      addToast(`Leadership transferred to ${newLeaderName}`, 'success');
       loadClanMembers(clanId);
     } catch (error) { reportRpcError('Failed to transfer leadership:', error, 'Failed to transfer leadership'); }
   };
@@ -1684,7 +1684,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       const { error } = await supabase.from('announcements').delete().eq('id', id);
       if (error) throw error;
       setExistingAnnouncements(prev => prev.filter(a => a.id !== id));
-      addToast('🗑️ Announcement deleted', 'success');
+      addToast('Announcement deleted', 'success');
     } catch (error) { reportRpcError('Failed to delete:', error, 'Failed to delete announcement'); }
   };
 
@@ -1701,7 +1701,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       const newStatus = await CompetitionService.setPlayerBanned(userId, shouldBan);
       updateUserInState(userId, { is_banned: newStatus });
       await refreshAdminData();
-      addToast(shouldBan ? '🔨 Player banned successfully' : '✅ Player unbanned', 'success');
+      addToast(shouldBan ? 'Player banned successfully' : 'Player unbanned', 'success');
     } catch (error) {
       reportRpcError('Failed to toggle ban:', error, shouldBan ? 'Failed to ban player' : 'Failed to unban player');
     }
@@ -1718,9 +1718,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ profile, onComplete, addToast
       await refreshAdminData();
 
       const totalRowsDeleted = Object.values(result.rows_deleted || {}).reduce((sum, count) => sum + Number(count || 0), 0);
-      const warningSuffix = result.warnings?.length ? ` ⚠️ ${result.warnings.length} warning(s).` : '';
+      const warningSuffix = result.warnings?.length ? ` ${result.warnings.length} warning(s).` : '';
       addToast(
-        `🗑️ Deleted ${username}. Auth deleted: ${result.auth_deleted ? 'yes' : 'no'}. Rows: ${totalRowsDeleted}. Storage objects: ${result.storage_deleted}.${warningSuffix}`,
+        `Deleted ${username}. Auth deleted: ${result.auth_deleted ? 'yes' : 'no'}. Rows: ${totalRowsDeleted}. Storage objects: ${result.storage_deleted}.${warningSuffix}`,
         result.warnings?.length ? 'info' : 'success'
       );
     } catch (error) {

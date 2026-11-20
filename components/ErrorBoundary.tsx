@@ -1,3 +1,4 @@
+import SchoolAdminIcon from './school-admin/SchoolAdminIcon';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
@@ -73,7 +74,7 @@ export default class ErrorBoundary extends Component<Props, State> {
         return (
           <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: '#050813' }}>
             <div className="text-center">
-              <div className="text-4xl mb-4 animate-spin inline-block">🔄</div>
+              <span className="grid mx-auto h-12 w-12 rounded-xl shrink-0 place-items-center bg-slate-100 text-slate-600 mb-4"><SchoolAdminIcon name="refresh" className="h-6 w-6 animate-spin" /></span>
               <p className="text-xl" style={{ color: '#a9b7d4' }}>
                 Updating to the latest version…
               </p>
@@ -91,7 +92,7 @@ export default class ErrorBoundary extends Component<Props, State> {
         return (
           <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: 'var(--ink-900)' }}>
             <div className="card-glass p-8 max-w-lg w-full text-center">
-              <div className="text-6xl mb-4">🚀</div>
+              <span className="grid mx-auto h-12 w-12 rounded-xl shrink-0 place-items-center bg-slate-100 text-slate-600 mb-4"><SchoolAdminIcon name="activity" className="h-6 w-6" /></span>
               <h1 className="font-heading text-2xl mb-3" style={{ color: 'var(--ion-blue)' }}>
                 New Version Available
               </h1>
@@ -113,7 +114,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                   color: 'white'
                 }}
               >
-                🔄 Refresh Now
+                Refresh Now
               </button>
               <p className="mt-4 text-sm" style={{ color: 'var(--mist-400)' }}>
                 Your progress is safely saved — nothing will be lost.
@@ -127,7 +128,7 @@ export default class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: 'var(--ink-900)' }}>
           <div className="card-glass p-8 max-w-2xl w-full text-center">
-            <div className="text-6xl mb-4">⚠️</div>
+            <span className="grid mx-auto h-12 w-12 rounded-xl shrink-0 place-items-center bg-slate-100 text-slate-600 mb-4"><SchoolAdminIcon name="alert" className="h-6 w-6" /></span>
             <h1 className="font-heading text-3xl mb-4" style={{ color: 'var(--danger-red)' }}>
               Quick Pause — You're Safe
             </h1>
@@ -144,7 +145,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                   color: 'white'
                 }}
               >
-                🔄 Continue & Reload
+                Continue & Reload
               </button>
               
               <button
@@ -159,7 +160,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                   border: '1px solid var(--mist-400)'
                 }}
               >
-                🗑️ Start Fresh (Clear Local Data)
+                Start Fresh (Clear Local Data)
               </button>
             </div>
 

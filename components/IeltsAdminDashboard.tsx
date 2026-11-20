@@ -1,3 +1,4 @@
+import SchoolAdminIcon, { type SchoolAdminIconName } from './school-admin/SchoolAdminIcon';
 import React, { useEffect, useMemo, useState } from 'react';
 import IeltsAdminBadgeRow from '../src/pages/ielts/components/IeltsAdminBadgeRow';
 import { supabase } from '../services/supabaseClient';
@@ -164,7 +165,7 @@ const getLatestMembership = (memberships: any[]) => {
   return [...memberships].sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime())[0];
 };
 
-const StatCard: React.FC<{ icon: string; label: string; value: number; color: string }> = ({
+const StatCard: React.FC<{ icon: SchoolAdminIconName; label: string; value: number; color: string }> = ({
   icon,
   label,
   value,
@@ -189,7 +190,7 @@ const StatCard: React.FC<{ icon: string; label: string; value: number; color: st
           <p className="text-xs uppercase text-slate-400">{label}</p>
           <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
         </div>
-        <span className={`text-2xl ${colorClass}`}>{icon}</span>
+        <span className={colorClass}><SchoolAdminIcon name={icon} className="h-6 w-6" /></span>
       </div>
     </div>
   );
@@ -1227,14 +1228,14 @@ const IeltsAdminDashboard: React.FC = () => {
             {stats ? (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <StatCard icon="👥" label="Total IELTS Users" value={stats.total_ielts_users || 0} color="cyan" />
-                  <StatCard icon="⭐" label="Premium Users" value={premiumUserCount} color="yellow" />
-                  <StatCard icon="📖" label="Reading Attempts" value={stats.total_reading_attempts || 0} color="blue" />
-                  <StatCard icon="🎧" label="Listening Attempts" value={stats.total_listening_attempts || 0} color="purple" />
-                  <StatCard icon="✍️" label="Writing Attempts" value={stats.total_writing_attempts || 0} color="green" />
-                  <StatCard icon="🎤" label="Speaking Attempts" value={stats.total_speaking_attempts || 0} color="orange" />
-                  <StatCard icon="📧" label="Email Notifs Requested" value={stats.email_notifications_requested || 0} color="pink" />
-                  <StatCard icon="📱" label="SMS Notifs Requested" value={stats.sms_notifications_requested || 0} color="teal" />
+                  <StatCard icon="user" label="Total IELTS Users" value={stats.total_ielts_users || 0} color="cyan" />
+                  <StatCard icon="star" label="Premium Users" value={premiumUserCount} color="yellow" />
+                  <StatCard icon="book" label="Reading Attempts" value={stats.total_reading_attempts || 0} color="blue" />
+                  <StatCard icon="audio" label="Listening Attempts" value={stats.total_listening_attempts || 0} color="purple" />
+                  <StatCard icon="edit" label="Writing Attempts" value={stats.total_writing_attempts || 0} color="green" />
+                  <StatCard icon="audio" label="Speaking Attempts" value={stats.total_speaking_attempts || 0} color="orange" />
+                  <StatCard icon="message" label="Email Notifs Requested" value={stats.email_notifications_requested || 0} color="pink" />
+                  <StatCard icon="message" label="SMS Notifs Requested" value={stats.sms_notifications_requested || 0} color="teal" />
                 </div>
                 <div className="rounded-2xl bg-slate-900 p-4">
                   <div className="flex items-center justify-between">
@@ -2613,7 +2614,7 @@ const IeltsAdminDashboard: React.FC = () => {
             }`}>
               <div className="flex items-center justify-between gap-2">
                 <span>{toast.message}</span>
-                <button className="text-xs text-white" onClick={() => dismissToast(toast.id)}>✕</button>
+                <button className="text-xs text-white" onClick={() => dismissToast(toast.id)}><SchoolAdminIcon name="close" className="h-4 w-4" /></button>
               </div>
             </div>
           ))}

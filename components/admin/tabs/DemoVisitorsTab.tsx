@@ -1,3 +1,4 @@
+import SchoolAdminIcon, { type SchoolAdminIconName } from '../../school-admin/SchoolAdminIcon';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../../services/supabaseClient';
 import { isDemoMode } from '../../../services/demoMode';
@@ -10,11 +11,11 @@ import { isDemoMode } from '../../../services/demoMode';
 interface TimelineEvent { type: string; label: string | null; path: string | null; at: string; session?: string; meta?: Record<string, unknown> }
 
 // What each recorded event means, in plain words. Heartbeats are timing pings, not actions.
-const EVENT_TEXT: Record<string, { icon: string; text: string }> = {
-  enter: { icon: '🚪', text: 'Entered the demo as' }, section: { icon: '📍', text: 'Opened' }, click: { icon: '👆', text: 'Clicked' },
-  page: { icon: '📄', text: 'Page' }, workspace_open: { icon: '🗂️', text: 'Opened workspace' }, switch_persona: { icon: '🔁', text: 'Switched to' },
-  hidden: { icon: '💤', text: 'Left the tab while on' }, visible: { icon: '👀', text: 'Came back to' }, signout: { icon: '👋', text: 'Signed out from' },
-  exit: { icon: '👋', text: 'Closed the demo on' },
+const EVENT_TEXT: Record<string, { icon: SchoolAdminIconName; text: string }> = {
+  enter: { icon: 'home', text: 'Entered the demo as' }, section: { icon: 'target', text: 'Opened' }, click: { icon: 'target', text: 'Clicked' },
+  page: { icon: 'file', text: 'Page' }, workspace_open: { icon: 'folder', text: 'Opened workspace' }, switch_persona: { icon: 'refresh', text: 'Switched to' },
+  hidden: { icon: 'clock', text: 'Left the tab while on' }, visible: { icon: 'eye', text: 'Came back to' }, signout: { icon: 'close', text: 'Signed out from' },
+  exit: { icon: 'close', text: 'Closed the demo on' },
 };
 
 interface Visitor {
@@ -106,7 +107,7 @@ const TimelineList: React.FC<{ events: TimelineEvent[] }> = ({ events }) => {
                 return (
                   <li key={`${event.at}-${i}`} className="text-sm text-slate-200 flex gap-3">
                     <span className="text-slate-500 tabular-nums whitespace-nowrap">{new Date(event.at).toLocaleTimeString('en-GB', { timeZone: 'Asia/Bishkek', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                    <span aria-hidden="true">{known.icon}</span>
+                    <SchoolAdminIcon name={known.icon} className="h-4 w-4" />
                     <span>{known.text} <strong className="text-white">{event.label || event.path || ''}</strong></span>
                   </li>
                 );

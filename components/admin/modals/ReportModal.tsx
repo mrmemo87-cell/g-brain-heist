@@ -61,7 +61,7 @@ const ReportModal: React.FC = () => {
               <div className="p-6 space-y-6">
                 {/* Skills Performance */}
                 <div>
-                  <h3 className="text-lg font-semibold text-purple-800 border-b-2 border-gray-200 pb-2 mb-4">📊 Skills Performance Analysis</h3>
+                  <h3 className="text-lg font-semibold text-purple-800 border-b-2 border-gray-200 pb-2 mb-4">Skills Performance Analysis</h3>
                   <div className="space-y-3">
                     {sortedSkills.map(([skill, data]) => (
                       <div key={skill} className="flex items-center gap-3">
@@ -81,7 +81,7 @@ const ReportModal: React.FC = () => {
                 {/* Focus Areas */}
                 {weakAreas.length > 0 && (
                   <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
-                    <h4 className="font-semibold text-amber-800 mb-2">⚠️ Priority Focus Areas</h4>
+                    <h4 className="font-semibold text-amber-800 mb-2">Priority Focus Areas</h4>
                     <ul className="text-sm text-gray-700 space-y-1">
                       {weakAreas.map(([skill, data]) => (
                         <li key={skill}>• <strong>{skill}</strong> — You scored {data.percentage}% ({data.correct}/{data.total} correct)</li>
@@ -92,7 +92,7 @@ const ReportModal: React.FC = () => {
 
                 {/* Action Plan */}
                 <div className="border-2 border-purple-600 rounded-xl p-5">
-                  <h3 className="text-lg font-semibold text-purple-800 mb-4">📋 Personalized Action Plan</h3>
+                  <h3 className="text-lg font-semibold text-purple-800 mb-4">Personalized Action Plan</h3>
                   {weakAreas.length > 0 ? weakAreas.slice(0, 3).map(([skill, data], idx) => {
                     const plan = actionPlans[skill];
                     return plan ? (
@@ -127,7 +127,7 @@ const ReportModal: React.FC = () => {
                 <span>{schoolName}</span>
                 <span>Report ID: {reportStudent.id?.substring(0, 8) || 'N/A'}</span>
                 <div className="flex gap-3">
-                  <button onClick={() => window.print()} className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">🖨️ Print</button>
+                  <button onClick={() => window.print()} className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">Print</button>
                   <button onClick={() => setShowReportModal(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
                 </div>
               </div>

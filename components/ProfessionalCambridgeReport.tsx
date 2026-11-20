@@ -399,7 +399,7 @@ const ProfessionalCambridgeReport: React.FC<ProfessionalCambridgeReportProps> = 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '12px', border: '1px solid #e2e8f0' }}>
               <h3 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '14px' }}>📊</span> Skills Breakdown
+                Skills Breakdown
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 {sortedSkills.map(([skill, d]) => (
@@ -454,7 +454,7 @@ const ProfessionalCambridgeReport: React.FC<ProfessionalCambridgeReportProps> = 
             {/* Focus Areas */}
             {weakAreas.length > 0 && (
               <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '8px' }}>
-                <h4 style={{ margin: '0 0 4px', fontSize: '11px', fontWeight: 700, color: '#92400e' }}>⚠️ Areas Requiring Attention</h4>
+                <h4 style={{ margin: '0 0 4px', fontSize: '11px', fontWeight: 700, color: '#92400e' }}>Areas Requiring Attention</h4>
                 <ul style={{ margin: 0, paddingLeft: '14px', fontSize: '10px', color: '#78350f', lineHeight: 1.5 }}>
                   {weakAreas.slice(0, 3).map(([skill, d]) => (
                     <li key={skill}><strong>{skill}</strong> — {d.percentage}% ({d.correct}/{d.total} correct)</li>
@@ -468,7 +468,7 @@ const ProfessionalCambridgeReport: React.FC<ProfessionalCambridgeReportProps> = 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ background: '#faf5ff', border: '1px solid #e9d5ff', borderRadius: '10px', padding: '12px' }}>
               <h3 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 700, color: '#581c87', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '14px' }}>📋</span> Recommended Action Plan
+                Recommended Action Plan
               </h3>
               {data.actionPlanItems.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -521,7 +521,7 @@ const ProfessionalCambridgeReport: React.FC<ProfessionalCambridgeReportProps> = 
             {/* Personal Coaching Note */}
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '12px' }}>
               <h3 style={{ margin: '0 0 6px', fontSize: '13px', fontWeight: 700, color: '#1e40af', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '14px' }}>🎯</span> Personal Coaching Note
+                Personal Coaching Note
               </h3>
               <p style={{ margin: 0, fontSize: '10px', color: '#1e3a5f', lineHeight: 1.5 }}>
                 {data.personalizedNote}
@@ -581,7 +581,7 @@ const ProfessionalCambridgeReport: React.FC<ProfessionalCambridgeReportProps> = 
                 boxShadow: '0 2px 6px rgba(22,163,74,0.3)',
               }}
             >
-              🖨️ Print / Save PDF
+              Print / Save PDF
             </button>
             <button
               onClick={onClose}
@@ -597,7 +597,7 @@ const ProfessionalCambridgeReport: React.FC<ProfessionalCambridgeReportProps> = 
               }}
               title="Close (Press Esc)"
             >
-              ✕ Close
+              Close
             </button>
           </div>
         </div>
@@ -831,7 +831,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
             {/* Scores Table */}
             <div style={{ background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
               <h3 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#1e293b', padding: '10px 12px 6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '14px' }}>📝</span> Test Results
+                Test Results
               </h3>
               <div className="score-table-scroll" style={{ maxHeight: '220px', overflowY: 'auto' }}>
                 <table className="score-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
@@ -881,7 +881,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
                     {/* Average Row */}
                     <tr style={{ background: '#1e293b', color: '#fff', fontWeight: 700 }}>
                       <td style={{ padding: '6px 8px' }} colSpan={2}>
-                        <span style={{ fontSize: '10px', letterSpacing: '0.5px' }}>📊 OVERALL AVERAGE</span>
+                        <span style={{ fontSize: '10px', letterSpacing: '0.5px' }}>OVERALL AVERAGE</span>
                       </td>
                       <td style={{ padding: '6px 8px', textAlign: 'center', fontSize: '10px' }}>—</td>
                       <td style={{ padding: '6px 8px', textAlign: 'center', fontSize: '11px', fontWeight: 800 }}>{data.averagePercentage}%</td>
@@ -910,7 +910,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
               {data.bestScore && (
                 <div className="stat-card" style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px' }}>
-                  <div style={{ fontSize: '9px', color: '#166534', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>🏆 Best Score</div>
+                  <div style={{ fontSize: '9px', color: '#166534', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>Best Score</div>
                   <div style={{ fontSize: '15px', fontWeight: 800, color: '#16a34a' }}>{data.bestScore.percentage}%</div>
                   <div style={{ fontSize: '9px', color: '#15803d', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {data.bestScore.quizName.replace(/^Cambridge\s+/i, '')}
@@ -919,7 +919,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
               )}
               {data.worstScore && (
                 <div className="stat-card" style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '10px' }}>
-                  <div style={{ fontSize: '9px', color: '#991b1b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>📉 Lowest Score</div>
+                  <div style={{ fontSize: '9px', color: '#991b1b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>Lowest Score</div>
                   <div style={{ fontSize: '15px', fontWeight: 800, color: '#dc2626' }}>{data.worstScore.percentage}%</div>
                   <div style={{ fontSize: '9px', color: '#b91c1c', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {data.worstScore.quizName.replace(/^Cambridge\s+/i, '')}
@@ -932,7 +932,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
             {trend && (
               <div className="stat-card" style={{ background: trend.diff >= 0 ? '#f0fdf4' : '#fef2f2', border: `1px solid ${trend.diff >= 0 ? '#bbf7d0' : '#fecaca'}`, borderRadius: '10px', padding: '10px' }}>
                 <h3 style={{ margin: '0 0 6px', fontSize: '12px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '14px' }}>{trend.diff >= 0 ? '📈' : '📉'}</span> Performance Trend
+                  Performance Trend
                 </h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ textAlign: 'center' }}>
@@ -962,7 +962,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
             {/* Score Progress Bar (Visual average) */}
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px' }}>
               <h3 style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '14px' }}>📊</span> Score Overview
+                Score Overview
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {sortedTests.slice(0, 8).map((test) => {
@@ -1003,7 +1003,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
             {/* Teacher's Assessment */}
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '10px' }}>
               <h3 style={{ margin: '0 0 6px', fontSize: '12px', fontWeight: 700, color: '#1e40af', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '14px' }}>💬</span> Performance Assessment
+                Performance Assessment
               </h3>
               <p style={{ margin: 0, fontSize: '10px', color: '#1e3a5f', lineHeight: 1.5 }}>
                 {performanceComment}
@@ -1019,10 +1019,10 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
               color: '#fff',
             }}>
               <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800 }}>
-                {data.averagePercentage >= 80 ? '🌟 Outstanding Student' :
-                 data.averagePercentage >= 65 ? '👍 Commendable Effort' :
-                 data.averagePercentage >= 50 ? '📈 Developing Learner' :
-                 '💪 Needs Additional Support'}
+                {data.averagePercentage >= 80 ? 'Outstanding Student' :
+                 data.averagePercentage >= 65 ? 'Commendable Effort' :
+                 data.averagePercentage >= 50 ? 'Developing Learner' :
+                 'Needs Additional Support'}
               </h3>
               <p style={{ margin: '3px 0 0', fontSize: '10px', opacity: 0.95 }}>
                 Average Score: {data.averagePercentage}% across {data.totalTestsTaken} assessment{data.totalTestsTaken !== 1 ? 's' : ''}
@@ -1070,7 +1070,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
                 boxShadow: '0 2px 6px rgba(22,163,74,0.3)',
               }}
             >
-              🖨️ Print / Save PDF
+              Print / Save PDF
             </button>
             <button
               onClick={onClose}
@@ -1086,7 +1086,7 @@ const StudentOverviewReport: React.FC<StudentOverviewReportProps> = ({
               }}
               title="Close (Press Esc)"
             >
-              ✕ Close
+              Close
             </button>
           </div>
         </div>

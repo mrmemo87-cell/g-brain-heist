@@ -1,3 +1,4 @@
+import SchoolAdminIcon from '../school-admin/SchoolAdminIcon';
 import React, { useMemo, useState } from 'react';
 import type { Profile } from '../../types';
 import './SuperadminShell.css';
@@ -217,7 +218,7 @@ const SuperadminShell: React.FC<SuperadminShellProps> = ({
       >
         <div className="flex h-[76px] items-center gap-3 border-b border-slate-800/80 px-4">
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-cyan-400/30 bg-cyan-400/10 text-cyan-300 shadow-[0_0_24px_rgba(34,211,238,0.12)]">
-            <span className="text-xl" aria-hidden="true">🧠</span>
+            <span className="inline-flex align-middle text-xl"><SchoolAdminIcon name="info" className="h-4 w-4" /></span>
           </div>
           {!sidebarCollapsed && (
             <div className="min-w-0 flex-1">

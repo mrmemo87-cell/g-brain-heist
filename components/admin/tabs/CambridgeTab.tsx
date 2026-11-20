@@ -1,3 +1,4 @@
+import SchoolAdminIcon from '../../school-admin/SchoolAdminIcon';
 import React from 'react';
 import { useAdmin } from '../AdminContext';
 import { DISPLAY_DATE, displayDateLocale } from '../../../src/utils/displayDate';
@@ -12,7 +13,7 @@ const CambridgeTab: React.FC = () => {
 
   return (
     <div className="card-glass p-6 border-2 border-teal-400/50">
-      <h3 className="text-3xl font-heading font-bold text-teal-300 mb-6">📚 Cambridge Test Reports</h3>
+      <h3 className="text-3xl font-heading font-bold text-teal-300 mb-6">Cambridge Test Reports</h3>
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-3 mb-6">
@@ -21,14 +22,14 @@ const CambridgeTab: React.FC = () => {
           disabled={quizScoresLoading}
           className="bg-teal-600/30 hover:bg-teal-600/50 border border-teal-400 text-white font-semibold px-6 py-3 rounded-lg transition-all hover:shadow-[0_0_20px_rgba(20,184,166,0.6)]"
         >
-          {quizScoresLoading ? '⏳ Loading...' : '🔄 Load/Refresh Reports'}
+          {quizScoresLoading ? 'Loading...' : 'Load/Refresh Reports'}
         </button>
         {quizScores.length > 0 && (
           <button
             onClick={exportCSV}
             className="bg-green-600/30 hover:bg-green-600/50 border border-green-400 text-white font-semibold px-6 py-3 rounded-lg transition-all hover:shadow-[0_0_20px_rgba(34,197,94,0.6)]"
           >
-            📥 Export CSV
+            Export CSV
           </button>
         )}
         {/* Bulk Release Scores for Science tests */}
@@ -45,7 +46,7 @@ const CambridgeTab: React.FC = () => {
                 });
                 if (error) throw error;
                 if (!data?.success) throw new Error(data?.error || 'Failed to release scores');
-                addToast(`✅ ${data.affected || 0} scores released`, 'success');
+                addToast(`${data.affected || 0} scores released`, 'success');
                 fetchQuizScores();
               } catch (error: any) {
                 reportRpcError('Failed to bulk release scores:', error, 'Failed to bulk release scores');
@@ -53,7 +54,7 @@ const CambridgeTab: React.FC = () => {
             }}
             className="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white font-semibold px-6 py-3 rounded-lg transition-all hover:shadow-[0_0_20px_rgba(168,85,247,0.6)]"
           >
-            🔓 Bulk Release Scores
+            Bulk Release Scores
           </button>
         )}
       </div>
@@ -84,7 +85,7 @@ const CambridgeTab: React.FC = () => {
 
           {/* Class Performance Summary */}
           <div className="bg-black/30 border border-teal-400/50 rounded-xl p-4 mb-6">
-            <h4 className="text-lg font-bold text-teal-300 mb-3">📊 Class Performance</h4>
+            <h4 className="text-lg font-bold text-teal-300 mb-3">Class Performance</h4>
             <div className="flex flex-wrap gap-3">
               {Object.entries(quizStats.classStats).sort((a, b) => b[1].avg - a[1].avg).map(([cls, stats]) => (
                 <div key={cls} className="bg-black/40 border border-gray-600 rounded-lg px-4 py-2">
@@ -168,13 +169,13 @@ const CambridgeTab: React.FC = () => {
                           onClick={() => openAnswerReflection(score)}
                           className="bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400 text-white text-xs px-3 py-1 rounded"
                         >
-                          📝 Answers
+                          Answers
                         </button>
                         <button
                           onClick={() => openReport(score)}
                           className="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400 text-white text-xs px-3 py-1 rounded"
                         >
-                          📄 Report
+                          Report
                         </button>
                         <button
                           onClick={() => deleteQuizScore(score.id, score.student_name)}
@@ -193,7 +194,7 @@ const CambridgeTab: React.FC = () => {
                                 });
                                 if (error) throw error;
                                 if (!data?.success) throw new Error(data?.error || 'Failed to release score');
-                                addToast(`✅ Score released for ${score.student_name}`, 'success');
+                                addToast(`Score released for ${score.student_name}`, 'success');
                                 fetchQuizScores();
                               } catch (error: any) {
                                 reportRpcError('Failed to release score:', error, 'Failed to release score');
@@ -201,7 +202,7 @@ const CambridgeTab: React.FC = () => {
                             }}
                             className="bg-green-600/30 hover:bg-green-600/50 border border-green-400 text-white text-xs px-3 py-1 rounded"
                           >
-                            🔓 Release Score
+                            Release Score
                           </button>
                         )}
                         {score.scores_released && score.quiz_name && (score.quiz_name.toLowerCase().includes('chemistry') || score.quiz_name.toLowerCase().includes('biology')) && (
@@ -219,7 +220,7 @@ const CambridgeTab: React.FC = () => {
 
       {quizScores.length === 0 && !quizScoresLoading && (
         <div className="text-center py-12 text-gray-400">
-          <p className="text-6xl mb-4">📭</p>
+          <span className="inline-grid h-12 w-12 rounded-xl shrink-0 place-items-center bg-slate-100 text-slate-600 mb-4"><SchoolAdminIcon name="inbox" className="h-6 w-6" /></span>
           <p className="text-xl">No test submissions yet</p>
           <p className="text-sm mt-2">Click "Load/Refresh Reports" to check for submissions</p>
         </div>

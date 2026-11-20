@@ -1,3 +1,4 @@
+import SchoolAdminIcon from '../school-admin/SchoolAdminIcon';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import { getDemoCountryOptions } from '../../src/data/demoBookingLocations';
@@ -244,7 +245,7 @@ const DemoEntryGate: React.FC<DemoEntryGateProps> = ({ onLogin }) => {
               <div className="demo-gate-personas" role="group" aria-label="Enter the demo as">
                 {personas.map((item) => (
                   <button type="button" key={item.key} disabled={busy !== null} onClick={() => void enter(item.key)}>
-                    <span className="demo-gate-persona-icon" aria-hidden="true">{item.key === 'teacher' ? '👩‍🏫' : '🎒'}</span>
+                    <span className="demo-gate-persona-icon" aria-hidden="true"><SchoolAdminIcon name={item.key === 'teacher' ? 'user' : 'cap'} className="h-6 w-6" /></span>
                     <strong>{busy === item.key ? 'Opening…' : item.key === 'teacher' ? 'Teacher & School Head' : 'Student'}</strong>
                     <span>{item.key === 'teacher' ? 'Classes, evidence, support plans, dashboards' : 'Missions, Class Conquest, clans, battles'}</span>
                   </button>
