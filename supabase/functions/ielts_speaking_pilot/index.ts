@@ -33,8 +33,24 @@ import {
   finalizeEstimates,
   wordCount,
 } from "../_shared/ieltsSpeakingEstimate.ts";
+import {
+  SCRIBE_DEFAULT_MODEL,
+  scribeTranscribe,
+  segmentsFromWords,
+  NO_CONFIDENCE,
+  timedWords,
+  wordConfidence,
+  type WordConfidence,
+  withoutUnsureHighlights,
+  withoutUnsureWords,
+} from "../_shared/ieltsSpeechToText.ts";
 // CMU Pronouncing Dictionary (American English): IPA comes from the dictionary, never from the AI.
 import { dictionary } from "npm:cmu-pronouncing-dictionary@3.0.0";
+
+// ElevenLabs Scribe writes what the student actually said (mistakes, repeats, fillers) with a confidence for every
+// word. Without its key, or when its transcript fails the completeness check, the OpenAI models below are used as before.
+const scribeKey = Deno.env.get("ELEVENLABS_API_KEY")?.trim() || "";
+const scribeModel = Deno.env.get("IELTS_SPEAKING_SCRIBE_MODEL")?.trim() || SCRIBE_DEFAULT_MODEL;
 
 // Speech-to-text stays on OpenAI (Claude cannot take audio). whisper-1 returns segment timestamps for the draft.
 const transcribeModel = Deno.env.get("IELTS_PILOT_TRANSCRIBE_MODEL")?.trim() || "whisper-1";
@@ -79,11 +95,34 @@ async function transcribeInterview(bytes: ArrayBuffer, key: string, onWords?: Wo
 }
 /** Keeps a recording's word times. Failure never blocks a draft or a transcript. */
 // deno-lint-ignore no-explicit-any
-function keepWords(admin: any, sessionId: string, clipId: string): WordSink {
+function keepWords(admin: any, sessionId: string, clipId: string, model = transcribeModel): WordSink {
   return (words) => {
-    void admin.rpc("rpc_ielts_save_speaking_clip_words", { p_session_id: sessionId, p_clip_id: clipId, p_words: words, p_model: transcribeModel })
+    void admin.rpc("rpc_ielts_save_speaking_clip_words", { p_session_id: sessionId, p_clip_id: clipId, p_words: words, p_model: model })
       .then(({ error }: { error: { message?: string } | null }) => { if (error) why("word_times_save", error.message); });
   };
+}
+/** Scribe transcript, or null when it is unavailable or incomplete (the caller then uses OpenAI). */
+async function scribeIfComplete(bytes: ArrayBuffer, seconds: number) {
+  if (!scribeKey) return null;
+  try {
+    const heard = await scribeTranscribe(bytes, { apiKey: scribeKey, model: scribeModel, timeoutMs: 90000 });
+    if (transcriptLooksComplete(heard.text, seconds)) return heard;
+    why("transcript_incomplete", `scribe ${heard.text.split(/\s+/).length} words in ${Math.round(seconds)}s`);
+  } catch (e) {
+    why("transcript_attempt", reasonOf(e));
+  }
+  return null;
+}
+/** Timestamped segments for the teacher draft: Scribe first, then the OpenAI segment model. Word times are kept. */
+// deno-lint-ignore no-explicit-any
+async function transcribeDraftSegments(bytes: ArrayBuffer, key: string, seconds: number, admin: any, sessionId: string, clipId: string): Promise<SpeakingSegment[]> {
+  const heard = await scribeIfComplete(bytes, seconds);
+  const segments = heard ? segmentsFromWords(heard.words) : [];
+  if (heard && segments.length) {
+    keepWords(admin, sessionId, clipId, `elevenlabs/${heard.model}`)(timedWords(heard.words));
+    return segments;
+  }
+  return transcribeInterview(bytes, key, keepWords(admin, sessionId, clipId));
 }
 /** Plain-text transcription with the stronger model (no timestamps needed for transcripts and highlights). */
 const textTranscribeModel = Deno.env.get("IELTS_SPEAKING_TEXT_TRANSCRIBE_MODEL")?.trim() || "gpt-4o-transcribe";
@@ -107,18 +146,22 @@ async function transcribeText(bytes: ArrayBuffer, key: string): Promise<string> 
  * Transcript for the teacher view (Bible 2.2.1 section 10.7): the stronger model first, the segment model as a
  * fallback, and the more complete of the two when neither passes the completeness check (no loops, no lost speech).
  */
-async function transcribeForAnalysis(bytes: ArrayBuffer, key: string, seconds: number): Promise<string> {
-  const attempts: Array<() => Promise<string>> = [
-    () => transcribeText(bytes, key),
-    async () => (await transcribeInterview(bytes, key)).map((s) => s.text).join(" "),
+type Heard = { text: string; confidence: WordConfidence; model: string; words?: Array<[string, number]> };
+async function transcribeForAnalysis(bytes: ArrayBuffer, key: string, seconds: number): Promise<Heard> {
+  // Scribe first: its words carry a confidence, so possible speech-to-text errors are never highlighted.
+  const heard = await scribeIfComplete(bytes, seconds);
+  if (heard) return { text: heard.text, confidence: wordConfidence(heard.words), model: `elevenlabs/${heard.model}`, words: timedWords(heard.words) };
+  const attempts: Array<[string, () => Promise<string>]> = [
+    [`openai/${textTranscribeModel}`, () => transcribeText(bytes, key)],
+    [`openai/${transcribeModel}`, async () => (await transcribeInterview(bytes, key)).map((s) => s.text).join(" ")],
   ];
-  let best = "";
-  for (const attempt of attempts) {
+  let best: Heard = { text: "", confidence: NO_CONFIDENCE, model: "none" };
+  for (const [model, attempt] of attempts) {
     try {
       const text = (await attempt()).replace(/\s+/g, " ").trim().slice(0, 20000);
-      if (transcriptLooksComplete(text, seconds)) return text;
+      if (transcriptLooksComplete(text, seconds)) return { text, confidence: NO_CONFIDENCE, model };
       why("transcript_incomplete", `${text.split(/\s+/).length} words in ${Math.round(seconds)}s`);
-      if (text.length > best.length) best = text;
+      if (text.length > best.text.length) best = { text, confidence: NO_CONFIDENCE, model };
     } catch (e) {
       why("transcript_attempt", reasonOf(e));
     }
@@ -269,8 +312,9 @@ async function analyse(sessionId: string, session: any, caller: any, admin: any)
     const bytes = await audio.arrayBuffer();
     inspectSpeakingWav(bytes);
     if ((await sha(bytes)) !== clip.sha256) throw new Error("source_mismatch");
-    const transcript = await transcribeForAnalysis(bytes, key, Number(clip.duration_seconds) || 0);
-    return { id: clip.id, part: clip.part, transcript, bytes };
+    const heard = await transcribeForAnalysis(bytes, key, Number(clip.duration_seconds) || 0);
+    if (heard.words?.length) keepWords(admin, sessionId, clip.id, heard.model)(heard.words);
+    return { id: clip.id, part: clip.part, transcript: heard.text, confidence: heard.confidence, heardBy: heard.model, bytes };
   }));
   // Who said what first, so highlights and pronunciation words use only the student's speech.
   const { highlights, teacher, provider } = await interviewHighlights(key, transcribed);
@@ -279,6 +323,11 @@ async function analyse(sessionId: string, session: any, caller: any, admin: any)
     teacherLines: teacher[clip.id] ?? [],
     pronunciation: await listenForPronunciation(clip.bytes, key, clip.part, clip.transcript, studentOnlyText(clip.transcript, teacher[clip.id] ?? [])),
   })));
+  // A word speech-to-text was unsure of may not be what the student said: never highlight it or call it mispronounced.
+  for (const clip of prepared) {
+    highlights[clip.id] = withoutUnsureHighlights(highlights[clip.id] ?? [], clip.confidence);
+    clip.pronunciation = { ...clip.pronunciation, words: withoutUnsureWords(clip.pronunciation.words, clip.confidence) };
+  }
   for (const clip of prepared) {
     const { error } = await admin.rpc("rpc_ielts_save_speaking_clip_analysis", {
       p_session_id: sessionId,
@@ -287,7 +336,8 @@ async function analyse(sessionId: string, session: any, caller: any, admin: any)
       p_highlights: highlights[clip.id] ?? [],
       p_pronunciation: clip.pronunciation,
       p_prompt_version: INTERVIEW_ANALYSIS_VERSION,
-      p_provider: `${provider}+openai/${analyseModel}`.slice(0, 200),
+      // Provenance: highlight model, speech-to-text model and pronunciation model.
+      p_provider: `${provider}+${clip.heardBy}+openai/${analyseModel}`.slice(0, 200),
       p_speaker_turns: { teacher: clip.teacherLines },
     });
     if (error) throw new Error("save_failed");
@@ -544,7 +594,7 @@ Deno.serve(async (req: Request) => {
           part: clip.part,
           duration_seconds: clip.duration_seconds,
           interrupted: clip.interrupted,
-          segments: await transcribeInterview(clip.bytes, key, keepWords(admin, body.sessionId, clip.id)),
+          segments: await transcribeDraftSegments(clip.bytes, key, Number(clip.duration_seconds) || 0, admin, body.sessionId, clip.id),
         })));
         const user = JSON.stringify({ task: context.package, incidents: context.incidents, clips: transcripts });
         for (let attempt = 0; attempt < 2 && !fields; attempt++) {
