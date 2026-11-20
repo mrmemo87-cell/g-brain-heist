@@ -1,6 +1,7 @@
 import React from 'react';
 import { type ProgramArtworkKey } from '../lib/programArtwork';
 import ProgramMark from './ProgramMark';
+import '../styles/program-artwork.css';
 import '../../components/school-admin/schoolAdminContrastSurfaces.css';
 
 type ProgramIdentityBannerProps = {

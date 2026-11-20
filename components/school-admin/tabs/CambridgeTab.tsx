@@ -135,6 +135,15 @@ const CambridgeTab: React.FC = () => {
     await loadHistoricalYear(selectedYear.id);
   }, [currentYear, fetchQuizScores, loadHistoricalYear, selectedYear]);
 
+  // Load the current year's results as soon as the year is known, so the page never claims there are none.
+  const autoLoadedYearRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!currentYear || selectedYear?.id !== currentYear.id) return;
+    if (autoLoadedYearRef.current === currentYear.id) return;
+    autoLoadedYearRef.current = currentYear.id;
+    void fetchQuizScores();
+  }, [currentYear, selectedYear, fetchQuizScores]);
+
   const handleYearChange = async (academicYearId: string) => {
     setSelectedYearId(academicYearId);
     setQuizFilter('all');
@@ -213,9 +222,9 @@ const CambridgeTab: React.FC = () => {
     <div className="school-admin-themed-tab space-y-6">
       <section className="admin-section-heading">
         <div>
-          <p className="school-admin-eyebrow">Assessments</p>
-          <h2>Cambridge Assessments</h2>
-          <p>Review current results and safely access previous academic-year history.</p>
+          <p className="school-admin-eyebrow">Results</p>
+          <h2>Results by academic year</h2>
+          <p>Review this year's results and open earlier years when you need them.</p>
         </div>
       </section>
 
