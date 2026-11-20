@@ -1,3 +1,4 @@
+import SchoolAdminIcon, { type SchoolAdminIconName } from '../../../components/school-admin/SchoolAdminIcon';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   getWritingAssessmentReviewContext,
@@ -89,14 +90,14 @@ const SUPPORTED_GENRES: readonly SupportedMonitorGenre[] = [
   'paragraph',
 ];
 
-const GENRE_META: Record<SupportedMonitorGenre, { icon: string; description: string }> = {
-  email: { icon: '✉️', description: 'Purpose, audience, tone, opening and closing' },
-  article: { icon: '📰', description: 'Engaging ideas, structure and reader awareness' },
-  review: { icon: '⭐', description: 'Evaluation, evidence and recommendation' },
-  story: { icon: '📖', description: 'Narrative control, detail and sequencing' },
-  essay: { icon: '📝', description: 'Argument, development and organization' },
-  report: { icon: '📊', description: 'Formal findings, headings and recommendations' },
-  paragraph: { icon: '¶', description: 'Focus, support and sentence connection' },
+const GENRE_META: Record<SupportedMonitorGenre, { icon: SchoolAdminIconName; description: string }> = {
+  email: { icon: 'message', description: 'Purpose, audience, tone, opening and closing' },
+  article: { icon: 'file', description: 'Engaging ideas, structure and reader awareness' },
+  review: { icon: 'star', description: 'Evaluation, evidence and recommendation' },
+  story: { icon: 'book', description: 'Narrative control, detail and sequencing' },
+  essay: { icon: 'edit', description: 'Argument, development and organization' },
+  report: { icon: 'results', description: 'Formal findings, headings and recommendations' },
+  paragraph: { icon: 'edit', description: 'Focus, support and sentence connection' },
 };
 
 const WEAKNESS_LABEL_MAP: Record<string, string> = {
@@ -1339,7 +1340,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                         onClick={() => selectGenre(genre)}
                         aria-pressed={selectedGenre === genre}
                       >
-                        <span className="writing-monitor__genre-icon" aria-hidden="true">{genreMeta?.icon ?? '📄'}</span>
+                        <span className="writing-monitor__genre-icon" aria-hidden="true"><SchoolAdminIcon name={genreMeta?.icon ?? 'file'} className="h-5 w-5" /></span>
                         <span>
                           <strong>{toGenreLabel(genre)}</strong>
                           <small>{genreMeta?.description ?? 'Writing evidence and teacher feedback'}</small>
@@ -1378,7 +1379,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
           {!collapsed.has('reader') ? (
             genreAttempts.length === 0 ? (
               <div className="writing-monitor__empty writing-monitor__empty--genre">
-                <span aria-hidden="true">📭</span>
+                <span className="inline-flex align-middle"><SchoolAdminIcon name="inbox" className="h-4 w-4" /></span>
                 <strong>No {toGenreLabel(selectedGenre)} submissions yet</strong>
                 <p>This genre remains visible so the teacher can see the student’s complete writing coverage.</p>
               </div>

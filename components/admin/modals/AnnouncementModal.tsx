@@ -2,14 +2,14 @@ import React from 'react';
 import { useAdmin } from '../AdminContext';
 
 const AUDIENCE_OPTIONS = [
-  { value: 'all', label: '🌍 Everyone', desc: 'All users across the platform' },
-  { value: 'school', label: '🏫 Specific School', desc: 'All members of a chosen school' },
-  { value: 'school_admins', label: '🛡️ All School Admins', desc: 'Every school admin across all schools' },
-  { value: 'school_admins_school', label: '🛡️ School Admins (School)', desc: 'Admins of a specific school' },
-  { value: 'grade', label: '📚 Grade (All Schools)', desc: 'Everyone in a grade across all schools' },
-  { value: 'grade_school', label: '📚 Grade at School', desc: 'A specific grade at a specific school' },
-  { value: 'class', label: '📋 Specific Class', desc: 'Students in a particular class' },
-  { value: 'teachers', label: '👩‍🏫 All Teachers', desc: 'Every teacher across the platform' },
+  { value: 'all', label: 'Everyone', desc: 'All users across the platform' },
+  { value: 'school', label: 'Specific School', desc: 'All members of a chosen school' },
+  { value: 'school_admins', label: 'All School Admins', desc: 'Every school admin across all schools' },
+  { value: 'school_admins_school', label: 'School Admins (School)', desc: 'Admins of a specific school' },
+  { value: 'grade', label: 'Grade (All Schools)', desc: 'Everyone in a grade across all schools' },
+  { value: 'grade_school', label: 'Grade at School', desc: 'A specific grade at a specific school' },
+  { value: 'class', label: 'Specific Class', desc: 'Students in a particular class' },
+  { value: 'teachers', label: '‍All Teachers', desc: 'Every teacher across the platform' },
 ] as const;
 
 const selectClass = "w-full rounded-lg border border-green-400/40 bg-black/60 px-3 py-2 text-sm text-white focus:outline-none focus:border-green-300";
@@ -64,7 +64,7 @@ const AnnouncementModal: React.FC = () => {
       {showAnnouncementComposer && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4" role="dialog" aria-modal="true" aria-labelledby="announcement-title">
           <div className="bg-gray-900 border border-green-400/60 rounded-2xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <h3 id="announcement-title" className="text-2xl font-heading text-green-300">📢 Broadcast Announcement</h3>
+            <h3 id="announcement-title" className="text-2xl font-heading text-green-300">Broadcast Announcement</h3>
 
             {/* Audience Targeting */}
             <div className="space-y-2">

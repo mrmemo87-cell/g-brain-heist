@@ -1,3 +1,4 @@
+import SchoolAdminIcon from './school-admin/SchoolAdminIcon';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { withPortalLocalization } from '../src/components/PortalLocalizationBoundary';
 import { createPortal } from 'react-dom';
@@ -443,7 +444,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
             <div className="school-admin-mobile-menu-heading"><div><p>School Head</p><h2 id="school-head-mobile-menu-title">All sections</h2></div><button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Close School Head menu">×</button></div>
             <div className="school-admin-mobile-menu-grid">
               {HEAD_TABS.map((tab) => <button key={tab.id} type="button" onClick={() => selectTab(tab.id)} className={activeTab === tab.id ? 'is-active' : ''} aria-current={activeTab === tab.id ? 'page' : undefined}><span className="school-admin-mobile-menu-icon school-head-mobile-menu-icon"><HeadNavIcon tab={tab.id} /></span><span><strong>{tab.label}</strong><small>{tab.description}</small></span></button>)}
-              <button type="button" onClick={() => { setMobileMenuOpen(false); openAdministration('documents'); }}><span className="school-admin-mobile-menu-icon school-head-mobile-menu-icon" aria-hidden="true">🗂️</span><span><strong>Document Center</strong><small>Print Center and document history</small></span></button>
+              <button type="button" onClick={() => { setMobileMenuOpen(false); openAdministration('documents'); }}><span className="school-admin-mobile-menu-icon school-head-mobile-menu-icon" aria-hidden="true"><SchoolAdminIcon name="folder" className="h-5 w-5" /></span><span><strong>Document Center</strong><small>Print Center and document history</small></span></button>
             </div>
           </section>
         </div>,

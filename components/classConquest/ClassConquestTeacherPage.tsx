@@ -119,10 +119,10 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
           </label>
         ) : null}
         <div className="ccq-toolbar-actions">
-          <button type="button" className="ccq-secondary" onClick={() => setIntelOpen(true)} disabled={!data}>🗺️ Next map briefing</button>
-          <button type="button" className="ccq-secondary" onClick={() => setHistoryOpen(true)} disabled={!data}>🏆 Hall of Fame</button>
+          <button type="button" className="ccq-secondary" onClick={() => setIntelOpen(true)} disabled={!data}>Next map briefing</button>
+          <button type="button" className="ccq-secondary" onClick={() => setHistoryOpen(true)} disabled={!data}>Hall of Fame</button>
           {last && last.winner_label ? (
-            <button type="button" className="ccq-secondary ccq-secondary--gold" onClick={() => setRevealing(true)}>🎬 Reveal ceremony</button>
+            <button type="button" className="ccq-secondary ccq-secondary--gold" onClick={() => setRevealing(true)}>Reveal ceremony</button>
           ) : null}
           <button type="button" className="ccq-present" onClick={() => void present()} disabled={!data || sealed}>
             {presenting ? 'Exit projector' : 'Show on projector'}
@@ -137,7 +137,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
         <section className="ccq-winners" aria-labelledby="ccq-winners-title">
           <div className="ccq-winners-head">
             <div>
-              <p className="ccq-eyebrow">✅ Finished week · {weekLabel(last.week_start)} · {lastMap.flag} {lastMap.name}{last.revealed ? '' : ' · students see this Monday 07:00'}</p>
+              <p className="ccq-eyebrow">Finished week · {weekLabel(last.week_start)} · {lastMap.flag} {lastMap.name}{last.revealed ? '' : ' · students see this Monday 07:00'}</p>
               <h2 id="ccq-winners-title" className="font-heading">Week of {weekLabel(last.week_start)}: {last.winner_label} won</h2>
               <p className="ccq-sub">
                 {last.revealed
@@ -147,8 +147,8 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
             </div>
             <div className="ccq-winners-actions">
               <div className="ccq-theme" role="group" aria-label="Certificate theme">
-                <button type="button" className={theme === 'light' ? 'is-active' : ''} onClick={() => setTheme('light')} aria-pressed={theme === 'light'}>☀️ Light · ink-friendly</button>
-                <button type="button" className={theme === 'dark' ? 'is-active' : ''} onClick={() => setTheme('dark')} aria-pressed={theme === 'dark'}>🌙 Dark</button>
+                <button type="button" className={theme === 'light' ? 'is-active' : ''} onClick={() => setTheme('light')} aria-pressed={theme === 'light'}>Light · ink-friendly</button>
+                <button type="button" className={theme === 'dark' ? 'is-active' : ''} onClick={() => setTheme('dark')} aria-pressed={theme === 'dark'}>Dark</button>
               </div>
               <label className="ccq-print-sides">
                 <span>Printer</span>
@@ -164,7 +164,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
                 })()}
               </p>
               {last.top_students.length > 0 ? (
-                <CertificatePdfButton result={last} issuer={issuer} schoolLogoUrl={schoolLogoUrl} theme={theme} printSides={printSides} label={`🖨 Certificates for ${weekLabel(last.week_start)} (PDF)`} />
+                <CertificatePdfButton result={last} issuer={issuer} schoolLogoUrl={schoolLogoUrl} theme={theme} printSides={printSides} label={`Certificates for ${weekLabel(last.week_start)} (PDF)`} />
               ) : null}
             </div>
           </div>
@@ -186,7 +186,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
 
       {data && !sealed && map ? (
         <p className="ccq-locked" role="status">
-          🔒 This week ({weekLabel(data.week_start)}) is still being played. Its certificates unlock automatically when the vault seals — Saturday 00:15 — so every mission up to Friday 23:59 counts.
+          This week ({weekLabel(data.week_start)}) is still being played. Its certificates unlock automatically when the vault seals — Saturday 00:15 — so every mission up to Friday 23:59 counts.
         </p>
       ) : null}
 
@@ -194,13 +194,13 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
         <section className="ccq-pulse" aria-labelledby="ccq-pulse-title">
           <div>
             <p className="ccq-eyebrow">Weekend pulse · the vault is sealed</p>
-            <h2 id="ccq-pulse-title" className="font-heading">🔒 {arenaName(data.grade)} is waiting for Monday</h2>
+            <h2 id="ccq-pulse-title" className="font-heading">{arenaName(data.grade)} is waiting for Monday</h2>
             <p className="ccq-sub">Students cannot see standings until the reveal. Meanwhile they predict the winner, chant on the Hype Wall, and raid rival classes in PvP (wins against other classes count until Sunday midnight).</p>
           </div>
           {weekend ? (
             <div className="ccq-pulse-grid">
               <div className="ccq-pulse-card">
-                <h3>🔮 Predictions</h3>
+                <h3>Predictions</h3>
                 {weekend.predictions.length === 0 ? <p className="ccq-sub">No picks yet.</p> : (
                   <ul className="ccq-tally">
                     {weekend.classes.map((c) => {
@@ -218,7 +218,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
                 )}
               </div>
               <div className="ccq-pulse-card">
-                <h3>⚔️ Border Raids</h3>
+                <h3>Border Raids</h3>
                 {!weekend.raids || weekend.raids.classes.every((c) => c.raids === 0) ? <p className="ccq-sub">No raids yet.</p> : (
                   <ul className="ccq-tally">
                     {weekend.raids.classes.map((c) => (
@@ -232,7 +232,7 @@ const ClassConquestTeacherPage: React.FC<ClassConquestTeacherPageProps> = ({ onB
                 )}
               </div>
               <div className="ccq-pulse-card ccq-pulse-card--wide">
-                <h3>📣 Hype Wall · {weekend.cheers.length} recent chants</h3>
+                <h3>Hype Wall · {weekend.cheers.length} recent chants</h3>
                 {weekend.cheers.length === 0 ? <p className="ccq-sub">Quiet so far.</p> : (
                   <ul className="ccq-wall ccq-wall--light">
                     {weekend.cheers.slice(0, 10).map((c, i) => (

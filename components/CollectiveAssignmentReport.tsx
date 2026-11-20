@@ -1,3 +1,4 @@
+import SchoolAdminIcon from './school-admin/SchoolAdminIcon';
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { TeacherAssignmentSummary, TeacherAssignmentReportRow, Subject, StudentForAssignment, AssignmentCategory } from '../types';
@@ -473,7 +474,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
   const sortIndicator = (col: SortColumn) => {
     if (isCustomMode && sortColumn === 'custom') {
       // In custom mode, no sort indicator on other columns
-      if (col === 'custom') return <span className="text-purple-500 ml-1 text-xs">✋</span>;
+      if (col === 'custom') return <span className="text-purple-500 ml-1 text-xs">(custom)</span>;
       return null;
     }
 
@@ -1004,7 +1005,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
       {isCustomMode && (
         <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-purple-300 bg-purple-50 text-sm">
           <div className="flex items-center gap-2 text-purple-700">
-            <span className="text-lg">✋</span>
+            <span className="inline-flex align-middle text-slate-600"><SchoolAdminIcon name="sliders" className="h-5 w-5" /></span>
             <span>
               <strong>Custom Order mode</strong> — Drag rows or use the ▲ ▼ buttons to rearrange students. Your arrangement is saved automatically.
             </span>
@@ -1022,7 +1023,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
       <div className="collective-status-legend collective-report-no-print" aria-label="Student status guide"><span><i className="is-on-track" />On track (80%+)</span><span><i className="is-review" />Review (60–79%)</span><span><i className="is-support" />Support (below 60%)</span><span><i className="is-incomplete" />Incomplete submission</span></div>
       {displayRows.length === 0 ? (
         <div className="teacher-card p-10 text-center">
-          <div className="text-5xl mb-3">📭</div>
+          <span className="grid mx-auto h-12 w-12 rounded-xl shrink-0 place-items-center bg-slate-100 text-slate-600 mb-3"><SchoolAdminIcon name="inbox" className="h-6 w-6" /></span>
           <p className="text-slate-500">
             {studentRows.length === 0
               ? 'No students have completed any assignments yet.'
@@ -1169,7 +1170,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                         <td key={a.id} className="collective-results-assignment-cell py-3 px-2 text-center">
                           <span
                             className={`inline-block px-2 py-0.5 rounded-md text-xs font-bold border ${accuracyBg(s.accuracy)}`}
-                            title={`Score: ${s.score} | Accuracy: ${s.accuracy}% | ✅ ${s.correct} ❌ ${s.incorrect}\nCompleted: ${new Date(s.completedAt).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}`}
+                            title={`Score: ${s.score} | Accuracy: ${s.accuracy}% | Correct: ${s.correct} | Incorrect: ${s.incorrect}\nCompleted: ${new Date(s.completedAt).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}`}
                           >
                             {val}
                           </span>
@@ -1202,7 +1203,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
             </span>
             <span>
               {isCustomMode
-                ? '✋ Drag rows or use ▲▼ to arrange · order saved automatically'
+                ? 'Drag rows or use ▲▼ to arrange · order saved automatically'
                 : 'Click any column header to sort'}
             </span>
           </div>

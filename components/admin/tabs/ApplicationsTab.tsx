@@ -112,7 +112,7 @@ const ApplicationsTab: React.FC = () => {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h3 className="text-3xl font-heading font-bold text-cyan-300 flex items-center gap-2">
-              🏫 School Applications
+              School Applications
               {unreadTotal > 0 && (
                 <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white shadow-lg">
                   {Math.min(unreadTotal, 99)}
@@ -125,7 +125,7 @@ const ApplicationsTab: React.FC = () => {
             onClick={loadSchoolRequests}
             className="rounded-lg border border-cyan-400/60 bg-cyan-500/20 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/30"
           >
-            🔄 Refresh
+            Refresh
           </button>
         </div>
 
@@ -192,7 +192,7 @@ const ApplicationsTab: React.FC = () => {
                     School Name
                   </p>
                   <h4 className="mt-1 inline-flex items-center rounded-lg border border-cyan-300/40 bg-cyan-500/10 px-3 py-1 text-2xl font-extrabold leading-tight text-cyan-100 shadow-[0_0_0_1px_rgba(34,211,238,0.25),0_8px_24px_rgba(34,211,238,0.2)]">
-                    🏫 {request.requested_name}
+                    {request.requested_name}
                   </h4>
                   <p className="text-xs text-gray-400">
                     Requested by {request.requester_email || 'Unknown'} • {request.requester_role || 'student'}
@@ -263,28 +263,28 @@ const ApplicationsTab: React.FC = () => {
                   title={!request.applicant_authority_confirmed ? 'Ask the applicant to submit the authorised decision-maker declaration first.' : undefined}
                   className="rounded-lg border border-emerald-400/50 bg-emerald-500/20 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-emerald-500/30 disabled:opacity-60"
                 >
-                  ✅ Approve
+                  Approve
                 </button>
                 <button
                   onClick={() => handleSchoolRequestAction(request.id, 'reject')}
                   disabled={isActionLoading}
                   className="rounded-lg border border-red-400/50 bg-red-500/20 px-4 py-2 text-sm font-semibold text-red-100 hover:bg-red-500/30 disabled:opacity-60"
                 >
-                  ❌ Reject
+                  Reject
                 </button>
                 <button
                   onClick={() => handleSchoolRequestAction(request.id, 'mark_duplicate')}
                   disabled={isActionLoading}
                   className="rounded-lg border border-purple-400/50 bg-purple-500/20 px-4 py-2 text-sm font-semibold text-purple-100 hover:bg-purple-500/30 disabled:opacity-60"
                 >
-                  🧩 Mark duplicate
+                  Mark duplicate
                 </button>
                 <button
                   onClick={() => handleSchoolRequestAction(request.id, 'needs_more_info')}
                   disabled={isActionLoading}
                   className="rounded-lg border border-amber-400/50 bg-amber-500/20 px-4 py-2 text-sm font-semibold text-amber-100 hover:bg-amber-500/30 disabled:opacity-60"
                 >
-                  📩 Request more info
+                  Request more info
                 </button>
                 <button
                   onClick={() => {

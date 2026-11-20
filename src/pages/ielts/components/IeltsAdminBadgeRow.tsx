@@ -1,10 +1,11 @@
+import SchoolAdminIcon, { type SchoolAdminIconName } from '../../../../components/school-admin/SchoolAdminIcon';
 import React from 'react';
 
 interface BadgeProps {
   label: string;
   count: number;
   color: string;
-  icon: string;
+  icon: SchoolAdminIconName;
   onClick?: () => void;
 }
 
@@ -28,7 +29,7 @@ const Badge: React.FC<BadgeProps> = ({ label, count, color, icon, onClick }) => 
     onMouseEnter={(e) => { if (onClick && count > 0) (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 2px 12px ${color}30`; }}
     onMouseLeave={(e) => { if (onClick && count > 0) (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 1px 6px ${color}20`; }}
   >
-    <span style={{ fontSize: '1.15rem' }}>{icon}</span>
+    <span style={{ display: 'inline-flex', color }}><SchoolAdminIcon name={icon} className="h-5 w-5" /></span>
     <div>
       <p style={{ margin: 0, fontSize: '1.3rem', fontWeight: 900, color: count > 0 ? color : '#d1d5db', lineHeight: 1 }}>
         {count}
@@ -60,11 +61,11 @@ const IeltsAdminBadgeRow: React.FC<IeltsAdminBadgeRowProps> = ({
   onGoPrime,
 }) => (
   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.65rem' }}>
-  <Badge label="IELTS Users" count={totalUsers} color="#0891b2" icon="👥" />
-  <Badge label="Prime Users" count={premiumUsers} color="#b45309" icon="⭐" />
-  <Badge label="Pending Prime" count={pendingPrime} color="#ea580c" icon="📋" onClick={onGoPrime} />
-  <Badge label="Ungraded Writing" count={ungradedWriting} color="#7c3aed" icon="✍️" onClick={onGoReviews} />
-  <Badge label="Ungraded Speaking" count={ungradedSpeaking} color="#059669" icon="🎤" onClick={onGoReviews} />
+  <Badge label="IELTS Users" count={totalUsers} color="#0891b2" icon="user" />
+  <Badge label="Prime Users" count={premiumUsers} color="#b45309" icon="star" />
+  <Badge label="Pending Prime" count={pendingPrime} color="#ea580c" icon="file" onClick={onGoPrime} />
+  <Badge label="Ungraded Writing" count={ungradedWriting} color="#7c3aed" icon="edit" onClick={onGoReviews} />
+  <Badge label="Ungraded Speaking" count={ungradedSpeaking} color="#059669" icon="audio" onClick={onGoReviews} />
   </div>
 );
 

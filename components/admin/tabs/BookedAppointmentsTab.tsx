@@ -108,7 +108,7 @@ const BookedAppointmentsTab: React.FC = () => {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400">School partnerships pipeline</p>
-            <h3 className="mt-2 text-3xl font-heading font-bold text-white">📅 Booked Appointments</h3>
+            <h3 className="mt-2 text-3xl font-heading font-bold text-white">Booked Appointments</h3>
             <p className="mt-1 text-sm text-gray-400">Review demo requests, confirm meetings and keep follow-up notes in one place.</p>
           </div>
           <button onClick={() => void loadAppointments()} disabled={loading} className="rounded-lg border border-cyan-400/60 bg-cyan-500/15 px-4 py-2 text-sm font-bold text-cyan-100 transition hover:bg-cyan-500/25 disabled:opacity-60">
@@ -153,8 +153,8 @@ const BookedAppointmentsTab: React.FC = () => {
                   </div>
                   <p className="mt-1 text-sm text-gray-300">{appointment.school_name ? appointment.contact_name : 'Direct demo booking'}{appointment.role_title ? ` · ${appointment.role_title}` : ''}</p>
                   <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs">
-                    {appointment.email && <a className="text-cyan-300 hover:text-cyan-200" href={`mailto:${appointment.email}`}>✉ {appointment.email}</a>}
-                    {appointment.phone && <a className="text-cyan-300 hover:text-cyan-200" href={`tel:${appointment.phone}`}>☎ {appointment.phone}</a>}
+                    {appointment.email && <a className="text-cyan-300 hover:text-cyan-200" href={`mailto:${appointment.email}`}>{appointment.email}</a>}
+                    {appointment.phone && <a className="text-cyan-300 hover:text-cyan-200" href={`tel:${appointment.phone}`}>{appointment.phone}</a>}
                     {appointment.country && <span className="text-gray-400">⌖ {[appointment.street_address, appointment.city, appointment.country].filter(Boolean).join(', ')}{appointment.school_size ? ` · ${appointment.school_size}` : ''}</span>}
                   </div>
                 </div>

@@ -1,3 +1,4 @@
+import SchoolAdminIcon, { type SchoolAdminIconName } from '../../school-admin/SchoolAdminIcon';
 import React from 'react';
 import { useAdmin } from '../AdminContext';
 
@@ -10,15 +11,15 @@ const AnalyticsTab: React.FC = () => {
     <div className="space-y-6">
       <div className="card-glass p-6 border-2 border-pink-400/50">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-3xl font-heading font-bold text-pink-300">📊 Analytics Dashboard</h3>
+          <h3 className="text-3xl font-heading font-bold text-pink-300">Analytics Dashboard</h3>
           <button onClick={fetchAnalytics} disabled={analyticsLoading} className="bg-pink-500/20 hover:bg-pink-500/30 border border-pink-400 text-white px-4 py-2 rounded-lg font-semibold transition-all hover:shadow-[0_0_20px_rgba(236,72,153,0.5)]">
-            {analyticsLoading ? '⏳ Loading...' : '🔄 Refresh Analytics'}
+            {analyticsLoading ? 'Loading...' : 'Refresh Analytics'}
           </button>
         </div>
 
         {!analyticsData && !analyticsLoading && (
           <div className="text-center py-12 text-gray-400">
-            <p className="text-6xl mb-4">📊</p>
+            <span className="inline-grid h-12 w-12 rounded-xl shrink-0 place-items-center bg-slate-100 text-slate-600 mb-4"><SchoolAdminIcon name="results" className="h-6 w-6" /></span>
             <p className="text-xl">Click "Refresh Analytics" to load the dashboard</p>
           </div>
         )}
@@ -35,14 +36,14 @@ const AnalyticsTab: React.FC = () => {
             {/* Key Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {[
-                { label: 'Players Today', value: analyticsData.playersToday, icon: '🎮', containerClass: 'bg-gradient-to-br from-pink-600/20 to-pink-900/20 border-2 border-pink-400', valueClass: 'text-pink-300' },
-                { label: 'Active Now', value: analyticsData.activeNow, icon: '🟢', containerClass: 'bg-gradient-to-br from-green-600/20 to-green-900/20 border-2 border-green-400', valueClass: 'text-green-300' },
-                { label: 'Total Clans', value: analyticsData.totalClans, icon: '🛡️', containerClass: 'bg-gradient-to-br from-blue-600/20 to-blue-900/20 border-2 border-blue-400', valueClass: 'text-blue-300' },
-                { label: 'Total Questions', value: analyticsData.totalQuestions, icon: '❓', containerClass: 'bg-gradient-to-br from-purple-600/20 to-purple-900/20 border-2 border-purple-400', valueClass: 'text-purple-300' },
-                { label: 'Recent Errors', value: analyticsData.recentErrors.length, icon: analyticsData.recentErrors.length > 0 ? '⚠️' : '✅', containerClass: analyticsData.recentErrors.length > 0 ? 'bg-gradient-to-br from-red-600/20 to-red-900/20 border-2 border-red-400' : 'bg-gradient-to-br from-green-600/20 to-green-900/20 border-2 border-green-400', valueClass: analyticsData.recentErrors.length > 0 ? 'text-red-300' : 'text-green-300' },
+                { label: 'Players Today', value: analyticsData.playersToday, icon: 'activity', containerClass: 'bg-gradient-to-br from-pink-600/20 to-pink-900/20 border-2 border-pink-400', valueClass: 'text-pink-300' },
+                { label: 'Active Now', value: analyticsData.activeNow, icon: 'check-circle', containerClass: 'bg-gradient-to-br from-green-600/20 to-green-900/20 border-2 border-green-400', valueClass: 'text-green-300' },
+                { label: 'Total Clans', value: analyticsData.totalClans, icon: 'lock', containerClass: 'bg-gradient-to-br from-blue-600/20 to-blue-900/20 border-2 border-blue-400', valueClass: 'text-blue-300' },
+                { label: 'Total Questions', value: analyticsData.totalQuestions, icon: 'info', containerClass: 'bg-gradient-to-br from-purple-600/20 to-purple-900/20 border-2 border-purple-400', valueClass: 'text-purple-300' },
+                { label: 'Recent Errors', value: analyticsData.recentErrors.length, icon: analyticsData.recentErrors.length > 0 ? 'alert' : 'check-circle', containerClass: analyticsData.recentErrors.length > 0 ? 'bg-gradient-to-br from-red-600/20 to-red-900/20 border-2 border-red-400' : 'bg-gradient-to-br from-green-600/20 to-green-900/20 border-2 border-green-400', valueClass: analyticsData.recentErrors.length > 0 ? 'text-red-300' : 'text-green-300' },
               ].map((metric, i) => (
                 <div key={i} className={`${metric.containerClass} rounded-xl p-4 text-center`}>
-                  <p className="text-3xl mb-1">{metric.icon}</p>
+                  <p className="mb-1 flex justify-center"><SchoolAdminIcon name={metric.icon as SchoolAdminIconName} className="h-7 w-7" /></p>
                   <p className={`text-2xl font-bold font-mono ${metric.valueClass}`}>{metric.value}</p>
                   <p className="text-xs text-gray-400">{metric.label}</p>
                 </div>
@@ -51,7 +52,7 @@ const AnalyticsTab: React.FC = () => {
 
             {/* Grade Distribution */}
             <div className="card-glass border border-pink-400/30 p-4 rounded-xl">
-              <h4 className="text-lg font-heading font-bold text-pink-200 mb-3">📚 Grade Distribution</h4>
+              <h4 className="text-lg font-heading font-bold text-pink-200 mb-3">Grade Distribution</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 {Object.entries(analyticsData.gradeDistribution)
                   .sort(([a], [b]) => a.localeCompare(b))
@@ -66,7 +67,7 @@ const AnalyticsTab: React.FC = () => {
 
             {/* Role Distribution */}
             <div className="card-glass border border-purple-400/30 p-4 rounded-xl">
-              <h4 className="text-lg font-heading font-bold text-purple-200 mb-3">👥 Role Distribution</h4>
+              <h4 className="text-lg font-heading font-bold text-purple-200 mb-3">Role Distribution</h4>
               <div className="flex flex-wrap gap-3">
                 {Object.entries(analyticsData.roleDistribution)
                   .sort(([, a], [, b]) => b - a)
@@ -92,7 +93,7 @@ const AnalyticsTab: React.FC = () => {
             {/* Batch/Class Stats */}
             {analyticsData.batchStats.length > 0 && (
               <div className="card-glass border border-cyan-400/30 p-4 rounded-xl">
-                <h4 className="text-lg font-heading font-bold text-cyan-200 mb-3">🏫 Class statistics</h4>
+                <h4 className="text-lg font-heading font-bold text-cyan-200 mb-3">Class statistics</h4>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
                     <thead>
@@ -123,7 +124,7 @@ const AnalyticsTab: React.FC = () => {
             {/* Error Log */}
             {analyticsData.recentErrors.length > 0 && (
               <div className="card-glass border border-red-400/30 p-4 rounded-xl">
-                <h4 className="text-lg font-heading font-bold text-red-300 mb-3">⚠️ Recent Errors</h4>
+                <h4 className="text-lg font-heading font-bold text-red-300 mb-3">Recent Errors</h4>
                 {analyticsData.recentErrors.map((err, i) => (
                   <div key={i} className="bg-red-500/10 border border-red-400/20 rounded-lg p-3 text-sm text-red-200 font-mono">
                     {err}

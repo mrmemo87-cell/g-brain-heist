@@ -1,3 +1,4 @@
+import SchoolAdminIcon from '../school-admin/SchoolAdminIcon';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { AssignmentCategory, QuestionDifficulty, QuestionType, StudentForAssignment, Subject, TeacherQuestion } from '../../types';
 import type { PreparedDiagnostic } from '../../services/diagnosticComposerService';
@@ -785,7 +786,7 @@ export default function AssignmentWizard({
                           }}
                           className={`${selected ? 'aw-class-card is-selected' : 'aw-class-card'}${diagnosticMode ? ' is-disabled' : ''}`}
                         >
-                          <span className="aw-class-icon" aria-hidden="true">{group.groupType === 'custom' ? '👥' : group.groupType === 'whole_grade' ? '🎓' : '🏫'}</span>
+                          <span className="aw-class-icon" aria-hidden="true"><SchoolAdminIcon name={group.groupType === 'custom' ? 'user' : group.groupType === 'whole_grade' ? 'cap' : 'building'} className="h-5 w-5" /></span>
                           <span className="aw-class-card__details">
                             <strong>{group.name}</strong>
                             <small>{group.schoolSubjectName}{group.academicSubjectName && group.academicSubjectName !== group.schoolSubjectName ? ` · resources: ${group.academicSubjectName}` : ''} · {group.studentCount} student{group.studentCount === 1 ? '' : 's'}</small>
@@ -829,10 +830,10 @@ export default function AssignmentWizard({
                 <>
                   <div className="aw-choice-grid aw-choice-grid--two" role="radiogroup" aria-label="Assignment audience">
                     <button type="button" role="radio" aria-checked={assignmentMode === 'batch'} className={assignmentMode === 'batch' ? 'aw-choice is-selected' : 'aw-choice'} onClick={() => setAssignmentMode('batch')}>
-                      <span>🏫</span><strong>Entire class</strong><small>Choose one or more allocated classes</small>
+                      <span className="inline-flex align-middle"><SchoolAdminIcon name="building" className="h-4 w-4" /></span><strong>Entire class</strong><small>Choose one or more allocated classes</small>
                     </button>
                     <button type="button" role="radio" aria-checked={assignmentMode === 'custom'} className={assignmentMode === 'custom' ? 'aw-choice is-selected' : 'aw-choice'} onClick={() => setAssignmentMode('custom')}>
-                      <span>👤</span><strong>Individual students</strong><small>Build a custom student group</small>
+                      <span className="inline-flex align-middle"><SchoolAdminIcon name="user" className="h-4 w-4" /></span><strong>Individual students</strong><small>Build a custom student group</small>
                     </button>
                   </div>
                   {unavailableStudents.length > 0 ? (
@@ -853,7 +854,7 @@ export default function AssignmentWizard({
                             : `${availableCount} available · ${enrolledCount} enrolled`;
                         return (
                           <button key={item.class_code} type="button" aria-pressed={selected} onClick={() => toggleBatch(item.class_code)} className={selected ? 'aw-class-card is-selected' : 'aw-class-card'}>
-                            <span className="aw-class-icon" aria-hidden="true">🏫</span>
+                            <span className="inline-flex align-middle aw-class-icon"><SchoolAdminIcon name="building" className="h-4 w-4" /></span>
                             <span className="aw-class-card__details"><strong>{item.class_code}</strong><small>{item.subject} · {audienceLabel}</small></span>
                             <span className="aw-check">{selected ? '✓' : ''}</span>
                           </button>

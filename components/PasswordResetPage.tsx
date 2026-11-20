@@ -1,3 +1,4 @@
+import SchoolAdminIcon from './school-admin/SchoolAdminIcon';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
@@ -75,7 +76,7 @@ const PasswordResetPage: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%)' }}>
         <div className="w-full max-w-md rounded-2xl border border-red-500/40 bg-black/40 p-8 backdrop-blur-md text-center">
-          <div className="text-5xl mb-4">⚠️</div>
+          <span className="grid mx-auto h-12 w-12 rounded-xl shrink-0 place-items-center bg-slate-100 text-slate-600 mb-4"><SchoolAdminIcon name="alert" className="h-6 w-6" /></span>
           <h1 className="font-heading text-2xl mb-3" style={{ color: 'var(--ion-blue)' }}>
             Invalid or Expired Link
           </h1>
@@ -101,7 +102,7 @@ const PasswordResetPage: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%)' }}>
         <div className="w-full max-w-md rounded-2xl border border-green-500/40 bg-black/40 p-8 backdrop-blur-md text-center">
-          <div className="text-5xl mb-4">✅</div>
+          <span className="grid mx-auto h-12 w-12 rounded-xl shrink-0 place-items-center bg-slate-100 text-slate-600 mb-4"><SchoolAdminIcon name="check-circle" className="h-6 w-6" /></span>
           <h1 className="font-heading text-2xl mb-3" style={{ color: '#00d4ff' }}>
             Password Reset Successful!
           </h1>
@@ -117,7 +118,7 @@ const PasswordResetPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%)' }}>
       <div className="w-full max-w-md rounded-2xl border border-cyan-400/40 bg-black/40 p-8 backdrop-blur-md">
         <div className="text-center mb-8">
-          <div className="text-4xl mb-3">🔐</div>
+          <span className="grid mx-auto h-12 w-12 rounded-xl shrink-0 place-items-center bg-slate-100 text-slate-600 mb-3"><SchoolAdminIcon name="lock" className="h-6 w-6" /></span>
           <h1 className="font-heading text-2xl mb-2" style={{ color: 'var(--ion-blue)' }}>
             Reset Your Password
           </h1>

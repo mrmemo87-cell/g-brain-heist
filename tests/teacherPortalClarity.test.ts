@@ -58,7 +58,7 @@ test('assignment reports explain score and support ordering and filters', () => 
   assert.doesNotMatch(collectiveReport, /<option value="all">All Classes<\/option>/);
   assert.match(collectiveReport, /value=\{batchFilter\}/);
   assert.match(teacherPortal, /Student,Class,Score,Correct,Incorrect/);
-  assert.ok(teacherPortal.indexOf('📊 Question Analysis') > teacherPortal.indexOf('Student Performance'));
+  assert.ok(teacherPortal.indexOf('>Question Analysis</span>') > teacherPortal.indexOf('Student Performance'));
   assert.match(
     teacherPortal,
     /Question Analysis follows the complete student roster and stays closed by default[\s\S]{0,200}<details className="group overflow-hidden rounded-xl/,

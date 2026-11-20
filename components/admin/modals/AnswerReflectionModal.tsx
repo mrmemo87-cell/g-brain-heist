@@ -1,3 +1,4 @@
+import SchoolAdminIcon from '../../school-admin/SchoolAdminIcon';
 import React from 'react';
 import { useAdmin } from '../AdminContext';
 import { buildBiologyAnswerKeyFromSavedMetadata, isBiologyCambridgeQuiz, parseSavedAnswersPayload } from '../../biologyReviewAnswerKey';
@@ -111,7 +112,7 @@ const AnswerReflectionModal: React.FC = () => {
                     <div className="text-sm text-gray-600">Wrong</div>
                   </div>
                   <div className="bg-amber-100 p-4 rounded-xl text-center">
-                    <div className="text-3xl">⚠️</div>
+                    <span className="grid mx-auto h-10 w-10 rounded-lg shrink-0 place-items-center bg-slate-100 text-slate-600"><SchoolAdminIcon name="alert" className="h-5 w-5" /></span>
                     <div className="text-3xl font-bold text-amber-700">{unansweredCount}</div>
                     <div className="text-sm text-gray-600">Unanswered</div>
                   </div>
@@ -155,7 +156,7 @@ const AnswerReflectionModal: React.FC = () => {
                                 <div><strong>Your answer:</strong> {studentAns || <em className="text-gray-400">blank</em>}</div>
                                 {!isCorrect && <div className="text-green-600 font-semibold">✓ Correct: {correctAns}</div>}
                               </div>
-                              <span className="text-xl">{isCorrect ? '✓' : isUnanswered ? '⚠️' : '✗'}</span>
+                              <span className="text-xl">{isCorrect ? '✓' : isUnanswered ? '–' : '✗'}</span>
                             </div>
                           );
                         })}
@@ -165,7 +166,7 @@ const AnswerReflectionModal: React.FC = () => {
                 }) : (
                   /* For Chemistry tests without predefined sections, show a simple summary */
                   <div className="bg-blue-50 border-2 border-blue-400 rounded-xl p-5">
-                    <h3 className="text-lg font-semibold text-blue-700 mb-4">🧪 Cambridge Science Test Results</h3>
+                    <h3 className="text-lg font-semibold text-blue-700 mb-4">Cambridge Science Test Results</h3>
                     <p className="text-gray-700 mb-3">
                       Score: <strong>{reportStudent.score}</strong> out of <strong>{reportStudent.total_questions}</strong> ({reportStudent.percentage}%)
                     </p>
@@ -179,14 +180,14 @@ const AnswerReflectionModal: React.FC = () => {
                 {/* Key Mistakes Section */}
                 {mistakes.length > 0 && (
                   <div className="bg-red-50 border-2 border-red-400 rounded-xl p-5">
-                    <h3 className="text-lg font-semibold text-red-700 mb-4">📝 Key Mistakes to Learn From</h3>
+                    <h3 className="text-lg font-semibold text-red-700 mb-4">Key Mistakes to Learn From</h3>
                     <div className="space-y-3">
                       {mistakes.slice(0, 8).map(m => (
                         <div key={m.q} className="bg-white rounded-lg p-4 border-l-4 border-red-400">
                           <div className="font-semibold text-gray-800 mb-2">Question {m.q}</div>
                           <div className="grid grid-cols-2 gap-3 text-sm">
                             <div className="bg-red-100 p-3 rounded text-gray-800">
-                              <strong className="text-red-700">{m.unanswered ? '⚠️ Unanswered' : '✗ Your Answer:'}</strong><br/>
+                              <strong className="text-red-700">{m.unanswered ? 'Unanswered' : '✗ Your Answer:'}</strong><br/>
                               <span className="text-gray-900 font-medium">{m.unanswered ? 'No response given' : m.studentAns}</span>
                             </div>
                             <div className="bg-green-100 p-3 rounded text-gray-800">
@@ -207,7 +208,7 @@ const AnswerReflectionModal: React.FC = () => {
                 <span>Brains Heist Learning Platform</span>
                 <span>Use this sheet to review mistakes and improve!</span>
                 <div className="flex gap-3">
-                  <button onClick={() => window.print()} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">🖨️ Print</button>
+                  <button onClick={() => window.print()} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">Print</button>
                   <button onClick={() => setShowAnswerReflection(false)} className="px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700">Close</button>
                 </div>
               </div>
