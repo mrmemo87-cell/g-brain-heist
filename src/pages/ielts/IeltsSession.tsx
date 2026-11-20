@@ -24,6 +24,7 @@ import {
   openSchoolDocumentPreview,
   schoolDocumentFileName,
 } from '../../lib/schoolDocument';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../utils/displayDate';
 
 const stepLabels = ['Reading', 'Listening', 'Writing', 'Review & Submit'];
 const MAX_EXAM_GUARD_VIOLATIONS = 3;
@@ -323,7 +324,7 @@ const IeltsSession: React.FC = () => {
           <h1 className="text-3xl font-semibold text-slate-900">Reference: {session.reference_code}</h1>
           <div className="mt-2 text-sm text-slate-500">
             <span>{getModuleLabel(session)}</span> ·{' '}
-            <span>{new Date(session.created_at).toLocaleString()}</span>
+            <span>{new Date(session.created_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}</span>
           </div>
         </header>
 

@@ -31,6 +31,7 @@ import IeltsStudentShell from "../../components/ielts/student/IeltsStudentShell"
 import { invalidateIeltsStudentWork, markFeedbackSeen } from "../../components/ielts/student/useIeltsStudentWork";
 import { IeltsTargetedGroups } from "../../components/ielts/IeltsTargetedPractice";
 import TargetedStepPlayer, { TargetedResultSteps } from "../../components/ielts/TargetedStepPlayer";
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../utils/displayDate';
 const criterionLabels: Record<string, string> = {
   task_response: "Answering and developing the task",
   coherence_cohesion: "Organising and linking ideas",
@@ -841,7 +842,7 @@ export default function IeltsLearningPractice() {
                 </div>
               ))}
               <p className="il-muted">
-                Shared {new Date(detail.review.reviewed_at).toLocaleString()}
+                Shared {new Date(detail.review.reviewed_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}
               </p>
             </section>
           )}
@@ -850,7 +851,7 @@ export default function IeltsLearningPractice() {
               <h2>{detail.review ? "Feedback shared" : "Review and share feedback"}</h2>
               {detail.review && (
                 <>
-                  <p className="il-muted">Shared by {detail.review.reviewer} · {new Date(detail.review.reviewed_at).toLocaleString()}</p>
+                  <p className="il-muted">Shared by {detail.review.reviewer} · {new Date(detail.review.reviewed_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}</p>
                   <button ref={reviewToggle} aria-expanded={reviewOpen} aria-controls="learning-review-fields" onClick={() => setReviewOpen(open => !open)}>
                     {reviewOpen ? "Collapse feedback" : "View or edit feedback"}
                   </button>

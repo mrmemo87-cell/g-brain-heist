@@ -26,6 +26,7 @@ declare
   v_claimed_at timestamptz;
   r jsonb;
   c jsonb;
+  v_parent_name text;
 begin
   if v_school is null then raise exception 'demo seed 07: school missing (run 02 first)'; end if;
 
@@ -37,15 +38,20 @@ begin
     v_guardian := ('d0000000-0000-4000-8000-0000000002' || right(p.key, 2))::uuid;
     v_email := 'demo.parent.' || p.key || '@example.com';
     v_label := case when private.demo_rand(p.key || 'guardian') < 0.55 then 'Mother' else 'Father' end;
+    -- A believable parent name: a first name plus the child's family name.
+    v_parent_name := case when v_label = 'Mother'
+        then (array['Maria','Anna','Sara','Elena','Laura','Nadia','Julia','Amina','Claire','Yasmin','Hannah','Ines'])[1 + floor(private.demo_rand(p.key || 'pfn') * 12)::int]
+        else (array['David','Michael','Ahmed','Paul','Daniel','Omar','Peter','James','Marco','Samuel','Thomas','Karim'])[1 + floor(private.demo_rand(p.key || 'pfn') * 12)::int]
+      end || ' ' || regexp_replace(p.full_name, '^\S+\s+', '');
     v_invited_at := v_term + make_interval(days => 2 + floor(private.demo_rand(p.key || 'ginv') * 10)::int, hours => 1);
     v_claimed_at := v_invited_at + make_interval(hours => 3 + floor(private.demo_rand(p.key || 'gclaim') * 60)::int);
 
     -- The parent's own account (email already verified, as after a normal sign-up).
     perform private.demo_create_auth_user(
       v_guardian, v_email, encode(extensions.gen_random_bytes(24), 'base64'),
-      jsonb_build_object('username', 'parent_' || p.key, 'full_name', 'Parent of ' || p.full_name),
+      jsonb_build_object('username', 'parent_' || p.key, 'full_name', v_parent_name),
       v_invited_at);
-    update public.users set full_name = 'Parent of ' || p.full_name, needs_setup = false, avatar_url = null
+    update public.users set full_name = v_parent_name, needs_setup = false, avatar_url = null
     where id = v_guardian;
 
     -- Deputy Head invites the parent.

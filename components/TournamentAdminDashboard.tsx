@@ -8,6 +8,7 @@ import {
 } from '../types';
 import BackButton from './BackButton';
 import * as TournamentService from '../services/tournamentService';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../src/utils/displayDate';
 
 interface TournamentAdminDashboardProps {
   profile: Profile;
@@ -180,7 +181,7 @@ const TournamentAdminDashboard: React.FC<TournamentAdminDashboardProps> = ({ pro
               <div>
                 <div className="text-xs text-white/60 uppercase">Scheduled</div>
                 <div className="text-white/80 text-sm">
-                  {match.scheduled_at ? new Date(match.scheduled_at).toLocaleString() : 'Not set'}
+                  {match.scheduled_at ? new Date(match.scheduled_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME) : 'Not set'}
                 </div>
               </div>
             </div>

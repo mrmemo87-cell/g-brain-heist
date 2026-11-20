@@ -15,7 +15,8 @@ import {
 import { getEntitlements, type EntitlementSet } from '../services/entitlementService';
 import { SchoolBrand } from '../src/components/SchoolBrand';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
-import { PROGRAM_ARTWORK } from '../src/lib/programArtwork';
+import { PROGRAM_ARTWORK, type ProgramArtworkKey } from '../src/lib/programArtwork';
+import ProgramMark from '../src/components/ProgramMark';
 import { requestTeacherPortalView } from '../src/lib/teacherPortalRequest';
 import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
 import CollapsedNavTooltip from './CollapsedNavTooltip';
@@ -282,7 +283,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
   const renderDecisions = () => (
     <div className="school-head-page">
       <section className="school-head-page-heading"><div><p className="school-head-kicker">Decision Center</p><h2>Matters for the School Head</h2><p>Most urgent first. Day-to-day alerts go to School Administration.</p></div><span className="school-head-heading-count">{snapshot.decisions.length} open</span></section>
-      {snapshot.decisions.length ? <section className="school-head-decision-list">{snapshot.decisions.map((decision) => <DecisionCard key={decision.id} decision={decision} onOpen={selectTab} />)}</section> : <EmptyState title="Everything important is under control">There are no executive-level decision items in the current snapshot.</EmptyState>}
+      {snapshot.decisions.length ? <section className="school-head-decision-list">{snapshot.decisions.map((decision) => <DecisionCard key={decision.id} decision={decision} onOpen={decision.category === 'Parent engagement' ? () => openAdministration('guardians') : selectTab} />)}</section> : <EmptyState title="Everything important is under control">There are no executive-level decision items in the current snapshot.</EmptyState>}
       <section className="school-head-notification-policy" aria-label="Decision notification policy"><div><strong>Critical</strong><span>Immediate in-app and branded email, then daily while unresolved.</span></div><div><strong>Warning</strong><span>In-app notification and daily branded email digest.</span></div><div><strong>Notice</strong><span>Decision Center and weekly branded email digest.</span></div><p>Resolved records close automatically when the underlying school data is corrected. Repeated alerts are deduplicated.</p></section>
     </div>
   );
@@ -309,7 +310,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
 
   const renderPeople = () => (
     <div className="school-head-page">
-      <section className="school-head-page-heading"><div><p className="school-head-kicker">People & structure</p><h2>Coverage, delegation and accountability</h2><p>A governance view of the school organisation. Daily roster changes remain in Operational Administration.</p></div><button type="button" className="school-head-primary-action" onClick={() => openAdministration('members')}>Open administration</button></section>
+      <section className="school-head-page-heading"><div><p className="school-head-kicker">People & structure</p><h2>Coverage, delegation and accountability</h2><p>A governance view of the school organisation. Day-to-day roster changes are made in School Administration.</p></div><button type="button" className="school-head-primary-action" onClick={() => openAdministration('members')}>Open administration</button></section>
       <section className="school-head-structure-grid">
         <article><span>Students</span><strong>{snapshot.totals.students}</strong><ProgressLine label="Placed in classes" value={snapshot.structure.placed_students} total={snapshot.totals.students} /></article>
         <article><span>Teaching staff</span><strong>{snapshot.totals.teachers}</strong><ProgressLine label="With active allocations" value={snapshot.structure.allocated_teachers} total={snapshot.totals.teachers} /></article>
@@ -343,16 +344,16 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
   };
 
   const programCards = [
-    { module: 'cambridge', name: 'Cambridge Assessments', metric: snapshot.programs.cambridge_attempts, label: `attempts in ${snapshot.period.days} days`, description: 'School-wide assessment performance, readiness and verified student results.', tab: 'cambridge', artwork: PROGRAM_ARTWORK.cambridge },
-    { module: 'writing', name: 'Writing Hub', metric: snapshot.programs.writing_students, label: 'students with profiles', description: 'Writing growth, feedback coverage and recurring support needs.', tab: 'writing', artwork: PROGRAM_ARTWORK.writing },
-    { module: 'ielts', name: 'IELTS Programme', metric: snapshot.programs.ielts_students, label: 'school-linked learners', description: 'Exam participation, assignment progress, reviews and result intelligence.', tab: 'ielts', artwork: PROGRAM_ARTWORK.ielts },
+    { module: 'cambridge', name: 'Cambridge Assessments', metric: snapshot.programs.cambridge_attempts, label: `${snapshot.programs.cambridge_attempts === 1 ? 'attempt' : 'attempts'} in ${snapshot.period.days} days`, description: 'School-wide assessment performance, readiness and verified student results.', tab: 'cambridge', artwork: PROGRAM_ARTWORK.cambridge },
+    { module: 'writing', name: 'Writing Hub', metric: snapshot.programs.writing_students, label: snapshot.programs.writing_students === 1 ? 'student with a writing profile' : 'students with writing profiles', description: 'Writing growth, feedback coverage and recurring support needs.', tab: 'writing', artwork: PROGRAM_ARTWORK.writing },
+    { module: 'ielts', name: 'IELTS Programme', metric: snapshot.programs.ielts_students, label: snapshot.programs.ielts_students === 1 ? 'learner in the IELTS programme' : 'learners in the IELTS programme', description: 'Exam participation, assignment progress, reviews and result intelligence.', tab: 'ielts', artwork: PROGRAM_ARTWORK.ielts },
     { module: 'admissions', name: 'Admission Hub', metric: snapshot.programs.admission_candidates, label: `${snapshot.admissions.pending_candidates} awaiting progress`, description: 'Candidates, diagnostics, placement evidence and admission workflow.', tab: 'admissions', artwork: PROGRAM_ARTWORK.admissions },
   ].filter((program) => effectiveEntitlements?.modules[program.module as 'cambridge' | 'writing' | 'ielts' | 'admissions']);
 
   const renderPrograms = () => (
     <div className="school-head-page">
       <section className="school-head-page-heading"><div><p className="school-head-kicker">Programmes</p><h2>Your programmes</h2><p>The programmes your school uses, with the main number for each.</p></div></section>
-      {programCards.length > 0 ? <section className="school-head-program-grid">{programCards.map((program) => <article key={program.name}><img src={program.artwork.src} alt="" loading="lazy" decoding="async" style={{ width: 'calc(100% + 2.2rem)', height: 'clamp(6.75rem, 9vw, 8.25rem)', margin: '-1.1rem -1.1rem .85rem', objectFit: 'cover', objectPosition: program.artwork.objectPosition }} /><div><span>{program.name.split(' ').map((word) => word[0]).join('').slice(0, 2)}</span><b>School programme</b></div><h3 style={{ margin: '.65rem 0 0', color: 'var(--head-ink)', fontSize: '.88rem', fontWeight: 850 }}>{program.name}</h3><strong>{program.metric}</strong><small>{program.label}</small><p>{program.description}</p><button type="button" onClick={() => openProgramme(program.tab)}>Open programme <span aria-hidden="true">→</span></button></article>)}</section> : (
+      {programCards.length > 0 ? <section className="school-head-program-grid">{programCards.map((program) => <article key={program.name}><ProgramMark program={program.module as ProgramArtworkKey} style={{ width: 'calc(100% + 2.2rem)', height: 'clamp(5rem, 7vw, 6rem)', margin: '-1.1rem -1.1rem .85rem' }} /><div><span>{program.name.split(' ').map((word) => word[0]).join('').slice(0, 2)}</span><b>School programme</b></div><h3 style={{ margin: '.65rem 0 0', color: 'var(--head-ink)', fontSize: '.88rem', fontWeight: 850 }}>{program.name}</h3><strong>{program.metric}</strong><small>{program.label}</small><p>{program.description}</p><button type="button" onClick={() => openProgramme(program.tab)}>Open programme <span aria-hidden="true">→</span></button></article>)}</section> : (
         <section className="school-head-panel school-head-program-empty" aria-labelledby="no-active-programs-title">
           <div><span>No active programmes</span><h3 id="no-active-programs-title">Your core school administration workspace is ready</h3><p>Cambridge Assessments, IELTS, Writing Hub and Admissions will appear here after they are included in the school agreement.</p></div>
           <button type="button" onClick={() => openAdministration('billing')}>Review programmes and billing</button>

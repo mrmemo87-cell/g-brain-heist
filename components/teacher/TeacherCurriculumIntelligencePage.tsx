@@ -368,7 +368,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
               {snapshot?.registry.phase ? <span className="rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">{humanizePhase(snapshot.registry.phase)}</span> : null}
             </div>
             <h1 id="curriculum-intelligence-title" className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
-              {selectedGroup ? `${selectedGroup.subjectLabel} · Grade ${selectedGroup.gradeNumber} · ${selectedGroup.name}` : 'Curriculum Intelligence'}
+              {selectedGroup ? (selectedGroup.name.toLowerCase().includes(String(selectedGroup.subjectLabel).toLowerCase()) ? `${selectedGroup.name} · Grade ${selectedGroup.gradeNumber}` : `${selectedGroup.subjectLabel} · Grade ${selectedGroup.gradeNumber} · ${selectedGroup.name}`) : 'Curriculum Intelligence'}
             </h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{experience?.headline || 'See what the class is ready for, where patterns are emerging, and what to check next.'}</p>
           </div>
@@ -498,7 +498,7 @@ const TeacherCurriculumIntelligencePage: React.FC<TeacherCurriculumIntelligenceP
                       </div>
                       <div className="text-right">
                         <strong className="block text-2xl font-bold text-slate-950">{recommendation.impactedStudents}</strong>
-                        <span className="text-[11px] text-slate-500">students affected</span>
+                        <span className="text-[11px] text-slate-500">{recommendation.impactedStudents === 1 ? 'student affected' : 'students affected'}</span>
                       </div>
                     </div>
 

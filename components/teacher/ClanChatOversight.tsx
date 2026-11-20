@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import * as GameService from '../../services/gameService';
 import type { StaffClanChatRow } from '../../services/gameService';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../src/utils/displayDate';
 
 /**
  * Teacher / school-admin view of clan chat in their school.
@@ -117,7 +118,7 @@ const ClanChatOversight: React.FC = () => {
                     <span>
                       <strong style={{ color: '#0f172a' }}>{row.username}</strong> · {row.clan_name}
                     </span>
-                    <time dateTime={row.created_at}>{new Date(row.created_at).toLocaleString()}</time>
+                    <time dateTime={row.created_at}>{new Date(row.created_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}</time>
                   </div>
                   <p style={{ margin: '4px 0 0', fontSize: 14, color: '#0f172a', overflowWrap: 'anywhere' }}>{row.message}</p>
                   {row.open_reports > 0 && (

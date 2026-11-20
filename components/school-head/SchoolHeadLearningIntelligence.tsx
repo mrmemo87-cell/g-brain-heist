@@ -8,7 +8,7 @@ import { createSchoolBrand } from '../../src/lib/schoolBranding';
 import AcademicReportBuilder from '../student-progress/AcademicReportBuilder';
 import './SchoolHeadLearningIntelligence.css';
 import './SchoolHeadLearningIntelligence.light.css';
-import { displayDateLocale } from '../../src/utils/displayDate';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../src/utils/displayDate';
 
 const AcademicIntelligenceGovernance = lazy(() => import('./AcademicIntelligenceGovernance'));
 
@@ -75,7 +75,7 @@ const SchoolHeadLearningIntelligence: React.FC<Props> = ({ schoolId, schoolName,
 
     <section className="shli-panel"><header><div><span>School strengths</span><h2>Skills showing consistent strength</h2></div><small>Recognise what is working, not only what needs fixing</small></header><div className="shli-strengths">{data.school_strengths.map((row) => <article key={`${row.subject}:${row.skill}`}><span>{row.subject}</span><strong>{row.skill}</strong><small>{row.students} student{row.students === 1 ? '' : 's'} showing consistent strength</small></article>)}</div></section>
 
-    <footer className="shli-footer">Generated {new Date(data.generated_at).toLocaleString()} · {brand.name} · School-scoped academic intelligence.</footer>
+    <footer className="shli-footer">Generated {new Date(data.generated_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)} · {brand.name} · School-scoped academic intelligence.</footer>
     {showReportBuilder ? <AcademicReportBuilder
       schoolId={schoolId}
       schoolName={brand.name}

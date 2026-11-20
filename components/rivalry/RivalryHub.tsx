@@ -3,6 +3,7 @@ import { RivalryClanOption, RivalryWarSummary } from '../../services/rivalryServ
 import { RIVALRY_DECLARATION_REQUIREMENTS } from '../../services/rivalryRules';
 import { rivalryAssets } from './rivalryAssets';
 import RivalryImage from './RivalryImage';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../src/utils/displayDate';
 
 interface RivalryHubProps {
   wars: RivalryWarSummary[];
@@ -54,7 +55,7 @@ const fmtWarTimer = (war: RivalryWarSummary): string => {
   };
   if (war.status === 'prep') return `Prep: ${get(war.prep_ends_at)}`;
   if (war.status === 'live' || war.status === 'blackout') return `Battle: ${get(war.live_ends_at)}`;
-  return `Opened ${new Date(war.created_at).toLocaleString()}`;
+  return `Opened ${new Date(war.created_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}`;
 };
 
 const RivalryHub: React.FC<RivalryHubProps> = ({

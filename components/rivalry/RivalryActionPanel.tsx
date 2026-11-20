@@ -3,6 +3,7 @@ import { RivalryActionType, RivalryStructureCode } from '../../services/rivalryS
 import { RIVALRY_STRUCTURE_LABELS } from './rivalryLabels';
 import { actionBadgeAssetMap } from './rivalryAssets';
 import RivalryImage from './RivalryImage';
+import { displayDateLocale, DISPLAY_TIME } from '../../src/utils/displayDate';
 
 interface RivalryActionPanelProps {
   isParticipant: boolean;
@@ -36,7 +37,7 @@ const RivalryActionPanel: React.FC<RivalryActionPanelProps> = ({ isParticipant, 
     reason = 'Action console is staged. Actions unlock once the war reaches the Live phase.';
     stateLabel = 'STAGED';
   } else if (cooldownActive) {
-    reason = `Cooldown active. You can act again at ${new Date(cooldownMs).toLocaleTimeString()}.`;
+    reason = `Cooldown active. You can act again at ${new Date(cooldownMs).toLocaleTimeString(displayDateLocale(), DISPLAY_TIME)}.`;
     stateLabel = 'COOLDOWN';
   } else if (blackout) {
     reason = 'Blackout active: actions still count, but exact score is hidden until settlement.';

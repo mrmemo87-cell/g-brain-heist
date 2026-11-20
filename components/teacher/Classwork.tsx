@@ -54,6 +54,8 @@ export default function Classwork(props: ClassworkProps) {
   const [filter, setFilter] = useState<'all' | 'todo' | 'done'>('all');
   const [results, setResults] = useState<Record<string, TeacherAssignmentReportRow[]>>({});
   const [loading, setLoading] = useState(false);
+  // Ids whose results have arrived; until then the grid and summary are not shown as facts.
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [loadError, setLoadError] = useState('');
 
   // Groups with work come first so the page opens on something useful.
@@ -69,7 +71,7 @@ export default function Classwork(props: ClassworkProps) {
     let cancelled = false;
     setLoading(true); setLoadError('');
     GameService.get_all_assignment_reports(idsKey.split(','))
-      .then((data) => { if (!cancelled) setResults(data); })
+      .then((data) => { if (!cancelled) { setResults(data); setLoadedKey(idsKey); } })
       .catch(() => { if (!cancelled) setLoadError('Results could not be loaded. Check your connection and try again.'); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
@@ -80,6 +82,7 @@ export default function Classwork(props: ClassworkProps) {
     : { columns: [], rows: [] },
   [activeGroup, assignments, results, studentName]);
   const attention = useMemo(() => classworkAttention(grid), [grid]);
+  const resultsReady = !idsKey || loadedKey === idsKey || Boolean(loadError);
   const visibleColumns = showAll ? grid.columns.length : Math.min(RECENT_COLUMNS, grid.columns.length);
 
   const allStudents = useMemo(() => {
@@ -140,7 +143,7 @@ export default function Classwork(props: ClassworkProps) {
               ))}
             </nav>
 
-            {activeGroup && grid.columns.length > 0 && (attention.pastDue > 0 || attention.mostMissing || attention.repeatMissing.count > 0) ? (
+            {activeGroup && resultsReady && grid.columns.length > 0 && (attention.pastDue > 0 || attention.mostMissing || attention.repeatMissing.count > 0) ? (
               <section className="classwork__attention" aria-label={`Needs attention in ${activeGroup.name}`}>
                 {attention.pastDue > 0 ? (
                   <div className="classwork__flag classwork__flag--danger"><b>{attention.pastDue}</b><span><strong>Past due</strong>{attention.pastDue === 1 ? 'assignment still has' : 'assignments still have'} work outstanding</span></div>
@@ -182,11 +185,11 @@ export default function Classwork(props: ClassworkProps) {
                           {grid.columns.slice(0, visibleColumns).map((column) => (
                             <th scope="col" key={column.assignment.id} className="classwork__assignment-col">
                               <button type="button" onClick={() => props.onOpenReport(column.assignment as TeacherAssignmentSummary)} aria-label={`Open the report for ${column.title}`}>{column.title}</button>
-                              <span className={column.pastDue ? 'classwork__due classwork__due--late' : 'classwork__due'}>
-                                {shortDate(column.assignment.assigned_at) ?? ''}{column.pastDue ? ' · past due' : ''}
+                              <span className={resultsReady && column.pastDue ? 'classwork__due classwork__due--late' : 'classwork__due'}>
+                                {shortDate(column.assignment.assigned_at) ?? ''}{resultsReady && column.pastDue ? ' · past due' : ''}
                               </span>
                               <span className="classwork__bar" aria-hidden="true"><span style={{ width: `${column.setCount ? (column.doneCount / column.setCount) * 100 : 0}%` }} /></span>
-                              <span className="classwork__colstat">{column.doneCount} of {column.setCount} done{column.average !== null ? ` · avg ${column.average}%` : ''}</span>
+                              <span className="classwork__colstat">{resultsReady ? `${column.doneCount} of ${column.setCount} done${column.average !== null ? ` · avg ${column.average}%` : ''}` : 'Loading…'}</span>
                             </th>
                           ))}
                           <th scope="col">Done</th>
@@ -204,11 +207,11 @@ export default function Classwork(props: ClassworkProps) {
                               <td key={grid.columns[index].assignment.id}>
                                 {cell.kind === 'score' ? (
                                   <button type="button" className="classwork__cell" onClick={() => props.onOpenReport(grid.columns[index].assignment as TeacherAssignmentSummary)} aria-label={`${row.name}, ${grid.columns[index].title}: ${cell.accuracy}%. Open the report`}>{scoreCell(cell.accuracy)}</button>
-                                ) : cell.kind === 'missing' ? <span className="classwork-missing">{loading ? '…' : 'Missing'}</span>
+                                ) : cell.kind === 'missing' ? <span className="classwork-missing">{resultsReady ? 'Missing' : '…'}</span>
                                   : <span className="classwork-notset" title="Not set for this student" aria-label="Not set">—</span>}
                               </td>
                             ))}
-                            <td className="classwork__num">{row.doneCount} of {row.setCount}</td>
+                            <td className="classwork__num">{resultsReady ? `${row.doneCount} of ${row.setCount}` : '…'}</td>
                             <td className="classwork__num"><strong>{row.average !== null ? `${row.average}%` : '—'}</strong></td>
                             <td>{row.openTargeted > 0
                               ? <button type="button" className="classwork__targeted" onClick={() => openStudent(row.studentId)}>{row.openTargeted} open</button>

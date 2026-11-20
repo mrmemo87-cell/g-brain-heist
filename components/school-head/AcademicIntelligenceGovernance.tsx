@@ -15,6 +15,7 @@ import {
 } from '../../services/academicIntelligenceGovernanceService';
 import './AcademicIntelligenceGovernance.css';
 import './AcademicIntelligenceGovernance.light.css';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../src/utils/displayDate';
 
 interface Props { schoolId: string; onClose: () => void; }
 
@@ -52,7 +53,7 @@ const defaultPolicy = (schoolId: string, academicYearId: string): GovernancePoli
 });
 
 const shortHash = (value?: string | null) => value ? `${value.slice(0, 10)}…${value.slice(-8)}` : '—';
-const formatDate = (value?: string | null) => value ? new Date(value).toLocaleString() : '—';
+const formatDate = (value?: string | null) => value ? new Date(value).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME) : '—';
 const metric = (data: Record<string, number | boolean>, key: string) => {
   const value = data[key];
   return typeof value === 'boolean' ? (value ? 'Passed' : 'Not passed') : String(value ?? '—');

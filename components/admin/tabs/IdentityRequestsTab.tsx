@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ToastMessage } from '../../../types';
 import * as SchoolAdminService from '../../../services/schoolAdminService';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../../src/utils/displayDate';
 
 interface IdentityRequestsTabProps {
   addToast: (message: string, type: ToastMessage['type']) => void;
@@ -66,7 +67,7 @@ const IdentityRequestsTab: React.FC<IdentityRequestsTabProps> = ({ addToast }) =
           <span className={`rounded-full px-3 py-1 text-xs font-bold ${request.status === 'pending' ? 'bg-amber-400/15 text-amber-200' : request.status === 'approved' ? 'bg-cyan-400/15 text-cyan-200' : request.status === 'completed' ? 'bg-emerald-400/15 text-emerald-200' : 'bg-red-400/15 text-red-200'}`}>{request.status}</span>
         </div>
         <div className="mt-4 rounded-xl border border-white/10 bg-black/25 p-4"><span className="text-xs font-bold uppercase tracking-wider text-gray-500">School reason</span><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-200">{request.reason}</p></div>
-        <div className="mt-3 grid gap-2 text-xs text-gray-500 sm:grid-cols-2"><span>Verified name when requested: <strong className="text-gray-300">{request.schoolNameAtRequest}</strong></span><time dateTime={request.createdAt}>Requested {new Date(request.createdAt).toLocaleString()}</time></div>
+        <div className="mt-3 grid gap-2 text-xs text-gray-500 sm:grid-cols-2"><span>Verified name when requested: <strong className="text-gray-300">{request.schoolNameAtRequest}</strong></span><time dateTime={request.createdAt}>Requested {new Date(request.createdAt).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}</time></div>
         {request.reviewNote ? <p className="mt-3 rounded-lg bg-white/5 p-3 text-sm text-gray-300"><strong>Review note:</strong> {request.reviewNote}</p> : null}
         {request.status === 'pending' ? <div className="mt-4 grid gap-3"><label className="text-sm font-semibold text-gray-300">Review note<textarea rows={3} maxLength={1000} value={notes[request.id] || ''} onChange={(event) => setNotes((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Add approval guidance or a reason for rejection…" className="mt-2 w-full rounded-xl border border-white/10 bg-black/40 p-3 text-white" /></label><div className="flex flex-wrap justify-end gap-2"><button type="button" disabled={busy === request.id} onClick={() => void decide(request, 'reject')} className="rounded-lg border border-red-300/30 bg-red-500/10 px-4 py-2 font-semibold text-red-100 disabled:opacity-50">Reject</button><button type="button" disabled={busy === request.id} onClick={() => void decide(request, 'approve')} className="rounded-lg bg-cyan-300 px-4 py-2 font-bold text-slate-950 disabled:opacity-50">{busy === request.id ? 'Updating…' : 'Approve and unlock'}</button></div></div> : null}
       </article>)}

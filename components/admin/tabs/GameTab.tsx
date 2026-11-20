@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAdmin } from '../AdminContext';
 import * as CompetitionService from '../../../services/competitionService';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../../src/utils/displayDate';
 
 const GameTab: React.FC = () => {
   const {
@@ -87,8 +88,8 @@ const GameTab: React.FC = () => {
                   <div className="flex-1">
                     <p className="text-sm text-white">{a.text || a.message || a.content || JSON.stringify(a).substring(0, 100)}</p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {a.created_at && new Date(a.created_at).toLocaleString()}
-                      {a.expires_at && ` • Expires: ${new Date(a.expires_at).toLocaleString()}`}
+                      {a.created_at && new Date(a.created_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}
+                      {a.expires_at && ` • Expires: ${new Date(a.expires_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}`}
                     </p>
                   </div>
                   <button onClick={() => deleteAnnouncement(a.id)} className="text-red-400 hover:text-red-300 text-sm ml-2">🗑️</button>

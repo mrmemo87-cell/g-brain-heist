@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import { verifyStudentFullName } from '../../../services/schoolAdminService';
 import type { SchoolRole } from '../../../types';
-import { DISPLAY_DATE, displayDateLocale } from '../../../src/utils/displayDate';
+import { DISPLAY_DATE, displayDateLocale, DISPLAY_DATE_TIME } from '../../../src/utils/displayDate';
 
 const MemberActionModal: React.FC = () => {
   const {
@@ -211,7 +211,7 @@ const MemberActionModal: React.FC = () => {
                 {modTargetStatus && modTargetStatus.mod_status === 'suspended' ? (
                   <div className="space-y-2">
                     <p className="text-sm text-amber-200">
-                      Suspended until {new Date(modTargetStatus.banned_until!).toLocaleString()}
+                      Suspended until {new Date(modTargetStatus.banned_until!).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}
                     </p>
                     <button
                       onClick={handleUnsuspendStudent}

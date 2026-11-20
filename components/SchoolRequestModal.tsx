@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import * as SchoolRequestService from '../services/schoolRequestService';
 import { supabase, type Session } from '../services/supabaseClient';
 import SchoolRequestConversation from './schoolRequests/SchoolRequestConversation';
-import { DISPLAY_DATE, displayDateLocale } from '../src/utils/displayDate';
+import { DISPLAY_DATE, displayDateLocale, DISPLAY_DATE_TIME } from '../src/utils/displayDate';
 
 interface SchoolRequestModalProps {
   isOpen: boolean;
@@ -505,7 +505,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                         <div className="flex items-center justify-between text-xs text-amber-200">
                           <span>Latest from Admin</span>
                           {latestAdminMessage.created_at && (
-                            <span>{new Date(latestAdminMessage.created_at).toLocaleString()}</span>
+                            <span>{new Date(latestAdminMessage.created_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}</span>
                           )}
                         </div>
                         <p className="mt-2 whitespace-pre-wrap text-amber-50">

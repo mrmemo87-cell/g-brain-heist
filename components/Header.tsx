@@ -167,7 +167,8 @@ const Header: React.FC<HeaderProps> = ({ profile, onLogout, currentView, onBackT
     return { label: plan.toUpperCase(), color: colorMap[plan] || 'blue', countdown: null };
   };
 
-  const badgeInfo = getPlanBadgeInfo();
+  // The school plan is staff information; students never see it in their header.
+  const badgeInfo = profile.role === 'student' ? null : getPlanBadgeInfo();
 
   const avatarPresets = [
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',

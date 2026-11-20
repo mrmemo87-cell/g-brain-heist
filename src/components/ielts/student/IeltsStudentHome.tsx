@@ -12,6 +12,7 @@ import { IeltsWaitingForScreeners } from '../IeltsTargetedPractice';
 import { openSet, seenFeedback, useIeltsPracticeReviews, useIeltsStudentWork } from './useIeltsStudentWork';
 import { IeltsWaitingDots } from '../IeltsMotion';
 import { displayDateLocale } from '../../../utils/displayDate';
+import { supabase } from '../../../../services/supabaseClient';
 
 const greeting = () => {
   const h = new Date().getHours();
@@ -32,6 +33,20 @@ export default function IeltsStudentHome() {
     fetchIeltsStartingPoint().then((p) => { if (active) setPoint(p); }).catch(() => undefined);
     return () => { active = false; };
   }, []);
+  // Greet the student by their real first name, not their username.
+  const [realName, setRealName] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => {
+      const id = data.user?.id;
+      if (!id) return null;
+      return supabase.from('users').select('full_name').eq('id', id).maybeSingle();
+    }).then((res) => {
+      const name = (res as { data?: { full_name?: string | null } | null } | null)?.data?.full_name;
+      if (active && name && name.trim()) setRealName(name.trim());
+    }).catch(() => undefined);
+    return () => { active = false; };
+  }, []);
   const seen = useMemo(() => seenFeedback(), [work.tasks]);
   const tasks = work.tasks ?? [];
   const sets = work.sets ?? [];
@@ -50,7 +65,7 @@ export default function IeltsStudentHome() {
   // Wait for the practice reviews too, so Home never says "all caught up" while feedback is still loading.
   const loading = (work.tasks === null && !work.tasksError) || practiceReviews === null;
   const checksDone = point ? startingPointSkills.filter((s) => startingPointCompleted(point, s)).length : 4;
-  const firstName = point?.student_name?.split(/\s+/)[0];
+  const firstName = (realName ?? point?.student_name)?.split(/\s+/)[0];
   const today = new Date().toLocaleDateString(displayDateLocale(), { weekday: 'long', day: 'numeric', month: 'long' });
   const summary = loading
     ? 'Checking what is new for you…'

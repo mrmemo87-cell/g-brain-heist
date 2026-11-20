@@ -170,7 +170,7 @@ end $$;
 -- ---------------------------------------------------------------------------
 do $$
 declare
-  v_since timestamptz; v_at timestamptz; r record; j record; k text; v_clan uuid; m text; v_i integer;
+  v_since timestamptz; v_at timestamptz; r record; j record; k text; v_clan uuid; m text; v_i integer; v_chat_n integer := 0;
   v_today date := (private.demo_today() at time zone 'Europe/London')::date;
   clans text[][] := array[
     array['Night Owls',     's08', 'Late-night grammar raids. Bring snacks.'],
@@ -187,7 +187,7 @@ declare
   chat text[] := array[
     'Who finished today''s mission already?', 'Me! 5/5 😎', 'Present perfect is finally making sense',
     'We need 3 more missions to beat 7B', 'On it after football', 'Deposited 200 coins to the vault 💰',
-    'Ms. Mitchell said the next map is the UK!', 'Everyone do the mission before dinner', 'gg last week',
+    'New map on Monday, be ready', 'Everyone do the mission before dinner', 'gg last week',
     'Shield up, someone keeps hacking me', 'That was me 😂', 'Clan buff tomorrow?'
   ];
 begin
@@ -210,9 +210,11 @@ begin
       v_since := clock_timestamp();
       perform private.demo_as(k);
       begin
-        perform public.rpc_clan_chat_post(chat[1 + floor(private.demo_rand(k || v_i || 'chat') * array_length(chat, 1))::int]);
+        -- each member says something different; messages land between 18:00 and 21:00 school time
+        v_chat_n := v_chat_n + 1;
+        perform public.rpc_clan_chat_post(chat[1 + ((v_chat_n * 5) % array_length(chat, 1))]);
       exception when others then null; end;
-      call private.demo_backdate(v_since, v_at + make_interval(days => 1 + floor(private.demo_rand(k || 'cd') * 10)::int, mins => floor(private.demo_rand(k || 'cm') * 600)::int));
+      call private.demo_backdate(v_since, v_at + make_interval(days => 1 + floor(private.demo_rand(k || 'cd') * 10)::int, mins => 60 + floor(private.demo_rand(k || 'cm') * 180)::int));
     end loop;
   end loop;
 end $$;

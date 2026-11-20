@@ -3,6 +3,7 @@ import { useAdmin } from '../AdminContext';
 import * as SchoolRequestService from '../../../services/schoolRequestService';
 import { supabase } from '../../../services/supabaseClient';
 import SchoolRequestConversation from '../../schoolRequests/SchoolRequestConversation';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../../src/utils/displayDate';
 
 const ApplicationsTab: React.FC = () => {
   const {
@@ -198,7 +199,7 @@ const ApplicationsTab: React.FC = () => {
                   </p>
                   {request.created_at && (
                     <p className="text-xs text-gray-500">
-                      {new Date(request.created_at).toLocaleString()}
+                      {new Date(request.created_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}
                     </p>
                   )}
                 </div>

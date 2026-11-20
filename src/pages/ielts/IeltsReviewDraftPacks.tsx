@@ -5,6 +5,7 @@ import {
 } from '../../../services/ieltsReviewDraftPacks';
 import { downloadLessonFile } from '../../../services/ieltsLessonResources';
 import { packKind, packNumber, packSkill, groupBy, kindLabel, type PackKind } from './ieltsPackCatalogue';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../utils/displayDate';
 
 const contents: Record<PackKind, string> = {
  course: 'Slides, workbook, homework, teacher guide, keys and fresh check.',
@@ -80,7 +81,7 @@ export default function IeltsReviewDraftPacks({ schoolId }: { schoolId: string }
        <h5>{pack.title}</h5>
        <p className="pack-meta"><span className={`review-status is-${status.tone}`}>{status.label}</span><span className="pack-chip">{packSkill(packKind(pack.lesson_code) === 'mock' ? 'mock test' : pack.title)}</span><span>Draft v{pack.version}</span></p>
        <p className="pack-note">{contents[packKind(pack.lesson_code)]}{pack.recordings.length > 0 && ` Recordings: ${pack.recordings.length} (owner listening review pending).`}</p>
-       {d && <p className="pack-note">{status.label} on {new Date(d.decided_at).toLocaleString()}{d.notes ? `: ${d.notes}` : ''}</p>}
+       {d && <p className="pack-note">{status.label} on {new Date(d.decided_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}{d.notes ? `: ${d.notes}` : ''}</p>}
       </div>
       <div className="pack-actions">
        <button type="button" className="sp-secondary" disabled={!!busy} onClick={() => void download(pack)}>{working ? 'Working…' : 'Download review draft'}</button>

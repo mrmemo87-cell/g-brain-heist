@@ -150,7 +150,7 @@ export const assignmentAlerts = (
         parts.push(
           row.student_count === 1
             ? 'not started yet'
-            : `${row.missing_count} of ${row.student_count} students have not submitted`,
+            : `${row.missing_count} of ${row.student_count} ${row.missing_count === 1 ? "student has" : "students have"} not submitted`,
         );
       }
       if (row.low_accuracy_count > 0) {
@@ -168,7 +168,7 @@ export const describeTopMissingAssignment = (rows: DashboardAssignmentFollowup[]
     .filter((row) => row.student_count > 1 && row.missing_count > 0)
     .sort((a, b) => b.missing_count - a.missing_count)[0];
   if (!top) return null;
-  return `Chase “${top.assignment_title}” — ${top.missing_count} of ${top.student_count} students have not submitted.`;
+  return `Chase “${top.assignment_title}” — ${top.missing_count} of ${top.student_count} ${top.missing_count === 1 ? "student has" : "students have"} not submitted.`;
 };
 
 export const describeWeakestAssignment = (

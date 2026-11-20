@@ -1,5 +1,6 @@
 import React from 'react';
 import type { SchoolRequestMessage, SchoolRequestViewerRole } from '../../services/schoolRequestService';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../src/utils/displayDate';
 
 interface SchoolRequestConversationProps {
   messages: SchoolRequestMessage[];
@@ -53,7 +54,7 @@ const SchoolRequestConversation: React.FC<SchoolRequestConversationProps> = ({ m
                   />
                   {isMine ? 'You' : getSenderLabel(senderRole)}
                 </span>
-                {message.created_at && <span>{new Date(message.created_at).toLocaleString()}</span>}
+                {message.created_at && <span>{new Date(message.created_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}</span>}
               </div>
               <p className="mt-2 whitespace-pre-wrap text-base leading-relaxed">{message.message}</p>
             </div>

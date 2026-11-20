@@ -53,7 +53,7 @@ import {
   shouldLaunchFtueTrainingMission,
 } from '../src/features/onboarding/trainingMission';
 import { getOnboardingState, markOnboardingStepComplete, updateOnboardingState } from '../src/features/onboarding/onboardingService';
-import { DISPLAY_DATE, displayDateLocale } from '../src/utils/displayDate';
+import { DISPLAY_DATE, displayDateLocale, DISPLAY_DATE_TIME } from '../src/utils/displayDate';
 
 // Helper to get option text (handles both string and QuestionOption formats)
 const getOptionText = (option: string | QuestionOption): string => {
@@ -2346,7 +2346,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
           {mode === 'assignment' && assignmentDetails && (
             <div className="flex flex-col items-center gap-1 mt-2 text-sm text-gray-300">
               <span>Assigned by {assignmentDetails.teacher_username}</span>
-              <span>Due {assignmentDetails.due_at ? new Date(assignmentDetails.due_at).toLocaleString() : 'No deadline'}</span>
+              <span>Due {assignmentDetails.due_at ? new Date(assignmentDetails.due_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME) : 'No deadline'}</span>
             </div>
           )}
         </div>
@@ -2671,7 +2671,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             <div className={`card-glass p-3 border ${isLate ? 'border-amber-500/50 bg-amber-500/10' : 'border-purple-500/30'}`}>
               <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">Due</p>
               <p className={`font-semibold ${isLate ? 'text-amber-400' : 'text-white'}`}>
-                {activeAssignment.due_at ? new Date(activeAssignment.due_at).toLocaleString() : 'No deadline'}
+                {activeAssignment.due_at ? new Date(activeAssignment.due_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME) : 'No deadline'}
                 {isLate && ' (LATE)'}
               </p>
             </div>
@@ -3049,7 +3049,7 @@ const QuestView: React.FC<QuestViewProps> = ({ onComplete, onGrantReward, initia
             <div className="card-glass p-4 border border-purple-500/40 text-left text-sm text-gray-200 mb-6">
               <p><span className="text-gray-400">Assigned by:</span> {assignmentContext.teacher_username}</p>
               <p><span className="text-gray-400">Subject:</span> {assignmentContext.subject_name} · {assignmentContext.topic_name}</p>
-              <p><span className="text-gray-400">Due:</span> {assignmentContext.due_at ? new Date(assignmentContext.due_at).toLocaleString() : 'No deadline'}</p>
+              <p><span className="text-gray-400">Due:</span> {assignmentContext.due_at ? new Date(assignmentContext.due_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME) : 'No deadline'}</p>
             </div>
           )}
           {mode === 'assignment' && (

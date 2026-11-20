@@ -21,6 +21,7 @@ import {
   postAnnouncement,
   updateQuestionActiveState,
 } from '../../services/competitionService';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../src/utils/displayDate';
 
 interface Phase1AdminDashboardProps {
   profile: Profile;
@@ -338,7 +339,7 @@ const Phase1AdminDashboard: React.FC<Phase1AdminDashboardProps> = ({ profile, on
             : '✅ OK'}
         </div>
         {overview?.last_error_at && (
-          <div className="text-xs text-gray-500">Last error: {new Date(overview.last_error_at).toLocaleString()}</div>
+          <div className="text-xs text-gray-500">Last error: {new Date(overview.last_error_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}</div>
         )}
       </div>
     </div>
@@ -471,10 +472,10 @@ const Phase1AdminDashboard: React.FC<Phase1AdminDashboardProps> = ({ profile, on
                   Grade {selectedPlayer.grade ?? '—'} • {selectedPlayer.batch ?? '—'}
                 </div>
                 <div className="text-xs text-gray-500">
-                  Last seen {new Date(selectedPlayer.updated_at).toLocaleString()}
+                  Last seen {new Date(selectedPlayer.updated_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}
                 </div>
                 <div className="text-xs text-gray-500">
-                  Last attempt {selectedPlayerLastAttempt ? new Date(selectedPlayerLastAttempt).toLocaleString() : '—'}
+                  Last attempt {selectedPlayerLastAttempt ? new Date(selectedPlayerLastAttempt).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME) : '—'}
                 </div>
                 {selectedPlayer.is_banned && <div className="text-xs text-danger-red">🚫 Currently banned</div>}
               </div>

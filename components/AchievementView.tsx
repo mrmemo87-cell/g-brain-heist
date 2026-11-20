@@ -3,7 +3,7 @@ import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
 import { CompletedAssignment, MyAssignmentAnswer } from '../types';
 import { visualAssets } from './visualAssets';
-import { DISPLAY_DATE, displayDateLocale } from '../src/utils/displayDate';
+import { DISPLAY_DATE, displayDateLocale, DISPLAY_DATE_TIME } from '../src/utils/displayDate';
 
 /** Map achievement name patterns to badge illustration PNGs. */
 const BADGE_IMAGE_MAP: Record<string, string> = {
@@ -381,7 +381,7 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
           <div className="rounded-xl border border-purple-500/30 bg-purple-900/20 p-3">
             <p className="text-xs uppercase tracking-wide text-purple-300">Latest Unlock</p>
             <p className="font-heading text-sm text-white mt-1">
-              {latestEarnedAt ? new Date(latestEarnedAt).toLocaleString() : 'No unlocks yet'}
+              {latestEarnedAt ? new Date(latestEarnedAt).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME) : 'No unlocks yet'}
             </p>
           </div>
         </div>

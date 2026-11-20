@@ -37,6 +37,7 @@ import GuestResultsPanel from "./GuestResultsPanel";
 import { MAX_SCAN_BATCH, runScanBatch } from "../../src/lib/paperScan/batch";
 import { saveRowPreviews, loadRowPreviews } from "../../services/paperScanPreviewCache";
 import "./PaperScanWorkspace.css";
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../src/utils/displayDate';
 type BatchDraft = {
   session: ScanSession;
   sheet: ScanSheet;
@@ -931,7 +932,7 @@ export default function PaperScanWorkspace({
                     Page {sheet.pageNumber}/{sheet.pageCount} · {packet.code}
                   </span>
                   <h3 ref={reviewHeading} tabIndex={-1}>{sheet.studentName}</h3>
-                  <p>{new Date(session!.assessedAt).toLocaleString()}</p>
+                  <p>{new Date(session!.assessedAt).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}</p>
                 </div>
                 <button
                   className="paw-button"
