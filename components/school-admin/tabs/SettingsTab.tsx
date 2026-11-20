@@ -3,6 +3,7 @@ import { useSchoolAdmin } from '../SchoolAdminContext';
 import InvitesTab from './InvitesTab';
 import * as SchoolAdminService from '../../../services/schoolAdminService';
 import ArenaSettingsSection from '../ArenaSettingsSection';
+import { DISPLAY_DATE, displayDateLocale } from '../../../src/utils/displayDate';
 
 const SettingsTab: React.FC = () => {
   const {
@@ -64,7 +65,7 @@ const SettingsTab: React.FC = () => {
             <button type="button" className="admin-button-ghost" disabled={identityRequest?.status === 'pending'} onClick={() => setIdentityRequestOpen((open) => !open)}>{identityRequest?.status === 'pending' ? 'Request awaiting review' : 'Request identity change'}</button>
           </div>
           <div className="admin-access-note"><strong>Identity protection</strong><span>A superadmin must approve and unlock the school identity before the school can change and reconfirm it.</span></div>
-          {identityRequest?.status === 'pending' ? <div className="admin-inline-warning" role="status"><strong>Waiting for superadmin review</strong><span>Requested {new Date(identityRequest.createdAt).toLocaleDateString()}. The school name and logo remain locked until approval.</span></div> : null}
+          {identityRequest?.status === 'pending' ? <div className="admin-inline-warning" role="status"><strong>Waiting for superadmin review</strong><span>Requested {new Date(identityRequest.createdAt).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}. The school name and logo remain locked until approval.</span></div> : null}
           {identityRequest?.status === 'rejected' ? <div className="admin-inline-warning" role="status"><strong>Previous request was not approved</strong><span>{identityRequest.reviewNote || 'Review the request details before submitting a new request.'}</span></div> : null}
           {identityRequestOpen ? <div className="admin-form-grid">
             <label className="admin-field admin-field-wide"><span>Change needed and reason <i>Required</i></span><textarea rows={4} maxLength={1000} value={identityRequestReason} onChange={(event) => setIdentityRequestReason(event.target.value)} placeholder="Explain what must change and why…" /><small>This request goes directly to the superadmin. Approval unlocks the name and logo fields for your school.</small></label>

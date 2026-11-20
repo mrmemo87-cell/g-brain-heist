@@ -80,10 +80,8 @@ export default function IeltsTeacherToday({ schoolName, canManage, waiting, wait
   return (
     <div className="isn-home itn-today">
       <section className="isn-hero itn-hero" aria-labelledby="itn-hello">
-        <span className="isn-orb isn-orb--a" aria-hidden="true" />
-        <span className="isn-orb isn-orb--b" aria-hidden="true" />
         <p className="isn-date">{today}{schoolName ? ` · ${schoolName}` : ''}</p>
-        <h2 id="itn-hello">{greeting()} <span className="isn-wave" aria-hidden="true">👋</span></h2>
+        <h2 id="itn-hello">{greeting()}</h2>
         <p className="isn-summary" aria-live="polite">{summary}</p>
         <div className="isn-stats">
           <button type="button" className={'isn-stat itn-stat' + (waitingCount ? ' is-hot' : '')} onClick={() => onOpen('reviews')}><b>{waitingCount}</b> To review</button>

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import * as SchoolAdminService from '../../services/schoolAdminService';
+import { DISPLAY_DATE, displayDateLocale } from '../../src/utils/displayDate';
 
 type PlacementClass = { class_id: string; class_code: string; class_name: string; is_active: boolean };
 
@@ -124,7 +125,7 @@ const PlacementExceptionQueue: React.FC<Props> = ({ schoolId, classes, addToast,
         <ul className="mt-4 grid gap-2">
           {items.map((item) => (
             <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-slate-950/50 p-3">
-              <div><strong className="text-slate-100">{labelIssue(item.issueCode)}</strong><p className="text-xs text-slate-400">Severity: {item.severity} · opened {new Date(item.openedAt).toLocaleDateString()}</p></div>
+              <div><strong className="text-slate-100">{labelIssue(item.issueCode)}</strong><p className="text-xs text-slate-400">Severity: {item.severity} · opened {new Date(item.openedAt).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</p></div>
               <button type="button" onClick={() => void openReview(item)} className="rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-slate-950">Review decision</button>
             </li>
           ))}

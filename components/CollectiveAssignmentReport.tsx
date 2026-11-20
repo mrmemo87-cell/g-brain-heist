@@ -9,6 +9,7 @@ import './CollectiveAssignmentReport.css';
 import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
 import { isAssignedTo } from '../src/lib/collectiveReportScope';
 import { createSchoolDocumentId, registerSchoolDocumentRecord, schoolDocumentFileName } from '../src/lib/schoolDocument';
+import { DISPLAY_DATE, displayDateLocale } from '../src/utils/displayDate';
 
 // localStorage key prefix for persisted custom orders
 const CUSTOM_ORDER_STORAGE_KEY = 'brains_collective_report_custom_order';
@@ -825,7 +826,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
             <div className="collective-print-section__heading"><span>03</span><div><h2>Assignment performance</h2><p>Use this view to identify which selected tasks need reteaching or follow-up.</p></div></div>
             <table className="collective-print-table collective-print-table--summary">
               <thead><tr><th>Assignment</th><th>Subject</th><th>Class / audience</th><th>Assigned</th><th>Average attainment</th><th>Completed</th></tr></thead>
-              <tbody>{assignmentStats.map(({ assignment, average, completed, expected }) => <tr key={assignment.id}><td><strong>{assignment.title || assignment.topic_name}</strong></td><td>{assignment.subject_name}</td><td>{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</td><td>{new Date(assignment.assigned_at).toLocaleDateString()}</td><td><strong>{average === null ? '—' : `${average}%`}</strong></td><td>{completed}/{expected}</td></tr>)}</tbody>
+              <tbody>{assignmentStats.map(({ assignment, average, completed, expected }) => <tr key={assignment.id}><td><strong>{assignment.title || assignment.topic_name}</strong></td><td>{assignment.subject_name}</td><td>{assignment.assignment_mode === 'custom' ? 'Selected students' : assignment.batch || '—'}</td><td>{new Date(assignment.assigned_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</td><td><strong>{average === null ? '—' : `${average}%`}</strong></td><td>{completed}/{expected}</td></tr>)}</tbody>
             </table>
           </section>
         ) : null}
@@ -865,7 +866,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
           <details open>
             <summary><span><strong>Assignments to include</strong><small>{selectedAssignmentIds.length} of {assignments.length} selected</small></span><span>Choose assignments</span></summary>
             <div className="collective-builder-actions"><button type="button" onClick={() => setSelectedAssignmentIds(assignments.map((assignment) => assignment.id))}>Select all</button><button type="button" onClick={() => setSelectedAssignmentIds([])}>Clear</button></div>
-            <div className="collective-builder-list">{assignments.map((assignment) => <label key={assignment.id}><input type="checkbox" checked={selectedAssignmentIds.includes(assignment.id)} onChange={() => setSelectedAssignmentIds((current) => current.includes(assignment.id) ? current.filter((id) => id !== assignment.id) : [...current, assignment.id])} /><span><strong>{assignment.title || assignment.topic_name}</strong><small>{assignment.subject_name} · {assignment.assignment_mode === 'custom' ? 'Selected students' : `Class ${assignment.batch || '—'}`} · {new Date(assignment.assigned_at).toLocaleDateString()}</small></span></label>)}</div>
+            <div className="collective-builder-list">{assignments.map((assignment) => <label key={assignment.id}><input type="checkbox" checked={selectedAssignmentIds.includes(assignment.id)} onChange={() => setSelectedAssignmentIds((current) => current.includes(assignment.id) ? current.filter((id) => id !== assignment.id) : [...current, assignment.id])} /><span><strong>{assignment.title || assignment.topic_name}</strong><small>{assignment.subject_name} · {assignment.assignment_mode === 'custom' ? 'Selected students' : `Class ${assignment.batch || '—'}`} · {new Date(assignment.assigned_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</small></span></label>)}</div>
           </details>
           <details open>
             <summary><span><strong>Students to include</strong><small>{selectedStudentIds.length} of {studentRows.length} selected</small></span><span>Choose students</span></summary>

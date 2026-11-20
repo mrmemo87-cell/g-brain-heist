@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAdmin } from '../AdminContext';
 import { useSchoolBranding } from '../../../src/hooks/useSchoolBranding';
+import { DISPLAY_DATE, displayDateLocale } from '../../../src/utils/displayDate';
 
 const ReportModal: React.FC = () => {
   const {
@@ -40,7 +41,7 @@ const ReportModal: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <h2 className="text-lg font-semibold text-purple-800">{reportStudent.quiz_name}</h2>
-                    <p className="text-sm text-gray-500">Generated: {new Date().toLocaleDateString()}</p>
+                    <p className="text-sm text-gray-500">Generated: {new Date().toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</p>
                   </div>
                 </div>
               </div>
@@ -49,7 +50,7 @@ const ReportModal: React.FC = () => {
               <div className="bg-gradient-to-r from-purple-800 to-indigo-900 text-white p-6 flex justify-between items-center">
                 <div>
                   <h2 className="text-2xl font-bold">{reportStudent.student_name}</h2>
-                  <p className="opacity-80">Class: {reportStudent.student_class || 'N/A'} | Completed: {new Date(reportStudent.submitted_at).toLocaleDateString()} | Time: {formatTime(reportStudent.time_taken_seconds)}</p>
+                  <p className="opacity-80">Class: {reportStudent.student_class || 'N/A'} | Completed: {new Date(reportStudent.submitted_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)} | Time: {formatTime(reportStudent.time_taken_seconds)}</p>
                 </div>
                 <div className="w-20 h-20 rounded-full bg-white flex flex-col items-center justify-center">
                   <span className="text-3xl font-bold text-purple-800">{grade}</span>

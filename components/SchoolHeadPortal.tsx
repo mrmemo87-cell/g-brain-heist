@@ -16,6 +16,7 @@ import { getEntitlements, type EntitlementSet } from '../services/entitlementSer
 import { SchoolBrand } from '../src/components/SchoolBrand';
 import { createSchoolBrand } from '../src/lib/schoolBranding';
 import { PROGRAM_ARTWORK } from '../src/lib/programArtwork';
+import { requestTeacherPortalView } from '../src/lib/teacherPortalRequest';
 import { useSmartCollapsedNavigation } from '../src/hooks/useSmartCollapsedNavigation';
 import CollapsedNavTooltip from './CollapsedNavTooltip';
 import SchoolHeadOverview from './SchoolHeadOverview';
@@ -37,7 +38,7 @@ const HEAD_TABS: Array<{ id: SchoolHeadTab; label: string; shortLabel: string; d
   { id: 'decisions', label: 'Decision Center', shortLabel: 'Decisions', description: 'Matters needing the School Head' },
   { id: 'academic', label: 'Academic Performance', shortLabel: 'Academic', description: 'Outcomes and student progress' },
   { id: 'people', label: 'People & Structure', shortLabel: 'People', description: 'Leadership, staffing and coverage' },
-  { id: 'programs', label: 'Programs', shortLabel: 'Programs', description: 'Active school programmes' },
+  { id: 'programs', label: 'Programmes', shortLabel: 'Programmes', description: 'Active school programmes' },
   { id: 'subscription', label: 'Subscription & Value', shortLabel: 'Plan', description: 'Plan, capacity and adoption' },
   { id: 'governance', label: 'Governance & Audit', shortLabel: 'Audit', description: 'School decisions and accountability' },
 ];
@@ -279,16 +280,15 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
 
   const renderDecisions = () => (
     <div className="school-head-page">
-      <section className="school-head-page-heading"><div><p className="school-head-kicker">Decision Center</p><h2>Important school matters, in priority order</h2><p>Only issues needing the School Head are shown here. Day-to-day school alerts stay in School Administration.</p></div><span className="school-head-heading-count">{snapshot.decisions.length} open</span></section>
+      <section className="school-head-page-heading"><div><p className="school-head-kicker">Decision Center</p><h2>Matters for the School Head</h2><p>Most urgent first. Day-to-day alerts go to School Administration.</p></div><span className="school-head-heading-count">{snapshot.decisions.length} open</span></section>
       {snapshot.decisions.length ? <section className="school-head-decision-list">{snapshot.decisions.map((decision) => <DecisionCard key={decision.id} decision={decision} onOpen={selectTab} />)}</section> : <EmptyState title="Everything important is under control">There are no executive-level decision items in the current snapshot.</EmptyState>}
       <section className="school-head-notification-policy" aria-label="Decision notification policy"><div><strong>Critical</strong><span>Immediate in-app and branded email, then daily while unresolved.</span></div><div><strong>Warning</strong><span>In-app notification and daily branded email digest.</span></div><div><strong>Notice</strong><span>Decision Center and weekly branded email digest.</span></div><p>Resolved records close automatically when the underlying school data is corrected. Repeated alerts are deduplicated.</p></section>
-      <section className="school-head-assurance"><div><span>Healthy</span><strong>Every decision is generated from school-scoped records.</strong><p>No cross-school or unverified profile data is used.</p></div><div><span>Traceable</span><strong>Sensitive changes are written to governance history.</strong><p>Actor, target, reason and timestamp stay visible to the School Head.</p></div><div><span>Delegated</span><strong>Daily operations remain with school administrators.</strong><p>The Head retains final authority without becoming a daily operator.</p></div></section>
     </div>
   );
 
   const renderAcademic = () => (
     <div className="school-head-page">
-      <section className="school-head-page-heading"><div><p className="school-head-kicker">Academic performance</p><h2>Outcomes and engagement</h2><p>Aggregated school intelligence for the last {snapshot.period.days} days. Individual records remain in controlled operational reports.</p></div><div className="school-head-trend"><span>Average trend</span><strong>{academicTrend === null ? '—' : `${academicTrend >= 0 ? '+' : ''}${academicTrend} pp`}</strong><small>percentage points vs previous {snapshot.period.days} days</small></div></section>
+      <section className="school-head-page-heading"><div><p className="school-head-kicker">Academic performance</p><h2>Outcomes and engagement</h2><p>School-wide results for the last {snapshot.period.days} days. Student-level detail is in the reports.</p></div><div className="school-head-trend"><span>Average trend</span><strong>{academicTrend === null ? '—' : `${academicTrend >= 0 ? '+' : ''}${academicTrend} pp`}</strong><small>percentage points vs previous {snapshot.period.days} days</small></div></section>
       <section className="school-head-metric-grid school-head-metric-grid-four">
         <MetricCard label="Assessment average" value={formatPercent(snapshot.academics.average)} note="Average across recorded assessments" tone={(snapshot.academics.average ?? 100) >= 70 ? 'healthy' : 'monitor'} />
         <MetricCard label="Completion rate" value={formatPercent(snapshot.academics.completion_rate)} note={`${snapshot.academics.assignment_total} assignment records`} tone={(snapshot.academics.completion_rate ?? 100) >= 75 ? 'healthy' : 'monitor'} />
@@ -302,7 +302,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
           {snapshot.academics.grade_performance.map((grade) => <div role="row" key={grade.grade} className="school-head-grade-row"><strong role="cell">Grade {grade.grade}</strong><span role="cell">{grade.students}</span><span role="cell">{grade.assessments}</span><b role="cell">{formatPercent(grade.average)}</b><div role="cell" className="school-head-grade-bar"><i style={{ width: `${Math.max(0, Math.min(100, grade.average ?? 0))}%` }} /></div></div>)}
         </div> : <EmptyState title="No grade performance yet">Assessment results will appear here after school-linked students complete recorded tests.</EmptyState>}
       </section>
-      <section className="school-head-callout"><div><p>Student academic profiles</p><h3>See where each student is improving — and where support is still needed.</h3><span>Open the school-scoped academic record for subject attainment, strengths, persistent focus areas, evidence confidence, and curriculum coverage.</span></div><button type="button" onClick={() => setAcademicProfilesOpen(true)}>Open student profiles</button></section>
+      <section className="school-head-callout"><div><p>Student academic profiles</p><h3>See where each student is improving and where they need support.</h3><span>Attainment by subject, strengths, focus areas and curriculum coverage for every student.</span></div><button type="button" onClick={() => setAcademicProfilesOpen(true)}>Open student profiles</button></section>
     </div>
   );
 
@@ -331,17 +331,27 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
     </div>
   );
 
+  // The Writing Hub lives in the Teacher Portal, not in School Administration (which has no Writing Hub tab).
+  const openProgramme = (tab: string) => {
+    if (tab === 'writing' && onOpenTeacherPortal) {
+      requestTeacherPortalView('writing-hub');
+      onOpenTeacherPortal();
+      return;
+    }
+    openAdministration(tab === 'writing' ? 'documents' : tab);
+  };
+
   const programCards = [
     { module: 'cambridge', name: 'Cambridge Assessments', metric: snapshot.programs.cambridge_attempts, label: `attempts in ${snapshot.period.days} days`, description: 'School-wide assessment performance, readiness and verified student results.', tab: 'cambridge', artwork: PROGRAM_ARTWORK.cambridge },
-    { module: 'writing', name: 'Writing Hub', metric: snapshot.programs.writing_students, label: 'students with profiles', description: 'Writing growth, feedback coverage and recurring support needs.', tab: 'documents', artwork: PROGRAM_ARTWORK.writing },
+    { module: 'writing', name: 'Writing Hub', metric: snapshot.programs.writing_students, label: 'students with profiles', description: 'Writing growth, feedback coverage and recurring support needs.', tab: 'writing', artwork: PROGRAM_ARTWORK.writing },
     { module: 'ielts', name: 'IELTS Programme', metric: snapshot.programs.ielts_students, label: 'school-linked learners', description: 'Exam participation, assignment progress, reviews and result intelligence.', tab: 'ielts', artwork: PROGRAM_ARTWORK.ielts },
     { module: 'admissions', name: 'Admission Hub', metric: snapshot.programs.admission_candidates, label: `${snapshot.admissions.pending_candidates} awaiting progress`, description: 'Candidates, diagnostics, placement evidence and admission workflow.', tab: 'admissions', artwork: PROGRAM_ARTWORK.admissions },
   ].filter((program) => effectiveEntitlements?.modules[program.module as 'cambridge' | 'writing' | 'ielts' | 'admissions']);
 
   const renderPrograms = () => (
     <div className="school-head-page">
-      <section className="school-head-page-heading"><div><p className="school-head-kicker">Programs</p><h2>One executive view across Brains Heist</h2><p>Only active programme signals appear in your briefing. Operational tools remain with the teams responsible for delivery.</p></div></section>
-      {programCards.length > 0 ? <section className="school-head-program-grid">{programCards.map((program) => <article key={program.name}><img src={program.artwork.src} alt="" loading="lazy" decoding="async" style={{ width: 'calc(100% + 2.2rem)', height: 'clamp(6.75rem, 9vw, 8.25rem)', margin: '-1.1rem -1.1rem .85rem', objectFit: 'cover', objectPosition: program.artwork.objectPosition }} /><div><span>{program.name.split(' ').map((word) => word[0]).join('').slice(0, 2)}</span><b>School programme</b></div><h3 style={{ margin: '.65rem 0 0', color: 'var(--head-ink)', fontSize: '.88rem', fontWeight: 850 }}>{program.name}</h3><strong>{program.metric}</strong><small>{program.label}</small><p>{program.description}</p><button type="button" onClick={() => openAdministration(program.tab)}>Open programme <span aria-hidden="true">→</span></button></article>)}</section> : (
+      <section className="school-head-page-heading"><div><p className="school-head-kicker">Programmes</p><h2>Your programmes</h2><p>The programmes your school uses, with the main number for each.</p></div></section>
+      {programCards.length > 0 ? <section className="school-head-program-grid">{programCards.map((program) => <article key={program.name}><img src={program.artwork.src} alt="" loading="lazy" decoding="async" style={{ width: 'calc(100% + 2.2rem)', height: 'clamp(6.75rem, 9vw, 8.25rem)', margin: '-1.1rem -1.1rem .85rem', objectFit: 'cover', objectPosition: program.artwork.objectPosition }} /><div><span>{program.name.split(' ').map((word) => word[0]).join('').slice(0, 2)}</span><b>School programme</b></div><h3 style={{ margin: '.65rem 0 0', color: 'var(--head-ink)', fontSize: '.88rem', fontWeight: 850 }}>{program.name}</h3><strong>{program.metric}</strong><small>{program.label}</small><p>{program.description}</p><button type="button" onClick={() => openProgramme(program.tab)}>Open programme <span aria-hidden="true">→</span></button></article>)}</section> : (
         <section className="school-head-panel school-head-program-empty" aria-labelledby="no-active-programs-title">
           <div><span>No active programmes</span><h3 id="no-active-programs-title">Your core school administration workspace is ready</h3><p>Cambridge Assessments, IELTS, Writing Hub and Admissions will appear here after they are included in the school agreement.</p></div>
           <button type="button" onClick={() => openAdministration('billing')}>Review programmes and billing</button>
@@ -393,7 +403,7 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
       <header className="school-head-header">
         <div className="school-head-brand">
           <SchoolBrand brand={createSchoolBrand({ schoolId: snapshot.school.id, schoolName: snapshot.school.name, schoolLogoUrl: snapshot.school.logo_url })} showName={false} imageClassName="school-head-school-logo" />
-          <div><p>Brains Heist · Executive Intelligence</p><h1>{snapshot.school.name}</h1><span>School Head workspace</span></div>
+          <div><p>Brains Heist</p><h1>{snapshot.school.name}</h1><span>School Head workspace</span></div>
         </div>
         <div className="school-head-header-actions">
           <button type="button" className="school-head-workspace-switch" onClick={() => openAdministration('dashboard')}>School Admin Dashboard</button>
@@ -406,10 +416,10 @@ const SchoolHeadPortal: React.FC<SchoolHeadPortalProps> = ({
       <div className={`school-head-layout ${sidebarCollapsed ? 'is-sidebar-collapsed' : ''}`}>
         <aside className={sidebarCollapsed ? 'is-collapsed' : ''} aria-label="School Head navigation">
           <button type="button" className="school-head-sidebar-toggle" onClick={toggleSidebar} aria-label={sidebarCollapsed ? 'Expand side navigation' : 'Collapse side navigation'} aria-expanded={!sidebarCollapsed} aria-controls="school-head-primary-navigation" title={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}><span aria-hidden="true">{sidebarCollapsed ? '›' : '‹'}</span><strong>{sidebarCollapsed ? 'Expand' : 'Collapse'}</strong></button>
-          <div className="school-head-profile"><div>{snapshot.head?.name.slice(0, 1).toUpperCase() || 'H'}</div><span><strong>{snapshot.head?.name || 'School Head'}</strong><small>Primary decision maker</small></span><b>HEAD</b></div>
+          <div className="school-head-profile"><div>{snapshot.head?.name.slice(0, 1).toUpperCase() || 'H'}</div><span><strong>{snapshot.head?.name || 'School Head'}</strong><small>School Head</small></span><b>HEAD</b></div>
           <nav id="school-head-primary-navigation">{HEAD_TABS.map((tab) => <button type="button" key={tab.id} className={activeTab === tab.id ? 'is-active' : ''} aria-current={activeTab === tab.id ? 'page' : undefined} aria-label={tab.label} title={sidebarCollapsed ? tab.label : undefined} onMouseEnter={(event) => sidebarCollapsed && setNavTooltip({ label: tab.label, anchor: event.currentTarget })} onMouseLeave={() => setNavTooltip(null)} onFocus={(event) => sidebarCollapsed && setNavTooltip({ label: tab.label, anchor: event.currentTarget })} onBlur={() => setNavTooltip(null)} onClick={() => { setNavTooltip(null); selectTab(tab.id); }}><span className="school-head-nav-icon"><HeadNavIcon tab={tab.id} /></span><span className="school-head-nav-text">{tab.label}</span>{tab.id === 'decisions' && snapshot.decisions.length > 0 && <b>{snapshot.decisions.length}</b>}</button>)}</nav>
           <div className="school-head-sidebar-actions"><p>Workspaces</p><button type="button" onClick={() => openAdministration('documents')}>Document Center <span>→</span></button>{onOpenTeacherPortal && <button type="button" onClick={onOpenTeacherPortal}>Teacher Workspace <span>→</span></button>}</div>
-          <div className="school-head-security"><span aria-hidden="true">◆</span><div><strong>School-isolated data</strong><small>Executive access verified by active ownership.</small></div></div>
+          <div className="school-head-security"><span aria-hidden="true">◆</span><div><strong>Private to your school</strong><small>Only your school&apos;s records are shown here.</small></div></div>
         </aside>
 
         <main className="school-head-content">

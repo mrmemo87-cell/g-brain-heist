@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAdmin } from '../AdminContext';
+import { DISPLAY_DATE, displayDateLocale } from '../../../src/utils/displayDate';
 
 const CambridgeTab: React.FC = () => {
   const {
@@ -159,7 +160,7 @@ const CambridgeTab: React.FC = () => {
                     </td>
                     <td className="px-4 py-3 text-gray-400 text-sm">{formatTime(score.time_taken_seconds)}</td>
                     <td className="px-4 py-3 text-gray-400 text-sm">
-                      {new Date(score.submitted_at).toLocaleDateString()} {new Date(score.submitted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(score.submitted_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)} {new Date(score.submitted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2 flex-wrap">

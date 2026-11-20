@@ -6,19 +6,9 @@ interface BrainsLoaderProps {
   size?: number;
 }
 
+// Plain wording: the loader appears on staff and student screens alike.
 const FLAVOR_LINES = [
-  'Decrypting neural pathways…',
-  'Initializing synaptic interface…',
-  'Establishing secure uplink…',
-  'Loading agent dossiers…',
-  'Calibrating cognitive engines…',
-  'Scanning for anomalies…',
-  'Compiling mission briefing…',
-  'Synchronizing memory banks…',
-  'Warming up the heist engine…',
-  'Bypassing firewall…',
-  'Activating stealth protocols…',
-  'Rendering holographic HUD…',
+  'Loading…',
 ];
 
 const BrainsLoader: React.FC<BrainsLoaderProps> = ({ message, fullScreen = true, size = 220 }) => {

@@ -25,6 +25,7 @@ import {
   openSchoolDocumentPreview,
   schoolDocumentFileName,
 } from '../src/lib/schoolDocument';
+import { DISPLAY_DATE, displayDateLocale } from '../src/utils/displayDate';
 
 // ── Types ──
 
@@ -1491,7 +1492,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   const cand = candidates.find(c => c.id === a.candidate_id);
                   return (
                     <div key={a.id} className="flex items-center gap-3 text-xs">
-                      <span className="text-slate-500 w-28 shrink-0">{new Date(a.created_at).toLocaleDateString()}</span>
+                      <span className="text-slate-500 w-28 shrink-0">{new Date(a.created_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</span>
                       <span className="text-slate-900 font-medium">{cand?.full_name || 'Unknown'}</span>
                       {statusPill(a.status)}
                       {a.percentage !== null && <span className="text-cyan-700 ml-auto">{a.percentage}%</span>}
@@ -1556,7 +1557,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-slate-500">{new Date(p.created_at).toLocaleDateString()}</div>
+                      <div className="text-xs text-slate-500">{new Date(p.created_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</div>
                       {p.is_active && <div className="text-[10px] text-emerald-400 mt-0.5">Active</div>}
                       {p.is_official && <div className="text-[10px] text-cyan-700 mt-0.5">Official · {p.content_version || 'versioned'}</div>}
                     </div>
@@ -2139,7 +2140,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                                   <span className="text-xs px-2 py-0.5 rounded bg-indigo-600/30 text-indigo-700 border border-indigo-500/40 font-semibold">{testLabel}</span>
                                   <span className="text-[10px] text-slate-500 font-mono">{form?.form_code}</span>
                                   {statusPill(a.status)}
-                                  <span className="text-xs text-slate-500">{new Date(a.created_at).toLocaleDateString()}</span>
+                                  <span className="text-xs text-slate-500">{new Date(a.created_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                   {a.percentage !== null && (
@@ -2238,7 +2239,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                       )}
                     </div>
                     <span className="text-[11px] text-slate-500 shrink-0">
-                      {new Date(entry.created_at).toLocaleDateString()} {new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(entry.created_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)} {new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                 );
@@ -2574,7 +2575,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   <p className="school-admin-eyebrow">Candidate file</p>
                   <h2 id="candidate-file-title" className="text-xl font-bold text-slate-900">{cand.full_name}</h2>
                   <p className="text-xs text-slate-600">
-                    Candidate details · Registered {new Date(cand.created_at).toLocaleDateString()}
+                    Candidate details · Registered {new Date(cand.created_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}
                   </p>
                 </div>
                 <button onClick={() => setCandidateFileId(null)} className="school-admin-modal-close" aria-label="Close candidate file">✕</button>
@@ -2658,7 +2659,7 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                               {form && <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-600 text-slate-600 font-mono">{form.form_code}</span>}
                               {statusPill(a.status)}
                             </div>
-                            <span className="text-[11px] text-slate-500">{new Date(a.started_at).toLocaleDateString()}</span>
+                            <span className="text-[11px] text-slate-500">{new Date(a.started_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</span>
                           </div>
                           {a.status === 'scored' && (
                             <div className="mt-2">

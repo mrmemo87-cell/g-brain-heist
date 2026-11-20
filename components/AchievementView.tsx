@@ -3,6 +3,7 @@ import * as GameService from '../services/gameService';
 import BackButton from './BackButton';
 import { CompletedAssignment, MyAssignmentAnswer } from '../types';
 import { visualAssets } from './visualAssets';
+import { DISPLAY_DATE, displayDateLocale } from '../src/utils/displayDate';
 
 /** Map achievement name patterns to badge illustration PNGs. */
 const BADGE_IMAGE_MAP: Record<string, string> = {
@@ -284,7 +285,7 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
               {/* Earned Timestamp */}
               {achievement.is_earned && achievement.earned_at && (
                 <p className="text-xs text-gray-500 mt-2">
-                  🏆 Earned: {new Date(achievement.earned_at).toLocaleDateString()}
+                  🏆 Earned: {new Date(achievement.earned_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}
                 </p>
               )}
             </div>
@@ -543,7 +544,7 @@ const AchievementView: React.FC<AchievementViewProps> = ({ onComplete, addToast 
                       <div className="text-xs text-gray-500">
                         {isExcellent ? '🌟 Excellent!' : isGood ? '✅ Good job!' : '📖 Keep practicing!'}
                         <span className="ml-2">
-                          Completed: {new Date(assignment.completed_at).toLocaleDateString()}
+                          Completed: {new Date(assignment.completed_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}
                         </span>
                       </div>
                       <button

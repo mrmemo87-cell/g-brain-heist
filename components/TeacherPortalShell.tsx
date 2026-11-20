@@ -52,15 +52,16 @@ const applyCurrentYearDashboardMetrics = (
     const subtitle = card.querySelector('.teacher-dashboard-stat-sub');
     const currentTitle = title?.textContent?.trim() || '';
 
-    if (currentTitle === 'Assignments' || currentTitle === 'Active Assignments') {
-      setDashboardText(title, 'Active Assignments');
+    if (currentTitle === 'Assignments' || currentTitle === 'Active Assignments' || currentTitle === 'Open assignments') {
+      // "Open" = not yet complete; the subtitle says how many of those are already past their due date.
+      setDashboardText(title, 'Open assignments');
       setDashboardText(value, numberFormat.format(metrics.active_assignment_count));
       const overdue = metrics.overdue_assignment_count || 0;
       setDashboardText(
         subtitle,
-        `${numberFormat.format(metrics.assignment_count)} total assignments${overdue > 0 ? ` · ${numberFormat.format(overdue)} past due` : ''}`,
+        `${overdue > 0 ? `${numberFormat.format(overdue)} past due · ` : ''}${numberFormat.format(metrics.assignment_count)} in total`,
       );
-      card.setAttribute('aria-label', 'Open Active Assignments');
+      card.setAttribute('aria-label', 'Open assignments');
       return;
     }
 

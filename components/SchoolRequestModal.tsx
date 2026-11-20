@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import * as SchoolRequestService from '../services/schoolRequestService';
 import { supabase, type Session } from '../services/supabaseClient';
 import SchoolRequestConversation from './schoolRequests/SchoolRequestConversation';
+import { DISPLAY_DATE, displayDateLocale } from '../src/utils/displayDate';
 
 interface SchoolRequestModalProps {
   isOpen: boolean;
@@ -458,7 +459,7 @@ const SchoolRequestModal: React.FC<SchoolRequestModalProps> = ({
                       )}
                       {request.created_at && (
                         <p className="mt-1 text-xs text-slate-400">
-                          Submitted {new Date(request.created_at).toLocaleDateString()}
+                          Submitted {new Date(request.created_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}
                         </p>
                       )}
                     </button>

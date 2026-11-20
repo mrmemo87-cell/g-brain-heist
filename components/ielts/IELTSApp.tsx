@@ -22,6 +22,7 @@ import {
 } from '../../services/ieltsService';
 import * as IELTSAuthService from '../../services/ieltsAuthService';
 import '../../src/styles/ielts.css';
+import { DISPLAY_DATE, displayDateLocale } from '../../src/utils/displayDate';
 
 interface IELTSAppProps {
   onLogout?: () => void;
@@ -409,7 +410,7 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
               <ul className="ielts-progress__list">
                 {attempts.reading.map((attempt) => (
                   <li key={attempt.id}>
-                    <span>{new Date(attempt.started_at).toLocaleDateString()}</span>
+                    <span>{new Date(attempt.started_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</span>
                     <span>{attempt.percent ? `${attempt.percent.toFixed(1)}% accuracy` : 'In progress'}</span>
                   </li>
                 ))}
@@ -422,7 +423,7 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
               <ul className="ielts-progress__list">
                 {attempts.listening.map((attempt) => (
                   <li key={attempt.id}>
-                    <span>{new Date(attempt.started_at).toLocaleDateString()}</span>
+                    <span>{new Date(attempt.started_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</span>
                     <span>{attempt.percent ? `${attempt.percent.toFixed(1)}%` : 'In progress'}</span>
                   </li>
                 ))}
@@ -435,7 +436,7 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
               <ul className="ielts-progress__list">
                 {attempts.writing.map((attempt) => (
                   <li key={attempt.id}>
-                    <span>{new Date(attempt.submitted_at).toLocaleDateString()}</span>
+                    <span>{new Date(attempt.submitted_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</span>
                     <span>{attempt.review_status === 'finalized' && attempt.band_overall ? `Reviewed task band ${attempt.band_overall.toFixed(1)}` : 'Awaiting reviewed feedback'}</span>
                   </li>
                 ))}
@@ -448,7 +449,7 @@ const IELTSApp: React.FC<IELTSAppProps> = ({ onLogout }) => {
               <ul className="ielts-progress__list">
                 {attempts.speaking.map((attempt) => (
                   <li key={attempt.id}>
-                    <span>{new Date(attempt.submitted_at).toLocaleDateString()}</span>
+                    <span>{new Date(attempt.submitted_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</span>
                     <span>{attempt.review_status === 'finalized' && attempt.band_overall ? `Reviewed task band ${attempt.band_overall.toFixed(1)}` : 'Awaiting reviewed feedback'}</span>
                   </li>
                 ))}

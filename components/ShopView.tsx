@@ -19,6 +19,7 @@ import {
 } from './icons';
 import ModalPortal from './ModalPortal';
 import { isBrainsMasterActive, formatBrainsMasterRemaining, BM_GEM_PRICE, BM_INSTANT_GEMS, BM_DURATION_DAYS, BM_CAP_BOOST_FACTOR } from '../src/utils/premiumHelpers';
+import { DISPLAY_DATE, displayDateLocale } from '../src/utils/displayDate';
 
 type ShopStage = 'loading' | 'idle' | 'purchasing';
 
@@ -336,7 +337,7 @@ const ShopView: React.FC<ShopViewProps> = ({ profile, onComplete, onPurchase, ad
         coins: result.coins_granted,
       });
       addToast(
-        `🧠 Brains Master activated! +${result.gemstones_granted} gems, +${result.coins_granted} coins. Expires ${new Date(result.new_expiry).toLocaleDateString()}.`,
+        `🧠 Brains Master activated! +${result.gemstones_granted} gems, +${result.coins_granted} coins. Expires ${new Date(result.new_expiry).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}.`,
         'success'
       );
     } catch (error: any) {

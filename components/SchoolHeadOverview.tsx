@@ -3,6 +3,14 @@ import { supabase } from '../services/supabaseClient';
 import type { SchoolHeadSnapshot, SchoolHeadTab } from '../services/schoolHeadService';
 import { greetingName } from '../src/utils/displayText';
 
+const SUPPORT_ICON_PATHS = {
+  learner: <><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></>,
+  unplaced: <><circle cx="10" cy="8" r="3.5"/><path d="M3 20c1-4 4-6 7-6 1.5 0 3 .4 4.2 1.2M17 15v6M14 18h6"/></>,
+  classes: <><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M10 10v9"/></>,
+  teacher: <><path d="m3 9 9-5 9 5-9 5Z"/><path d="M7 11v5c3 2 7 2 10 0v-5"/></>,
+} as const;
+const SupportIcon: React.FC<{ name: keyof typeof SUPPORT_ICON_PATHS }> = ({ name }) => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{SUPPORT_ICON_PATHS[name]}</svg>;
+
 interface SchoolHeadOverviewProps {
   snapshot: SchoolHeadSnapshot;
   onOpenTab: (tab: SchoolHeadTab) => void;
@@ -182,7 +190,7 @@ const EngagementTrendChart: React.FC<{ schoolId: string }> = ({ schoolId }) => {
   return (
     <section className="school-head-v3-panel school-head-v3-trend-panel">
       <div className="school-head-v3-panel-heading">
-        <div><span>Student engagement</span><h3>Engagement Trend</h3><p>Distinct enrolled learners with recorded Brains Heist learning or gameplay activity in each 7-day window.</p></div>
+        <div><h3>Weekly engagement</h3><p>Share of students active in each 7-day period.</p></div>
         {delta !== null && <b className={delta > 0 ? 'is-positive' : delta < 0 ? 'is-negative' : 'is-flat'}>{delta > 0 ? '↗ +' : delta < 0 ? '↘ ' : '→ '}{delta} pp <small>vs prior week</small></b>}
       </div>
       {loading ? <div className="school-head-v3-chart-loading"><i /><i /><i /></div> : unavailable ? (
@@ -242,7 +250,7 @@ const SchoolHeadOverview: React.FC<SchoolHeadOverviewProps> = ({ snapshot, onOpe
     <div className="school-head-page school-head-overview-v3">
       <section className="school-head-v3-welcome">
         <div>
-          <span>Executive Overview · {snapshot.period.days}-day reporting view</span>
+          <span>Last {snapshot.period.days} days</span>
           <h2>Welcome back, {headFirstName}</h2>
           <p>Here&apos;s what&apos;s happening at <strong>{snapshot.school.name}</strong>.</p>
         </div>
@@ -262,7 +270,7 @@ const SchoolHeadOverview: React.FC<SchoolHeadOverviewProps> = ({ snapshot, onOpe
         <EngagementTrendChart schoolId={snapshot.school.id} />
 
         <section className="school-head-v3-panel school-head-v3-activity-panel">
-          <div className="school-head-v3-panel-heading"><div><span>Participation mix</span><h3>Learner Activity</h3><p>A mutually exclusive view of each learner&apos;s most recent recorded learning or gameplay activity.</p></div></div>
+          <div className="school-head-v3-panel-heading"><div><h3>Student activity</h3><p>Each student counted once, by their latest activity.</p></div></div>
           <DonutChart
             segments={learnerSegments}
             centerValue={`${studentActivityRate}%`}
@@ -274,7 +282,7 @@ const SchoolHeadOverview: React.FC<SchoolHeadOverviewProps> = ({ snapshot, onOpe
 
       <div className="school-head-v3-bottom-grid">
         <section className="school-head-v3-panel school-head-v3-coverage-panel">
-          <div className="school-head-v3-panel-heading"><div><span>Operational readiness</span><h3>Class Coverage</h3><p>Active classes with at least one current teaching allocation.</p></div></div>
+          <div className="school-head-v3-panel-heading"><div><h3>Class coverage</h3><p>Classes with at least one teacher assigned.</p></div></div>
           <DonutChart
             segments={coverageSegments}
             centerValue={`${classCoverageRate}%`}
@@ -285,17 +293,17 @@ const SchoolHeadOverview: React.FC<SchoolHeadOverviewProps> = ({ snapshot, onOpe
         </section>
 
         <section className="school-head-v3-panel school-head-v3-interventions">
-          <div className="school-head-v3-panel-heading"><div><span>Intervention Needs</span><h3>Where support is needed</h3><p>Direct counts from current school records — no inferred risk scoring.</p></div></div>
+          <div className="school-head-v3-panel-heading"><div><h3>Where support is needed</h3><p>Counts from current school records.</p></div></div>
           <div className="school-head-v3-intervention-list">
-            <button type="button" onClick={() => onOpenTab('academic')}><i className="is-red">!</i><span><strong>Re-engage learners</strong><small>No recorded activity for 14+ days</small></span><b>{snapshot.engagement.inactive_students_14d}</b></button>
-            <button type="button" onClick={() => onOpenTab('people')}><i className="is-amber">↗</i><span><strong>Unplaced learners</strong><small>Not connected to an active class</small></span><b>{unplacedStudents}</b></button>
-            <button type="button" onClick={() => onOpenTab('people')}><i className="is-purple">□</i><span><strong>Classes without coverage</strong><small>No active teaching allocation</small></span><b>{uncoveredClasses}</b></button>
-            <button type="button" onClick={() => onOpenTab('people')}><i className="is-blue">◇</i><span><strong>Teachers unallocated</strong><small>No active class allocation</small></span><b>{unallocatedTeachers}</b></button>
+            <button type="button" onClick={() => onOpenTab('academic')}><i className="is-red"><SupportIcon name="learner"/></i><span><strong>Re-engage learners</strong><small>No recorded activity for 14+ days</small></span><b>{snapshot.engagement.inactive_students_14d}</b></button>
+            <button type="button" onClick={() => onOpenTab('people')}><i className="is-amber"><SupportIcon name="unplaced"/></i><span><strong>Unplaced learners</strong><small>Not connected to an active class</small></span><b>{unplacedStudents}</b></button>
+            <button type="button" onClick={() => onOpenTab('people')}><i className="is-purple"><SupportIcon name="classes"/></i><span><strong>Classes without coverage</strong><small>No active teaching allocation</small></span><b>{uncoveredClasses}</b></button>
+            <button type="button" onClick={() => onOpenTab('people')}><i className="is-blue"><SupportIcon name="teacher"/></i><span><strong>Teachers unallocated</strong><small>No active class allocation</small></span><b>{unallocatedTeachers}</b></button>
           </div>
         </section>
 
         <section className="school-head-v3-panel school-head-v3-actions">
-          <div className="school-head-v3-panel-heading"><div><span>Executive intelligence</span><h3>Priority Actions</h3><p>The highest-priority items already produced by the Decision Center.</p></div><button type="button" onClick={() => onOpenTab('decisions')}>View all →</button></div>
+          <div className="school-head-v3-panel-heading"><div><h3>Priority actions</h3><p>The top items from the Decision Center.</p></div><button type="button" onClick={() => onOpenTab('decisions')}>View all →</button></div>
           {snapshot.decisions.length ? <div className="school-head-v3-action-list">{snapshot.decisions.slice(0, 3).map((decision, index) => (
             <button type="button" key={decision.id} onClick={() => onOpenTab(decision.destination)}>
               <i className={`is-${decision.severity}`}>{index + 1}</i>

@@ -19,6 +19,7 @@ import {
 } from "../../services/assignmentPaperService";
 import { openPrintableTeacherAssignment } from "../../services/teacherAssignmentPrintService";
 import "./PaperAssignmentWorkspace.css";
+import { DISPLAY_DATE, displayDateLocale } from '../../src/utils/displayDate';
 
 const PaperScanWorkspace = lazy(() => import("./PaperScanWorkspace"));
 
@@ -681,7 +682,7 @@ function PaperStudentEditor({
           <strong>{student.accuracy ?? "—"}%</strong>
           <p>
             {student.completedAt
-              ? new Date(student.completedAt).toLocaleDateString()
+              ? new Date(student.completedAt).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)
               : ""}
           </p>
           <small>This result is protected.</small>

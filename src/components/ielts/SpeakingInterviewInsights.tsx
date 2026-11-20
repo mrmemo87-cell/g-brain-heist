@@ -12,6 +12,7 @@ import type { SpeakingSession } from '../../../services/ieltsSpeakingPilot';
 import SpeakingTranscript from './SpeakingTranscript';
 import { CRITERION_BANDS } from './SpeakingBandsPanel';
 import '../../styles/ielts-review-result.css';
+import { DISPLAY_DATE, displayDateLocale } from '../../utils/displayDate';
 
 /**
  * Speaking interview transcripts and the shared result (Diagnostic Bible 2.3.0 sections 10.7 and 10.8; Visual & UX
@@ -169,7 +170,7 @@ export default function SpeakingInterviewInsights({ session, onExtras }: Props) 
               <p className="rr-band">{fmt(pb.overall)}</p>
             </div>
             <div className="rr-hero-meta">
-              <span className="rr-chip">Checked by {pb.teacher_name ?? 'your teacher'} · {new Date(pb.created_at).toLocaleDateString()}</span>
+              <span className="rr-chip">Checked by {pb.teacher_name ?? 'your teacher'} · {new Date(pb.created_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</span>
               <span className="rr-chip rr-chip--quiet">Not an official IELTS result</span>
               <span className="rr-chip rr-chip--quiet">Confidence: low</span>
             </div>
@@ -216,7 +217,7 @@ export default function SpeakingInterviewInsights({ session, onExtras }: Props) 
             ))}
           </div>
           <div className="rr-hero-meta rr-hero-meta--row">
-            <span className="rr-chip">Checked by {pb.teacher_name ?? 'your teacher'} · {new Date(pb.created_at).toLocaleDateString()}</span>
+            <span className="rr-chip">Checked by {pb.teacher_name ?? 'your teacher'} · {new Date(pb.created_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</span>
             <span className="rr-chip rr-chip--quiet">Not an official IELTS result</span>
           </div>
           <p className="rr-hero-note">Each band is your teacher's judgment for that part of this interview. It is not a full IELTS Speaking band.</p>

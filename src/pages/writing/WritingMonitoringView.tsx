@@ -1059,7 +1059,8 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
     if (isFinal) void refreshOverview();
   };
 
-  if (isLoading) {
+  // First load (no data, no error yet) shows the skeleton too, not the empty-state message.
+  if (isLoading || (!overview && !loadError && !lastSyncedAt && !isTestRuntime && !errorMessage)) {
     return (
       <div className="writing-monitor writing-monitor--loading" aria-label="Loading writing monitor">
         <div className="writing-monitor__skeleton writing-monitor__skeleton--hero" />
@@ -1088,9 +1089,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
 
   return (
     <main className="writing-monitor writing-teacher-surface">
-      <span className="writing-monitor__sr-only">Teacher/Admin Writing Monitor</span>
-      <span className="writing-monitor__sr-only">Weekly target</span>
-
+            
       {loadError ? (
         <div className="writing-monitor__sync-warning" role="status">
           Live refresh paused. Showing the most recently synchronized data.
@@ -1099,9 +1098,9 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
 
       <section className="writing-monitor__hero">
         <div>
-          <span className="writing-monitor__eyebrow">Writing Command Center</span>
+          <span className="writing-monitor__eyebrow">Writing Hub</span>
           <h1>Writing Monitor</h1>
-          <p>Move from the school overview to one class, one student, one genre, and finally the exact writing evidence.</p>
+          <p>Start with the school, then open a class, a student and a piece of writing.</p>
         </div>
         <div className="writing-monitor__sync">
           <span aria-hidden="true" />
@@ -1129,7 +1128,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
         <CollapsibleHeading
           eyebrow="School overview"
           title="Students and general writing data"
-          description="A clean starting point before you open a class."
+          description="Totals for every class you teach."
           collapsed={collapsed.has('overview')}
           onToggle={() => toggleCollapsed('overview')}
         />
@@ -1260,7 +1259,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                         <strong>Current focus</strong>
                         {row.repeated_weakness_hotspots.length > 0
                           ? row.repeated_weakness_hotspots.slice(0, 2).map(toTeacherWeaknessLabel).join(' · ')
-                          : row.weekly_target_summary || 'Build more writing evidence'}
+                          : getAllTimeSubmissionCount(row) > 0 ? 'Needs more writing to show a pattern' : 'No writing yet'}
                       </span>
                       <span className="writing-monitor__open-label">Open writing portfolio <span aria-hidden="true">→</span></span>
                     </button>

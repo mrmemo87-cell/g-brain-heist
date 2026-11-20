@@ -5,6 +5,7 @@ import {
   type AcademicYearSetup,
 } from '../../../services/schoolAcademicSetupService';
 import { useSchoolAdmin } from '../SchoolAdminContext';
+import { DISPLAY_DATE, displayDateLocale } from '../../../src/utils/displayDate';
 
 const getCambridgeReportKey = (score: any) =>
   `${score.test_id || score.quiz_name || 'unknown'}::${score.quiz_version || 'legacy-v1'}`;
@@ -503,7 +504,7 @@ const CambridgeTab: React.FC = () => {
                             }`}>{score.percentage}%</span>
                           </td>
                           <td className="px-4 py-3 text-center text-sm text-gray-300">{Math.floor((score.time_taken_seconds || 0) / 60)}m</td>
-                          <td className="px-4 py-3 text-center text-sm text-gray-400">{score.submitted_at ? new Date(score.submitted_at).toLocaleDateString() : 'N/A'}</td>
+                          <td className="px-4 py-3 text-center text-sm text-gray-400">{score.submitted_at ? new Date(score.submitted_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE) : 'N/A'}</td>
                           <td className="px-4 py-3 text-center text-sm">
                             {!isCurrentYear ? (
                               <span className="inline-flex rounded-full border border-slate-600 bg-slate-700/70 px-2.5 py-1 text-xs font-semibold text-slate-300">Archived · read only</span>
