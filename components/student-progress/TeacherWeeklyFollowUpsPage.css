@@ -307,7 +307,8 @@
 }
 
 .tfu-actions button:disabled {
-  background: #a9b8d6;
+  background: #e2e8f0;
+  color: #64748b;
 }
 
 .tfu-results {
@@ -447,7 +448,7 @@
 .tfu-today-people button:hover { border-color: var(--tfu-accent); background: var(--tfu-accent-soft); }
 .tfu-today-people small { color: var(--tfu-muted); font-weight: 500; }
 .tfu-today-action { min-height: 40px; padding: 0 0.95rem; border: 0; border-radius: 0.7rem; background: var(--tfu-accent); color: #fff; font-weight: 700; cursor: pointer; white-space: nowrap; }
-.tfu-today-list > li.is-good .tfu-today-action { background: #16a34a; }
+.tfu-today-list > li.is-good .tfu-today-action { background: #15803d; }
 @media (max-width: 560px) {
   .tfu-today-list > li { grid-template-columns: auto 1fr; }
   .tfu-today-action { grid-column: 1 / -1; width: 100%; }

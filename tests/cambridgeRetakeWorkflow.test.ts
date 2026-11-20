@@ -51,7 +51,7 @@ test('direct quiz score deletion is revoked so every retake uses the audited RPC
 test('teacher and school-admin interfaces describe Allow Retake instead of destructive deletion', () => {
   assert.match(teacherPortal, /Preserve attempt and allow retake/);
   assert.match(teacherPortal, /supabase\.rpc\('allow_cambridge_retake'/);
-  assert.match(teacherPortal, /Reason <span className="font-normal text-slate-400">\(optional\)<\/span>/);
+  assert.match(teacherPortal, /Reason <span className="font-normal text-slate-500">\(optional\)<\/span>/);
   assert.match(schoolAdminTab, /↻ Allow Retake/);
   assert.doesNotMatch(schoolAdminTab, />\s*🗑️ Delete\s*</);
 });
