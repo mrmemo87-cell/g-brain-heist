@@ -3,6 +3,7 @@ import { batchPracticeEffect, type BatchPracticeEffect, type PracticeEffectRow, 
 import { IeltsButton, IeltsNotice } from '../../components/ielts/IeltsUi';
 import type { PreparedAssignment } from './IeltsBatchLearningLoop';
 import IeltsBatchProductiveEffect from './IeltsBatchProductiveEffect';
+import { displayDateLocale } from '../../utils/displayDate';
 
 // Teacher wording for bh-practice-effect-v1 (provisional). Never "improved" or "did not improve" (Diagnostic Bible 8A.6).
 export const verdictLabel: Record<PracticeEffectVerdict, string> = {
@@ -17,7 +18,7 @@ export const verdictLabel: Record<PracticeEffectVerdict, string> = {
   not_practised: 'Not practised',
 };
 const tone: Partial<Record<PracticeEffectVerdict, string>> = { higher: 'up', higher_not_secure: 'up', lower: 'down' };
-const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '');
+const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short' }) : '');
 const score = (s: { opportunities: number; correct: number; at: string | null }) =>
   s.opportunities ? `${s.correct}/${s.opportunities} correct${s.at ? ` (latest ${day(s.at)})` : ''}` : 'no independent evidence';
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { batchProductiveEffect, type BatchProductiveEffect, type ProductiveRating, type ProductiveVerdict } from '../../../services/ieltsBatchService';
 import { IeltsButton, IeltsNotice } from '../../components/ielts/IeltsUi';
+import { displayDateLocale } from '../../utils/displayDate';
 
 // IELTS criterion names teachers use (Diagnostic Bible 2.0.0 section 8A.5; bh-productive-effect-v1, provisional).
 export const criterionName: Record<string, string> = {
@@ -13,7 +14,7 @@ export const productiveLabel: Record<ProductiveVerdict, string> = {
 };
 const tone: Partial<Record<ProductiveVerdict, string>> = { higher: 'up', lower: 'down' };
 const sourceName = { practice: 'practice', screener: 'screener', interview: 'interview' } as const;
-const day = (iso?: string | null) => (iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '');
+const day = (iso?: string | null) => (iso ? new Date(iso).toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short' }) : '');
 const rating = (r: ProductiveRating | null) => !r ? '—' : r.scale === 'band' ? `band ${Number(r.value).toString()} (${sourceName[r.source]}, ${day(r.at)})` : `${r.value} (${sourceName[r.source]}, ${day(r.at)})`;
 
 /** Writing and Speaking: the teacher's own criterion ratings on an earlier task vs a fresh one. Read-only. */

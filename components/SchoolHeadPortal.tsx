@@ -22,6 +22,7 @@ import CollapsedNavTooltip from './CollapsedNavTooltip';
 import SchoolHeadOverview from './SchoolHeadOverview';
 import '../src/styles/school-head.css';
 import '../src/styles/school-head-overview.css';
+import { displayDateLocale } from '../src/utils/displayDate';
 
 const TeacherAcademicProfilesPage = React.lazy(() => import('./student-progress/TeacherAcademicProfilesPage'));
 
@@ -75,11 +76,11 @@ const formatPlan = (value: string): string => value ? value.replaceAll('_', ' ')
 const formatDate = (value: string | null): string => {
   if (!value) return 'Not scheduled';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 'Not scheduled' : date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  return Number.isNaN(date.getTime()) ? 'Not scheduled' : date.toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short', year: 'numeric' });
 };
 const formatDateTime = (value: string): string => {
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 'Unknown time' : date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  return Number.isNaN(date.getTime()) ? 'Unknown time' : date.toLocaleString(displayDateLocale(), { dateStyle: 'medium', timeStyle: 'short' });
 };
 
 const MetricCard: React.FC<{

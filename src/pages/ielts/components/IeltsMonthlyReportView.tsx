@@ -22,6 +22,7 @@ import { createSchoolBrand } from "../../../lib/schoolBranding";
 import "../../../../components/student-progress/AcademicReportBuilder.css";
 import "../../../styles/ielts-learning-report.css";
 import IeltsReportOverview from "./IeltsReportOverview";
+import { displayDateLocale } from '../../../utils/displayDate';
 export const reportDate = (v: string) =>
   new Date(v.length === 10 ? v + "T12:00:00+06:00" : v).toLocaleDateString(
     "en-GB",
@@ -516,7 +517,7 @@ export default function IeltsMonthlyReportView({
                 <summary>Evidence notes and report details</summary>
                 <p>
                   Evidence available by{" "}
-                  {new Date(p.period.cutoff).toLocaleString(undefined, {
+                  {new Date(p.period.cutoff).toLocaleString(displayDateLocale(), {
                     timeZone: p.period.timezone,
                   })}{" "}
                   · {p.period.timezone}

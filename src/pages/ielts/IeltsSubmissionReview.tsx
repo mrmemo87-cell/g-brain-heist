@@ -34,6 +34,7 @@ import {
   openSchoolDocumentPreview,
   schoolDocumentFileName,
 } from '../../lib/schoolDocument';
+import { displayDateLocale } from '../../utils/displayDate';
 
 // Official IELTS criterion names, matching the AI feedback section on the same page. Task 1 is assessed on
 // Task Achievement and Task 2 on Task Response; the stored rubric key stays `task_achievement` for both.
@@ -304,7 +305,7 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
   };
 
   const statusLabel = !detail ? '' : locked ? 'Finalized' : detail.review_status === 'in_review' ? 'Draft saved' : 'Not reviewed yet';
-  const when = (iso?: string | null) => (iso ? new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'unknown');
+  const when = (iso?: string | null) => (iso ? new Date(iso).toLocaleString(displayDateLocale(), { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'unknown');
   const back = () => (onBack ? onBack() : navigate('/ielts/programme?programmeSection=reviews'));
 
   return (

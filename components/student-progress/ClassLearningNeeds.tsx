@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { getClassLearningNeeds, type ClassLearningNeed, type ClassLearningNeeds as ClassNeedsPayload } from '../../services/studentInterventionService';
 import './ClassLearningNeeds.css';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 interface ClassLearningNeedsProps {
   classLabel: string;
@@ -19,7 +20,7 @@ const moveHint: Record<TeachingMove, string> = {
   individual: 'A few students. Targeted practice from their own page.',
 };
 const statusLabel: Record<string, string> = { new_focus: 'new', recurring: 'repeated', persistent: 'long-running', improving: 'improving' };
-const fmtDate = (value?: string | null) => (value ? new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '');
+const fmtDate = (value?: string | null) => (value ? new Date(value).toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short' }) : '');
 
 interface SkillGroup { key: string; skill: string; needs: ClassLearningNeed[]; students: number; move: TeachingMove }
 

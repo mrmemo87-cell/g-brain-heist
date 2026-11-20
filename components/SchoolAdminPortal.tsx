@@ -60,6 +60,7 @@ import {
   getPendingProgrammeAccessRequestCount,
   subscribeToProgrammeAccessRequestChanges,
 } from '../services/programmeSeatService';
+import { displayDateLocale } from '../src/utils/displayDate';
 
 interface SchoolAdminPortalProps {
   onComplete: () => void;
@@ -1407,7 +1408,7 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString(displayDateLocale(), {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

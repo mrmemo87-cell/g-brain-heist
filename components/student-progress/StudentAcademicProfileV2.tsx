@@ -34,6 +34,7 @@ import './StudentAcademicProfile.css';
 import './StudentAcademicConfidence.css';
 import './AcademicProfilePremium.css';
 import './StudentAcademicProfileV2Enhancements.css';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 interface StudentAcademicProfileProps {
   studentId?: string | null;
@@ -79,7 +80,7 @@ const statusBand = (status: FocusItem['status'], latestType?: TimelineItem['obse
 const formatDate = (value?: string | null) => {
   if (!value) return '—';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString(displayDateLocale(), { year: 'numeric', month: 'short', day: 'numeric' });
 };
 const normalizeSubject = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^maths$/, 'mathematics');
 const titleCase = (value: string) => value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());

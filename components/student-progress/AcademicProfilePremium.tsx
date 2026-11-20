@@ -1,5 +1,6 @@
 import React, { useId, useState } from 'react';
 import type { StudentAcademicProfile } from '../../services/studentAcademicProfileService';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 export type ProfileIconName = 'result' | 'target' | 'support' | 'document' | 'trend' | 'strength' | 'clock' | 'calendar' | 'info' | 'back' | 'shield' | 'bell' | 'menu' | 'home' | 'book' | 'megaphone' | 'alert' | 'check' | 'lock' | 'ruler' | 'chat' | 'bolt' | 'settings' | 'school' | 'send' | 'pencil';
 const paths: Record<ProfileIconName, React.ReactNode> = {
@@ -54,7 +55,7 @@ export const AssignmentResultTimeline: React.FC<{ assignments: StudentAcademicPr
   const min = times.length ? Math.min(...times) : 0;
   const max = times.length ? Math.max(...times) : 0;
   const dates = new Set(rows.map(item => item.completed_at.slice(0, 10))).size;
-  const dateLabel = (value: string) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  const dateLabel = (value: string) => new Date(value).toLocaleDateString(displayDateLocale(), { month: 'short', day: 'numeric', year: 'numeric' });
   const selected = rows.find(item => `${item.assignment_id}:${item.completed_at}` === active);
   return <div className="ap-results-timeline"><div className="ap-results-plot" tabIndex={0} role="region" aria-label="Assignment result chart">
     <svg viewBox="0 0 640 142" role="img" aria-labelledby={id}>

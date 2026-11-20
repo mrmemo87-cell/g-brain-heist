@@ -18,6 +18,7 @@ import {
 } from '../../lib/brains_heist/writingReportDocument.js';
 import type { SupportedGenre } from '../../lib/brains_heist/writingAssessment.js';
 import { safeCsvCell } from '../../lib/schoolDocument.js';
+import { displayDateLocale } from '../../utils/displayDate';
 
 interface WritingExportCenterProps {
   mode: 'student' | 'teacher' | 'admin';
@@ -71,7 +72,7 @@ const formatScore = (score: number | null | undefined): string =>
 const formatPeriod = (month: string): string => {
   const [year, monthNumber] = month.split('-').map(Number);
   if (!year || !monthNumber) return month;
-  return new Date(year, monthNumber - 1, 1).toLocaleDateString(undefined, {
+  return new Date(year, monthNumber - 1, 1).toLocaleDateString(displayDateLocale(), {
     month: 'long',
     year: 'numeric',
   });
@@ -80,7 +81,7 @@ const formatPeriod = (month: string): string => {
 const formatDate = (value: string): string => {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return 'Date unavailable';
-  return parsed.toLocaleDateString(undefined, {
+  return parsed.toLocaleDateString(displayDateLocale(), {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

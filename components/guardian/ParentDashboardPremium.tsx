@@ -7,9 +7,10 @@ import ParentLearningTrendChart from './ParentLearningTrendChart';
 import './ParentDashboardPremium.css';
 import './ParentDashboardPremiumTabs.css';
 import './ParentDashboardPremiumMobileFixes.css';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 const fmtDate = (value?: string | null) => value
-  ? new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
+  ? new Date(value).toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short' })
   : '—';
 
 const trendLabelForSubject = (subject: GuardianChildProgress['subjects'][number]) => {

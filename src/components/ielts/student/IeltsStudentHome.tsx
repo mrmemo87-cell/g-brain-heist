@@ -11,6 +11,7 @@ import IeltsWorkCard, { dueText, skillName } from './IeltsWorkCard';
 import { IeltsWaitingForScreeners } from '../IeltsTargetedPractice';
 import { openSet, seenFeedback, useIeltsPracticeReviews, useIeltsStudentWork } from './useIeltsStudentWork';
 import { IeltsWaitingDots } from '../IeltsMotion';
+import { displayDateLocale } from '../../../utils/displayDate';
 
 const greeting = () => {
   const h = new Date().getHours();
@@ -50,7 +51,7 @@ export default function IeltsStudentHome() {
   const loading = (work.tasks === null && !work.tasksError) || practiceReviews === null;
   const checksDone = point ? startingPointSkills.filter((s) => startingPointCompleted(point, s)).length : 4;
   const firstName = point?.student_name?.split(/\s+/)[0];
-  const today = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+  const today = new Date().toLocaleDateString(displayDateLocale(), { weekday: 'long', day: 'numeric', month: 'long' });
   const summary = loading
     ? 'Checking what is new for you…'
     : newCount + goingCount + feedback.length === 0

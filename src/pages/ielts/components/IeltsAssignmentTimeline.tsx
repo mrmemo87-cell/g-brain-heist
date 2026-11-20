@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import type { IeltsJourneyAssignmentItem } from '../../../../services/ieltsJourneyService';
+import { displayDateLocale } from '../../../utils/displayDate';
 
 type SkillKey = 'reading' | 'listening' | 'writing' | 'speaking';
 const orderedSkills: SkillKey[] = ['reading', 'listening', 'writing', 'speaking'];
@@ -19,7 +20,7 @@ const formatDate = (value?: string | null, empty = 'No due date') => {
   if (!value) return empty;
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return empty;
-  return parsed.toLocaleDateString(undefined, { dateStyle: 'medium' });
+  return parsed.toLocaleDateString(displayDateLocale(), { dateStyle: 'medium' });
 };
 
 const humanizeStatus = (status?: string | null): string => {

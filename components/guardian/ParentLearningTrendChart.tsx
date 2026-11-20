@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { GuardianChildProgress } from '../../services/guardianService';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 type TimelineItem = GuardianChildProgress['timeline'][number];
 type TrendTone = 'assignment' | 'writing';
@@ -52,7 +53,7 @@ const normalizeSubject = (value: string) => value.toLowerCase().replace(/[^a-z0-
 const formatDate = (value?: string | null) => {
   if (!value) return '—';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short' });
 };
 
 const dayKey = (value: string) => {

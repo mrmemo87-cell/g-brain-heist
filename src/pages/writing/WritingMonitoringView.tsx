@@ -16,6 +16,7 @@ import {
 import { parseAdminDrilldownFilters } from '../../lib/brains_heist/writingAdminFilters.js';
 import { openProfessionalWritingReport } from '../../lib/brains_heist/writingReportDocument.js';
 import { WritingClassTaskPanel } from './WritingClassTaskPanel.js';
+import { displayDateLocale } from '../../utils/displayDate';
 
 interface WritingMonitoringViewProps {
   month?: string;
@@ -143,14 +144,14 @@ const formatDate = (value?: string): string => {
   if (!value) return 'Date unavailable';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  return date.toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
 const formatMonitoringPeriod = (month: string): string => {
   const match = /^(\d{4})-(\d{2})$/.exec(month);
   if (!match) return month;
   const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, 1));
-  return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  return date.toLocaleDateString(displayDateLocale(), { month: 'long', year: 'numeric', timeZone: 'UTC' });
 };
 
 const getSubmissionCount = (row: MonitoringRow): number =>
@@ -1168,7 +1169,7 @@ export const WritingMonitoringView: React.FC<WritingMonitoringViewProps> = ({
                   onClick={() => selectClass(group)}
                   aria-pressed={selectedClassKey === group.key}
                 >
-                  <span className="writing-monitor__class-icon" aria-hidden="true">🏫</span>
+                  <span className="writing-monitor__class-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 20v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="3.5"/><path d="M20 20v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span>
                   <span className="writing-monitor__card-copy">
                     <strong>{group.name}</strong>
                     <small>{group.gradeLabel}</small>

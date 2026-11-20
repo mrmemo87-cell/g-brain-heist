@@ -28,6 +28,7 @@ import {
 import { useIeltsMaterialUsage } from '../../../src/pages/ielts/useIeltsMaterialUsage';
 import { materialUsageLabel } from '../../../services/ieltsTeacherPracticeService';
 import { friendlyIeltsAdminError } from '../../../src/lib/schoolAdminPresentation';
+import { displayDateLocale } from '../../../src/utils/displayDate';
 
 type DraftItem = IeltsPracticeAssignmentItemInput & {
   display_code?: string | null;
@@ -73,7 +74,7 @@ const formatDateTime = (value?: string | null) => {
   if (!value) return '—';
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return '—';
-  return parsed.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  return parsed.toLocaleString(displayDateLocale(), { dateStyle: 'medium', timeStyle: 'short' });
 };
 
 

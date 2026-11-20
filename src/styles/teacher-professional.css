@@ -111,3 +111,6 @@
 .teacher-professional .teacher-writing-hub__tabs button { display:inline-flex; align-items:center; gap:8px; }
 .teacher-professional .teacher-writing-hub__tabs .ap-icon { width:18px; height:18px; }
 .teacher-professional .teacher-pro-badge, .teacher-professional .teacher-pro-badge-sm { text-transform:none; letter-spacing:0; }
+.teacher-professional .plan-badge__icon { display:none; }
+.teacher-professional button > svg.ap-icon, .teacher-professional button > span > svg.ap-icon { width:20px; height:20px; min-width:20px; flex-shrink:0; }
+.teacher-professional .teacher-writing-hub__tabs .ap-icon { min-width:18px; flex-shrink:0; }

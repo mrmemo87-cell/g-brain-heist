@@ -20,6 +20,7 @@ import {
 import IeltsStudentShell, { IeltsCardGroup } from '../../components/ielts/student/IeltsStudentShell';
 import { invalidateIeltsStudentWork } from '../../components/ielts/student/useIeltsStudentWork';
 import { AssignmentItemStatusBadge, AssignmentProgressBar } from './assignmentPracticeUi';
+import { displayDateLocale } from '../../utils/displayDate';
 
 type AssignmentLoadState = 'loading' | 'ready' | 'error';
 
@@ -36,7 +37,7 @@ const formatDueDate = (dueAt: string | null): string => {
   if (!dueAt) return 'No due date';
   const parsed = new Date(dueAt);
   if (Number.isNaN(parsed.getTime())) return 'Due date unavailable';
-  return parsed.toLocaleString(undefined, {
+  return parsed.toLocaleString(displayDateLocale(), {
     dateStyle: 'medium',
     timeStyle: 'short',
   });

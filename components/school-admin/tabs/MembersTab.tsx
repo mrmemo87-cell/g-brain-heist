@@ -2,6 +2,7 @@ import React from 'react';
 import { useSchoolAdmin } from '../SchoolAdminContext';
 import type { SchoolRole } from '../../../types';
 import '../../../src/styles/school-admin-members.css';
+import { displayDateLocale } from '../../../src/utils/displayDate';
 
 type DirectoryTab = 'admin' | 'teacher' | 'student';
 
@@ -470,7 +471,7 @@ const MembersTab: React.FC = () => {
                     </div>
                   </td>
                   <td>{placement.grade ? `Grade ${placement.grade}` : 'Not assigned'}{placement.batch ? ` · ${placement.batch}` : ''}</td>
-                  <td>{member.joined_at ? new Date(member.joined_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not recorded'}</td>
+                  <td>{member.joined_at ? new Date(member.joined_at).toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not recorded'}</td>
                   <td><span className={`status-dot ${member.is_banned ? 'is-blocked' : ''}`} />{member.is_banned ? 'Restricted' : 'Active'}</td>
                   <td><button onClick={(event) => { event.stopPropagation(); openMember(member); }}>Manage →</button></td>
                 </tr>;
@@ -503,7 +504,7 @@ const MembersTab: React.FC = () => {
               <dl className="community-mobile-card__details">
                 <div><dt>{directoryTab === 'student' ? 'Class placement' : 'Teaching placement'}</dt><dd>{placement.grade ? `Grade ${placement.grade}` : 'Not assigned'}{placement.batch ? ` · ${placement.batch}` : ''}</dd></div>
                 <div><dt>Status</dt><dd><span className={`status-dot ${member.is_banned ? 'is-blocked' : ''}`} />{member.is_banned ? 'Restricted' : 'Active'}</dd></div>
-                <div><dt>Date joined</dt><dd>{member.joined_at ? new Date(member.joined_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not recorded'}</dd></div>
+                <div><dt>Date joined</dt><dd>{member.joined_at ? new Date(member.joined_at).toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not recorded'}</dd></div>
               </dl>
               <button className="community-mobile-manage" onClick={() => openMember(member)}>Manage member →</button>
             </article>;

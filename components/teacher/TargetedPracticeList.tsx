@@ -6,6 +6,7 @@ import {
   targetedPracticeStatus,
 } from '../../src/lib/teacherTargetedPractice';
 import './TargetedPracticeList.css';
+import { displayDateLocale } from '../../src/utils/displayDate';
 
 interface TargetedPracticeListProps {
   assignments: TeacherAssignmentSummary[];
@@ -21,7 +22,7 @@ const STATUS_LABEL = { completed: 'Completed', overdue: 'Past due', 'not-started
 function shortDate(value?: string | null): string | null {
   if (!value) return null;
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short' });
 }
 
 /** Targeted practice grouped by student: one compact row per task. */

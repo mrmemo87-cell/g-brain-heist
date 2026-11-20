@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import IeltsSkillIcon from '../IeltsSkillIcon';
+import { displayDateLocale } from '../../../utils/displayDate';
 
 export type IeltsWorkTone = 'new' | 'continue' | 'feedback' | 'waiting' | 'done' | 'closed';
 const SKILLS = ['listening', 'reading', 'writing', 'speaking'] as const;
@@ -51,6 +52,6 @@ export const dueText = (iso: string | null | undefined) => {
   if (!iso || !Number.isFinite(Date.parse(iso))) return '';
   const due = new Date(iso);
   const days = Math.ceil((due.getTime() - Date.now()) / 86400000);
-  const day = due.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  const day = due.toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short' });
   return days < 0 ? `Was due ${day}` : days === 0 ? 'Due today' : days === 1 ? 'Due tomorrow' : `Due ${day}`;
 };

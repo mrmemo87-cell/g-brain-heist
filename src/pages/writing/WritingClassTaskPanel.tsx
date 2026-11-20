@@ -9,6 +9,7 @@ import {
   type WritingClassTaskOptions,
 } from '../../lib/brains_heist/writingIntegrationService.js';
 import type { SupportedGenre } from '../../lib/brains_heist/writingAssessment.js';
+import { displayDateLocale } from '../../utils/displayDate';
 
 const GENRES: Array<{ value: SupportedGenre; label: string }> = [
   { value: 'email', label: 'Email' },
@@ -51,7 +52,7 @@ const formatDate = (value: string): string => {
   const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? ''
-    : date.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+    : date.toLocaleDateString(displayDateLocale(), { weekday: 'short', day: 'numeric', month: 'short' });
 };
 
 interface WritingClassTaskPanelProps {

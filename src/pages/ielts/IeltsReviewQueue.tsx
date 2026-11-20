@@ -5,6 +5,7 @@ import { rpcIeltsReviewQueue, type IeltsReviewQueueItem, type IeltsReviewSkill }
 import { friendlyIeltsAdminError } from '../../lib/schoolAdminPresentation';
 import { IeltsButton } from '../../components/ielts/IeltsUi';
 import '../../styles/ielts-submission-review.css';
+import { displayDateLocale } from '../../utils/displayDate';
 
 const statusLabel: Record<string, string> = { pending: 'Waiting for review', in_review: 'Draft saved', finalized: 'Finalized' };
 
@@ -35,7 +36,7 @@ const IeltsReviewQueue: React.FC<IeltsReviewQueueProps> = ({ embedded = false, o
     navigate(`/ielts/reviews/${row.skill}/${encodeURIComponent(row.attempt_id)}`);
   };
 
-  const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : 'date unknown');
+  const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(displayDateLocale(), { day: 'numeric', month: 'short', year: 'numeric' }) : 'date unknown');
 
   return (
     <main data-testid={embedded ? 'embedded-ielts-review-queue' : 'ielts-review-queue'} className={`bh-ielts-page bh-ielts-review-list ir-page${embedded ? ' ir-embedded' : ''}`}>

@@ -3,9 +3,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { teacherPracticeHistory, practiceWorkLabel, type PracticeHistoryRow } from '../../../services/ieltsTeacherPracticeService';
 import '../../styles/ielts-learning.css';
+import { displayDateLocale } from '../../utils/displayDate';
 const Targeted = React.lazy(() => import('./IeltsLearningTeacher'));
 const SchoolAssignments = React.lazy(() => import('../../../components/school-admin/tabs/IeltsPracticeTab'));
-const date = (value: string | null) => value ? new Date(value).toLocaleDateString(undefined, {day:'numeric',month:'short',year:'numeric'}) : '—';
+const date = (value: string | null) => value ? new Date(value).toLocaleDateString(displayDateLocale(), {day:'numeric',month:'short',year:'numeric'}) : '—';
 export default function IeltsTeacherPracticeDesk({schoolId,onOpenReviews}: {schoolId:string;onOpenReviews:()=>void}) {
   const [query,setQuery] = useState(() => window.location.search);
   const params = new URLSearchParams(query);

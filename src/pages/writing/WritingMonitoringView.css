@@ -1936,3 +1936,12 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Unified staff surface: flat header, neutral metric cards, line icons only. */
+.writing-monitor__hero { background: #ffffff; box-shadow: none; border-radius: 16px; }
+.writing-monitor__metrics > article,
+.writing-monitor__metrics > article.is-attention,
+.writing-monitor__metrics > article.is-positive { border-top: 1px solid #e0e7f1; background: #ffffff; }
+.writing-monitor__metrics > article.is-attention strong { color: #be123c; }
+.writing-monitor__class-icon { color: #2563eb; }
+.writing-monitor__genre-icon { display: none; }

@@ -19,6 +19,7 @@ import { useAdmin } from '../AdminContext';
 import QuestionTaxonomyReviewQueue from './QuestionTaxonomyReviewQueue';
 import AiRecheckQueue from './AiRecheckQueue';
 import './QuestionBankInspectorTab.css';
+import { displayDateLocale } from '../../../src/utils/displayDate';
 
 const PAGE_SIZE = 24;
 
@@ -63,7 +64,7 @@ const STATUS_OPTIONS: Array<{ value: AdminQuestionStatusFilter; label: string }>
 ];
 
 const formatDate = (value?: string | null) => value
-  ? new Date(value).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })
+  ? new Date(value).toLocaleDateString(displayDateLocale(), { day: '2-digit', month: 'short', year: 'numeric' })
   : 'Not recorded';
 
 const formatQuestionType = (value: string) => value
