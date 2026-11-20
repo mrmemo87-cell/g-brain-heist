@@ -36,6 +36,9 @@ type Props = {
   onFeedback?: (view: PracticeFeedbackView) => void;
   /** Overrides the detected audience (tests, previews). */
   audience?: IeltsAudience;
+  /** Writing, student view: the band the teacher set when finalizing the review. It replaces the AI estimate as the
+   *  headline, because the teacher's band is the one that counts (Bible 10.9). */
+  teacherBand?: number | null;
 };
 
 const scaleMarks = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -51,7 +54,7 @@ function RangeBar({ low, high }: { low: number; high: number }) {
   );
 }
 
-export default function IeltsPracticeAiFeedback({ attemptId, mode, skill = 'writing', loadRecording, onFeedback, autoStart = false, audience: forced }: Props) {
+export default function IeltsPracticeAiFeedback({ attemptId, mode, skill = 'writing', loadRecording, onFeedback, autoStart = false, audience: forced, teacherBand = null }: Props) {
   const detected = useIeltsAudience();
   const audience = forced ?? detected;
   const independent = mode === 'student' && audience === 'independent';
@@ -95,7 +98,7 @@ export default function IeltsPracticeAiFeedback({ attemptId, mode, skill = 'writ
   if (skill === 'speaking' && !ready && mode === 'student' && !loadRecording) return null;
 
   const title = view?.confirmed
-    ? `Checked by ${view.confirmed_by ?? 'your teacher'}${view.confirmed_at ? `, ${new Date(view.confirmed_at).toLocaleDateString()}` : ''}`
+    ? `Checked by ${view.confirmed_by ?? 'your teacher'}${view.confirmed_at ? `, ${new Date(view.confirmed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}`
     : independent ? 'Brains Heist feedback — an estimate, not an official IELTS result' : 'AI practice feedback — your teacher may adjust it';
   const estimateLabel = independent ? 'Brains Heist practice estimate' : 'AI practice indication';
   const fields = view?.fields;
@@ -178,7 +181,7 @@ export default function IeltsPracticeAiFeedback({ attemptId, mode, skill = 'writ
             )
           )}
           {skill === 'writing' && (
-            <WritingEstimate fields={fields} mode={mode} independent={independent} confirmed={!!view?.confirmed} />
+            <WritingEstimate fields={fields} mode={mode} independent={independent} confirmed={!!view?.confirmed} teacherBand={mode === 'student' ? teacherBand : null} />
           )}
           {skill === 'writing' && typeof fields.essay === 'string' && (
             mode === 'teacher' ? (
@@ -265,10 +268,25 @@ export default function IeltsPracticeAiFeedback({ attemptId, mode, skill = 'writ
 const fmtBand = (n: number) => n.toFixed(1);
 
 /** AI estimated band for this Writing task (Bible 10.9): computed on the server from the four criterion ranges. */
-function WritingEstimate({ fields, mode, independent, confirmed }: { fields: NonNullable<PracticeFeedbackView['fields']>; mode: 'student' | 'teacher'; independent: boolean; confirmed: boolean }) {
+function WritingEstimate({ fields, mode, independent, confirmed, teacherBand }: { fields: NonNullable<PracticeFeedbackView['fields']>; mode: 'student' | 'teacher'; independent: boolean; confirmed: boolean; teacherBand: number | null }) {
   const e = fields.estimate;
   const task = fields.task_number === 1 ? 'Task 1' : 'Task 2';
   if (fields.estimate === undefined) return null; // made before estimated bands existed
+  if (teacherBand != null && Number.isFinite(teacherBand)) {
+    return (
+      <div className="pf-band" role="group" aria-label={`Your teacher's ${task} band`}>
+        <div className="pf-band-main">
+          <p className="pf-band-label">Your teacher&apos;s band · {task}</p>
+          <p className="pf-band-num"><span className="pf-sr">Band </span>{fmtBand(teacherBand)}</p>
+          {e ? <p className="pf-band-range">AI estimate was {fmtBand(e.band)} (range {fmtBand(e.low)}–{fmtBand(e.high)})</p> : null}
+        </div>
+        <div className="pf-band-meta">
+          <span className="pf-band-chip pf-band-chip--ok">Set by your teacher</span>
+          <span className="pf-band-chip pf-band-chip--quiet">Not an official IELTS result</span>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="pf-band" role="group" aria-label={`Estimated ${task} band`}>
       <div className="pf-band-main">

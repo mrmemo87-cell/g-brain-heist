@@ -16,6 +16,7 @@ import IeltsSkillIcon from '../../../components/ielts/IeltsSkillIcon';
 import { IeltsCardGroup } from '../../../components/ielts/student/IeltsStudentShell';
 import '../../../styles/ielts-journey.css';
 import { useIeltsAudience } from '../../../lib/ieltsAudience';
+import { useIeltsPracticeReviews } from '../../../components/ielts/student/useIeltsStudentWork';
 const IeltsStudentLearningPlan = React.lazy(() => import('./IeltsStudentLearningPlan'));
 const title = (s: string) => s[0].toUpperCase() + s.slice(1);
 const date = (v?: string | null) =>
@@ -37,6 +38,7 @@ export default function IeltsStudentJourney({
   onSetTargetBand?: () => void;
 }) {
   const navigate = useNavigate();
+  const practiceReviews = useIeltsPracticeReviews();
   // Diagnostic Bible 2.1.0 section 10.6: self-paced learners have no teacher; never point them at one.
   const audience = useIeltsAudience();
   const selfPaced = audience === 'independent' && !startingPoint.school_managed;
@@ -235,7 +237,7 @@ export default function IeltsStudentJourney({
               );
             })}
           </div>
-        ) : (
+        ) : practiceReviews && practiceReviews.length ? null : (
           <div className="ij-panel">
             <h3>Your feedback will appear here</h3>
             <p>
@@ -243,6 +245,23 @@ export default function IeltsStudentJourney({
               will review it and share comments. Pending review does not mean a
               low score.
             </p>
+          </div>
+        )}
+        {practiceReviews && practiceReviews.length > 0 && (
+          <div className="ij-panel">
+            <h3>Reviewed practice</h3>
+            {practiceReviews.map((r) => (
+              <div key={`${r.skill}:${r.id}`} className="ij-observation">
+                <h4>{r.title}</h4>
+                <span className="ij-meta">
+                  {r.skill === 'writing' ? 'Writing' : 'Speaking'}
+                  {r.reviewed_at ? ` · reviewed ${new Date(r.reviewed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}
+                </span>
+                <button className="ij-link" type="button" onClick={() => navigate(`/ielts/review-result/${r.skill}/${encodeURIComponent(r.id)}`)}>
+                  Read your teacher&apos;s feedback →
+                </button>
+              </div>
+            ))}
           </div>
         )}
         {journey.teacher_feedback.length > 0 && (

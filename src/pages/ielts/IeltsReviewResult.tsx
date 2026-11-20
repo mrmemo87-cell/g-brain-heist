@@ -6,6 +6,7 @@ import { practiceFeedback, speakingPracticeFeedback, type SpeakingHighlight, typ
 import SpeakingTranscript from '../../components/ielts/SpeakingTranscript';
 import WritingEssayHighlights from '../../components/ielts/WritingEssayHighlights';
 import '../../styles/ielts-review-result.css';
+import { markFeedbackSeen } from '../../components/ielts/student/useIeltsStudentWork';
 
 const speakingLabels: Record<string, { name: string; short: string; tone: string }> = {
   fluency: { name: 'Fluency & Coherence', short: 'FC', tone: 'fc' },
@@ -186,6 +187,8 @@ const IeltsReviewResult: React.FC = () => {
     queryFn: () => rpcIeltsReviewDetail(skill, attemptId),
     enabled: !!attemptId,
   });
+  // Opening the result clears it from "New for you" on IELTS Home.
+  React.useEffect(() => { if (data && attemptId) markFeedbackSeen(`practice:${attemptId}`); }, [data, attemptId]);
 
   return (
     <main className="bh-ielts-page bh-ielts-result" style={{ minHeight: '100vh', background: '#f8fafc', padding: '2rem' }}>

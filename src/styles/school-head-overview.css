@@ -405,6 +405,7 @@
   color: #c84a58;
   background: #fff1f2;
 }
+.school-head-v3-trend-panel .school-head-v3-panel-heading > b.is-flat { color: #5b6b80; background: #f1f4f8; }
 
 .school-head-v3-trend-panel .school-head-v3-panel-heading > b small {
   color: #6f8191;
@@ -449,7 +450,8 @@
 /* Donuts */
 .school-head-v3-donut-layout {
   display: grid;
-  grid-template-columns: minmax(9.5rem, .8fr) minmax(10.5rem, 1fr);
+  /* Wraps to donut-above-legend when the panel is narrower than both columns, instead of clipping the values. */
+  grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr));
   align-items: center;
   gap: 1.15rem;
   padding: .65rem 1.1rem 1.15rem;
@@ -500,10 +502,10 @@
 .school-head-v3-donut-legend span small { display: block; }
 .school-head-v3-donut-legend span strong { color: #34445a; font-size: .62rem; }
 .school-head-v3-donut-legend span small { margin-top: .12rem; color: #8896a7; font-size: .52rem; }
-.school-head-v3-donut-legend > div > b { color: #17243a; font-size: .68rem; }
+.school-head-v3-donut-legend > div > b { color: #17243a; font-size: .68rem; white-space: nowrap; }
 .school-head-v3-donut-legend > div > b small { color: #8392a4; font-size: .5rem; font-weight: 650; }
 
-.school-head-v3-coverage-panel .school-head-v3-donut-layout { grid-template-columns: minmax(9rem, .85fr) minmax(9rem, 1fr); }
+.school-head-v3-coverage-panel .school-head-v3-donut-layout { grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr)); }
 .school-head-v3-coverage-panel .school-head-v3-donut { max-width: 9.6rem; }
 
 .school-head-v3-link {

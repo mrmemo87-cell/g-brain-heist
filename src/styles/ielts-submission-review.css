@@ -1,7 +1,9 @@
 /* Teacher Writing/Speaking review — Evidence Blue, light surface, readable at 375/768/1440.
    Visual only: the same fields, the same save/finalise calls and the same locking rules. */
 .ir-page { min-height: 100vh; padding: clamp(14px, 3vw, 32px); background: var(--bh-ielts-background) !important; color: var(--bh-ielts-foreground) !important; font-family: var(--bh-ielts-font-body); line-height: 1.6; color-scheme: light; }
-.ir-page.ir-embedded { min-height: 0; padding: 0; background: transparent !important; }
+/* Embedded in a host shell (e.g. School Administration, which has a dark page background): keep the light review
+   surface so headings stay readable instead of inheriting the host background. */
+.ir-page.ir-embedded { min-height: 0; padding: clamp(14px, 2.5vw, 24px); border-radius: 16px; background: var(--bh-ielts-background) !important; }
 .ir-page *, .ir-page *::before, .ir-page *::after { box-sizing: border-box; }
 .ir-shell { max-width: 1200px; margin: 0 auto; display: grid; gap: 16px; min-width: 0; }
 .ir-page :is(h1, h2, h3, p) { margin: 0; }

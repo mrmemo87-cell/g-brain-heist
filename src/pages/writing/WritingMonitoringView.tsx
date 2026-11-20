@@ -169,7 +169,8 @@ const getClassName = (row: MonitoringRow): string =>
   row.class_name?.trim() || `Grade ${row.current_grade}`;
 
 const getStatus = (row: MonitoringRow): { label: string; tone: 'attention' | 'positive' | 'neutral' } => {
-  if (row.status === 'needs_review' || row.status === 'needs_support' || row.stalled) {
+  if (row.status === 'needs_review') return { label: 'Needs your review', tone: 'attention' };
+  if (row.status === 'needs_support' || row.stalled) {
     return { label: 'Needs support', tone: 'attention' };
   }
   if (row.improving) return { label: 'Improving', tone: 'positive' };

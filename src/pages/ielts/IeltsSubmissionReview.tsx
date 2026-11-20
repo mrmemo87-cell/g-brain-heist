@@ -35,13 +35,18 @@ import {
   schoolDocumentFileName,
 } from '../../lib/schoolDocument';
 
-const rubricLabels: Record<string, string> = {
-  task_achievement: 'Task achievement',
-  coherence_cohesion: 'Coherence/cohesion',
-  lexical_resource: 'Lexical resource',
-  grammar: 'Grammar',
-  fluency: 'Fluency',
-  pronunciation: 'Pronunciation',
+// Official IELTS criterion names, matching the AI feedback section on the same page. Task 1 is assessed on
+// Task Achievement and Task 2 on Task Response; the stored rubric key stays `task_achievement` for both.
+const reviewCriterionLabel = (key: string, taskNumber: 1 | 2): string => {
+  switch (key) {
+    case 'task_achievement': return taskNumber === 1 ? 'Task Achievement' : 'Task Response';
+    case 'coherence_cohesion': return 'Coherence and Cohesion';
+    case 'fluency': return 'Fluency and Coherence';
+    case 'lexical_resource': return 'Lexical Resource';
+    case 'grammar': return 'Grammatical Range and Accuracy';
+    case 'pronunciation': return 'Pronunciation';
+    default: return key.replaceAll('_', ' ');
+  }
 };
 
 const bandOptions = Array.from({ length: 19 }, (_, index) => (index / 2).toFixed(index % 2 === 0 ? 0 : 1));
@@ -116,6 +121,7 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
     queryFn: () => rpcIeltsReviewDetail(skill, attemptId),
     enabled: !!attemptId,
   });
+  const taskNumber: 1 | 2 = /task\s*1/i.test(String(detail?.task_type ?? '')) ? 1 : 2;
 
   const [rubric, setRubric] = useState<Record<string, number | null>>(() => toRubricState(skill));
   const [overallBand, setOverallBand] = useState<number | null>(null);
@@ -240,7 +246,7 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
     const generatedAt = new Date().toISOString();
     const documentId = createSchoolDocumentId('ielts');
     const rubricRows = rubricKeys.map((key) => `
-      <tr><td>${escapeSchoolDocumentHtml(rubricLabels[key] ?? key)}</td><td><strong>${escapeSchoolDocumentHtml(rubric[key] ?? 'Not scored')}</strong></td></tr>
+      <tr><td>${escapeSchoolDocumentHtml(reviewCriterionLabel(key, taskNumber))}</td><td><strong>${escapeSchoolDocumentHtml(rubric[key] ?? 'Not scored')}</strong></td></tr>
     `).join('');
     const evidence = skill === 'writing'
       ? `<h2 class="document-page-break">Writing evidence appendix</h2>
@@ -369,7 +375,7 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
               ) : null}
               <div className="ir-bands">
                 {rubricKeys.map((key) => (
-                  <label key={key} className="ir-field">{rubricLabels[key] ?? key}
+                  <label key={key} className="ir-field">{reviewCriterionLabel(key, taskNumber)}
                     <select disabled={locked} value={rubric[key] ?? ''} onChange={(e) => setRubric((current) => ({ ...current, [key]: e.target.value ? Number(e.target.value) : null }))}>
                       <option value="">Select band</option>
                       {bandOptions.map((band) => <option key={band} value={band}>{band}</option>)}

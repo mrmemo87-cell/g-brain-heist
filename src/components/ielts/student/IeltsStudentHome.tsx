@@ -9,7 +9,7 @@ import {
 } from '../../../../services/ieltsStartingPointService';
 import IeltsWorkCard, { dueText, skillName } from './IeltsWorkCard';
 import { IeltsWaitingForScreeners } from '../IeltsTargetedPractice';
-import { openSet, seenFeedback, useIeltsStudentWork } from './useIeltsStudentWork';
+import { openSet, seenFeedback, useIeltsPracticeReviews, useIeltsStudentWork } from './useIeltsStudentWork';
 import { IeltsWaitingDots } from '../IeltsMotion';
 
 const greeting = () => {
@@ -34,7 +34,11 @@ export default function IeltsStudentHome() {
   const seen = useMemo(() => seenFeedback(), [work.tasks]);
   const tasks = work.tasks ?? [];
   const sets = work.sets ?? [];
-  const feedback = tasks.filter((t) => t.reviewed && t.status !== 'closed' && !seen.has(t.id));
+  const practiceReviews = useIeltsPracticeReviews();
+  const targetedFeedback = tasks.filter((t) => t.reviewed && t.status !== 'closed' && !seen.has(t.id));
+  // Reviewed practice-assignment essays and recordings count as feedback too, until the student opens them.
+  const practiceFeedback = (practiceReviews ?? []).filter((r) => !seen.has(`practice:${r.id}`));
+  const feedback = [...targetedFeedback, ...practiceFeedback];
   const newSets = sets.filter((a) => openSet(a) && a.student_status !== 'in_progress');
   const newTasks = tasks.filter((t) => t.status === 'assigned');
   const goingSets = sets.filter((a) => openSet(a) && a.student_status === 'in_progress');
@@ -84,10 +88,15 @@ export default function IeltsStudentHome() {
         <section className="isn-section" aria-labelledby="isn-new">
           <h2 id="isn-new" className="isn-section-title"><span className="isn-pulse" aria-hidden="true" />New for you</h2>
           <div className="isn-cards">
-            {feedback.map((t) => (
+            {targetedFeedback.map((t) => (
               <IeltsWorkCard key={t.id} index={n++} tone="feedback" chip="Feedback" kicker={`${skillName(t.skill)} · targeted`} skill={t.skill}
                 title={ieltsMaterialTitle(t.display_code, t.title)} meta="Your teacher has reviewed this task."
                 action={{ label: 'Read feedback →', to: '/ielts/practice/targeted/' + t.id }} />
+            ))}
+            {practiceFeedback.map((r) => (
+              <IeltsWorkCard key={`practice:${r.id}`} index={n++} tone="feedback" chip="Feedback" kicker={`${skillName(r.skill)} · practice`} skill={r.skill}
+                title={r.title} meta="Your teacher has reviewed this and set your band."
+                action={{ label: 'Read feedback →', to: `/ielts/review-result/${r.skill}/${encodeURIComponent(r.id)}` }} />
             ))}
             {newSets.map((a) => (
               <IeltsWorkCard key={a.id} index={n++} tone="new" chip="New" kicker={`Assignment · ${plural(a.item_count ?? a.items?.length ?? 0, 'task', 'tasks')}`}
