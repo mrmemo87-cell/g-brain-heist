@@ -67,8 +67,8 @@ test('the spoken word is the last one that has started', () => {
 test('word times ride on the existing transcription and cost nothing extra for new drafts', () => {
   assert.match(fn, /form\.append\("timestamp_granularities\[\]", "segment"\);[\s\S]{0,200}form\.append\("timestamp_granularities\[\]", "word"\);/);
   // Scribe's words carry their times; the OpenAI segment request (with word times) stays as the fallback.
-  assert.match(fn, /segments: await transcribeDraftSegments\(clip\.bytes, key, Number\(clip\.duration_seconds\) \|\| 0, admin, body\.sessionId, clip\.id, kept\.get\(clip\.id\)\)/);
-  assert.match(fn, /await keepScribeWords\(admin, sessionId, clipId, heard\);/);
+  assert.match(fn, /segments: await transcribeDraftSegments\(clip\.bytes, key, Number\(clip\.duration_seconds\) \|\| 0, admin, body\.sessionId, clip\.id\)/);
+  assert.match(fn, /keep: \(heard\) => keepScribeWords\(admin, sessionId, clipId, heard\),/);
   assert.match(fn, /p_words: timedWords\(heard\.words\), p_detail: wordDetail\(heard\.words\)/);
   assert.match(fn, /return transcribeInterview\(bytes, key, keepWords\(admin, sessionId, clipId\)\);/);
   // Saving times can never fail a draft or transcript.
