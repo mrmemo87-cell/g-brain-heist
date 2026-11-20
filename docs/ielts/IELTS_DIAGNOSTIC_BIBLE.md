@@ -1,7 +1,7 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.6.0\
+**Version:** 2.6.1\
 **Effective date:** 2026-11-21\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
@@ -901,6 +901,7 @@ but not silently as a complete IELTS Writing band.
 - Speech-to-text hints never contain the questions; any echo of a hint or of a question list is removed before marking, and no feedback may rest on echoed text.
 - In an interview, the stretches spoken by the teacher are identified and shown separately; highlights and pronunciation words may only use the student's words.
 - A pronunciation word is listed only when the listening model is sure, the word was spoken by the student, and it is in the pronouncing dictionary. A non-dictionary word (for example "conversate") is a vocabulary matter, never a pronunciation correction.
+- **A word the student used wrongly is never a pronunciation correction (2.6.1).** A wrong form ("theirself" for "themselves"), a wrong word ("response" used as a verb for "respond"), a wrong tense or an ending that is really grammar is a grammar or vocabulary matter, even when it is a dictionary word or sounded unclear; the highlights carry it. The listening model is told so, and a pronunciation tip must say how to *say* the listed word, never to use another one. The server drops any pronunciation word whose tip quotes a different dictionary word for the student to use ("Use 'respond'"), including another form of the same word when the tip says to use it instead ("Use 'information' without an s"). Sound hints ('th', 'ed') and stress spellings (PAY-shent) stay.
 - Highlights cover the clearest language problems first; a strength must be correct, natural English.
 - Improved analyses may replace older ones on screen. Interview analyses keep every earlier version as history; older practice feedback can be upgraded by a school teacher, and a failed upgrade keeps the earlier feedback.
 
@@ -2074,6 +2075,16 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.21 Revision record — v2.6.1 (2026-11-21)
+
+**Authority.** On 2026-11-21 (01:26 Asia/Bishkek) the owner reviewed an interview whose pronunciation corrections listed "theirself" ("Pronounce it clearly as 'themselves'") and "response" ("Use 'respond'"), and asked that "such mistakes should be treated more accurately".
+
+**Why it happened.** Interview transcripts now come from a speech-to-text model that keeps the student's real mistakes (ElevenLabs Scribe). Earlier transcripts often tidied such words into correct English, so the listening model never saw them. "theirself" is in the pronouncing dictionary, so the existing non-dictionary rule did not catch it.
+
+**What changed.** Section 10.7 adds the rule above. Pronunciation prompt `bh-ielts-speaking-pronunciation-words-v3`; server filter `withoutWordSwaps` in `_shared/ieltsSpeakingAnnotations.ts`, applied to practice feedback and interviews. Interview analysis `bh-ielts-speaking-interview-analysis-v5`, so interviews not yet shared with the student are re-analysed (owner decision of 2026-11-20: shared interviews keep what the student received).
+
+**What did not change.** Pronunciation is still judged only from audio by a model that listens; grammar and vocabulary highlights, bands, estimates and every label are unchanged.
 
 ### 22.20 Revision record — v2.6.0 (2026-11-21)
 

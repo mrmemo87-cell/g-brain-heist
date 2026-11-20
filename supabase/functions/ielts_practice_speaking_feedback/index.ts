@@ -18,6 +18,7 @@ import {
   transcriptLooksComplete,
   validatePronunciationPass,
   withIpa,
+  withoutWordSwaps,
   type PronunciationPass,
 } from '../_shared/ieltsSpeakingAnnotations.ts';
 import { withPronunciationPass } from '../_shared/ieltsPracticeSpeakingFeedback.ts';
@@ -222,7 +223,7 @@ Deno.serve(async (req: Request) => {
     if (!fields) throw new Error('validation_failed');
     fields = { ...fields, highlights: withoutUnsureHighlights(fields.highlights ?? [], confidence) };
     const pass = await pronunciationPass(bytes, apiKey, task, transcript, signal);
-    if (pass) fields = withPronunciationPass(fields, pass, withIpa(withoutUnsureWords(pass.words, confidence), dictionary as Record<string, string>, true));
+    if (pass) fields = withPronunciationPass(fields, pass, withIpa(withoutWordSwaps(withoutUnsureWords(pass.words, confidence), dictionary as Record<string, string>), dictionary as Record<string, string>, true));
     // Provenance: which speech-to-text model wrote the transcript is kept beside the marking model.
     const provider = providerId ? `${providerId}+${heardBy}` : providerId;
     const { error: finishError } = await admin.rpc('rpc_ielts_practice_speaking_feedback_finish', { p_id: claim.id, p_fields: fields, p_provider: provider });
