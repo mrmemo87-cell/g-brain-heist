@@ -115,7 +115,7 @@ update private.demo_people set class_code = '7A' where role = 'student' and clas
 create or replace function private.demo_username(p_key text, p_name text, p_role text) returns text language sql immutable as $$
   select case when p_role = 'student'
     then lower(translate(split_part(p_name, ' ', 1), 'ÁÉÍÓÚÜÑÖáéíóúüñöç', 'AEIOUUNOaeiouunoc')) || '_' || lower(left(regexp_replace(split_part(p_name, ' ', 2), '[^A-Za-z]', '', 'g'), 1))
-    else 'demo_' || p_key end
+    else case p_key when 'teacher' then 's.mitchell' when 'deputy' then 'd.okafor' else 'demo_' || p_key end end
 $$;
 
 -- Accounts were "created" at the start of term so nothing looks freshly made.
@@ -126,7 +126,7 @@ select private.demo_create_auth_user(
        else encode(extensions.gen_random_bytes(24), 'base64') end,
   case when p.role = 'student'
     then jsonb_build_object('role','student','username', private.demo_username(p.key, p.full_name, p.role), 'grade', '7', 'batch', p.class_code, 'full_name', p.full_name)
-    else jsonb_build_object('role', p.role, 'username', 'demo_' || p.key, 'full_name', p.full_name) end,
+    else jsonb_build_object('role', p.role, 'username', private.demo_username(p.key, p.full_name, p.role), 'full_name', p.full_name) end,
   date_trunc('day', now()) - interval '60 days'
 ) from private.demo_people p;
 
@@ -134,6 +134,14 @@ update public.users u set
   full_name = p.full_name, username = private.demo_username(p.key, p.full_name, p.role), needs_setup = false, tutorial_completed = true,
   created_at = date_trunc('day', now()) - interval '60 days'
 from private.demo_people p where p.user_id = u.id;
+
+-- The school verified every real name at the start of term (Cambridge submissions require it).
+set session_replication_role = replica;
+update public.users u set full_name_status = 'verified',
+  full_name_verified_at = date_trunc('day', now()) - interval '60 days',
+  full_name_verified_by = (select user_id from private.demo_people where key = 'teacher')
+from private.demo_people p where p.user_id = u.id;
+set session_replication_role = origin;
 
 insert into public.superadmins(user_id)
 select user_id from private.demo_people where key = 'superadmin'

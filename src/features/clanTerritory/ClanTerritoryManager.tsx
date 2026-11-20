@@ -23,6 +23,7 @@ import {
 import { brainsAlert } from "../../utils/brainsAlert";
 import { useSchoolBranding } from "../../hooks/useSchoolBranding";
 import { createSchoolDocumentId, escapeSchoolDocumentHtml, openSchoolDocumentPreview, schoolDocumentFileName } from "../../lib/schoolDocument";
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../utils/displayDate';
 type ArenaMode = "official" | "open";
 
 interface ClanTerritoryManagerProps {
@@ -190,7 +191,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
     if (!value) return null;
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return null;
-    return date.toLocaleString();
+    return date.toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME);
   };
 
   useEffect(() => {
@@ -1796,7 +1797,7 @@ const ClanTerritoryManager: React.FC<ClanTerritoryManagerProps> = ({
                           )}
                           <p>
                             Updated:{" "}
-                            <span className="text-white">{new Date(room.lastUpdatedAt).toLocaleString()}</span>
+                            <span className="text-white">{new Date(room.lastUpdatedAt).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}</span>
                           </p>
                         </div>
                         <div className="flex justify-end">

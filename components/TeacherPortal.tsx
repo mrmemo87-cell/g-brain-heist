@@ -104,7 +104,7 @@ import { useIeltsTeacherProgrammeEntry } from '../src/hooks/useIeltsTeacherProgr
 import TeacherIeltsProgrammeShortcut, { IeltsProgrammeIcon } from './teacher/TeacherIeltsProgrammeShortcut';
 import ArenaTeacherCard from './arena/ArenaTeacherCard';
 import { teacherProgrammeRoute } from '../services/ieltsTeacherProgrammeEntry';
-import { DISPLAY_DATE, displayDateLocale } from '../src/utils/displayDate';
+import { DISPLAY_DATE, displayDateLocale, DISPLAY_DATE_TIME } from '../src/utils/displayDate';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -4431,7 +4431,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         row.correct,
         row.incorrect,
         row.accuracy,
-        new Date(row.completed_at).toLocaleString(),
+        new Date(row.completed_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME),
         row.completion_source === 'paper' ? 'Paper - Teacher confirmed' : 'Online',
       ].map(safeCsvCell).join(',')
     ));
@@ -5092,7 +5092,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 <thead>
                   <tr>
                     <th>Title</th>
-                    <th>Subject</th>
+                    <th>Class</th>
                     <th style={{ textAlign: 'center' }}>Completed</th>
                     <th style={{ textAlign: 'center' }}>Status</th>
                   </tr>
@@ -5103,7 +5103,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     return (
                     <tr key={a.id}>
                       <td data-label="Assignment" style={{ fontWeight: 500 }}>{a.title}</td>
-                      <td data-label="Subject">{a.subject_name}</td>
+                      <td data-label="Class">{a.subject_group_name || (a.assignment_mode === 'custom' ? 'Selected students' : a.batch) || a.subject_name}</td>
                       <td data-label="Completed" style={{ textAlign: 'center' }}>{a.completed_count}/{a.student_count}</td>
                       <td data-label="Status" style={{ textAlign: 'center' }}>
                         <span className={`teacher-badge ${
@@ -6780,7 +6780,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                             {row.accuracy}%
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-slate-500 text-sm">{new Date(row.completed_at).toLocaleString()}</td>
+                        <td className="py-3 px-4 text-slate-500 text-sm">{new Date(row.completed_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}</td>
                         <td className="py-3 px-4">
                           <button
                             onClick={() => handleViewStudentAnalysis(row)}
@@ -6903,7 +6903,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                 </h2>
                 <p className="text-slate-600 mt-1">
                   Class: {selectedAnalysisStudent.batch ?? '—'} ·
-                  Completed: {new Date(selectedAnalysisStudent.completed_at).toLocaleString()}
+                  Completed: {new Date(selectedAnalysisStudent.completed_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}
                 </p>
               </div>
               <div className="text-center">

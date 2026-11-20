@@ -13,6 +13,7 @@ import {
   CrackerIcon,
   CosmeticIcon,
 } from './icons';
+import { displayDateLocale, DISPLAY_TIME } from '../src/utils/displayDate';
 
 interface InventoryViewProps {
   onComplete: () => void;
@@ -139,7 +140,7 @@ const ItemCard: React.FC<{ item: InventoryItem & any, onActivate: (inv_id: strin
                   return 'Active permanently';
                 }
 
-                return `Active until ${new Date(item.expires_at).toLocaleTimeString()}`;
+                return `Active until ${new Date(item.expires_at).toLocaleTimeString(displayDateLocale(), DISPLAY_TIME)}`;
               }
 
               if (item.kind === 'cracker') {

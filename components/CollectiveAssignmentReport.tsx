@@ -9,7 +9,7 @@ import './CollectiveAssignmentReport.css';
 import { useSchoolBranding } from '../src/hooks/useSchoolBranding';
 import { isAssignedTo } from '../src/lib/collectiveReportScope';
 import { createSchoolDocumentId, registerSchoolDocumentRecord, schoolDocumentFileName } from '../src/lib/schoolDocument';
-import { DISPLAY_DATE, displayDateLocale } from '../src/utils/displayDate';
+import { DISPLAY_DATE, displayDateLocale, DISPLAY_DATE_TIME } from '../src/utils/displayDate';
 
 // localStorage key prefix for persisted custom orders
 const CUSTOM_ORDER_STORAGE_KEY = 'brains_collective_report_custom_order';
@@ -1169,7 +1169,7 @@ const CollectiveAssignmentReport: React.FC<CollectiveAssignmentReportProps> = ({
                         <td key={a.id} className="collective-results-assignment-cell py-3 px-2 text-center">
                           <span
                             className={`inline-block px-2 py-0.5 rounded-md text-xs font-bold border ${accuracyBg(s.accuracy)}`}
-                            title={`Score: ${s.score} | Accuracy: ${s.accuracy}% | ✅ ${s.correct} ❌ ${s.incorrect}\nCompleted: ${new Date(s.completedAt).toLocaleString()}`}
+                            title={`Score: ${s.score} | Accuracy: ${s.accuracy}% | ✅ ${s.correct} ❌ ${s.incorrect}\nCompleted: ${new Date(s.completedAt).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}`}
                           >
                             {val}
                           </span>

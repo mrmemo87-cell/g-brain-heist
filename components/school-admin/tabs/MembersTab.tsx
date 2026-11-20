@@ -478,7 +478,7 @@ const MembersTab: React.FC = () => {
               })}
             </tbody>
           </table>
-          {!visiblePeople.length && <div className="community-empty">No {activePeopleTab}s match these filters.</div>}
+          {!visiblePeople.length && <div className="community-empty">{activePeopleTab === 'teacher' && tabCounts.teacher === 0 && tabCounts.admin > 0 ? 'Teachers who are also school admins are listed under School Admins.' : `No ${activePeopleTab}s match these filters.`}</div>}
         </div>
 
         <div className="community-mobile-list" aria-label={`${activePeopleTab === 'student' ? 'Students' : 'Teachers'} directory`}>

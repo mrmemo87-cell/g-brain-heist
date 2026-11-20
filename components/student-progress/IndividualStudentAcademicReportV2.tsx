@@ -18,7 +18,7 @@ import {
 } from './academicReportingSemantics';
 import './StudentAcademicProfile.css';
 import './StudentAcademicProfileV2Enhancements.css';
-import { displayDateLocale } from '../../src/utils/displayDate';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../src/utils/displayDate';
 
 interface IndividualStudentAcademicReportProps {
   profile: StudentAcademicProfile;
@@ -134,7 +134,7 @@ const IndividualStudentAcademicReportV2: React.FC<IndividualStudentAcademicRepor
 
   const brand = useMemo(() => createSchoolBrand({ schoolId: profile.student.school_id, schoolName, schoolLogoUrl }), [profile.student.school_id, schoolName, schoolLogoUrl]);
   const reportId = useMemo(() => `APR-${new Date().getFullYear()}-${profile.student.id.slice(0, 8).toUpperCase()}`, [profile.student.id]);
-  const generatedAt = useMemo(() => new Date().toLocaleString(), []);
+  const generatedAt = useMemo(() => new Date().toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME), []);
   const assessmentEvidence = useMemo(() => aggregateAssessmentEvidence(profile.timeline), [profile.timeline]);
   const teacherEvidence = assessmentSnapshot(profile, assessmentEvidence);
   const currentFocus = profile.focus_areas.filter((item) => isActiveSupportStatus(item.status));

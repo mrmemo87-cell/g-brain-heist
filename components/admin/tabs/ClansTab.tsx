@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAdmin } from '../AdminContext';
 import * as CompetitionService from '../../../services/competitionService';
-import { DISPLAY_DATE, displayDateLocale } from '../../../src/utils/displayDate';
+import { DISPLAY_DATE, displayDateLocale, DISPLAY_DATE_TIME } from '../../../src/utils/displayDate';
 
 const IGNORED_DETAIL_KEYS = new Set(['crest_url', 'description', 'name', 'leader_id']);
 
@@ -18,7 +18,7 @@ const formatMaybeDate = (value: unknown) => {
   if (typeof value !== 'string') return formatValue(value);
   const parsed = Date.parse(value);
   if (Number.isNaN(parsed)) return value;
-  return new Date(parsed).toLocaleString();
+  return new Date(parsed).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME);
 };
 
 const ClansTab: React.FC = () => {

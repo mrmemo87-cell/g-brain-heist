@@ -9,6 +9,7 @@ import { isFlickerThemeActive } from '../src/lib/cosmetics';
 import ClickableUsername from './ClickableUsername';
 import BrainsMasterBadge from './BrainsMasterBadge';
 import { neonIcon } from './visualAssets';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../src/utils/displayDate';
 
 type ClanViewStage = 'loading' | 'no_clan' | 'in_clan' | 'creating' | 'joining';
 type ClanTab = 'home' | 'chat' | 'management' | 'browse';
@@ -1745,7 +1746,7 @@ const ClanView: React.FC<ClanViewProps> = ({ profile, onComplete, onUpdateProfil
                                                          <div>
                                                              <p className="font-semibold text-white">{formatRequestName(request)}</p>
                                                              <p className="text-xs text-gray-400">
-                                                                 Requested at {request.requested_at ? new Date(request.requested_at).toLocaleString() : request.created_at ? new Date(request.created_at).toLocaleString() : 'unknown time'}
+                                                                 Requested at {request.requested_at ? new Date(request.requested_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME) : request.created_at ? new Date(request.created_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME) : 'unknown time'}
                                                              </p>
                                                          </div>
                                                      </div>

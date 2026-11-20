@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../services/supabaseClient';
 import { type IeltsFunnelEventName } from '../../../services/ieltsFunnelAnalytics';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../utils/displayDate';
 
 const FUNNEL_STEPS: Array<{ key: string; label: string; events: IeltsFunnelEventName[]; intent: string }> = [
   { key: 'landing', label: 'Landing views', events: ['landing_view'], intent: 'Visitors reached the IELTS public page.' },
@@ -172,8 +173,8 @@ const IeltsFunnelAnalytics: React.FC = () => {
               <div style={cardStyle}><div style={muted}>Unique users</div><strong style={{ fontSize: '2rem' }}>{metrics.uniqueUsers}</strong></div>
               <div style={cardStyle}><div style={muted}>Checkout redirects</div><strong style={{ fontSize: '2rem' }}>{metrics.checkoutCompleted}</strong></div>
               <div style={cardStyle}><div style={muted}>Backend activations</div><strong style={{ fontSize: '2rem' }}>{metrics.activated}</strong></div>
-              <div style={cardStyle}><div style={muted}>First event</div><strong>{metrics.first ? new Date(metrics.first).toLocaleString() : '—'}</strong></div>
-              <div style={cardStyle}><div style={muted}>Latest event</div><strong>{metrics.latest ? new Date(metrics.latest).toLocaleString() : '—'}</strong></div>
+              <div style={cardStyle}><div style={muted}>First event</div><strong>{metrics.first ? new Date(metrics.first).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME) : '—'}</strong></div>
+              <div style={cardStyle}><div style={muted}>Latest event</div><strong>{metrics.latest ? new Date(metrics.latest).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME) : '—'}</strong></div>
             </section>
 
             <div style={{ overflowX: 'auto', ...cardStyle, padding: 0 }}>
@@ -204,7 +205,7 @@ const IeltsFunnelAnalytics: React.FC = () => {
             <QualityTable
               title="Recent activity"
               columns={['Created', 'Event', 'Country', 'Source', 'Route']}
-              rows={rows.slice(0, 20).map((row) => [new Date(row.created_at).toLocaleString(), row.event_name, displayCountry(row), displayValue(row.utm_source || row.source), displayValue(row.route)])}
+              rows={rows.slice(0, 20).map((row) => [new Date(row.created_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME), row.event_name, displayCountry(row), displayValue(row.utm_source || row.source), displayValue(row.route)])}
             />
 
             <section style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>

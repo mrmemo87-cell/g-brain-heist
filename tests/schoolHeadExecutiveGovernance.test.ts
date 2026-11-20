@@ -53,7 +53,7 @@ test('executive portal includes every governance area and protected transfer UI'
   assert.match(portal, /data-testid="school-head-portal"/);
   assert.match(portal, /Transfer School Head ownership/);
   assert.match(portal, /transferConfirmation\.trim\(\) !== snapshot\.school\.name/);
-  assert.match(portal, /Operational Administration/);
+  assert.match(portal, /Day-to-day roster changes are made in School Administration/);
 });
 
 test('snapshot normalizer rejects non-head and malformed payloads', () => {

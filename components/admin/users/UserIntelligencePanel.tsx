@@ -4,6 +4,7 @@ import {
   type IntelligenceWarning,
   type SuperadminUserIntelligence,
 } from '../../../services/superadminUserIntelligenceService';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../../src/utils/displayDate';
 
 type IntelligenceTab = 'overview' | 'activity' | 'access';
 
@@ -15,7 +16,7 @@ const formatDateTime = (value?: string | null) => {
   if (!value) return '—';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleString();
+  return date.toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME);
 };
 
 const formatNumber = (value?: number | null) => Number(value ?? 0).toLocaleString();

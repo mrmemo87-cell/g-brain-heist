@@ -25,7 +25,7 @@ import {
   openSchoolDocumentPreview,
   schoolDocumentFileName,
 } from '../src/lib/schoolDocument';
-import { DISPLAY_DATE, displayDateLocale } from '../src/utils/displayDate';
+import { DISPLAY_DATE, displayDateLocale, DISPLAY_DATE_TIME, DISPLAY_TIME } from '../src/utils/displayDate';
 
 // ── Types ──
 
@@ -1818,8 +1818,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
                   </div>
                   {bp && <div className="mt-2 text-sm font-medium text-slate-800">{bp.name}</div>}
                   <div className="text-xs text-slate-500 mt-1">
-                    Created {new Date(f.created_at).toLocaleString()}
-                    {f.published_at && ` · Published ${new Date(f.published_at).toLocaleString()}`}
+                    Created {new Date(f.created_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}
+                    {f.published_at && ` · Published ${new Date(f.published_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}`}
                   </div>
                 </div>
                 );
@@ -2279,8 +2279,8 @@ const AdmissionHub: React.FC<AdmissionHubProps> = ({ onComplete, addToast }) => 
 
                 <div className="grid grid-cols-3 gap-3">
                   {statCard('Score', `${visibleReportScoreTotal}/${visibleReportQuestionTotal}`, '🎯', 'border-cyan-200')}
-                  {statCard('Started', new Date(reportData.started_at).toLocaleTimeString(), '🕐', 'border-slate-300/30')}
-                  {statCard('Submitted', new Date(reportData.submitted_at).toLocaleTimeString(), '✅', 'border-emerald-200')}
+                  {statCard('Started', new Date(reportData.started_at).toLocaleTimeString(displayDateLocale(), DISPLAY_TIME), '🕐', 'border-slate-300/30')}
+                  {statCard('Submitted', new Date(reportData.submitted_at).toLocaleTimeString(displayDateLocale(), DISPLAY_TIME), '✅', 'border-emerald-200')}
                 </div>
 
                 <AdmissionReportPartialAttemptNotice metrics={visibleReportPartialAttemptMetrics.partialAttempt ? visibleReportPartialAttemptMetrics : reportPartialAttemptMetrics} />

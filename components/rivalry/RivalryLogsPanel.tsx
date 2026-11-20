@@ -1,6 +1,7 @@
 import React from 'react';
 import { RivalryLogEntry } from '../../services/rivalryService';
 import { RIVALRY_STRUCTURE_LABELS } from './rivalryLabels';
+import { displayDateLocale, DISPLAY_DATE_TIME } from '../../src/utils/displayDate';
 
 interface RivalryLogsPanelProps {
   logs: RivalryLogEntry[];
@@ -44,7 +45,7 @@ const RivalryLogsPanel: React.FC<RivalryLogsPanelProps> = ({ logs, loading, hasM
           <div key={log.id} className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm hover:border-white/20 transition-all duration-300 animate-fade-in-up">
             <div className="flex justify-between gap-2 items-center">
               <span className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide ${badgeClass(log.action_type)}`}>{log.action_type}</span>
-              <span className="text-[11px] text-gray-500">{new Date(log.created_at).toLocaleString()}</span>
+              <span className="text-[11px] text-gray-500">{new Date(log.created_at).toLocaleString(displayDateLocale(), DISPLAY_DATE_TIME)}</span>
             </div>
             <div className="text-sm text-gray-100 mt-1">{renderEventLine(log, actorNamesById, viewerClanId)}</div>
             <div className="text-xs text-gray-300 mt-1">
