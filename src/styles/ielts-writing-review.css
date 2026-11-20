@@ -98,3 +98,9 @@ body:has(.writing-review) [data-global-language-control="true"] { top:calc(12px 
 .wr-empty p { color:#475569; font-size:.95rem; line-height:1.8; }
 @media(max-width:900px) { .wr-workspace { grid-template-columns:1fr; } .wr-essay { position:static; } .writing-review .wr-original { height:400px; } }
 @media(max-width:540px) { .writing-review { padding:72px 12px 36px; } .wr-header { padding:18px; border-radius:18px; } .wr-header-icon { display:none; } .wr-card { padding:18px; border-radius:16px; } .wr-workspace { gap:18px; } .wr-header-footer { gap:10px; } .wr-queue-row { flex-wrap:wrap; gap:12px; } .wr-queue-row>.wr-primary { width:100%; } .wr-filters { width:100%; } .wr-filters button { flex:1; } .wr-criteria button { font-size:.73rem; } .wr-alert { flex-wrap:wrap; } }
+
+/* Starting band (Diagnostic Bible 2.6.0 section 10.11, UX Bible 13.10) */
+.wr-start .pf-band { margin: .75rem 0 1rem; }
+.wr-start-row { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin: .4rem 0 .6rem; }
+.wr-start-select { min-height: 44px; min-width: 9rem; padding: .5rem .8rem; border: 1px solid #cbd5e1; border-radius: 12px; background: #fff; font-size: 1rem; font-weight: 700; color: #0f172a; }
+.wr-start-select:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }

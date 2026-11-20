@@ -1,8 +1,8 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.5.1\
-**Effective date:** 2026-11-14\
+**Version:** 2.6.0\
+**Effective date:** 2026-11-21\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
 
@@ -703,7 +703,7 @@ A short screener may output a platform-calculated band range only if:
 - error/uncertainty is known;
 - the UI shows confidence/range rather than false precision.
 
-Until then, short forms report performance and constructs, not a definitive band. A separately stored and attributed provisional teacher judgment is permitted only under section 9.4; it is not a calibrated output of the short form.
+Until then, short forms report performance and constructs, not a definitive band. A separately stored and attributed provisional teacher judgment is permitted only under section 9.4, and the teacher-set Writing starting band of section 10.11; neither is a calibrated output of the short form.
 
 ### 9.5 Indicative band range policy bh-indicative-v1
 
@@ -870,7 +870,7 @@ but not silently as a complete IELTS Writing band.
 **What does not change (safeguards kept)**
 - Brains Heist feedback is **never** evidence, never a band score, never a readiness estimate, and never enters the learning record, reports, confidence or indicative ranges. Without a teacher, nothing confirms it, so it stays practice feedback permanently.
 - If the learner later joins a school, earlier feedback remains unconfirmed practice feedback; a teacher may confirm items under section 10.5 from then on.
-- Screeners, mocks and independent checks never receive AI feedback (section 10.5).
+- Screeners, mocks and independent checks never receive AI feedback (section 10.5). The one exception is the teacher-confirmed Writing starting band of section 10.11, which is shown only after a school teacher shares the review.
 - **Starting-point checks:** independent learners are offered only the auto-scored Listening and Reading screeners. Writing and Speaking screeners require teacher review (sections 9.4 and 10), so they are shown only to learners with a school IELTS teacher. Saved Writing/Speaking screener attempts are preserved and stay visible in the learner's record.
 - Rate limits, provider logging rules and server-side authorization are unchanged.
 
@@ -945,11 +945,12 @@ but not silently as a complete IELTS Writing band.
 - AI may mark short phrases copied exactly from the student's essay, each tagged with ONE criterion (Task Achievement for Task 1 or Task Response for Task 2, Coherence and Cohesion, Lexical Resource, Grammatical Range and Accuracy), as *done well* or *to improve*, with one short note.
 - A *to improve* language highlight carries the corrected wording of exactly the quoted words. Ideas and organisation problems may have no correction; the note says what to do instead. A *done well* phrase must be correct English and never carries a correction.
 - **Corrections model strong IELTS writing (2.5.1).** A correction is written as a band 7+ candidate would write it in that essay: formal academic English, no contractions or spoken phrases ("let's"), precise natural collocations, the student's own meaning and no new ideas. It upgrades weak or informal wording, not only grammar. A broken sentence is quoted and corrected as a whole. The server drops a correction that does not fit in place of the quote (different end punctuation, a lower-case start where the quote starts a sentence, far longer than the quote, or informal); the note still shows.
-- The server keeps only quotes found in the essay and stores their exact position. Problems come first. Invalid highlights are dropped without failing the feedback.
-- On a screener, highlights are part of the teacher's private AI draft only. The student never sees AI output on a screener (section 10.6); the teacher's shared observations are unchanged and the screener still produces no band (sections 9.3, 10.4).
+- The server keeps only quotes found in the essay and stores their exact position. Invalid highlights are dropped without failing the feedback.
+- **Every error is marked (2.6.0).** The AI is told to mark every language problem it finds, sentence by sentence, up to 30, never only "the clearest". A second AI pass then receives the essay and the phrases already marked and lists only errors left unmarked (it never overlaps a marked phrase and is dropped silently if it fails). Finally the server runs fixed checks that cannot be skipped: a missing space after , ; : . ! ? or a plural apostrophe, a space before punctuation, double spaces, a small letter at the start of a sentence or paragraph, a lone "i", a capital letter after a comma when the essay writes that word in small letters elsewhere, a repeated word and a fixed list of common misspellings. Numbers, e.g./i.e., names and web addresses are left alone. A fixed-check finding inside an AI fix whose correction already replaces it is not repeated; one that touches an AI fix is added to that fix's note; a *done well* phrase containing such a slip is removed. AI corrections are cleaned of the same slips. Up to 60 highlights; notes up to 500 characters. No check can promise zero misses, so the teacher still reads the essay; misses reported by teachers are added to the fixed checks or the list.
+- On a screener, highlights are part of the teacher's private AI draft only. The student never sees AI highlights on a screener (section 10.6); the student sees the teacher's shared observations and, from 2.6.0, the teacher-set starting band of section 10.11 (sections 9.3, 10.4).
 
 **AI estimated band for one Writing practice task**
-- Practice tasks only, never screeners, mocks or independent checks.
+- Practice tasks only, never mocks or independent checks. Writing screeners use the teacher-confirmed starting band of section 10.11 instead.
 - The AI never writes the number. The server calculates it from the four criterion ranges of section 10.5: the mean of the range midpoints, rounded to the nearest half band (halves round up), shown with its likely range of ± 0.5. If any criterion has no range, no estimate is shown.
 - Label: **AI estimated band · Task N**, its likely range beside it, and **Not an official IELTS result**. School learners also see **Waiting for your teacher to confirm** until the review is finalized; self-paced learners see **Brains Heist estimate** wording (section 10.6).
 - The estimate covers that one task only. It is never a full Writing band, never an overall band, never an indicative band range (section 9.5) and never a readiness estimate (section 9.4).
@@ -959,8 +960,25 @@ but not silently as a complete IELTS Writing band.
 - The teacher sees the AI estimate as a suggestion and can copy it, with the criterion midpoints, into their own bands with one button. Nothing is filled in without that action. The **task band** the teacher finalizes is the checked result; the student then sees it labelled as checked by the teacher, beside the earlier AI estimate.
 - Only the teacher's finalized bands may become evidence (sections 8A.3, 10.5). The AI estimate and highlights stay practice feedback.
 
-**Provenance.** Model, prompt version (practice `bh-ielts-practice-feedback-v3`, screener draft `bh-ielts-task2-simple-feedback-v2`) and time are recorded. AI and teacher bands are kept side by side so disagreements can be reviewed (section 10.2).
+**Provenance.** Model, prompt version (practice `bh-ielts-practice-feedback-v5`, screener draft `bh-ielts-task2-simple-feedback-v4`) and time are recorded. AI and teacher bands are kept side by side so disagreements can be reviewed (section 10.2).
 
+### 10.11 Writing screener starting point (AI starting band, teacher-set) — 2.6.0
+
+**Owner-authorized (2026-11-21 00:37 Asia/Bishkek)** after reviewing a screener AI draft that showed no band: *"all screeners need to show a starting point to both the teacher and the students"*. This narrows sections 9.3, 10.6 and 10.9 for the Writing screener only.
+
+**AI starting band (teacher only)**
+- The screener AI draft (prompt `bh-ielts-task2-simple-feedback-v4`) gives a band range per criterion (whole or half numbers, high = low + 1; none only for *more evidence needed*). Numbers never appear in comments.
+- The server, never the AI, works out the starting band exactly as section 10.9: mean of the range midpoints, nearest half band, halves up, ± 0.5. The database rejects a draft whose band differs from that rule. If any criterion has no range, there is no AI band.
+- The teacher sees it in the review as **AI starting band · Task 2**, its likely range and **Suggestion only · you confirm or change it**, with a **Use AI band** button. Nothing is filled in automatically.
+
+**Teacher-set starting band (teacher and student)**
+- For an answered essay the teacher must choose a starting band (1.0–9.0 in half bands) before sharing the review; with no AI band the teacher chooses one alone. Blank or invalid writing gets no band.
+- It is stored append-only after the shared review, with the teacher, time, the AI band beside it and whether the teacher confirmed it, changed it or set it alone (`bh-writing-starting-point-v1`). The newest decision is shown; earlier ones are kept for section 10.2 comparison. The teacher can change it later without re-sharing the feedback.
+- The student sees it only after the review is shared: **Writing starting point · Task 2**, the band, **Likely range x–y**, **Checked by your teacher**, **Not an official IELTS result** and **One Task 2 essay · Confidence: low**. Before that the student sees that the starting band will appear after the teacher checks the essay. The student never sees the AI band alone.
+
+**What it is not**
+- One Task 2 essay: a planning starting point, not a full Writing band (10.4), not an indicative band range (9.5), not an overall band and not a calibrated short-form estimate (9.3). It may inform, but never replace, the evidence review of a provisional teacher readiness estimate (9.4).
+- Speaking screeners are unchanged by this section.
 
 ### 10.10 Teacher-only AI band estimates for a full Speaking interview
 
@@ -2056,6 +2074,16 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.20 Revision record — v2.6.0 (2026-11-21)
+
+**Authority.** On 2026-11-21 (00:37 Asia/Bishkek) the owner reviewed a Writing screener AI draft and wrote: "all screeners need to show a starting point to both the teacher and the students", "add all the missing mistakes and investigate why they were missing, and how to be sure next check never misses such mistakes".
+
+**Why mistakes were missed.** The v3 instructions asked for "the clearest problems … up to 12, most important first" and the server kept at most 16 highlights; that draft had exactly 12 fixes and 4 strengths, so it stopped at the cap. Punctuation was limited to errors "that change meaning", so missing spaces after commas and full stops were out of scope, and language models read text in chunks that hide such slips. Overlapping quotes were dropped, and one *done well* phrase contained a missing space.
+
+**What changed.** Section 10.9 adds the every-error rule, the proofreading pass and the fixed server checks (`ieltsWritingMechanics.ts`). New section 10.11 adds the teacher-set Writing screener starting band and its teacher-only AI suggestion; sections 9.3 and 10.6 note the exception. Prompts: practice `bh-ielts-practice-feedback-v5`, screener draft `bh-ielts-task2-simple-feedback-v4`. Migration `20261121010000_ielts_writing_starting_point_full_check.sql`.
+
+**What did not change.** Teacher confirmation before anything reaches the student, screener highlight privacy, practice estimates, Speaking screeners, and every rule on full Writing, indicative and overall bands.
 
 ### 22.19 Revision record — v2.5.1 (2026-11-14)
 

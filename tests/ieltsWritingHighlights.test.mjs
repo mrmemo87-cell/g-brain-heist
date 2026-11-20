@@ -61,16 +61,25 @@ test("practice feedback carries highlights and the estimate; bad highlights neve
   assert.match(practiceFeedbackInstructions(2), /correction/);
   assert.match(writingHighlightInstructions(1), /task_achievement/);
 });
-test("screener teacher draft (v2) adds highlights but still gives no band", () => {
-  const observations = Object.fromEntries(["task_response", "coherence_cohesion", "lexical_resource", "grammar_range_accuracy"].map((k) => [k, { status: "developing", comment: "Your opinion is clear. Explain one reason in more detail.", quotes: ["technology is a powerful tool"] }]));
+test("screener teacher draft (v4, Bible 2.6.0 section 10.11) works out the AI starting band on the server from criterion ranges", () => {
+  const keys = ["task_response", "coherence_cohesion", "lexical_resource", "grammar_range_accuracy"];
+  const observations = Object.fromEntries(keys.map((k) => [k, { status: "developing", comment: "Your opinion is clear. Explain one reason in more detail.", quotes: ["technology is a powerful tool"] }]));
+  const bands = (lows) => Object.fromEntries(keys.map((k, i) => [k, { low: lows[i], high: lows[i] + 1 }]));
   const ctx = { response_text: essay, prompt: "Discuss.", word_count: 22, response_state: "answered", incident_count: 0, rubric_snapshot: {} };
-  const out = validateWritingAiOutput({ observations, next_step: "Add one example. Check it supports your reason.", highlights: [
+  const out = validateWritingAiOutput({ observations, criterion_bands: bands([5, 5, 5.5, 4.5]), next_step: "Add one example. Check it supports your reason.", highlights: [
     { criterion: "grammar_range_accuracy", kind: "fix", quote: "peoples is", note: "Use the plural verb.", correction: "people are" }
   ] }, ctx);
   assert.equal(out.highlights.length, 1);
-  assert.equal("estimate" in out, false);
-  const blank = validateWritingAiOutput({ observations: Object.fromEntries(Object.keys(observations).map((k) => [k, { status: "insufficient_evidence", comment: "There is not enough writing to judge this yet.", quotes: [] }])), next_step: "Write a full essay next time.", highlights: [] }, { ...ctx, response_state: "blank" });
+  // midpoints 5.5, 5.5, 6, 5 -> mean 5.5 -> band 5.5, range 5.0-6.0
+  assert.deepEqual(out.estimate, { band: 5.5, low: 5, high: 6 });
+  assert.deepEqual(validateWritingAiOutput({ observations, criterion_bands: bands([5, 5, 5, 5.5]), next_step: "Add one example. Check it supports your reason.", highlights: [] }, ctx).estimate.band, 5.5, "5.625 rounds to the nearest half band");
+  assert.throws(() => validateWritingAiOutput({ observations, criterion_bands: { ...bands([5, 5, 5, 5]), task_response: { low: 5, high: 7 } }, next_step: "Add one example. Check it supports your reason.", highlights: [] }, ctx), /invalid_ai_band/);
+  assert.throws(() => validateWritingAiOutput({ observations, criterion_bands: { ...bands([5, 5, 5, 5]), task_response: { low: null, high: null } }, next_step: "Add one example. Check it supports your reason.", highlights: [] }, ctx), /invalid_ai_band/, "a judged criterion needs a range");
+  assert.throws(() => validateWritingAiOutput({ observations, criterion_bands: bands([5, 5, 5, 5]), next_step: "Your band score is 6. Add one example.", highlights: [] }, ctx), "numbers stay out of the comments");
+  const none = Object.fromEntries(keys.map((k) => [k, { low: null, high: null }]));
+  const blank = validateWritingAiOutput({ observations: Object.fromEntries(keys.map((k) => [k, { status: "insufficient_evidence", comment: "There is not enough writing to judge this yet.", quotes: [] }])), criterion_bands: none, next_step: "Write a full essay next time.", highlights: [] }, { ...ctx, response_state: "blank" });
   assert.deepEqual(blank.highlights, []);
+  assert.equal(blank.estimate, null);
 });
 
 test('corrections must read as formal IELTS writing and fit in place of the quote (Bible 2.5.1 section 10.9)', async () => {

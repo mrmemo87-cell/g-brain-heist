@@ -10,6 +10,8 @@ export type WritingObservationStatus = 'observed' | 'developing' | 'insufficient
 export interface WritingEvidenceSpan { quote: string; start_char: number; end_char: number }
 export interface WritingObservation { status: WritingObservationStatus; comment: string; evidence: WritingEvidenceSpan[] }
 export type WritingObservations = Record<WritingCriterion, WritingObservation>;
+/** Teacher-set Writing starting band (Diagnostic Bible 2.6.0 section 10.11). Not an official IELTS result. */
+export type WritingStartingPoint = { band: number; low: number; high: number; ai_band: number | null; source: 'teacher_confirmed_ai' | 'teacher_changed_ai' | 'teacher_set'; set_at: string; policy_version: string };
 export interface WritingScreenerResult {
   attempt_id: string; student_id: string; submitted_at: string; prompt: string;
   response_text: string; response_sha256: string; response_state: 'answered' | 'unanswered' | 'invalid';
@@ -18,6 +20,7 @@ export interface WritingScreenerResult {
   criterion_observations: Partial<WritingObservations>; next_step: string | null; delivery_comment: string | null;
   reviewed_at: string | null; confidence: 'low'; incident_count: number; can_review: boolean;
   practice_revision?: { id: string; response_text: string; created_at: string; source_review_id: string } | null;
+  starting_point?: WritingStartingPoint | null;
   readiness_available: false; persistent_weakness_available: false;
 }
 export function countWritingWords(text: string): number { return text.trim() ? text.trim().split(/\s+/u).length : 0; }
@@ -45,6 +48,11 @@ export function parseWritingScreenerResult(value: unknown): WritingScreenerResul
     || !['pending','teacher_reviewed'].includes(v.review_status) || v.confidence !== 'low'
     || v.readiness_available !== false || v.persistent_weakness_available !== false
     || !v.criterion_observations || typeof v.criterion_observations !== 'object') throw new Error('Your essay is saved. The feedback needs review before it can be shown.');
+  const halfBand = (n: unknown) => typeof n === 'number' && n >= 0 && n <= 9 && n * 2 === Math.floor(n * 2);
+  if (v.starting_point != null) {
+    const p = v.starting_point;
+    if (v.review_status !== 'teacher_reviewed' || !halfBand(p.band) || !halfBand(p.low) || !halfBand(p.high) || p.high - p.low > 1) v.starting_point = null;
+  }
   if (v.review_status === 'teacher_reviewed') {
     for (const { key } of IELTS_WRITING_CRITERIA) {
       const observation = v.criterion_observations[key];

@@ -10,7 +10,7 @@ const load = async (contents) => {
 };
 const { React, renderToStaticMarkup, WRITING_AI_KEYS, WRITING_AI_INSTRUCTIONS, validateWritingAiOutput, mergeWritingAiDraft, parseWritingAiDraft, IeltsWritingReviewWorkspace } = await load("export { default as React } from 'react';\nexport { renderToStaticMarkup } from 'react-dom/server';\nexport { WRITING_AI_KEYS, WRITING_AI_INSTRUCTIONS, validateWritingAiOutput } from './supabase/functions/_shared/ieltsWritingAiDraft';\nexport { mergeWritingAiDraft, parseWritingAiDraft } from './services/ieltsWritingAiReview';\nexport { IeltsWritingReviewWorkspace } from './src/components/ielts/IeltsWritingReviewWorkspace';");
 const context = { response_text: "My view \u{1F60A}. Schools should give students some choice.", prompt: "Discuss the views and your opinion.", word_count: 10, response_state: "answered", incident_count: 1, rubric_snapshot: { version: "fixture" } };
-const output = () => ({ observations: Object.fromEntries(WRITING_AI_KEYS.map((key) => [key, { status: "developing", comment: "Your opinion is clear. Add an example to explain your reason.", quotes: ["Schools should give students some choice."] }])), next_step: "Add one example to your main paragraph. Check that it explains your reason." });
+const output = () => ({ observations: Object.fromEntries(WRITING_AI_KEYS.map((key) => [key, { status: "developing", comment: "Your opinion is clear. Add an example to explain your reason.", quotes: ["Schools should give students some choice."] }])), criterion_bands: Object.fromEntries(WRITING_AI_KEYS.map((key) => [key, { low: 5, high: 6 }])), next_step: "Add one example to your main paragraph. Check that it explains your reason." });
 const source = {
   ...context,
   response_state: "answered",
@@ -56,6 +56,7 @@ test("AI draft rejects fabricated evidence, scores, missing criteria, advanced j
   assert.throws(() => validateWritingAiOutput(output(), { ...context, response_state: "unanswered", response_text: "" }));
   const blank = output();
   for (const key of WRITING_AI_KEYS) {
+    blank.criterion_bands[key] = { low: null, high: null };
     blank.observations[key].status = "insufficient_evidence";
     blank.observations[key].quotes = [];
     blank.observations[key].comment = "There is no essay to review yet. Write a response to the task.";

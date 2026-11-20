@@ -1,8 +1,8 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.14.0
-**Effective date:** 2026-11-14\
+**Version:** 1.15.0
+**Effective date:** 2026-11-21\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
 
@@ -293,6 +293,8 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 - The teacher's "Your bands" panel shows the AI estimate with a "Use AI bands, then check" button and an "AI estimates x · you decide" hint under the task band. Nothing is filled in automatically.
 - The finalized student result uses the 13.9 hero: "Task N band" from the teacher, "Checked by your teacher, date", the earlier AI estimate in a quiet chip, criterion tiles, the essay, then teacher feedback.
 - On a screener, the teacher's AI draft shows the highlighted essay under the original, with the line "Only you see these highlights".
+- **Writing screener starting band (1.15.0, Diagnostic Bible 10.11).** In the teacher review a "Starting band" card sits above the next step: the AI starting band in the 13.10 gradient card (label "AI starting band · Task 2", the number, "Likely range x–y", "Suggestion only · you confirm or change it", "Not an official IELTS result"), then a band menu (44 px, 1.0–9.0 in half bands) with "Use AI band x" and, once feedback is shared, "Save starting band". A changed band shows "You changed the AI band (x → y)". Sharing an answered essay without a band shows "Choose a starting band for this essay before sharing." The student result shows the teacher's band in the same gradient card under the result heading: "Writing starting point · Task 2", the number, "Likely range x–y", and chips "Checked by your teacher", "Not an official IELTS result" and "One Task 2 essay · Confidence: low"; while waiting a quiet blue note says the starting band will appear after the teacher checks the essay. The AI band alone never appears in any student view.
+- Highlights now include fixed-check findings (missing spaces, capitals, double spaces, common misspellings) styled like any other *To improve* highlight, so the filter counts can be higher.
 
 ## 14. Native app motivation layer — v1.4.0
 
@@ -321,6 +323,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.20 Revision record — 1.15.0 (2026-11-21)
+
+Owner request: every Writing screener shows a starting point to the teacher and the student, and the essay check marks every mistake. Section 13.10 adds the starting band card for teacher and student. Diagnostic Bible 2.6.0 sections 10.9 and 10.11.
 
 ### 14.19 Revision record — 1.14.0 (2026-11-18)
 

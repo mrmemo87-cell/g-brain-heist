@@ -3,6 +3,7 @@ import { IELTS_WRITING_CRITERIA, type WritingCriterion, type WritingEvidenceSpan
 import { getWritingReviewReadiness, isWritingObservationComplete } from '../../../services/ieltsWritingReviewUx';
 import type { WritingHighlight } from '../../../services/ieltsPracticeFeedback';
 import WritingEssayHighlights from './WritingEssayHighlights';
+import { WritingStartingBandPicker } from './WritingStartingBand';
 
 type Props = {
   result: WritingScreenerResult; observations: WritingObservations; activeCriterion: WritingCriterion;
@@ -15,6 +16,9 @@ type Props = {
   onAiConfirm?: (value: boolean) => void; onAiRemove?: () => void; onAiReplace?: () => void;
   /** Teacher-only AI colour highlights for this essay (Bible 10.9). */
   aiHighlights?: WritingHighlight[];
+  /** Starting band (Bible 2.6.0 section 10.11): AI suggestion (undefined before AI, null when it gave none) and the teacher's choice. */
+  aiEstimate?: { band: number; low: number; high: number } | null; startBand?: number | null; onStartBand?: (band: number | null) => void;
+  onSaveBand?: () => void; savingBand?: boolean;
 };
 const choices: { status: WritingObservationStatus; label: string; hint: string }[] = [
   { status: 'observed', label: 'Demonstrated', hint: 'Working well in this essay' },
@@ -71,13 +75,15 @@ export const IeltsWritingReviewWorkspace: React.FC<Props> = (props) => {
           <div className="wr-criterion-actions"><button type="button" className="wr-text-button" disabled={index === 0} onClick={() => props.onCriterion(IELTS_WRITING_CRITERIA[index - 1].key)}>Previous criterion</button>{index < 3 && <button type="button" className="wr-secondary" onClick={() => props.onCriterion(IELTS_WRITING_CRITERIA[index + 1].key)}>Next criterion →</button>}</div>
         </fieldset>
       </section>
+      {props.onStartBand && result.response_state === 'answered' && <WritingStartingBandPicker estimate={props.aiEstimate} value={props.startBand ?? null}
+        saved={result.starting_point} disabled={saving} onChange={props.onStartBand} onSaveOnly={props.onSaveBand} savingOnly={props.savingBand} />}
       <section className="wr-card wr-next" aria-labelledby="next-heading"><p className="wr-eyebrow">Guide the next step</p><h2 id="next-heading">Make practice feel achievable</h2>
         <fieldset disabled={saving}><legend className="sr-only">Next step and assessment conditions</legend><label className="wr-label" htmlFor="review-next-step">One practical next step</label><textarea id="review-next-step" value={props.nextStep} maxLength={2000} placeholder="Choose one focused action the student can try in their next essay." className="wr-note" onChange={(event: { target: HTMLTextAreaElement }) => props.onNextStep(event.target.value)} />
           <details className="wr-task" open={result.incident_count > 0 || undefined}><summary>Assessment conditions{result.incident_count > 0 ? ` · ${result.incident_count} interruption${result.incident_count === 1 ? '' : 's'} · Note required` : ' · Optional'}</summary><label className="wr-label" htmlFor="review-delivery">Explain any effect on this essay</label><textarea id="review-delivery" value={props.delivery} maxLength={2000} className="wr-note" onChange={(event: { target: HTMLTextAreaElement }) => props.onDelivery(event.target.value)} /></details>
           <div className="wr-share">
             {props.aiApplied && !saved && <label className="wr-ai-confirm"><input type="checkbox" checked={!!props.aiConfirmed} onChange={(event: { target: HTMLInputElement }) => props.onAiConfirm?.(event.target.checked)} /><span>I have checked the AI draft, its excerpts and the next step. This feedback is ready for my student.</span></label>}
-            <p>{saved ? 'Feedback shared. The original essay is preserved.' : readiness.message ?? (props.aiApplied && !props.aiConfirmed ? 'Check the draft and confirm above before sharing.' : 'Ready to share. The student will see your four observations and next step.')}</p><button type="button" className="wr-primary" disabled={saving || saved || (!!props.aiApplied && !props.aiConfirmed)} onClick={props.onSave}>{props.aiBusy ? 'Preparing AI draft…' : saving ? 'Sharing…' : saved ? 'Feedback shared ✓' : 'Share feedback with student'}</button></div>
-          <p className="wr-help">Feedback refers to this essay only. One Task 2 essay does not establish a full Writing band. Corrections preserve earlier reviews.</p>
+            <p>{saved ? 'Feedback shared. The original essay is preserved.' : readiness.message ?? (props.aiApplied && !props.aiConfirmed ? 'Check the draft and confirm above before sharing.' : 'Ready to share. The student will see your four observations, next step and starting band.')}</p><button type="button" className="wr-primary" disabled={saving || saved || (!!props.aiApplied && !props.aiConfirmed)} onClick={props.onSave}>{props.aiBusy ? 'Preparing AI draft…' : saving ? 'Sharing…' : saved ? 'Feedback shared ✓' : 'Share feedback with student'}</button></div>
+          <p className="wr-help">Feedback refers to this essay only. One Task 2 essay gives a starting band, not a full Writing band. Corrections preserve earlier reviews.</p>
           {saved && <p role="status" className="wr-success">Your feedback is now available to the student.</p>}
         </fieldset>
       </section>

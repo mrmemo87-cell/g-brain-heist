@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { fetchWritingScreenerReviewQueue, fetchWritingScreenerResult, submitWritingScreenerReview, type WritingScreenerQueueEntry } from '../../../services/ieltsWritingScreenerService';
+import { fetchWritingScreenerReviewQueue, fetchWritingScreenerResult, setWritingStartingPoint, submitWritingScreenerReview, type WritingScreenerQueueEntry } from '../../../services/ieltsWritingScreenerService';
 import { IELTS_WRITING_CRITERIA, type WritingScreenerResult, type WritingEvidenceSpan, type WritingObservations, type WritingCriterion } from '../../../services/ieltsWritingScreener';
 import { IeltsWritingResult } from '../../components/ielts/IeltsWritingResult';
 import { IeltsWritingReviewWorkspace } from '../../components/ielts/IeltsWritingReviewWorkspace';
 import { getWritingReviewReadiness } from '../../../services/ieltsWritingReviewUx';
 import { generateWritingAiReview, mergeWritingAiDraft, type WritingAiDraft } from '../../../services/ieltsWritingAiReview';
 import '../../styles/ielts-writing-review.css';
+import '../../styles/ielts-feedback.css';
 import '../../styles/ielts-speaking-transcript.css';
 import { DISPLAY_DATE, displayDateLocale } from '../../utils/displayDate';
 const emptyObservations = (): WritingObservations => Object.fromEntries(IELTS_WRITING_CRITERIA.map(({ key }) => [key, { status: 'insufficient_evidence', comment: '', evidence: [] }])) as WritingObservations;
@@ -29,6 +30,10 @@ const IeltsWritingScreenerReview: React.FC = () => {
   const [completeAiDraft, setCompleteAiDraft] = useState<WritingAiDraft | null>(null);
   // Teacher-only colour highlights from the AI draft (Bible 10.9); the student never sees them on a screener.
   const [aiHighlights, setAiHighlights] = useState<WritingAiDraft['fields']['highlights']>(undefined);
+  // Starting band (Bible 2.6.0 section 10.11): the teacher confirms or changes the AI band, or sets one.
+  const [startBand, setStartBand] = useState<number | null>(null);
+  const [aiEstimate, setAiEstimate] = useState<WritingAiDraft['fields']['estimate']>(undefined);
+  const [savingBand, setSavingBand] = useState(false);
   const aiRequest = useRef<AbortController | null>(null);
   const beforeAi = useRef<{ observations: WritingObservations; nextStep: string; delivery: string; dirty: boolean } | null>(null);
   useEffect(() => () => { aiRequest.current?.abort(); aiRequest.current = null; }, []);
@@ -39,7 +44,7 @@ const IeltsWritingScreenerReview: React.FC = () => {
     return () => window.removeEventListener('beforeunload', protectDraft);
   }, [dirty]);
   useEffect(() => {
-    aiRequest.current?.abort(); aiRequest.current = null; setAiBusy(false); setAiDraftId(undefined); setAiConfirmed(false); setCompleteAiDraft(null); setAiHighlights(undefined); beforeAi.current = null;
+    aiRequest.current?.abort(); aiRequest.current = null; setAiBusy(false); setAiDraftId(undefined); setAiConfirmed(false); setCompleteAiDraft(null); setAiHighlights(undefined); setAiEstimate(undefined); setStartBand(null); beforeAi.current = null;
     let active = true; setLoading(true); setResult(null); setError(''); setSaved(false); setDirty(false); setSelected(null); setActiveCriterion('task_response');
     const load = async () => {
       try {
@@ -47,7 +52,7 @@ const IeltsWritingScreenerReview: React.FC = () => {
           const value = await fetchWritingScreenerResult(attemptId);
           if (!active) return;
           setResult(value); setObservations(value?.review_status === 'teacher_reviewed' ? value.criterion_observations as WritingObservations : emptyObservations());
-          setNextStep(value?.next_step ?? ''); setDelivery(value?.delivery_comment ?? ''); reviewId.current = null;
+          setNextStep(value?.next_step ?? ''); setDelivery(value?.delivery_comment ?? ''); setStartBand(value?.starting_point?.band ?? null); reviewId.current = null;
         } else { const value = await fetchWritingScreenerReviewQueue(); if (active) setQueue(value); }
       } catch { if (active) setError('We could not open these essays. Check your access and connection, then try again.'); }
       finally { if (active) setLoading(false); }
@@ -68,7 +73,7 @@ const IeltsWritingScreenerReview: React.FC = () => {
       beforeAi.current = { observations, nextStep, delivery, dirty };
       const merged = mergeWritingAiDraft(observations, nextStep, delivery, draft);
       setObservations(merged.observations); setNextStep(merged.nextStep); setDelivery(merged.delivery);
-      setAiDraftId(draft.draft_id); setAiHighlights(Array.isArray(draft.fields.highlights) ? draft.fields.highlights : undefined); setAiConfirmed(false); setDirty(true); setSaved(false); reviewId.current = null; setSelected(null); setActiveCriterion('task_response');
+      setAiDraftId(draft.draft_id); setAiHighlights(Array.isArray(draft.fields.highlights) ? draft.fields.highlights : undefined); setAiEstimate(draft.fields.estimate); setAiConfirmed(false); setDirty(true); setSaved(false); reviewId.current = null; setSelected(null); setActiveCriterion('task_response');
       setCompleteAiDraft(IELTS_WRITING_CRITERIA.some(({ key }) => observations[key].comment.trim() || observations[key].evidence.length) || nextStep.trim() || delivery.trim() ? draft : null);
     } catch (reason) {
       if (aiRequest.current === controller) setError(reason instanceof Error && !controller.signal.aborted ? reason.message : 'AI help took too long. Your notes are unchanged. Try again, or continue your review.');
@@ -78,7 +83,7 @@ const IeltsWritingScreenerReview: React.FC = () => {
     if (!beforeAi.current || saving) return;
     const previous = beforeAi.current;
     setObservations(previous.observations); setNextStep(previous.nextStep); setDelivery(previous.delivery); setDirty(previous.dirty);
-    setAiDraftId(undefined); setAiConfirmed(false); setCompleteAiDraft(null); setAiHighlights(undefined); setSaved(false); reviewId.current = null; beforeAi.current = null;
+    setAiDraftId(undefined); setAiConfirmed(false); setCompleteAiDraft(null); setAiHighlights(undefined); setAiEstimate(undefined); setSaved(false); reviewId.current = null; beforeAi.current = null;
   };
   const useCompleteAiDraft = () => {
     if (!completeAiDraft || saving) return;
@@ -95,12 +100,23 @@ const IeltsWritingScreenerReview: React.FC = () => {
         if (readiness.incompleteCriterion) setActiveCriterion(readiness.incompleteCriterion);
         setError(readiness.message); return;
       }
+      if (result.response_state === 'answered' && startBand == null) { setError('Choose a starting band for this essay before sharing.'); return; }
       reviewId.current ??= crypto.randomUUID();
       const value = await submitWritingScreenerReview({ attemptId: result.attempt_id, reviewId: reviewId.current,
         expectedReviewId: result.review_id, responseHash: result.response_sha256, observations, nextStep, deliveryComment: delivery, aiDraftId, teacherConfirmed: aiConfirmed });
       setResult(value); setSaved(true); setDirty(false);
+      if (value && value.response_state === 'answered' && startBand != null) {
+        setResult(await setWritingStartingPoint({ attemptId: value.attempt_id, band: startBand, aiDraftId: aiEstimate && aiDraftId ? aiDraftId : undefined }));
+      }
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'The review could not save. Please try again.'); }
     finally { setSaving(false); saveLock.current = false; }
+  };
+  const saveBandOnly = async () => {
+    if (!result?.can_review || startBand == null || savingBand || saveLock.current) return;
+    setSavingBand(true); setError('');
+    try { setResult(await setWritingStartingPoint({ attemptId: result.attempt_id, band: startBand, aiDraftId: aiEstimate && aiDraftId ? aiDraftId : undefined })); }
+    catch (reason) { setError(reason instanceof Error ? reason.message : 'The starting band did not save. Please try again.'); }
+    finally { setSavingBand(false); }
   };
   const pendingCount = queue.filter(row => row.review_status === 'pending').length;
   const visibleQueue = queueFilter === 'pending' ? queue.filter(row => row.review_status === 'pending') : queue;
@@ -124,6 +140,8 @@ const IeltsWritingScreenerReview: React.FC = () => {
       aiBusy={aiBusy} aiApplied={!!aiDraftId} aiConfirmed={aiConfirmed} onAi={() => void draftWithAi()} onAiConfirm={setAiConfirmed} onAiRemove={removeAiDraft}
       onAiReplace={completeAiDraft ? useCompleteAiDraft : undefined}
       aiHighlights={aiHighlights}
+      aiEstimate={aiEstimate} startBand={startBand} onStartBand={setStartBand}
+      onSaveBand={result.review_status === 'teacher_reviewed' && !dirty && startBand != null && startBand !== result.starting_point?.band ? () => void saveBandOnly() : undefined} savingBand={savingBand}
     />}
   </div></main>;
 };

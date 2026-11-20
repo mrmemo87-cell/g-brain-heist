@@ -1,7 +1,9 @@
 import { supabase } from './supabaseClient';
 import type { WritingHighlight } from './ieltsPracticeFeedback';
 import { IELTS_WRITING_CRITERIA, writingEvidenceMatches, type WritingObservations, type WritingScreenerResult } from './ieltsWritingScreener';
-export type WritingAiDraft = { draft_id: string; attempt_id: string; response_sha256: string; fields: { observations: WritingObservations; next_step: string; delivery_comment: string; highlights?: WritingHighlight[] }; teacher_confirmation_required: true };
+export type WritingAiDraft = { draft_id: string; attempt_id: string; response_sha256: string; fields: { observations: WritingObservations; next_step: string; delivery_comment: string; highlights?: WritingHighlight[];
+  /** v4 (Bible 2.6.0 section 10.11): AI starting band worked out on the server; undefined for older drafts. */
+  estimate?: { band: number; low: number; high: number } | null }; teacher_confirmation_required: true };
 export function parseWritingAiDraft(value: unknown, source: WritingScreenerResult): WritingAiDraft {
   const v = value as WritingAiDraft;
   if (!v || !/^[0-9a-f-]{36}$/i.test(v.draft_id) || v.attempt_id !== source.attempt_id || v.response_sha256 !== source.response_sha256 || v.teacher_confirmation_required !== true

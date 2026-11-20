@@ -28,6 +28,15 @@ export async function submitWritingScreenerReview(input: {
   return parseWritingScreenerResult(data);
 }
 
+/** Teacher confirms or changes the AI starting band, or sets one, after the review is shared (Bible 2.6.0 section 10.11). */
+export async function setWritingStartingPoint(input: { attemptId: string; band: number; aiDraftId?: string }) {
+  const { data, error } = await supabase.rpc('rpc_ielts_set_writing_starting_point', {
+    p_attempt_id: input.attemptId, p_band: input.band, p_ai_draft_id: input.aiDraftId ?? null,
+  });
+  if (error) throw new Error('Your feedback is shared, but the starting band did not save. Press "Save starting band" to try again.');
+  return parseWritingScreenerResult(data);
+}
+
 export async function saveWritingScreenerRevision(input: { attemptId: string; revisionId: string; sourceReviewId: string; text: string }) {
   const { data, error } = await supabase.rpc('rpc_ielts_save_writing_screener_revision', {
     p_attempt_id: input.attemptId, p_revision_id: input.revisionId, p_source_review_id: input.sourceReviewId, p_response_text: input.text,
