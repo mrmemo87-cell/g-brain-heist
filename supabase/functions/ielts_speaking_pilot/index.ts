@@ -362,6 +362,8 @@ async function analyse(sessionId: string, session: any, caller: any, admin: any)
   if (!key) throw new Error("unavailable");
   const { data: extras, error: extrasError } = await caller.rpc("rpc_ielts_speaking_session_extras", { p_session_id: sessionId });
   if (extrasError) throw new Error("extras_failed");
+  // The database decides what is missing: a shared interview is never re-run (owner decision, 2026-11-20).
+  if (!extras?.missing_clips) return extras;
   // Re-analyse clips with no analysis at the current version; older versions are kept as history.
   const done = new Set((extras?.analysis ?? []).filter((a: { prompt_version?: string }) => a.prompt_version === INTERVIEW_ANALYSIS_VERSION).map((a: { clip_id: string }) => a.clip_id));
   const todo = (session.clips ?? []).filter((c: { id: string }) => !done.has(c.id));

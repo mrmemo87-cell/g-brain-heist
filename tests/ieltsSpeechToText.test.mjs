@@ -148,6 +148,7 @@ test('the interview transcribes through transcribeOnce in both steps', () => {
   assert.match(pilot, /const heard = await scribeOnce\(admin, sessionId, clipId, bytes, seconds\);/, 'draft step');
   assert.match(pilot, /transcribeForAnalysis\(bytes, key, Number\(clip\.duration_seconds\) \|\| 0, admin, sessionId, clip\.id\)/, 'review step');
   assert.match(pilot, /rpc_ielts_claim_speaking_clip_transcription/);
+  assert.match(pilot, /if \(!extras\?\.missing_clips\) return extras;/, 'a shared interview is never re-analysed');
   assert.match(pilot, /rpc_ielts_release_speaking_clip_transcription/);
   assert.match(pilot, /complete: \(text\) => transcriptLooksComplete\(text, seconds\)/, 'kept words pass the same completeness check');
 });

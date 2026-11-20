@@ -123,8 +123,8 @@ test('teacher lines are separated: highlights and pronunciation words use only t
 test('production IPA keeps only dictionary words (non-words are vocabulary problems)', () => {
   const dict = { flexible: 'F L EH1 K S AH0 B AH0 L' };
   assert.deepEqual(ann.withIpa([{ word: 'flexible', tip: 'x' }, { word: 'conversate', tip: 'y' }], dict, true).map((w) => w.word), ['flexible']);
-  assert.equal(ann.INTERVIEW_ANALYSIS_VERSION, 'bh-ielts-speaking-interview-analysis-v3');
-  assert.match(readFileSync('supabase/migrations/20261114110000_ielts_speaking_analysis_v3.sql', 'utf8'), /'bh-ielts-speaking-interview-analysis-v3'/, 'SQL and edge function agree on the current version');
+  assert.equal(ann.INTERVIEW_ANALYSIS_VERSION, 'bh-ielts-speaking-interview-analysis-v4');
+  assert.match(readFileSync('supabase/migrations/20261120234500_ielts_speaking_scribe_analysis_v4.sql', 'utf8'), /'bh-ielts-speaking-interview-analysis-v4'/, 'SQL and edge function agree on the current version');
   assert.match(ann.HIGHLIGHT_INSTRUCTIONS, /never praise a phrase that is awkward or wrong/);
   assert.match(ann.INTERVIEW_HIGHLIGHT_INSTRUCTIONS, /teacher_lines/);
 });

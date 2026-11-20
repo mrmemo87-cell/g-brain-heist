@@ -202,3 +202,45 @@ test("Visual & UX 1.12.0: full names, no shared AI placeholder, no reuse of draf
   assert.equal(c.fields, undefined, "old draft not reused");
   assert.ok(c.context, "a fresh draft is started");
 });
+
+test("Scribe v4 (owner, 2026-11-20): unshared interviews are re-analysed; shared ones keep what the student received", async () => {
+  // Two fresh interviews analysed and estimated with the earlier versions; one of them already shared.
+  const fresh = "00000000-0000-0000-0000-000000000080", shared = "00000000-0000-0000-0000-000000000081";
+  const fc = "00000000-0000-0000-0000-000000000082", sc = "00000000-0000-0000-0000-000000000083";
+  await db.exec(`insert into private.ielts_speaking_sessions(id,student_id,teacher_id,package_code,content_hash,package_snapshot,status,evidence_kind,recording_consent)
+   select x.id::uuid,'${student}','${teacher}',code,content_hash,content,'submitted','first_sitting',true from private.ielts_speaking_packages, (values ('${fresh}'),('${shared}')) x(id);
+   insert into private.ielts_speaking_clips(id,session_id,part,path,sha256,duration_seconds,mime_type,interrupted) values
+   ('${fc}','${fresh}',1,'f1.wav','${sha}',60,'audio/wav',false),('${sc}','${shared}',1,'s1.wav','${sha}',60,'audio/wav',false);`);
+  await save(fc, fresh); await save(sc, shared);
+  const est = { version: "bh-ielts-speaking-estimate-v1", bands: { fluency_coherence: 6, lexical_resource: 6, grammar_range_accuracy: 6, pronunciation: 6, part_1: 6, part_2: 6, part_3: 6, overall: 6 }, reasons: {}, basis: "Based on 300 words." };
+  for (const s of [fresh, shared]) await db.query("select public.rpc_ielts_save_speaking_ai_estimates($1,$2,$3,'test')", [s, teacher, JSON.stringify(est)]);
+  await db.exec(`insert into private.ielts_speaking_reviews(id,session_id,source_hash,reviewer_id,fields,teacher_confirmed)
+   values ('00000000-0000-0000-0000-000000000084','${shared}',private.ielts_speaking_source_hash('${shared}'),'${teacher}','{}',true)`);
+
+  await db.exec(readFileSync("supabase/migrations/20261120234500_ielts_speaking_scribe_analysis_v4.sql", "utf8"));
+  await actor(teacher);
+  const of = async (s) => (await db.query("select public.rpc_ielts_speaking_session_extras($1) j", [s])).rows[0].j;
+
+  let f = await of(fresh);
+  assert.equal(f.missing_clips, 1, "unshared: the earlier analysis is superseded, so it is redone with Scribe");
+  assert.equal(f.analysis[0].prompt_version, CURRENT, "until then, the earlier analysis is still shown");
+  assert.equal(f.ai_estimates, null, "unshared: the estimate from the earlier transcript is not offered; a new one is made");
+
+  let s = await of(shared);
+  assert.equal(s.missing_clips, 0, "shared: never re-run");
+  assert.equal(s.analysis[0].prompt_version, CURRENT, "shared: the student keeps the transcript the teacher reviewed");
+  assert.equal(s.ai_estimates.version, "bh-ielts-speaking-estimate-v1", "shared: the teacher still sees the estimate they reviewed");
+
+  // The re-run saves v4 and a v2 estimate; v1 estimates are no longer accepted. Nothing earlier is lost.
+  await save(fc, fresh, "bh-ielts-speaking-interview-analysis-v4");
+  await assert.rejects(db.query("select public.rpc_ielts_save_speaking_ai_estimates($1,$2,$3,'test')", [fresh, teacher, JSON.stringify(est)]), /speaking_estimate_invalid/);
+  await db.query("select public.rpc_ielts_save_speaking_ai_estimates($1,$2,$3,'test')", [fresh, teacher, JSON.stringify({ ...est, version: "bh-ielts-speaking-estimate-v2", bands: { ...est.bands, overall: 5 } })]);
+  f = await of(fresh);
+  assert.equal(f.missing_clips, 0);
+  assert.equal(f.analysis[0].prompt_version, "bh-ielts-speaking-interview-analysis-v4", "the newest analysis is shown");
+  assert.equal(f.ai_estimates.bands.overall, 5);
+  assert.equal((await db.query("select count(*)::int n from private.ielts_speaking_clip_analysis where clip_id=$1", [fc])).rows[0].n, 2, "history kept");
+  assert.equal((await db.query("select count(*)::int n from private.ielts_speaking_ai_estimates where session_id=$1", [fresh])).rows[0].n, 2, "history kept");
+  await actor(student);
+  assert.equal((await of(shared)).ai_estimates, null, "students never see AI estimates");
+});
