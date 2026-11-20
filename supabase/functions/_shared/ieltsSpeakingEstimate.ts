@@ -9,7 +9,7 @@
  *    the four criterion estimates rounded DOWN to a half band. Part estimates may not exceed that overall by more
  *    than half a band.
  */
-export const ESTIMATE_VERSION = "bh-ielts-speaking-estimate-v1";
+export const ESTIMATE_VERSION = "bh-ielts-speaking-estimate-v2";
 
 const LEVELS = `Short reference (paraphrased from the public IELTS Speaking descriptors):
 - Band 4: answers are short and basic; long pauses; little linking; very limited, repeated words; mostly simple sentences with frequent errors; often cannot develop an answer.
