@@ -36,6 +36,9 @@ verify_jwt = true
 [functions.ielts_speaking_word_times]
 verify_jwt = true
 
+[functions.ielts_speaking_mock_join]
+verify_jwt = true
+
 [functions.ielts_learning_teacher_ai]
 verify_jwt = true
 
