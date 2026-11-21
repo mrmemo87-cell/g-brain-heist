@@ -98,6 +98,7 @@ const IeltsExamManager = lazyRetry(() => import('./src/pages/ielts/IeltsExamMana
 const IeltsWritingDraftPreview = lazyRetry(() => import('./src/pages/ielts/IeltsWritingDraftPreview'), 'IeltsWritingDraftPreview');
 const IeltsWritingScreenerReview = lazyRetry(() => import('./src/pages/ielts/IeltsWritingScreenerReview'), 'IeltsWritingScreenerReview');
 const IeltsSpeakingPilot = lazyRetry(() => import('./src/pages/ielts/IeltsSpeakingPilot'), 'IeltsSpeakingPilot');
+const IeltsSpeakingMock = lazyRetry(() => import('./src/pages/ielts/IeltsSpeakingMock'), 'IeltsSpeakingMock');
 const IeltsReviewQueue = lazyRetry(() => import('./src/pages/ielts/IeltsReviewQueue'), 'IeltsReviewQueue');
 const IeltsSubmissionReview = lazyRetry(() => import('./src/pages/ielts/IeltsSubmissionReview'), 'IeltsSubmissionReview');
 const IeltsReviewResult = lazyRetry(() => import('./src/pages/ielts/IeltsReviewResult'), 'IeltsReviewResult');
@@ -897,6 +898,8 @@ const router = createBrowserRouter([
   { path: '/ielts/speaking-pilot', element: <ProtectedRoute element={<IeltsSpeakingPilot />} /> },
   { path: '/ielts/speaking-interviews', element: <ProtectedRoute element={<IeltsSpeakingPilot />} /> },
   { path: '/ielts/speaking-pilot/:sessionId', element: <ProtectedRoute element={<IeltsSpeakingPilot />} /> },
+  { path: '/ielts/speaking-mock', element: <ProtectedRoute element={<IeltsSpeakingMock />} /> },
+  { path: '/ielts/speaking-mock/:assignmentId', element: <ProtectedRoute element={<IeltsSpeakingMock />} /> },
   {
     path: '/ielts/reading-screener',
     element: <ProtectedRoute element={<TrialListeningTask2 skill="reading" />} />,
