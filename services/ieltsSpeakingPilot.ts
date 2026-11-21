@@ -78,7 +78,7 @@ export interface SpeakingSession {
   package: SpeakingPackage;
   clips: SpeakingClip[];
   can_review: boolean;
-  evidence_kind: "first_sitting" | "same_form_practice";
+  evidence_kind: "first_sitting" | "same_form_practice" | "practice_mock";
   incidents: number;
   preparation_started_at: string | null;
   review: { id: string; fields: SpeakingFeedback; reviewed_at: string } | null;

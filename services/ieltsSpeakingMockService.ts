@@ -206,3 +206,56 @@ export async function sendAnswer(a: LocalMockAnswer, maxSeconds: number): Promis
   await localAnswers("delete", a.id);
   return sitting;
 }
+
+// ---- Teachers ------------------------------------------------------------------------------
+export interface MockCatalogItem { code: string; title: string; published: boolean; pilot_student: string; script_version: number }
+export interface MockAssignmentRow {
+  assignment_id: string; package_code: string; title: string; assigned_at: string; assigned_by: string | null;
+  cancelled_at: string | null; session_id: string | null; started_at: string | null; finished_at: string | null;
+  status: "in_progress" | "submitted" | null; reviewed: boolean; interrupted_answers: number;
+}
+export interface MockSegments {
+  mock: boolean;
+  parts?: { part: number; clip_id: string; answers: { line_key: string; start: number; end: number; question: string | null; interrupted: boolean }[]; lost: string[] }[];
+  checks?: Record<string, unknown> | null;
+  replays?: number | null;
+}
+export const mockCatalog = () => rpc<MockCatalogItem[]>("rpc_ielts_speaking_mock_catalog");
+export const mockTeacherList = (studentId: string) => rpc<MockAssignmentRow[]>("rpc_ielts_speaking_mock_teacher_list", { p_student_id: studentId });
+export const assignMock = (code: string, studentIds: string[]) =>
+  rpc<{ assigned: number; script_version: number }>("rpc_ielts_assign_speaking_mock", {
+    p_package_code: code,
+    p_assignments: studentIds.map((student_id) => ({ student_id, assignment_id: crypto.randomUUID() })),
+  });
+export const cancelMockAssignment = (assignmentId: string) => rpc<{ cancelled: boolean }>("rpc_ielts_cancel_speaking_mock_assignment", { p_assignment_id: assignmentId });
+export const mockSegments = (sessionId: string) => rpc<MockSegments>("rpc_ielts_speaking_mock_segments", { p_session_id: sessionId });
+
+// ---- Owner: examiner script and audio --------------------------------------------------------
+export interface MockOwnerPackage {
+  code: string; title: string; content_hash: string; approved: boolean; published: boolean;
+  scripts: { id: string; version: number; released_at: string | null; created_at: string }[];
+}
+export interface MockScriptLine {
+  position: number; key: string; part: number; kind: string; body: string; answer_seconds: number | null; replay_allowed: boolean; audio_key: string;
+  approved_audio: { id: string; sha256: string; duration_seconds: number; approved_at: string } | null;
+  candidates: { id: string; path: string; sha256: string; duration_seconds: number; rejected: boolean }[];
+}
+export interface MockScript {
+  id: string; package_code: string; content_hash: string; version: number; voice: Record<string, unknown>;
+  cue_card: { topic: string; points: string[]; closing?: string }; released_at: string | null;
+  lines: MockScriptLine[]; needs_audio: { lines: number; characters: number };
+}
+export const ownerOverview = () => rpc<MockOwnerPackage[]>("rpc_ielts_speaking_mock_owner_overview");
+export const ownerScript = (scriptId: string) => rpc<MockScript>("rpc_ielts_speaking_mock_script", { p_script_id: scriptId });
+export const reviewAudio = (audioId: string, sha256: string, approve: boolean, note: string) =>
+  rpc<MockScript>("rpc_ielts_review_speaking_mock_audio", { p_audio_id: audioId, p_sha256: sha256, p_approve: approve, p_note: note || null });
+export const releaseScript = (scriptId: string) => rpc<MockScript>("rpc_ielts_release_speaking_mock_script", { p_script_id: scriptId });
+export const approveMockPackage = (code: string, hash: string, review: Record<string, unknown>) =>
+  rpc<unknown>("rpc_ielts_approve_speaking_mock_package", { p_code: code, p_content_hash: hash, p_review_record: review });
+export const publishMock = (code: string, hash: string, note: string) =>
+  rpc<unknown>("rpc_ielts_publish_speaking_mock", { p_code: code, p_content_hash: hash, p_note: note });
+export async function examinerAudioUrl(path: string) {
+  const { data, error } = await supabase.storage.from("ielts-speaking-examiner").createSignedUrl(path, 900);
+  if (error || !data?.signedUrl) throw new MockError("offline", "We could not open this audio. Try again.");
+  return data.signedUrl;
+}

@@ -34,6 +34,7 @@ for (const m of [
   "20261008065539_ielts_speaking_school_seat_access",
   "20261121154500_ielts_speaking_recorded_mock",
   "20261121170000_ielts_speaking_mock_server_state",
+  "20261121180000_ielts_speaking_mock_teacher_views",
 ])
   await db.exec(readFileSync(`supabase/migrations/${m}.sql`, "utf8"));
 // Readers created by later migrations exist in production; stand-ins carry their exact guarded text
@@ -305,6 +306,32 @@ test("the server verifies answers, joins each part into one interview clip and s
   assert.equal(list[0].status, "submitted");
   assert.equal(list[0].interrupted_answers, 1);
   assert.equal((await one("select rpc_ielts_assign_speaking_mock('bh-speaking-mock-b',$1)", [JSON.stringify([{ student_id: student, assignment_id: id(397) }])])).assigned, 1, "a new attempt after finishing");
+});
+
+test("teachers see the catalogue and each answer's question and time; students see only their timings", async () => {
+  await as(admin);
+  const cat = await one("select rpc_ielts_speaking_mock_catalog()");
+  assert.equal(cat[0].code, "bh-speaking-mock-b");
+  assert.equal(cat[0].published, true);
+  const seg = await one("select rpc_ielts_speaking_mock_segments($1)", [session]);
+  assert.equal(seg.mock, true);
+  assert.deepEqual(seg.parts.map((p) => p.part), [1, 2, 3]);
+  assert.equal(seg.parts[0].answers[0].question, "Do you work or are you a student?");
+  assert.equal(seg.parts[0].answers[1].start, 21);
+  assert.deepEqual(seg.parts[0].lost, ["How do you usually get to school?"], "the lost answer is named for the teacher");
+  assert.equal(seg.replays, 1);
+  assert.equal((await one("select rpc_ielts_speaking_mock_segments($1)", [id(650)])).mock, false, "interviews have no mock map");
+  await assert.rejects(db.query("select rpc_ielts_speaking_mock_owner_overview()"), /not_authorized/);
+  await as(student);
+  const mine = await one("select rpc_ielts_speaking_mock_segments($1)", [session]);
+  assert.equal(mine.parts[0].answers[0].question, null);
+  assert.equal(mine.checks, null);
+  await assert.rejects(db.query("select rpc_ielts_speaking_mock_catalog()"), /not_authorized/, "students get no catalogue");
+  await as(other);
+  await assert.rejects(db.query("select rpc_ielts_speaking_mock_segments($1)", [session]), /not_authorized/);
+  await as(owner);
+  const ov = await one("select rpc_ielts_speaking_mock_owner_overview()");
+  assert.deepEqual(ov[0].scripts.map((x) => x.version), [2, 1]);
 });
 
 test("server steps are server-only and mock tables are private", async () => {
