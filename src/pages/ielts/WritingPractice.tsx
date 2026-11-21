@@ -276,15 +276,21 @@ const WritingPractice: React.FC = () => {
     },
   });
 
-  const handleSubmit = (forceSubmit = false) => {
-    if (!taskId || (!answer.trim() && !forceSubmit)) return;
+  // ExamGuard's auto-submit callback is created once per task, so it must read the latest text from a ref.
+  // Before 2026-11-21 it read the text from the first render (empty), and auto-submitted essays were saved blank
+  // with 0 words. An empty answer is never submitted, not even by auto-submit; the database also refuses it.
+  const latestRef = useRef({ answer, wordCount, timeElapsed });
+  latestRef.current = { answer, wordCount, timeElapsed };
+  const handleSubmit = (_forceSubmit = false) => {
+    const latest = latestRef.current;
+    if (!taskId || !latest.answer.trim()) return;
 
     ExamGuard.stop();
     submitMutation.mutate({
       taskId: Number(taskId),
-      answer: answer.trim(),
-      wordCount,
-      timeSpent: timeElapsed,
+      answer: latest.answer.trim(),
+      wordCount: latest.wordCount,
+      timeSpent: latest.timeElapsed,
     });
   };
 
