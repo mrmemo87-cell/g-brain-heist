@@ -20,7 +20,7 @@ create function private.teacher_current_teaching_roster(uuid,uuid) returns table
 create function private.teacher_current_teaching_groups(uuid,uuid) returns table(id uuid) language sql as $$select null::uuid where false$$;
 insert into users values('${student}','Synthetic Gulzada fixture','student','${school}',false),('${owner}','Owner','admin',null,false);`);
 for (const m of ["20261007112613_ielts_speaking_interview_pilot", "20261007125521_ielts_speaking_eligible_release", "20261008065539_ielts_speaking_school_seat_access",
-  "20261121154500_ielts_speaking_recorded_mock", "20261121180000_ielts_speaking_mock_teacher_views", "20261121190000_ielts_speaking_mock_b_content", "20261121190100_ielts_speaking_mocks_c_to_g_content"])
+  "20261121154500_ielts_speaking_recorded_mock", "20261121180000_ielts_speaking_mock_teacher_views", "20261121190000_ielts_speaking_mock_b_content", "20261121190100_ielts_speaking_mocks_c_to_g_content", "20261122020000_ielts_speaking_mock_voices"])
   await db.exec(readFileSync(`supabase/migrations/${m}.sql`, "utf8"));
 const one = async (sql, a = []) => Object.values((await db.query(sql, a)).rows[0])[0];
 
@@ -53,7 +53,7 @@ const codes = ["b", "c", "d", "e", "f", "g"].map((x) => `bh-speaking-mock-${x}`)
 
 test("mocks B to G are six unapproved, unreleased, valid scripts with no question shared between them", async () => {
   await db.query("select set_config('request.jwt.claim.sub',$1,false)", [owner]);
-  const rows = (await db.query("select p.code,p.content,p.approved_at,s.id from private.ielts_speaking_packages p join private.ielts_speaking_mock_scripts s on s.package_code=p.code where p.code=any($1) order by p.code", [codes])).rows;
+  const rows = (await db.query("select p.code,p.content,p.approved_at,s.id from private.ielts_speaking_packages p join private.ielts_speaking_mock_scripts s on s.package_code=p.code and s.version=(select max(version) from private.ielts_speaking_mock_scripts x where x.package_code=p.code) where p.code=any($1) order by p.code", [codes])).rows;
   assert.deepEqual(rows.map((r) => r.code), codes);
   const seen = new Map(), cues = new Set(), shared = new Map();
   const a = await one("select content from private.ielts_speaking_packages where code='bh-speaking-interview-a'");
@@ -67,7 +67,8 @@ test("mocks B to G are six unapproved, unreleased, valid scripts with no questio
     for (const l of s.lines) {
       assert.doesNotMatch(l.body, /\b(good|great|well done|excellent|correct|wrong|score|band)\b/i, `${r.code} ${l.key}`);
       if (["sound", "intro", "p2.intro", "p2.prepare", "p2.start", "end"].includes(l.key)) {
-        if (shared.has(l.key)) assert.equal(l.audio_key, shared.get(l.key), `${l.key} reuses one audio file`); else shared.set(l.key, l.audio_key);
+        const k = `${s.voice.voice}:${l.key}`;
+        if (shared.has(k)) assert.equal(l.audio_key, shared.get(k), `${k} reuses one audio file`); else shared.set(k, l.audio_key);
         continue;
       }
       const k = l.body.toLowerCase();
@@ -79,4 +80,18 @@ test("mocks B to G are six unapproved, unreleased, valid scripts with no questio
     assert.ok(!cues.has(t)); cues.add(t);
   }
   assert.equal(cues.size, 6);
+});
+
+test("three examiner voices, one per mock: 102 different audio files in all", async () => {
+  const r = (await db.query(`select s.package_code c,s.version,s.voice->>'voice' v,s.released_at from private.ielts_speaking_mock_scripts s
+    where s.version=(select max(version) from private.ielts_speaking_mock_scripts x where x.package_code=s.package_code) and s.package_code=any($1) order by 1`, [codes])).rows;
+  assert.deepEqual(r.map((x) => [x.c.slice(-1), x.version, x.v]), [["b", 1, "Miriam"], ["c", 1, "Miriam"], ["d", 2, "Tom"], ["e", 2, "Tom"], ["f", 2, "Leslie"], ["g", 2, "Leslie"]]);
+  assert.ok(r.every((x) => x.released_at === null));
+  const n = await one(`select count(distinct l.audio_key)::int from private.ielts_speaking_mock_script_lines l join private.ielts_speaking_mock_scripts s on s.id=l.script_id
+    where s.version=(select max(version) from private.ielts_speaking_mock_scripts x where x.package_code=s.package_code) and s.package_code=any($1)`, [codes]);
+  assert.equal(n, 102);
+  const same = await one(`select count(*)::int from private.ielts_speaking_mock_script_lines a join private.ielts_speaking_mock_script_lines b on a.script_id<b.script_id and a.key=b.key
+    join private.ielts_speaking_mock_scripts sa on sa.id=a.script_id join private.ielts_speaking_mock_scripts sb on sb.id=b.script_id
+    where sa.package_code=sb.package_code and (a.body<>b.body or a.answer_seconds is distinct from b.answer_seconds or a.replay_allowed<>b.replay_allowed or a.position<>b.position)`);
+  assert.equal(same, 0, "version 2 keeps every line of version 1");
 });
