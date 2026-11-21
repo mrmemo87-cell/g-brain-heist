@@ -1,8 +1,8 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.17.0
-**Effective date:** 2026-11-21\
+**Version:** 1.17.1
+**Effective date:** 2026-11-22\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
 
@@ -306,7 +306,7 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 - **Questions are heard, not shown,** in Parts 1 and 3. The examiner's words never appear on screen apart from the cue card.
 - **Connection problems** show "Waiting for connection…" with "Your answers are safe", never an error that suggests work was lost. A quiet line under the card counts answers still being saved. Leaving the page during the test asks for confirmation; the screen is kept awake where the browser allows.
 - **No praise, scores or bands** anywhere in the mock or on its Done screen ("Your teacher will check them and share feedback with you"). The Journey shows a card only while a mock is ready or in progress.
-- **Teacher panel (1.17.0).** In the Speaking studio, under the selected student, a "Speaking practice mock" card with the pill "Practice mock · Recorded examiner · Not an official IELTS test", one sentence on what it is, and one primary "Assign to [name]" button, disabled with a reason while that student has the mock open. Rows show the true state in words: Assigned · not started (Cancel), Started by the student, Finished · still saving (Retry saving), Ready for your review (Review →), Feedback shared, Cancelled, plus the count of interrupted or lost answers.
+- **Teacher panel (1.17.0).** In the Speaking studio, under the selected student, a "Speaking practice mock" card with the pill "Practice mock · Recorded examiner · Not an official IELTS test", one sentence on what it is, and one primary "Assign to [name]" button, disabled with a reason while that student has the mock open. Rows show the true state in words: Assigned · not started (Cancel), Started by the student, Finished · still saving (Retry saving), Ready for your review (Review →), Feedback shared, Cancelled, plus the count of interrupted or lost answers. The mock choice defaults to "Automatic · one they have not had" (1.17.1); specific mocks stay listed. When the teacher has found more than one student, a secondary "Give everyone listed a mock (N)" button mixes the mocks across them, and one plain message says how many were assigned and how many were skipped because a mock is open or every mock is done.
 - **Review (1.17.0).** The sitting line reads "Practice mock · Recorded examiner · unsupervised". Under the original recordings, "Questions and answers" lists each part's answers with the question text and a 44 px "▶ 0:32" button that plays from that answer, marks interrupted answers in words and names questions with no surviving audio. The student result's hero reads "Speaking practice mock · Recorded examiner · teacher-checked", "Teacher Speaking band · practice mock", and adds a "Recorded examiner · unsupervised practice" chip; the student's answer list shows times only, never the question text.
 - **Owner studio (1.17.0), /ielts/speaking-mock-studio.** Packages with their approval and publication state, then each script version. A version shows "Still needing a voice: N lines · C characters" and says nothing is generated until the owner agrees. Each line shows its number, kind, part, answer time and exact text; "Approve" stays disabled until the owner has opened the audio player for that exact file, and "Reject" needs a short note. "Use this version for students" is available only when every line is approved and the package is approved. Package approval needs six named checks and a note; publication needs a note.
 
@@ -337,6 +337,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.23 Revision record — 1.17.1 (2026-11-22)
+
+Owner request (2026-11-22): more mocks so students do not all answer the same questions, with an automatic mix. The Speaking practice mock teacher panel (section 13.11) gains the "Automatic" default and the "Give everyone listed a mock" button. Diagnostic Bible 2.7.1 section 10.12. No other screen changes.
 
 ### 14.22 Revision record — 1.17.0 (2026-11-21)
 

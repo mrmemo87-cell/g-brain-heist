@@ -227,6 +227,12 @@ export const assignMock = (code: string, studentIds: string[]) =>
     p_package_code: code,
     p_assignments: studentIds.map((student_id) => ({ student_id, assignment_id: crypto.randomUUID() })),
   });
+// The server picks a mock each student has not had, spreading the mocks evenly across the list.
+export interface MockMixResult { assigned: number; by_mock: Record<string, number>; skipped: { student_id: string; reason: "open_mock" | "no_new_mock" }[] }
+export const assignMockMix = (studentIds: string[]) =>
+  rpc<MockMixResult>("rpc_ielts_assign_speaking_mock_mix", {
+    p_assignments: studentIds.map((student_id) => ({ student_id, assignment_id: crypto.randomUUID() })),
+  });
 export const cancelMockAssignment = (assignmentId: string) => rpc<{ cancelled: boolean }>("rpc_ielts_cancel_speaking_mock_assignment", { p_assignment_id: assignmentId });
 export const mockSegments = (sessionId: string) => rpc<MockSegments>("rpc_ielts_speaking_mock_segments", { p_session_id: sessionId });
 

@@ -1,8 +1,8 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.7.0\
-**Effective date:** 2026-11-21\
+**Version:** 2.7.1\
+**Effective date:** 2026-11-22\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
 
@@ -1034,6 +1034,7 @@ but not silently as a complete IELTS Writing band.
 
 **Students do it alone**
 - A school IELTS teacher assigns the mock to a student; one attempt per assignment. The student starts it alone, in their own time and place. The teacher interview is a separate, scheduled sitting.
+- There are several mock packages so classmates rarely share questions. By default the server picks the mock for each student (2.7.1): only mocks the teacher could assign by hand, never one the student already has or had (a cancelled, never-started assignment does not count), and the mock used least, so a list of students gets the mocks in turn. A student with an open mock, or who has had every mock, is skipped and the teacher is told why. A teacher may still choose a mock by hand. Shared examiner lines with the same words, voice and settings use one audio file across mocks.
 - Before starting, the student is told to find a quiet place, passes a sound check and a microphone check (hears their own recording back), and is told when the place is too noisy. The mock cannot start until the microphone check passes.
 - One clear action per screen, visible timers and a clear recording state (sections 14 and 15A). It must work on phones and home computers as well as school laptops (section 15A.8).
 - Nobody supervises the sitting. Help, notes or repeated attempts cannot be ruled out, so the result is recorded as **unsupervised practice**.
@@ -2140,6 +2141,16 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.23 Revision record — v2.7.1 (2026-11-22)
+
+**Authority.** On 2026-11-22 (00:02–00:51 Asia/Bishkek) the owner asked for more mocks because "not all students are going to answer the same questions", chose six mocks in total and an automatic mix, and approved the wording of mocks B to G.
+
+**What changed.** Section 10.12 gains one rule: the server picks a mock each student has not had and spreads the mocks evenly; shared identical lines share one audio file.
+
+**What did not change.** Everything else in 10.12: practice only, labels, approval of every package and audio file, one attempt per assignment, teacher review, consent and privacy. Mocks never count as screeners.
+
+**Implementation to review.** `rpc_ielts_assign_speaking_mock_mix`, which assigns through the existing per-mock assignment function, and the "Automatic" choice and "Give everyone listed a mock" button on the teacher panel.
 
 ### 22.22 Revision record — v2.7.0 (2026-11-21)
 
