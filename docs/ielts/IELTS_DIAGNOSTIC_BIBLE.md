@@ -1,7 +1,7 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.6.1\
+**Version:** 2.7.0\
 **Effective date:** 2026-11-21\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
@@ -916,6 +916,7 @@ but not silently as a complete IELTS Writing band.
 **Eligibility**
 - A submitted Speaking interview with recordings for Part 1, Part 2 and Part 3, reviewed by an authorized school IELTS teacher who listened to the audio.
 - Practice tasks, single parts, screeners without all three parts, transcript-only evidence and AI output are not eligible.
+- A recorded-examiner practice mock (section 10.12) is eligible only under that section's labels and limits (2.7.0).
 
 **What the teacher records, all in one share**
 - The written feedback for the four criteria (section 10.5 fields) and the next step.
@@ -988,6 +989,7 @@ but not silently as a complete IELTS Writing band.
 **Scope**
 - Only the review of a complete Speaking interview (section 10.8), only for the reviewing teacher. Students never see these AI estimates, and they never enter results, reports, ranges (9.5) or readiness estimates (9.4).
 - Speaking practice feedback (10.5) keeps its ranges.
+- A recorded-examiner practice mock (section 10.12) is reviewed like an interview, so the reviewing teacher may see these estimates for it; students never do (2.7.0).
 
 **What the AI gives**
 - One half-band estimate for each of the four criteria, each Part and the whole interview, with a one-line reason per criterion.
@@ -1002,6 +1004,69 @@ but not silently as a complete IELTS Writing band.
 **Teacher control**
 - Estimates appear beside the band controls as "AI estimate". "Use the AI estimates" copies them in; a band the teacher changes is marked as differing. The teacher still ticks the confirmation and presses Share; the shared bands are the teacher's (10.8).
 - Estimates are append-only, one per recording set and version, kept beside the teacher's bands so their agreement can be measured (section 18A). Until that data exists, the estimates carry no claim of accuracy.
+
+### 10.12 Recorded-examiner Speaking practice mock — 2.7.0
+
+**Owner-authorized (2026-11-21, 12:05–12:50 Asia/Bishkek).** The owner asked for a full IELTS-style Speaking test a student takes alone, with a recorded examiner voice: "this starts as a clearly labelled PRACTICE MOCK with teacher review. It should only count for screeners later, if I decide so after comparing its bands with teacher interviews." This section defines that mock. It changes no rule for teacher-run interviews or Speaking screeners.
+
+**What it is**
+- A three-part Speaking sitting (Parts 1, 2 and 3) delivered by pre-recorded examiner lines. The student's answers are recorded; a school IELTS teacher reviews them.
+- Delivery mode **recorded examiner**, evidence kind **practice mock**. Both are stored with the sitting and never change.
+- It is practice. It is never a screener, a first sitting, a starting point (sections 9.4, 10.11, 15G), a full mock or independent check (section 12A), or proof of improvement.
+- Required labels wherever it appears: **Speaking practice mock**, **Recorded examiner** and **Not an official IELTS test**. No screen may call the voice an IELTS examiner, an AI examiner or a teacher.
+
+**Content**
+- A mock uses its own original, approved Speaking package (sections 6 and 15E). Screener packages, including Interview A, are never used for a mock (section 15F). The first mock package is new content that the owner approves by exact hash before use.
+- Approved packages stay immutable. A correction is a new package version.
+
+**Examiner script and audio**
+- Every spoken line (introduction, each question, Part 2 instructions, "you have one minute to prepare", "please start speaking now", "thank you", the ending) is an examiner script stored beside the package and bound to the package hash. Script versions are append-only.
+- Each line's audio is made once and stored in private Brains Heist storage. A line is identified by its exact text, voice, model and settings. When a line is edited, a new script version is created and only lines without matching approved audio are made again. Approved audio is never overwritten.
+- The production record of section 6.1 applies to every line: provider, voice, model, settings, source task reference, duration, format, exact file SHA-256, rights basis and storage location. An expiring provider link is never the source.
+- A named human listens to every line against its text and approves the exact file hash. A script is released only when all its lines are approved. AI or generation success never records approval.
+- Paid generation needs the owner's approval of the exact lines and their number before it starts.
+
+**Fair and the same for everyone**
+- The examiner never praises, corrects, hints, reacts or scores. Lines are neutral and identical for every student of that script version.
+- Each line plays once. In Part 1 the student may hear a question again once. Questions in Parts 1 and 3 are heard, not shown; the Part 2 cue card is shown.
+- Part 2 has one minute to prepare and up to two minutes to speak; the recording stops by itself. The preparation start is kept on the server and cannot be reset by refresh. Answer time limits for Parts 1 and 3 are fixed per script version.
+- These are Brains Heist practice conditions, not official IELTS timing rules. They are recorded with the sitting.
+
+**Students do it alone**
+- A school IELTS teacher assigns the mock to a student; one attempt per assignment. The student starts it alone, in their own time and place. The teacher interview is a separate, scheduled sitting.
+- Before starting, the student is told to find a quiet place, passes a sound check and a microphone check (hears their own recording back), and is told when the place is too noisy. The mock cannot start until the microphone check passes.
+- One clear action per screen, visible timers and a clear recording state (sections 14 and 15A). It must work on phones and home computers as well as school laptops (section 15A.8).
+- Nobody supervises the sitting. Help, notes or repeated attempts cannot be ruled out, so the result is recorded as **unsupervised practice**.
+
+**Recording and recovery**
+- Each answer is saved on the device as it is recorded and sent to the server as soon as possible; sending never blocks the test. A closed tab or lost connection loses nothing already recorded, and the student continues at the next question. An interrupted answer is kept and marked interrupted; it is never silently re-recorded.
+- When a part ends, the server joins that part's verified answers, in order, into one recording per part and keeps where each question starts. The server verifies structure, duration and SHA-256 as for interviews; the browser's claims are never trusted (section 5.2).
+- Single-answer files are working copies. They are deleted once the joined recording is verified, so fewer copies of a student's voice are kept.
+- Section 13 applies. A pilot carries no capacity claim.
+
+**One pipeline**
+- Joined recordings go through the existing interview pipeline unchanged: one transcription per recording, completeness checks, highlights, pronunciation words from audio only (section 10.7), and teacher review and sharing. No recording is transcribed twice and no second pipeline is built.
+- The examiner's voice is not in the student's recordings. The transcript shows which question each answer belongs to.
+
+**Bands and what the student sees**
+- The teacher may record criterion bands, Part bands and one band for the sitting exactly as in section 10.8, shown as **Teacher Speaking band · practice mock**, with **checked by**, the date, **Recorded examiner · unsupervised practice**, **Not an official IELTS result** and **Confidence: low**.
+- The teacher-only AI estimates of section 10.10 may be made for a mock. Students never see them.
+- The student sees nothing but "your teacher will check it" until the teacher shares the review. No score, band or AI comment is shown during or straight after the mock.
+- A mock band never enters an indicative range (9.5), a readiness estimate (9.4), a starting point or the learning record as independent evidence. Teacher-confirmed observations from a mock are guided-practice observations (section 8A.3).
+
+**Recording consent (unchanged)**
+- No sitting starts without recorded agreement to recording, as for interviews. The student confirms on their own screen in plain words. Existing privacy rules stay: private storage, access limited to the student and authorized reviewers, short-lived playback links, no student name or account ID sent to AI providers.
+
+**Voice consent for improving Brains Heist (new, separate, optional)**
+- The owner asked to "collect consent from the students that their voices will be used for improvement of our system and our model". This is a second question, never combined with recording consent.
+- Students are minors. The question is shown to a student only when their school has recorded that it holds the parents' or guardians' agreement for this use (owner decision 2026-11-21). Without that record the question is not shown and the answer is No.
+- The student answers Yes or No. No is the default, changes nothing in the mock or its feedback, and is never asked again within that sitting.
+- The answer is stored per sitting with who answered, when, and the exact wording version. It can be withdrawn later; withdrawal stops future use and removes the recording from any improvement set.
+- **Gate: until the owner records a legal review of this consent for the students' countries, answers are stored but no recording is used to improve any system or model.** After that, only Yes recordings may be used, with names and account IDs removed, and never passed to another company for training its models.
+- Using a recording to give that student their own transcript and feedback is the service itself, not improvement use.
+
+**Counting for screeners later**
+- Not allowed by this version. The owner may decide it only after a recorded comparison of mock bands with teacher-interview bands for the same students (sections 10.2 and 18): sample, order of sittings, agreement within ±0.5 and ±1.0 band, and limits. That decision needs its own Bible revision.
 
 ---
 
@@ -2075,6 +2140,25 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.22 Revision record — v2.7.0 (2026-11-21)
+
+**Authority.** On 2026-11-21 (12:05–12:50 Asia/Bishkek) the owner asked for a recorded-examiner IELTS Speaking mock that students take alone, approved the plan, and decided: a new original mock package (not Interview A); voice-improvement consent asked of the student only where the school holds the parents' agreement; teacher-assigned, one attempt per assignment; audio-only questions in Parts 1 and 3; single-answer files deleted after joining.
+
+**Why the old rules were insufficient.** Speaking sittings existed only as teacher-run interviews: only the teacher's device could record, the one Speaking package is the screener (which section 15F keeps out of practice), and no rule covered examiner audio, unsupervised delivery or use of students' voices to improve the product.
+
+**What changed.** New section 10.12. Sections 10.8 and 10.10 each gain one cross-reference allowing teacher bands and teacher-only AI estimates on a practice mock under the 10.12 labels.
+
+**What did not change.** Speaking screeners still need a teacher-run interview. Screener content stays out of practice (15F). AI never sets or shares a band; students never see AI estimates; pronunciation is judged only from audio; one transcription per recording; teacher confirmation before anything reaches the student; indicative ranges (9.5), readiness estimates (9.4), starting points and the learning record are unchanged; recording consent, school isolation and immutable history are unchanged. No capacity claim is made.
+
+**Basis.** The owner's product decisions. The three-part format, the one-minute preparation and the one-to-two-minute long turn follow the IELTS Speaking test format page in section 23, rechecked 2026-11-21: 11–14 minutes, three parts, Part 2 with one minute to prepare and up to two minutes to speak, taken with a human examiner face to face or by real-time video call. The IELTS guides for test takers and for organisations, rechecked the same day, confirm the human examiner. Official IELTS Speaking is a live interview; a recorded examiner is a Brains Heist practice design, not an official delivery mode. Answer time limits, the single Part 1 replay and audio-only questions are internal practice conditions. The voice-improvement consent rule is an internal privacy policy, not legal advice; its legal review is an open gate.
+
+**Implementation to review** (this documentation change activates no runtime behaviour by itself)
+- Sitting records: delivery mode and the practice-mock evidence kind; every reader of Speaking sittings (workspace, starting-point summary, programme workspace, monthly reports, productive effect, practice boundaries) must keep mocks out of screener, first-sitting and evidence logic.
+- New: examiner script and audio records with private storage; mock assignment, student start, answer saving, part joining and submission; voice-consent records and the school's parental-agreement record.
+- `ielts_speaking_pilot` (attach, analyse, estimate, draft) and `_shared/ieltsSpeechToText.ts` stay unchanged; joined recordings enter through the existing verification and receipt route.
+- Student mock screens; teacher assignment, script and audio approval, and review labels; question markers in `SpeakingTranscript.tsx`.
+- `docs/ielts/SPEAKING_RECORDED_MOCK_PILOT.md`; Visual & UX Bible entry for the mock screens.
 
 ### 22.21 Revision record — v2.6.1 (2026-11-21)
 

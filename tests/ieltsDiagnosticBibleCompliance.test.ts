@@ -9,7 +9,13 @@ test('IELTS Diagnostic Bible is wired into the repository agent contract', () =>
   const agents = read('AGENTS.md');
   const bible = read('docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md');
 
-  assert.match(bible, /\*\*Version:\*\* 2\.6\.1/i);
+  assert.match(bible, /\*\*Version:\*\* 2\.7\.0/i);
+  // v2.7.0 recorded-examiner Speaking mock: practice only, screener content excluded, voice consent gated.
+  assert.match(bible, /### 10\.12 Recorded-examiner Speaking practice mock/);
+  assert.match(bible, /It is practice\. It is never a screener/);
+  assert.match(bible, /Screener packages, including Interview A, are never used for a mock/);
+  assert.match(bible, /The examiner never praises, corrects, hints, reacts or scores/);
+  assert.match(bible, /answers are stored but no recording is used to improve any system or model/);
   // v2.0 closed loop: honest ranges, provisional policy and evidence capture, without weakening official-result limits.
   assert.match(bible, /## 0\. What Brains Heist is for, and what makes it different/);
   assert.match(bible, /### 9\.5 Indicative band range policy bh-indicative-v1/);
