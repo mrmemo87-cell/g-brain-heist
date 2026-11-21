@@ -30,6 +30,8 @@ import {
 } from "../../../services/ieltsSpeakingPilot";
 import { SpeakingRecorder } from "../../components/ielts/SpeakingRecorder";
 import SpeakingInterviewInsights from "../../components/ielts/SpeakingInterviewInsights";
+import SpeakingMockTeacherPanel from "../../components/ielts/SpeakingMockTeacherPanel";
+import SpeakingMockAnswerMap from "../../components/ielts/SpeakingMockAnswerMap";
 import SpeakingAudioDock, { registerSpeakingAudio, registerSpeakingClipLoader } from "../../components/ielts/SpeakingAudioDock";
 import SpeakingBandsPanel, {
   BAND_LABEL,
@@ -37,6 +39,9 @@ import SpeakingBandsPanel, {
 import "../../styles/ielts-speaking-pilot.css";
 import { DISPLAY_DATE, displayDateLocale } from '../../utils/displayDate';
 type Session = SpeakingSession & { source_hash: string; can_record: boolean };
+// Diagnostic Bible 2.7.0 section 10.12: a recorded-examiner mock is always labelled as unsupervised practice.
+const sittingLabel = (kind: string) =>
+  kind === "practice_mock" ? "Practice mock · Recorded examiner · unsupervised" : kind === "same_form_practice" ? "Same-form practice" : "First sitting";
 function SoundMark() {
   return (
     <svg
@@ -546,7 +551,7 @@ export default function IeltsSpeakingPilot() {
         </h1>
         <p>
           {session
-            ? `${session.student_name} · ${session.evidence_kind === "same_form_practice" ? "Same-form practice" : "First sitting"} · Confidence: low`
+            ? `${session.student_name} · ${sittingLabel(session.evidence_kind)} · Confidence: low`
             : "Three parts. A real conversation. Clear feedback from your teacher."}
         </p>
       </div>
@@ -817,6 +822,9 @@ export default function IeltsSpeakingPilot() {
                 )}
               </details>
             )}
+            {home.can_teacher && home.student_id && (
+              <SpeakingMockTeacherPanel studentId={home.student_id} studentName={home.student_name} />
+            )}
             {!!home.sessions?.length && (
               <section className="sp-card">
                 <h2>Saved interviews</h2>
@@ -832,9 +840,7 @@ export default function IeltsSpeakingPilot() {
                       </strong>
                       <p>
                         {new Date(s.created_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)} ·{" "}
-                        {s.evidence_kind === "same_form_practice"
-                          ? "Same-form practice"
-                          : "First sitting"}
+                        {sittingLabel(s.evidence_kind)}
                       </p>
                     </div>
                     <button
@@ -1055,11 +1061,21 @@ export default function IeltsSpeakingPilot() {
             </>
           ) : session.status === "in_progress" ? (
             <section className="sp-card">
-              <p>
-                Your teacher is guiding and recording the interview. Open this
-                topic card when your teacher tells you to.
-              </p>
-              <Cue session={session} />
+              {session.evidence_kind === "practice_mock" ? (
+                <p>
+                  {session.can_review
+                    ? "The student is taking this practice mock on their own. It appears for review once all three parts are saved."
+                    : "Your practice mock is still open. Continue it from your Journey."}
+                </p>
+              ) : (
+                <>
+                  <p>
+                    Your teacher is guiding and recording the interview. Open this
+                    topic card when your teacher tells you to.
+                  </p>
+                  <Cue session={session} />
+                </>
+              )}
               <button
                 className="sp-secondary"
                 onClick={() => setRetry((n) => n + 1)}
@@ -1174,6 +1190,7 @@ export default function IeltsSpeakingPilot() {
                   {session.clips.map((c) => (
                     <ClipPlayer key={c.id} clip={c} />
                   ))}
+                  {session.evidence_kind === "practice_mock" && <SpeakingMockAnswerMap sessionId={session.id} />}
                   <details>
                     <summary>Questions and topic card</summary>
                     {session.package.parts.map((p) => (

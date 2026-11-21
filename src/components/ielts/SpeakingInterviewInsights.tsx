@@ -158,19 +158,21 @@ export default function SpeakingInterviewInsights({ session, onExtras }: Props) 
   }
 
   const pb = extras?.part_bands;
+  const mock = session.evidence_kind === 'practice_mock';
   return (
     <div className="rr-speaking sp-insights-student">
       {pb && pb.overall !== null && pb.overall !== undefined ? (
         <section className="rr-hero" aria-labelledby="sp-speaking-band">
           <div className="rr-hero-glow" aria-hidden="true" />
-          <p className="rr-eyebrow">IELTS Speaking interview · Parts 1–3 · teacher-checked</p>
+          <p className="rr-eyebrow">{mock ? 'Speaking practice mock · Recorded examiner · teacher-checked' : 'IELTS Speaking interview · Parts 1–3 · teacher-checked'}</p>
           <div className="rr-hero-row">
             <div>
-              <p className="rr-band-label" id="sp-speaking-band">Teacher Speaking band</p>
+              <p className="rr-band-label" id="sp-speaking-band">{mock ? 'Teacher Speaking band · practice mock' : 'Teacher Speaking band'}</p>
               <p className="rr-band">{fmt(pb.overall)}</p>
             </div>
             <div className="rr-hero-meta">
               <span className="rr-chip">Checked by {pb.teacher_name ?? 'your teacher'} · {new Date(pb.created_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</span>
+              {mock && <span className="rr-chip rr-chip--quiet">Recorded examiner · unsupervised practice</span>}
               <span className="rr-chip rr-chip--quiet">Not an official IELTS result</span>
               <span className="rr-chip rr-chip--quiet">Confidence: low</span>
             </div>
