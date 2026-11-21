@@ -79,11 +79,12 @@ window.renderAt=function(t){
     // as hot as the Sun
     const hot=pulse(t,V.n11.s,V.n12.s+.1,.4);if(hot>0){const h=es(t,V.n11.s+.6,V.n11.s+2.4);g+=`<g opacity="${n(hot)}"><rect width="1080" height="1920" fill="#1a0a05" opacity=".88"/><circle cx="780" cy="820" r="${n(170+10*Math.sin(t*4))}" fill="#ffb31a"/><circle cx="780" cy="820" r="${n(210+14*Math.sin(t*3))}" fill="#ffb31a" opacity=".25"/>${TXT(780,1080,'SUN’S SURFACE',46,'#fff')}`+earth(300,820,170,t,0,{cut:1})+TXT(300,1080,'EARTH’S CORE',46,'#fff')+`<g transform="translate(0,${n(1240)})"><rect x="140" y="0" width="320" height="40" rx="20" fill="#333"/><rect x="140" y="0" width="${n(320*h)}" height="40" rx="20" fill="#ff5f1a"/><rect x="620" y="0" width="320" height="40" rx="20" fill="#333"/><rect x="620" y="0" width="${n(320*h)}" height="40" rx="20" fill="#ff5f1a"/></g>`+POP('≈',540,860,160,'#ffe14d',t,V.n11.s+2.2)+`</g>`}
     // your turn
-    const q=es(t,V.n12.s,V.n12.s+.3);if(q>0){g+=`<g opacity="${n(q)}"><rect width="1080" height="1920" fill="#0b0826" opacity=".9"/>`+POP('WOULD YOU JUMP?',540,800,96,'#fff',t,V.n12.s);
+    const q=es(t,V.n12.s,V.n12.s+.3);if(q>0){g+=`<g opacity="${n(q)}"><rect width="1080" height="1920" fill="#0b0826" opacity="1"/>`+POP('WOULD YOU JUMP?',540,800,96,'#fff',t,V.n12.s);
       [['YES','#4caf6a',330],['NO','#ff2d2d',750]].forEach(([w,c,x],i)=>{const k=bo((t-V.n12.s-.3-i*.15)/.35)*(1+.05*Math.sin(t*6+i*2));if(t>V.n12.s+.3)g+=`<g transform="translate(${x},1050) scale(${n(k)})"><rect x="-150" y="-80" width="300" height="160" rx="40" fill="${c}" stroke="${OUT}" stroke-width="8"/>${TXT(0,28,w,80,'#fff')}</g>`});
       g+=`<g transform="translate(540,${n(1290+Math.sin(t*4)*10)})"><rect x="-380" y="-60" width="760" height="120" rx="34" fill="#fff" stroke="${OUT}" stroke-width="6"/>${TXT(0,20,'TELL ME IN THE COMMENTS',52,OUT)}</g></g>`}
   }
-  frameOut(g,t,'WHAT IF YOU FELL','THROUGH THE EARTH?',hud);
+  if(t>=V.n12.s)NOSUB=1;
+  frameOut(g,t,'WHAT IF YOU FELL','THROUGH THE EARTH?',hud);NOSUB=0;
 };
 function endcard(t){const a=es(t,C.end,C.end+.4);if(a<=0)return '';
   return `<g opacity="${n(a)}"><rect width="1080" height="1920" fill="#08071a" opacity=".93"/>${TXT(540,880,'FOLLOW',120,'#fff')}${TXT(540,1010,'FOR MORE WHAT IFs',66,'#ffe14d')}</g>`}

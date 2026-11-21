@@ -14,11 +14,15 @@ const PAD=(x,y,s=1)=>`<g transform="translate(${n(x)},${n(y)}) scale(${s})"><rec
 function TVSET(x,y,w,h,inner,id){return `<rect x="${x-30}" y="${y-30}" width="${w+60}" height="${h+60}" rx="24" fill="#1d1d26" stroke="#000" stroke-width="10"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#07060f"/><defs><clipPath id="${id}"><rect x="${x}" y="${y}" width="${w}" height="${h}"/></clipPath></defs><g clip-path="url(#${id})">${inner}<polygon points="${x+w*.62},${y} ${x+w*.76},${y} ${x+w*.5},${y+h} ${x+w*.36},${y+h}" fill="#fff" opacity=".06"/></g>`}
 function vcam(K,t){let i=0;while(i<K.length-1&&t>K[i+1][0])i++;const a=K[i],b=K[Math.min(i+1,K.length-1)],u=es(t,a[0],b[0]>a[0]?b[0]:a[0]+1);const z=lerp(a[3],b[3],u);let cx=lerp(a[1],b[1],u),cy=lerp(a[2],b[2],u);cx=cl(cx,540/z,VW-540/z);cy=cl(cy,960/z,VH-960/z);return `translate(540,960) scale(${z.toFixed(4)}) translate(${n(-cx)},${n(-cy)})`}
 // the title stays on top the whole time (it is the hook)
-const TXT=(x,y,s,size,c,anchor='middle')=>`<text x="${x}" y="${y}" font-size="${size}" text-anchor="${anchor}" fill="${c}" stroke="#05040f" stroke-width="${Math.round(size/4.6)}" paint-order="stroke" stroke-linejoin="round" letter-spacing="2">${s}</text>`;
+// dark text gets no outline (an outline in the same dark colour smudges the letters)
+const DARK=c=>{const h=/^#([0-9a-f]{6})$/i.exec(c);if(!h)return false;const v=parseInt(h[1],16);return .299*(v>>16)+.587*((v>>8)&255)+.114*(v&255)<110};
+const TXT=(x,y,s,size,c,anchor='middle')=>`<text x="${x}" y="${y}" font-size="${size}" text-anchor="${anchor}" fill="${c}"${DARK(c)?'':` stroke="#05040f" stroke-width="${Math.round(size/4.6)}" paint-order="stroke" stroke-linejoin="round"`} letter-spacing="2">${s}</text>`;
 function titleBar(l1,l2,t){const k=.92+.08*es(t,0,.25);return `<rect x="0" y="0" width="1080" height="330" fill="#05040f" opacity=".62"/><g transform="translate(540,0) scale(${n(k)}) translate(-540,0)">${TXT(540,160,l1,84,'#fff')}${TXT(540,262,l2,84,'#ffe14d')}</g>`}
 // spoken words as big captions, a few words at a time
 const CHUNKS=NARR.map(s=>{const w=s.replace(/\.\.\./g,'…').split(/\s+/);const out=[];let cur='';for(const x of w){if((cur+' '+x).trim().length>20&&cur){out.push(cur);cur=x}else cur=(cur+' '+x).trim();if(/[.?!…]$/.test(x)&&cur.length>8){out.push(cur);cur=''}}if(cur)out.push(cur);return out});
+let NOSUB=0;
 function subs(t){
+  if(NOSUB)return '';
   for(let i=0;i<NARR.length;i++){const id='n'+String(i+1).padStart(2,'0'),q=V[id];if(!q||t<q.s||t>q.e+.15)continue;
     const ch=CHUNKS[i],tot=ch.reduce((s,c)=>s+c.length+4,0);let acc=0;
     for(const c of ch){const a=q.s+(q.e-q.s)*acc/tot;acc+=c.length+4;const b=q.s+(q.e-q.s)*acc/tot;if(t>=a&&t<b+.15){const k=.88+.12*es(t,a,a+.12);return `<g transform="translate(540,1510) scale(${n(k)})">${TXT(0,0,c.replace(/&/g,'&amp;').toUpperCase(),78,'#fff')}</g>`}}}
