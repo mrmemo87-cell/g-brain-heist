@@ -12,6 +12,7 @@ import type { IeltsStudentJourney } from '../../../../services/ieltsJourneyServi
 import { IELTS_WRITING_CRITERIA } from '../../../../services/ieltsWritingScreener';
 import { SPEAKING_CRITERIA } from '../../../../services/ieltsSpeakingPilot';
 import IeltsScreenerHub from '../../../components/ielts/IeltsScreenerHub';
+import SpeakingMockCard from '../../../components/ielts/SpeakingMockCard';
 import IeltsSkillIcon from '../../../components/ielts/IeltsSkillIcon';
 import { IeltsCardGroup } from '../../../components/ielts/student/IeltsStudentShell';
 import '../../../styles/ielts-journey.css';
@@ -155,6 +156,7 @@ export default function IeltsStudentJourney({
           <span aria-hidden="true"> →</span>
         </button>
       </section>
+      <SpeakingMockCard />
       <IeltsCardGroup id="checks" title="Starting checks" count={`${completed} of ${visibleSkills.length}`} tone={completed === visibleSkills.length ? 'done' : 'todo'} defaultOpen={completed < visibleSkills.length}>
         <IeltsScreenerHub data={startingPoint} />
       </IeltsCardGroup>

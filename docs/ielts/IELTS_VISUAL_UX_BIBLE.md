@@ -1,7 +1,7 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.15.0
+**Version:** 1.16.0
 **Effective date:** 2026-11-21\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
@@ -296,6 +296,17 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 - **Writing screener starting band (1.15.0, Diagnostic Bible 10.11).** In the teacher review a "Starting band" card sits above the next step: the AI starting band in the 13.10 gradient card (label "AI starting band · Task 2", the number, "Likely range x–y", "Suggestion only · you confirm or change it", "Not an official IELTS result"), then a band menu (44 px, 1.0–9.0 in half bands) with "Use AI band x" and, once feedback is shared, "Save starting band". A changed band shows "You changed the AI band (x → y)". Sharing an answered essay without a band shows "Choose a starting band for this essay before sharing." The student result shows the teacher's band in the same gradient card under the result heading: "Writing starting point · Task 2", the number, "Likely range x–y", and chips "Checked by your teacher", "Not an official IELTS result" and "One Task 2 essay · Confidence: low"; while waiting a quiet blue note says the starting band will appear after the teacher checks the essay. The AI band alone never appears in any student view.
 - Highlights now include fixed-check findings (missing spaces, capitals, double spaces, common misspellings) styled like any other *To improve* highlight, so the filter counts can be higher.
 
+### 13.11 Speaking practice mock with a recorded examiner (Diagnostic Bible section 10.12) — v1.16.0
+- **Low-distraction recording canvas** (section 6.5): one centred card at most 640 px wide on the light canvas, no navigation chrome, no animation except a pulsing recording dot that stops under reduced motion.
+- **Labels on every screen:** three pills reading "Speaking practice mock", "Recorded examiner" and "Not an official IELTS test", then the current part ("Introduction", "Part 1", "Part 2", "Part 3", "End").
+- **One action per screen,** in this order: Before you start (time, quiet place, headphones, each question plays once) → the exact recording wording with "I agree, continue" → the voice-improvement question only where the school has recorded parents' agreement, with "Yes" and "No" as two equal buttons → loading the examiner's voice → sound check → room check → microphone check (record, hear yourself back) → the test → saving → Done.
+- **Big targets:** main buttons are at least 56 px high and 18 px text, full width on phones. Body text on these screens is 18–20 px.
+- **Recording state in text, not colour alone:** a red dot plus the word "Recording", and the time left in large tabular digits. "I've finished" stays disabled for the first 3 seconds to prevent an accidental tap. In Part 1 "Hear the question again (once)" sits beside it; using it pauses the recording and the timer while the question plays.
+- **Part 2:** the cue card has a blue border and stays visible while the student prepares (one-minute timer from the server clock) and, shortened to the topic, while they speak (up to 2:00, stops by itself). A notes box is labelled "Notes (not saved)".
+- **Questions are heard, not shown,** in Parts 1 and 3. The examiner's words never appear on screen apart from the cue card.
+- **Connection problems** show "Waiting for connection…" with "Your answers are safe", never an error that suggests work was lost. A quiet line under the card counts answers still being saved. Leaving the page during the test asks for confirmation; the screen is kept awake where the browser allows.
+- **No praise, scores or bands** anywhere in the mock or on its Done screen ("Your teacher will check them and share feedback with you"). The Journey shows a card only while a mock is ready or in progress.
+
 ## 14. Native app motivation layer — v1.4.0
 
 This section applies **only inside the installed iPhone and Android apps** (`isNativeApp()`). The website keeps sections 12.4 and 13.6 unchanged. Where this section allows more than 12.4 or 13.6, it overrides them for the app only.
@@ -323,6 +334,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.21 Revision record — 1.16.0 (2026-11-21)
+
+Owner request (2026-11-21): a Speaking mock students take alone with a recorded examiner, "very simple and easy" for young students with weak English, with one clear action per screen, big buttons, a microphone check, visible timers and a clear recording state. New section 13.11. Diagnostic Bible 2.7.0 section 10.12. No existing screen changes, apart from one card added to the student Journey.
 
 ### 14.20 Revision record — 1.15.0 (2026-11-21)
 
