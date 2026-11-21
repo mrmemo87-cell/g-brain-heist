@@ -1,0 +1,188 @@
+/* ================= Episode 3 ================= */
+const ids=(p,k)=>Array.from({length:k},(_,i)=>p+(i+1));
+const tk=L=>t=>L.reduce((s,id)=>s+talk1(id,t),0);
+const boTalk=tk(ids('b',8)),obTalk=tk(ids('o',7)),moTalk=tk(ids('m',6));
+const PLUM='#b565c9',MHC='#5b3a6e';
+const farMirrors=(t,mf)=>{let g='';for(let i=0;i<14;i++){const x=300+(i*131)%560,y=170+(i*173)%330,w=26+(i*13)%30;g+=`<rect x="${x}" y="${y}" width="${w}" height="${n(w*1.35)}" rx="4" fill="#fff0d9" stroke="#f6c453" stroke-width="3" opacity="${n(mf*(.4+.3*Math.sin(t*1.3+i)**2))}"/>`}return g};
+function girl(o){return char(Object.assign({hg:'hg2',hc:'#6a2d5f',sw:SUN,sc:PLUM,bow:1},o))}
+function mother(o){return char(Object.assign({hg:'hg3',hc:MHC,sw:PLUM,sc:'#f6c453',bun:1,s:1.2},o))}
+function cat(o){
+  const c=Object.assign({x:0,y:0,s:1,face:-1,hiss:0,glow:0},o),f=c.face,h=c.hiss,G='#8d8fa3';
+  let g=`<g transform="translate(${n(c.x)},${n(c.y)}) scale(${c.s})">`;
+  g+=`<path d="M ${-f*40} -18 Q ${-f*(96+h*10)} ${-30-h*70} ${-f*(70-h*40)} ${-110-h*60}" fill="none" stroke="${OUT}" stroke-width="${n(24+h*12)}" stroke-linecap="round"/><path d="M ${-f*40} -18 Q ${-f*(96+h*10)} ${-30-h*70} ${-f*(70-h*40)} ${-110-h*60}" fill="none" stroke="${G}" stroke-width="${n(15+h*12)}" stroke-linecap="round"/>`;
+  g+=`<ellipse cx="0" cy="${n(-62-h*14)}" rx="${n(52+h*10)}" ry="${n(62-h*6)}" fill="${G}" stroke="${OUT}" stroke-width="5"/><ellipse cx="${f*6}" cy="${n(-40-h*14)}" rx="26" ry="34" fill="#c9cad8"/>`;
+  const hx=f*20,hy=-142-h*8;
+  g+=`<polygon points="${hx-36},${hy-18} ${hx-30},${hy-66} ${hx-6},${hy-34}" fill="${G}" stroke="${OUT}" stroke-width="5" stroke-linejoin="round"/><polygon points="${hx+36},${hy-18} ${hx+30},${hy-66} ${hx+6},${hy-34}" fill="${G}" stroke="${OUT}" stroke-width="5" stroke-linejoin="round"/><circle cx="${hx}" cy="${hy}" r="42" fill="${G}" stroke="${OUT}" stroke-width="5"/>`;
+  for(const i of [-1,1]){g+=(c.glow?`<circle cx="${hx+i*16+f*6}" cy="${hy-4}" r="20" fill="#f6e45a" opacity=".35"/>`:'')+`<ellipse cx="${hx+i*16+f*6}" cy="${hy-4}" rx="11" ry="${n(12-h*3)}" fill="#f6e45a"/><ellipse cx="${hx+i*16+f*8}" cy="${hy-4}" rx="${n(3+h*1)}" ry="10" fill="${OUT}"/>`}
+  g+=h>.3?`<ellipse cx="${hx+f*8}" cy="${hy+20}" rx="12" ry="${n(4+h*9)}" fill="#b0304a" stroke="${OUT}" stroke-width="3"/>`:`<path d="M ${hx+f*8-8} ${hy+18} l 8 6 l 8 -6" fill="none" stroke="${OUT}" stroke-width="3" stroke-linecap="round"/>`;
+  return g+`</g>`}
+
+/* ---------- the bedroom ---------- */
+const BED=`<g><rect x="1210" y="700" width="400" height="205" rx="18" fill="#8fb4e8" stroke="${OUT}" stroke-width="5"/><rect x="1210" y="770" width="400" height="135" rx="14" fill="#ffd3e0" stroke="${OUT}" stroke-width="5"/><rect x="1450" y="676" width="150" height="76" rx="26" fill="#fff" stroke="${OUT}" stroke-width="5"/><rect x="1580" y="610" width="40" height="295" rx="12" fill="#a06a40" stroke="${OUT}" stroke-width="5"/></g>`;
+const BLANKET=`<rect x="1210" y="770" width="400" height="135" rx="14" fill="#ffd3e0" stroke="${OUT}" stroke-width="5"/>`;
+const BG4=`<rect width="1920" height="1080" fill="#e9f2dc"/><rect x="0" y="560" width="1920" height="345" fill="#bcd9a8"/><rect x="0" y="548" width="1920" height="16" fill="#9cc487"/>
+<rect x="0" y="${FLOOR}" width="1920" height="175" fill="#dcae7e"/><rect x="0" y="${FLOOR}" width="1920" height="10" fill="#bf8f5f"/>
+${[[1000,470],[1130,500],[1560,470],[960,150],[1560,90]].map(([x,y],i)=>star(x,y,20,i,i%2?'#ffb3c7':SUN,.9)).join('')}
+<ellipse cx="1150" cy="975" rx="420" ry="50" fill="#ffb3c7"/>`;
+function door(dop){return `<rect x="1650" y="270" width="230" height="640" fill="#fff3c4"/><rect x="${n(1650+dop*150)}" y="270" width="${n(230-dop*150)}" height="640" fill="#9a6642" stroke="${OUT}" stroke-width="5"/><rect x="${n(1674+dop*150)}" y="602" width="46" height="16" rx="8" fill="#f6c453" stroke="${OUT}" stroke-width="4"/><rect x="1638" y="258" width="254" height="664" fill="none" stroke="#7a4d30" stroke-width="16"/>`}
+// room(t, {dop, night, inside: svg drawn inside the mirror, chars: svg in the room, overGlass: svg on the glass})
+function room(t,o){
+  let g=BG4+`<g transform="translate(1060,0)">${WINDOW(false)}</g>`+wallClock(1010,240,62,t,true)+BED+door(o.dop||0);
+  g+=o.chars||'';
+  if(o.night>0)g+=`<rect width="1920" height="1080" fill="${NIGHT}" opacity="${n(o.night*.74)}"/><g opacity="${n(o.night)}" transform="translate(1060,0)">${WINDOW(true)}</g>`+(o.nightChars||'');
+  g+=`<g clip-path="url(#mc2)"><rect x="290" y="150" width="620" height="770" fill="#211b4d"/>${farMirrors(t,.5)}${o.inside||''}<rect x="290" y="150" width="620" height="770" fill="#7fb4ff" opacity=".07"/>${o.overGlass||''}${SHINE(600)}</g>`+MIRROR_FRAME(290);
+  return g}
+const pound=(t,amt)=>({aL:8+amt*(52+40*Math.sin(t*10+PI)),aR:8+amt*(88+34*Math.sin(t*10)),mouth:amt*(.5+.4*Math.abs(Math.sin(t*10))),bob:-amt*Math.abs(Math.sin(t*10))*8,tilt:amt*4});
+
+/* ---------- 1: good morning ---------- */
+function morning(t){
+  const dop=es(t,0,1.1);
+  const walk=es(t,.9,V.n01.e),kiss=pulse(t,V.n02.s+.6,V.n02.e+.2,.4);
+  const toMir=es(t,V.n03.s-.4,V.n03.s+1.2),back=es(t,V.m2.s-.5,V.m2.s+.6),fix=pulse(t,V.m2.s+2.2,V.m2.e+1.1,.4),out=es(t,C.leave-.4,C.leave+2.2);
+  let mx=lerp(1780,1160,walk);mx=lerp(mx,1090,kiss);mx=lerp(mx,960,toMir);mx=lerp(mx,1120,back);mx=lerp(mx,1840,out);
+  const mface=out>0?1:(toMir>0&&back<.5?-1:-1);
+  const mo={x:mx,y:FLOOR,face:out>.05?1:-1,aL:8,aR:8,smile:.8,brow:.2,open:blink(t,.9),mouth:moTalk(t),look:[out>.05?.6:-.6,0],tilt:-kiss*10,head:0};
+  if((walk>0&&walk<1)||(toMir>0&&toMir<1)||(back>0&&back<1)||(out>0&&out<1)){mo.walk=t*6;mo.bob=-Math.abs(Math.sin(t*6))*5}
+  const hair=pulse(t,V.n03.s+1.2,V.m2.s-.4,.4);mo.aL+=hair*(150+8*Math.sin(t*5));if(hair>.3)mo.look=[-.8,-.2];
+  mo.aL+=fix*84;
+  const scarfFixed=t>V.m2.e+.6;
+  const bo={x:1010,y:FLOOR,face:lerp(1,-1,toMir)*(1-back)+back*1,flip:scarfFixed?0:1,aL:8,aR:8,smile:-.3,brow:1,open:1.1,mouth:0,look:[.8,0],bob:0,tilt:kiss*3};
+  if(toMir>0&&back<1)bo.look=[-.8,0];if(out>.4){bo.face=lerp(1,-1,es(t,C.leave+1.4,C.leave+2.2));bo.look=[lerp(.8,-.8,es(t,C.leave+1.4,C.leave+2.2)),0];bo.open=blink(t,.4)}
+  if(bo.face===0)bo.face=.01;
+  const slump=es(t,V.n04.s,V.n04.s+2),pa=1-slump;
+  const av=Object.assign({x:640,y:FLOOR,face:1,brow:1.2,smile:-.5,open:1.1,look:[.9,0]},pound(t,pa));
+  av.aR+=slump*86;av.mouth*=pa;av.brow=lerp(1.2,.6,slump);
+  const front=mo.x<1010; // she passes in front of Bo on her way to the mirror
+  return room(t,{dop:dop,inside:girl(av),chars:(front?char(bo)+mother(mo):mother(mo)+char(bo))});
+}
+/* ---------- 2: the hallway ---------- */
+function hallway(t){
+  let g=`<rect width="1920" height="1080" fill="#f1e4cf"/><rect x="0" y="600" width="1920" height="305" fill="#d9c3a0"/><rect x="0" y="590" width="1920" height="14" fill="#b99b72"/><rect x="0" y="${FLOOR}" width="1920" height="175" fill="#b9895c"/><defs>`;
+  const P=[0,1,2,3,4].map(i=>[150+i*350,190]);
+  P.forEach(([x,y],i)=>g+=`<clipPath id="ph${i}"><rect x="${x}" y="${y}" width="250" height="330" rx="8"/></clipPath>`);g+='</defs>';
+  const u=seg(t,C.hall+.2,V.n05.e-.6),bx=lerp(-150,1010,1-(1-u)*(1-u)),stop=u>=1,rf=es(t,V.n05.e-.8,V.n06.s+.3);
+  P.forEach(([x,y],i)=>{const s=.55+i*.09;
+    g+=`<g clip-path="url(#ph${i})"><rect x="${x}" y="${y}" width="250" height="330" fill="${['#cfe6ff','#ffe1ec','#e3f3d3','#fff0c9','#e2dcff'][i]}"/>${girl({x:x+125,y:y+250+362*s,s,face:i%2?.3:-.3,smile:1,look:[0,0]})}${i===3?`<g opacity="${n(rf*.5)}">${char({x:x+125,y:y+250+362*.82,s:.82,face:.2,smile:-.3,brow:.8,look:[0,0]})}</g>`:''}<polygon points="${x+60},${y} ${x+120},${y} ${x+40},${y+330} ${x-20},${y+330}" fill="#fff" opacity=".2"/></g><rect x="${x}" y="${y}" width="250" height="330" rx="8" fill="none" stroke="#8a5a3c" stroke-width="16"/><rect x="${x}" y="${y}" width="250" height="330" rx="8" fill="none" stroke="${OUT}" stroke-width="4"/>`});
+  const bo={x:bx,y:FLOOR+40,face:stop?lerp(1,.3,rf):1,aL:8,aR:8,smile:-.3,brow:.7,open:blink(t,.4),look:[stop?.3:.7,stop?-.9:-.4],head:stop?-6:0};
+  if(!stop){bo.walk=t*6;bo.bob=-Math.abs(Math.sin(t*6))*5}
+  return g+char(bo);
+}
+/* ---------- 3: breakfast ---------- */
+function kitchen(t){
+  let g=`<rect width="1920" height="1080" fill="#ffe9c2"/><rect x="0" y="600" width="1920" height="305" fill="#f3cf9a"/><rect x="0" y="${FLOOR}" width="1920" height="175" fill="#c9905c"/>`;
+  g+=`<rect x="120" y="130" width="520" height="210" rx="10" fill="#d99a5b" stroke="${OUT}" stroke-width="5"/><line x1="380" y1="130" x2="380" y2="340" stroke="${OUT}" stroke-width="5"/><circle cx="350" cy="240" r="9" fill="#fff"/><circle cx="410" cy="240" r="9" fill="#fff"/>`;
+  g+=`<g transform="translate(1180,40)">${WINDOW(false)}</g><rect x="1280" y="452" width="390" height="26" rx="8" fill="#fdfdff" stroke="${OUT}" stroke-width="5"/>`;
+  // the cat
+  const hs=pulse(t,C.hiss,C.catout+.2,.25),go=es(t,C.catout,C.catout+1.6),dn=es(t,C.catout-.1,C.catout+.5);
+  const ct={x:lerp(1560,2050,go),y:lerp(452,FLOOR,dn),face:-1,hiss:hs,s:1};
+  if(go<1)g+=cat(ct);
+  // mother and Bo behind the table
+  const fr=es(t,V.m3.s+.3,V.m3.s+.7)*(1-es(t,V.m4.e-.5,V.m4.e)),eat=.5+.5*Math.sin(t*2.6);
+  const mo={x:560,y:FLOOR,face:1,aL:8,aR:8+pulse(t,C.kitchen+.5,V.n07.e,.5)*(70+10*Math.sin(t*3)),smile:.8,brow:.2,open:blink(t,.9),mouth:moTalk(t),look:[.7,.1]};
+  const lookCat=pulse(t,V.m5.s-.2,C.catout+1.2,.25);if(lookCat>.3){mo.look=[1,-.2];mo.brow=.9;mo.smile=.1}
+  const bo={x:1010,y:FLOOR,face:-.8,flip:0,aL:fr>0.5?112:74+eat*46,aR:8,brushL:1,smile:lerp(.1,-.4,fr),brow:lerp(.4,1.2,fr),open:fr>.5?1.12:blink(t,.4),mouth:boTalk(t),look:[lerp(-.5,-.9,fr),lerp(.4,0,fr)],bob:0};
+  if(hs>.2){bo.look=[1,-.2];bo.face=lerp(-.8,.6,hs);bo.brow=1.1;bo.aL=110}
+  const af=es(t,V.n10.s,V.n10.e);if(go>.5){bo.look=[lerp(1,0,af),lerp(-.2,.5,af)];bo.face=lerp(.6,-.2,af);bo.brow=.9;bo.aL=lerp(110,30,af)}
+  g+=mother(mo)+char(bo);
+  g+=`<rect x="380" y="720" width="900" height="44" rx="14" fill="#b97a48" stroke="${OUT}" stroke-width="5"/><rect x="430" y="764" width="40" height="150" fill="#9a6238" stroke="${OUT}" stroke-width="5"/><rect x="1190" y="764" width="40" height="150" fill="#9a6238" stroke="${OUT}" stroke-width="5"/>`;
+  g+=`<ellipse cx="960" cy="716" rx="74" ry="20" fill="#fdfdff" stroke="${OUT}" stroke-width="5"/><ellipse cx="960" cy="712" rx="54" ry="11" fill="#f0c98a"/><rect x="620" y="672" width="56" height="50" rx="8" fill="#ff9eb5" stroke="${OUT}" stroke-width="5"/><rect x="500" y="640" width="70" height="82" rx="14" fill="#9be7ff" stroke="${OUT}" stroke-width="5"/>`;
+  return g;
+}
+/* ---------- 4+5: the writing on the glass, and what Ob wants ---------- */
+function fogText(lines,size,cx,cy,rev,sx){
+  // rev: 0..1 how much has been written; drawn mirrored (sx=-1) until Bo reads it (sx -> 1)
+  const W=520,lh=size*1.08,y0=cy-(lines.length-1)*lh/2;
+  const cid='fc'+Math.round(cx+cy+size);
+  let g=`<defs><clipPath id="${cid}"><rect x="${n(cx+W/2-W*rev)}" y="${cy-260}" width="${n(W*rev)}" height="520"/></clipPath></defs><g clip-path="url(#${cid})"><g transform="translate(${cx},0) scale(${n(Math.abs(sx)<.05?.05:sx)},1)">`;
+  lines.forEach((l,i)=>g+=`<text x="0" y="${n(y0+i*lh+size*.34)}" font-size="${size}" text-anchor="middle" fill="#211b4d" opacity=".85" letter-spacing="4">${l}</text>`);
+  return g+`</g></g>`}
+function glassTalk(t){
+  const a4=t>=C.act4-.2;
+  const fogA=es(t,C.fog,C.fog+1)*(1-pulse(t,C.write2-.9,C.write2+.1,.3)*.8)*(1-pulse(t,C.ava-.9,C.ava+.1,.3)*.8)*(1-es(t,C.wipe,C.wipe+.7));
+  let over=`<rect x="340" y="170" width="520" height="290" rx="60" fill="#fff" opacity="${n(fogA*.55)}"/>`;
+  if(t>=C.write1&&t<C.write2-.5)over+=`<g opacity="${n(fogA)}">`+fogText(['HE LIED','TO YOU'],92,600,315,es(t,C.write1,C.write1+2.4),lerp(-1,1,es(t,C.read1,C.read1+.6)))+`</g>`;
+  if(t>=C.write2&&t<C.ava-.5)over+=`<g opacity="${n(fogA)}">`+fogText(['ASK HIM','WHAT HE WANTS'],52,600,315,es(t,C.write2,C.write2+2.8),lerp(-1,1,es(t,C.read2,C.read2+.6)))+`</g>`;
+  if(t>=C.ava&&t<C.wipe+.7)over+=`<g opacity="${n(fogA)}">`+fogText(['MOM'],190,600,315,es(t,C.ava,C.ava+2.2),-1)+`</g>`;
+  const wp=seg(t,C.wipe,C.wipe+.7);if(wp>0&&wp<1)over+=`<line x1="${n(lerp(360,840,wp))}" y1="190" x2="${n(lerp(330,810,wp))}" y2="450" stroke="${CORAL}" stroke-width="70" stroke-linecap="round"/>`;
+  // Ava
+  const wr=pulse(t,C.write1-.3,C.write1+2.5,.3)+pulse(t,C.write2-.3,C.write2+2.9,.3)+pulse(t,C.ava-.3,C.ava+2.3,.3),palm=pulse(t,C.ava+2.2,C.wipe+.2,.4);
+  const retreat=es(t,C.wipe+.2,C.wipe+1.4);
+  const av={x:lerp(640,430,retreat),y:FLOOR,face:1,aL:8,aR:8+cl(wr)*(150+10*Math.sin(t*7))+palm*88,smile:lerp(-.2,-.5,retreat),brow:.7,open:blink(t,2.1),look:[.8,cl(wr)*-.6],mouth:0};
+  if(retreat>0&&retreat<1)av.walk=t*6;
+  const obIn=es(t,C.wipe-.5,C.wipe+.3),obW=es(t,C.wipe+.4,C.wipe+1.8),lv=es(t,C.obleaves,C.obleaves+2);
+  const ob={x:lerp(lerp(380,760,obW),170,lv),y:FLOOR,face:lv>.05?-1:1,sw:CORAL,sc:TEAL,aL:8,aR:8+pulse(t,C.wipe-.2,C.wipe+.8,.25)*150,smile:.6,brow:-.3,open:blink(t,1.7),mouth:obTalk(t),look:[lv>.05?-.6:.8,0]};
+  if((obW>0&&obW<1)||(lv>0&&lv<1))ob.walk=t*6;
+  ob.x+=es(t,V.o3.e,V.o4.s)*40;ob.smile=lerp(.6,.95,es(t,V.o7.s,V.o7.e));
+  const inside=girl(av)+`<g opacity="${n(obIn*(1-es(t,C.obleaves+1.2,C.obleaves+2)))}">${char(ob)}</g>`;
+  // Bo
+  const ent=es(t,C.act3+.2,C.act3+1.8);
+  const bo={x:lerp(1500,1030,ent),y:FLOOR,face:-1,flip:0,aL:8+pulse(t,C.ava+2.4,C.wipe+.1,.4)*90,aR:8,smile:-.3,brow:.8,open:blink(t,.4),mouth:boTalk(t),look:[-.8,pulse(t,C.write1,C.wipe,.5)*-.4],bob:0};
+  if(ent>0&&ent<1){bo.walk=t*6;bo.bob=-Math.abs(Math.sin(t*6))*5}
+  bo.bob-=pulse(t,C.wipe,C.wipe+.3,.1)*22;
+  bo.brow-=pulse(t,V.b5.s-.1,V.b5.e+.2,.2)*1.5;bo.aL+=pulse(t,V.b5.s,V.b5.e,.2)*80;
+  const away=es(t,C.obleaves+1.6,C.obleaves+2.6);if(away>0){bo.face=lerp(-1,1,away);bo.look=[lerp(-.8,.5,away),.7*away];bo.tilt=3*away}
+  return room(t,{dop:0,inside,overGlass:over,chars:char(bo)});
+}
+/* ---------- 6: night ---------- */
+function nightRoom(t){
+  const dk=t>=C.lightoff?1:0,up=es(t,C.crackle,C.crackle+.8);
+  const mo={x:1760,y:FLOOR,face:-1,smile:.8,open:blink(t,.9),mouth:moTalk(t),look:[-.7,0],aL:8+pulse(t,C.lightoff-.4,C.lightoff+.3,.2)*120,aR:8};
+  const moOut=es(t,C.lightoff+.2,C.lightoff+1.4);
+  const bo={x:1400,y:930,face:lerp(-1,-.3,up),flip:0,aL:8+up*96,aR:8,smile:-.3,brow:lerp(.4,1,up),open:blink(t,.4),look:[lerp(-.7,-.9,up),up*.5],tilt:-4};
+  const wv=es(t,C.wave,C.wave+.5);
+  const av={x:560,y:FLOOR+10,face:1,tilt:16,open:.06,smile:.1,brow:0,look:[0,0],aL:20,aR:20};
+  const ob={x:420,y:FLOOR,face:1,sw:CORAL,sc:TEAL,smile:.9,brow:-.3,open:1,look:[.9,0],aL:8,aR:8+es(t,C.wave+.7,C.wave+1.4)*(140+16*Math.sin(t*8))};
+  const inside=`<g opacity="${n(wv)}">${char(ob)}</g>`+girl(av)+`<rect x="290" y="150" width="620" height="770" fill="#0b0a24" opacity="${n(dk*.45)}"/>`;
+  const paper=up>0?`<g transform="translate(${n(1400-112)},${n(930-228-70*up)}) rotate(-12)"><rect x="-34" y="-46" width="68" height="84" rx="4" fill="#fff6dc" stroke="${OUT}" stroke-width="4"/><line x1="-20" y1="-22" x2="20" y2="-22" stroke="#2d2a55" stroke-width="4"/><line x1="-20" y1="-4" x2="20" y2="-4" stroke="#2d2a55" stroke-width="4"/><line x1="-20" y1="14" x2="6" y2="14" stroke="#2d2a55" stroke-width="4"/></g>`:'';
+  const chars=(moOut<1?`<g opacity="${n(1-moOut)}">${mother(mo)}</g>`:'')+char(bo)+BLANKET+paper;
+  const nightChars=cat({x:1700,y:FLOOR,face:-1,glow:1,s:.95})+(dk?`<ellipse cx="1400" cy="640" rx="330" ry="330" fill="url(#spill)" opacity=".28"/>`:'');
+  return room(t,{dop:lerp(1,.25,moOut),night:dk,inside,chars,nightChars});
+}
+function noteCard(t){
+  if(t<C.note||t>=C.wave)return '';
+  const a=es(t,C.note,C.note+.5)*(1-es(t,C.wave-.5,C.wave)),zs=es(t,C.sig,C.sig+1),fx=Math.cos(PI*es(t,C.turn,C.turn+1.5)),z=lerp(1,2.3,zs);
+  const sgn=fx<0?-1:1,ax=Math.max(.04,Math.abs(fx));
+  let g=`<g opacity="${n(a)}"><rect width="1920" height="1080" fill="#07061c" opacity=".94"/><ellipse cx="960" cy="520" rx="900" ry="560" fill="url(#spill)" opacity=".22"/>`;
+  g+=`<g transform="translate(960,540) scale(${n(z)}) translate(${n(-270*zs*sgn)},${n(-185*zs)}) rotate(-4) scale(${n(sgn*ax)},1)">`;
+  g+=`<rect x="-460" y="-330" width="920" height="660" rx="10" fill="${fx<0?'#efe4c4':'#fff6dc'}" stroke="${OUT}" stroke-width="6"/><line x1="-460" y1="-110" x2="460" y2="-110" stroke="#d9cba6" stroke-width="3"/><line x1="-460" y1="110" x2="460" y2="110" stroke="#d9cba6" stroke-width="3"/>`;
+  const T=(y,s,sz)=>`<text x="-380" y="${y}" font-size="${sz}" fill="#2d2a55" opacity="${fx<0?.45:1}" font-style="italic" transform="skewX(-8)" letter-spacing="2">${s}</text>`;
+  g+=T(-170,"DON'T TRUST HIM.",86)+T(-50,'HE NEEDS YOU',86)+T(70,'BACK INSIDE.',86);
+  g+=`<text x="270" y="250" font-size="150" fill="#2d2a55" opacity="${fx<0?.6:1}" font-style="italic" text-anchor="middle" letter-spacing="10">BO</text>`;
+  g+=`</g><circle cx="${n(960-470*z*ax)}" cy="${n(820+60*zs)}" r="${n(46*z)}" fill="${HEAD}" stroke="${OUT}" stroke-width="6" opacity="${n(1-zs)}"/><circle cx="${n(960+470*z*ax)}" cy="${n(800+60*zs)}" r="${n(46*z)}" fill="${HEAD}" stroke="${OUT}" stroke-width="6" opacity="${n(1-zs)}"/></g>`;
+  return g}
+
+/* ---------- camera, overlays ---------- */
+const K1=[[0,1560,540,1.3],[1.2,1560,540,1.3],[V.n01.e,1200,520,1.25],[V.n02.e+.3,1080,480,1.5],[C.act1,1080,480,1.5],[C.act1+.8,1050,520,1.2],[V.n03.s-.2,1050,520,1.2],[V.n03.s+1.4,780,500,1.4],[V.m2.s-.4,780,500,1.4],[V.m2.s+.6,1060,500,1.4],[C.leave-.2,1060,500,1.4],[C.leave+1,1250,540,1.08],[V.n04.s,1250,540,1.08],[V.n04.s+1.6,740,500,1.4],[C.hall,740,500,1.45]];
+const K2=[[C.hall,640,520,1.2],[V.n05.s+2,760,520,1.2],[V.n05.e,1100,460,1.4],[V.n06.s+.6,1280,380,1.9],[C.kitchen,1300,370,2]];
+const K3=[[C.kitchen,900,540,1.06],[V.m3.s-.3,900,540,1.06],[V.m3.s+.5,820,500,1.3],[V.m4.e,820,500,1.3],[V.n08.s+.6,1010,480,1.45],[C.hiss-.3,1010,480,1.45],[C.hiss+.2,1480,470,1.6],[V.m5.s,1480,470,1.6],[V.m5.s+.7,960,540,1.08],[V.n09.s,960,540,1.08],[V.n09.s+1,1440,520,1.4],[C.catout,1440,520,1.4],[C.catout+1.2,1200,540,1.1],[V.n10.s,1100,520,1.2],[C.act3,1010,470,1.6]];
+const K4=[[C.act3,1150,540,1.1],[V.b2.s,900,520,1.25],[C.fog,900,520,1.25],[C.fog+1,640,400,1.6],[C.write1,620,360,1.85],[C.read1+2,620,360,1.9],[V.b3.s,860,480,1.35],[C.write2-.3,860,480,1.35],[C.write2+.5,620,360,1.85],[C.read2+1.2,620,360,1.9],[V.n13.s+1,660,400,1.6],[C.ava,620,350,1.8],[C.ava+2.2,620,350,1.85],[C.ava+3,800,500,1.5],[C.wipe,800,500,1.5],[C.wipe+.8,780,520,1.3],[V.o3.e,780,520,1.34],[V.n14.s+.5,740,470,1.75],[V.n14.e,740,470,1.8],[V.b6.s,800,520,1.32],[V.o6.s+3,780,500,1.45],[V.b8.s,960,500,1.5],[V.o7.s,740,470,1.7],[C.obleaves,740,470,1.7],[C.obleaves+1.5,820,520,1.28],[V.n15.s+.8,1030,470,1.7],[C.night,1030,470,1.75]];
+const K6=[[C.night,1300,540,1.1],[C.lightoff+1,1300,540,1.1],[V.n16.s+1,1390,600,1.45],[V.n17.s-.2,1390,600,1.45],[V.n17.s+1,700,520,1.3],[C.crackle-.2,700,520,1.3],[C.crackle+.6,1380,600,1.55],[C.note,1380,600,1.6],[C.wave,700,520,1.3],[V.n23.s,700,500,1.42],[V.n23.s+1.4,1390,560,1.8],[D.total,1390,560,1.95]];
+function cam(K,t){let i=0;while(i<K.length-1&&t>K[i+1][0])i++;const a=K[i],b=K[Math.min(i+1,K.length-1)],u=es(t,a[0],b[0]>a[0]?b[0]:a[0]+1);const z=lerp(a[3],b[3],u);let cx=lerp(a[1],b[1],u),cy=lerp(a[2],b[2],u);cx=cl(cx,960/z,1920-960/z);cy=cl(cy,540/z,1080-540/z);return `translate(960,540) scale(${z.toFixed(4)}) translate(${n(-cx)},${n(-cy)})`}
+const HOOK=[['n01',0,C.n01b-V.n01.s-.1,'A WOMAN WALKED INTO','HER DAUGHTER’S BEDROOM'],['n01',C.n01b-V.n01.s,99,'AND FOUND A BOY','SHE HAD NEVER SEEN.'],['n02',0,C.n02b-V.n02.s-.1,'SHE DID NOT','SCREAM.'],['n02',C.n02b-V.n02.s,99,'SHE CALLED HIM BY','HER DAUGHTER’S NAME.']];
+function hookCaps(t){
+  if(t>=C.title)return '';
+  let g=`<rect x="0" y="700" width="1920" height="380" fill="#05040f" opacity=".5"/>`;
+  for(const [id,a,b,l1,l2] of HOOK){const r=t-V[id].s;if(r>=a&&r<b&&t<V[id].e+.4){const k=.9+.1*es(r,a,a+.18),T=(y,txt,c)=>`<text x="0" y="${y}" font-size="100" text-anchor="middle" fill="${c}" stroke="#05040f" stroke-width="22" paint-order="stroke" stroke-linejoin="round" letter-spacing="3">${txt}</text>`;
+    g+=`<g transform="translate(960,860) scale(${n(k)})">${T(-20,l1,'#ffffff')}${T(105,l2,'#ffe14d')}</g>`}}
+  return g+`<rect width="1920" height="1080" fill="#000" opacity="${n(1-es(t,0,.3))}"/>`}
+function cornerTitle(t){const a=pulse(t,C.title+.1,C.title+6,.6);if(a<=0)return '';
+  return `<g opacity="${n(a)}"><rect x="50" y="46" width="560" height="74" rx="16" fill="#05040f" opacity=".6"/><text x="80" y="98" font-size="44" fill="#e9e6ff" letter-spacing="3">BO &amp; OB <tspan fill="#f6c453">· EPISODE 3</tspan></text></g>`}
+function endcard(t){const a=es(t,C.end,C.end+.5);if(a<=0)return '';
+  return `<g opacity="${n(a)}"><rect width="1920" height="1080" fill="#08071a" opacity=".94"/><text x="960" y="520" font-size="190" text-anchor="middle" fill="#e9e6ff" letter-spacing="8">Bo &amp; Ob</text><text x="960" y="640" font-size="54" text-anchor="middle" fill="#f6c453" letter-spacing="5">TO BE CONTINUED</text></g>`}
+const CUTS=[C.hall,C.kitchen,C.act3,C.night];
+window.renderAt=function(t){
+  let g=DEFS,s;
+  if(t<C.hall)s=`<g transform="${cam(K1,t)}">${morning(t)}</g>`;
+  else if(t<C.kitchen)s=`<g transform="${cam(K2,t)}">${hallway(t)}</g>`;
+  else if(t<C.act3)s=`<g transform="${cam(K3,t)}">${kitchen(t)}</g>`;
+  else if(t<C.night)s=`<g transform="${cam(K4,t)}">${glassTalk(t)}</g>`;
+  else s=`<g transform="${cam(K6,t)}">${nightRoom(t)}</g>`;
+  g+=s;
+  let bl=0;for(const c of CUTS)bl=Math.max(bl,1-Math.abs(t-c)/.4);
+  g+=`<rect width="1920" height="1080" fill="#05040f" opacity="${n(cl(bl))}"/><rect width="1920" height="1080" fill="url(#vig)"/>`;
+  g+=noteCard(t)+hookCaps(t)+cornerTitle(t)+endcard(t);
+  g+=`<rect width="1920" height="1080" fill="#000" opacity="${n(es(t,D.total-.7,D.total-.1))}"/>`;
+  document.getElementById('s').innerHTML=g;
+};
+window.DATA={fps:D.fps,total:D.total};
+window.ready=document.fonts.load('600 40px Fredoka').then(()=>{renderAt(+(new URLSearchParams(location.search).get('t')||0));return true});

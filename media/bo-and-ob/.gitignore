@@ -1,0 +1,7 @@
+frames/
+stills/
+*.wav
+*.mp4
+*.png
+short/*.txt
+short/*.jpg
