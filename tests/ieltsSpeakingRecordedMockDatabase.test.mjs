@@ -33,6 +33,7 @@ for (const m of [
   "20261007125521_ielts_speaking_eligible_release",
   "20261008065539_ielts_speaking_school_seat_access",
   "20261121154500_ielts_speaking_recorded_mock",
+  "20261121170000_ielts_speaking_mock_server_state",
 ])
   await db.exec(readFileSync(`supabase/migrations/${m}.sql`, "utf8"));
 // Readers created by later migrations exist in production; stand-ins carry their exact guarded text
@@ -269,6 +270,13 @@ test("the server verifies answers, joins each part into one interview clip and s
   await assert.rejects(db.query("select rpc_ielts_speaking_mock_verify_answer($1,$2,40)", [ans(1), sha("1")]), /answer_invalid/, "longer than 30 s + 3 s");
   for (const n of [1, 2, 4, 5, 6, 7, 8]) await db.query("select rpc_ielts_speaking_mock_verify_answer($1,$2,20)", [ans(n), sha(String(n))]);
   await assert.rejects(db.query("select rpc_ielts_speaking_mock_verify_answer($1,$2,20)", [ans(3), sha("3")]), /not_uploaded/);
+  const st = await one("select rpc_ielts_speaking_mock_server_state($1)", [session]);
+  assert.equal(st.finished, true);
+  assert.equal(st.answers.find((x) => x.line_key === "p1.q1").verified, true);
+  assert.equal(st.answers.find((x) => x.line_key === "p1.q3").missing, true);
+  assert.deepEqual(st.parts, []);
+  assert.equal(st.lines.filter((l) => l.kind === "question" || l.kind === "long_turn").length, 8);
+  await assert.rejects(db.query("select rpc_ielts_speaking_mock_server_state($1)", [id(650)]), /mock_session_required/, "interviews are not mocks");
   const clip = (p) => id(700 + p);
   const attach = (p, segs, dur = 60) => db.query("select rpc_ielts_speaking_mock_attach_part($1,$2,$3,$4,$5,$6)", [session, p, clip(p), sha("c"), dur, JSON.stringify(segs)]);
   await assert.rejects(attach(2, [{ line_key: "p2.start", start: 0, end: 20 }]), /previous_part_required/);
@@ -306,6 +314,7 @@ test("server steps are server-only and mock tables are private", async () => {
     "rpc_ielts_speaking_mock_attach_part(uuid,integer,uuid,text,numeric,jsonb)",
     "rpc_ielts_speaking_mock_answer_file_deleted(uuid)",
     "rpc_ielts_speaking_mock_submit(uuid)",
+    "rpc_ielts_speaking_mock_server_state(uuid)",
   ];
   for (const fn of server) {
     for (const role of ["anon", "authenticated"]) assert.equal(await one("select has_function_privilege($1,$2,'execute')", [role, `public.${fn}`]), false, `${role} ${fn}`);
