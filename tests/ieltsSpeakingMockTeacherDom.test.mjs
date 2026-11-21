@@ -13,6 +13,7 @@ const log = (name, args) => { s().calls.push([name, ...args]); };
 export const mockCatalog = async () => s().catalog;
 export const mockTeacherList = async () => s().rows;
 export const assignMock = async (...a) => { log("assign", a); s().rows = [{ assignment_id: "${id(9)}", package_code: a[0], title: "Speaking practice mock B", assigned_at: "2026-11-21T10:00:00Z", assigned_by: "Teacher", cancelled_at: null, session_id: null, started_at: null, finished_at: null, status: null, reviewed: false, interrupted_answers: 0 }]; return { assigned: 1, script_version: 1 }; };
+export const assignMockMix = async (...a) => { log("mix", a); if (s().mix) return s().mix; s().rows = [{ assignment_id: "${id(9)}", package_code: "bh-speaking-mock-c", title: "Speaking practice mock C", assigned_at: "2026-11-21T10:00:00Z", assigned_by: "Teacher", cancelled_at: null, session_id: null, started_at: null, finished_at: null, status: null, reviewed: false, interrupted_answers: 0 }]; return { assigned: 1, by_mock: { "bh-speaking-mock-c": 1 }, skipped: [] }; };
 export const cancelMockAssignment = async (...a) => { log("cancel", a); s().rows = s().rows.map((r) => ({ ...r, cancelled_at: "2026-11-21T11:00:00Z" })); return { cancelled: true }; };
 export const requestJoin = async (...a) => { log("join", a); return { submitted: true, blocked: null }; };
 export const mockSegments = async () => s().segments;
@@ -30,6 +31,7 @@ const bundle = await build({
 import Panel from './src/components/ielts/SpeakingMockTeacherPanel';import Map from './src/components/ielts/SpeakingMockAnswerMap';import Studio from './src/pages/ielts/IeltsSpeakingMockStudio';
 window.mount=()=>createRoot(document.getElementById('root')).render(React.createElement(RouterProvider,{router:createBrowserRouter([
  {path:'/panel',element:React.createElement(Panel,{studentId:'${id(1)}',studentName:'Aida'})},
+ {path:'/class',element:React.createElement(Panel,{studentId:'${id(1)}',studentName:'Aida',students:[{id:'${id(1)}',name:'Aida'},{id:'${id(2)}',name:'Bek'},{id:'${id(3)}',name:'Dana'}]})},
  {path:'/map',element:React.createElement(Map,{sessionId:'${id(400)}'})},{path:'/studio',element:React.createElement(Studio)},
  {path:'/ielts/speaking-pilot/:id',element:React.createElement('p',null,'review page')}])}));`,
     resolveDir: process.cwd(), loader: "tsx",
@@ -65,14 +67,24 @@ test("a teacher assigns the mock once, can cancel it before it starts, and sees 
     await m.wait(() => m.text().includes("Speaking practice mock"));
     assert.match(m.text(), /never counts as a screener/);
     assert.match(m.text(), /Not an official IELTS test/);
+    const select = m.w.document.querySelector("select");
+    assert.equal(select.value, "auto", "Automatic is the default");
+    assert.equal(m.button("Give everyone listed"), undefined, "no list action for a single student");
     m.button("Assign to Aida").click();
     await m.wait(() => m.text().includes("Assigned · not started"));
-    assert.deepEqual(plain(m.w.__mock.calls[0]), ["assign", "bh-speaking-mock-b", [id(1)]]);
+    assert.deepEqual(plain(m.w.__mock.calls[0]), ["mix", [id(1)]], "the server picks a mock she has not had");
     assert.equal(m.button("Assign to Aida").disabled, true, "one open attempt");
-    assert.match(m.text(), /already has this mock open/);
+    assert.match(m.text(), /already has a mock open/);
     m.button("Cancel").click();
     await m.wait(() => m.text().includes("Cancelled"));
     assert.equal(m.button("Assign to Aida").disabled, false);
+    const pick = m.w.document.querySelector("select");
+    pick.value = "bh-speaking-mock-b";
+    pick.dispatchEvent(new m.w.Event("change", { bubbles: true }));
+    await m.wait(() => m.w.document.querySelector("select").value === "bh-speaking-mock-b");
+    m.button("Assign to Aida").click();
+    await m.wait(() => m.w.__mock.calls.some((c) => c[0] === "assign"));
+    assert.deepEqual(plain(m.w.__mock.calls.find((c) => c[0] === "assign")), ["assign", "bh-speaking-mock-b", [id(1)]], "a chosen mock is still possible");
   } finally { m.dom.window.close(); }
   const r = await mount("/panel", { catalog, rows: [row({}), row({ assignment_id: id(7), status: "in_progress", finished_at: "x" }), row({ assignment_id: id(6), status: "in_progress", finished_at: null })] });
   try {
@@ -90,6 +102,20 @@ test("a teacher assigns the mock once, can cancel it before it starts, and sees 
     await new Promise((res) => setTimeout(res, 80));
     assert.equal(none.text().includes("Speaking practice mock"), false, "an unpublished mock is offered only for the pilot student");
   } finally { none.dom.window.close(); }
+});
+
+test("a teacher gives everyone listed a mixed mock and is told who was skipped and why", async () => {
+  const mix = { assigned: 1, by_mock: { "bh-speaking-mock-c": 1 }, skipped: [{ student_id: id(2), reason: "open_mock" }, { student_id: id(3), reason: "no_new_mock" }] };
+  const m = await mount("/class", { catalog, rows: [], mix });
+  try {
+    await m.wait(() => !!m.button("Give everyone listed a mock (3)"));
+    m.button("Give everyone listed a mock (3)").click();
+    await m.wait(() => m.text().includes("Assigned 1 student"));
+    assert.deepEqual(plain(m.w.__mock.calls[0]), ["mix", [id(1), id(2), id(3)]]);
+    assert.match(m.text(), /mixed so classmates get different questions/);
+    assert.match(m.text(), /1 student already has a mock open/);
+    assert.match(m.text(), /1 student has already done every mock/);
+  } finally { m.dom.window.close(); }
 });
 
 test("the review shows which question each answer belongs to and what was lost", async () => {

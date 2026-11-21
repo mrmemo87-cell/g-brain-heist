@@ -823,7 +823,7 @@ export default function IeltsSpeakingPilot() {
               </details>
             )}
             {home.can_teacher && home.student_id && (
-              <SpeakingMockTeacherPanel studentId={home.student_id} studentName={home.student_name} />
+              <SpeakingMockTeacherPanel studentId={home.student_id} studentName={home.student_name} students={home.students} />
             )}
             {!!home.sessions?.length && (
               <section className="sp-card">
