@@ -56,8 +56,8 @@ N: You laugh. And then you ask him what he sees above your head. For him. He tel
 ## 18:00 — The mirror
 N: Back home, brushing your teeth, you see something you didn't know was possible. A number above your own head, in the mirror.
 N: It's how much you like yourself.
-N: Thirty-one.
-N: Lower than your boss. Lower than the man who says "love that idea". Every person you met today liked you more than you do.
+N: Twenty-one.
+N: Lower than your boss. Lower than the colleague who says "love that idea". Everyone who actually knows you... likes you more than you do.
 N: That's the most hidden thing of all. Not because anyone told you to hide it. Because you never once checked.
 
 ## 20:00 — The party
