@@ -74,3 +74,64 @@
 .itn-page .isn-group { margin: 0; }
 
 .itn-hero { background: var(--isn-brand-deep); box-shadow: none; }
+
+/* IELTS map on Today (Visual & UX Bible 13.12): every area, grouped by the teacher's job. */
+.itn-map-lead { margin: -.2rem 0 .2rem; color: var(--isn-muted); font-size: .88rem; }
+.itn-map .isn-section-title svg { color: var(--isn-brand); }
+.itn-map-groups { display: grid; grid-template-columns: 1fr; gap: .75rem; }
+@media (min-width: 600px) { .itn-map-groups { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 960px) { .itn-map-groups { grid-template-columns: repeat(3, 1fr); } }
+.itn-map-group { display: grid; align-content: start; gap: .45rem; padding: .8rem; border: 1px solid var(--isn-line); border-radius: 18px; background: linear-gradient(180deg, #fff, #f8fafc); }
+.itn-map-group h3 { margin: 0 0 .1rem; font-size: .74rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--isn-muted); }
+.itn-map-spot { display: grid; grid-template-columns: 2.1rem 1fr; grid-template-rows: auto auto; column-gap: .6rem; align-items: center; min-height: 56px; padding: .55rem .65rem; border: 1px solid transparent; border-radius: 12px; background: #fff; text-align: left; font: inherit; color: var(--isn-ink); cursor: pointer; box-shadow: 0 1px 4px rgba(15,23,42,.05); animation: isn-rise .4s both; animation-delay: calc(var(--n, 0) * 35ms); transition: border-color .2s ease, transform .18s ease; }
+.itn-map-spot:hover { border-color: var(--isn-brand); transform: translateX(2px); }
+.itn-map-spot:focus-visible { outline: 3px solid #0284c7; outline-offset: 2px; }
+.itn-map-icon { grid-row: 1 / 3; display: grid; place-items: center; width: 2.1rem; height: 2.1rem; border-radius: 10px; background: var(--bh-ielts-secondary); color: var(--isn-brand); }
+.itn-map-spot strong { display: flex; align-items: center; gap: .4rem; font-size: .9rem; }
+.itn-map-count.is-hot { background: #fef3c7; color: #92400e; }
+.itn-map-spot small { color: var(--isn-muted); font-size: .78rem; line-height: 1.3; }
+.itn-map-count { min-width: 1.4rem; padding: 0 .4rem; border-radius: 999px; background: #f1f5f9; color: #475569; font-size: .72rem; font-weight: 700; text-align: center; }
+
+/* Speaking desk (Visual & UX Bible 13.12). */
+.itn-sd { display: grid; gap: 1rem; }
+.itn-sd-card { display: grid; gap: .85rem; padding: 1.1rem; border: 1px solid var(--isn-line); border-radius: 20px; background: #fff; box-shadow: 0 2px 12px rgba(15,23,42,.04); }
+.itn-sd-card-head { display: grid; grid-template-columns: 2.6rem 1fr; gap: .8rem; align-items: start; }
+.itn-sd-card-head h2 { margin: 0; font-size: 1.1rem; }
+.itn-sd-card-head p { margin: .2rem 0 0; color: var(--isn-muted); font-size: .9rem; line-height: 1.45; }
+.itn-sd-give { display: grid; gap: .35rem; justify-items: start; }
+.itn-sd-give small { color: var(--isn-muted); font-size: .8rem; }
+.itn-sd-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: .5rem 1rem; border: 1px solid var(--isn-line); border-radius: 999px; background: #fff; color: #334155; font: inherit; font-size: .86rem; font-weight: 700; white-space: nowrap; cursor: pointer; transition: transform .15s ease, filter .2s ease, border-color .2s ease; }
+.itn-sd-btn:hover:not(:disabled) { border-color: var(--isn-brand); }
+.itn-sd-btn:active:not(:disabled) { transform: scale(.97); }
+.itn-sd-btn:focus-visible { outline: 3px solid #0284c7; outline-offset: 2px; }
+.itn-sd-btn:disabled { opacity: .55; cursor: not-allowed; }
+.itn-sd-btn.is-go { background: #7c3aed; border-color: #7c3aed; color: #fff; box-shadow: 0 6px 14px rgba(124,58,237,.28); }
+.itn-sd-btn.is-main { min-height: 46px; padding: .6rem 1.2rem; background: var(--isn-brand); border-color: var(--isn-brand); color: #fff; box-shadow: 0 6px 16px rgba(23,70,176,.25); }
+.itn-sd-btn.is-go:hover:not(:disabled), .itn-sd-btn.is-main:hover:not(:disabled) { filter: brightness(1.08); }
+.itn-message.is-error { border-color: #fecaca; background: #fef2f2; color: #991b1b; }
+.itn-sd-filters { display: flex; flex-wrap: wrap; gap: .4rem; }
+.itn-sd-chip { display: inline-flex; align-items: center; gap: .4rem; min-height: 40px; padding: .35rem .8rem; border: 1px solid var(--isn-line); border-radius: 999px; background: #fff; color: var(--isn-ink); font: inherit; font-size: .84rem; font-weight: 600; cursor: pointer; }
+.itn-sd-chip b { min-width: 1.3rem; padding: 0 .35rem; border-radius: 999px; background: #f1f5f9; font-size: .76rem; text-align: center; }
+.itn-sd-chip.is-hot b { background: #fef3c7; color: #92400e; }
+.itn-sd-chip.is-on { border-color: var(--isn-brand); background: var(--bh-ielts-secondary); color: var(--isn-brand); }
+.itn-sd-chip:focus-visible { outline: 3px solid #0284c7; outline-offset: 2px; }
+.itn-sd-search input { width: min(100%, 320px); min-height: 44px; padding: .5rem .8rem; border: 1px solid var(--isn-line); border-radius: 12px; font: inherit; }
+.itn-sd-list { display: grid; gap: .45rem; margin: 0; padding: 0; list-style: none; }
+.itn-sd-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: .75rem; align-items: center; padding: .65rem .8rem; border: 1px solid var(--isn-line); border-left-width: 4px; border-radius: 14px; background: #fff; }
+.itn-sd-row.is-to_review { border-left-color: #f59e0b; background: #fffbeb; }
+.itn-sd-row.is-in_progress { border-left-color: #0ea5e9; }
+.itn-sd-row.is-ready { border-left-color: #a5b4fc; }
+.itn-sd-row.is-reviewed { border-left-color: #22c55e; }
+.itn-sd-who { display: grid; min-width: 0; }
+.itn-sd-who strong { overflow-wrap: anywhere; }
+.itn-sd-who span { color: var(--isn-muted); font-size: .82rem; }
+.itn-sd-status { font-size: .8rem; font-weight: 600; color: var(--isn-muted); white-space: nowrap; }
+.itn-sd-status.is-to_review { color: #92400e; }
+.itn-sd-act button { min-height: 40px; white-space: nowrap; }
+.itn-sd-quiet { color: var(--isn-muted); font-size: .8rem; }
+@media (max-width: 640px) {
+  .itn-sd-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .itn-sd-status { grid-column: 1; grid-row: 2; white-space: normal; }
+  .itn-sd-act { grid-column: 2; grid-row: 1 / 3; }
+}
+@media (prefers-reduced-motion: reduce) { .itn-map-spot { animation: none; transition: none; } }

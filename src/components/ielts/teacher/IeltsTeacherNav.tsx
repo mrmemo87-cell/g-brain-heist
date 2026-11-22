@@ -7,14 +7,15 @@ const useNavMotion: typeof useSmartCollapsedNavigation = typeof window !== 'unde
   ? useSmartCollapsedNavigation
   : () => ({ navigationRef: React.useRef<HTMLElement | null>(null), revealNavigation: () => undefined }) as unknown as ReturnType<typeof useSmartCollapsedNavigation>;
 
-export type IeltsTeacherTab = 'today' | 'reviews' | 'students' | 'batches' | 'practice' | 'lessons' | 'exams' | 'team';
+export type IeltsTeacherTab = 'today' | 'reviews' | 'students' | 'speaking' | 'batches' | 'practice' | 'lessons' | 'exams' | 'team';
 
 type Tab = { id: IeltsTeacherTab; label: string; icon: IeltsShellIconName; hint: string; manageOnly?: boolean; phone?: boolean };
 const TABS: Tab[] = [
   { id: 'today', label: 'Today', icon: 'home', hint: 'What needs you now', phone: true },
   { id: 'reviews', label: 'Reviews', icon: 'review', hint: 'Writing and Speaking waiting for feedback', phone: true },
   { id: 'students', label: 'Students', icon: 'students', hint: 'Progress, plans and reports', phone: true },
-  { id: 'batches', label: 'Batches', icon: 'batches', hint: 'Course batches and their practice', manageOnly: true, phone: true },
+  { id: 'speaking', label: 'Speaking', icon: 'mic', hint: 'Practice mocks and interviews', phone: true },
+  { id: 'batches', label: 'Batches', icon: 'batches', hint: 'Course batches and their practice', manageOnly: true },
   { id: 'lessons', label: 'Lessons', icon: 'lessons', hint: 'Lesson packs, slides and audio', manageOnly: true },
   { id: 'practice', label: 'Practice', icon: 'practice', hint: 'Assignments and practice history', manageOnly: true },
   { id: 'exams', label: 'Exams', icon: 'exams', hint: 'Schedule and monitor exam sessions', manageOnly: true },

@@ -1,7 +1,7 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.17.2
+**Version:** 1.18.0
 **Effective date:** 2026-11-22\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
@@ -58,7 +58,7 @@ To change branding, update the Themely specification, CSS variables, and this do
 - **Header:** Brains Heist IELTS branding, current area, suitable breadcrumb/back navigation. On school screens show school/programme identity only where authorized.
 - **Hero:** page title + purpose + one primary action if appropriate. Compact enough that meaningful content remains visible.
 - **Content hierarchy:** summary or status, task/evidence content, then supporting history or secondary actions. Critical warnings appear beside the control they govern.
-- **Navigation:** existing Programme tabs (“Today”, “Student progress”, “Review desk”, “Programme team”) remain the canonical top-level structure. Within the Practice Desk keep the genuine Practice history / Assign targeted practice / School assignments controls. Avoid redundant parallel sidebars or nav duplicates.
+- **Navigation:** the teacher tab bar (section 13.12: Today, Reviews, Students, Speaking, then the management tabs) is the canonical top-level structure, and Today's IELTS map lists the same destinations. Within the Practice Desk keep the genuine Practice history / Assign targeted practice / School assignments controls. Avoid redundant parallel sidebars or nav duplicates.
 - **Content width:** readable prose generally 65–75 characters per line; practical workspace max-width around 1100–1200px; long forms use a narrow column with contextual evidence alongside only where space allows.
 - **Density:** dashboards may use a tighter rhythm; reading, writing and review content need breathing room. Tables use real headings and horizontal scrolling on small screens rather than clipping.
 - **Spacing:** use theme scale, consistent panel padding and section rhythm. Do not impose viewport-height scroll traps on embedded content.
@@ -82,7 +82,7 @@ To change branding, update the Themely specification, CSS variables, and this do
 ## 6. Screen-specific blueprints
 
 ### 6.1 Teacher Programme workspace
-Calm Programme header and school context; four existing tabs; actionable summary first, not a wall of competing cards. Each panel has a clear owner, status and next decision. Preserve school scope, existing permissions, all live filters and real data.
+Calm Programme header and school context; the teacher tab bar of section 13.12; actionable summary first, not a wall of competing cards. Each panel has a clear owner, status and next decision. Preserve school scope, existing permissions, all live filters and real data.
 
 ### 6.2 Teacher Practice Desk
 The decision flow is **select eligible student → inspect/select material → examine evidence/history/reuse restrictions → record pedagogical rationale → confirm**. Student search, page controls, eligibility, source screener link, task usage, prior assignments, repeat acknowledgement and server-side gates stay visible and functional. The evidence panel is contextual, not a mock score. Previously exposed independent-check material must not become eligible through visual changes.
@@ -187,7 +187,7 @@ Use the loaded IBM Plex Sans faces: **400, 500, 600, 700**. Supported weights ap
 
 | Area | Label | Behavior / destination |
 | --- | --- | --- |
-| Programme | Today / Student progress / Review desk / Programme team | Retain the four governed sections and permissions. |
+| Programme | Today / Reviews / Students / Speaking / Batches / Lessons / Practice / Exams / Team | Section 13.12. Permissions per tab are unchanged; Speaking is open to every reviewing teacher. |
 | Practice Desk | Practice history / Assign targeted practice / School assignments | Preserve distinct workflows; record selected tool in the URL. |
 | Class assignments | New assignment | Opens the focused creation flow. |
 | Assignment overview | Filter assignments by class | Filters visible assignment records; never sets creation recipients. |
@@ -310,6 +310,15 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 - **Review (1.17.0).** The sitting line reads "Practice mock · Recorded examiner · unsupervised". Under the original recordings, "Questions and answers" lists each part's answers with the question text and a 44 px "▶ 0:32" button that plays from that answer, marks interrupted answers in words and names questions with no surviving audio. The student result's hero reads "Speaking practice mock · Recorded examiner · teacher-checked", "Teacher Speaking band · practice mock", and adds a "Recorded examiner · unsupervised practice" chip; the student's answer list shows times only, never the question text.
 - **Owner studio (1.17.0), /ielts/speaking-mock-studio.** Packages with their approval and publication state, then each script version. A version shows "Still needing a voice: N lines · C characters" and says nothing is generated until the owner agrees. Each line shows its number, kind, part, answer time and exact text; "Approve" stays disabled until the owner has opened the audio player for that exact file, and "Reject" needs a short note. "Use this version for students" is available only when every line is approved and the package is approved. Package approval needs six named checks and a note; publication needs a note.
 
+### 13.12 Teacher IELTS map and Speaking desk — v1.18.0
+
+Owner request (2026-11-22): teacher pages "are in several areas and not clearly following a unified pattern"; make the IELTS map easy to see.
+
+- **One tab bar.** Today · Reviews · Students · Speaking, then (programme managers) Batches · Lessons · Practice · Exams, then Team. Phones show Today, Reviews, Students and Speaking, and the rest under More. Every teacher destination is reachable from this bar; nothing teacher-facing lives only in a folded box.
+- **IELTS map on Today.** After "Needs you now", one card lists every area once, grouped by the teacher's job: Check work, Give work, Teach, Know your students, Run tests, Set up. Each entry has an icon, a name, one plain line and a count where one is known. It replaces the separate shortcut tiles and "More tools". Areas a teacher may not use are not shown.
+- **Speaking desk (Speaking tab).** Practice mocks first: one button gives a new mock to everyone without one open (the server's mix rule, Diagnostic Bible 10.12), filter chips with counts (To review, Doing it now, Not started, No mock, Reviewed), and one row per student with the true state and one action (Review, Open, or Give a mock). Finished mocks waiting for the teacher sort first. Then the face-to-face interviews card. Mock rows never show a band; they are practice.
+- **Acceptance.** Rendered at 375, 768 and 1440 px with no overflow, readable chips and 40 px or larger controls; DOM tests cover the tab list, the map groups for managers and non-managers, desk ordering and the give action.
+
 ## 14. Native app motivation layer — v1.4.0
 
 This section applies **only inside the installed iPhone and Android apps** (`isNativeApp()`). The website keeps sections 12.4 and 13.6 unchanged. Where this section allows more than 12.4 or 13.6, it overrides them for the app only.
@@ -337,6 +346,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.25 Revision record — 1.18.0 (2026-11-22)
+
+Owner request (2026-11-22, "Go and stay creative and smart"): one IELTS map for teachers. Adds section 13.12 (tab bar with Speaking, the IELTS map on Today, the Speaking desk) and updates sections 4, 6.1 and 12.2 to the real tab set. Removes the 1.17.2 Speaking button from the independent IELTS home: teachers land in the programme workspace, so it never reached them. Assessment, access and evidence rules are unchanged.
 
 ### 14.24 Revision record — 1.17.2 (2026-11-22)
 

@@ -20,7 +20,7 @@ create function private.teacher_current_teaching_roster(uuid,uuid) returns table
 create function private.teacher_current_teaching_groups(uuid,uuid) returns table(id uuid) language sql as $$select null::uuid where false$$;
 insert into users values('${student}','Synthetic Gulzada fixture','student','${school}',false),('${owner}','Owner','admin',null,false);`);
 for (const m of ["20261007112613_ielts_speaking_interview_pilot", "20261007125521_ielts_speaking_eligible_release", "20261008065539_ielts_speaking_school_seat_access",
-  "20261121154500_ielts_speaking_recorded_mock", "20261121180000_ielts_speaking_mock_teacher_views", "20261121190000_ielts_speaking_mock_b_content", "20261121190100_ielts_speaking_mocks_c_to_g_content", "20261122010000_ielts_speaking_mock_mix"])
+  "20261121154500_ielts_speaking_recorded_mock", "20261121180000_ielts_speaking_mock_teacher_views", "20261121190000_ielts_speaking_mock_b_content", "20261121190100_ielts_speaking_mocks_c_to_g_content", "20261122010000_ielts_speaking_mock_mix", "20261122100000_ielts_speaking_mock_overview"])
   await db.exec(readFileSync(`supabase/migrations/${m}.sql`, "utf8"));
 const one = async (sql, a = []) => Object.values((await db.query(sql, a)).rows[0])[0];
 
@@ -102,4 +102,23 @@ test("only signed-in reviewers can mix, and the function is not open to the publ
   const acl = await one("select proacl::text from pg_proc where proname='rpc_ielts_assign_speaking_mock_mix'");
   assert.match(acl, /authenticated=X/);
   assert.doesNotMatch(acl, /(^|[{,])=X|anon=X/);
+});
+
+test("the Speaking desk overview shows each reviewable student's current mock and its true state", async () => {
+  await db.query("select set_config('request.jwt.claim.sub',$1,false)", [owner]);
+  const o = await one("select rpc_ielts_speaking_mock_overview($1)", [school]);
+  assert.equal(o.published_mocks, 4, "B, C, E and F are published; D is pilot-only; G is unapproved");
+  const by = Object.fromEntries(o.students.map((x) => [x.id, x]));
+  assert.equal(by["00000000-0000-0000-0000-000000000199"].current.state, "ready", "assigned, not started");
+  assert.equal(by[student].current.state, "to_review");
+  assert.equal(by[kids[0]].mocks_had, 4);
+  assert.equal(by[kids[0]].current.state, "to_review", "finished and not yet reviewed");
+  assert.ok(by[kids[0]].current.finished_at);
+  assert.deepEqual(o.students.map((x) => x.name), [...o.students.map((x) => x.name)].sort());
+  // A student may not see anyone else's mocks, and an unsigned call is refused.
+  await db.query("select set_config('request.jwt.claim.sub',$1,false)", [kids[1]]);
+  assert.deepEqual((await one("select rpc_ielts_speaking_mock_overview($1)", [school])).students, []);
+  await db.query("select set_config('request.jwt.claim.sub','',false)");
+  await assert.rejects(one("select rpc_ielts_speaking_mock_overview($1)", [school]), /not_authorized/);
+  await db.query("select set_config('request.jwt.claim.sub',$1,false)", [owner]);
 });
