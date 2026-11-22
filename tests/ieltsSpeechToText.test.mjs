@@ -272,3 +272,47 @@ test('the kept detail is service-only: browsers never receive confidences', () =
   assert.match(sql, /jsonb_array_length\(p_detail\)<>jsonb_array_length\(p_words\)/);
   assert.doesNotMatch(sql, /create or replace function public\.rpc_ielts_speaking_clip_words\(/, 'the public word-time read is unchanged');
 });
+
+// Diagnostic Bible 2.7.2 section 10.7: the school's word list and teacher-fixed transcripts.
+test('school word list: only terms Scribe accepts are sent, without duplicates', () => {
+  assert.deepEqual(
+    stt.cleanKeyterms(['Silk Road International School', 'silk road international school', 'Silk Road,', 'x', 'one two three four five six', 'Bishkek\n', 7, '{evil}', 'a'.repeat(51)]),
+    ['Silk Road International School', 'Silk Road', 'Bishkek'],
+  );
+  assert.deepEqual(stt.cleanKeyterms(null), []);
+});
+
+test('school word list: sent as repeated key terms, and dropped once if Scribe refuses them', async () => {
+  const sent = [];
+  const reply = { text: 'my new school, Silk Road, I saw', words: [{ text: 'Silk', type: 'word', start: 1, end: 1.2, logprob: -0.01 }] };
+  const fetchImpl = async (_url, init) => {
+    const terms = init.body.getAll('keyterms');
+    sent.push(terms);
+    if (terms.length) return new Response(JSON.stringify({ detail: { status: 'invalid_keyterms' } }), { status: 422 });
+    return new Response(JSON.stringify(reply), { status: 200 });
+  };
+  const heard = await stt.scribeTranscribe(new ArrayBuffer(8), { apiKey: 'k', fetchImpl, keyterms: ['Silk Road', 'Bishkek'] });
+  assert.equal(heard.text, 'my new school, Silk Road, I saw');
+  assert.deepEqual(sent, [['Silk Road', 'Bishkek'], []], 'one retry without the list, never a second failure');
+  const accepted = [];
+  await stt.scribeTranscribe(new ArrayBuffer(8), { apiKey: 'k', keyterms: ['Silk Road'], fetchImpl: async (_u, init) => { accepted.push(init.body.getAll('keyterms')); return new Response(JSON.stringify(reply), { status: 200 }); } });
+  assert.deepEqual(accepted, [['Silk Road']]);
+  const quota = async () => new Response(JSON.stringify({ detail: { status: 'quota_exceeded' } }), { status: 401 });
+  await assert.rejects(stt.scribeTranscribe(new ArrayBuffer(8), { apiKey: 'k', fetchImpl: quota, keyterms: ['Silk Road'] }), /scribe_401/);
+});
+
+test('teacher-fixed transcript: typed words are sure, other words keep Scribe confidence', () => {
+  // Timur's interview (2026-11-22): Scribe heard "it's so cold" (two words unsure) where he said "Silk Road".
+  const words = [
+    ['my', 25.5, 25.6, -0.0000005], ['new', 25.64, 25.78, -0.000001], ['school,', 25.84, 26.14, -0.036],
+    ["it's", 26.7, 26.92, -0.248], ['so', 27.22, 27.36, -0.181], ['cold,', 27.42, 27.7, -0.061],
+    ['I', 29.12, 29.16, -0.001], ['so', 29.2, 29.3, -0.3], ['saw', 29.22, 29.4, -0.0000002],
+  ];
+  const heard = stt.wordsFromDetail(words);
+  const before = stt.wordConfidence(heard);
+  assert.deepEqual(stt.unsureWords(before), ["it's", 'so']);
+  const fixed = stt.confidenceForText('my new school, Silk Road, I so saw', heard, [[3, 2]]);
+  assert.deepEqual(fixed.tokens, ['my', 'new', 'school', 'silk', 'road', 'i', 'so', 'saw']);
+  assert.deepEqual(fixed.unsure, [false, false, false, false, false, false, true, false], 'a later unsure word stays unsure');
+  assert.equal(stt.withoutUnsureHighlights([{ quote: 'Silk Road' }, { quote: 'I so saw' }], fixed).length, 1);
+});

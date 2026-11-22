@@ -39,6 +39,7 @@ import {
   scribeTranscribe,
   segmentsFromWords,
   NO_CONFIDENCE,
+  confidenceForText,
   timedWords,
   transcribeOnce,
   wordDetail,
@@ -109,10 +110,22 @@ function keepWords(admin: any, sessionId: string, clipId: string, model = transc
   };
 }
 /** Scribe transcript, or null when it is unavailable or incomplete (the caller then uses OpenAI). */
-async function scribeIfComplete(bytes: ArrayBuffer, seconds: number) {
+/** The school's word list for Scribe (Bible 2.7.2 section 10.7). Any failure sends no list. */
+// deno-lint-ignore no-explicit-any
+async function schoolTerms(admin: any, sessionId: string): Promise<string[]> {
+  try {
+    const { data, error } = await admin.rpc("rpc_ielts_speaking_terms_for_session", { p_session_id: sessionId });
+    if (error) throw new Error(error.message);
+    return Array.isArray(data) ? data.filter((t: unknown) => typeof t === "string") : [];
+  } catch (e) {
+    why("school_terms", reasonOf(e));
+    return [];
+  }
+}
+async function scribeIfComplete(bytes: ArrayBuffer, seconds: number, keyterms: string[] = []) {
   if (!scribeKey) return null;
   try {
-    const heard = await scribeTranscribe(bytes, { apiKey: scribeKey, model: scribeModel, timeoutMs: 90000 });
+    const heard = await scribeTranscribe(bytes, { apiKey: scribeKey, model: scribeModel, timeoutMs: 90000, keyterms });
     if (transcriptLooksComplete(heard.text, seconds)) return heard;
     why("transcript_incomplete", `scribe ${heard.text.split(/\s+/).length} words in ${Math.round(seconds)}s`);
   } catch (e) {
@@ -169,7 +182,7 @@ async function scribeOnce(admin: any, sessionId: string, clipId: string, bytes: 
       const { error } = await admin.rpc("rpc_ielts_release_speaking_clip_transcription", ids);
       if (error) why("transcription_release", error.message);
     },
-    transcribe: () => scribeIfComplete(bytes, seconds),
+    transcribe: async () => scribeIfComplete(bytes, seconds, await schoolTerms(admin, sessionId)),
     keep: (heard) => keepScribeWords(admin, sessionId, clipId, heard),
     complete: (text) => transcriptLooksComplete(text, seconds),
     log: why,
@@ -421,6 +434,57 @@ async function analyse(sessionId: string, session: any, caller: any, admin: any)
 }
 
 /**
+ * Diagnostic Bible 2.7.2 section 10.7: after a teacher fixes words speech-to-text got wrong, the "Update AI feedback"
+ * button redoes that part's highlights on the corrected transcript. Nothing is transcribed again and the audio is not
+ * listened to again: the listening pass's pronunciation words are kept when their word is still in the student's
+ * corrected words and was not typed by the teacher. Words the teacher typed count as sure. Only before sharing.
+ */
+// deno-lint-ignore no-explicit-any
+async function updateFixedFeedback(sessionId: string, clipId: string, session: any, caller: any, admin: any): Promise<unknown> {
+  if (session.status !== "submitted") throw new Error("not_submitted");
+  const key = Deno.env.get("OPENAI_API_KEY") ?? "";
+  const { data: extras, error: extrasError } = await caller.rpc("rpc_ielts_speaking_session_extras", { p_session_id: sessionId });
+  if (extrasError) throw new Error("extras_failed");
+  if (!extras?.can_update_feedback) throw new Error("already_shared");
+  type Fixed = { clip_id: string; part: number; transcript: string; pronunciation?: { assessed?: boolean; words?: Array<{ word: string }> };
+    fix?: { id: string | null; marks: Array<[number, number]>; feedback_updated: boolean } };
+  const clip = ((extras.analysis ?? []) as Fixed[]).find((a) => a.clip_id === clipId);
+  if (!clip?.fix?.id) throw new Error("no_fix");
+  if (clip.fix.feedback_updated) return extras;
+  const kept = (await keptScribeWords(admin, sessionId)).get(clipId);
+  const confidence = kept ? confidenceForText(clip.transcript, kept.words, clip.fix.marks) : NO_CONFIDENCE;
+  const result = await interviewHighlights(key, [{ id: clipId, part: clip.part, transcript: clip.transcript }]);
+  if (result.provider === "none") throw new Error("highlights_failed");
+  const teacherLines = result.teacher[clipId] ?? [];
+  const studentWords = new Set(studentOnlyText(clip.transcript, teacherLines).toLowerCase().split(/[^\p{L}']+/u).filter(Boolean));
+  const tokens = clip.transcript.trim().split(/\s+/);
+  const typed = new Set<string>();
+  for (const [from, count] of clip.fix.marks) for (let k = from; k < from + count; k++) {
+    const word = (tokens[k] ?? "").toLowerCase().replace(/[^\p{L}']+/gu, "");
+    if (word) typed.add(word);
+  }
+  const before = clip.pronunciation ?? { assessed: false, words: [] };
+  const words = withoutUnsureWords((before.words ?? []).filter((w) => {
+    const word = w.word.toLowerCase();
+    return studentWords.has(word) && !typed.has(word);
+  }), confidence);
+  const requester = (await caller.auth.getUser()).data.user?.id;
+  const { error } = await admin.rpc("rpc_ielts_save_speaking_fixed_feedback", {
+    p_fix_id: clip.fix.id,
+    p_highlights: wellFormed(withoutUnsureHighlights(result.highlights[clipId] ?? [], confidence)),
+    p_pronunciation: wellFormed({ ...before, words }),
+    p_speaker_turns: wellFormed({ teacher: teacherLines }),
+    p_prompt_version: `${INTERVIEW_ANALYSIS_VERSION}+teacher-fix`,
+    p_provider: `${result.provider}+teacher-fixed-transcript`.slice(0, 200),
+    p_requested_by: requester,
+  });
+  if (error) { why("fixed_feedback_save", `${error.code ?? ""} ${String(error.message ?? "").slice(0, 160)}`); throw new Error("save_failed"); }
+  const { data: fresh, error: freshError } = await caller.rpc("rpc_ielts_speaking_session_extras", { p_session_id: sessionId });
+  if (freshError) throw new Error("extras_failed");
+  return fresh;
+}
+
+/**
  * Teacher-only AI band estimates (Diagnostic Bible 2.5.0 section 10.10). Runs after the transcripts exist, reads the
  * student's words only, listens to the Part 2 long turn for Pronunciation (Part 1 too when Part 2 is short) and
  * applies the cautious server rules in finalizeEstimates. One estimate per recording set and version is reused.
@@ -537,7 +601,7 @@ Deno.serve(async (req: Request) => {
     const raw = await req.text();
     if (raw.length > 1500) return reply({ error: "invalid_request" }, 400);
     const body = JSON.parse(raw);
-    if (!uuid(body.sessionId) || !["attach", "draft", "analyse", "estimate"].includes(body.action))
+    if (!uuid(body.sessionId) || !["attach", "draft", "analyse", "estimate", "update_fixed_feedback"].includes(body.action))
       return reply({ error: "invalid_request" }, 400);
     const { data: session, error: sessionError } = await caller.rpc(
       "rpc_ielts_speaking_session",
@@ -592,6 +656,11 @@ Deno.serve(async (req: Request) => {
       );
       if (attach) throw new Error("attach_failed");
       return reply({ session: updated });
+    }
+    if (body.action === "update_fixed_feedback") {
+      if (!uuid(body.clipId) || Object.keys(body).some((k) => !["action", "sessionId", "clipId"].includes(k)))
+        return reply({ error: "invalid_request" }, 400);
+      return reply(await updateFixedFeedback(body.sessionId, body.clipId, session, caller, admin));
     }
     if (Object.keys(body).some((k) => !["action", "sessionId"].includes(k)))
       return reply({ error: "invalid_request" }, 400);

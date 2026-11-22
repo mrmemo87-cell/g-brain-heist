@@ -775,3 +775,15 @@
 .sp-sync-words p {
   margin: 0;
 }
+
+/* Teacher corrections to speech-to-text words (Diagnostic Bible 2.7.2 section 10.7). */
+.sp-fix-notes { display: grid; gap: 10px; margin: 10px 0 18px; }
+.sp-fix-update { display: grid; gap: 10px; justify-items: start; padding: 14px 16px; border: 1px solid #fcd34d; border-radius: 13px; background: #fffbeb; }
+.sp-fix-update p, .sp-fix-done { margin: 0; }
+.sp-fix-done { color: #0f766e; font-weight: 700; font-size: .9rem; }
+.sp-fix-history { padding: 10px 14px; border: 1px solid var(--bh-ielts-border, #dce5ef); border-radius: 12px; background: var(--bh-ielts-surface-muted, #f5f8fc); font-size: .9rem; }
+.sp-fix-history summary { cursor: pointer; font-weight: 700; min-height: 32px; display: flex; align-items: center; }
+.sp-fix-history ol { margin: 8px 0; padding-left: 1.2rem; display: grid; gap: 4px; }
+.sp-fix-history s { color: #b91c1c; }
+.sp-fix-history small { color: #64748b; }
+.sp-fix-original { margin: 8px 0 0; color: #475569; line-height: 1.6; }

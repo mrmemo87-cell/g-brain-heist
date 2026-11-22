@@ -37,6 +37,11 @@ export type ScribeOptions = {
   model?: string;
   /** Interviews: label the two speakers so the teacher's questions can be told apart from the student. */
   diarize?: boolean;
+  /**
+   * The school's word list (Bible 2.7.2 section 10.7): names Scribe should recognise, such as the school's own name.
+   * Never the test questions. Cleaned by cleanKeyterms; costs a little extra per recording.
+   */
+  keyterms?: string[];
   signal?: AbortSignal;
   timeoutMs?: number;
   fetchImpl?: FetchLike;
@@ -73,8 +78,41 @@ export function readScribeResponse(value: unknown, model: string): SpeechToTextR
   return { text, words, model };
 }
 
-/** One Scribe request. Errors carry short codes only (never audio, text or provider bodies). */
+/**
+ * Key terms Scribe accepts: 2 to 50 characters, at most 5 words, no duplicates, at most 200 (Scribe allows 1000).
+ * Punctuation at the end is removed.
+ */
+export function cleanKeyterms(terms: unknown): string[] {
+  const out: string[] = []; const seen = new Set<string>();
+  for (const raw of Array.isArray(terms) ? terms : []) {
+    if (typeof raw !== 'string') continue;
+    const term = raw.replace(/\s+/g, ' ').trim().replace(/[.,;:!?]+$/, '');
+    if (term.length < 2 || term.length > 50 || term.split(' ').length > 5 || /[\r\n\t<>{}\[\]]/.test(term)) continue;
+    const key = term.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key); out.push(term);
+    if (out.length >= 200) break;
+  }
+  return out;
+}
+
+/**
+ * One Scribe request. Errors carry short codes only (never audio, text or provider bodies).
+ * When Scribe refuses the key terms (400/422), the same request is sent once without them, so a word list can never
+ * stop a recording from being transcribed.
+ */
 export async function scribeTranscribe(bytes: ArrayBuffer, options: ScribeOptions): Promise<SpeechToTextResult> {
+  const keyterms = cleanKeyterms(options.keyterms);
+  if (!keyterms.length) return scribeRequest(bytes, options, []);
+  try {
+    return await scribeRequest(bytes, options, keyterms);
+  } catch (e) {
+    if (!/^scribe_(400|422):/.test(e instanceof Error ? e.message : '')) throw e;
+    return scribeRequest(bytes, options, []);
+  }
+}
+
+async function scribeRequest(bytes: ArrayBuffer, options: ScribeOptions, keyterms: string[]): Promise<SpeechToTextResult> {
   const model = options.model?.trim() || SCRIBE_DEFAULT_MODEL;
   const form = new FormData();
   form.append('file', new Blob([bytes], { type: 'audio/wav' }), 'clip.wav');
@@ -87,6 +125,7 @@ export async function scribeTranscribe(bytes: ArrayBuffer, options: ScribeOption
     form.append('diarize', 'true');
     form.append('num_speakers', '2');
   }
+  for (const term of keyterms) form.append('keyterms', term);
   const signal = options.signal ?? AbortSignal.timeout(options.timeoutMs ?? 90000);
   const doFetch: FetchLike = options.fetchImpl ?? ((input, init) => fetch(input, init));
   const response = await doFetch(SCRIBE_URL, { method: 'POST', signal, headers: { 'xi-api-key': options.apiKey }, body: form });
@@ -283,4 +322,38 @@ export async function transcribeOnce(steps: TranscribeOnceSteps): Promise<Scribe
       if (status === 'claimed') await steps.release();
     }
   }
+}
+
+/**
+ * Confidence for a transcript a teacher has corrected (Bible 2.7.2 section 10.7). Each word of the shown text is
+ * matched in order to Scribe's words (within a short look-ahead) and takes that word's confidence. Words the teacher
+ * typed (marks: [[first_word, count], ...] by space-separated position) are always sure, and so are words that
+ * cannot be matched, because the teacher has read this text.
+ */
+export function confidenceForText(text: string, words: SpokenWord[], marks: Array<[number, number]> = [], threshold = UNSURE_WORD_LOGPROB): WordConfidence {
+  const typed = new Set<number>();
+  for (const m of marks) {
+    if (!Array.isArray(m)) continue;
+    for (let k = 0; k < Number(m[1]); k++) typed.add(Number(m[0]) + k);
+  }
+  const heard: Array<{ key: string; unsure: boolean }> = [];
+  for (const w of words) {
+    for (const part of w.text.split(/\s+/)) {
+      const key = normal(part);
+      if (key) heard.push({ key, unsure: w.logprob !== null && w.logprob < threshold });
+    }
+  }
+  const tokens: string[] = []; const unsure: boolean[] = [];
+  let j = 0;
+  text.trim().split(/\s+/).forEach((part, position) => {
+    const key = normal(part);
+    if (!key) return;
+    let hit = -1;
+    for (let k = j; k < Math.min(heard.length, j + 14); k++) if (heard[k].key === key) { hit = k; break; }
+    tokens.push(key);
+    if (typed.has(position) || hit < 0) { unsure.push(false); return; }
+    unsure.push(heard[hit].unsure);
+    j = hit + 1;
+  });
+  return { tokens, unsure };
 }

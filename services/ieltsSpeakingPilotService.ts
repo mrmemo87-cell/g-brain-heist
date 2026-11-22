@@ -216,6 +216,19 @@ export type SpeakingClipAnalysis = {
   speaker_turns?: { teacher?: string[] };
   prompt_version?: string;
   created_at: string;
+  /** Teacher only (Diagnostic Bible 2.7.2 section 10.7): words a teacher corrected in this transcript. */
+  fix?: SpeakingTranscriptFix;
+};
+export type SpeakingTranscriptFix = {
+  /** The latest correction, sent back with the next one so two teachers never overwrite each other. */
+  id: string | null;
+  /** [first_word, count] by space-separated position: the words a teacher typed. */
+  marks: Array<[number, number]>;
+  /** Speech-to-text's own transcript, kept unchanged. */
+  original_transcript: string | null;
+  /** True once the AI feedback has been redone on the latest corrected words. */
+  feedback_updated: boolean;
+  history: Array<{ heard: string; said: string; created_at: string; teacher_name: string | null }>;
 };
 export type SpeakingPartBands = {
   part_1: number; part_2: number; part_3: number;
@@ -277,6 +290,12 @@ export type SpeakingSessionExtras = {
   missing_clips?: number;
   part_bands: SpeakingPartBands | null;
   can_set_bands: boolean;
+  /** Section 10.7 (2.7.2): a reviewing teacher may correct transcript words… */
+  can_fix_transcript?: boolean;
+  /** …and redo the AI feedback on them until the result is shared. */
+  can_update_feedback?: boolean;
+  /** The student's school has a word list a fix can be added to. */
+  can_add_terms?: boolean;
   ai_estimates?: SpeakingAiEstimates | null;
 };
 export async function estimateSpeakingBands(sessionId: string): Promise<SpeakingAiEstimates | null> {
@@ -291,6 +310,41 @@ export async function analyseSpeakingSession(sessionId: string): Promise<Speakin
   const { data, error } = await supabase.functions.invoke("ielts_speaking_pilot", { body: { action: "analyse", sessionId } });
   if (error || !data || (data as { error?: string }).error)
     throw new Error("The transcript could not be prepared right now. The recordings are safe; try again in a minute.");
+  return data as SpeakingSessionExtras;
+}
+const FIX_ERRORS: Array<[string, string]> = [
+  ["speaking_fix_changed", "Another correction was saved for this part a moment ago. The transcript has been reloaded; check it and try again."],
+  ["speaking_fix_unchanged", "That is already what the transcript says."],
+  ["speaking_fix_range", "Choose up to 12 words in a row."],
+  ["speaking_fix_text", "Use up to 24 words of plain text."],
+  ["not_authorized", "Only a teacher who reviews this student can correct the transcript."],
+];
+/**
+ * Teacher only (Diagnostic Bible 2.7.2 section 10.7): replaces words speech-to-text got wrong. An empty `said`
+ * removes words that were never spoken. `addTerm` adds the typed words to the school's word list for Scribe.
+ */
+export async function fixSpeakingTranscript(args: {
+  sessionId: string; clipId: string; expectedFixId: string | null; from: number; count: number; said: string;
+  startSeconds?: number | null; endSeconds?: number | null; addTerm?: boolean;
+}): Promise<SpeakingSessionExtras> {
+  const { data, error } = await supabase.rpc("rpc_ielts_fix_speaking_transcript", {
+    p_session_id: args.sessionId, p_clip_id: args.clipId, p_expected_fix_id: args.expectedFixId,
+    p_word_from: args.from, p_word_count: args.count, p_said: args.said,
+    p_start_seconds: args.startSeconds ?? null, p_end_seconds: args.endSeconds ?? null, p_add_term: !!args.addTerm,
+  });
+  if (error) {
+    const hit = FIX_ERRORS.find(([code]) => error.message?.includes(code));
+    const failure = new Error(hit ? hit[1] : "The correction could not be saved. The transcript is unchanged; try again.");
+    (failure as Error & { code?: string }).code = hit?.[0];
+    throw failure;
+  }
+  return data as SpeakingSessionExtras;
+}
+/** Teacher only, before sharing: redoes one part's AI feedback on the corrected words (no new transcription). */
+export async function updateSpeakingFixedFeedback(sessionId: string, clipId: string): Promise<SpeakingSessionExtras> {
+  const { data, error } = await supabase.functions.invoke("ielts_speaking_pilot", { body: { action: "update_fixed_feedback", sessionId, clipId } });
+  if (error || !data || (data as { error?: string }).error)
+    throw new Error("The AI feedback could not be updated right now. Your corrections are saved; try again in a minute.");
   return data as SpeakingSessionExtras;
 }
 /** Word times for the recordings whose transcript the caller may see (Visual & UX Bible 1.14.0, section 13.9). */
