@@ -38,6 +38,7 @@ import SpeakingBandsPanel, {
 } from "../../components/ielts/SpeakingBandsPanel";
 import "../../styles/ielts-speaking-pilot.css";
 import { DISPLAY_DATE, displayDateLocale } from '../../utils/displayDate';
+import IeltsTeacherPageBar from '../../components/ielts/teacher/IeltsTeacherPageBar';
 type Session = SpeakingSession & { source_hash: string; can_record: boolean };
 // Diagnostic Bible 2.7.0 section 10.12: a recorded-examiner mock is always labelled as unsupervised practice.
 const sittingLabel = (kind: string) =>
@@ -559,6 +560,8 @@ export default function IeltsSpeakingPilot() {
     </header>
   );
   return (
+    <>
+    <IeltsTeacherPageBar active={sessionId ? "reviews" : "speaking"} />
     <main className="sp-page">
       {header}
       {error && (
@@ -1588,5 +1591,6 @@ export default function IeltsSpeakingPilot() {
         Brains Heist development snapshot · Not an official IELTS result.
       </footer>
     </main>
+    </>
   );
 }

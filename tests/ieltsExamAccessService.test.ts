@@ -163,11 +163,13 @@ test('School Admin Portal exposes Phase 1 IELTS tabs without removing Cambridge'
   assert.match(portal, /id: 'cambridge'[\s\S]*?label: 'Cambridge Assessments'/, 'school-friendly Cambridge navigation label must remain present');
   assert.match(portal, /<CambridgeTab \/>/, 'existing Cambridge tab content must remain wired');
   assert.match(portal, /<IeltsExamsTab onOpenMonitor=/, 'IELTS Exams tab must keep monitoring inside the school administration shell');
-  assert.match(portal, /<IeltsPracticeTab onOpenReviews=/, 'IELTS Practice tab must keep review navigation inside the portal');
+  const desk = fs.readFileSync(path.join(process.cwd(), 'src/pages/ielts/IeltsTeacherPracticeDesk.tsx'), 'utf8');
+  assert.match(desk, /import\('\.\.\/\.\.\/\.\.\/components\/school-admin\/tabs\/IeltsPracticeTab'\)/, 'Assignment Overview stays reachable as School assignments under the Assign tab');
+  assert.match(portal, /id: 'ielts-practice'[^\n]*section: 'practice'/, 'the Assignment Overview address must open the Assign tab');
   assert.match(portal, /<IeltsResultsTab \/>/, 'IELTS Results placeholder tab must be wired');
   assert.doesNotMatch(portal, /\bIeltsAnalyticsTab\b/, 'unfinished IELTS Analytics must stay out of administrator navigation');
   assert.match(portal, /id: 'ielts-student-progress'[\s\S]*label: 'Student Progress'/, 'IELTS school admin nav must include Student Progress');
-  assert.match(portal, /activeIeltsSubTab === 'ielts-student-progress'[\s\S]*<IeltsJourneyDashboard embedded \/>/, 'Student Progress must render inside the School Admin Portal shell');
+  assert.match(portal, /journeys: \([\s\S]*<IeltsJourneyDashboard embedded \/>/, 'Student Progress must render inside the School Admin Portal shell (School tab · Student journeys)');
   assert.doesNotMatch(portal, /label: 'Student Progress'[^\n]*route: '\/ielts\/journey'/, 'Student Progress must not leave the School Admin Portal shell');
   assert.match(portal, /label: 'Assignment Overview'/, 'IELTS school admin nav should label assignment monitoring as Assignment Overview');
   const reviewSelector = portal.slice(portal.indexOf('const selectIeltsReview'), portal.indexOf('const selectIeltsMonitor'));

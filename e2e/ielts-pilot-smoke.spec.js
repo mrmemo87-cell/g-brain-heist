@@ -305,9 +305,9 @@ test.describe('IELTS Pilot QA smoke flows', () => {
     await seedSession(page, adminProfile);
     await installSupabaseMocks(page, adminProfile);
 
-    await page.goto('/');
+    // One IELTS tab bar (UX Bible 13.12): Assignment Overview is Assign → School assignments.
+    await page.goto('/?view=school_admin&adminTab=ielts&ieltsTab=ielts-practice&practice=school');
     await expect(page.getByTestId('school-admin-portal')).toBeVisible();
-    await page.getByTestId('school-admin-tab-ielts-practice').click();
     await expect(page.getByTestId('ielts-practice-admin-tab')).toBeVisible();
 
     await page.getByTestId('ielts-practice-class-select').selectOption(ids.class);
@@ -353,9 +353,8 @@ test.describe('IELTS Pilot QA smoke flows', () => {
     await seedSession(page, adminProfile);
     await installSupabaseMocks(page, adminProfile, { assignmentExists: true, studentCompleted: true });
 
-    await page.goto('/');
+    await page.goto('/?view=school_admin&adminTab=ielts&ieltsTab=ielts-practice&practice=school');
     await expect(page.getByTestId('school-admin-portal')).toBeVisible();
-    await page.getByTestId('school-admin-tab-ielts-practice').click();
     await page.getByTestId(`ielts-practice-view-progress-${ids.assignment}`).click();
 
     await expect(page.getByTestId(`ielts-practice-progress-student-${ids.student}`)).toContainText('Smoke Student');
@@ -424,9 +423,8 @@ test('objective result pages avoid estimated_band and do not hit Supabase 400s',
     await seedSession(page, adminProfile);
     await installSupabaseMocks(page, adminProfile, { assignmentExists: true, studentCompleted: true });
 
-    await page.goto('/');
+    await page.goto('/?view=school_admin&adminTab=ielts&ieltsTab=ielts-results');
     await expect(page.getByTestId('school-admin-portal')).toBeVisible();
-    await page.getByTestId('school-admin-tab-ielts-results').click();
 
     await expect(page.getByTestId('ielts-results-tab')).toBeVisible();
     await expect(page.getByTestId('ielts-results-summary-total-students')).toContainText('1');

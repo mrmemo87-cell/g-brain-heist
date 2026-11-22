@@ -69,7 +69,6 @@ test('school administration uses broad-to-specific core ordering and embeds prog
 test('School Admin navigation uses SVG icons instead of initials on desktop and mobile', () => {
   assert.match(schoolAdmin, /<SchoolAdminNavIcon name=\{tab\.icon\}/);
   assert.match(schoolAdmin, /<SchoolAdminNavIcon name=\{tool\.icon\}/);
-  assert.match(schoolAdmin, /<SchoolAdminNavIcon name=\{icon\}/);
   assert.match(schoolAdmin, /<SchoolAdminNavIcon name="more"/);
   assert.doesNotMatch(schoolAdmin, /icon: '(OV|CU|CL|TA|PE|DO|BI|SE|AD|CA|IE|AP|IN|PG|EX|AS|RE|RS|SP)'/);
   assert.match(schoolAdminNavIcon, /<svg/);

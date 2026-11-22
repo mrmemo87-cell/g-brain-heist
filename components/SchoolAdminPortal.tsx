@@ -33,7 +33,6 @@ import SettingsTab from './school-admin/tabs/SettingsTab';
 import CambridgeTab from './school-admin/tabs/CambridgeTab';
 import DocumentsTab from './school-admin/tabs/DocumentsTab';
 import IeltsExamsTab from './school-admin/tabs/IeltsExamsTab';
-import IeltsPracticeTab from './school-admin/tabs/IeltsPracticeTab';
 import IeltsResultsTab from './school-admin/tabs/IeltsResultsTab';
 import IeltsSettingsTab from './school-admin/tabs/IeltsSettingsTab';
 import IeltsReviewAdminGuard from './ielts/IeltsReviewAdminGuard';
@@ -56,6 +55,7 @@ import {
   type SchoolAdminIeltsTab,
   type SchoolAdminTab,
 } from '../src/lib/schoolAdminIeltsNavigation';
+import type { IeltsProgrammeSection, IeltsSchoolTool } from '../src/pages/ielts/IeltsProgrammeWorkspace';
 import {
   getPendingProgrammeAccessRequestCount,
   subscribeToProgrammeAccessRequestChanges,
@@ -75,7 +75,8 @@ interface SchoolAdminPortalProps {
 type IeltsSubTab = SchoolAdminIeltsTab;
 type MainAdminTab = SchoolAdminTab;
 type AdminTab = MainAdminTab | IeltsSubTab;
-type IeltsToolNavItem = { id: IeltsSubTab; icon: SchoolAdminNavIconName; label: string; hint: string };
+// Each school-admin IELTS address opens a place in the one IELTS tab bar (Visual & UX Bible §13.12).
+type IeltsToolNavItem = { id: IeltsSubTab; icon: SchoolAdminNavIconName; label: string; hint: string; section: IeltsProgrammeSection; tool?: IeltsSchoolTool };
 
 const IeltsJourneyDashboard = React.lazy(() => import('../src/pages/ielts/IeltsJourneyDashboard'));
 const IeltsProgrammeWorkspace = React.lazy(() => import('../src/pages/ielts/IeltsProgrammeWorkspace'));
@@ -117,13 +118,13 @@ const getInitialSchoolAdminSidebarCollapsed = () => {
 };
 
 const IELTS_TOOL_NAV_ITEMS: IeltsToolNavItem[] = [
-  { id: 'ielts-overview', icon: 'student-progress', label: 'Programme Home', hint: 'Team & next steps' },
-  { id: 'ielts-exams', icon: 'exams', label: 'Exams', hint: 'Secure mock exams' },
-  { id: 'ielts-practice', icon: 'assignments', label: 'Assignment Overview', hint: 'Assign & monitor' },
-  { id: 'ielts-reviews', icon: 'reviews', label: 'Reviews', hint: 'Writing & speaking' },
-  { id: 'ielts-results', icon: 'results', label: 'Results', hint: 'Student scores' },
-  { id: 'ielts-student-progress', icon: 'student-progress', label: 'Student Progress', hint: 'Journey dashboard' },
-  { id: 'ielts-settings', icon: 'settings', label: 'Settings', hint: 'Config & features' },
+  { id: 'ielts-overview', icon: 'student-progress', label: 'Programme Home', hint: 'Team & next steps', section: 'overview' },
+  { id: 'ielts-exams', icon: 'exams', label: 'Exams', hint: 'Secure mock exams', section: 'exams' },
+  { id: 'ielts-practice', icon: 'assignments', label: 'Assignment Overview', hint: 'Assign & monitor', section: 'practice' },
+  { id: 'ielts-reviews', icon: 'reviews', label: 'Reviews', hint: 'Writing & speaking', section: 'reviews' },
+  { id: 'ielts-results', icon: 'results', label: 'Results', hint: 'Student scores', section: 'school', tool: 'results' },
+  { id: 'ielts-student-progress', icon: 'student-progress', label: 'Student Progress', hint: 'Journey dashboard', section: 'school', tool: 'journeys' },
+  { id: 'ielts-settings', icon: 'settings', label: 'Settings', hint: 'Config & features', section: 'school', tool: 'settings' },
 ];
 
 const getCambridgeReportKey = (score: any) =>
@@ -138,7 +139,6 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
   const [activeIeltsSubTab, setActiveIeltsSubTab] = useState<IeltsSubTab>(initialNavigation.ieltsTab);
   const [activeIeltsReview, setActiveIeltsReview] = useState<{ skill: 'writing' | 'speaking'; attemptId: string } | null>(initialNavigation.review);
   const [activeIeltsMonitorExamId, setActiveIeltsMonitorExamId] = useState<string | null>(initialNavigation.monitorExamId);
-  const ieltsTabRefs = useRef<Partial<Record<IeltsSubTab, HTMLButtonElement | null>>>({});
   const [mobileAdminMenuOpen, setMobileAdminMenuOpen] = useState(false);
   const [desktopAdminSidebarCollapsed, setDesktopAdminSidebarCollapsed] = useState(getInitialSchoolAdminSidebarCollapsed);
   const [desktopAdminNavTooltip, setDesktopAdminNavTooltip] = useState<{ label: string; anchor: HTMLElement } | null>(null);
@@ -222,21 +222,6 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
     writeNavigationState({ adminTab: 'ielts', ieltsTab: 'ielts-exams', review: null, monitorExamId: examEventId }, mode);
     window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
   }, [writeNavigationState]);
-
-  const handleIeltsTabKeyDown = useCallback((event: React.KeyboardEvent<HTMLButtonElement>, currentTab: IeltsSubTab) => {
-    const currentIndex = IELTS_TOOL_NAV_ITEMS.findIndex(({ id }) => id === currentTab);
-    let nextIndex = currentIndex;
-    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % IELTS_TOOL_NAV_ITEMS.length;
-    else if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + IELTS_TOOL_NAV_ITEMS.length) % IELTS_TOOL_NAV_ITEMS.length;
-    else if (event.key === 'Home') nextIndex = 0;
-    else if (event.key === 'End') nextIndex = IELTS_TOOL_NAV_ITEMS.length - 1;
-    else return;
-
-    event.preventDefault();
-    const nextTab = IELTS_TOOL_NAV_ITEMS[nextIndex].id;
-    selectIeltsSubTab(nextTab);
-    window.requestAnimationFrame(() => ieltsTabRefs.current[nextTab]?.focus());
-  }, [selectIeltsSubTab]);
 
   useEffect(() => {
     const restoreNavigation = () => {
@@ -1945,101 +1930,68 @@ const SchoolAdminPortal: React.FC<SchoolAdminPortalProps> = ({ onComplete, onLog
           {/* Banner */}
           <section className="admin-section-heading"><div><p className="school-admin-eyebrow">School IELTS suite</p><h2>IELTS Programme</h2><p>{school?.name ?? 'Your school'} — exams, assignments, reviews, results and student progress.</p></div><span className="admin-live-pill"><i /> IELTS enabled</span></section>
 
-          {/* Sub-tab Segmented Control */}
-          <div
-            className="ielts-tools-nav flex gap-1 overflow-x-auto rounded-2xl border border-gray-700/50 bg-gray-900/70 p-1.5 backdrop-blur-sm"
-            role="tablist"
-            aria-label="IELTS sections"
-            aria-orientation="horizontal"
-          >
-            {IELTS_TOOL_NAV_ITEMS.map(({ id, icon, label, hint }) => {
-              const isActive = activeIeltsSubTab === id;
-              const className = `flex min-w-[8.5rem] flex-none flex-col items-center gap-0.5 rounded-xl px-3 py-2.5 transition-all xl:min-w-0 xl:flex-1 ${
-                isActive
-                  ? 'bg-gradient-to-br from-teal-600 to-blue-700 text-white shadow-lg shadow-teal-500/20'
-                  : 'text-gray-400 hover:bg-gray-800/60 hover:text-white'
-              }`;
-
-              return (
-                <button
-                  key={id}
-                  ref={(element) => { ieltsTabRefs.current[id] = element; }}
-                  type="button"
-                  role="tab"
-                  id={`school-admin-ielts-tab-${id}`}
-                  data-testid={`school-admin-tab-${id}`}
-                  aria-selected={activeIeltsSubTab === id}
-                  aria-controls={`school-admin-ielts-panel-${id}`}
-                  tabIndex={isActive ? 0 : -1}
-                  onClick={() => selectIeltsSubTab(id)}
-                  onKeyDown={(event) => handleIeltsTabKeyDown(event, id)}
-                  className={className}
-                >
-                  <span aria-hidden="true" className="school-admin-ielts-nav-icon"><SchoolAdminNavIcon name={icon} /></span>
-                  <span className="text-[13px] font-semibold">{label}</span>
-                  <span className={`hidden text-[10px] leading-none sm:block ${
-                    activeIeltsSubTab === id ? 'text-teal-100/60' : 'text-gray-600'
-                  }`}>{hint}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Content */}
-          <div
-            id={`school-admin-ielts-panel-${activeIeltsSubTab}`}
-            role="tabpanel"
-            aria-labelledby={`school-admin-ielts-tab-${activeIeltsSubTab}`}
-            tabIndex={0}
-            className="rounded-2xl ring-1 ring-teal-500/10"
-          >
-            {activeIeltsSubTab === 'ielts-overview' && (
-              <React.Suspense fallback={<div role="status" className="p-6 text-slate-600">Opening IELTS programme…</div>}>
-                <IeltsProgrammeWorkspace embedded schoolId={school?.id} />
-              </React.Suspense>
-            )}
-            {activeIeltsSubTab === 'ielts-exams' && (
-              activeIeltsMonitorExamId ? (
-                <IeltsExamModeAdminGuard>
-                  <React.Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading IELTS exam monitor…</div>}>
-                    <IeltsExamMonitor
-                      embedded
-                      examEventIdOverride={activeIeltsMonitorExamId}
-                      onBack={() => selectIeltsMonitor(null, 'replace')}
-                    />
-                  </React.Suspense>
-                </IeltsExamModeAdminGuard>
-              ) : (
-                <IeltsExamsTab onOpenMonitor={(examEventId) => selectIeltsMonitor(examEventId)} />
-              )
-            )}
-            {activeIeltsSubTab === 'ielts-practice'  && <IeltsPracticeTab onOpenReviews={() => selectIeltsSubTab('ielts-reviews')} />}
-            {activeIeltsSubTab === 'ielts-reviews' && (
-              <IeltsReviewAdminGuard>
-                <React.Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading IELTS reviews…</div>}>
-                  {activeIeltsReview ? (
-                    <IeltsSubmissionReview
-                      embedded
-                      skillOverride={activeIeltsReview.skill}
-                      attemptIdOverride={activeIeltsReview.attemptId}
-                      onBack={() => selectIeltsReview(null, 'replace')}
-                    />
-                  ) : (
-                    <IeltsReviewQueue
-                      embedded
-                      onOpenReview={selectIeltsReview}
-                    />
-                  )}
-                </React.Suspense>
-              </IeltsReviewAdminGuard>
-            )}
-            {activeIeltsSubTab === 'ielts-results'   && <IeltsResultsTab />}
-            {activeIeltsSubTab === 'ielts-student-progress' && (
-              <React.Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading student IELTS progress…</div>}>
-                <IeltsJourneyDashboard embedded />
-              </React.Suspense>
-            )}
-            {activeIeltsSubTab === 'ielts-settings'  && <IeltsSettingsTab />}
+          {/* One IELTS tab bar: the programme workspace, with the School tab for administration (UX Bible §13.12). */}
+          <div className="rounded-2xl ring-1 ring-teal-500/10">
+            <React.Suspense fallback={<div role="status" className="p-6 text-slate-600">Opening IELTS programme…</div>}>
+              <IeltsProgrammeWorkspace
+                embedded
+                schoolId={school?.id}
+                initialSection={IELTS_TOOL_NAV_ITEMS.find(({ id }) => id === activeIeltsSubTab)?.section}
+                initialSchoolTool={IELTS_TOOL_NAV_ITEMS.find(({ id }) => id === activeIeltsSubTab)?.tool}
+                onSectionChange={() => {
+                  if (activeIeltsReview || activeIeltsMonitorExamId || activeIeltsSubTab !== 'ielts-overview') selectIeltsSubTab('ielts-overview');
+                }}
+                onOpenAllReviews={() => selectIeltsSubTab('ielts-reviews')}
+                onOpenExamMonitor={(examEventId) => selectIeltsMonitor(examEventId)}
+                adminExams={<IeltsExamsTab onOpenMonitor={(examEventId) => selectIeltsMonitor(examEventId)} />}
+                adminTools={{
+                  results: <IeltsResultsTab />,
+                  journeys: (
+                    <React.Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading student IELTS progress…</div>}>
+                      <IeltsJourneyDashboard embedded />
+                    </React.Suspense>
+                  ),
+                  settings: <IeltsSettingsTab />,
+                }}
+                adminView={
+                  activeIeltsSubTab === 'ielts-exams' && activeIeltsMonitorExamId ? {
+                    tab: 'exams',
+                    node: (
+                      <IeltsExamModeAdminGuard>
+                        <React.Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading IELTS exam monitor…</div>}>
+                          <IeltsExamMonitor
+                            embedded
+                            examEventIdOverride={activeIeltsMonitorExamId}
+                            onBack={() => selectIeltsMonitor(null, 'replace')}
+                          />
+                        </React.Suspense>
+                      </IeltsExamModeAdminGuard>
+                    ),
+                  } : activeIeltsSubTab === 'ielts-reviews' ? {
+                    tab: 'reviews',
+                    node: (
+                      <IeltsReviewAdminGuard>
+                        <React.Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading IELTS reviews…</div>}>
+                          {activeIeltsReview ? (
+                            <IeltsSubmissionReview
+                              embedded
+                              skillOverride={activeIeltsReview.skill}
+                              attemptIdOverride={activeIeltsReview.attemptId}
+                              onBack={() => selectIeltsReview(null, 'replace')}
+                            />
+                          ) : (
+                            <IeltsReviewQueue
+                              embedded
+                              onOpenReview={selectIeltsReview}
+                            />
+                          )}
+                        </React.Suspense>
+                      </IeltsReviewAdminGuard>
+                    ),
+                  } : null
+                }
+              />
+            </React.Suspense>
           </div>
 
         </div>
