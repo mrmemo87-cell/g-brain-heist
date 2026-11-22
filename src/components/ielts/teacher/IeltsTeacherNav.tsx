@@ -15,9 +15,9 @@ const TABS: Tab[] = [
   { id: 'reviews', label: 'Reviews', icon: 'review', hint: 'Writing and Speaking waiting for feedback', phone: true },
   { id: 'students', label: 'Students', icon: 'students', hint: 'Progress, plans and reports', phone: true },
   { id: 'speaking', label: 'Speaking', icon: 'mic', hint: 'Practice mocks and interviews', phone: true },
+  { id: 'practice', label: 'Assign', icon: 'plus', hint: 'Give work and follow everything given', manageOnly: true },
   { id: 'batches', label: 'Batches', icon: 'batches', hint: 'Course batches and their practice', manageOnly: true },
   { id: 'lessons', label: 'Lessons', icon: 'lessons', hint: 'Lesson packs, slides and audio', manageOnly: true },
-  { id: 'practice', label: 'Practice', icon: 'practice', hint: 'Assignments and practice history', manageOnly: true },
   { id: 'exams', label: 'Exams', icon: 'exams', hint: 'Schedule and monitor exam sessions', manageOnly: true },
   { id: 'team', label: 'Team', icon: 'team', hint: 'Programme lead and access' },
 ];

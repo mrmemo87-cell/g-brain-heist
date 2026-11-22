@@ -75,10 +75,10 @@ export default function IeltsTeacherToday({ schoolName, canManage, waiting, wait
   const map: { title: string; spots: Spot[] }[] = [
     { title: 'Check work', spots: [
       { id: 'reviews', icon: 'review', title: 'Reviews', text: 'Writing and Speaking waiting for feedback', count: total, hot: true },
-      { id: 'history', icon: 'practice', title: 'Practice history', text: 'Current and earlier student work', manage: true },
+      { id: 'history', icon: 'practice', title: 'Everything assigned', text: 'Current and earlier work, with its status', manage: true },
     ] },
     { title: 'Give work', spots: [
-      { id: 'assign', icon: 'plus', title: 'Create assignment', text: 'A class, a batch or one student', manage: true },
+      { id: 'assign', icon: 'plus', title: 'Assign work', text: 'A class, a batch, one student or a Speaking mock', manage: true },
       { id: 'targeted', icon: 'target', title: 'Targeted practice', text: 'Evidence-led work for one student', manage: true },
       { id: 'speaking', icon: 'mic', title: 'Speaking practice mocks', text: 'Students take them alone; you review' },
     ] },

@@ -98,6 +98,7 @@ async function check(admin, pending = 0, manage = true) {
         reports: [],
       };
     else if (fn === "rpc_ielts_batches") data = [];
+    else if (fn === "rpc_ielts_teacher_practice_history") data = { rows: [], has_more: false };
     else if (fn === "rpc_ielts_speaking_mock_overview") data = {
       school_id: args.p_school_id, published_mocks: 6, students: [
         { id: "student-b", name: "Bek", mocks_had: 0, current: null },
@@ -123,9 +124,12 @@ async function check(admin, pending = 0, manage = true) {
   await wait(() => !!w.document.querySelector(".itn-today"));
   // Today shows only what needs the teacher now, then a few shortcuts; no invented band metrics.
   const today = w.document.querySelector(".itn-today");
-  assert.match(today.querySelector(".isn-summary").textContent, pending > 0 ? new RegExp(pending + " submissions to review") : /Nothing is waiting for you/);
-  if (pending > 0) assert.ok(today.querySelector(".itn-see-all"), "More waiting work than shown links to Reviews");
-  else assert.ok(today.querySelector(".isn-caught-up"), "An empty queue says so plainly");
+  // One finished Speaking practice mock (Aida) is always waiting in this fixture, for every reviewing teacher.
+  const waitingTotal = pending + 1;
+  await wait(() => today.querySelector(".isn-summary").textContent.includes(`${waitingTotal} submission`));
+  assert.match(today.querySelector(".isn-summary").textContent, new RegExp(`${waitingTotal} submissions? to review`));
+  assert.match(today.querySelector(".isn-section").textContent, /Speaking practice mock · mock C/, "A finished mock shows in Needs you now");
+  if (pending > 3) assert.ok(today.querySelector(".itn-see-all"), "More waiting work than shown links to Reviews");
   // One IELTS map: every area once, grouped by the teacher's job (Visual & UX Bible 13.12).
   const map = today.querySelector(".itn-map");
   assert.ok(map, "Today shows the IELTS map");
@@ -133,7 +137,7 @@ async function check(admin, pending = 0, manage = true) {
     ? ["Check work", "Give work", "Teach", "Know your students", "Run tests", "Set up"]
     : ["Check work", "Give work", "Know your students", "Run tests", "Set up"]);
   assert.deepEqual([...map.querySelectorAll(".itn-map-spot strong")].map(x => x.firstChild.textContent), manage
-    ? ["Reviews", "Practice history", "Create assignment", "Targeted practice", "Speaking practice mocks", "Lessons", "Batches", "Student progress", "Exam sessions", "Speaking interviews", "Programme team"]
+    ? ["Reviews", "Everything assigned", "Assign work", "Targeted practice", "Speaking practice mocks", "Lessons", "Batches", "Student progress", "Exam sessions", "Speaking interviews", "Programme team"]
     : ["Reviews", "Speaking practice mocks", "Student progress", "Speaking interviews", "Programme team"]);
   assert.equal(today.querySelector(".itn-tiles"), null, "No second shortcut grid");
   assert.equal([...today.querySelectorAll(".isn-group")].find(g => g.textContent.includes("More tools")), undefined, "Nothing hidden in a folded box");
@@ -148,22 +152,23 @@ async function check(admin, pending = 0, manage = true) {
   const tabLabel = (el) => el.querySelector(".isn-label")?.firstChild?.textContent.trim();
   const tab = (label) => [...nav.querySelectorAll(".itn-link")].find((b) => tabLabel(b) === label);
   assert.deepEqual([...nav.querySelectorAll(".itn-link:not(.itn-more-button)")].map(tabLabel), manage
-    ? ["Today","Reviews","Students","Speaking","Batches","Lessons","Practice","Exams","Team"]
+    ? ["Today","Reviews","Students","Speaking","Assign","Batches","Lessons","Exams","Team"]
     : ["Today","Reviews","Students","Speaking","Team"], "Every destination is a tab on desktop");
   assert.equal(!!nav.querySelector(".itn-more-button"), manage, "Phones get More only when there are extra tools");
   assert.equal(tabLabel(nav.querySelector('[aria-current="page"]')), "Today");
-  if (pending > 0) assert.match(nav.textContent, new RegExp(`Reviews \\(${pending} waiting\\)`));
+  assert.match(nav.textContent, new RegExp(`Reviews \\(${waitingTotal} waiting\\)`));
   if (manage) {
     nav.querySelector(".itn-more-button").click();
     await wait(() => !!nav.querySelector(".itn-sheet"));
-    assert.deepEqual([...nav.querySelectorAll(".itn-sheet-item strong")].map(x => x.textContent), ["Batches","Lessons","Practice","Exams","Team"]);
-    [...today.querySelectorAll(".itn-map-spot")].find(b => b.querySelector("strong")?.firstChild.textContent === "Create assignment").click();
-    await wait(() => !!w.document.querySelector(".ip-assignment-entry"));
-    assert.equal(w.document.querySelectorAll('input[name="ielts-assignment-scope"]').length,3);
-    assert.match(w.document.querySelector(".ip-assignment-entry").textContent,/Entire class/);
-    assert.match(w.document.querySelector(".ip-assignment-entry").textContent,/IELTS course batch/);
-    assert.match(w.document.querySelector(".ip-assignment-entry").textContent,/Individual student/);
-    assert.equal(tabLabel(nav.querySelector('[aria-current="page"]')), "Practice", "Creating an assignment belongs to Practice");
+    assert.deepEqual([...nav.querySelectorAll(".itn-sheet-item strong")].map(x => x.textContent), ["Assign","Batches","Lessons","Exams","Team"]);
+    [...today.querySelectorAll(".itn-map-spot")].find(b => b.querySelector("strong")?.firstChild.textContent === "Assign work").click();
+    await wait(() => !!w.document.querySelector(".itn-give"));
+    assert.deepEqual([...w.document.querySelectorAll(".itn-give-card strong")].map(x => x.textContent), ["A whole class", "A course batch", "One student", "A Speaking practice mock"], "Four ways to give work, side by side");
+    assert.equal(w.document.querySelector(".itn-head h1").textContent, "Assign work");
+    assert.equal(tabLabel(nav.querySelector('[aria-current="page"]')), "Assign");
+    assert.ok(w.document.querySelector('[aria-label="Teacher practice tools"]'), "The Practice Desk's own tools stay");
+    [...w.document.querySelectorAll(".itn-give-card")].find(b => b.textContent.includes("Speaking")).click();
+    await wait(() => w.document.querySelector(".itn-head h1")?.textContent === "Speaking desk");
     tab("Today").click();
   } else {
     assert.equal(button("Create assignment"),undefined, "Non-managers cannot open assignment creation");
