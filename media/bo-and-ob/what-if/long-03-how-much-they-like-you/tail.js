@@ -107,6 +107,28 @@ function FACEOFF(t,u){let g=PLAIN('#2a1d4a','#05040f')+dust(t);
   g+=NUM(1300,topY(960,1.05),62,t,{s:.9})+NUM(620,topY(960),'?',t,{s:.9,t0:V.n05.s+.6,col:'#bfa8ff'});
   g+=TAG(1300,230,'YOU SEE THEIRS',NC(62),t,V.n05.s+.2,V.n05.e+.3)+TAG(620,230,'THEY SEE YOURS','#bfa8ff',t,V.n05.s+1.2,V.n05.e+.3);
   return g}
+// the family group chat: phone in the middle, Auntie Pat left, Uncle Ray right
+function CHAT(t,o={}){let g=PLAIN('#2a3a5a','#0b0826')+dust(t);
+  if(o.aunt)g+=WOMAN('#e88f5a','#ffd36b',{x:330,y:1000,s:.95,face:.6,smile:1.1,brow:-.5,open:1,aR:150,aL:30+Math.sin(t*6)*10,mouth:o.am||0,look:[.8,0]})+(o.av!=null?NUM(330,topY(1000,.95),o.av,t,{s:.85,t0:o.at0}):'')+(o.al?TAG(330,1050,'LOUDEST','#ff9db5',t,o.al,o.al+30):'');
+  if(o.unc)g+=MAN('#6b5a4a','#9aa0b5',{x:1590,y:1000,s:.95,face:-.6,smile:o.us==null?0:o.us,brow:o.ub==null?.2:o.ub,open:o.uo==null?.6:o.uo,mouth:o.um||0,look:[-.8,.4]})+(o.uv!=null?NUM(1590,topY(1000,.95),o.uv,t,{s:.85,t0:o.ut0,spark:o.uv>=95}):'')+(o.ql?TAG(1590,1050,'QUIETEST','#ffe14d',t,o.ql,o.ql+30):'');
+  return g+PHONE(960,560,.95,t,{name:o.name,avatar:o.avc,msgs:o.msgs||[]})}
+// a first date, seen through a restaurant window from the street
+function DATEWIN(t,o={}){let g=`<rect width="1920" height="1080" fill="#1b1636"/>`;
+  for(let r=0;r<14;r++)for(let c=0;c<17;c++)g+=`<rect x="${c*120+(r%2)*60-60}" y="${r*70}" width="114" height="64" fill="#2a2148"/>`;
+  g+=`<defs><clipPath id="dwin"><rect x="300" y="130" width="1320" height="700" rx="12"/></clipPath></defs><g clip-path="url(#dwin)"><rect x="300" y="130" width="1320" height="700" fill="#6a3a3a"/>`+GLOW(960,560,420,'#ffb36b',.55);
+  for(let i=0;i<9;i++)g+=`<circle cx="${380+i*150}" cy="180" r="10" fill="#ffd36b"/>`;
+  const ms=o.ms==null?.1:o.ms,ws=o.ws==null?-.1:o.ws;
+  g+=MAN('#3a7bd5','#f3efe6',{x:690,y:905,face:o.mf==null?-.3:o.mf,smile:ms,brow:o.mb==null?-.2:o.mb,open:o.mo==null?.75:o.mo,aR:o.phone?150:8,aL:o.lean?20:8,rot:o.lean?-6:0,mouth:o.mm||0,look:o.ml||[.2,.8]});
+  if(o.phone)g+=`<rect x="742" y="470" width="56" height="96" rx="10" fill="#17151f" stroke="${OUT}" stroke-width="4"/><rect x="748" y="478" width="44" height="78" rx="6" fill="#9be7ff" opacity=".8"/>`;
+  g+=WOMAN('#c0392b','#ffd36b',{x:1230,y:905,face:o.wf==null?.3:o.wf,bun:0,bow:1,smile:ws,brow:o.wb==null?-.2:o.wb,open:o.wo==null?.7:o.wo,aL:o.stir?120+Math.sin(t*5)*12:8,mouth:o.wm||0,look:o.wl||[-.2,.8]});
+  g+=`<rect x="660" y="700" width="600" height="30" rx="12" fill="#f3efe6" stroke="${OUT}" stroke-width="6"/><rect x="940" y="730" width="40" height="120" fill="#3a2a20"/><rect x="950" y="630" width="20" height="70" fill="#fff6d8"/><ellipse cx="960" cy="${n(618+Math.sin(t*9)*2)}" rx="9" ry="16" fill="#ffd54d"/>`+GLOW(960,620,90,'#ffd54d',.5);
+  if(o.v){g+=NUM(690,topY(905),84,t,{s:.8,t0:o.v[0]})+NUM(1230,topY(905),86,t,{s:.8,t0:o.v[1]});
+    if(t>o.v[0]+.3)g+=T(690,topY(905)+88,'WHAT SHE SEES',28,'#fff');if(t>o.v[1]+.3)g+=T(1230,topY(905)+88,'WHAT HE SEES',28,'#fff')}
+  if(o.hearts)for(let i=0;i<10;i++){const u=((t*.3+i/10)%1);g+=`<g opacity="${n(o.hearts*(1-u))}" transform="translate(${n(760+i*45+Math.sin(t*2+i)*30)},${n(640-u*420)}) scale(${n(.5+u*.4)})"><path d="M 0 30 C -50 0 -40 -40 -14 -34 C -6 -32 0 -24 0 -20 C 0 -24 6 -32 14 -34 C 40 -40 50 0 0 30 Z" fill="#ff5f8f"/></g>`}
+  g+=`</g><rect x="300" y="130" width="1320" height="700" rx="12" fill="none" stroke="#3a2a20" stroke-width="22"/><rect x="280" y="830" width="1360" height="40" fill="#4a3a30" stroke="${OUT}" stroke-width="5"/>`;
+  g+=`<path d="M 300 150 L 520 150 L 340 420 Z" fill="#fff" opacity=".07"/><rect x="0" y="960" width="1920" height="120" fill="#2a2440"/>`;
+  g+=YOU({x:1760,y:1150,s:1.05,face:-.7,smile:o.ys==null?.1:o.ys,brow:o.yb==null?.3:o.yb,open:blink(t,.4),look:[-.9,-.2]});
+  return g}
 // ---------- shot list ----------
 function SHOTS(){const S=[];const A=(s,d,c,f)=>S.push([s,d,c||[960,540,1.02,960,540,1.08],f||0]);
   const BED=o=>t=>CDEFS+BEDTOP(t,Object.assign({clock:'07:40'},o))+(o.pv!=null?NUM(590,150,o.pv,t,{s:.9,t0:o.pt0}):'');
@@ -163,12 +185,35 @@ function SHOTS(){const S=[];const A=(s,d,c,f)=>S.push([s,d,c||[960,540,1.02,960,
   A(at('n32'),t=>{const u=U(t,'n32'),k=es(u,.55,.75);return CDEFS+HOUSE(t,{bx:1640,mf:lerp(.2,-.8,es(u,.5,.55)),ms:.3,mb:.5,mx:lerp(960,900,k),mum:1-k,b:{smile:.2,brow:.4},y:{smile:.1,brow:.5}})+(u>.8?TAG(960,560,'…','#fff',t,at('n32',.8)):'')},[960,560,1.05,960,540,1.12]);
   A(at('r1'),t=>CDEFS+HOUSE(t,{mum:0,bx:1580,b:{smile:1,brow:-.4,face:-.4,mouth:one('r1')(t),look:[-.8,0]},y:{smile:.6}})+BUB(1560,240,'Two points. I’ll take it.',t,at('r1')+.05,{size:40}),[1460,480,1.5,1460,470,1.6]);
   A(at('n33'),t=>{const a=at('n33',.5);return CDEFS+HOUSE(t,{mum:0,bx:1580,b:{smile:.8,brow:-.2,face:-.4},y:{smile:1.1,brow:-.3,open:t<a?.35:1,bob:t<a?-Math.abs(Math.sin(t*8))*8:0}})+NUM(1580,topY(905),97,t,{t0:a,spark:1})+(t>a+.6?CARD(1060,200,['HIGHER THAN','YOU’D EVER SAY'],'#ffe14d',t,a+.6,-3):'')},[1400,440,1.35,1400,420,1.45]);
+  // 5 PM the family group chat
+  const FAM=t=>{const b=at('n52');return [{at:b+.3,text:'Who took my charger??'},{at:b+1.1,text:'Happy birthday Dave!!'},{at:b+1.9,text:'LOL'},{at:b+2.6,text:'Dinner Sunday?'}].concat(t>=at('a1')?[{at:at('a1')+.1,text:'Love you all!! Big hugs!! ♥♥♥♥♥'}]:[])};
+  const CH=o=>t=>CDEFS+CHAT(t,Object.assign({name:'FAMILY (43)',avc:'#e88f5a',msgs:FAM(t)},o));
+  A(at('n52'),CH({}),[960,540,1.05,960,520,1.15],.3);
+  A(at('a1'),t=>CH({aunt:1,am:one('a1')(t)})(t),[640,540,1.2,640,520,1.3]);
+  A(at('n53'),t=>CH({aunt:1,av:34,at0:at('n53',.72)})(t)+TAG(560,250,'♥ x 11','#ff9db5',t,at('n53',.2),at('n53',.65)),[560,470,1.35,560,450,1.5]);
+  A(at('n54'),t=>CH({aunt:1,av:34,unc:1,uv:90,ut0:at('n54',.78)})(t),[1300,470,1.3,1360,450,1.45]);
+  A(at('n55'),t=>CH({aunt:1,av:34,unc:1,uv:90,al:at('n55',.05),ql:at('n55',.5)})(t),[960,540,1.05,960,540,1.0]);
+  const PRIV=t=>{const m=[{at:at('n56',.5),me:1,text:'Thank you for always being there.'}];if(t>=at('n57',.3)&&t<at('w1'))m.push({at:at('n57',.3),text:'• • •'});if(t>=at('w1'))m.push({at:at('w1')+.1,text:'Always.'});return m};
+  const PR=o=>t=>CDEFS+CHAT(t,Object.assign({name:'UNCLE RAY',avc:'#6b5a4a',unc:1,uv:90,msgs:PRIV(t)},o));
+  A(at('n56'),PR({}),[1100,520,1.15,1100,500,1.25]);
+  A(at('n57'),PR({}),[960,560,1.45,960,560,1.6]);
+  A(at('w1'),t=>PR({um:one('w1')(t),us:.6,ub:-.1,uo:1})(t),[1300,480,1.35,1300,470,1.45]);
+  A(at('n58'),t=>PR({us:.8,ub:-.2,uo:1,uv:VAL(t,[[0,90],[at('n58',.1),97]],.7)})(t)+TAG(1590,170,'+7','#ffe14d',t,at('n58',.2)),[1450,450,1.4,1450,430,1.5]);
   // 18:00 the mirror
   A(at('n34'),t=>CDEFS+BATH(t,{v:t>at('n34',.75)?'?':null,t0:at('n34',.75)}),[960,520,1.05,960,460,1.2],.4);
   A(at('n35'),t=>CDEFS+BATH(t,{v:'?',blur:1})+CARD(1540,300,['HOW MUCH','YOU LIKE YOURSELF'],'#ffe14d',t,at('n35',.2),4),[960,540,1.12,960,540,1.04]);
   A(at('n36'),t=>CDEFS+BATH(t,{v:21,t0:at('n36'),rs:-.3,rb:.9}),[960,420,1.4,960,380,1.75]);
   A(at('n37'),t=>CDEFS+RANK(t,U(t,'n37')),[960,540,1.02,960,540,1.06]);
   A(at('n38'),t=>CDEFS+PLAIN('#3b2f5a','#0b0826')+dust(t)+POP('YOU NEVER',960,470,120,'#fff',t,at('n38',.1))+POP('ONCE CHECKED.',960,630,130,'#ffe14d',t,at('n38',.55)),[960,540,1.08,960,540,1.0]);
+  // 7 PM a first date through a window
+  A(at('n59'),t=>CDEFS+DATEWIN(t,{phone:1,lean:1,stir:1}),[1100,560,1.0,1000,540,1.12],.3);
+  A(at('n60'),t=>CDEFS+DATEWIN(t,{phone:1,lean:1,stir:1,ms:0,ws:-.2,mb:-.4,wb:-.3}),[960,520,1.25,960,500,1.35]);
+  A(at('n61'),t=>CDEFS+DATEWIN(t,{phone:1,lean:1,stir:1,v:[at('n61',.15),at('n61',.6)]}),[960,450,1.3,960,430,1.4]);
+  A(at('n62'),t=>CDEFS+DATEWIN(t,{phone:1,lean:1,stir:1,v:[-1,-1],mf:-.6,wf:.6,ml:[-.6,.6],wl:[.6,.6]})+(t>at('n62',.55)?CARD(960,960,['PLAY IT COOL','AND NOBODY CAN TURN YOU DOWN'],'#ff9db5',t,at('n62',.55)):''),[960,560,1.05,960,560,1.0]);
+  A(at('n63'),t=>{const u=U(t,'n63');return CDEFS+DATEWIN(t,{phone:u<.5,stir:0,v:[-1,-1],wl:[-.5,-.9],wb:lerp(-.2,1.1,es(u,.3,.6)),wo:1.1,ws:lerp(-.1,.3,es(u,.5,.8)),ml:[.5,0]})},[1150,420,1.4,1150,400,1.6]);
+  A(at('d1'),t=>CDEFS+DATEWIN(t,{v:[-1,-1],wf:-.3,ws:1.1,wb:-.4,wo:.4,wm:one('d1')(t),wl:[-.8,0],ml:[.8,-.6],mb:1,mo:1.1})+BUB(1230,200,'Oh, thank God.',t,at('d1')+.05,{size:42}),[1100,440,1.35,1100,430,1.45]);
+  A(at('e1'),t=>CDEFS+DATEWIN(t,{v:[-1,-1],wf:-.3,ws:1.1,wb:-.3,mf:.3,ms:1.1,mb:-.3,mo:.4,mm:one('e1')(t),wl:[-.8,0],ml:[.8,0]})+BUB(690,200,'Me too. Me too.',t,at('e1')+.05,{size:42}),[820,440,1.35,820,430,1.45]);
+  A(at('n64'),t=>CDEFS+DATEWIN(t,{v:[-1,-1],wf:-.4,ws:1,wb:-.2,mf:.4,ms:1,mb:-.2,wl:[-.8,0],ml:[.8,0],hearts:es(t,at('n64'),at('n64',.3)),ys:.8,yb:-.2}),[960,540,1.2,1100,560,1.0]);
   // 20:00 the party
   const YP=(t,o={})=>YOU(Object.assign({x:820,y:905,face:.2,smile:.3,brow:.3,open:blink(t,.5),aR:110,look:[.3,0]},o));
   A(at('n39'),t=>CDEFS+PARTY(t)+YP(t)+NUM(820,topY(905),50,t,{s:.72,col:'#bfa8ff'}),[960,520,1.05,960,520,1.12],.3);
@@ -191,7 +236,7 @@ function SHOTS(){const S=[];const A=(s,d,c,f)=>S.push([s,d,c||[960,540,1.02,960,
   return S}
 let SHOTL=null;
 function camT(c,u){const k=E(u),z=lerp(c[2],c[5],k);let cx=lerp(c[0],c[3],k),cy=lerp(c[1],c[4],k);cx=cl(cx,960/z,1920-960/z);cy=cl(cy,540/z,1080-540/z);return `translate(960,540) scale(${z.toFixed(4)}) translate(${n(-cx)},${n(-cy)})`}
-const STAMPS=()=>[[at('n07'),'7:40 AM'],[at('n11'),'8:30 AM'],[at('n15'),'9:15 AM'],[at('n23'),'12:30 PM'],[at('n29'),'3:00 PM'],[at('n34'),'6:00 PM'],[at('n39'),'8:00 PM'],[at('n44'),'11:40 PM']];
+const STAMPS=()=>[[at('n07'),'7:40 AM'],[at('n11'),'8:30 AM'],[at('n15'),'9:15 AM'],[at('n23'),'12:30 PM'],[at('n29'),'3:00 PM'],[at('n52'),'5:00 PM'],[at('n34'),'6:00 PM'],[at('n59'),'7:00 PM'],[at('n39'),'8:00 PM'],[at('n44'),'11:40 PM']];
 window.renderAt=function(t){
   if(!SHOTL)SHOTL=SHOTS().sort((a,b)=>a[0]-b[0]);
   let i=0;while(i<SHOTL.length-1&&t>=SHOTL[i+1][0])i++;

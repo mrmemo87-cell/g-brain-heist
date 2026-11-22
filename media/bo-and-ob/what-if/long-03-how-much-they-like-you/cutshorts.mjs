@@ -5,7 +5,7 @@ const D = JSON.parse(fs.readFileSync('data.js', 'utf8').replace(/^window\.EP=/, 
 const V = D.V;
 const NARR = fs.readFileSync('narr.txt', 'utf8').split('\n').filter((l) => l.trim()).map((l) => l.split('|').slice(2).join('|'));
 const DLG = { p1: 'Morning, you.', p2: '...Are you still annoyed about last night?', p3: '...Thank you for telling me.', k1: 'Great to see you!', l1: 'Oh, love that idea!', i1: '...Morning.',
-  s1: 'That\u2019s amazing! I\u2019m so happy for you!', s2: 'Sorry. I am happy for you. I\u2019m just... stuck.', r1: 'Two points. I\u2019ll take it.' };
+  s1: 'That\u2019s amazing! I\u2019m so happy for you!', s2: 'Sorry. I am happy for you. I\u2019m just... stuck.', r1: 'Two points. I\u2019ll take it.', a1: 'Love you all!! Big hugs!!', w1: 'Always.', d1: 'Oh, thank God.', e1: 'Me too. Me too.' };
 const text = (id) => (id[0] === 'n' ? NARR[+id.slice(1) - 1] : DLG[id]) || '';
 const chunk = (s) => { const w = s.split(/\s+/); const out = []; let cur = ''; for (const x of w) { if ((cur + ' ' + x).trim().length > 24 && cur) { out.push(cur); cur = x; } else cur = (cur + ' ' + x).trim(); } if (cur) out.push(cur); return out; };
 const F = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', END = 2.6;

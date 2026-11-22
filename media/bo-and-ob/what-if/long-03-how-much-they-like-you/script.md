@@ -53,12 +53,33 @@ N: Mum, who has said "I love you both exactly the same" on every birthday since 
 BROTHER: "Two points. I'll take it."
 N: You laugh. And then you ask him what he sees above your head. For him. He tells you. It's higher than you would ever have said out loud.
 
+## 17:00 — The family group chat
+N: Five o'clock. The family group chat. Forty-three people. Nobody has ever left.
+AUNTIE PAT: "Love you all!! Big hugs!!"
+N: Auntie Pat. Eleven heart emojis, every single morning. Her number for you... thirty-four.
+N: And Uncle Ray, who hasn't typed a single word in four years... ninety.
+N: The loudest love in the chat had the lowest number. The quietest one had the highest.
+N: So you message Uncle Ray. Just him. Thank you for always being there.
+N: Three dots. Then one word.
+UNCLE RAY: "Always."
+N: Ninety-seven.
+
 ## 18:00 — The mirror
 N: Back home, brushing your teeth, you see something you didn't know was possible. A number above your own head, in the mirror.
 N: It's how much you like yourself.
 N: Twenty-one.
 N: Lower than your boss. Lower than the colleague who says "love that idea". Everyone who actually knows you... likes you more than you do.
 N: That's the most hidden thing of all. Not because anyone told you to hide it. Because you never once checked.
+
+## 19:00 — A first date, through a window
+N: Seven o'clock. On the way to the party, you walk past a restaurant window. A first date.
+N: He's leaning back, scrolling his phone, playing it cool. She's stirring her drink, looking bored.
+N: What she'd see above his head... eighty-four. What he'd see above hers... eighty-six.
+N: Two people who are crazy about each other, both working very hard to look like they're not. Because if you never show you care... nobody can ever turn you down.
+N: Then she looks up. And sees his number.
+HER: "Oh, thank God."
+HIM: "Me too. Me too."
+N: For the first time all evening... neither of them is pretending.
 
 ## 20:00 — The party
 N: That evening, at a friend's party, everyone is terrified. They stand around the edges, smiling politely, numbers hovering at a careful fifty.
