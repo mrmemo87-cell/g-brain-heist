@@ -92,3 +92,25 @@
 .st-playfrom-go { background: var(--bh-ielts-primary, #1746b0); color: var(--bh-ielts-primary-foreground, #fff); }
 .st-playfrom-no { background: var(--bh-ielts-secondary, #eef3fa); color: var(--bh-ielts-secondary-foreground, #284b72); }
 .st-playfrom button:focus-visible { outline: 3px solid var(--bh-ielts-focus, #0e7490); outline-offset: 2px; }
+
+/* Correcting speech-to-text words (Diagnostic Bible 2.7.2 section 10.7; teacher only). */
+.st-fixbar { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap; padding: .45rem .5rem .45rem .85rem; border: 1px dashed var(--bh-ielts-border, #dce5ef); border-radius: 12px; color: #475569; font-size: .88rem; }
+.st-fix-toggle, .st-fix-actions button { min-height: 44px; padding: 0 .95rem; border: 0; border-radius: 10px; font: inherit; font-weight: 700; cursor: pointer; }
+.st-fix-toggle { background: var(--bh-ielts-secondary, #eef3fa); color: var(--bh-ielts-secondary-foreground, #284b72); }
+.st-fix-toggle:focus-visible, .st-fix-actions button:focus-visible, .st-fix-input:focus-visible { outline: 3px solid var(--bh-ielts-focus, #0e7490); outline-offset: 2px; }
+.st-w.is-fixable { box-shadow: inset 0 -1px 0 #cbd5e1; }
+.st-w.is-fixable:hover { background: #f1f5f9; text-decoration: none; }
+.st-w.is-picked, .st-w.is-picked:hover { background: #fef9c3; box-shadow: 0 0 0 2px #ca8a04; }
+.st-fixed { border-bottom: 2px solid #0f766e; background: #f0fdfa; border-radius: 3px; }
+.st-fixbox { display: grid; gap: .55rem; padding: .9rem 1rem; border-radius: 14px; border: 1px solid #ca8a04; background: #fffbeb; }
+.st-fix-heard q { font-weight: 700; }
+.st-fix-label { display: grid; gap: .3rem; font-weight: 700; font-size: .9rem; }
+.st-fix-input { min-height: 44px; padding: .4rem .7rem; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; font: inherit; font-weight: 400; font-size: 1rem; }
+.st-fix-help { color: #64748b; font-size: .82rem; }
+.st-fix-term { display: flex; gap: .5rem; align-items: flex-start; font-size: .88rem; }
+.st-fix-term input { width: 1.15rem; height: 1.15rem; margin-top: .2rem; flex: none; }
+.st-fix-error { color: #b91c1c; font-weight: 700; font-size: .88rem; }
+.st-fix-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+.st-fix-save { background: var(--bh-ielts-primary, #1746b0); color: var(--bh-ielts-primary-foreground, #fff); }
+.st-fix-save:disabled { opacity: .6; cursor: progress; }
+.st-fix-listen, .st-fix-cancel { background: var(--bh-ielts-secondary, #eef3fa); color: var(--bh-ielts-secondary-foreground, #284b72); }

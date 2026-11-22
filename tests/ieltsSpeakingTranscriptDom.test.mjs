@@ -81,3 +81,44 @@ test('interview: teacher questions are shown in grey and never marked; legacy fe
     assert.doesNotMatch(legacy.doc.body.textContent, /👏/);
   } finally { legacy.close(); }
 });
+// Diagnostic Bible 2.7.2 section 10.7: a teacher corrects words speech-to-text got wrong.
+const click = async (w, el) => { el.dispatchEvent(new w.MouseEvent('click', { bubbles: true })); await new Promise((r) => setTimeout(r, 20)); };
+test('teacher correction: pick the wrong words, type what was said, add the name to the school word list', async () => {
+  const m = await mount({
+    audience: 'teacher', highlights: [], pronunciationWords: [],
+    transcript: "When I came to my new school, it's so cold, I saw that they're studying by Cambridge system.",
+    fixing: { marks: [], canEdit: true, canAddTerm: true, onFix: async (fix) => { m.w.saved = fix; } },
+  });
+  try {
+    assert.equal(m.doc.querySelectorAll('.st-fixbox').length, 0);
+    await click(m.w, [...m.doc.querySelectorAll('.st-fix-toggle')].find((b) => /Correct words/.test(b.textContent)));
+    const word = (t) => [...m.doc.querySelectorAll('.st-w')].find((s) => s.textContent === t);
+    await click(m.w, word("it's"));
+    await click(m.w, word('cold,'));
+    assert.match(m.doc.querySelector('.st-fix-heard').textContent, /it's so cold,/);
+    const input = m.doc.querySelector('.st-fix-input');
+    assert.equal(input.value, "it's so cold,");
+    const setter = Object.getOwnPropertyDescriptor(m.w.HTMLInputElement.prototype, 'value').set;
+    setter.call(input, 'Silk Road,');
+    input.dispatchEvent(new m.w.Event('input', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 20));
+    const term = m.doc.querySelector('.st-fix-term');
+    assert.match(term.textContent, /Add “Silk Road” to the school's word list/);
+    await click(m.w, term.querySelector('input'));
+    await click(m.w, m.doc.querySelector('.st-fix-save'));
+    assert.deepEqual(JSON.parse(JSON.stringify(m.w.saved)), { from: 7, count: 3, said: 'Silk Road,', addTerm: true, startSeconds: null, endSeconds: null });
+  } finally { m.close(); }
+});
+test('teacher correction: corrected words are marked for teachers, never for students, and editing can be off', async () => {
+  const transcript = 'When I came to my new school, Silk Road, I saw that.';
+  const t = await mount({ audience: 'teacher', transcript, highlights: [], pronunciationWords: [], fixing: { marks: [[7, 2]], canEdit: false, onFix: async () => {} } });
+  try {
+    assert.deepEqual([...t.doc.querySelectorAll('.st-fixed')].map((s) => s.textContent), ['Silk', 'Road,']);
+    assert.equal(t.doc.querySelectorAll('.st-fix-toggle').length, 0, 'no editing when the teacher may not correct');
+  } finally { t.close(); }
+  const s = await mount({ audience: 'student', transcript, highlights: [], pronunciationWords: [], fixing: { marks: [[7, 2]], canEdit: true, onFix: async () => {} } });
+  try {
+    assert.equal(s.doc.querySelectorAll('.st-fixed, .st-fix-toggle').length, 0);
+    assert.match(s.doc.querySelector('.st-text').textContent, /new school, Silk Road, I saw/);
+  } finally { s.close(); }
+});

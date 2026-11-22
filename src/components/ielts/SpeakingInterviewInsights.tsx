@@ -1,9 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   analyseSpeakingSession,
+  fixSpeakingTranscript,
   speakingExtras,
+  updateSpeakingFixedFeedback,
   speakingClipWords,
   syncSpeakingClipWords,
+  type SpeakingClipAnalysis,
   type SpeakingClipWords,
   type SpeakingSessionExtras,
 } from '../../../services/ieltsSpeakingPilotService';
@@ -86,6 +89,54 @@ export default function SpeakingInterviewInsights({ session, onExtras }: Props) 
     void analyse();
   }, [teacher, extras, session.status, analyse]);
 
+  // Correcting speech-to-text words (Diagnostic Bible 2.7.2 section 10.7).
+  const [updating, setUpdating] = useState<string | null>(null);
+  const [updateError, setUpdateError] = useState<Record<string, string>>({});
+  const saveFix = useCallback(async (a: SpeakingClipAnalysis, fix: { from: number; count: number; said: string; addTerm: boolean; startSeconds: number | null; endSeconds: number | null }) => {
+    try {
+      setExtras(await fixSpeakingTranscript({ sessionId: session.id, clipId: a.clip_id, expectedFixId: a.fix?.id ?? null, ...fix }));
+    } catch (e) {
+      if ((e as Error & { code?: string }).code === 'speaking_fix_changed') void load();
+      throw e;
+    }
+  }, [session.id, setExtras, load]);
+  const updateFeedback = async (clipId: string) => {
+    if (updating) return;
+    setUpdating(clipId); setUpdateError(prev => ({ ...prev, [clipId]: '' }));
+    try { setExtras(await updateSpeakingFixedFeedback(session.id, clipId)); }
+    catch (e) { setUpdateError(prev => ({ ...prev, [clipId]: (e as Error).message })); }
+    finally { setUpdating(null); }
+  };
+  const fixNotes = (a: SpeakingClipAnalysis) => {
+    const fix = a.fix;
+    if (!teacher || !fix?.id) return null;
+    return (
+      <div className="sp-fix-notes">
+        {!fix.feedback_updated && extras?.can_update_feedback ? (
+          <div className="sp-fix-update" role="status">
+            <p>You corrected words in this recording. Highlights and pronunciation words that used the wrong words have been removed. Update the AI feedback to check the corrected words too. It does not transcribe the audio again.</p>
+            <button type="button" className="sp-secondary" disabled={updating !== null} onClick={() => void updateFeedback(a.clip_id)}>
+              {updating === a.clip_id ? 'Updating the AI feedback…' : 'Update AI feedback'}
+            </button>
+            {updateError[a.clip_id] ? <p role="alert" className="sp-alert">{updateError[a.clip_id]}</p> : null}
+          </div>
+        ) : fix.feedback_updated ? <p className="sp-fix-done">✓ The AI feedback was updated for the corrected words.</p> : null}
+        <details className="sp-fix-history">
+          <summary>Corrections ({fix.history.length}) and speech-to-text's original transcript</summary>
+          <ol>
+            {fix.history.map((h, i) => (
+              <li key={i}>
+                <s>{h.heard}</s> → <b>{h.said || '(removed)'}</b>
+                <small> · {h.teacher_name ?? 'Teacher'} · {new Date(h.created_at).toLocaleDateString(displayDateLocale(), DISPLAY_DATE)}</small>
+              </li>
+            ))}
+          </ol>
+          {fix.original_transcript ? <p className="sp-fix-original"><b>Speech-to-text wrote:</b> {fix.original_transcript}</p> : null}
+        </details>
+      </div>
+    );
+  };
+
   if (session.status !== 'submitted') return null;
   if (!teacher && !extras?.analysis.length && !extras?.part_bands) return null;
 
@@ -96,8 +147,8 @@ export default function SpeakingInterviewInsights({ session, onExtras }: Props) 
     const clips = clipsFor(part);
     if (!clips.length) return null;
     const body = clips.map((a, i) => (
+      <React.Fragment key={a.clip_id}>
       <SpeakingTranscript
-        key={a.clip_id}
         title={clips.length > 1 ? `Recording ${i + 1}` : undefined}
         audience={teacher ? 'teacher' : 'student'}
         transcript={a.transcript}
@@ -107,7 +158,15 @@ export default function SpeakingInterviewInsights({ session, onExtras }: Props) 
         pronunciationAssessed={a.pronunciation?.assessed !== false}
         clipId={a.clip_id}
         wordTimes={wordTimesByClip.get(a.clip_id)}
+        fixing={teacher && a.fix ? {
+          marks: a.fix.marks,
+          canEdit: !!extras?.can_fix_transcript,
+          canAddTerm: !!extras?.can_add_terms,
+          onFix: fix => saveFix(a, fix),
+        } : undefined}
       />
+      {fixNotes(a)}
+      </React.Fragment>
     ));
     return collapsible ? (
       <details key={part} className="rr-transcript">

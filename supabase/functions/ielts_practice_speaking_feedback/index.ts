@@ -171,7 +171,9 @@ Deno.serve(async (req: Request) => {
     let transcript = ''; let confidence = NO_CONFIDENCE; let heardBy = '';
     if (scribeKey) {
       try {
-        const heard = await scribeTranscribe(bytes, { apiKey: scribeKey, model: scribeModel, signal });
+        // The school's word list (Bible 2.7.2 section 10.7); an empty list when the learner has no school.
+        const { data: keyterms } = await admin.rpc('rpc_ielts_speaking_terms_for_student', { p_student_id: identity.user.id });
+        const heard = await scribeTranscribe(bytes, { apiKey: scribeKey, model: scribeModel, signal, keyterms: Array.isArray(keyterms) ? keyterms : [] });
         if (transcriptLooksComplete(heard.text, duration)) {
           transcript = heard.text.slice(0, 6000); confidence = wordConfidence(heard.words); heardBy = `elevenlabs/${heard.model}`;
         } else console.warn('Speaking transcript incomplete', { feedbackId: claim.id, reason: 'scribe_incomplete' });

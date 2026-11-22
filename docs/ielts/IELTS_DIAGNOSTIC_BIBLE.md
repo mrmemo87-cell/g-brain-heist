@@ -1,7 +1,7 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.7.1\
+**Version:** 2.7.2\
 **Effective date:** 2026-11-22\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
@@ -904,6 +904,15 @@ but not silently as a complete IELTS Writing band.
 - **A word the student used wrongly is never a pronunciation correction (2.6.1).** A wrong form ("theirself" for "themselves"), a wrong word ("response" used as a verb for "respond"), a wrong tense or an ending that is really grammar is a grammar or vocabulary matter, even when it is a dictionary word or sounded unclear; the highlights carry it. The listening model is told so, and a pronunciation tip must say how to *say* the listed word, never to use another one. The server drops any pronunciation word whose tip quotes a different dictionary word for the student to use ("Use 'respond'"), including another form of the same word when the tip says to use it instead ("Use 'information' without an s"). Sound hints ('th', 'ed') and stress spellings (PAY-shent) stay.
 - Highlights cover the clearest language problems first; a strength must be correct, natural English.
 - Improved analyses may replace older ones on screen. Interview analyses keep every earlier version as history; older practice feedback can be upgraded by a school teacher, and a failed upgrade keeps the earlier feedback.
+
+**Teacher corrections to speech-to-text (2.7.2)**
+- A teacher who may review the student can correct the words of a submitted interview recording's transcript when speech-to-text heard them wrongly (for example "it's so cold" for "Silk Road"). The teacher chooses up to 12 words in a row and types exactly what the student said, mistakes included; leaving it empty removes words that were never said. The teacher can play the recording from those words first.
+- Speech-to-text's own transcript is never changed. Every correction is append-only history with who made it, when, what was heard, what was said and its time in the recording; a correction made at the same time as another is refused rather than overwriting it. A newer analysis of the recording starts without corrections.
+- Teachers and students see the corrected transcript. Teachers also see which words were corrected, the list of corrections and the original. Students see the corrected text only, and only after sharing as before.
+- At once, a highlight whose quoted words are no longer in the corrected text and a pronunciation word that no longer appears in it are left out. Until the result is shared, the teacher may press **Update AI feedback** for that recording: the highlights are written again from the corrected text, words the teacher typed count as sure, other words keep their speech-to-text confidence, and the listening pass's pronunciation words are kept only when the word is still in the student's corrected words and was not typed by the teacher. Nothing is transcribed again and the audio is not listened to again. After sharing, corrections still fix the words shown but the AI feedback is not redone.
+- AI band estimates already made are not redone by a correction; the teacher still sets every band.
+- **School word list.** The school's own name and the names a teacher adds while correcting (up to 5 words and 50 characters each) are sent to Scribe as key terms with every new recording from that school's students, interview or practice, so the same name is recognised next time. The list never contains test questions or task wording. If Scribe refuses the list, the recording is transcribed once more without it. Key terms cost a little extra per recording (owner-approved: about one US cent per 12-minute interview, 2026-11-22).
+- Corrections are checked teacher data for a future in-house speech model. They are used for training only under the separate consent rules for that purpose; this section grants no such use.
 
 **Labels and provenance**
 - Highlights and pronunciation words remain AI practice feedback (sections 10.5 and 10.6 labels); the teacher's bands are the checked result. Model, prompt version and time are recorded. Students see interview transcripts and Part bands only after their teacher has shared feedback.
@@ -2141,6 +2150,18 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.24 Revision record — v2.7.2 (2026-11-22)
+
+**Authority.** On 2026-11-22 (13:39–14:31 Asia/Bishkek) the owner reported that Scribe wrote "so cold" where Timur said "Silk Road" in his interview, asked for "a way to correct a word caught wrong by Scribe" that is also useful, approved the extra key-term cost of about one cent per interview, and chose a button (not an automatic re-run) for updating the AI feedback.
+
+**Why the old rules were insufficient.** Section 10.7 kept every transcript as speech-to-text wrote it. A wrongly heard word could be quoted in a highlight or sent to the AI, and nothing stopped the same name from being misheard again.
+
+**What changed.** Section 10.7 gains "Teacher corrections to speech-to-text (2.7.2)": append-only teacher corrections, removal of feedback that rested on the wrong words, an optional pre-sharing feedback update without new transcription, and a school word list sent to Scribe as key terms.
+
+**What did not change.** One transcription per recording; pronunciation only from audio; teacher lines never highlighted; students see transcripts only after sharing; AI never sets a band; estimates, Part bands, the Teacher Speaking band and all labels are unchanged. Practice transcripts are not editable.
+
+**Implementation to review.** `supabase/migrations/20261122090000_ielts_speaking_transcript_fixes.sql` (fixes, fixed feedback, school terms, `rpc_ielts_fix_speaking_transcript`, the session extras); `_shared/ieltsSpeechToText.ts` (`cleanKeyterms`, key-term retry, `confidenceForText`); `ielts_speaking_pilot` (`update_fixed_feedback`, school terms); `ielts_practice_speaking_feedback` (school terms); `SpeakingTranscript.tsx` and `SpeakingInterviewInsights.tsx`.
 
 ### 22.23 Revision record — v2.7.1 (2026-11-22)
 
