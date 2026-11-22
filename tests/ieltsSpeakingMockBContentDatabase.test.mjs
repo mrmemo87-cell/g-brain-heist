@@ -20,7 +20,7 @@ create function private.teacher_current_teaching_roster(uuid,uuid) returns table
 create function private.teacher_current_teaching_groups(uuid,uuid) returns table(id uuid) language sql as $$select null::uuid where false$$;
 insert into users values('${student}','Synthetic Gulzada fixture','student','${school}',false),('${owner}','Owner','admin',null,false);`);
 for (const m of ["20261007112613_ielts_speaking_interview_pilot", "20261007125521_ielts_speaking_eligible_release", "20261008065539_ielts_speaking_school_seat_access",
-  "20261121154500_ielts_speaking_recorded_mock", "20261121180000_ielts_speaking_mock_teacher_views", "20261121190000_ielts_speaking_mock_b_content", "20261121190100_ielts_speaking_mocks_c_to_g_content", "20261122020000_ielts_speaking_mock_voices"])
+  "20261121154500_ielts_speaking_recorded_mock", "20261121180000_ielts_speaking_mock_teacher_views", "20261121190000_ielts_speaking_mock_b_content", "20261121190100_ielts_speaking_mocks_c_to_g_content", "20261122020000_ielts_speaking_mock_voices", "20261122080000_ielts_speaking_mock_storage_grants"])
   await db.exec(readFileSync(`supabase/migrations/${m}.sql`, "utf8"));
 const one = async (sql, a = []) => Object.values((await db.query(sql, a)).rows[0])[0];
 
@@ -94,4 +94,11 @@ test("three examiner voices, one per mock: 102 different audio files in all", as
     join private.ielts_speaking_mock_scripts sa on sa.id=a.script_id join private.ielts_speaking_mock_scripts sb on sb.id=b.script_id
     where sa.package_code=sb.package_code and (a.body<>b.body or a.answer_seconds is distinct from b.answer_seconds or a.replay_allowed<>b.replay_allowed or a.position<>b.position)`);
   assert.equal(same, 0, "version 2 keeps every line of version 1");
+});
+
+test("signed-in users may run the storage checks their policies call (otherwise every read and upload is refused)", async () => {
+  for (const f of ["private.ielts_speaking_examiner_audio_access(text)", "private.ielts_speaking_mock_answer_upload(text)"]) {
+    assert.equal(await one("select has_function_privilege('authenticated',$1,'execute')", [f]), true, f);
+    assert.equal(await one("select has_function_privilege('anon',$1,'execute')", [f]), false, f);
+  }
 });
