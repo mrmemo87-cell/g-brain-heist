@@ -16,7 +16,7 @@ import IeltsTeacherNav, { type IeltsTeacherTab } from "../../components/ielts/te
 import IeltsTeacherToday, { TeacherFeedbackCard, TeacherWaitingCard, type TeacherWaitingItem } from "../../components/ielts/teacher/IeltsTeacherToday";
 import { IeltsCardGroup } from "../../components/ielts/student/IeltsStudentShell";
 import { learningWorkspace, type LearningAllocation } from "../../../services/ieltsLearningService";
-import IeltsAssignmentEntry from "./IeltsAssignmentEntry";
+import { mockOverview, deskState, type MockDeskStudent } from "../../../services/ieltsSpeakingMockService";
 import IeltsShellIcon from "../../components/ielts/IeltsShellIcon";
 import "../../styles/ielts-teacher-navigation.css";
 import "../../styles/ielts-speaking-pilot.css";
@@ -111,6 +111,17 @@ export default function IeltsProgrammeWorkspace({
       .catch(() => { if (alive) { setFeedback(null); setFeedbackError(true); } });
     return () => { alive = false; };
   }, [data?.school_id, data?.can_manage, section, retry]);
+  // Finished Speaking practice mocks waiting for a review (Diagnostic Bible 10.12; every reviewing teacher).
+  const [mockQueue, setMockQueue] = useState<MockDeskStudent[] | null>(null);
+  const [mockError, setMockError] = useState(false);
+  useEffect(() => {
+    if (!data?.school_id || (section !== "overview" && section !== "reviews")) return;
+    let alive = true;
+    mockOverview(data.school_id)
+      .then((o) => { if (alive) { setMockQueue(o.students.filter((x) => deskState(x) === "to_review")); setMockError(false); } })
+      .catch(() => { if (alive) { setMockQueue(null); setMockError(true); } });
+    return () => { alive = false; };
+  }, [data?.school_id, section, retry]);
   const lock = useRef(false),
     changeId = useRef<string | null>(null);
   useEffect(() => {
@@ -246,15 +257,20 @@ export default function IeltsProgrammeWorkspace({
       kind: `${q.skill === "writing" ? "Writing" : "Speaking"} practice${q.task_title ? ` · ${q.task_title}` : ""}`,
       route: `/ielts/reviews/${q.skill}/${encodeURIComponent(q.attempt_id)}`, started: q.review_status === "in_review",
     })),
+    ...(mockQueue ?? []).filter((m) => m.current?.session_id).map((m) => ({
+      key: `m-${m.current!.session_id}`, name: m.name, at: m.current!.finished_at ?? "", skill: "speaking" as const,
+      kind: `Speaking practice mock · ${m.current!.title.replace("Speaking practice mock ", "mock ")}`,
+      route: `/ielts/speaking-pilot/${m.current!.session_id}`, started: false,
+    })),
   ].sort((x, y) => (x.at || "").localeCompare(y.at || ""));
-  const waitingCount = (data?.pending_count ?? 0) + (practiceQueue?.length ?? 0);
+  const waitingCount = (data?.pending_count ?? 0) + (practiceQueue?.length ?? 0) + (mockQueue?.length ?? 0);
   const feedbackCount = feedback?.length ?? 0;
   const heads: Partial<Record<Section, [string, string, string]>> = {
     reviews: ["Reviews", "Review desk", "Everything your students submitted that needs a teacher. Oldest first."],
     students: ["Students", "Student progress", "Find a learner, see their four-skill evidence and open plans or reports."],
     batches: ["Batches", "Course batches", "Group IELTS students across classes, assign practice to the whole batch and follow each student."],
-    practice: ["Practice", "Practice & assignments", "Assign practice and follow current and earlier student work."],
-    assign: ["Practice", "Create assignment", "Choose who the practice is for."],
+    practice: ["Assign", "Assign work", "Give work to a class, a course batch, one student or a Speaking mock, and follow everything you have given."],
+    assign: ["Assign", "Assign work", "Give work to a class, a course batch, one student or a Speaking mock, and follow everything you have given."],
     lessons: ["Lessons", "Lessons & teaching packs", "Lesson plans, slides, workbooks and approved audio."],
     exams: ["Exams", "Exams", "Schedule, launch and monitor controlled IELTS exam sessions."],
     team: ["Team", "Programme team", "Who leads IELTS at your school and who can manage it."],
@@ -264,7 +280,7 @@ export default function IeltsProgrammeWorkspace({
   const openFromToday = (target: IeltsTeacherTab | "assign" | "targeted" | "history" | "interviews") => {
     if (target === "targeted" || target === "history") openPractice(target);
     else if (target === "interviews") navigate("/ielts/speaking-interviews");
-    else if (target === "assign") open("assign");
+    else if (target === "assign") openPractice("history");
     else navigateTeacher(target);
   };
   const reviews = (
@@ -273,7 +289,7 @@ export default function IeltsProgrammeWorkspace({
         {waiting.length ? waiting.map((w, i) => <TeacherWaitingCard key={w.key} item={w} index={i} />) : (
           <p className="isn-waiting"><span aria-hidden="true">✓</span> Nothing is waiting for review. Submitted essays and interviews appear here as soon as students send them.</p>
         )}
-        {practiceError && <p className="isn-waiting" role="status">Assigned practice could not be checked just now. <button type="button" className="ij-link" onClick={() => setRetry((n) => n + 1)}>Try again</button></p>}
+        {(practiceError || mockError) && <p className="isn-waiting" role="status">Some submitted work could not be checked just now. <button type="button" className="ij-link" onClick={() => setRetry((n) => n + 1)}>Try again</button></p>}
         {(data?.pending_count ?? 0) > 30 && <p className="isn-waiting">The 30 oldest screener submissions are shown.</p>}
       </IeltsCardGroup>
       {data?.can_manage && (
@@ -364,7 +380,7 @@ export default function IeltsProgrammeWorkspace({
                 waitingCount={waitingCount}
                 feedback={data.can_manage ? feedback : []}
                 feedbackError={feedbackError}
-                practiceError={practiceError}
+                practiceError={practiceError || mockError}
                 students={data.total_students}
                 onOpen={openFromToday}
                 onRetry={() => setRetry((n) => n + 1)}
@@ -386,10 +402,7 @@ export default function IeltsProgrammeWorkspace({
               </React.Suspense>
             )}
             <div className="sp-page ip-page ip-embedded itn-legacy">
-              {section === "lessons" && (data.can_manage ? <React.Suspense fallback={<p role="status">Opening lessons…</p>}><Lessons key={data.school_id} schoolId={data.school_id} onClose={() => open("overview")} onAssign={() => open("assign")} onProgress={() => open("students")} /></React.Suspense> : <section className="sp-card"><p>Your programme lead prepares school lessons.</p></section>)}
-              {section === "assign" && (data.can_manage ? (
-                <IeltsAssignmentEntry onBack={() => open("overview")} onContinue={(scope) => openPractice(scope === "student" ? "targeted" : "school")} />
-              ) : <section className="sp-card"><p>Your programme lead manages IELTS assignments.</p></section>)}
+              {section === "lessons" && (data.can_manage ? <React.Suspense fallback={<p role="status">Opening lessons…</p>}><Lessons key={data.school_id} schoolId={data.school_id} onClose={() => open("overview")} onAssign={() => openPractice("history")} onProgress={() => open("students")} /></React.Suspense> : <section className="sp-card"><p>Your programme lead prepares school lessons.</p></section>)}
               {section === "students" && planStudent && (
                 <React.Suspense fallback={<p role="status">Opening learning plan…</p>}>
                   <LearningPlanDesk key={data.school_id + planStudent} schoolId={data.school_id} studentId={planStudent} initialFocus={planFocus} onClose={() => setPlanStudent(null)} />
@@ -488,9 +501,9 @@ export default function IeltsProgrammeWorkspace({
               </a>
             </section>
               )}
-              {(section === "practice" || section === "exams") && (data.can_manage ? (
+              {(section === "practice" || section === "assign" || section === "exams") && (data.can_manage ? (
                 <React.Suspense fallback={<p role="status">Opening teaching tools…</p>}>
-                  {section === "practice" ? (
+                  {section !== "exams" ? (
                     <SchoolAdminContext.Provider
                       value={{
                         school: { id: data.school_id, name: school?.name },
@@ -501,7 +514,7 @@ export default function IeltsProgrammeWorkspace({
                         addToast: (msg: string) => setMessage(msg),
                       }}
                     >
-                      <PracticeDesk key={data.school_id} schoolId={data.school_id} onOpenReviews={() => open("reviews")} />
+                      <PracticeDesk key={data.school_id} schoolId={data.school_id} onOpenReviews={() => open("reviews")} onOpenBatches={() => open("batches")} onOpenSpeaking={() => open("speaking")} />
                     </SchoolAdminContext.Provider>
                   ) : (
                     <Exams key={data.school_id} embedded schoolIdOverride={data.school_id} />

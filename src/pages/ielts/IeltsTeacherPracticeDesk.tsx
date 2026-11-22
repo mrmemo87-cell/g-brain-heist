@@ -1,4 +1,5 @@
 import { ieltsMaterialTitle } from "../../../services/ieltsMaterialCode";
+import IeltsShellIcon, { type IeltsShellIconName } from '../../components/ielts/IeltsShellIcon';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { teacherPracticeHistory, practiceWorkLabel, type PracticeHistoryRow } from '../../../services/ieltsTeacherPracticeService';
@@ -7,7 +8,15 @@ import { displayDateLocale } from '../../utils/displayDate';
 const Targeted = React.lazy(() => import('./IeltsLearningTeacher'));
 const SchoolAssignments = React.lazy(() => import('../../../components/school-admin/tabs/IeltsPracticeTab'));
 const date = (value: string | null) => value ? new Date(value).toLocaleDateString(displayDateLocale(), {day:'numeric',month:'short',year:'numeric'}) : '—';
-export default function IeltsTeacherPracticeDesk({schoolId,onOpenReviews}: {schoolId:string;onOpenReviews:()=>void}) {
+// "Give new work" (Visual & UX Bible 13.12): the four ways to give work, side by side, above the history. Each opens the
+// existing governed flow; nothing is created here.
+const GIVE: {id:'school'|'batch'|'targeted'|'speaking';title:string;text:string;icon:IeltsShellIconName}[] = [
+  {id:'school',title:'A whole class',text:'Approved practice for a school class',icon:'students'},
+  {id:'batch',title:'A course batch',text:'A named IELTS group across classes',icon:'batches'},
+  {id:'targeted',title:'One student',text:'Targeted practice from their evidence',icon:'target'},
+  {id:'speaking',title:'A Speaking practice mock',text:'Students take it alone; you review',icon:'mic'},
+];
+export default function IeltsTeacherPracticeDesk({schoolId,onOpenReviews,onOpenBatches,onOpenSpeaking}: {schoolId:string;onOpenReviews:()=>void;onOpenBatches?:()=>void;onOpenSpeaking?:()=>void}) {
   const [query,setQuery] = useState(() => window.location.search);
   const params = new URLSearchParams(query);
   useEffect(() => {
@@ -47,10 +56,20 @@ export default function IeltsTeacherPracticeDesk({schoolId,onOpenReviews}: {scho
   }, [mode]);
   const openSchool = (id?:string) => setMode('school',id);
   return <div className="il-shell il-desk">
-    <header className="il-desk-head">
+    <header className="il-desk-head isn-sr-only">
       <h2 ref={heading} tabIndex={-1}>Practice & assignments</h2>
       <p>See what students have received, follow their work and give the next task.</p>
     </header>
+    {mode==='history' && <section className="itn-give" aria-labelledby="itn-give-h">
+      <h3 id="itn-give-h">Give new work</h3>
+      <div className="itn-give-grid">
+        {GIVE.filter(g=>(g.id!=='batch'||onOpenBatches)&&(g.id!=='speaking'||onOpenSpeaking)).map(g=>(
+          <button key={g.id} type="button" className="itn-give-card" onClick={()=>g.id==='school'?openSchool():g.id==='targeted'?setMode('targeted'):g.id==='batch'?onOpenBatches?.():onOpenSpeaking?.()}>
+            <span className="itn-map-icon" aria-hidden="true"><IeltsShellIcon name={g.icon} size={18}/></span>
+            <strong>{g.title}</strong><small>{g.text}</small>
+          </button>))}
+      </div>
+    </section>}
     <nav className="il-desk-nav" aria-label="Teacher practice tools">
       <button aria-pressed={mode==='history'} onClick={()=>setMode('history')}>Practice history</button>
       <button aria-pressed={mode==='targeted'} onClick={()=>setMode('targeted')}>Assign targeted practice</button>

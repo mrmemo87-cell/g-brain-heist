@@ -1,7 +1,7 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.18.0
+**Version:** 1.19.0
 **Effective date:** 2026-11-22\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
@@ -187,7 +187,7 @@ Use the loaded IBM Plex Sans faces: **400, 500, 600, 700**. Supported weights ap
 
 | Area | Label | Behavior / destination |
 | --- | --- | --- |
-| Programme | Today / Reviews / Students / Speaking / Batches / Lessons / Practice / Exams / Team | Section 13.12. Permissions per tab are unchanged; Speaking is open to every reviewing teacher. |
+| Programme | Today / Reviews / Students / Speaking / Assign / Batches / Lessons / Exams / Team | Section 13.12. Permissions per tab are unchanged; Speaking is open to every reviewing teacher. |
 | Practice Desk | Practice history / Assign targeted practice / School assignments | Preserve distinct workflows; record selected tool in the URL. |
 | Class assignments | New assignment | Opens the focused creation flow. |
 | Assignment overview | Filter assignments by class | Filters visible assignment records; never sets creation recipients. |
@@ -314,9 +314,11 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 
 Owner request (2026-11-22): teacher pages "are in several areas and not clearly following a unified pattern"; make the IELTS map easy to see.
 
-- **One tab bar.** Today · Reviews · Students · Speaking, then (programme managers) Batches · Lessons · Practice · Exams, then Team. Phones show Today, Reviews, Students and Speaking, and the rest under More. Every teacher destination is reachable from this bar; nothing teacher-facing lives only in a folded box.
+- **One tab bar.** Today · Reviews · Students · Speaking, then (programme managers) Assign · Batches · Lessons · Exams, then Team. Phones show Today, Reviews, Students and Speaking, and the rest under More. Every teacher destination is reachable from this bar; nothing teacher-facing lives only in a folded box.
 - **IELTS map on Today.** After "Needs you now", one card lists every area once, grouped by the teacher's job: Check work, Give work, Teach, Know your students, Run tests, Set up. Each entry has an icon, a name, one plain line and a count where one is known. It replaces the separate shortcut tiles and "More tools". Areas a teacher may not use are not shown.
 - **Speaking desk (Speaking tab).** Practice mocks first: one button gives a new mock to everyone without one open (the server's mix rule, Diagnostic Bible 10.12), filter chips with counts (To review, Doing it now, Not started, No mock, Reviewed), and one row per student with the true state and one action (Review, Open, or Give a mock). Finished mocks waiting for the teacher sort first. Then the face-to-face interviews card. Mock rows never show a band; they are practice.
+- **Assign (1.19.0).** The former Practice tab is **Assign** ("Assign work"). It opens with **Give new work**: four choices side by side — a whole class, a course batch, one student (targeted), a Speaking practice mock — each opening its existing governed flow. Everything already given follows below, and the Practice Desk keeps its own Practice history / Assign targeted practice / School assignments controls (section 12.2). The separate "Create an assignment" scope screen is retired; its links open Assign.
+- **Reviews include Speaking practice mocks (1.19.0).** A finished, unreviewed mock appears in Reviews and in Today's "Needs you now" as "Speaking practice mock · mock X", for every teacher allowed to review that student, and counts toward "To review".
 - **Acceptance.** Rendered at 375, 768 and 1440 px with no overflow, readable chips and 40 px or larger controls; DOM tests cover the tab list, the map groups for managers and non-managers, desk ordering and the give action.
 
 ## 14. Native app motivation layer — v1.4.0
@@ -346,6 +348,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.26 Revision record — 1.19.0 (2026-11-22)
+
+Step 2 of the owner-approved teacher IELTS map: the Practice tab becomes Assign with "Give new work" (four ways to give work); the "Create an assignment" scope screen is retired; finished Speaking practice mocks join Reviews and "Needs you now". Assessment, access and review rules are unchanged.
 
 ### 14.25 Revision record — 1.18.0 (2026-11-22)
 

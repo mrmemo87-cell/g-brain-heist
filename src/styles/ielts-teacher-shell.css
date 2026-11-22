@@ -135,3 +135,22 @@
   .itn-sd-act { grid-column: 2; grid-row: 1 / 3; }
 }
 @media (prefers-reduced-motion: reduce) { .itn-map-spot { animation: none; transition: none; } }
+
+/* Assign: "Give new work" (Visual & UX Bible 13.12). The four ways to give work, above everything already given. */
+.itn-give { display: grid; gap: .6rem; margin: 0 0 1rem; padding: 1rem; border: 1px solid var(--isn-line, #e2e8f0); border-radius: 20px; background: linear-gradient(180deg, #fff, #f8fafc); }
+.itn-give h3 { margin: 0; font-size: 1.05rem; }
+.itn-give-grid { display: grid; grid-template-columns: 1fr; gap: .55rem; }
+@media (min-width: 560px) { .itn-give-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .itn-give-grid { grid-template-columns: repeat(4, 1fr); } }
+.itn-give-card, .il-shell button.itn-give-card { display: grid; width: 100%; font-weight: 400; grid-template-columns: 2.1rem 1fr; grid-template-rows: auto auto; column-gap: .6rem; align-items: center; min-height: 64px; padding: .7rem .8rem; border: 1px solid var(--isn-line, #e2e8f0); border-radius: 14px; background: #fff; text-align: left; font: inherit; color: var(--isn-ink, #0f172a); cursor: pointer; box-shadow: 0 1px 4px rgba(15,23,42,.05); transition: border-color .2s ease, transform .18s ease; }
+.itn-give-card:hover, .il-shell button.itn-give-card:hover:not(:disabled) { background: #fff; color: var(--isn-ink, #0f172a); border-color: var(--isn-brand, #1746b0); transform: translateY(-1px); }
+.itn-give-card:focus-visible { outline: 3px solid #0284c7; outline-offset: 2px; }
+.itn-give-card strong { font-size: .92rem; }
+.itn-give-card small { color: var(--isn-muted, #52617a); font-size: .78rem; line-height: 1.3; }
+.itn-give .itn-map-icon { grid-row: 1 / 3; }
+@media (prefers-reduced-motion: reduce) { .itn-give-card { transition: none; } }
+
+/* Inside the workspace the Practice Desk's view switch is a quiet segmented control, not three primary buttons. */
+.itn-legacy .il-desk-nav { gap: .4rem; margin: .25rem 0 1rem; }
+.itn-legacy .il-desk-nav button { min-height: 40px; padding: .35rem .9rem; border: 1px solid var(--isn-line, #e2e8f0); border-radius: 999px; background: #fff; color: var(--isn-ink, #0f172a); font-size: .86rem; font-weight: 600; box-shadow: none; }
+.itn-legacy .il-desk-nav button[aria-pressed="true"] { border-color: var(--isn-brand, #1746b0); background: var(--bh-ielts-secondary); color: var(--isn-brand, #1746b0); box-shadow: none; }
