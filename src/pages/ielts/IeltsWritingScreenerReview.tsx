@@ -10,6 +10,7 @@ import '../../styles/ielts-writing-review.css';
 import '../../styles/ielts-feedback.css';
 import '../../styles/ielts-speaking-transcript.css';
 import { DISPLAY_DATE, displayDateLocale } from '../../utils/displayDate';
+import IeltsTeacherPageBar from '../../components/ielts/teacher/IeltsTeacherPageBar';
 const emptyObservations = (): WritingObservations => Object.fromEntries(IELTS_WRITING_CRITERIA.map(({ key }) => [key, { status: 'insufficient_evidence', comment: '', evidence: [] }])) as WritingObservations;
 const IeltsWritingScreenerReview: React.FC = () => {
   const { attemptId } = useParams<{ attemptId?: string }>();
@@ -120,7 +121,7 @@ const IeltsWritingScreenerReview: React.FC = () => {
   };
   const pendingCount = queue.filter(row => row.review_status === 'pending').length;
   const visibleQueue = queueFilter === 'pending' ? queue.filter(row => row.review_status === 'pending') : queue;
-  return <main className="writing-review"><div className="wr-shell">
+  return <><IeltsTeacherPageBar active="reviews" /><main className="writing-review"><div className="wr-shell">
     <header className="wr-header">
       <a href={attemptId ? '/ielts/writing-screener/reviews' : '/ielts'} className="wr-back">← {attemptId ? 'All essays' : 'Back to IELTS'}</a>
       <div className="wr-header-content"><div><p className="wr-eyebrow">Brains Heist · Writing review</p><h1>{attemptId ? 'Turn an essay into a next step.' : 'A clearer next step for every writer.'}</h1><p className="wr-intro">{attemptId ? 'Read the original. Notice what matters. Share feedback the student can use.' : 'Review an essay, support your observations and give one focused practice step.'}</p></div><div className="wr-header-icon"><svg aria-hidden="true" viewBox="0 0 48 48" fill="none"><path d="M12 10h17l7 7v23H12zM29 10v8h7M18 25h12M18 31h9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/><path d="m30 29 8-8 4 4-8 8-6 2z" fill="#dbeafe" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round"/></svg></div></div>
@@ -143,6 +144,6 @@ const IeltsWritingScreenerReview: React.FC = () => {
       aiEstimate={aiEstimate} startBand={startBand} onStartBand={setStartBand}
       onSaveBand={result.review_status === 'teacher_reviewed' && !dirty && startBand != null && startBand !== result.starting_point?.band ? () => void saveBandOnly() : undefined} savingBand={savingBand}
     />}
-  </div></main>;
+  </div></main></>;
 };
 export default IeltsWritingScreenerReview;

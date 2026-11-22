@@ -13,6 +13,7 @@ import SchoolAdminContext from "../../../components/school-admin/SchoolAdminCont
 import IeltsStudentProgress from "./IeltsStudentProgress";
 import { rpcIeltsReviewQueue, type IeltsReviewQueueItem } from "../../../services/ieltsTeacherReviewService";
 import IeltsTeacherNav, { type IeltsTeacherTab } from "../../components/ielts/teacher/IeltsTeacherNav";
+import { rememberIeltsTeacherBar } from "../../components/ielts/teacher/IeltsTeacherPageBar";
 import IeltsTeacherToday, { TeacherFeedbackCard, TeacherWaitingCard, type TeacherWaitingItem } from "../../components/ielts/teacher/IeltsTeacherToday";
 import { IeltsCardGroup } from "../../components/ielts/student/IeltsStudentShell";
 import { learningWorkspace, type LearningAllocation } from "../../../services/ieltsLearningService";
@@ -40,7 +41,15 @@ type Section =
   | "lessons"
   | "assign"
   | "batches"
-  | "speaking";
+  | "speaking"
+  | "school";
+export type IeltsProgrammeSection = Section;
+export type IeltsSchoolTool = "results" | "journeys" | "settings";
+const schoolTools: { id: IeltsSchoolTool; label: string; hint: string }[] = [
+  { id: "results", label: "Results", hint: "Scores from screeners and exams" },
+  { id: "journeys", label: "Student journeys", hint: "Each learner's path through the programme" },
+  { id: "settings", label: "IELTS settings", hint: "School configuration and features" },
+];
 const sections = [
   "overview",
   "students",
@@ -52,13 +61,33 @@ const sections = [
   "assign",
   "batches",
   "speaking",
+  "school",
 ];
 export default function IeltsProgrammeWorkspace({
   embedded = false,
   schoolId,
+  adminTools,
+  adminView = null,
+  adminExams,
+  initialSection,
+  initialSchoolTool,
+  onSectionChange,
+  onOpenAllReviews,
+  onOpenExamMonitor,
 }: {
   embedded?: boolean;
   schoolId?: string;
+  /** School administration only: the "School" tab's tools, rendered inside the same tab bar. */
+  adminTools?: Record<IeltsSchoolTool, React.ReactNode>;
+  /** School administration only: a page the portal opened (a review, the full review list, an exam monitor). */
+  adminView?: { tab: IeltsTeacherTab; node: React.ReactNode } | null;
+  /** School administration only: its guarded exam workspace, shown under the Exams tab. */
+  adminExams?: React.ReactNode;
+  initialSection?: Section;
+  initialSchoolTool?: IeltsSchoolTool;
+  onSectionChange?: (section: Section) => void;
+  onOpenAllReviews?: () => void;
+  onOpenExamMonitor?: (examEventId: string) => void;
 }) {
   const navigate = useNavigate();
   const [schools, setSchools] = useState<ProgrammeSchool[]>([]),
@@ -74,8 +103,13 @@ export default function IeltsProgrammeWorkspace({
   const [section, setSection] = useState<Section>(() => {
     const s =
       new URLSearchParams(window.location.search).get("programmeSection") ??
+      initialSection ??
       "overview";
-    return sections.includes(s) ? (s as Section) : "overview";
+    return sections.includes(s) && (s !== "school" || adminTools) ? (s as Section) : "overview";
+  });
+  const [schoolTool, setSchoolTool] = useState<IeltsSchoolTool>(() => {
+    const t = new URLSearchParams(window.location.search).get("schoolTool") ?? initialSchoolTool ?? "results";
+    return schoolTools.some((x) => x.id === t) ? (t as IeltsSchoolTool) : "results";
   });
   const [search, setSearch] = useState(""),
     [applied, setApplied] = useState(""),
@@ -167,12 +201,20 @@ export default function IeltsProgrammeWorkspace({
     const restore = () => {
       const params = new URLSearchParams(window.location.search);
       const s = params.get("programmeSection") ?? "overview";
-      setSection(sections.includes(s) ? (s as Section) : "overview");
+      setSection(sections.includes(s) && (s !== "school" || adminTools) ? (s as Section) : "overview");
+      const t = params.get("schoolTool");
+      if (t && schoolTools.some((x) => x.id === t)) setSchoolTool(t as IeltsSchoolTool);
       if (!schoolId) setSelected(params.get("school") ?? "");
     };
     window.addEventListener("popstate", restore);
     return () => window.removeEventListener("popstate", restore);
-  }, [schoolId]);
+  }, [schoolId, adminTools]);
+  const openSchoolTool = (t: IeltsSchoolTool) => {
+    setSchoolTool(t);
+    const u = new URL(window.location.href);
+    u.searchParams.set("schoolTool", t);
+    window.history.replaceState(window.history.state, "", u.pathname + u.search + u.hash);
+  };
   const open = (s: Section) => {
     if (s === "practice") {
       setApplied("");
@@ -184,6 +226,7 @@ export default function IeltsProgrammeWorkspace({
     u.searchParams.set("programmeSection", s);
     if (data && !embedded) u.searchParams.set("school", data.school_id);
     window.history.pushState({}, "", u.pathname + u.search + u.hash);
+    onSectionChange?.(s);
   };
   // Deep-link into the existing Practice Desk; do not create a second assignment flow.
   const openPractice = (mode: "history" | "targeted" | "school") => {
@@ -194,8 +237,8 @@ export default function IeltsProgrammeWorkspace({
     window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
     open("practice");
   };
-  const teacherNavActive: IeltsTeacherTab =
-    section === "overview" ? "today" : section === "assign" ? "practice" : section;
+  const teacherNavActive: IeltsTeacherTab = adminView?.tab ??
+    (section === "overview" ? "today" : section === "assign" ? "practice" : section);
   const navigateTeacher = (key: IeltsTeacherTab) => {
     if (key === "today") open("overview");
     else if (key === "practice") openPractice("history");
@@ -265,6 +308,11 @@ export default function IeltsProgrammeWorkspace({
   ].sort((x, y) => (x.at || "").localeCompare(y.at || ""));
   const waitingCount = (data?.pending_count ?? 0) + (practiceQueue?.length ?? 0) + (mockQueue?.length ?? 0);
   const feedbackCount = feedback?.length ?? 0;
+  // Teacher pages outside the workspace show the same bar straight away (IeltsTeacherPageBar).
+  useEffect(() => {
+    if (!data || embedded) return;
+    rememberIeltsTeacherBar({ school_id: data.school_id, school_name: data.schools.find((s) => s.id === data.school_id)?.name, can_manage: data.can_manage, review_count: waitingCount });
+  }, [data, embedded, waitingCount]);
   const heads: Partial<Record<Section, [string, string, string]>> = {
     reviews: ["Reviews", "Review desk", "Everything your students submitted that needs a teacher. Oldest first."],
     students: ["Students", "Student progress", "Find a learner, see their four-skill evidence and open plans or reports."],
@@ -275,6 +323,7 @@ export default function IeltsProgrammeWorkspace({
     exams: ["Exams", "Exams", "Schedule, launch and monitor controlled IELTS exam sessions."],
     team: ["Team", "Programme team", "Who leads IELTS at your school and who can manage it."],
     speaking: ["Speaking", "Speaking desk", "Practice mocks your students take alone, and the interviews you record with them."],
+    school: ["School", "School IELTS administration", "Results, each student's journey and the school's IELTS settings."],
   };
   const head = heads[section];
   const openFromToday = (target: IeltsTeacherTab | "assign" | "targeted" | "history" | "interviews") => {
@@ -308,7 +357,7 @@ export default function IeltsProgrammeWorkspace({
         </IeltsCardGroup>
       )}
       {data?.can_manage && (
-        <button type="button" className="itn-see-all" onClick={() => navigate(`/ielts/reviews?school=${data?.school_id}`)}>See reviewed and earlier work →</button>
+        <button type="button" className="itn-see-all" onClick={() => (onOpenAllReviews ? onOpenAllReviews() : navigate(`/ielts/reviews?school=${data?.school_id}`))}>See reviewed and earlier work →</button>
       )}
     </div>
   );
@@ -319,7 +368,7 @@ export default function IeltsProgrammeWorkspace({
         {!embedded ? <a className="isn-back" href="/"><span aria-hidden="true">←</span> Brains Heist</a> : <span />}
         <span className="isn-brand" aria-label="Brains Heist IELTS teaching"><span className="isn-mark" aria-hidden="true">IELTS</span><span className="isn-brand-text">Teaching{school?.name ? <span className="itn-brand-school"> · {school.name}</span> : null}</span></span>
       </header>
-      {data && <IeltsTeacherNav active={teacherNavActive} onNavigate={navigateTeacher} canManage={data.can_manage} disabled={saving} reviewCount={waitingCount} />}
+      {data && <IeltsTeacherNav active={teacherNavActive} onNavigate={navigateTeacher} canManage={data.can_manage} schoolAdmin={!!adminTools} disabled={saving} reviewCount={waitingCount} />}
       <main className="isn-main itn-main">
         {error && (
           <div className="isn-alert" role="alert">
@@ -338,6 +387,8 @@ export default function IeltsProgrammeWorkspace({
               <p>An active IELTS agreement and an authorized staff allocation are required. Your school administrator can assign a programme lead in School Administration → IELTS Programme.</p>
             </div>
           </section>
+        ) : adminView ? (
+          <div className="itn-admin-view">{adminView.node}</div>
         ) : (
           <>
             {!schoolId && schools.length > 1 && (
@@ -396,6 +447,16 @@ export default function IeltsProgrammeWorkspace({
               />
             )}
             {section === "reviews" && reviews}
+            {section === "school" && adminTools && (
+              <section className="itn-school-tools" aria-label="School IELTS administration">
+                <div className="itn-segmented" role="group" aria-label="School tools">
+                  {schoolTools.map((t) => (
+                    <button key={t.id} type="button" title={t.hint} aria-pressed={schoolTool === t.id} onClick={() => openSchoolTool(t.id)}>{t.label}</button>
+                  ))}
+                </div>
+                <div className="itn-admin-view">{adminTools[schoolTool]}</div>
+              </section>
+            )}
             {section === "speaking" && (
               <React.Suspense fallback={<div className="isn-skeletons" role="status" aria-label="Opening Speaking"><span /><span /></div>}>
                 <Speaking key={data.school_id} schoolId={data.school_id} platformOwner={!!data.platform_owner} />
@@ -517,7 +578,7 @@ export default function IeltsProgrammeWorkspace({
                       <PracticeDesk key={data.school_id} schoolId={data.school_id} onOpenReviews={() => open("reviews")} onOpenBatches={() => open("batches")} onOpenSpeaking={() => open("speaking")} />
                     </SchoolAdminContext.Provider>
                   ) : (
-                    <Exams key={data.school_id} embedded schoolIdOverride={data.school_id} />
+                    adminExams ?? <Exams key={data.school_id} embedded schoolIdOverride={data.school_id} onOpenMonitor={onOpenExamMonitor} />
                   )}
                 </React.Suspense>
               ) : (

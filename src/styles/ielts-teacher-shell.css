@@ -154,3 +154,22 @@
 .itn-legacy .il-desk-nav { gap: .4rem; margin: .25rem 0 1rem; }
 .itn-legacy .il-desk-nav button { min-height: 40px; padding: .35rem .9rem; border: 1px solid var(--isn-line, #e2e8f0); border-radius: 999px; background: #fff; color: var(--isn-ink, #0f172a); font-size: .86rem; font-weight: 600; box-shadow: none; }
 .itn-legacy .il-desk-nav button[aria-pressed="true"] { border-color: var(--isn-brand, #1746b0); background: var(--bh-ielts-secondary); color: var(--isn-brand, #1746b0); box-shadow: none; }
+
+/* School tab (school administration): one row of tools under the same tab bar (UX Bible §13.12). */
+.itn-school-tools { display: grid; gap: 1rem; }
+.itn-segmented { display: flex; flex-wrap: wrap; gap: .4rem; }
+.itn-page .itn-segmented button { min-height: 40px; padding: .35rem .95rem; border: 1px solid var(--isn-line, #e2e8f0); border-radius: 999px; background: #fff; color: var(--isn-ink, #0f172a); font: inherit; font-size: .86rem; font-weight: 600; cursor: pointer; }
+.itn-page .itn-segmented button[aria-pressed="true"] { border-color: var(--isn-brand, #1746b0); background: var(--bh-ielts-secondary, #eef2ff); color: var(--isn-brand, #1746b0); }
+.itn-admin-view { min-width: 0; }
+
+/* Inside school administration the portal keeps its own phone bar at the bottom, so the IELTS bar stays at the top
+   of the page on phones and tablets instead of stacking a second bar over the first. */
+@media (max-width: 1024px) {
+  .itn-embedded.has-nav { padding-bottom: 1rem; }
+  .itn-embedded .itn-nav.isn-nav { position: relative; inset: auto; bottom: auto; margin: .25rem 0 1rem; max-width: none; transform: none; opacity: 1; }
+  .itn-embedded .itn-sheet { top: calc(100% + .6rem); bottom: auto; }
+}
+
+/* The same teacher bar on pages outside the workspace (IeltsTeacherPageBar). */
+.isn-page.itn-pagebar { min-height: 0; padding: 0; background: transparent; overflow: visible; z-index: 30; }
+@media (max-width: 1024px) { body:has(.itn-pagebar) { padding-bottom: 6.5rem; } }

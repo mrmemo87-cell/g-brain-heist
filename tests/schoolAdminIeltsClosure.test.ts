@@ -41,11 +41,15 @@ test('school administration remembers the exact IELTS tab and review across refr
   assert.match(portal, /onBack=\{\(\) => selectIeltsReview\(null, 'replace'\)\}/, 'review Back must replace the detail entry so browser Back does not reopen it');
 });
 
-test('IELTS tablist remains operable with keyboard and narrow screens', () => {
-  assert.match(portal, /className="[^"]*overflow-x-auto[^"]*"[\s\S]*role="tablist"/);
-  assert.match(portal, /tabIndex=\{isActive \? 0 : -1\}/, 'only the active tab should be in the tab order');
-  assert.match(portal, /event\.key === 'ArrowRight'[\s\S]*event\.key === 'ArrowLeft'[\s\S]*event\.key === 'Home'[\s\S]*event\.key === 'End'/);
-  assert.match(portal, /role="tabpanel"[\s\S]*aria-labelledby=/);
+test('school administration uses the one IELTS teacher tab bar (UX Bible 13.12)', () => {
+  // The second, administrator-only IELTS tablist was replaced by the programme workspace's own bar plus a School tab.
+  assert.doesNotMatch(portal, /aria-label="IELTS sections"/, 'no second IELTS menu above the workspace');
+  assert.match(portal, /<IeltsProgrammeWorkspace\s+embedded[\s\S]*adminTools=\{\{[\s\S]*results:[\s\S]*journeys:[\s\S]*settings:/);
+  assert.match(portal, /adminView=\{[\s\S]*<IeltsSubmissionReview[\s\S]*<IeltsReviewQueue/, 'reviews and the full review list open under the same bar');
+  const nav = read('src/components/ielts/teacher/IeltsTeacherNav.tsx');
+  assert.match(nav, /id: 'school'[^\n]*adminOnly: true/);
+  assert.match(nav, /<button[\s\S]*aria-current=\{tab\.id === active \? 'page' : undefined\}/, 'native buttons keep the bar keyboard operable');
+  assert.match(read('src/styles/ielts-teacher-shell.css'), /\.itn-embedded \.itn-nav\.isn-nav \{ position: relative;/, 'inside the portal the IELTS bar never covers the portal phone bar');
 });
 
 test('unfinished IELTS analytics is hidden from school administrator navigation', () => {

@@ -35,6 +35,7 @@ import {
   schoolDocumentFileName,
 } from '../../lib/schoolDocument';
 import { displayDateLocale } from '../../utils/displayDate';
+import IeltsTeacherPageBar from '../../components/ielts/teacher/IeltsTeacherPageBar';
 
 // Official IELTS criterion names, matching the AI feedback section on the same page. Task 1 is assessed on
 // Task Achievement and Task 2 on Task Response; the stored rubric key stays `task_achievement` for both.
@@ -309,6 +310,8 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
   const back = () => (onBack ? onBack() : navigate('/ielts/programme?programmeSection=reviews'));
 
   return (
+    <>
+    {!embedded && <IeltsTeacherPageBar active="reviews" />}
     <main data-testid={embedded ? 'embedded-ielts-submission-review' : 'ielts-submission-review'} className={`bh-ielts-page bh-ielts-review-form ir-page${embedded ? ' ir-embedded' : ''}`}>
       <section className="ir-shell">
         <button type="button" className="ir-back" onClick={back}>← Back to review desk</button>
@@ -445,6 +448,7 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
         ) : null}
       </section>
     </main>
+    </>
   );
 };
 

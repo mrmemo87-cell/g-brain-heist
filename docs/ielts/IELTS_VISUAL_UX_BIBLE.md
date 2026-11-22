@@ -1,7 +1,7 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.19.0
+**Version:** 1.20.0
 **Effective date:** 2026-11-22\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
@@ -187,7 +187,7 @@ Use the loaded IBM Plex Sans faces: **400, 500, 600, 700**. Supported weights ap
 
 | Area | Label | Behavior / destination |
 | --- | --- | --- |
-| Programme | Today / Reviews / Students / Speaking / Assign / Batches / Lessons / Exams / Team | Section 13.12. Permissions per tab are unchanged; Speaking is open to every reviewing teacher. |
+| Programme | Today / Reviews / Students / Speaking / Assign / Batches / Lessons / Exams / Team (+ School in school administration) | Section 13.12. Permissions per tab are unchanged; Speaking is open to every reviewing teacher. The same bar appears on teacher pages outside the workspace. |
 | Practice Desk | Practice history / Assign targeted practice / School assignments | Preserve distinct workflows; record selected tool in the URL. |
 | Class assignments | New assignment | Opens the focused creation flow. |
 | Assignment overview | Filter assignments by class | Filters visible assignment records; never sets creation recipients. |
@@ -310,7 +310,7 @@ This section adds the presentation rules for Diagnostic Bible 2.0.0. The Diagnos
 - **Review (1.17.0).** The sitting line reads "Practice mock · Recorded examiner · unsupervised". Under the original recordings, "Questions and answers" lists each part's answers with the question text and a 44 px "▶ 0:32" button that plays from that answer, marks interrupted answers in words and names questions with no surviving audio. The student result's hero reads "Speaking practice mock · Recorded examiner · teacher-checked", "Teacher Speaking band · practice mock", and adds a "Recorded examiner · unsupervised practice" chip; the student's answer list shows times only, never the question text.
 - **Owner studio (1.17.0), /ielts/speaking-mock-studio.** Packages with their approval and publication state, then each script version. A version shows "Still needing a voice: N lines · C characters" and says nothing is generated until the owner agrees. Each line shows its number, kind, part, answer time and exact text; "Approve" stays disabled until the owner has opened the audio player for that exact file, and "Reject" needs a short note. "Use this version for students" is available only when every line is approved and the package is approved. Package approval needs six named checks and a note; publication needs a note.
 
-### 13.12 Teacher IELTS map and Speaking desk — v1.18.0
+### 13.12 Teacher IELTS map and Speaking desk — v1.18.0 (one bar everywhere: v1.20.0)
 
 Owner request (2026-11-22): teacher pages "are in several areas and not clearly following a unified pattern"; make the IELTS map easy to see.
 
@@ -320,6 +320,8 @@ Owner request (2026-11-22): teacher pages "are in several areas and not clearly 
 - **Assign (1.19.0).** The former Practice tab is **Assign** ("Assign work"). It opens with **Give new work**: four choices side by side — a whole class, a course batch, one student (targeted), a Speaking practice mock — each opening its existing governed flow. Everything already given follows below, and the Practice Desk keeps its own Practice history / Assign targeted practice / School assignments controls (section 12.2). The separate "Create an assignment" scope screen is retired; its links open Assign.
 - **Reviews include Speaking practice mocks (1.19.0).** A finished, unreviewed mock appears in Reviews and in Today's "Needs you now" as "Speaking practice mock · mock X", for every teacher allowed to review that student, and counts toward "To review".
 - **Acceptance.** Rendered at 375, 768 and 1440 px with no overflow, readable chips and 40 px or larger controls; DOM tests cover the tab list, the map groups for managers and non-managers, desk ordering and the give action.
+- **The same bar everywhere (1.20.0).** Teacher pages outside the workspace — a Speaking session or mock review, the interviews page, the Writing screener review desk and essays, the full review list and a practice review — show the same header ("← IELTS teaching") and the same tab bar, with the matching tab marked (Reviews for reviews and sessions, Speaking for interviews). Every tab returns to that place in the workspace. People without IELTS programme access (students opening their own feedback) see no teacher bar. The bar shows at once from what the workspace last knew (school, management rights, review count) and is then checked against programme access.
+- **School administration uses the same bar (1.20.0).** The administrator-only IELTS menu above the workspace is retired. School administrators see the programme workspace with its one bar plus a **School** tab (Results · Student journeys · IELTS settings, as one row of choices). Every former address still works and opens its place in the bar: Programme Home → Today, Exams → Exams (the guarded school exam workspace and its monitor), Assignment Overview → Assign (School assignments), Reviews → Reviews (a review, or the full review list, opens under the bar with Reviews marked), Results / Student Progress / Settings → School. On phones and tablets the IELTS bar stays at the top inside the portal so it never covers the portal's own phone bar.
 
 ## 14. Native app motivation layer — v1.4.0
 
@@ -348,6 +350,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.27 Revision record — 1.20.0 (2026-11-22)
+
+Step 3 of the owner-approved teacher IELTS map: the same tab bar on every teacher page (Speaking sessions and interviews, Writing screener reviews, the review list and practice reviews), and in school administration instead of a second IELTS menu, with a School tab for results, student journeys and settings. Former school-admin IELTS addresses map onto the bar. Assessment, access, review and exam-guard rules are unchanged.
 
 ### 14.26 Revision record — 1.19.0 (2026-11-22)
 

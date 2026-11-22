@@ -7,9 +7,9 @@ const useNavMotion: typeof useSmartCollapsedNavigation = typeof window !== 'unde
   ? useSmartCollapsedNavigation
   : () => ({ navigationRef: React.useRef<HTMLElement | null>(null), revealNavigation: () => undefined }) as unknown as ReturnType<typeof useSmartCollapsedNavigation>;
 
-export type IeltsTeacherTab = 'today' | 'reviews' | 'students' | 'speaking' | 'batches' | 'practice' | 'lessons' | 'exams' | 'team';
+export type IeltsTeacherTab = 'today' | 'reviews' | 'students' | 'speaking' | 'batches' | 'practice' | 'lessons' | 'exams' | 'team' | 'school';
 
-type Tab = { id: IeltsTeacherTab; label: string; icon: IeltsShellIconName; hint: string; manageOnly?: boolean; phone?: boolean };
+type Tab = { id: IeltsTeacherTab; label: string; icon: IeltsShellIconName; hint: string; manageOnly?: boolean; adminOnly?: boolean; phone?: boolean };
 const TABS: Tab[] = [
   { id: 'today', label: 'Today', icon: 'home', hint: 'What needs you now', phone: true },
   { id: 'reviews', label: 'Reviews', icon: 'review', hint: 'Writing and Speaking waiting for feedback', phone: true },
@@ -20,6 +20,7 @@ const TABS: Tab[] = [
   { id: 'lessons', label: 'Lessons', icon: 'lessons', hint: 'Lesson packs, slides and audio', manageOnly: true },
   { id: 'exams', label: 'Exams', icon: 'exams', hint: 'Schedule and monitor exam sessions', manageOnly: true },
   { id: 'team', label: 'Team', icon: 'team', hint: 'Programme lead and access' },
+  { id: 'school', label: 'School', icon: 'school', hint: 'Results, student journeys and IELTS settings', adminOnly: true },
 ];
 
 /**
@@ -27,8 +28,10 @@ const TABS: Tab[] = [
  * Phones and tablets: a bottom bar with the four everyday tabs and "More" for the rest (it slides away while
  * scrolling down and returns when scrolling up).
  */
-export default function IeltsTeacherNav({ active, onNavigate, canManage, reviewCount = 0, disabled = false }: {
+export default function IeltsTeacherNav({ active, onNavigate, canManage, schoolAdmin = false, reviewCount = 0, disabled = false }: {
   active: IeltsTeacherTab;
+  /** School administration adds the "School" tab (results, journeys, settings) to the same bar. */
+  schoolAdmin?: boolean;
   onNavigate: (tab: IeltsTeacherTab) => void;
   canManage: boolean;
   reviewCount?: number;
@@ -37,7 +40,7 @@ export default function IeltsTeacherNav({ active, onNavigate, canManage, reviewC
   const { navigationRef, revealNavigation } = useNavMotion(active, '(max-width: 1024px)');
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement | null>(null);
-  const tabs = TABS.filter((t) => canManage || !t.manageOnly);
+  const tabs = TABS.filter((t) => (canManage || !t.manageOnly) && (schoolAdmin || !t.adminOnly));
   // Without management rights every tab fits on the phone bar, so there is no "More".
   const phoneTabs = canManage ? tabs.filter((t) => t.phone) : tabs;
   const moreTabs = tabs.filter((t) => !phoneTabs.includes(t));
