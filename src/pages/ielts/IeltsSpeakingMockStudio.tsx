@@ -29,9 +29,15 @@ const REVIEW_KEYS = [
 function Line({ line, onReview, busy }: { line: MockScript["lines"][number]; onReview: (id: string, sha: string, ok: boolean, note: string) => void; busy: boolean }) {
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [note, setNote] = useState("");
+  const [failed, setFailed] = useState(false);
   const listen = async (id: string, path: string) => {
-    const url = await examinerAudioUrl(path);
-    setUrls((u) => ({ ...u, [id]: url }));
+    setFailed(false);
+    try {
+      const url = await examinerAudioUrl(path);
+      setUrls((u) => ({ ...u, [id]: url }));
+    } catch {
+      setFailed(true);
+    }
   };
   const pending = line.candidates.filter((c) => !c.rejected);
   return (
@@ -46,13 +52,14 @@ function Line({ line, onReview, busy }: { line: MockScript["lines"][number]; onR
       ) : (
         pending.map((c) => (
           <div key={c.id} className="sms-candidate">
-            {urls[c.id] ? <audio controls src={urls[c.id]} /> : <button type="button" className="sp-secondary" onClick={() => void listen(c.id, c.path)}>Listen ({Number(c.duration_seconds).toFixed(1)} s)</button>}
+            {urls[c.id] ? <audio controls autoPlay src={urls[c.id]} /> : <button type="button" className="sp-secondary" onClick={() => void listen(c.id, c.path)}>Listen ({Number(c.duration_seconds).toFixed(1)} s)</button>}
             <input aria-label="Note if you reject" placeholder="Note if you reject" value={note} onChange={(e) => setNote(e.target.value)} />
             <button type="button" className="sp-primary" disabled={busy || !urls[c.id]} onClick={() => onReview(c.id, c.sha256, true, "")}>Approve</button>
             <button type="button" className="sp-secondary" disabled={busy || note.trim().length < 3} onClick={() => onReview(c.id, c.sha256, false, note)}>Reject</button>
           </div>
         ))
       )}
+      {failed && <p className="sp-note" role="alert">This audio could not be opened. Check your connection and try again.</p>}
     </li>
   );
 }
@@ -105,7 +112,7 @@ export default function IeltsSpeakingMockStudio() {
           <h2>Mock packages</h2>
           <ul className="sm-list">{packages.map((p) => (
             <li key={p.code}><span><strong>{p.title}</strong><br /><span className="sm-meta">{p.code} · {p.approved ? "package approved" : "package not approved"} · {p.published ? "published" : "not published"}</span></span>
-              <span>{p.scripts.map((s) => (
+              <span>{p.scripts.filter((s, i) => i === 0 || s.released_at).map((s) => (
                 <button key={s.id} type="button" className="sp-secondary" onClick={async () => setScript(await ownerScript(s.id))}>
                   Version {s.version}{s.released_at ? " · in use" : ""}</button>))}</span></li>))}</ul>
         </section>
