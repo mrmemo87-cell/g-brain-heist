@@ -106,6 +106,6 @@ test('transcript marks the spoken word and asks before playing from a word', () 
   assert.match(insights, /alignWordTimes\(transcriptTokens\(a\.transcript\), words\)/);
   assert.match(insights, /It runs one extra transcription for each recording\./);
   assert.match(dock, /export function playSpeakingClipFrom/);
-  assert.match(visualBible, /\*\*Version:\*\* 1\.17\.2/);
+  assert.match(visualBible, /\*\*Version:\*\* 1\.18\.0/);
   assert.match(visualBible, /Words in time with the audio \(1\.14\.0/);
 });

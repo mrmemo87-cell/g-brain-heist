@@ -29,6 +29,7 @@ const PracticeDesk = React.lazy(() => import("./IeltsTeacherPracticeDesk"));
 const Lessons = React.lazy(() => import("./IeltsLessonLibrary"));
 const Batches = React.lazy(() => import("./IeltsCourseBatches"));
 const Exams = React.lazy(() => import("./IeltsExamManager"));
+const Speaking = React.lazy(() => import("../../components/ielts/teacher/IeltsTeacherSpeaking"));
 type Section =
   | "overview"
   | "students"
@@ -38,7 +39,8 @@ type Section =
   | "exams"
   | "lessons"
   | "assign"
-  | "batches";
+  | "batches"
+  | "speaking";
 const sections = [
   "overview",
   "students",
@@ -49,6 +51,7 @@ const sections = [
   "lessons",
   "assign",
   "batches",
+  "speaking",
 ];
 export default function IeltsProgrammeWorkspace({
   embedded = false,
@@ -255,6 +258,7 @@ export default function IeltsProgrammeWorkspace({
     lessons: ["Lessons", "Lessons & teaching packs", "Lesson plans, slides, workbooks and approved audio."],
     exams: ["Exams", "Exams", "Schedule, launch and monitor controlled IELTS exam sessions."],
     team: ["Team", "Programme team", "Who leads IELTS at your school and who can manage it."],
+    speaking: ["Speaking", "Speaking desk", "Practice mocks your students take alone, and the interviews you record with them."],
   };
   const head = heads[section];
   const openFromToday = (target: IeltsTeacherTab | "assign" | "targeted" | "history" | "interviews") => {
@@ -376,6 +380,11 @@ export default function IeltsProgrammeWorkspace({
               />
             )}
             {section === "reviews" && reviews}
+            {section === "speaking" && (
+              <React.Suspense fallback={<div className="isn-skeletons" role="status" aria-label="Opening Speaking"><span /><span /></div>}>
+                <Speaking key={data.school_id} schoolId={data.school_id} platformOwner={!!data.platform_owner} />
+              </React.Suspense>
+            )}
             <div className="sp-page ip-page ip-embedded itn-legacy">
               {section === "lessons" && (data.can_manage ? <React.Suspense fallback={<p role="status">Opening lessons…</p>}><Lessons key={data.school_id} schoolId={data.school_id} onClose={() => open("overview")} onAssign={() => open("assign")} onProgress={() => open("students")} /></React.Suspense> : <section className="sp-card"><p>Your programme lead prepares school lessons.</p></section>)}
               {section === "assign" && (data.can_manage ? (

@@ -98,6 +98,12 @@ async function check(admin, pending = 0, manage = true) {
         reports: [],
       };
     else if (fn === "rpc_ielts_batches") data = [];
+    else if (fn === "rpc_ielts_speaking_mock_overview") data = {
+      school_id: args.p_school_id, published_mocks: 6, students: [
+        { id: "student-b", name: "Bek", mocks_had: 0, current: null },
+        { id: "student-a", name: "Aida", mocks_had: 1, current: { assignment_id: "as-1", title: "Speaking practice mock C", assigned_at: "2026-11-20T08:00:00Z", session_id: "se-1", finished_at: "2026-11-21T08:00:00Z", state: "to_review" } },
+      ] };
+    else if (fn === "rpc_ielts_assign_speaking_mock_mix") data = { assigned: args.p_assignments.length, by_mock: {}, skipped: [] };
     else if (fn === "rpc_ielts_review_queue") data = [];
     else if (fn === "rpc_ielts_learning_workspace") data = { manager: true, pilot_only: false, tasks: [], allocations: [] };
     else throw Error("Unexpected request " + fn);
@@ -120,12 +126,17 @@ async function check(admin, pending = 0, manage = true) {
   assert.match(today.querySelector(".isn-summary").textContent, pending > 0 ? new RegExp(pending + " submissions to review") : /Nothing is waiting for you/);
   if (pending > 0) assert.ok(today.querySelector(".itn-see-all"), "More waiting work than shown links to Reviews");
   else assert.ok(today.querySelector(".isn-caught-up"), "An empty queue says so plainly");
-  assert.deepEqual([...today.querySelectorAll(".itn-tile strong")].map(x => x.textContent), manage
-    ? ["Prepare a lesson", "Assign to a batch", "Student progress", "Create assignment"]
-    : ["Student progress", "Reviews"]);
-  const moreTools = [...today.querySelectorAll(".isn-group")].find(g => g.textContent.includes("More tools"));
-  if (manage) { assert.ok(moreTools && !moreTools.open, "Less-frequent tools fold away"); assert.deepEqual([...moreTools.querySelectorAll(".itn-links strong")].map(x => x.textContent), ["Targeted practice", "Practice history", "Speaking interviews", "Exam sessions", "Programme team"]); }
-  else assert.equal(moreTools, undefined);
+  // One IELTS map: every area once, grouped by the teacher's job (Visual & UX Bible 13.12).
+  const map = today.querySelector(".itn-map");
+  assert.ok(map, "Today shows the IELTS map");
+  assert.deepEqual([...map.querySelectorAll(".itn-map-group h3")].map(x => x.textContent), manage
+    ? ["Check work", "Give work", "Teach", "Know your students", "Run tests", "Set up"]
+    : ["Check work", "Give work", "Know your students", "Run tests", "Set up"]);
+  assert.deepEqual([...map.querySelectorAll(".itn-map-spot strong")].map(x => x.firstChild.textContent), manage
+    ? ["Reviews", "Practice history", "Create assignment", "Targeted practice", "Speaking practice mocks", "Lessons", "Batches", "Student progress", "Exam sessions", "Speaking interviews", "Programme team"]
+    : ["Reviews", "Speaking practice mocks", "Student progress", "Speaking interviews", "Programme team"]);
+  assert.equal(today.querySelector(".itn-tiles"), null, "No second shortcut grid");
+  assert.equal([...today.querySelectorAll(".isn-group")].find(g => g.textContent.includes("More tools")), undefined, "Nothing hidden in a folded box");
   assert.doesNotMatch(today.textContent, /average band|average score|overall band/i);
 
   const button = (label) =>
@@ -137,16 +148,16 @@ async function check(admin, pending = 0, manage = true) {
   const tabLabel = (el) => el.querySelector(".isn-label")?.firstChild?.textContent.trim();
   const tab = (label) => [...nav.querySelectorAll(".itn-link")].find((b) => tabLabel(b) === label);
   assert.deepEqual([...nav.querySelectorAll(".itn-link:not(.itn-more-button)")].map(tabLabel), manage
-    ? ["Today","Reviews","Students","Batches","Lessons","Practice","Exams","Team"]
-    : ["Today","Reviews","Students","Team"], "Every destination is a tab on desktop");
+    ? ["Today","Reviews","Students","Speaking","Batches","Lessons","Practice","Exams","Team"]
+    : ["Today","Reviews","Students","Speaking","Team"], "Every destination is a tab on desktop");
   assert.equal(!!nav.querySelector(".itn-more-button"), manage, "Phones get More only when there are extra tools");
   assert.equal(tabLabel(nav.querySelector('[aria-current="page"]')), "Today");
   if (pending > 0) assert.match(nav.textContent, new RegExp(`Reviews \\(${pending} waiting\\)`));
   if (manage) {
     nav.querySelector(".itn-more-button").click();
     await wait(() => !!nav.querySelector(".itn-sheet"));
-    assert.deepEqual([...nav.querySelectorAll(".itn-sheet-item strong")].map(x => x.textContent), ["Lessons","Practice","Exams","Team"]);
-    [...today.querySelectorAll(".itn-tile")].find(b => b.querySelector("strong")?.textContent === "Create assignment").click();
+    assert.deepEqual([...nav.querySelectorAll(".itn-sheet-item strong")].map(x => x.textContent), ["Batches","Lessons","Practice","Exams","Team"]);
+    [...today.querySelectorAll(".itn-map-spot")].find(b => b.querySelector("strong")?.firstChild.textContent === "Create assignment").click();
     await wait(() => !!w.document.querySelector(".ip-assignment-entry"));
     assert.equal(w.document.querySelectorAll('input[name="ielts-assignment-scope"]').length,3);
     assert.match(w.document.querySelector(".ip-assignment-entry").textContent,/Entire class/);
@@ -181,8 +192,21 @@ async function check(admin, pending = 0, manage = true) {
   assert.equal(calls.find((entry) => entry.fn === "rpc_ielts_learning_report_context").args.p_student, "student-a");
   w.document.querySelector(".isi-close").click();
   await wait(() => !w.document.querySelector(".isi-drawer"));
+  // Speaking desk: the whole class at once, work waiting for the teacher first (Visual & UX Bible 13.12).
+  tab("Speaking").click();
+  await wait(() => !!w.document.querySelector(".itn-sd-row"));
+  assert.equal(w.document.querySelector(".itn-head h1").textContent, "Speaking desk");
+  const rows = [...w.document.querySelectorAll(".itn-sd-row")];
+  assert.deepEqual(rows.map((r) => r.querySelector("strong").textContent), ["Aida", "Bek"], "Finished mocks waiting for review come first");
+  assert.equal(rows[0].querySelector(".itn-sd-act button").textContent, "Review →");
+  assert.match(w.document.querySelector(".itn-sd-filters").textContent, /To review 1/);
+  button("Give a new mock to 2 students").click();
+  await wait(() => calls.some((c) => c.fn === "rpc_ielts_assign_speaking_mock_mix"));
+  assert.deepEqual(calls.find((c) => c.fn === "rpc_ielts_assign_speaking_mock_mix").args.p_assignments.map((a) => a.student_id).sort(), ["student-a", "student-b"]);
+  await wait(() => !!w.document.querySelector(".itn-message"));
+  assert.match(w.document.querySelector(".itn-message").textContent, /2 students have a new mock/);
   tab("Team").click();
-  await wait(() => !!w.document.querySelector(".itn-head"));
+  await wait(() => w.document.querySelector(".itn-head h1")?.textContent === "Programme team");
   assert.equal(w.document.querySelector(".itn-head h1").textContent, "Programme team");
   await wait(() => w.document.body.textContent.includes("A clear owner"));
   if (admin) {

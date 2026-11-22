@@ -635,9 +635,6 @@ const IeltsHome: React.FC = () => {
               {canOpenReviewQueue && (
                 <button type="button" onClick={() => navigate('/ielts/reviews')} style={{ padding: '0.85rem', borderRadius: '0.85rem', border: '1px solid #bbf7d0', background: '#f0fdf4', color: '#166534', fontWeight: 700, cursor: 'pointer' }}>📝 Review Queue →</button>
               )}
-              {canOpenReviewQueue && (
-                <button type="button" onClick={() => navigate('/ielts/speaking-pilot')} style={{ padding: '0.85rem', borderRadius: '0.85rem', border: '1px solid #fed7aa', background: '#fff7ed', color: '#9a3412', fontWeight: 700, cursor: 'pointer' }}>🎙️ Speaking: interviews and practice mocks →</button>
-              )}
             </div>
           </section>
         )}

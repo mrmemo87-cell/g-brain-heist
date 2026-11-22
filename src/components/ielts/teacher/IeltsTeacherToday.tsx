@@ -69,15 +69,34 @@ export default function IeltsTeacherToday({ schoolName, canManage, waiting, wait
   const shown = waiting.slice(0, 4), feedbackShown = toGive.slice(0, 3);
   const more = waiting.length - shown.length + toGive.length - feedbackShown.length;
   let n = 0;
-  const shortcuts: { id: Parameters<typeof onOpen>[0]; icon: IeltsShellIconName; title: string; text: string }[] = canManage ? [
-    { id: 'lessons', icon: 'lessons', title: 'Prepare a lesson', text: 'Plans, slides, workbooks and audio' },
-    { id: 'batches', icon: 'batches', title: 'Assign to a batch', text: 'Whole batch or chosen students' },
-    { id: 'students', icon: 'students', title: 'Student progress', text: 'Four-skill evidence, plans, reports' },
-    { id: 'assign', icon: 'plus', title: 'Create assignment', text: 'A class, a batch or one student' },
-  ] : [
-    { id: 'students', icon: 'students', title: 'Student progress', text: 'Four-skill evidence, plans, reports' },
-    { id: 'reviews', icon: 'review', title: 'Reviews', text: 'Writing and Speaking feedback' },
-  ];
+  // The IELTS map (Visual & UX Bible 13.12): every teacher area on one card, grouped by the job a teacher is doing,
+  // each with one line saying what it is for. It replaces the separate shortcut tiles and the folded "More tools".
+  type Spot = { id: Parameters<typeof onOpen>[0]; icon: IeltsShellIconName; title: string; text: string; count?: number; hot?: boolean; manage?: boolean };
+  const map: { title: string; spots: Spot[] }[] = [
+    { title: 'Check work', spots: [
+      { id: 'reviews', icon: 'review', title: 'Reviews', text: 'Writing and Speaking waiting for feedback', count: total, hot: true },
+      { id: 'history', icon: 'practice', title: 'Practice history', text: 'Current and earlier student work', manage: true },
+    ] },
+    { title: 'Give work', spots: [
+      { id: 'assign', icon: 'plus', title: 'Create assignment', text: 'A class, a batch or one student', manage: true },
+      { id: 'targeted', icon: 'target', title: 'Targeted practice', text: 'Evidence-led work for one student', manage: true },
+      { id: 'speaking', icon: 'mic', title: 'Speaking practice mocks', text: 'Students take them alone; you review' },
+    ] },
+    { title: 'Teach', spots: [
+      { id: 'lessons', icon: 'lessons', title: 'Lessons', text: 'Plans, slides, workbooks and audio', manage: true },
+      { id: 'batches', icon: 'batches', title: 'Batches', text: 'Course groups and their practice', manage: true },
+    ] },
+    { title: 'Know your students', spots: [
+      { id: 'students', icon: 'students', title: 'Student progress', text: 'Four-skill evidence, plans, reports', count: students },
+    ] },
+    { title: 'Run tests', spots: [
+      { id: 'exams', icon: 'exams', title: 'Exam sessions', text: 'Schedule, launch and monitor', manage: true },
+      { id: 'interviews', icon: 'mic', title: 'Speaking interviews', text: 'Face to face, at a set time' },
+    ] },
+    { title: 'Set up', spots: [
+      { id: 'team', icon: 'team', title: 'Programme team', text: 'Who leads IELTS at your school' },
+    ] },
+  ].map((g) => ({ ...g, spots: g.spots.filter((s) => canManage || !s.manage) })).filter((g) => g.spots.length);
 
   return (
     <div className="isn-home itn-today">
@@ -122,30 +141,25 @@ export default function IeltsTeacherToday({ schoolName, canManage, waiting, wait
         </section>
       )}
 
-      <section className="isn-section" aria-labelledby="itn-shortcuts">
-        <h2 id="itn-shortcuts" className="isn-section-title">Teaching shortcuts</h2>
-        <div className="itn-tiles">
-          {shortcuts.map((s, i) => (
-            <button key={s.id} type="button" className="itn-tile" style={{ ['--n' as string]: i } as React.CSSProperties} onClick={() => onOpen(s.id)}>
-              <span className="itn-tile-icon" aria-hidden="true"><IeltsShellIcon name={s.icon} size={22} /></span>
-              <strong>{s.title}</strong>
-              <small>{s.text}</small>
-            </button>
+      <section className="isn-section itn-map" aria-labelledby="itn-map">
+        <h2 id="itn-map" className="isn-section-title"><IeltsShellIcon name="map" size={20} />Your IELTS map</h2>
+        <p className="itn-map-lead">Everything you can do in IELTS, grouped by the job you are doing. The tab bar takes you to the same places.</p>
+        <div className="itn-map-groups">
+          {map.map((g) => (
+            <div key={g.title} className="itn-map-group">
+              <h3>{g.title}</h3>
+              {g.spots.map((s) => (
+                <button key={g.title + s.id} type="button" className="itn-map-spot" style={{ ['--n' as string]: n++ } as React.CSSProperties} onClick={() => onOpen(s.id)}>
+                  <span className="itn-map-icon" aria-hidden="true"><IeltsShellIcon name={s.icon} size={18} /></span>
+                  <strong>{s.title}{s.count ? <span className={'itn-map-count' + (s.hot ? ' is-hot' : '')}>{s.count}</span> : null}</strong>
+                  <small>{s.text}</small>
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       </section>
 
-      {canManage && (
-        <IeltsCardGroup title="More tools" count={5} defaultOpen={false}>
-          <div className="itn-links">
-            <button type="button" onClick={() => onOpen('targeted')}><strong>Targeted practice</strong><span>Evidence-led work for one student</span></button>
-            <button type="button" onClick={() => onOpen('history')}><strong>Practice history</strong><span>Current and previous student work</span></button>
-            <button type="button" onClick={() => onOpen('interviews')}><strong>Speaking interviews</strong><span>Conduct and record interviews</span></button>
-            <button type="button" onClick={() => onOpen('exams')}><strong>Exam sessions</strong><span>Schedule, launch and monitor exams</span></button>
-            <button type="button" onClick={() => onOpen('team')}><strong>Programme team</strong><span>Who leads IELTS at your school</span></button>
-          </div>
-        </IeltsCardGroup>
-      )}
       {extraTools}
       <p className="itn-evidence"><strong>Evidence before estimates.</strong> Screeners show a starting point, not an official IELTS band. Missing evidence is not a weakness.</p>
     </div>

@@ -227,6 +227,18 @@ export const assignMock = (code: string, studentIds: string[]) =>
     p_package_code: code,
     p_assignments: studentIds.map((student_id) => ({ student_id, assignment_id: crypto.randomUUID() })),
   });
+// Speaking desk: every student the teacher may review in one school, with their current practice mock.
+export type MockDeskState = "none" | "ready" | "in_progress" | "to_review" | "reviewed";
+export interface MockDeskStudent {
+  id: string;
+  name: string;
+  mocks_had: number;
+  current: null | { assignment_id: string; title: string; assigned_at: string; session_id: string | null; finished_at: string | null; state: Exclude<MockDeskState, "none"> };
+}
+export interface MockDeskOverview { school_id: string; published_mocks: number; students: MockDeskStudent[] }
+export const mockOverview = (schoolId: string) => rpc<MockDeskOverview>("rpc_ielts_speaking_mock_overview", { p_school_id: schoolId });
+export const deskState = (s: MockDeskStudent): MockDeskState => s.current?.state ?? "none";
+
 // The server picks a mock each student has not had, spreading the mocks evenly across the list.
 export interface MockMixResult { assigned: number; by_mock: Record<string, number>; skipped: { student_id: string; reason: "open_mock" | "no_new_mock" }[] }
 export const assignMockMix = (studentIds: string[]) =>
