@@ -100,7 +100,7 @@ export default function IeltsTeacherSpeaking({ schoolId, platformOwner = false }
     if (st === "to_review" && session) return <button type="button" className="itn-sd-btn is-go" onClick={() => navigate(`/ielts/speaking-pilot/${session}`)}>Review →</button>;
     if (st === "reviewed" && session) return <button type="button" className="itn-sd-btn" onClick={() => navigate(`/ielts/speaking-pilot/${session}`)}>Open →</button>;
     if (canGive(s)) return <button type="button" className="itn-sd-btn" disabled={!!busy} onClick={() => void give([s.id], s.id)}>{busy === s.id ? "Giving…" : "Give a mock"}</button>;
-    if (st === "none") return <span className="itn-sd-quiet">Has done every mock</span>;
+    if (st === "none") return <span className="itn-sd-quiet">{published ? "Has done every mock" : "No mock published yet"}</span>;
     return null;
   };
 
@@ -124,9 +124,11 @@ export default function IeltsTeacherSpeaking({ schoolId, platformOwner = false }
           <>
             <div className="itn-sd-give">
               <button type="button" className="itn-sd-btn is-main" disabled={!!busy || !giveable.length} onClick={() => void give(giveable.map((s) => s.id), "all")}>
-                {busy === "all" ? "Giving mocks…" : giveable.length ? `Give a new mock to ${plural(giveable.length, "student", "students")}` : "Everyone has a mock"}
+                {busy === "all" ? "Giving mocks…" : giveable.length ? `Give a new mock to ${plural(giveable.length, "student", "students")}` : published ? "Everyone has a mock" : "No mocks to give yet"}
               </button>
-              <small>Each student gets one they have not had. Classmates get different questions. Students with a mock open keep it.</small>
+              <small>{published
+                ? "Each student gets one they have not had. Classmates get different questions. Students with a mock open keep it."
+                : "No practice mock is published yet. Mocks can be given here once one is approved and published."}</small>
             </div>
             {message && <p className={"itn-message" + (message.error ? " is-error" : "")} role={message.error ? "alert" : "status"}>{message.text}</p>}
             <div className="itn-sd-filters" role="group" aria-label="Show students">
