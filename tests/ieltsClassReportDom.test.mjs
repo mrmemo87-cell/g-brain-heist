@@ -56,7 +56,8 @@ async function open(path) {
     const body = init?.body ? JSON.parse(init.body) : {};
     calls.push({ fn, body });
     let data;
-    if (fn === "rpc_ielts_programme_access") data = { schools: [{ id: "school-a", name: "Test school", can_allocate: true, can_manage: true }] };
+    if (fn.startsWith("schools?")) data = { name: "Test school", logo_url: "https://cdn.example.org/logo.png" };
+    else if (fn === "rpc_ielts_programme_access") data = { schools: [{ id: "school-a", name: "Test school", can_allocate: true, can_manage: true }] };
     else if (fn === "rpc_ielts_programme_workspace") data = { schools: [{ id: "school-a", name: "Test school" }], school_id: "school-a", can_allocate: true, can_manage: true, lead: null, teachers: [], students: [], total_students: 0, pending_count: 0, queue: [], classes: [], confidence: "low", readiness_available: false };
     else if (fn === "rpc_ielts_speaking_mock_overview") data = { school_id: "school-a", published_mocks: 6, students: [] };
     else if (fn === "rpc_ielts_learning_workspace") data = { manager: true, pilot_only: false, tasks: [], allocations: [] };
@@ -67,7 +68,7 @@ async function open(path) {
   w.eval(code);
   test.after?.(() => { try { dom.window.close(); } catch { /* closed */ } });
   const wait = async (fn) => {
-    for (let i = 0; i < 80; i++) { if (fn()) return; await new Promise((r) => setTimeout(r, 20)); }
+    for (let i = 0; i < 200; i++) { if (fn()) return; await new Promise((r) => setTimeout(r, 20)); }
     throw Error("UI did not settle: " + w.document.body.textContent.slice(0, 300));
   };
   const button = (text) => [...w.document.querySelectorAll("button")].find((b) => b.textContent.trim() === text);
@@ -133,6 +134,9 @@ test("each student's list, class and batch choices, print and the Excel download
   await wait(() => popup.document.getElementById("print")?.disabled === false);
   assert.equal(popup.document.querySelectorAll(".rp-page").length, 3, "one page per student");
   assert.equal(popup.document.querySelectorAll(".blank-page").length, 2, "a blank back after each student but the last");
+  const logo = popup.document.querySelector(".rp-head .rp-brand img.rp-logo");
+  assert.equal(logo?.getAttribute("src"), "https://cdn.example.org/logo.png", "the school logo comes before the school name");
+  assert.equal(logo.nextElementSibling.querySelector("strong").textContent, "Test school");
   assert.match(popup.document.getElementById("printer-reminder").textContent, /Double-sided · 1 page per side · A4 · Portrait/);
   assert.match(popup.document.querySelectorAll(".rp-page")[2].textContent, /Cara/);
   popup.document.getElementById("print").click();

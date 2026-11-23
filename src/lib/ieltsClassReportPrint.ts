@@ -5,6 +5,7 @@
 // exact settings to choose in the print dialog. Nothing is fetched while printing; it prints the report on screen.
 import { planBookletPrint, type BookletPrintPlan, type BookletPrintSettings } from "./paperScan/printBooklets";
 import { createSchoolDocumentId, escapeSchoolDocumentHtml as esc, registerSchoolDocumentRecord } from "./schoolDocument";
+import { normalizeBrandLogoUrl, PRODUCT_LOGO_URL, PRODUCT_NAME } from "./schoolBranding";
 import {
   cellState, kindLabel, latestFor, reportColumns, resultText, stateLabel, studentSummary,
   type ClassReport, type ReportStudent,
@@ -15,6 +16,8 @@ export interface ClassReportPrintOptions {
   view: ClassReportPrintView;
   settings: BookletPrintSettings;
   schoolName?: string;
+  /** The school's logo, shown before the school name as on every Brains Heist school document. */
+  schoolLogoUrl?: string | null;
   studentId?: string;
   documentId?: string;
   now?: number;
@@ -61,8 +64,17 @@ export function classReportPrinterReminder(settings: BookletPrintSettings, orien
   return `${sides} · ${per} · A4 · ${layout} · Actual size · Headers & footers off · Background graphics on · Copies: 1 · Print all pages. Use these same settings in the printer dialog.${keep}`;
 }
 
-function pageHead(p: { schoolName: string; title: string; subtitle: string; documentId: string; page: string }) {
-  return `<header class="rp-head"><div class="rp-brand"><span class="rp-mark">IELTS</span><div><strong>${esc(p.schoolName)}</strong><small>Brains Heist IELTS · Teacher copy · Confidential</small></div></div>
+/** Same rule as school documents (schoolDocument.ts): the school's logo, else the school's initials. */
+export function reportBrand(schoolName: string, schoolLogoUrl?: string | null, origin = typeof location !== "undefined" ? location.origin : "") {
+  const name = schoolName.trim() || PRODUCT_NAME;
+  const logo = normalizeBrandLogoUrl(schoolLogoUrl) || (name === PRODUCT_NAME ? PRODUCT_LOGO_URL : null);
+  const src = logo === PRODUCT_LOGO_URL ? origin + PRODUCT_LOGO_URL : logo;
+  const initials = name.split(/\s+/).map((part) => part[0]).filter(Boolean).slice(0, 3).join("").toUpperCase() || "SCH";
+  return src ? `<img class="rp-logo" src="${esc(src)}" alt="${esc(name)} logo">` : `<span class="rp-mark">${esc(initials)}</span>`;
+}
+
+function pageHead(p: { schoolName: string; brand: string; title: string; subtitle: string; documentId: string; page: string }) {
+  return `<header class="rp-head"><div class="rp-brand">${p.brand}<div><strong>${esc(p.schoolName)}</strong><small>Brains Heist IELTS · Teacher copy · Confidential</small></div></div>
   <div class="rp-id"><small>${esc(p.page)}</small><strong>${esc(p.documentId)}</strong></div></header>
   <div class="rp-title"><h1>${esc(p.title)}</h1><p>${esc(p.subtitle)}</p></div>`;
 }
@@ -76,7 +88,7 @@ function cell(student: ReportStudent, key: string, now: number) {
   return `<td class="is-${st}">${esc(text)}</td>`;
 }
 
-function classPages(report: ClassReport, documentId: string, schoolName: string, now: number): string[] {
+function classPages(report: ClassReport, documentId: string, schoolName: string, brand: string, now: number): string[] {
   const columns = reportColumns(report.students);
   const groups = chunk(columns, CLASS_GRID_COLUMNS);
   const rows = chunk(report.students, CLASS_GRID_ROWS);
@@ -98,13 +110,13 @@ function classPages(report: ClassReport, documentId: string, schoolName: string,
       return `<tr><th>${esc(s.name)}${s.class_name ? `<small>${esc(s.class_name)}</small>` : ""}</th><td class="rp-done">${x.done} / ${x.given}${x.overdue ? ` · ${x.overdue} late` : ""}</td>${cols.map((c) => cell(s, c.key, now)).join("")}</tr>`;
     }).join("");
     const where = columns.length ? `Work ${from}–${to} of ${columns.length} · students ${r * CLASS_GRID_ROWS + 1}–${r * CLASS_GRID_ROWS + students.length} of ${report.students.length}` : "No IELTS work given yet";
-    pages.push(`<section class="print-page rp-page">${pageHead({ schoolName, title: "IELTS class report", subtitle: `${scopeTitle(report)} · ${where}`, documentId, page: `Page ${n} of ${total}` })}${summary}
+    pages.push(`<section class="print-page rp-page">${pageHead({ schoolName, brand, title: "IELTS class report", subtitle: `${scopeTitle(report)} · ${where}`, documentId, page: `Page ${n} of ${total}` })}${summary}
       <table class="rp-grid"><thead><tr><th>Student</th><th>Done</th>${head}</tr></thead><tbody>${body || `<tr><td colspan="2">No students here yet.</td></tr>`}</tbody></table>${pageFoot(made)}</section>`);
   }));
   return pages;
 }
 
-function studentPages(student: ReportStudent, report: ClassReport, documentId: string, schoolName: string, now: number): string[] {
+function studentPages(student: ReportStudent, report: ClassReport, documentId: string, schoolName: string, brand: string, now: number): string[] {
   const x = studentSummary(student, now);
   const parts = chunk(student.items, STUDENT_FIRST_PAGE_ROWS, STUDENT_NEXT_PAGE_ROWS);
   const made = day(report.generated_at);
@@ -118,7 +130,7 @@ function studentPages(student: ReportStudent, report: ClassReport, documentId: s
     const summary = i === 0
       ? `<dl class="rp-stats"><div><dt>Class</dt><dd>${esc(student.class_name ?? "—")}</dd></div><div><dt>Given</dt><dd>${x.given}</dd></div><div><dt>Done</dt><dd>${x.done}</dd></div><div><dt>Overdue</dt><dd>${x.overdue}</dd></div><div><dt>Waiting for review</dt><dd>${x.waiting}</dd></div></dl>`
       : "";
-    return `<section class="print-page rp-page">${pageHead({ schoolName, title: student.name, subtitle: `IELTS student report · ${scopeTitle(report)}${i ? " · continued" : ""}`, documentId, page: `Student page ${i + 1} of ${parts.length}` })}${summary}
+    return `<section class="print-page rp-page">${pageHead({ schoolName, brand, title: student.name, subtitle: `IELTS student report · ${scopeTitle(report)}${i ? " · continued" : ""}`, documentId, page: `Student page ${i + 1} of ${parts.length}` })}${summary}
       <table class="rp-list"><thead><tr><th>Work</th><th>Skill</th><th>Given</th><th>Due</th><th>Status</th><th>Result</th></tr></thead><tbody>${rows || `<tr><td colspan="6">No IELTS work given yet.</td></tr>`}</tbody></table>${pageFoot(made)}</section>`;
   });
 }
@@ -142,7 +154,8 @@ const css = (orientation: "portrait" | "landscape") => {
   .rp-page { position:relative; padding:12mm 13mm 24mm; display:flex; flex-direction:column; gap:4mm; }
   .rp-head { display:flex; justify-content:space-between; align-items:center; gap:8mm; padding-bottom:3mm; border-bottom:1px solid #dce3ed; }
   .rp-brand { display:flex; align-items:center; gap:3mm; }
-  .rp-mark { display:grid; place-items:center; width:13mm; height:8mm; border-radius:2mm; background:#1746b0; color:white; font-weight:900; font-size:8pt; letter-spacing:.06em; }
+  .rp-logo { width:12mm; height:12mm; object-fit:contain; }
+  .rp-mark { display:grid; place-items:center; width:12mm; height:12mm; border-radius:3mm; background:#0b2f70; color:white; font-weight:900; font-size:8pt; letter-spacing:.04em; }
   .rp-brand strong { display:block; font-size:11pt; } .rp-brand small,.rp-id small { display:block; color:#5d6b82; font-size:7.5pt; }
   .rp-id { text-align:right; } .rp-id strong { font:700 8pt/1.3 "Courier New",monospace; }
   .rp-title h1 { margin:0; font-size:17pt; letter-spacing:-.01em; } .rp-title p { margin:1mm 0 0; color:#5d6b82; font-size:9pt; }
@@ -182,14 +195,15 @@ const css = (orientation: "portrait" | "landscape") => {
 /** Build the print document: fixed pages, the smart print plan, blank spacers, status and printer reminder. */
 export function buildClassReportPrint(report: ClassReport, options: ClassReportPrintOptions): ClassReportPrintDocument {
   const now = options.now ?? Date.now();
-  const schoolName = options.schoolName?.trim() || "Brains Heist";
+  const schoolName = options.schoolName?.trim() || PRODUCT_NAME;
+  const brand = reportBrand(schoolName, options.schoolLogoUrl);
   const documentId = options.documentId ?? createSchoolDocumentId("ielts");
   const view = options.view;
   const orientation = view === "class" ? "landscape" : "portrait";
   const booklets: string[][] = view === "class"
-    ? [classPages(report, documentId, schoolName, now)]
+    ? [classPages(report, documentId, schoolName, brand, now)]
     : (options.studentId ? report.students.filter((s) => s.id === options.studentId) : report.students)
-        .map((s) => studentPages(s, report, documentId, schoolName, now));
+        .map((s) => studentPages(s, report, documentId, schoolName, brand, now));
   const settings = view === "class" ? { ...options.settings, keepTogether: false } : options.settings;
   const plan = planBookletPrint(booklets.map((b) => b.length), settings);
   const blank = `<section class="print-page blank-page" aria-label="Blank spacer page"><span>Blank spacer · the next student's report starts on a new sheet</span></section>`;
@@ -228,7 +242,10 @@ export function openClassReportPrint(report: ClassReport, options: ClassReportPr
     viewport.style.height = `${stage.offsetHeight * s}px`;
   };
   win.addEventListener("resize", scale);
-  void Promise.resolve(d.fonts?.ready).then(() => {
+  const images = Array.from(d.images).map((img) => (img.complete ? Promise.resolve() : new Promise<void>((done) => { img.addEventListener("load", () => done(), { once: true }); img.addEventListener("error", () => done(), { once: true }); })));
+  // A logo that never answers must not block printing: Print is enabled after at most 2.5 s.
+  const settle = new Promise<void>((done) => win.setTimeout(done, 2500));
+  void Promise.race([Promise.all([Promise.resolve(d.fonts?.ready), ...images]), settle]).then(() => {
     if (win.closed) return;
     scale();
     const button = d.getElementById("print") as HTMLButtonElement | null;
@@ -236,7 +253,7 @@ export function openClassReportPrint(report: ClassReport, options: ClassReportPr
   });
   void registerSchoolDocumentRecord({
     meta: {
-      documentId: doc.documentId, templateVersion: "ielts-class-report-v1", title: doc.title, schoolName: options.schoolName ?? "Brains Heist",
+      documentId: doc.documentId, templateVersion: "ielts-class-report-v1", title: doc.title, schoolName: options.schoolName ?? PRODUCT_NAME, schoolLogoUrl: options.schoolLogoUrl ?? null,
       audience: "teacher", status: "final", confidentiality: "confidential", generatedAt: report.generated_at, schoolId: report.school_id,
       visibilityScope: "school_staff", sourceType: "ielts_class_report", documentTypeLabel: "IELTS class report",
     },

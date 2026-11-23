@@ -11,7 +11,7 @@ const out = await build({
   define: { "import.meta.env.DEV": "false" },
 });
 const lib = await import("data:text/javascript;base64," + Buffer.from(out.outputFiles[0].text).toString("base64"));
-const { buildClassReportPrint, classReportPrinterReminder, CLASS_GRID_ROWS, CLASS_GRID_COLUMNS, STUDENT_FIRST_PAGE_ROWS, STUDENT_NEXT_PAGE_ROWS } = lib;
+const { reportBrand, buildClassReportPrint, classReportPrinterReminder, CLASS_GRID_ROWS, CLASS_GRID_COLUMNS, STUDENT_FIRST_PAGE_ROWS, STUDENT_NEXT_PAGE_ROWS } = lib;
 
 const now = Date.parse("2026-11-23T08:00:00Z");
 const item = (k, extra = {}) => ({ key: "k" + k, kind: "targeted_practice", title: "Work " + k, code: null, skill: "reading", assigned_at: new Date(now - k * 3600000).toISOString(), due_at: null, status: "done", done_at: null, score: { raw: 3, total: 6 }, review: null, ...extra });
@@ -79,4 +79,14 @@ test("names and titles are escaped in the printed document", () => {
   assert.ok(!doc.html.includes("<img src=x"));
   assert.ok(!doc.html.includes("<b>Aida</b>"));
   assert.match(doc.html, /&lt;b&gt;Aida&lt;\/b&gt;/);
+});
+
+test("the school logo comes before the school name; without one, the school's initials (school document rule)", () => {
+  const r = report([student(1, [item(1)])]);
+  const withLogo = buildClassReportPrint(r, { view: "class", settings: double, schoolName: "Silk Road International School", schoolLogoUrl: "https://cdn.example.org/silk.png", now });
+  assert.match(withLogo.html, /<div class="rp-brand"><img class="rp-logo" src="https:\/\/cdn.example.org\/silk.png" alt="Silk Road International School logo"><div><strong>Silk Road International School<\/strong>/);
+  const noLogo = buildClassReportPrint(r, { view: "class", settings: double, schoolName: "Silk Road International School", now });
+  assert.match(noLogo.html, /<span class="rp-mark">SRI<\/span><div><strong>Silk Road International School/);
+  assert.match(reportBrand("Silk Road", "javascript:alert(1)"), /rp-mark">SR</, "only https logos are used");
+  assert.match(reportBrand("", null, "https://app.example"), /src="https:\/\/app.example\/logo.png"/, "no school: the Brains Heist logo");
 });

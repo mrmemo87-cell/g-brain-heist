@@ -5,6 +5,7 @@ import {
 } from "../../../../services/ieltsClassReportService";
 import { DEFAULT_BOOKLET_PRINT_SETTINGS, type BookletPrintSettings } from "../../../lib/paperScan/printBooklets";
 import { buildClassReportPrint, openClassReportPrint, type ClassReportPrintView } from "../../../lib/ieltsClassReportPrint";
+import { useSchoolBranding } from "../../../hooks/useSchoolBranding";
 
 /**
  * The teacher's class report (Visual & UX Bible 13.13): every piece of IELTS work each student was given, with its
@@ -41,6 +42,8 @@ export default function IeltsClassReport({ schoolId, schoolName, onClose }: { sc
   const [printView, setPrintView] = useState<ClassReportPrintView>("class");
   const [printSettings, setPrintSettings] = useState<BookletPrintSettings>(DEFAULT_BOOKLET_PRINT_SETTINGS);
   const [printMessage, setPrintMessage] = useState("");
+  // The school logo and name, as on every Brains Heist school document.
+  const { schoolLogoUrl } = useSchoolBranding({ schoolId, schoolName });
 
   const load = useCallback(async (s: ReportScope, v: string) => {
     setLoading(true); setError("");
@@ -97,10 +100,10 @@ export default function IeltsClassReport({ schoolId, schoolName, onClose }: { sc
       </header>
 
       {printing && report && (() => {
-        const plan = buildClassReportPrint(report, { view: printView, settings: printSettings, schoolName, studentId: printView === "students" ? who || undefined : undefined, documentId: "preview", now });
+        const plan = buildClassReportPrint(report, { view: printView, settings: printSettings, schoolName, schoolLogoUrl, studentId: printView === "students" ? who || undefined : undefined, documentId: "preview", now });
         const open = () => {
           const reserved = window.open("", "_blank");
-          const win = openClassReportPrint(report, { view: printView, settings: printSettings, schoolName, studentId: printView === "students" ? who || undefined : undefined, now }, reserved);
+          const win = openClassReportPrint(report, { view: printView, settings: printSettings, schoolName, schoolLogoUrl, studentId: printView === "students" ? who || undefined : undefined, now }, reserved);
           setPrintMessage(win ? "" : "Your browser blocked the print preview. Allow pop-ups for Brains Heist and try again.");
         };
         return (
