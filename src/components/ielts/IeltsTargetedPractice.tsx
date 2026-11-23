@@ -53,11 +53,12 @@ export function IeltsTargetedGroups({ tasks, waiting: locked = 0 }: { tasks: Lea
   const waiting = tasks.filter((t) => t.status === 'submitted' && !t.reviewed);
   const closed = tasks.filter((t) => t.status === 'closed');
   let n = 0;
+  // Every group starts folded closed; the heading shows its count (UX Bible 13.14, 1.23.2).
   return (
     <div className="isn-groups">
       <IeltsWaitingForScreeners count={locked} />
-      {todo.length > 0 && <IeltsCardGroup title="To do" count={todo.length} tone="todo">{todo.map((t) => <TaskCard key={t.id} task={t} index={n++} />)}</IeltsCardGroup>}
-      {feedback.length > 0 && <IeltsCardGroup title="Feedback ready" count={feedback.length} tone="feedback">{feedback.map((t) => <TaskCard key={t.id} task={t} index={n++} />)}</IeltsCardGroup>}
+      {todo.length > 0 && <IeltsCardGroup title="To do" count={todo.length} tone="todo" defaultOpen={false}>{todo.map((t) => <TaskCard key={t.id} task={t} index={n++} />)}</IeltsCardGroup>}
+      {feedback.length > 0 && <IeltsCardGroup title="Feedback ready" count={feedback.length} tone="feedback" defaultOpen={false}>{feedback.map((t) => <TaskCard key={t.id} task={t} index={n++} />)}</IeltsCardGroup>}
       {todo.length === 0 && feedback.length === 0 && <p className="isn-waiting"><span aria-hidden="true">✓</span> Nothing to do here right now.</p>}
       {waiting.length > 0 && <IeltsCardGroup title="Waiting for your teacher" count={waiting.length} tone="waiting" defaultOpen={false}>{waiting.map((t) => <TaskCard key={t.id} task={t} index={n++} />)}</IeltsCardGroup>}
       {closed.length > 0 && <IeltsCardGroup title="Closed" count={closed.length} tone="done" defaultOpen={false}>{closed.map((t) => <TaskCard key={t.id} task={t} index={n++} />)}</IeltsCardGroup>}

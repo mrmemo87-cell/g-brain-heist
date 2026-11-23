@@ -105,3 +105,13 @@ test('if the mock check fails, Home still shows everything else',async()=>{
  assert.deepEqual(errors,[]);
  dom.window.close();
 });
+
+test('every group on Assignments and Targeted starts folded closed; a set opened from Home opens its group',async()=>{
+ const t=await mount({path:'/ielts/practice/targeted',tasks:[{...task,status:'assigned'}]});
+ await t.wait(()=>t.w.document.querySelector('.isn-group'));
+ const groups=[...t.w.document.querySelectorAll('details.isn-group')];
+ assert.ok(groups.length>0);
+ assert.deepEqual(groups.map(g=>g.open),groups.map(()=>false));
+ assert.match(groups.find(g=>g.textContent.includes('To do')).querySelector('summary').textContent,/To do\s*1/);
+ t.dom.window.close();
+});

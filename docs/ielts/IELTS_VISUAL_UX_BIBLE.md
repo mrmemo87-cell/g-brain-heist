@@ -1,7 +1,7 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.23.1
+**Version:** 1.23.2
 **Effective date:** 2026-11-23\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
@@ -342,6 +342,7 @@ Owner request (2026-11-22): teacher pages "are in several areas and not clearly 
   - **Journey** keeps its card.
 - The card uses the student work card: chip New / In progress / Finished / Checked, kicker "Speaking · practice mock", the mock's title, "About 15 minutes · recorded examiner · not an official IELTS test", and one action: **Start the mock →** or **Continue the mock →**.
 - If the mock check fails, Home and Assignments still show all other work.
+- **All groups folded (1.23.2).** On Assignments and Targeted every group (Speaking practice mock, To do, Feedback ready, Waiting for your teacher, Finished, Closed) starts folded closed with its count in the heading, so the student sees the whole page at a glance. A set opened from Home ("?assignment=") opens the group that holds it. Home is unchanged.
 
 ## 14. Native app motivation layer — v1.4.0
 
@@ -370,6 +371,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.33 Revision record — 1.23.2 (2026-11-23)
+
+Owner check (2026-11-23, screenshots): the To do and Feedback ready groups were still open. Every group on Assignments and Targeted now starts folded closed; a set opened from Home opens its own group.
 
 ### 14.32 Revision record — 1.23.1 (2026-11-23)
 
