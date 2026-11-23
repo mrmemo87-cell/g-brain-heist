@@ -18,3 +18,9 @@ test('the database refuses blank writing attempts but keeps old rows',async()=>{
   await db.query(`insert into public.ielts_writing_attempts(answer_text,word_count) values('A real essay.',3)`);
   assert.equal((await db.query('select count(*)::int c from public.ielts_writing_attempts')).rows[0].c,2);
 });
+test('teacher review list skips blank Writing answers without deleting history',()=>{
+  const sql=readFileSync('supabase/migrations/20261121070000_ielts_review_queue_skip_blank.sql','utf8');
+  const writing=sql.slice(sql.indexOf("p_skill = 'writing'"),sql.indexOf("p_skill = 'speaking'"));
+  assert.match(writing,/and btrim\(coalesce\(a\.answer_text, ''\)\) <> ''/);
+  assert.doesNotMatch(sql,/\bdelete\b/i);
+});
