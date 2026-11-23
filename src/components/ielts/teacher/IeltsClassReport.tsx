@@ -6,6 +6,7 @@ import {
 import { DEFAULT_BOOKLET_PRINT_SETTINGS, type BookletPrintSettings } from "../../../lib/paperScan/printBooklets";
 import { buildClassReportPrint, openClassReportPrint, type ClassReportPrintView } from "../../../lib/ieltsClassReportPrint";
 import { useSchoolBranding } from "../../../hooks/useSchoolBranding";
+import { DISPLAY_DATE, displayDateLocale } from "../../../utils/displayDate";
 
 /**
  * The teacher's class report (Visual & UX Bible 13.13): every piece of IELTS work each student was given, with its
@@ -15,7 +16,7 @@ import { useSchoolBranding } from "../../../hooks/useSchoolBranding";
  * their own sheets, an exact sheet count and the printer settings to choose.
  */
 const SKILL: Record<string, string> = { listening: "Listening", reading: "Reading", writing: "Writing", speaking: "Speaking" };
-const fmt = (v: string | null) => (v ? new Date(v).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—");
+const fmt = (v: string | null) => (v ? new Date(v).toLocaleDateString(displayDateLocale(), DISPLAY_DATE) : "—");
 
 function Cell({ item, now }: { item?: ReportItem; now: number }) {
   if (!item) return <span className="itn-cr-cell is-none" title="Not given">·</span>;
