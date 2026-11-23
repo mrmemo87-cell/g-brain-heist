@@ -43,7 +43,11 @@ async function open(path) {
   let blob = null, printed = 0;
   w.URL.createObjectURL = (b) => { blob = b; return "blob:report"; };
   w.URL.revokeObjectURL = () => {};
-  w.print = () => { printed += 1; };
+  const popup = new JSDOM("<!doctype html><html><body></body></html>", { url: "about:blank", pretendToBeVisual: true }).window;
+  popup.print = () => { printed += 1; };
+  let opened = 0;
+  w.open = () => { opened += 1; return popup; };
+  w.print = () => { throw new Error("the app page must not be printed directly"); };
   w.scrollTo = () => {};
   let saved = "";
   w.HTMLAnchorElement.prototype.click = function () { saved = this.download; };
@@ -67,7 +71,7 @@ async function open(path) {
     throw Error("UI did not settle: " + w.document.body.textContent.slice(0, 300));
   };
   const button = (text) => [...w.document.querySelectorAll("button")].find((b) => b.textContent.trim() === text);
-  return { w, dom, errors, calls, wait, button, blob: () => blob, printed: () => printed, saved: () => saved };
+  return { w, dom, errors, calls, wait, button, blob: () => blob, printed: () => printed, saved: () => saved, popup, opened: () => opened };
 }
 
 test("Students has a Class report: whole class grid with marks, the teacher's band, review and overdue states", async () => {
@@ -95,7 +99,7 @@ test("Students has a Class report: whole class grid with marks, the teacher's ba
 });
 
 test("each student's list, class and batch choices, print and the Excel download", async () => {
-  const { w, dom, errors, calls, wait, button, blob, printed, saved } = await open("/ielts/programme?programmeSection=students&report=1");
+  const { w, dom, errors, calls, wait, button, blob, printed, saved, popup, opened } = await open("/ielts/programme?programmeSection=students&report=1");
   await wait(() => !!w.document.querySelector(".itn-cr-grid"));
   [...w.document.querySelectorAll(".itn-cr-name")].find((b) => b.textContent === "Aida").click();
   await wait(() => w.document.querySelectorAll(".itn-cr-person").length === 1);
@@ -115,6 +119,23 @@ test("each student's list, class and batch choices, print and the Excel download
   await wait(() => w.document.querySelector("#itn-cr-title").textContent === "Class 11B");
 
   button("Print or save as PDF").click();
+  await wait(() => !!w.document.querySelector(".itn-cr-print"));
+  assert.equal(w.document.querySelector(".itn-cr-print legend").textContent, "Smart printing");
+  assert.match(w.document.querySelector(".itn-cr-plan").textContent, /A4 portrait$/, "starts on the view on screen (each student)");
+  button("Whole class").click();
+  await wait(() => /^1 physical sheet · 1 content page · 0 added blank pages · A4 landscape$/.test(w.document.querySelector(".itn-cr-plan").textContent));
+  button("A report for each student").click();
+  await wait(() => w.document.querySelector(".itn-cr-plan").textContent === "3 physical sheets · 3 content pages · 2 added blank pages · A4 portrait");
+  assert.ok(w.document.querySelector(".itn-cr-print input[type=checkbox]").checked, "each student's pages kept together by default");
+  assert.equal(w.document.querySelector('.itn-cr-print select[aria-label="Print sides"]').value, "double");
+  button("Open print preview").click();
+  assert.equal(opened(), 1);
+  await wait(() => popup.document.getElementById("print")?.disabled === false);
+  assert.equal(popup.document.querySelectorAll(".rp-page").length, 3, "one page per student");
+  assert.equal(popup.document.querySelectorAll(".blank-page").length, 2, "a blank back after each student but the last");
+  assert.match(popup.document.getElementById("printer-reminder").textContent, /Double-sided · 1 page per side · A4 · Portrait/);
+  assert.match(popup.document.querySelectorAll(".rp-page")[2].textContent, /Cara/);
+  popup.document.getElementById("print").click();
   assert.equal(printed(), 1);
   button("Download for Excel").click();
   const csv = await new Promise((r) => { const fr = new w.FileReader(); fr.onload = () => r(String(fr.result)); fr.readAsText(blob()); });
