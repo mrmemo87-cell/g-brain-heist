@@ -76,25 +76,43 @@ if refs and pending:
             )
             demo.commit()
             print(f"reference table {schema}.{table}: {cur.rowcount} missing row(s) copied", flush=True)
+def apply(demo, version, name, statements, relaxed):
+    if relaxed:
+        # Production content rows can name production-only users (for example the standing
+        # pre-publication pilot student). The demo has no such users, so foreign keys are not
+        # enforced for this one migration's transaction. Demo only; production is never written.
+        demo.execute("set local session_replication_role = replica")
+    for stmt in statements or []:
+        if stmt and stmt.strip():
+            demo.execute(stmt.encode("utf-8"))
+    demo.execute(
+        "insert into private.demo_applied_migrations(version, name) values (%s, %s)",
+        (version, name),
+    )
+    demo.commit()
+
+
 applied = []
 with psycopg.connect(demo_url, autocommit=False) as demo:
     demo.execute("set statement_timeout = 0")
     for version, name, statements in pending:
         try:
-            for stmt in statements or []:
-                if stmt and stmt.strip():
-                    demo.execute(stmt.encode("utf-8"))
-            demo.execute(
-                "insert into private.demo_applied_migrations(version, name) values (%s, %s)",
-                (version, name),
-            )
-            demo.commit()
-            applied.append(f"{version} {name}")
-            print(f"applied {version} {name}", flush=True)
+            apply(demo, version, name, statements, relaxed=False)
+        except psycopg.errors.ForeignKeyViolation as exc:
+            demo.rollback()
+            print(f"::warning title=Demo migration {version} references production-only rows::{str(exc)[:300]}; retrying without foreign-key checks", flush=True)
+            try:
+                apply(demo, version, name, statements, relaxed=True)
+            except Exception as exc2:
+                demo.rollback()
+                print(f"::error title=Demo migration sync stopped at {version} {name}::{str(exc2)[:900]}", flush=True)
+                sys.exit(1)
         except Exception as exc:  # stop at the first failure; later ones may depend on it
             demo.rollback()
             print(f"::error title=Demo migration sync stopped at {version} {name}::{str(exc)[:900]}", flush=True)
             sys.exit(1)
+        applied.append(f"{version} {name}")
+        print(f"applied {version} {name}", flush=True)
 
 if applied:
     print("::notice title=Demo synced with production::" + "; ".join(applied), flush=True)
