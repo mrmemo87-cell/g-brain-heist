@@ -83,12 +83,20 @@ test('a Speaking practice mock from the teacher is on Home under New for you, an
  start.click();
  await wait(()=>w.location.pathname==='/ielts/speaking-mock/00000000-0000-0000-0000-0000000000f1');
  dom.window.close();
- const a=await mount({path:'/ielts/practice/assigned',tasks:[],mocks:[mock('in_progress'),mock('finished','00000000-0000-0000-0000-0000000000f2')]});
- await a.wait(()=>[...a.w.document.querySelectorAll('.isn-card')].some(c=>c.textContent.includes('Continue the mock')));
- const go=[...a.w.document.querySelectorAll('.isn-card')].find(c=>c.textContent.includes('Continue the mock'));
- assert.match(go.textContent,/In progress/);
- assert.deepEqual(errors.concat(a.errors),[]);
- a.dom.window.close();
+ for(const path of ['/ielts/practice/assigned','/ielts/practice/targeted']){
+  const a=await mount({path,tasks:[],mocks:[mock('in_progress'),mock('finished','00000000-0000-0000-0000-0000000000f2')]});
+  await a.wait(()=>a.w.document.querySelector('.isn-mock-group details'));
+  const group=a.w.document.querySelector('.isn-mock-group details');
+  assert.equal(group.open,false,path+': folded closed by default');
+  assert.match(group.querySelector('summary').textContent,/Speaking practice mock\s*1 to do/);
+  const cards=[...group.querySelectorAll('.isn-card')];
+  assert.equal(cards.length,2,'open mock first, then the finished one');
+  assert.match(cards[0].textContent,/In progress.*Continue the mock/);
+  assert.match(cards[1].textContent,/Finished/);
+  assert.deepEqual(a.errors,[]);
+  a.dom.window.close();
+ }
+ assert.deepEqual(errors,[]);
 });
 test('if the mock check fails, Home still shows everything else',async()=>{
  const{dom,w,errors,wait}=await mount({failMocks:true});

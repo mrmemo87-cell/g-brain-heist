@@ -1,7 +1,7 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.23.0
+**Version:** 1.23.1
 **Effective date:** 2026-11-23\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
@@ -338,7 +338,7 @@ Owner request (2026-11-22): teacher pages "are in several areas and not clearly 
 
 - A Speaking practice mock a teacher gave is work like any other, so the student sees it where they look for work, not only on Journey:
   - **Home:** a not-started mock is in **New for you** and counts as new work; a started one is in **Pick up where you left off**. Home never says "All caught up" while a mock is waiting.
-  - **Assignments:** a "Speaking practice mock" group at the top with the open mock, and a folded "Finished Speaking practice mocks" group.
+  - **Assignments and Targeted (1.23.1):** one "Speaking practice mock" group at the top, **folded closed by default**, counting what is still to do ("1 to do", or "N finished" when none is open); inside, open mocks first, then finished ones.
   - **Journey** keeps its card.
 - The card uses the student work card: chip New / In progress / Finished / Checked, kicker "Speaking · practice mock", the mock's title, "About 15 minutes · recorded examiner · not an official IELTS test", and one action: **Start the mock →** or **Continue the mock →**.
 - If the mock check fails, Home and Assignments still show all other work.
@@ -370,6 +370,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.32 Revision record — 1.23.1 (2026-11-23)
+
+Owner instruction (2026-11-23): "keep them in Assignments and Targeted tabs collapsed closed by default." The Speaking practice mock group is on both tabs, folded closed, with its count in the heading. Home is unchanged.
 
 ### 14.31 Revision record — 1.23.0 (2026-11-23)
 

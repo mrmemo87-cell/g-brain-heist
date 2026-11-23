@@ -234,3 +234,5 @@
 /* Plain header: solid surface, no glow or decorative orbs. */
 .isn-hero { background: var(--isn-brand-deep); box-shadow: none; }
 .isn-orb { display: none; }
+/* Speaking practice mock group on Assignments and Targeted (UX Bible 13.14). */
+.isn-mock-group { margin-bottom: 1rem; }

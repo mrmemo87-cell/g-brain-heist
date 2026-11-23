@@ -30,6 +30,7 @@ import "../../styles/ielts-learning.css";
 import IeltsStudentShell from "../../components/ielts/student/IeltsStudentShell";
 import { invalidateIeltsStudentWork, markFeedbackSeen } from "../../components/ielts/student/useIeltsStudentWork";
 import { IeltsTargetedGroups } from "../../components/ielts/IeltsTargetedPractice";
+import { SpeakingMockGroup } from "../../components/ielts/student/IeltsSpeakingMockWork";
 import TargetedStepPlayer, { TargetedResultSteps } from "../../components/ielts/TargetedStepPlayer";
 import { displayDateLocale, DISPLAY_DATE_TIME } from '../../utils/displayDate';
 const criterionLabels: Record<string, string> = {
@@ -1005,6 +1006,8 @@ export default function IeltsLearningPractice() {
   if (!allocationId) {
     return (
       <IeltsStudentShell active="targeted" eyebrow="Chosen for you" title="Targeted practice" lead="Short tasks your teacher picked for you. Start one, continue saved work or read your feedback.">
+        {/* Speaking practice mocks from a teacher, folded closed (UX Bible 13.14). */}
+        <SpeakingMockGroup />
         <div className="il-shell il-shell--student">{inner}</div>
       </IeltsStudentShell>
     );

@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { mockHome, type MockHome } from '../../../../services/ieltsSpeakingMockService';
 import IeltsWorkCard from './IeltsWorkCard';
+import { IeltsCardGroup } from './IeltsStudentShell';
 
 export type StudentMock = NonNullable<MockHome['mocks']>[number];
 
@@ -38,5 +39,23 @@ export function SpeakingMockWorkCard({ mock, index = 0 }: { mock: StudentMock; i
         ? { label: 'Open →', to: '/ielts/speaking-mock', quiet: true }
         : { label: going ? 'Continue the mock →' : 'Start the mock →', to: `/ielts/speaking-mock/${mock.assignment_id}` }}
     />
+  );
+}
+
+/**
+ * Assignments and Targeted tabs (UX Bible 13.14, 1.23.1): one "Speaking practice mock" group, folded closed by
+ * default, open mocks first, then finished ones. The count is what is still to do. Nothing when there is no mock.
+ */
+export function SpeakingMockGroup() {
+  const mocks = useSpeakingMocks() ?? [];
+  if (!mocks.length) return null;
+  const open = mocks.filter((m) => m.state === 'ready' || m.state === 'in_progress');
+  const done = mocks.filter((m) => m.state === 'finished' || m.state === 'reviewed');
+  return (
+    <div className="isn-groups isn-mock-group">
+      <IeltsCardGroup title="Speaking practice mock" count={open.length ? `${open.length} to do` : `${done.length} finished`} tone={open.length ? 'todo' : 'done'} defaultOpen={false}>
+        <div className="isn-cards">{[...open, ...done].map((m, i) => <SpeakingMockWorkCard key={m.assignment_id} mock={m} index={i} />)}</div>
+      </IeltsCardGroup>
+    </div>
   );
 }
