@@ -241,3 +241,12 @@
   .itn-cr-cell { padding: 0; background: none !important; }
   .itn-cr-person { border: 0; padding: 0 0 6mm; }
 }
+.itn-cr-print { display: grid; gap: .75rem; margin: 0; padding: 1rem; border: 1px solid var(--isn-line, #e2e8f0); border-radius: 16px; background: #fff; }
+.itn-cr-print legend { padding: 0 .35rem; font-weight: 800; }
+.itn-cr-print-options { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .7rem 1rem; }
+.itn-cr-print-options label { display: grid; gap: .25rem; font-size: .8rem; font-weight: 700; color: var(--isn-muted, #475569); }
+.itn-cr-print-options select { min-height: 40px; padding: .35rem .7rem; border: 1px solid var(--isn-line, #cbd5e1); border-radius: 12px; background: #fff; font: inherit; font-size: .9rem; }
+.itn-cr-print-options .itn-cr-check { display: flex; align-items: center; gap: .5rem; min-height: 40px; font-size: .9rem; color: var(--isn-ink, #0f172a); }
+.itn-cr-print-options .itn-cr-check input { width: 20px; height: 20px; }
+.itn-cr-plan, .itn-cr-hint { margin: 0; font-size: .86rem; color: var(--isn-muted, #475569); }
+.itn-cr-plan strong { color: var(--isn-ink, #0f172a); }

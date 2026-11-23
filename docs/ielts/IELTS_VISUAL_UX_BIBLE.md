@@ -1,7 +1,7 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.21.0
+**Version:** 1.22.0
 **Effective date:** 2026-11-23\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
@@ -329,9 +329,10 @@ Owner request (2026-11-22): teacher pages "are in several areas and not clearly 
 - **Choose who.** All students, one class, or one course batch, from one list.
 - **Two views.** *Whole class*: one row per student (name, class, done out of given, late count) and one column per piece of work, newest first; each cell is a marks result ("4 / 6"), a teacher Speaking band ("Band 6.5"), "To review", "Overdue", "Started", "Not started", or a quiet dot when that work was not given. The name column and headings stay in view while scrolling. *Each student*: a card per student listing every piece of work with skill, given and due dates, status, done date and result; one student or everyone. Clicking a name in the grid opens that student.
 - **Summary first.** Four figures: pieces of work given, done (% and count), overdue, waiting for your review.
-- **Take it away.** "Print or save as PDF" prints only the report, landscape, without bars or buttons. "Download for Excel" saves one row per student per piece of work (UTF-8, opens correctly in Excel).
+- **Take it away.** "Download for Excel" saves one row per student per piece of work (UTF-8, opens correctly in Excel).
+- **Smart printing (1.22.0).** Printing any IELTS report follows Brains Heist smart printing, the same planner as classroom booklets and certificates (`src/lib/paperScan/printBooklets.ts`). "Print or save as PDF" opens a *Smart printing* panel: what to print (the whole class, a report for each student, or the one student on screen), **Keep each student's pages together** (on by default), **Print sides** (double-sided by default) and **Pages per side** (1, 2 or 4), with the exact sheet count before anything opens. The print preview builds fixed A4 pages (whole class landscape, split into pages of 11 students × 7 pieces of work; student reports portrait, continuing on further pages when long), adds blank spacer pages so each student starts on a fresh sheet, shows "N physical sheets · N content pages · N added blank pages", and gives the printer reminder with the exact dialog settings (sides, pages per side, A4, orientation, actual size, headers and footers off, background graphics on, copies 1, all pages). Every page carries the school name, "Teacher copy · Confidential", a Brains Heist document ID, page numbers and the assessment note. The printed document is recorded in the school document register. The app page itself is never printed.
 - **Honest wording.** Diagnostic Bible 15.1: marks are not bands, Speaking bands are the teacher's, practice is practice, nothing is an official IELTS result; the note is on screen, in print and in the file.
-- **Acceptance.** Rendered at 375 and 1440 px with no page overflow (the grid scrolls inside its own box); DOM tests cover opening, cells, summary, scope choices, each-student view, print and the download.
+- **Acceptance.** Rendered at 375 and 1440 px with no page overflow (the grid scrolls inside its own box); DOM tests cover opening, cells, summary, scope choices, each-student view, the smart printing panel and preview, and the download; unit tests cover the print plan (blank backs, single-sided, separation off, pages per side, long lists, landscape split, escaping).
 
 ## 14. Native app motivation layer — v1.4.0
 
@@ -360,6 +361,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.29 Revision record — 1.22.0 (2026-11-23)
+
+Owner instruction (2026-11-23): "printing any report should follow the smart printing settings we use in Brains Heist." The class report now prints through Brains Heist smart printing (section 13.13): the shared booklet planner, keep-together, print sides, pages per side, exact sheet counts, blank spacers and the printer reminder, with fixed A4 pages and the school document register. This is the rule for every IELTS report that prints from now on.
 
 ### 14.28 Revision record — 1.21.0 (2026-11-23)
 

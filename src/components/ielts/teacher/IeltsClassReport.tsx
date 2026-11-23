@@ -3,11 +3,15 @@ import {
   classReport, cellState, kindLabel, latestFor, reportColumns, reportCsv, resultText, stateLabel, studentSummary,
   type ClassReport, type ReportItem, type ReportScope, type ReportStudent,
 } from "../../../../services/ieltsClassReportService";
+import { DEFAULT_BOOKLET_PRINT_SETTINGS, type BookletPrintSettings } from "../../../lib/paperScan/printBooklets";
+import { buildClassReportPrint, openClassReportPrint, type ClassReportPrintView } from "../../../lib/ieltsClassReportPrint";
 
 /**
  * The teacher's class report (Visual & UX Bible 13.13): every piece of IELTS work each student was given, with its
  * state and result, for the whole class and for each student. Print or save as PDF, or download for Excel.
  * Read-only; Listening and Reading show marks (never bands) and Speaking shows only the teacher's confirmed band.
+ * Printing uses Brains Heist smart printing (src/lib/ieltsClassReportPrint.ts): fixed A4 pages, each student on
+ * their own sheets, an exact sheet count and the printer settings to choose.
  */
 const SKILL: Record<string, string> = { listening: "Listening", reading: "Reading", writing: "Writing", speaking: "Speaking" };
 const fmt = (v: string | null) => (v ? new Date(v).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—");
@@ -33,6 +37,10 @@ export default function IeltsClassReport({ schoolId, schoolName, onClose }: { sc
   const [view, setView] = useState<"class" | "students">("class");
   const [who, setWho] = useState<string>("");
   const now = useMemo(() => Date.now(), [report]);
+  const [printing, setPrinting] = useState(false);
+  const [printView, setPrintView] = useState<ClassReportPrintView>("class");
+  const [printSettings, setPrintSettings] = useState<BookletPrintSettings>(DEFAULT_BOOKLET_PRINT_SETTINGS);
+  const [printMessage, setPrintMessage] = useState("");
 
   const load = useCallback(async (s: ReportScope, v: string) => {
     setLoading(true); setError("");
@@ -70,7 +78,6 @@ export default function IeltsClassReport({ schoolId, schoolName, onClose }: { sc
 
   return (
     <section className="itn-cr" aria-labelledby="itn-cr-title">
-      <style>{"@media print { @page { size: A4 landscape; margin: 10mm; } }"}</style>
       <div className="itn-cr-top itn-cr-noprint">
         <button type="button" className="itn-see-all" onClick={onClose}>← Back to students</button>
       </div>
@@ -81,12 +88,58 @@ export default function IeltsClassReport({ schoolId, schoolName, onClose }: { sc
           {report && <p className="itn-cr-sub">Made {fmt(report.generated_at)} · {students.length} student{students.length === 1 ? "" : "s"}</p>}
         </div>
         <div className="itn-cr-actions itn-cr-noprint">
-          <button type="button" className="itn-sd-btn" disabled={!report || loading} onClick={() => window.print()}>
+          <button type="button" className="itn-sd-btn" aria-expanded={printing} disabled={!report || loading}
+            onClick={() => { setPrintView(view); setPrintMessage(""); setPrinting((v) => !v); }}>
             Print or save as PDF
           </button>
           <button type="button" className="itn-sd-btn is-main" disabled={!report || loading} onClick={download}>Download for Excel</button>
         </div>
       </header>
+
+      {printing && report && (() => {
+        const plan = buildClassReportPrint(report, { view: printView, settings: printSettings, schoolName, studentId: printView === "students" ? who || undefined : undefined, documentId: "preview", now });
+        const open = () => {
+          const reserved = window.open("", "_blank");
+          const win = openClassReportPrint(report, { view: printView, settings: printSettings, schoolName, studentId: printView === "students" ? who || undefined : undefined, now }, reserved);
+          setPrintMessage(win ? "" : "Your browser blocked the print preview. Allow pop-ups for Brains Heist and try again.");
+        };
+        return (
+          <fieldset className="itn-cr-print itn-cr-noprint">
+            <legend>Smart printing</legend>
+            <div className="itn-segmented" role="group" aria-label="What to print">
+              <button type="button" aria-pressed={printView === "class"} onClick={() => setPrintView("class")}>Whole class</button>
+              <button type="button" aria-pressed={printView === "students"} onClick={() => setPrintView("students")}>
+                {who ? `${students.find((s) => s.id === who)?.name ?? "This student"} only` : "A report for each student"}
+              </button>
+            </div>
+            <div className="itn-cr-print-options">
+              {printView === "students" && (
+                <label className="itn-cr-check">
+                  <input type="checkbox" checked={printSettings.keepTogether} onChange={(e) => setPrintSettings((o) => ({ ...o, keepTogether: e.target.checked }))} />
+                  Keep each student's pages together
+                </label>
+              )}
+              <label>Print sides
+                <select aria-label="Print sides" value={printSettings.duplex ? "double" : "single"} onChange={(e) => setPrintSettings((o) => ({ ...o, duplex: e.target.value === "double" }))}>
+                  <option value="single">Single-sided</option><option value="double">Double-sided</option>
+                </select>
+              </label>
+              <label>Pages per side
+                <select aria-label="Pages per side" value={printSettings.pagesPerSide} onChange={(e) => setPrintSettings((o) => ({ ...o, pagesPerSide: Number(e.target.value) as 1 | 2 | 4 }))}>
+                  <option value={1}>1 page</option><option value={2}>2 pages</option><option value={4}>4 pages</option>
+                </select>
+              </label>
+            </div>
+            <p className="itn-cr-plan" aria-live="polite"><strong>{plan.status}</strong> · A4 {plan.orientation}</p>
+            <p className="itn-cr-hint">Use these same settings in the printer dialog. The preview shows the exact sheets and any blank pages added so each student starts on a new sheet.</p>
+            <div className="itn-cr-actions">
+              <button type="button" className="itn-sd-btn is-main" onClick={open}>Open print preview</button>
+              <button type="button" className="itn-sd-btn" onClick={() => setPrinting(false)}>Cancel</button>
+            </div>
+            {printMessage && <p className="itn-message is-error" role="alert">{printMessage}</p>}
+          </fieldset>
+        );
+      })()}
 
       <div className="itn-cr-controls itn-cr-noprint">
         <label>Students
