@@ -403,6 +403,9 @@ const IeltsAssignedPractice: React.FC = () => {
   const todoSets = sortedAssignments.filter(a => a.student_status !== 'completed' && a.status !== 'closed');
   const closedSets = sortedAssignments.filter(a => a.student_status !== 'completed' && a.status === 'closed');
   const doneSets = sortedAssignments.filter(a => a.student_status === 'completed');
+  // Every group starts folded closed (UX Bible 13.14, 1.23.2); a set opened from Home ("?assignment=") opens its group.
+  const linkedId = new URLSearchParams(window.location.search).get('assignment');
+  const holds = (sets: typeof sortedAssignments) => !!linkedId && sets.some(a => a.id === linkedId);
 
   return (
     <IeltsStudentShell active="assigned" eyebrow="From your teachers" title="Assignments" lead="Practice sets from your teachers. Open a set to see its tasks, results and feedback. Assignments complete automatically after all required items are finished.">
@@ -444,10 +447,10 @@ const IeltsAssignedPractice: React.FC = () => {
 
         {loadState === 'ready' && sortedAssignments.length > 0 && (
           <div className="isn-groups">
-            {todoSets.length > 0 && <IeltsCardGroup title="To do" count={todoSets.length} tone="todo">{todoSets.map(renderAssignment)}</IeltsCardGroup>}
+            {todoSets.length > 0 && <IeltsCardGroup title="To do" count={todoSets.length} tone="todo" defaultOpen={holds(todoSets)}>{todoSets.map(renderAssignment)}</IeltsCardGroup>}
             {todoSets.length === 0 && <p className="isn-waiting"><span aria-hidden="true">✓</span> No open assignments right now.</p>}
-            {doneSets.length > 0 && <IeltsCardGroup title="Finished · results and feedback" count={doneSets.length} tone="done" defaultOpen={false}>{doneSets.map(renderAssignment)}</IeltsCardGroup>}
-            {closedSets.length > 0 && <IeltsCardGroup title="Closed" count={closedSets.length} tone="waiting" defaultOpen={false}>{closedSets.map(renderAssignment)}</IeltsCardGroup>}
+            {doneSets.length > 0 && <IeltsCardGroup title="Finished · results and feedback" count={doneSets.length} tone="done" defaultOpen={holds(doneSets)}>{doneSets.map(renderAssignment)}</IeltsCardGroup>}
+            {closedSets.length > 0 && <IeltsCardGroup title="Closed" count={closedSets.length} tone="waiting" defaultOpen={holds(closedSets)}>{closedSets.map(renderAssignment)}</IeltsCardGroup>}
           </div>
         )}
       </div>
