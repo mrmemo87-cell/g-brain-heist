@@ -56,7 +56,7 @@ export default function IeltsTeacherToday({ schoolName, canManage, waiting, wait
   feedbackError: boolean;
   practiceError: boolean;
   students: number;
-  onOpen: (tab: IeltsTeacherTab | 'assign' | 'targeted' | 'history' | 'interviews') => void;
+  onOpen: (tab: IeltsTeacherTab | 'assign' | 'targeted' | 'history' | 'interviews' | 'report') => void;
   onRetry: () => void;
   extraTools?: React.ReactNode;
 }) {
@@ -88,6 +88,7 @@ export default function IeltsTeacherToday({ schoolName, canManage, waiting, wait
     ] },
     { title: 'Know your students', spots: [
       { id: 'students', icon: 'students', title: 'Student progress', text: 'Four-skill evidence, plans, reports', count: students },
+      { id: 'report', icon: 'map', title: 'Class report', text: 'Work given to each student, and the results', manage: true },
     ] },
     { title: 'Run tests', spots: [
       { id: 'exams', icon: 'exams', title: 'Exam sessions', text: 'Schedule, launch and monitor', manage: true },

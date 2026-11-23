@@ -137,7 +137,7 @@ async function check(admin, pending = 0, manage = true) {
     ? ["Check work", "Give work", "Teach", "Know your students", "Run tests", "Set up"]
     : ["Check work", "Give work", "Know your students", "Run tests", "Set up"]);
   assert.deepEqual([...map.querySelectorAll(".itn-map-spot strong")].map(x => x.firstChild.textContent), manage
-    ? ["Reviews", "Everything assigned", "Assign work", "Targeted practice", "Speaking practice mocks", "Lessons", "Batches", "Student progress", "Exam sessions", "Speaking interviews", "Programme team"]
+    ? ["Reviews", "Everything assigned", "Assign work", "Targeted practice", "Speaking practice mocks", "Lessons", "Batches", "Student progress", "Class report", "Exam sessions", "Speaking interviews", "Programme team"]
     : ["Reviews", "Speaking practice mocks", "Student progress", "Speaking interviews", "Programme team"]);
   assert.equal(today.querySelector(".itn-tiles"), null, "No second shortcut grid");
   assert.equal([...today.querySelectorAll(".isn-group")].find(g => g.textContent.includes("More tools")), undefined, "Nothing hidden in a folded box");

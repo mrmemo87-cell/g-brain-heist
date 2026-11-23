@@ -1,8 +1,8 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.20.0
-**Effective date:** 2026-11-22\
+**Version:** 1.21.0
+**Effective date:** 2026-11-23\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
 
@@ -323,6 +323,16 @@ Owner request (2026-11-22): teacher pages "are in several areas and not clearly 
 - **The same bar everywhere (1.20.0).** Teacher pages outside the workspace — a Speaking session or mock review, the interviews page, the Writing screener review desk and essays, the full review list and a practice review — show the same header ("← IELTS teaching") and the same tab bar, with the matching tab marked (Reviews for reviews and sessions, Speaking for interviews). Every tab returns to that place in the workspace. People without IELTS programme access (students opening their own feedback) see no teacher bar. The bar shows at once from what the workspace last knew (school, management rights, review count) and is then checked against programme access.
 - **School administration uses the same bar (1.20.0).** The administrator-only IELTS menu above the workspace is retired. School administrators see the programme workspace with its one bar plus a **School** tab (Results · Student journeys · IELTS settings, as one row of choices). Every former address still works and opens its place in the bar: Programme Home → Today, Exams → Exams (the guarded school exam workspace and its monitor), Assignment Overview → Assign (School assignments), Reviews → Reviews (a review, or the full review list, opens under the bar with Reviews marked), Results / Student Progress / Settings → School. On phones and tablets the IELTS bar stays at the top inside the portal so it never covers the portal's own phone bar.
 
+### 13.13 Class report — v1.21.0
+
+- **Where.** Students tab → **Class report** (programme lead and school administrators), and on Today's map under "Know your students". The address keeps `report=1`, so Back and reload work; any tab closes it.
+- **Choose who.** All students, one class, or one course batch, from one list.
+- **Two views.** *Whole class*: one row per student (name, class, done out of given, late count) and one column per piece of work, newest first; each cell is a marks result ("4 / 6"), a teacher Speaking band ("Band 6.5"), "To review", "Overdue", "Started", "Not started", or a quiet dot when that work was not given. The name column and headings stay in view while scrolling. *Each student*: a card per student listing every piece of work with skill, given and due dates, status, done date and result; one student or everyone. Clicking a name in the grid opens that student.
+- **Summary first.** Four figures: pieces of work given, done (% and count), overdue, waiting for your review.
+- **Take it away.** "Print or save as PDF" prints only the report, landscape, without bars or buttons. "Download for Excel" saves one row per student per piece of work (UTF-8, opens correctly in Excel).
+- **Honest wording.** Diagnostic Bible 15.1: marks are not bands, Speaking bands are the teacher's, practice is practice, nothing is an official IELTS result; the note is on screen, in print and in the file.
+- **Acceptance.** Rendered at 375 and 1440 px with no page overflow (the grid scrolls inside its own box); DOM tests cover opening, cells, summary, scope choices, each-student view, print and the download.
+
 ## 14. Native app motivation layer — v1.4.0
 
 This section applies **only inside the installed iPhone and Android apps** (`isNativeApp()`). The website keeps sections 12.4 and 13.6 unchanged. Where this section allows more than 12.4 or 13.6, it overrides them for the app only.
@@ -350,6 +360,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.28 Revision record — 1.21.0 (2026-11-23)
+
+Adds section 13.13, the teacher class report (owner request 2026-11-23): whole-class grid and each-student lists of the IELTS work given, with states and governed results, print/PDF and Excel download.
 
 ### 14.27 Revision record — 1.20.0 (2026-11-22)
 

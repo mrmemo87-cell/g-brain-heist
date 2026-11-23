@@ -173,3 +173,71 @@
 /* The same teacher bar on pages outside the workspace (IeltsTeacherPageBar). */
 .isn-page.itn-pagebar { min-height: 0; padding: 0; background: transparent; overflow: visible; z-index: 30; }
 @media (max-width: 1024px) { body:has(.itn-pagebar) { padding-bottom: 6.5rem; } }
+
+/* Class report (UX Bible 13.13). */
+.itn-cr-open { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; margin: 0 0 1rem; padding: .9rem 1rem; border: 1px solid var(--isn-line, #e2e8f0); border-radius: 16px; background: #fff; }
+.itn-cr-open span { color: var(--isn-muted, #475569); font-size: .9rem; }
+.itn-cr { display: grid; gap: 1rem; color: var(--isn-ink, #0f172a); }
+.itn-cr-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: .8rem; }
+.itn-cr-head h2 { margin: .1rem 0 0; font-size: 1.35rem; }
+.itn-cr-sub { margin: .2rem 0 0; color: var(--isn-muted, #475569); font-size: .88rem; }
+.itn-cr-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.itn-cr-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .7rem 1rem; }
+.itn-cr-controls label { display: grid; gap: .25rem; font-size: .8rem; font-weight: 700; color: var(--isn-muted, #475569); }
+.itn-cr-controls select { min-height: 40px; min-width: 12rem; padding: .35rem .7rem; border: 1px solid var(--isn-line, #cbd5e1); border-radius: 12px; background: #fff; font: inherit; font-size: .9rem; color: var(--isn-ink, #0f172a); }
+.itn-cr-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .6rem; margin: 0; }
+.itn-cr-stats > div { padding: .75rem .9rem; border: 1px solid var(--isn-line, #e2e8f0); border-radius: 14px; background: #fff; }
+.itn-cr-stats dt { font-size: .78rem; color: var(--isn-muted, #475569); }
+.itn-cr-stats dd { margin: .15rem 0 0; font-size: 1.35rem; font-weight: 800; }
+.itn-cr-stats small { font-size: .8rem; font-weight: 600; color: var(--isn-muted, #475569); }
+.itn-cr-stats .is-warn dd { color: #b45309; }
+.itn-cr-stats .is-hot dd { color: #be123c; }
+@media (max-width: 640px) { .itn-cr-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.itn-cr-scroll { overflow: auto; max-height: 70vh; border: 1px solid var(--isn-line, #e2e8f0); border-radius: 16px; background: #fff; }
+.itn-cr-grid { border-collapse: separate; border-spacing: 0; font-size: .82rem; min-width: 100%; }
+.itn-cr-grid th, .itn-cr-grid td { padding: .45rem .55rem; border-bottom: 1px solid #eef2f7; text-align: left; vertical-align: middle; white-space: nowrap; }
+.itn-cr-grid thead th { position: sticky; top: 0; z-index: 2; background: #f8fafc; vertical-align: bottom; min-width: 7.5rem; max-width: 11rem; white-space: normal; }
+.itn-cr-grid .is-sticky { position: sticky; left: 0; z-index: 1; background: #fff; min-width: 10rem; box-shadow: 1px 0 0 #eef2f7; }
+.itn-cr-grid thead .is-sticky { z-index: 3; background: #f8fafc; }
+.itn-cr-colskill { display: block; font-size: .7rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; color: var(--isn-brand, #1746b0); }
+.itn-cr-coltitle { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-weight: 600; }
+.itn-page .itn-cr-grid button.itn-cr-name, .itn-cr-name { min-height: 0; margin: 0; padding: 0; border-radius: 0; box-shadow: none; border: 0; background: none; font: inherit; font-weight: 700; color: var(--isn-brand, #1746b0); cursor: pointer; text-align: left; }
+.itn-cr-name:hover { text-decoration: underline; }
+.itn-cr-class { display: block; margin-top: .1rem; font-size: .72rem; color: var(--isn-muted, #64748b); }
+.itn-cr-done { font-weight: 700; }
+.itn-cr-late { color: #b45309; font-weight: 600; }
+.itn-cr-cell { display: inline-block; padding: .15rem .5rem; border-radius: 999px; font-weight: 700; font-size: .78rem; background: #f1f5f9; color: #334155; }
+.itn-cr-cell.is-result { background: #ecfdf5; color: #047857; }
+.itn-cr-cell.is-done { background: #ecfdf5; color: #047857; }
+.itn-cr-cell.is-waiting { background: #fff1f2; color: #be123c; }
+.itn-cr-cell.is-in_progress { background: #eff6ff; color: #1d4ed8; }
+.itn-cr-cell.is-overdue { background: #fffbeb; color: #b45309; }
+.itn-cr-cell.is-not_started, .itn-cr-cell.is-excused, .itn-cr-cell.is-skipped { background: #f8fafc; color: #64748b; font-weight: 600; }
+.itn-cr-cell.is-none { background: none; color: #cbd5e1; }
+.itn-cr-people { display: grid; gap: 1rem; }
+.itn-cr-person { padding: 1rem; border: 1px solid var(--isn-line, #e2e8f0); border-radius: 16px; background: #fff; break-inside: avoid; }
+.itn-cr-person header h3 { margin: 0; font-size: 1.05rem; }
+.itn-cr-person header p { margin: .2rem 0 .7rem; color: var(--isn-muted, #475569); font-size: .86rem; }
+.itn-cr-list { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.itn-cr-list th, .itn-cr-list td { padding: .5rem .45rem; border-top: 1px solid #eef2f7; text-align: left; vertical-align: top; }
+.itn-cr-list thead th { border-top: 0; font-size: .74rem; color: var(--isn-muted, #64748b); }
+.itn-cr-work { display: block; font-weight: 600; }
+.itn-cr-kind { display: block; margin-top: .15rem; font-size: .74rem; color: var(--isn-muted, #64748b); }
+@media (max-width: 640px) {
+  .itn-cr-list thead { display: none; }
+  .itn-cr-list tr { display: grid; grid-template-columns: 1fr 1fr; gap: .2rem .6rem; padding: .6rem 0; border-top: 1px solid #eef2f7; }
+  .itn-cr-list td { border: 0; padding: 0; }
+  .itn-cr-list td:first-child { grid-column: 1 / -1; }
+  .itn-cr-list td[data-label]::before { content: attr(data-label); display: block; font-size: .7rem; font-weight: 700; color: var(--isn-muted, #64748b); }
+}
+.itn-cr-note { margin: 0; color: var(--isn-muted, #64748b); font-size: .8rem; }
+@media print {
+  body:has(.itn-cr) .itn-nav, body:has(.itn-cr) .isn-top, body:has(.itn-cr) .itn-head, body:has(.itn-cr) .itn-cr-noprint,
+  body:has(.itn-cr) .school-admin-mobile-bottom-nav, body:has(.itn-cr) aside, body:has(.itn-cr) .itn-pagebar { display: none !important; }
+  body:has(.itn-cr) { padding: 0 !important; background: #fff !important; }
+  .itn-cr-scroll { max-height: none; overflow: visible; border: 0; }
+  .itn-cr-grid { font-size: 7.5pt; }
+  .itn-cr-grid .is-sticky, .itn-cr-grid thead th { position: static; }
+  .itn-cr-cell { padding: 0; background: none !important; }
+  .itn-cr-person { border: 0; padding: 0 0 6mm; }
+}

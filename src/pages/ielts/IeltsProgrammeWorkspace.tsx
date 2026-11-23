@@ -31,6 +31,7 @@ const Lessons = React.lazy(() => import("./IeltsLessonLibrary"));
 const Batches = React.lazy(() => import("./IeltsCourseBatches"));
 const Exams = React.lazy(() => import("./IeltsExamManager"));
 const Speaking = React.lazy(() => import("../../components/ielts/teacher/IeltsTeacherSpeaking"));
+const ClassReport = React.lazy(() => import("../../components/ielts/teacher/IeltsClassReport"));
 type Section =
   | "overview"
   | "students"
@@ -123,6 +124,13 @@ export default function IeltsProgrammeWorkspace({
   const [feedback, setFeedback] = useState<LearningAllocation[] | null>(null);
   const [feedbackError, setFeedbackError] = useState(false);
   const [planStudent, setPlanStudent] = useState<string | null>(null);
+  // Class report (UX Bible 13.13): a view inside Students, kept in the address so Back and reload work.
+  const [report, setReport] = useState(() => new URLSearchParams(window.location.search).get("report") === "1");
+  useEffect(() => {
+    const sync = () => setReport(new URLSearchParams(window.location.search).get("report") === "1");
+    window.addEventListener("popstate", sync);
+    return () => window.removeEventListener("popstate", sync);
+  }, []);
   const [planFocus, setPlanFocus] = useState<"plan" | "reports">("plan");
   useEffect(() => {
     setPlanStudent(null);
@@ -222,11 +230,23 @@ export default function IeltsProgrammeWorkspace({
       setOffset(0);
     }
     setSection(s);
+    setReport(false);
     const u = new URL(window.location.href);
     u.searchParams.set("programmeSection", s);
+    u.searchParams.delete("report");
     if (data && !embedded) u.searchParams.set("school", data.school_id);
     window.history.pushState({}, "", u.pathname + u.search + u.hash);
     onSectionChange?.(s);
+  };
+  const openReport = (on: boolean) => {
+    const u = new URL(window.location.href);
+    u.searchParams.set("programmeSection", "students");
+    if (on) u.searchParams.set("report", "1"); else u.searchParams.delete("report");
+    window.history.pushState({}, "", u.pathname + u.search + u.hash);
+    setPlanStudent(null);
+    setReport(on);
+    if (section !== "students") { setSection("students"); onSectionChange?.("students"); }
+    window.scrollTo?.({ top: 0 });
   };
   // Deep-link into the existing Practice Desk; do not create a second assignment flow.
   const openPractice = (mode: "history" | "targeted" | "school") => {
@@ -326,8 +346,9 @@ export default function IeltsProgrammeWorkspace({
     school: ["School", "School IELTS administration", "Results, each student's journey and the school's IELTS settings."],
   };
   const head = heads[section];
-  const openFromToday = (target: IeltsTeacherTab | "assign" | "targeted" | "history" | "interviews") => {
+  const openFromToday = (target: IeltsTeacherTab | "assign" | "targeted" | "history" | "interviews" | "report") => {
     if (target === "targeted" || target === "history") openPractice(target);
+    else if (target === "report") openReport(true);
     else if (target === "interviews") navigate("/ielts/speaking-interviews");
     else if (target === "assign") openPractice("history");
     else navigateTeacher(target);
@@ -416,7 +437,7 @@ export default function IeltsProgrammeWorkspace({
                 </select>
               </label>
             )}
-            {head && !(section === "students" && planStudent) && (
+            {head && !(section === "students" && (planStudent || (report && data?.can_manage))) && (
               <div className="isn-head itn-head">
                 <p className="isn-eyebrow">{head[0]}</p>
                 <h1>{head[1]}</h1>
@@ -469,7 +490,18 @@ export default function IeltsProgrammeWorkspace({
                   <LearningPlanDesk key={data.school_id + planStudent} schoolId={data.school_id} studentId={planStudent} initialFocus={planFocus} onClose={() => setPlanStudent(null)} />
                 </React.Suspense>
               )}
-              {section === "students" && !planStudent && (
+              {section === "students" && !planStudent && report && data.can_manage && (
+                <React.Suspense fallback={<p role="status">Making the class report…</p>}>
+                  <ClassReport key={data.school_id} schoolId={data.school_id} schoolName={data.schools.find((s) => s.id === data.school_id)?.name} onClose={() => openReport(false)} />
+                </React.Suspense>
+              )}
+              {section === "students" && !planStudent && !(report && data.can_manage) && data.can_manage && (
+                <div className="itn-cr-open">
+                  <button type="button" className="itn-sd-btn is-main" onClick={() => openReport(true)}>Class report</button>
+                  <span>Every piece of work each student was given, with results. Print it, save it as a PDF or download it for Excel.</span>
+                </div>
+              )}
+              {section === "students" && !planStudent && !(report && data.can_manage) && (
                 <IeltsStudentProgress
                   data={data}
                   search={search}
