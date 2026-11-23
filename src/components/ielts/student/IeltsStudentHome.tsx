@@ -8,6 +8,7 @@ import {
   type IeltsStartingPoint,
 } from '../../../../services/ieltsStartingPointService';
 import IeltsWorkCard, { dueText, skillName } from './IeltsWorkCard';
+import { SpeakingMockWorkCard, useSpeakingMocks } from './IeltsSpeakingMockWork';
 import { IeltsWaitingForScreeners } from '../IeltsTargetedPractice';
 import { openSet, seenFeedback, useIeltsPracticeReviews, useIeltsStudentWork } from './useIeltsStudentWork';
 import { IeltsWaitingDots } from '../IeltsMotion';
@@ -52,6 +53,10 @@ export default function IeltsStudentHome() {
   const tasks = work.tasks ?? [];
   const sets = work.sets ?? [];
   const practiceReviews = useIeltsPracticeReviews();
+  // Speaking practice mocks from a teacher are work too (UX Bible 13.14).
+  const mocks = useSpeakingMocks();
+  const newMocks = (mocks ?? []).filter((m) => m.state === 'ready');
+  const goingMocks = (mocks ?? []).filter((m) => m.state === 'in_progress');
   const targetedFeedback = tasks.filter((t) => t.reviewed && t.status !== 'closed' && !seen.has(t.id));
   // Reviewed practice-assignment essays and recordings count as feedback too, until the student opens them.
   const practiceFeedback = (practiceReviews ?? []).filter((r) => !seen.has(`practice:${r.id}`));
@@ -61,10 +66,10 @@ export default function IeltsStudentHome() {
   const goingSets = sets.filter((a) => openSet(a) && a.student_status === 'in_progress');
   const goingTasks = tasks.filter((t) => t.status === 'in_progress');
   const waiting = tasks.filter((t) => t.status === 'submitted' && !t.reviewed);
-  const newCount = newSets.length + newTasks.length;
-  const goingCount = goingSets.length + goingTasks.length;
+  const newCount = newSets.length + newTasks.length + newMocks.length;
+  const goingCount = goingSets.length + goingTasks.length + goingMocks.length;
   // Wait for the practice reviews too, so Home never says "all caught up" while feedback is still loading.
-  const loading = (work.tasks === null && !work.tasksError) || practiceReviews === null;
+  const loading = (work.tasks === null && !work.tasksError) || practiceReviews === null || mocks === undefined;
   const checksDone = point ? startingPointSkills.filter((s) => startingPointCompleted(point, s)).length : 4;
   const firstName = (realName ?? point?.student_name)?.split(/\s+/)[0];
   const today = new Date().toLocaleDateString(displayDateLocale(), { weekday: 'long', day: 'numeric', month: 'long' });
@@ -114,6 +119,7 @@ export default function IeltsStudentHome() {
                 title={r.title} meta="Your teacher has reviewed this and set your band."
                 action={{ label: 'Read feedback →', to: `/ielts/review-result/${r.skill}/${encodeURIComponent(r.id)}` }} />
             ))}
+            {newMocks.map((m) => <SpeakingMockWorkCard key={m.assignment_id} mock={m} index={n++} />)}
             {newSets.map((a) => (
               <IeltsWorkCard key={a.id} index={n++} tone="new" chip="New" kicker={`Assignment · ${plural(a.item_count ?? a.items?.length ?? 0, 'task', 'tasks')}`}
                 title={a.title} meta={dueText(a.due_at) || undefined}
@@ -134,6 +140,7 @@ export default function IeltsStudentHome() {
         <section className="isn-section" aria-labelledby="isn-going">
           <h2 id="isn-going" className="isn-section-title">Pick up where you left off</h2>
           <div className="isn-cards">
+            {goingMocks.map((m) => <SpeakingMockWorkCard key={m.assignment_id} mock={m} index={n++} />)}
             {goingTasks.map((t) => (
               <IeltsWorkCard key={t.id} index={n++} tone="continue" chip="In progress" kicker={`${skillName(t.skill)} · targeted`} skill={t.skill}
                 title={ieltsMaterialTitle(t.display_code, t.title)} meta={dueText(t.due_at) || undefined} note={t.reason}
