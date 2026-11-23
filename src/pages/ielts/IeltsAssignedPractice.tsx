@@ -18,6 +18,7 @@ import {
   getAssignmentProgressSummaryFromAssignment,
 } from '../../../services/ieltsAssignmentUx';
 import IeltsStudentShell, { IeltsCardGroup } from '../../components/ielts/student/IeltsStudentShell';
+import { SpeakingMockWorkCard, useSpeakingMocks } from '../../components/ielts/student/IeltsSpeakingMockWork';
 import { invalidateIeltsStudentWork } from '../../components/ielts/student/useIeltsStudentWork';
 import { AssignmentItemStatusBadge, AssignmentProgressBar } from './assignmentPracticeUi';
 import { displayDateLocale } from '../../utils/displayDate';
@@ -402,6 +403,10 @@ const IeltsAssignedPractice: React.FC = () => {
   const todoSets = sortedAssignments.filter(a => a.student_status !== 'completed' && a.status !== 'closed');
   const closedSets = sortedAssignments.filter(a => a.student_status !== 'completed' && a.status === 'closed');
   const doneSets = sortedAssignments.filter(a => a.student_status === 'completed');
+  // Speaking practice mocks from a teacher sit with the other assignments (UX Bible 13.14).
+  const mocks = useSpeakingMocks() ?? [];
+  const openMocks = mocks.filter((m) => m.state === 'ready' || m.state === 'in_progress');
+  const finishedMocks = mocks.filter((m) => m.state === 'finished' || m.state === 'reviewed');
 
   return (
     <IeltsStudentShell active="assigned" eyebrow="From your teachers" title="Assignments" lead="Practice sets from your teachers. Open a set to see its tasks, results and feedback. Assignments complete automatically after all required items are finished.">
@@ -430,6 +435,14 @@ const IeltsAssignedPractice: React.FC = () => {
           </div>
         )}
 
+        {openMocks.length > 0 && (
+          <div className="isn-groups" style={{ marginBottom: '1rem' }}>
+            <IeltsCardGroup title="Speaking practice mock" count={openMocks.length} tone="todo">
+              <div className="isn-cards">{openMocks.map((m, i) => <SpeakingMockWorkCard key={m.assignment_id} mock={m} index={i} />)}</div>
+            </IeltsCardGroup>
+          </div>
+        )}
+
         {/* Empty */}
         {loadState === 'ready' && sortedAssignments.length === 0 && (
           <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1.25rem', color: 'var(--bh-ielts-foreground-muted)', fontSize: '0.875rem', lineHeight: 1.6 }}>
@@ -443,6 +456,7 @@ const IeltsAssignedPractice: React.FC = () => {
             {todoSets.length > 0 && <IeltsCardGroup title="To do" count={todoSets.length} tone="todo">{todoSets.map(renderAssignment)}</IeltsCardGroup>}
             {todoSets.length === 0 && <p className="isn-waiting"><span aria-hidden="true">✓</span> No open assignments right now.</p>}
             {doneSets.length > 0 && <IeltsCardGroup title="Finished · results and feedback" count={doneSets.length} tone="done" defaultOpen={false}>{doneSets.map(renderAssignment)}</IeltsCardGroup>}
+            {finishedMocks.length > 0 && <IeltsCardGroup title="Finished Speaking practice mocks" count={finishedMocks.length} tone="done" defaultOpen={false}><div className="isn-cards">{finishedMocks.map((m, i) => <SpeakingMockWorkCard key={m.assignment_id} mock={m} index={i} />)}</div></IeltsCardGroup>}
             {closedSets.length > 0 && <IeltsCardGroup title="Closed" count={closedSets.length} tone="waiting" defaultOpen={false}>{closedSets.map(renderAssignment)}</IeltsCardGroup>}
           </div>
         )}

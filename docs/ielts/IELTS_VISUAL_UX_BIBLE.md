@@ -1,7 +1,7 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.22.1
+**Version:** 1.23.0
 **Effective date:** 2026-11-23\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
@@ -334,6 +334,15 @@ Owner request (2026-11-22): teacher pages "are in several areas and not clearly 
 - **Honest wording.** Diagnostic Bible 15.1: marks are not bands, Speaking bands are the teacher's, practice is practice, nothing is an official IELTS result; the note is on screen, in print and in the file.
 - **Acceptance.** Rendered at 375 and 1440 px with no page overflow (the grid scrolls inside its own box); DOM tests cover opening, cells, summary, scope choices, each-student view, the smart printing panel and preview, and the download; unit tests cover the print plan (blank backs, single-sided, separation off, pages per side, long lists, landscape split, escaping).
 
+### 13.14 Students find their Speaking practice mock with their other work — v1.23.0
+
+- A Speaking practice mock a teacher gave is work like any other, so the student sees it where they look for work, not only on Journey:
+  - **Home:** a not-started mock is in **New for you** and counts as new work; a started one is in **Pick up where you left off**. Home never says "All caught up" while a mock is waiting.
+  - **Assignments:** a "Speaking practice mock" group at the top with the open mock, and a folded "Finished Speaking practice mocks" group.
+  - **Journey** keeps its card.
+- The card uses the student work card: chip New / In progress / Finished / Checked, kicker "Speaking · practice mock", the mock's title, "About 15 minutes · recorded examiner · not an official IELTS test", and one action: **Start the mock →** or **Continue the mock →**.
+- If the mock check fails, Home and Assignments still show all other work.
+
 ## 14. Native app motivation layer — v1.4.0
 
 This section applies **only inside the installed iPhone and Android apps** (`isNativeApp()`). The website keeps sections 12.4 and 13.6 unchanged. Where this section allows more than 12.4 or 13.6, it overrides them for the app only.
@@ -361,6 +370,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.31 Revision record — 1.23.0 (2026-11-23)
+
+Owner report (2026-11-23): Jess gave Gulzada a Speaking practice mock and Gulzada could not find it. The mock card was only on Journey, below the starting step; Home said "All caught up". Section 13.14: the mock now shows on Home and Assignments with the student's other work. No assessment, access or assignment rule changes.
 
 ### 14.30 Revision record — 1.22.1 (2026-11-23)
 

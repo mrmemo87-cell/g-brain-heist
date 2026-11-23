@@ -2,7 +2,7 @@ import {JSDOM,VirtualConsole} from 'jsdom';
 import test from 'node:test';import assert from 'node:assert/strict';import {build} from 'esbuild';import {randomUUID} from 'node:crypto';
 const task={id:'00000000-0000-0000-0000-000000000201',title:'Pottery workshop',skill:'listening',purpose:'guided_practice',status:'in_progress',reviewed:false,reason:'Practise checking the final confirmed detail.',due_at:null};
 const bundle=await build({stdin:{contents:`import React from 'react';import{createRoot}from'react-dom/client';import{RouterProvider,createBrowserRouter}from'./src/lib/router';import{ supabase }from'./services/supabaseClient';import Home from './src/pages/ielts/IeltsHome';import Targeted from './src/pages/ielts/IeltsLearningPractice';import Assigned from './src/pages/ielts/IeltsAssignedPractice';const user={id:'00000000-0000-0000-0000-000000000001'};supabase.auth.getSession=async()=>({data:{session:{user}}});supabase.auth.getUser=async()=>({data:{user}});supabase.auth.onAuthStateChange=()=>({data:{subscription:{unsubscribe(){}}}});createRoot(document.getElementById('root')).render(<RouterProvider router={createBrowserRouter([{path:'/ielts',element:<Home/>},{path:'/ielts/practice/targeted',element:<Targeted/>},{path:'/ielts/practice/targeted/:id',element:<h1>Task opened</h1>},{path:'/ielts/practice/assigned',element:<Assigned/>}])}/>);`,loader:'tsx',resolveDir:process.cwd()},bundle:true,format:'iife',write:false,loader:{'.css':'empty'},define:{'import.meta':JSON.stringify({env:{VITE_SUPABASE_URL:'https://test.supabase.co',VITE_SUPABASE_ANON_KEY:'test-key'}})},logLevel:'silent'});
-async function mount({path='/ielts',independentNav=false,failPractice=false,denyCapability=false,optionalTools=false,tasks=[task],waiting=0}={}){
+async function mount({path='/ielts',independentNav=false,failPractice=false,denyCapability=false,optionalTools=false,tasks=[task],waiting=0,mocks=[],failMocks=false}={}){
  const calls=[],errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
  const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost'+path,runScripts:'outside-only',pretendToBeVisual:true,virtualConsole:vc}),w=dom.window;
  Object.assign(w,{TextEncoder,TextDecoder,Request,Response,Headers});w.crypto.randomUUID=randomUUID;w.HTMLMediaElement.prototype.pause=function(){};
@@ -13,6 +13,7 @@ async function mount({path='/ielts',independentNav=false,failPractice=false,deny
   else if(name==='rpc_ielts_learning_workspace'){if(failPractice){failPractice=false;return new Response(JSON.stringify({message:'test unavailable'}),{status:503,headers:{'Content-Type':'application/json'}});}result={manager:false,pilot_only:true,tasks:[],allocations:tasks};}
   else if(name==='rpc_ielts_starting_point_summary')return new Promise(()=>{}); // slow section must not block navigation or practice
   else if(name==='rpc_ielts_practice_student_assignments')result=[];
+  else if(name==='rpc_ielts_speaking_mock_home'){if(failMocks)return new Response(JSON.stringify({message:'test unavailable'}),{status:503,headers:{'Content-Type':'application/json'}});result={available:true,mocks,voice_wording:null,recording_wording:null};}
   else if(name==='ielts_writing_attempts'||name==='ielts_speaking_attempts')result=[]; // finalized practice reviews for Home
   else if(name==='get_my_effective_entitlements')result={success:true,plan:'school',school_id:independentNav?null:'school',modules:{ielts:true},programme_catalogue:{ielts:{available:true,purchased:true,seat_allocated:true}},entitlements:{}};
   else if(name==='rpc_ielts_course_state')result={access:{full:true,reason:'school_seat'},current_unit_id:1,units_total:20,units_completed:0,units:[{id:1,position:1,title:'Welcome: how IELTS works',lesson_viewed:false,unlocked:true,tasks:[]}]};
@@ -65,4 +66,34 @@ test('learners without school IELTS see Home, Course and Journey only, never the
   m.w.document.querySelector('a[href="/ielts/course"]').click();
   await m.wait(()=>m.w.location.pathname==='/ielts/course');
  }finally{m.dom.window.close();}
+});
+
+// Visual & UX Bible 13.14: a Speaking practice mock from a teacher shows where students look for work.
+const mock=(state,id='00000000-0000-0000-0000-0000000000f1')=>({assignment_id:id,title:'Speaking practice mock B',assigned_at:'2026-11-23T08:36:54Z',session_id:null,state});
+test('a Speaking practice mock from the teacher is on Home under New for you, and on Assignments',async()=>{
+ const{dom,w,errors,wait}=await mount({tasks:[],mocks:[mock('ready')]});
+ await wait(()=>w.document.querySelector('#isn-new'));
+ const card=[...w.document.querySelectorAll('.isn-card')].find(c=>c.textContent.includes('Speaking practice mock B'));
+ assert.ok(card,'the mock is listed with the new work');
+ assert.match(card.textContent,/Speaking · practice mock/);
+ assert.match(w.document.querySelector('.isn-summary').textContent,/1 new task/);
+ assert.ok(!w.document.querySelector('.isn-caught-up'),'never "All caught up" while a mock is waiting');
+ const start=card.querySelector('.isn-action');
+ assert.equal(start.textContent,'Start the mock →');
+ start.click();
+ await wait(()=>w.location.pathname==='/ielts/speaking-mock/00000000-0000-0000-0000-0000000000f1');
+ dom.window.close();
+ const a=await mount({path:'/ielts/practice/assigned',tasks:[],mocks:[mock('in_progress'),mock('finished','00000000-0000-0000-0000-0000000000f2')]});
+ await a.wait(()=>[...a.w.document.querySelectorAll('.isn-card')].some(c=>c.textContent.includes('Continue the mock')));
+ const go=[...a.w.document.querySelectorAll('.isn-card')].find(c=>c.textContent.includes('Continue the mock'));
+ assert.match(go.textContent,/In progress/);
+ assert.deepEqual(errors.concat(a.errors),[]);
+ a.dom.window.close();
+});
+test('if the mock check fails, Home still shows everything else',async()=>{
+ const{dom,w,errors,wait}=await mount({failMocks:true});
+ await wait(()=>w.document.querySelector('.isn-summary')&&!/Checking/.test(w.document.querySelector('.isn-summary').textContent));
+ assert.ok([...w.document.querySelectorAll('.isn-card')].some(c=>c.textContent.includes('Pottery workshop')));
+ assert.deepEqual(errors,[]);
+ dom.window.close();
 });
