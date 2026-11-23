@@ -1,8 +1,8 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.7.2\
-**Effective date:** 2026-11-22\
+**Version:** 2.7.3\
+**Effective date:** 2026-11-23\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
 
@@ -1279,6 +1279,16 @@ Avoid:
 - “You are Band 7” from a short screen
 - “Weakness” when only one isolated item supports the claim
 
+### 15.1 Teacher class report — 2.7.3
+
+**Owner-authorized (2026-11-23, Asia/Bishkek):** "Where can Jess create a report to see the performance of all the students … Even for each student, showing what assignments were given and the score if they had done it … For each and for the whole."
+
+- A read-only record of the IELTS work each student was given (targeted and school practice, screeners, Speaking practice mocks, Speaking interviews) with its state: not started, started, done, done and waiting for review, overdue, excused. It writes nothing, scores nothing and adds nothing to evidence.
+- It shows only results the platform already governs. Listening and Reading show **marks** ("4 / 6", correct answers out of the total) and never a band, because a percentage or raw score is not a band (section 9.1). A screener shows its newest scoring run. Speaking shows the teacher's band only after the teacher has confirmed the review, labelled **Teacher Speaking band** or **Teacher Speaking band · practice mock** (sections 10.8 and 10.12). AI estimates (sections 10.5 and 10.10) never appear. Writing shows only whether it has been reviewed.
+- Every printed, saved or downloaded copy carries the same words: marks are not bands, a Speaking band is the teacher's, practice mock bands are practice, and none is an official IELTS result.
+- It is for the programme lead and school administrators of that school only, and lists only students they may review (section 5.3). The whole class, one class, or one course batch; at most 400 students at a time.
+- Downloaded spreadsheets neutralise anything that looks like a formula.
+
 ---
 
 ## 15A. School UX, language, and visual coherence
@@ -2141,6 +2151,10 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.25 Revision record — v2.7.3 (2026-11-23)
+
+Adds section 15.1, the teacher class report (owner request 2026-11-23). Read-only; it changes no scoring, evidence, confidence, release or access rule. Listening and Reading are reported as marks only; Speaking bands appear only when teacher-confirmed and labelled; AI estimates never appear. Validation: PGlite database tests (`tests/ieltsClassReportDatabase.test.mjs`) and DOM tests (`tests/ieltsClassReportDom.test.mjs`).
 
 ### 22.24 Revision record — v2.7.2 (2026-11-22)
 

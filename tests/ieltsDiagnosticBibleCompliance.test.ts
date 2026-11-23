@@ -9,7 +9,7 @@ test('IELTS Diagnostic Bible is wired into the repository agent contract', () =>
   const agents = read('AGENTS.md');
   const bible = read('docs/ielts/IELTS_DIAGNOSTIC_BIBLE.md');
 
-  assert.match(bible, /\*\*Version:\*\* 2\.7\.2/i);
+  assert.match(bible, /\*\*Version:\*\* 2\.7\.3/i);
   assert.match(bible, /never one the student already has or had/);
   // v2.7.0 recorded-examiner Speaking mock: practice only, screener content excluded, voice consent gated.
   assert.match(bible, /### 10\.12 Recorded-examiner Speaking practice mock/);
