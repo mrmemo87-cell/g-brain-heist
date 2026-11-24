@@ -1,4 +1,4 @@
-# What If Your Mirror Showed You Tomorrow?
+# What If You Could See the Future Through the Mirror?
 
 Social-experiment What-If, told from your own (embarrassing) point of view. Target ~6 min.
 N = narrator. Other names are character voices.
