@@ -1,0 +1,2 @@
+function TEXT2(t,a,b,ta,tb,c1='#3b2f5a',c2='#0b0826',col='#ffe14d'){return PLAIN(c1,c2)+dust(t)+PEEK(1650,1.1,t,['orange','grey','black','white'][Math.floor(ta)%4])+POP(a,960,470,96,'#fff',t,ta)+POP(b,960,620,110,col,t,tb)}
+function STRIKE(x,y,w,t,t0){if(t<t0)return '';const k=es(t,t0,t0+.25);return `<line x1="${x-w/2}" y1="${y}" x2="${n(x-w/2+w*k)}" y2="${y}" stroke="#ff5f5f" stroke-width="16" stroke-linecap="round"/>`}
