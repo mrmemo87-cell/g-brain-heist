@@ -23,7 +23,7 @@ test('class learning needs RPC is per-student authorised, read-only and registry
 test('class view groups needs by skill, sizes the teaching move by class share, and separates unassessed students', () => {
   assert.match(classView, /share >= 0\.5 \? 'whole-class' : share >= 0\.25 \? 'small-group' : 'individual'/);
   assert.match(classView, /const unassessed = data \? data\.students\.filter\(\(student\) => !student\.has_evidence\)/);
-  assert.match(classView, /No assessed \{subject\} work yet/);
+  assert.match(classView, /no assessed \{subject\} work yet/);
   assert.match(classView, /onSelectStudent\(student\.id\)/);
   // Interventions shows the class view when a class is chosen but no student yet.
   assert.match(interventions, /\{!studentId && className \? <>/);
