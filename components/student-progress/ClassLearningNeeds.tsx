@@ -73,9 +73,10 @@ const ClassLearningNeeds: React.FC<ClassLearningNeedsProps> = ({ classLabel, stu
 
   return <section className="cln" aria-label={`Shared learning needs in ${classLabel}`}>
     <header className="cln-head">
-      <div>
-        <h2>{classLabel} · {subject}</h2>
-        <p>{withNeeds} of {total} students have current needs · {data.needs.length} need{data.needs.length === 1 ? '' : 's'} across {groups.length} skill{groups.length === 1 ? '' : 's'}{unassessed.length ? ` · ${unassessed.length} without assessed ${subject} work yet` : ''}{data.students_excluded ? ` · ${data.students_excluded} not in your ${subject} allocation` : ''}</p>
+      <div className="cln-summary">
+        <span className="cln-eyebrow">{classLabel} · {subject}</span>
+        <h2><b>{withNeeds}</b> of {total} students need support now</h2>
+        <p>{data.needs.length} need{data.needs.length === 1 ? '' : 's'} across {groups.length} skill{groups.length === 1 ? '' : 's'}{secure.length ? ` · ${secure.length} with no current needs` : ''}{unassessed.length ? ` · ${unassessed.length} without assessed ${subject} work yet` : ''}{data.students_excluded ? ` · ${data.students_excluded} not in your ${subject} allocation` : ''}</p>
       </div>
       <div className="cln-filter" role="tablist" aria-label="Teaching move">
         {(['all', 'whole-class', 'small-group', 'individual'] as const).map((value) => <button key={value} type="button" role="tab" aria-selected={filter === value} className={`is-${value}${filter === value ? ' is-active' : ''}`} onClick={() => setFilter(value)}>
@@ -124,14 +125,14 @@ const ClassLearningNeeds: React.FC<ClassLearningNeedsProps> = ({ classLabel, stu
       })}
     </div>
 
-    {secure.length ? <footer className="cln-quiet">
-      <strong>No current needs</strong>
+    {secure.length ? <details className="cln-quiet">
+      <summary><strong>{secure.length} student{secure.length === 1 ? ' has' : 's have'} no current needs</strong><span>Show names</span></summary>
       <div>{secure.map((student) => <button key={student.id} type="button" onClick={() => onSelectStudent(student.id)}>{student.name}</button>)}</div>
-    </footer> : null}
-    {unassessed.length ? <footer className="cln-quiet is-unassessed">
-      <strong>No assessed {subject} work yet</strong>
+    </details> : null}
+    {unassessed.length ? <details className="cln-quiet is-unassessed">
+      <summary><strong>{unassessed.length} student{unassessed.length === 1 ? ' has' : 's have'} no assessed {subject} work yet</strong><span>Show names</span></summary>
       <div>{unassessed.map((student) => <button key={student.id} type="button" onClick={() => onSelectStudent(student.id)}>{student.name}</button>)}</div>
-    </footer> : null}
+    </details> : null}
   </section>;
 };
 
