@@ -250,3 +250,19 @@
 .itn-cr-print-options .itn-cr-check input { width: 20px; height: 20px; }
 .itn-cr-plan, .itn-cr-hint { margin: 0; font-size: .86rem; color: var(--isn-muted, #475569); }
 .itn-cr-plan strong { color: var(--isn-ink, #0f172a); }
+/* Mark book (Visual & UX Bible 1.24.0 section 13.13): grouped mock and real IELTS columns before the work columns. */
+.itn-cr-grid thead tr.itn-cr-grouprow th { height: 2.3rem; }
+.itn-cr-grid thead tr.itn-cr-subrow th { top: 2.3rem; }
+.itn-cr-grid thead th.itn-cr-bookgroup { min-width: 0; max-width: none; text-align: center; vertical-align: middle; background: #eef4ff; color: var(--isn-brand, #1746b0); font-weight: 800; border-left: 1px solid #dbe5f5; white-space: nowrap; }
+.itn-cr-grid thead th.itn-cr-bookgroup small { font-weight: 600; color: var(--isn-muted, #64748b); }
+.itn-cr-grid thead th.itn-cr-bookhead { min-width: 5.2rem; max-width: 7rem; background: #f4f8ff; }
+.itn-cr-mbtitle { display: block; font-weight: 700; }
+.itn-cr-booktd { text-align: center; }
+.itn-cr-cell.itn-cr-book { display: inline-grid; justify-items: center; line-height: 1.2; border-radius: 10px; }
+.itn-cr-booksub { display: block; font-size: .68rem; font-weight: 600; opacity: .85; }
+.itn-cr-bookscroll { overflow-x: auto; margin: 0 0 .8rem; }
+.itn-cr-booklist { width: 100%; min-width: 34rem; border-collapse: collapse; font-size: .85rem; }
+.itn-cr-booklist th, .itn-cr-booklist td { padding: .45rem .5rem; border-top: 1px solid #eef2f7; text-align: center; vertical-align: top; }
+.itn-cr-booklist th[scope="row"], .itn-cr-booklist thead th:first-child { text-align: left; font-weight: 600; }
+.itn-cr-booklist thead th { border-top: 0; font-size: .74rem; color: var(--isn-muted, #64748b); }
+@media print { .itn-cr-grid thead tr.itn-cr-subrow th { top: auto; } .itn-cr-booksub { opacity: 1; } }

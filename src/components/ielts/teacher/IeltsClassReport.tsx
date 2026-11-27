@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  classReport, cellState, kindLabel, latestFor, reportColumns, reportCsv, resultText, stateLabel, studentSummary,
-  type ClassReport, type ReportItem, type ReportScope, type ReportStudent,
+  CLASS_REPORT_NOTE, MOCK_SKILLS, classReport, cellState, columnGroups, kindLabel, latestFor, markbookCell, markbookColumns, markbookCsv,
+  mockGroupTitle, mockSectionCell, reportColumns, reportCsv, resultText, stateLabel, studentSummary,
+  type ClassReport, type MarkbookColumn, type ReportItem, type ReportScope, type ReportStudent,
 } from "../../../../services/ieltsClassReportService";
 import { DEFAULT_BOOKLET_PRINT_SETTINGS, type BookletPrintSettings } from "../../../lib/paperScan/printBooklets";
 import { buildClassReportPrint, openClassReportPrint, type ClassReportPrintView } from "../../../lib/ieltsClassReportPrint";
@@ -11,7 +12,9 @@ import { DISPLAY_DATE, displayDateLocale } from "../../../utils/displayDate";
 /**
  * The teacher's class report (Visual & UX Bible 13.13): every piece of IELTS work each student was given, with its
  * state and result, for the whole class and for each student. Print or save as PDF, or download for Excel.
- * Read-only; Listening and Reading show marks (never bands) and Speaking shows only the teacher's confirmed band.
+ * Read-only; Listening and Reading show marks (never bands); Speaking and Writing show only the teacher's confirmed band.
+ * Mark book (Diagnostic Bible 2.7.4 section 15.1): course progress, each full mock per section (marks /40 and the
+ * labelled indicative band range) and real IELTS results come first, before the work columns.
  * Printing uses Brains Heist smart printing (src/lib/ieltsClassReportPrint.ts): fixed A4 pages, each student on
  * their own sheets, an exact sheet count and the printer settings to choose.
  */
@@ -26,6 +29,16 @@ function Cell({ item, now }: { item?: ReportItem; now: number }) {
   return (
     <span className={"itn-cr-cell is-" + st} title={`${item.title} · ${label}${result ? " · " + result : ""}`}>
       {result || (st === "waiting" ? "To review" : label)}
+    </span>
+  );
+}
+
+function BookCell({ student, col }: { student: ReportStudent; col: MarkbookColumn }) {
+  const c = markbookCell(student, col);
+  const state = c.state === "practice" ? "result" : c.state === "none" ? "none" : c.state === "not_sat" || c.state === "not_part" ? "not_started" : c.state;
+  return (
+    <span className={"itn-cr-cell itn-cr-book is-" + state} title={c.title}>
+      {c.text}{c.sub && c.sub !== c.text ? <small className="itn-cr-booksub">{c.sub}</small> : null}
     </span>
   );
 }
@@ -61,6 +74,8 @@ export default function IeltsClassReport({ schoolId, schoolName, onClose }: { sc
 
   const students = report?.students ?? [];
   const columns = useMemo(() => reportColumns(students), [students]);
+  const book = useMemo(() => markbookColumns(students), [students]);
+  const bookGroups = useMemo(() => columnGroups(book), [book]);
   const totals = useMemo(() => {
     let given = 0, done = 0, overdue = 0, waiting = 0;
     for (const s of students) { const x = studentSummary(s, now); given += x.given; done += x.done; overdue += x.overdue; waiting += x.waiting; }
@@ -69,13 +84,13 @@ export default function IeltsClassReport({ schoolId, schoolName, onClose }: { sc
   const scopeName = report?.scope.kind === "all" ? "All students" : report?.scope.kind === "batch" ? `Course batch · ${report?.scope.name}` : `Class ${report?.scope.name ?? ""}`;
   const shownStudents = who ? students.filter((s) => s.id === who) : students;
 
-  const download = () => {
+  const download = (kind: "list" | "markbook" = "list") => {
     if (!report) return;
-    const blob = new Blob([reportCsv(report, now)], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob([kind === "markbook" ? markbookCsv(report, now) : reportCsv(report, now)], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `IELTS class report - ${scopeName.replace(/[\\/:*?"<>|·]/g, "").trim()} - ${new Date(report.generated_at).toISOString().slice(0, 10)}.csv`;
+    a.download = `IELTS ${kind === "markbook" ? "mark book" : "class report"} - ${scopeName.replace(/[\\/:*?"<>|·]/g, "").trim()} - ${new Date(report.generated_at).toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
@@ -96,7 +111,8 @@ export default function IeltsClassReport({ schoolId, schoolName, onClose }: { sc
             onClick={() => { setPrintView(view); setPrintMessage(""); setPrinting((v) => !v); }}>
             Print or save as PDF
           </button>
-          <button type="button" className="itn-sd-btn is-main" disabled={!report || loading} onClick={download}>Download for Excel</button>
+          <button type="button" className="itn-sd-btn is-main" disabled={!report || loading} onClick={() => download("list")}>Download for Excel</button>
+          {book.length > 0 && <button type="button" className="itn-sd-btn" disabled={!report || loading} onClick={() => download("markbook")}>Download mark book for Excel</button>}
         </div>
       </header>
 
@@ -190,16 +206,26 @@ export default function IeltsClassReport({ schoolId, schoolName, onClose }: { sc
             <div className="itn-cr-scroll" role="region" aria-label="Whole-class results" tabIndex={0}>
               <table className="itn-cr-grid">
                 <thead>
-                  <tr>
-                    <th scope="col" className="is-sticky">Student</th>
-                    <th scope="col">Done</th>
+                  <tr className={book.length ? "itn-cr-grouprow" : undefined}>
+                    <th scope="col" className="is-sticky" rowSpan={book.length ? 2 : 1}>Student</th>
+                    <th scope="col" rowSpan={book.length ? 2 : 1}>Done</th>
+                    {bookGroups.map((g) => g.group === "course"
+                      ? <th key={g.group} scope="col" rowSpan={2} className="itn-cr-bookhead"><span className="itn-cr-colskill">Course</span><span className="itn-cr-mbtitle">Units done</span></th>
+                      : <th key={g.group} scope="colgroup" colSpan={g.span} className="itn-cr-bookgroup">{g.title}{g.group === "official" ? "" : <small> · indicative, not official</small>}</th>)}
                     {columns.map((c) => (
-                      <th key={c.key} scope="col" title={`${c.title} · ${kindLabel[c.kind]} · given to ${c.given}`}>
+                      <th key={c.key} scope="col" rowSpan={book.length ? 2 : 1} title={`${c.title} · ${kindLabel[c.kind]} · given to ${c.given}`}>
                         <span className="itn-cr-colskill">{c.skill ? SKILL[c.skill] ?? c.skill : kindLabel[c.kind]}{c.code ? " · " + c.code : ""}</span>
                         <span className="itn-cr-coltitle">{c.title}</span>
                       </th>
                     ))}
                   </tr>
+                  {book.length > 0 && (
+                    <tr className="itn-cr-subrow">
+                      {book.filter((c) => c.kind !== "course").map((c) => (
+                        <th key={c.key} scope="col" className="itn-cr-bookhead" title={`${c.groupTitle} · ${c.title}`}><span className="itn-cr-mbtitle">{c.title}</span></th>
+                      ))}
+                    </tr>
+                  )}
                 </thead>
                 <tbody>
                   {students.map((s) => {
@@ -211,6 +237,7 @@ export default function IeltsClassReport({ schoolId, schoolName, onClose }: { sc
                           {s.class_name && <span className="itn-cr-class">{s.class_name}</span>}
                         </th>
                         <td className="itn-cr-done">{x.done} / {x.given}{x.overdue ? <span className="itn-cr-late"> · {x.overdue} late</span> : null}</td>
+                        {book.map((c) => <td key={c.key} className="itn-cr-booktd"><BookCell student={s} col={c} /></td>)}
                         {columns.map((c) => <td key={c.key}><Cell item={latestFor(s, c.key)} now={now} /></td>)}
                       </tr>
                     );
@@ -224,11 +251,7 @@ export default function IeltsClassReport({ schoolId, schoolName, onClose }: { sc
             </div>
           )}
 
-          <p className="itn-cr-note">
-            Reading and Listening show correct answers out of the total, not IELTS bands. A Speaking band is the teacher's
-            band, shown only after the teacher confirms the review; practice mock bands are practice. None of these is an
-            official IELTS result. Writing shows whether it has been reviewed.
-          </p>
+          <p className="itn-cr-note">{CLASS_REPORT_NOTE}</p>
         </>
       )}
     </section>
@@ -241,8 +264,34 @@ function StudentCard({ student, now }: { student: ReportStudent; now: number }) 
     <article className="itn-cr-person">
       <header>
         <h3>{student.name}</h3>
-        <p>{student.class_name ? `Class ${student.class_name} · ` : ""}{x.done} of {x.given} done{x.overdue ? ` · ${x.overdue} overdue` : ""}{x.waiting ? ` · ${x.waiting} waiting for review` : ""}</p>
+        <p>{student.class_name ? `Class ${student.class_name} · ` : ""}{x.done} of {x.given} done{x.overdue ? ` · ${x.overdue} overdue` : ""}{x.waiting ? ` · ${x.waiting} waiting for review` : ""}{student.markbook ? ` · Course ${student.markbook.course.done} / ${student.markbook.course.total} units` : ""}</p>
       </header>
+      {student.markbook && (student.markbook.mocks.length > 0 || student.markbook.official.length > 0) && (
+        <div className="itn-cr-bookscroll" role="region" aria-label={`${student.name}: mock tests and real IELTS results`} tabIndex={0}>
+          <table className="itn-cr-booklist">
+            <thead><tr><th scope="col">Mock test / real IELTS</th>{MOCK_SKILLS.map((k) => <th key={k} scope="col">{SKILL[k]}</th>)}<th scope="col">Overall</th></tr></thead>
+            <tbody>
+              {student.markbook.mocks.map((m) => (
+                <tr key={m.key}>
+                  <th scope="row">{mockGroupTitle(m)}<span className="itn-cr-kind">{m.practice ? "Practice (repeat) · no range" : m.source === "sitting" ? "Teacher-entered paper evidence" : "Taken in Brains Heist"}</span></th>
+                  {MOCK_SKILLS.map((k) => {
+                    const c = mockSectionCell(m.sections[k], k, m);
+                    return <td key={k} title={c.title}><strong>{c.text}</strong>{c.sub && c.sub !== c.text ? <span className="itn-cr-kind">{c.sub}</span> : null}</td>;
+                  })}
+                  <td>—</td>
+                </tr>
+              ))}
+              {student.markbook.official.map((o, n) => (
+                <tr key={"o" + n}>
+                  <th scope="row">Real IELTS · {fmt(o.test_date)}<span className="itn-cr-kind">Official result · {o.verified ? "verified" : "student-reported"}</span></th>
+                  {[o.listening, o.reading, o.writing, o.speaking, o.overall].map((v, i) => <td key={i}><strong>{Number(v).toFixed(1)}</strong></td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="itn-cr-kind">Mock bands are indicative band ranges · Confidence: low · Not an official IELTS result.</p>
+        </div>
+      )}
       {!student.items.length ? <p className="isn-waiting">No IELTS work given yet.</p> : (
         <table className="itn-cr-list">
           <thead><tr><th scope="col">Work</th><th scope="col">Skill</th><th scope="col">Given</th><th scope="col">Due</th><th scope="col">Status</th><th scope="col">Result</th></tr></thead>

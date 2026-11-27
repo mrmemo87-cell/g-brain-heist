@@ -1,8 +1,8 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.7.3\
-**Effective date:** 2026-11-23\
+**Version:** 2.7.4\
+**Effective date:** 2026-11-27\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
 
@@ -1289,6 +1289,14 @@ Avoid:
 - It is for the programme lead and school administrators of that school only, and lists only students they may review (section 5.3). The whole class, one class, or one course batch; at most 400 students at a time.
 - Downloaded spreadsheets neutralise anything that looks like a formula.
 
+**Mark book — 2.7.4.** Owner request (2026-11-27): one table per batch with a row per student showing "everything": all mock tests per section, all assigned work with scores and bands, screeners, course progress and real IELTS results. This narrows the "Writing shows only whether it has been reviewed" rule above and adds the following, all read-only and from data the platform already governs:
+- **Mocks.** Each full mock (M1–M3 and successors) sitting the student belongs to or has results in, paper (teacher-entered, section 12A) and computer, one column group per form, delivery and date, with Listening, Reading, Writing and Speaking. Listening and Reading show raw marks out of 40; Writing and Speaking come from the teacher's criterion ratings. Beside them, only the section 9.5 **indicative band range** the platform already calculates (bh-indicative-v1), labelled *indicative, not official* with **Confidence: low**; a repeated (exposed) mock is practice and shows no range; incomplete ratings show no range; a section with no result shows **Not sat**; paper results carry *teacher-entered paper evidence*. No overall from mocks is shown.
+- **Teacher Writing band.** For school Writing practice and for teacher-reviewed Writing that was not assigned (for example a paper mock script entered as a Writing task), the band the teacher **finalized** in the productive-skill review (section 10.9), labelled **Teacher Writing band · Task N**, one task only. A Writing screener shows the teacher-set **Writing starting point · Task 2** (section 10.11). AI estimates still never appear.
+- **School practice marks.** Listening and Reading school practice show correct answers out of the total from the student's linked attempt; never the attempt's estimated band.
+- **Course progress.** Published course units completed out of published units.
+- **Real IELTS results.** Official results recorded under section 18A for that school, shown as recorded with **verified** or **student-reported**; the only official results in the report.
+- The same words go on screen, in print and in both downloads (the per-item list and the one-row-per-student mark book).
+
 ---
 
 ## 15A. School UX, language, and visual coherence
@@ -2151,6 +2159,16 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.26 Revision record — v2.7.4 (2026-11-27)
+
+**Authority.** Owner request on 2026-11-27 for the class report to become the per-batch mark book ("one table with a row per student showing everything").
+
+**What changed.** Section 15.1 gains the mark book: full mocks per section with marks and the existing section 9.5 indicative band range (labelled, low confidence, none for a repeat), the teacher's finalized Writing task band (section 10.9) and the teacher-set Writing starting point (section 10.11) instead of "reviewed" only, school practice Listening/Reading marks, course progress, and official results recorded under section 18A.
+
+**What did not change.** No scoring, range, evidence, confidence, access or release rule. The report still writes nothing; AI estimates never appear; marks are never turned into bands outside the existing section 9.5 policy; the authorization asserts and school scope are unchanged.
+
+**Implementation to review.** `supabase/migrations/20261127090000_ielts_class_report_markbook.sql` (replaces `rpc_ielts_class_report`, same signature and checks; adds private helper `ielts_class_report_cbt_section`), `services/ieltsClassReportService.ts`, `src/components/ielts/teacher/IeltsClassReport.tsx`, `src/lib/ieltsClassReportPrint.ts`. Validation: `tests/ieltsClassReportDatabase.test.mjs`, `tests/ieltsClassReportDom.test.mjs`, `tests/ieltsClassReportPrint.test.mjs`.
 
 ### 22.25 Revision record — v2.7.3 (2026-11-23)
 

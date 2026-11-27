@@ -1,8 +1,8 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.23.2
-**Effective date:** 2026-11-23\
+**Version:** 1.24.0
+**Effective date:** 2026-11-27\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
 
@@ -331,6 +331,7 @@ Owner request (2026-11-22): teacher pages "are in several areas and not clearly 
 - **Summary first.** Four figures: pieces of work given, done (% and count), overdue, waiting for your review.
 - **Take it away.** "Download for Excel" saves one row per student per piece of work (UTF-8, opens correctly in Excel).
 - **Smart printing (1.22.0).** Printing any IELTS report follows Brains Heist smart printing, the same planner as classroom booklets and certificates (`src/lib/paperScan/printBooklets.ts`). "Print or save as PDF" opens a *Smart printing* panel: what to print (the whole class, a report for each student, or the one student on screen), **Keep each student's pages together** (on by default), **Print sides** (double-sided by default) and **Pages per side** (1, 2 or 4), with the exact sheet count before anything opens. The print preview builds fixed A4 pages (whole class landscape, split into pages of 11 students × 7 pieces of work; student reports portrait, continuing on further pages when long), adds blank spacer pages so each student starts on a fresh sheet, shows "N physical sheets · N content pages · N added blank pages", and gives the printer reminder with the exact dialog settings (sides, pages per side, A4, orientation, actual size, headers and footers off, background graphics on, copies 1, all pages). Every page carries the school logo before the school name (the school document rule: the school's logo, else its initials; the Brains Heist logo only when there is no school), "Teacher copy · Confidential", a Brains Heist document ID, page numbers and the assessment note. The printed document is recorded in the school document register. The app page itself is never printed.
+- **Mark book (1.24.0).** When the report carries mark book data, the whole-class grid starts with grouped columns before the work columns: *Course* (units done / total), one group per mock (form · Paper · date, or form · Computer) headed "indicative, not official" with Listening, Reading, Writing and Speaking beneath, and *Real IELTS (latest)* with the four skills and Overall when any result is recorded. The heading uses two rows; the name column and both heading rows stay in view while scrolling, and the grid scrolls inside its own box on a phone. Mock cells show "29 / 40" with the range beneath ("6.0–7.0"), a Writing/Speaking range with "indicative range", "practice · no range" for a repeat, "Not sat", "Started", "To review" or "—" (not part of the computer mock); the hover text gives the full wording. Teacher-reviewed Writing that was not assigned appears as a work column but is not counted as work given. Each student card adds a mock and real IELTS table and the course count. "Download mark book for Excel" saves one row per student with every column; "Download for Excel" adds mock, course and real IELTS rows. Printing adds the same columns (pages of 7 columns) and puts the mock table on each student's first page, taking rows from that page.
 - **Honest wording.** Diagnostic Bible 15.1: marks are not bands, Speaking bands are the teacher's, practice is practice, nothing is an official IELTS result; the note is on screen, in print and in the file.
 - **Acceptance.** Rendered at 375 and 1440 px with no page overflow (the grid scrolls inside its own box); DOM tests cover opening, cells, summary, scope choices, each-student view, the smart printing panel and preview, and the download; unit tests cover the print plan (blank backs, single-sided, separation off, pages per side, long lists, landscape split, escaping).
 
@@ -371,6 +372,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.34 Revision record — 1.24.0 (2026-11-27)
+
+Owner request (2026-11-27): the class report becomes the per-batch mark book. Section 13.13 gains the grouped course, mock and real IELTS columns, the student card mock table, the one-row-per-student Excel download and the printed equivalents (Diagnostic Bible 2.7.4 section 15.1).
 
 ### 14.33 Revision record — 1.23.2 (2026-11-23)
 
