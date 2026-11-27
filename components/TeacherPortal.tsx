@@ -106,6 +106,7 @@ import TeacherIeltsProgrammeShortcut, { IeltsProgrammeIcon } from './teacher/Tea
 import ArenaTeacherCard from './arena/ArenaTeacherCard';
 import { teacherProgrammeRoute } from '../services/ieltsTeacherProgrammeEntry';
 import { DISPLAY_DATE, displayDateLocale, DISPLAY_DATE_TIME } from '../src/utils/displayDate';
+import ClassProgressReportDialog from './teacher/ClassProgressReportDialog';
 
 interface TeacherPortalProps {
   profile: Profile;
@@ -276,6 +277,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
   const [allocatedClasses, setAllocatedClasses] = useState<SchoolAdminService.TeacherAllocatedClass[]>([]);
   const [teachingGroups, setTeachingGroups] = useState<SchoolSubjectGroup[]>([]);
   const [teachingGroupRosters, setTeachingGroupRosters] = useState<Record<string, SubjectGroupRosterStudent[]>>({});
+  const [progressReportGroup, setProgressReportGroup] = useState<{ id: string; name: string } | null>(null);
   const [teacherHasClassAllocations, setTeacherHasClassAllocations] = useState(false);
   // False until the allocation lookup has answered, so the portal never flashes
   // "no teaching groups" warnings while it is still loading.
@@ -5159,6 +5161,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                     <th style={{ textAlign: 'center' }}>In Progress</th>
                     <th style={{ textAlign: 'center' }}>Completion</th>
                     <th style={{ textAlign: 'center' }}>Avg Score</th>
+                    {teachingGroups.length ? <th style={{ textAlign: 'center' }}>Report</th> : null}
                   </tr>
                 </thead>
                 <tbody>
@@ -5175,6 +5178,19 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
                             </span>}
                       </td>
                       <td data-label="Average score" style={{ textAlign: 'center' }}>{row.averageScore !== null ? `${row.averageScore}%` : '—'}</td>
+                      {teachingGroups.length ? (
+                        <td data-label="Report" style={{ textAlign: 'center' }}>
+                          <button
+                            type="button"
+                            className="teacher-badge neutral"
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => setProgressReportGroup({ id: row.key, name: row.classCode })}
+                            data-testid="teacher-class-progress-report"
+                          >
+                            Progress report
+                          </button>
+                        </td>
+                      ) : null}
                     </tr>
                   ))}
                 </tbody>
@@ -7846,6 +7862,13 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ profile, onComplete, onLo
         document.body
       )}
 
+      {progressReportGroup ? (
+        <ClassProgressReportDialog
+          groupId={progressReportGroup.id}
+          groupName={progressReportGroup.name}
+          onClose={() => setProgressReportGroup(null)}
+        />
+      ) : null}
       {cambridgeRetakeAttempt && createPortal(
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="cambridge-retake-title">
           <button

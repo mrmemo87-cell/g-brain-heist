@@ -80,6 +80,7 @@ const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   'class-register-v1': 'Attendance register',
   'class-roster-v1': 'Class roster',
   'class-achievement-v1': 'Class achievement report',
+  'class-progress-report-v1': 'Class progress report',
   'cambridge-performance-v2': 'Cambridge performance report',
   'cambridge-student-overview-v2': 'Cambridge student overview',
   'assignment-student-v2': 'Student learning report',
