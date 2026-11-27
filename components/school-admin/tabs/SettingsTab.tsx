@@ -3,6 +3,7 @@ import { useSchoolAdmin } from '../SchoolAdminContext';
 import InvitesTab from './InvitesTab';
 import * as SchoolAdminService from '../../../services/schoolAdminService';
 import ArenaSettingsSection from '../ArenaSettingsSection';
+import ProgressReportSettingsSection from '../ProgressReportSettingsSection';
 import { DISPLAY_DATE, displayDateLocale } from '../../../src/utils/displayDate';
 
 const SettingsTab: React.FC = () => {
@@ -95,6 +96,8 @@ const SettingsTab: React.FC = () => {
         </div>
         <div className="admin-form-actions"><button type="button" onClick={handleSaveSettings} disabled={savingSettings} className="admin-button-primary">{savingSettings ? 'Saving…' : 'Save registration rules'}</button></div>
       </section>
+
+      <ProgressReportSettingsSection schoolId={school.id} addToast={addToast} />
 
       <ArenaSettingsSection schoolId={school.id} addToast={addToast} />
     </div>
