@@ -23,6 +23,8 @@
     .videos { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
     figure { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 1rem; }
     video { display: block; width: 100%; max-height: 72vh; aspect-ratio: 9 / 16; object-fit: contain; background: #000; border-radius: 12px; }
+    figure.wide { grid-column: 1 / -1; }
+    figure.wide video { aspect-ratio: 16 / 9; max-height: none; }
     figcaption { margin-top: .85rem; }
     figcaption strong { display: block; font-size: 1.05rem; }
     figcaption span { color: var(--muted); font-size: .9rem; }
@@ -59,6 +61,12 @@
           <source src="/media/heist-ad.mp4" type="video/mp4" />
         </video>
         <figcaption><strong>Brains Heist in 60 seconds</strong><span>The short version · 1 min</span></figcaption>
+      </figure>
+      <figure class="wide">
+        <video controls playsinline preload="metadata" poster="/media/assignments-poster.jpg" data-name="assignments">
+          <source src="/media/assignments.mp4" type="video/mp4" />
+        </video>
+        <figcaption><strong>Assignments: set it on Monday, know by Friday</strong><span>Online, paper or mixed work, and who handed it in and how well · 1.5 min</span></figcaption>
       </figure>
     </section>
 
