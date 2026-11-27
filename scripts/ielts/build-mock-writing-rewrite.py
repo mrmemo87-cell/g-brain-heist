@@ -9,7 +9,7 @@ Reads the approved mock source (bh-ielts-mock-source/1) and writes:
 
 Usage:
   python3 scripts/ielts/build-mock-writing-rewrite.py --source docs/ielts/mocks/mock-1/mock.json --code IELTS-M1W \
-      --title "Mock Test 1 · Writing rewrite" --version 1.0.0 > /tmp/m1w.json
+      --title "Mock Test 1 · Writing rewrite" --fresh-title "Mock Test 1 · Writing" --version 1.0.0 > /tmp/m1w.json
 """
 import argparse, hashlib, json, subprocess, textwrap
 from pathlib import Path
@@ -97,7 +97,7 @@ def build(args):
               'note': fig.get('note', ''), 'alt': fig.get('alt', fig['title'])}
     payload = {
         'schema': 'bh-ielts-mock-cbt/1', 'code': args.code, 'title': args.title, 'version': args.version,
-        'kind': 'writing_rewrite', 'source_form': d['code'], 'source_version': d['version'],
+        'kind': 'writing_rewrite', 'fresh_title': args.fresh_title, 'source_form': d['code'], 'source_version': d['version'],
         'test_type': d['test_type'], 'rights': d['rights'],
         'writing': {
             'task1': {'prompt': w['task1']['prompt'], 'minimum_words': 150, 'suggested_minutes': 20, 'figure': figure},
@@ -109,7 +109,9 @@ def build(args):
         if banned in text:
             raise SystemExit(f'student payload leaks {banned}')
     key, audio = {}, {}
-    timing = {'sections': ['writing'], 'writing_seconds': 3600, 'grace_seconds': 20, 'practice_only': True, 'max_attempts': 1}
+    # rewrite_of: students who already sat that mock take this as practice (a rewrite); everyone else takes it as a first,
+    # unseen Writing sitting of the mock (Diagnostic Bible 12B, owner decision 2026-11-27).
+    timing = {'sections': ['writing'], 'writing_seconds': 3600, 'grace_seconds': 20, 'rewrite_of': d['code'], 'max_attempts': 1}
     content_sha = hashlib.sha256(canon({'payload': payload, 'key': key, 'audio': audio, 'timing': timing}).encode()).hexdigest()
     return {'code': args.code, 'version': args.version, 'content_sha256': content_sha,
             'source_sha256': hashlib.sha256(src.read_bytes()).hexdigest(), 'source': src.as_posix(),
@@ -119,7 +121,7 @@ def build(args):
 
 def main():
     ap = argparse.ArgumentParser()
-    for a in ('--source', '--code', '--title', '--version'):
+    for a in ('--source', '--code', '--title', '--fresh-title', '--version'):
         ap.add_argument(a, required=True)
     print(json.dumps(build(ap.parse_args()), ensure_ascii=False, indent=1))
 

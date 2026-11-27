@@ -36,7 +36,7 @@ export function IeltsMockCard() {
   if (!entries?.length) return null;
   const open = entries.flatMap((e) => e.attempts).find((a) => a.status === 'in_progress');
   const ready = entries.find((e) => e.available);
-  const rewrite = ready?.kind === 'writing_rewrite';
+  const rewrite = ready?.kind === 'writing_rewrite' || ready?.kind === 'writing_mock';
   return (
     <button type="button" className="mk-course-card" onClick={() => navigate(open ? ieltsMockAttemptRoute(open.id) : IELTS_MOCKS_ROUTE)}>
       <span className="mk-course-icon" aria-hidden="true">📝</span>
@@ -90,7 +90,7 @@ const IeltsMockHome: React.FC = () => {
               <div className="mk-home-top">
                 <div>
                   <h2>{e.title}</h2>
-                  <p className="mk-small">About {length} · {mockContentsLine(sections)}{e.practice_only ? ' · practice (no band range)' : ''}</p>
+                  <p className="mk-small">About {length} · {mockContentsLine(sections)}{e.kind === 'writing_rewrite' && e.practice ? ' · practice (no band range)' : ''}</p>
                 </div>
                 {open ? (
                   <button type="button" className="mk-btn mk-btn--primary" onClick={() => navigate(ieltsMockAttemptRoute(open.id))}>Continue</button>
@@ -106,7 +106,8 @@ const IeltsMockHome: React.FC = () => {
                   {hasListening && <li>Use headphones. The recording plays once only.</li>}
                   <li>Once a section starts, its timer keeps running even if you close the page.</li>
                   {e.kind === 'writing_rewrite' && <li>You write both tasks again. Your teacher checks them like your other writing.</li>}
-                  {done.length > 0 && !e.practice_only && <li>You have taken this test before, so a new attempt is practice and shows no band range.</li>}
+                  {e.kind === 'writing_mock' && <li>Your teacher checks both tasks. Your Writing band range appears when both are checked.</li>}
+                  {done.length > 0 && (!e.kind || e.kind === 'full') && <li>You have taken this test before, so a new attempt is practice and shows no band range.</li>}
                 </ul>
               )}
               {done.length > 0 && (

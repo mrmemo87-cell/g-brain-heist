@@ -1,14 +1,18 @@
--- Mock Test 1 · Writing rewrite on computer (Diagnostic Bible 2.7.5 section 12B; Visual & UX Bible 1.25.0 section 13.15).
+-- Mock Test 1 · Writing on computer: a rewrite for students who sat the paper Mock 1, a first unseen Writing sitting for
+-- everyone else (Diagnostic Bible 2.7.5 section 12B; Visual & UX Bible 1.25.0 section 13.15).
 -- Owner request 2026-11-27: the two IELTS batches ("IELTS · October 2026", "IELTS for May") rewrite both Writing tasks of
 -- the paper Mock Test 1 (sat 2026-10-24, reviewed as W-016/W-017) on the computer, like the other mocks: 60 minutes on the
 -- server clock, no paste, tab switches recorded, work always saved. Batch students who missed the paper sitting take it as
--- their first attempt.
+-- their first attempt. Owner decision 2026-11-27 (after the first version of this change): those students take it as a
+-- real, unseen mock — their Writing gets the bh-indicative-v1 range once both tasks are finalized, counts as fresh
+-- evidence, and the AI check is for the teacher only; students who sat the paper Mock 1 take it as a practice rewrite.
 --
 -- What this migration does:
 --   1. Forms may list their sections (timing.sections). A Writing-only form starts at Writing and ends after it; forms
 --      without the list keep Listening -> Reading -> Writing exactly as before.
---   2. Forms may be practice only (timing.practice_only: every attempt is practice, never an indicative range) and limit
---      attempts (timing.max_attempts).
+--   2. A form may rewrite an earlier mock (timing.rewrite_of): a student who already sat that mock (any paper result for
+--      it, or a script on the tasks it rewrites) takes it as practice, never with an indicative range; anyone else takes
+--      it as a first, unseen sitting. Forms may limit attempts (timing.max_attempts).
 --   3. A pilot form may also be released to named course batches (release_batches), so batch students who join later can
 --      take it; leaving or archiving the batch closes it to them. Pilot users and superadmins keep their access.
 --   4. Writing of a form with review tasks is marked in the ordinary Writing review: when the Writing section closes, each
@@ -45,6 +49,7 @@ create table if not exists private.ielts_mock_cbt_review_tasks (
   task_key text not null check (task_key in ('t1', 't2')),
   writing_task_id bigint not null references public.ielts_writing_tasks(id),
   label text not null check (length(label) between 1 and 120),
+  fresh_label text not null check (length(fresh_label) between 1 and 120),
   primary key (code, task_key)
 );
 alter table private.ielts_mock_cbt_review_tasks enable row level security;
@@ -56,6 +61,7 @@ create table if not exists private.ielts_mock_cbt_writing_links (
   mock_code text not null,
   writing_attempt_id uuid not null unique references public.ielts_writing_attempts(id),
   label text not null,
+  fresh boolean not null,
   created_at timestamptz not null default now(),
   primary key (mock_attempt_id, task_key)
 );
@@ -90,6 +96,34 @@ language sql stable security definer set search_path to '' as $$
 $$;
 revoke all on function private.ielts_mock_cbt_attempts_left(private.ielts_mock_cbt_forms, uuid) from public, anon, authenticated;
 
+-- Has this student already met the mock this form rewrites? Any paper result for it (they sat the paper), or a script on
+-- a task this form rewrites (the paper scripts are entered there). On live data these agree with "has a paper Mock 1
+-- Writing result" (22 students, 2026-11-27).
+create or replace function private.ielts_mock_cbt_seen_rewrite(f private.ielts_mock_cbt_forms, p_student uuid) returns boolean
+language sql stable security definer set search_path to '' as $$
+  select (f.timing ->> 'rewrite_of') is not null and (
+    exists(select 1 from private.ielts_mock_results r join private.ielts_mock_sittings s on s.id = r.sitting_id
+           where r.student_id = p_student and s.mock_code = f.timing ->> 'rewrite_of')
+    or exists(select 1 from public.ielts_writing_attempts w
+              join private.ielts_mock_cbt_review_tasks rt on rt.code = f.code and rt.writing_task_id = w.task_id
+              where w.user_id = p_student));
+$$;
+revoke all on function private.ielts_mock_cbt_seen_rewrite(private.ielts_mock_cbt_forms, uuid) from public, anon, authenticated;
+
+-- What the student is taking: a rewrite (practice) or, on a rewrite form, a first Writing sitting of that mock.
+create or replace function private.ielts_mock_cbt_kind(f private.ielts_mock_cbt_forms, p_practice boolean) returns text
+language sql immutable set search_path to '' as $$
+  select case when f.payload ->> 'kind' = 'writing_rewrite' and not p_practice then 'writing_mock'
+              else coalesce(f.payload ->> 'kind', 'full') end;
+$$;
+revoke all on function private.ielts_mock_cbt_kind(private.ielts_mock_cbt_forms, boolean) from public, anon, authenticated;
+
+create or replace function private.ielts_mock_cbt_title(f private.ielts_mock_cbt_forms, p_practice boolean) returns text
+language sql immutable set search_path to '' as $$
+  select case when f.payload ? 'fresh_title' and not p_practice then f.payload ->> 'fresh_title' else f.payload ->> 'title' end;
+$$;
+revoke all on function private.ielts_mock_cbt_title(private.ielts_mock_cbt_forms, boolean) from public, anon, authenticated;
+
 create or replace function private.ielts_mock_cbt_can_take(p_code text) returns boolean
 language sql stable security definer set search_path to '' as $$
   select auth.uid() is not null and exists(
@@ -117,6 +151,23 @@ language sql stable security definer set search_path to '' as $$
   where l.mock_attempt_id = p_attempt;
 $$;
 revoke all on function private.ielts_mock_cbt_writing_status(uuid) from public, anon, authenticated;
+
+-- The teacher's finalized criterion bands of a computer attempt's linked scripts, in the mock criteria shape
+-- ({t1:{ta,cc,lr,gra}, t2:{tr,cc,lr,gra}}), with how many linked scripts are still open. Null when nothing is linked.
+create or replace function private.ielts_mock_cbt_linked_criteria(p_attempt uuid) returns jsonb
+language sql stable security definer set search_path to '' as $$
+  with x as (
+    select l.task_key, coalesce(r.finalized, false) fin, r.rubric
+    from private.ielts_mock_cbt_writing_links l
+    left join public.ielts_productive_skill_reviews r on r.attempt_type = 'writing' and r.attempt_id = l.writing_attempt_id::text
+    where l.mock_attempt_id = p_attempt)
+  select case when not exists(select 1 from x) then null else jsonb_build_object(
+    'open', (select count(*) from x where not fin),
+    'criteria', jsonb_strip_nulls(jsonb_build_object(
+      't1', (select jsonb_build_object('ta', rubric -> 'task_achievement', 'cc', rubric -> 'coherence_cohesion', 'lr', rubric -> 'lexical_resource', 'gra', rubric -> 'grammar') from x where task_key = 't1' and fin),
+      't2', (select jsonb_build_object('tr', rubric -> 'task_achievement', 'cc', rubric -> 'coherence_cohesion', 'lr', rubric -> 'lexical_resource', 'gra', rubric -> 'grammar') from x where task_key = 't2' and fin)))) end;
+$$;
+revoke all on function private.ielts_mock_cbt_linked_criteria(uuid) from public, anon, authenticated;
 
 -- What happened during the Writing section, for the teacher: never a score and never shown to the student.
 create or replace function private.ielts_mock_cbt_integrity(p_attempt uuid) returns jsonb
@@ -148,8 +199,8 @@ begin
     insert into public.ielts_writing_attempts(user_id, task_id, submitted_at, answer_text, word_count)
     values (t.student_id, rt.writing_task_id, coalesce(t.completed_at, now()), v_text, private.ielts_mock_cbt_words(v_text))
     returning id into v_id;
-    insert into private.ielts_mock_cbt_writing_links(mock_attempt_id, task_key, mock_code, writing_attempt_id, label)
-    values (t.id, rt.task_key, t.mock_code, v_id, rt.label);
+    insert into private.ielts_mock_cbt_writing_links(mock_attempt_id, task_key, mock_code, writing_attempt_id, label, fresh)
+    values (t.id, rt.task_key, t.mock_code, v_id, case when t.exposed then rt.label else rt.fresh_label end, not t.exposed);
   end loop;
 end $$;
 revoke all on function private.ielts_mock_cbt_route_writing(uuid) from public, anon, authenticated;
@@ -188,9 +239,9 @@ declare v_actor uuid := auth.uid();
 begin
   if v_actor is null then raise exception using errcode = '42501', message = 'not_authenticated'; end if;
   return coalesce((select jsonb_agg(jsonb_build_object(
-      'code', f.code, 'title', f.payload ->> 'title', 'version', f.version,
-      'kind', coalesce(f.payload ->> 'kind', 'full'), 'sections', to_jsonb(private.ielts_mock_cbt_sections(f)),
-      'practice_only', coalesce((f.timing ->> 'practice_only')::boolean, false),
+      'code', f.code, 'title', private.ielts_mock_cbt_title(f, pr.practice), 'version', f.version,
+      'kind', private.ielts_mock_cbt_kind(f, pr.practice), 'sections', to_jsonb(private.ielts_mock_cbt_sections(f)),
+      'practice', pr.practice,
       'available', private.ielts_mock_cbt_can_take(f.code) and private.ielts_mock_cbt_attempts_left(f, v_actor),
       'minutes', (select round(sum(extract(epoch from private.ielts_mock_cbt_duration(f, x))) / 60)
                   from unnest(private.ielts_mock_cbt_sections(f)) x),
@@ -209,13 +260,17 @@ begin
         from private.ielts_mock_cbt_attempts a where a.student_id = v_actor and a.mock_code = f.code))
     order by f.code)
     from private.ielts_mock_cbt_forms f
+    -- Whether a new or the latest attempt is practice for this student (a rewrite of a mock they already sat).
+    cross join lateral (select coalesce((select a.exposed from private.ielts_mock_cbt_attempts a where a.student_id = v_actor and a.mock_code = f.code
+                                         order by a.started_at desc limit 1), private.ielts_mock_cbt_seen_rewrite(f, v_actor)) practice) pr
     where private.ielts_mock_cbt_can_take(f.code)
        or exists(select 1 from private.ielts_mock_cbt_attempts a where a.student_id = v_actor and a.mock_code = f.code)), '[]'::jsonb);
 end $$;
 revoke all on function public.rpc_ielts_mock_cbt_home() from public, anon;
 grant execute on function public.rpc_ielts_mock_cbt_home() to authenticated;
 
--- A practice-only form records every attempt as practice; a form may limit attempts; the first section comes from the form.
+-- A rewrite is practice for a student who already sat the mock it rewrites, and a first sitting for everyone else; a
+-- form may limit attempts; the first section comes from the form.
 create or replace function public.rpc_ielts_mock_cbt_start(p_code text) returns jsonb
 language plpgsql volatile security definer set search_path to '' as $$
 declare v_actor uuid := auth.uid(); f private.ielts_mock_cbt_forms; v_id uuid; v_no int;
@@ -232,7 +287,7 @@ begin
   select coalesce(max(attempt_no), 0) + 1 into v_no from private.ielts_mock_cbt_attempts where student_id = v_actor and mock_code = p_code;
   insert into private.ielts_mock_cbt_attempts(student_id, mock_code, form_version, content_sha256, attempt_no, exposed, section)
   values (v_actor, f.code, f.version, f.content_sha256, v_no,
-          v_no > 1 or coalesce((f.timing ->> 'practice_only')::boolean, false) or private.ielts_mock_cbt_seen_before(v_actor, f.code, now()),
+          v_no > 1 or private.ielts_mock_cbt_seen_rewrite(f, v_actor) or private.ielts_mock_cbt_seen_before(v_actor, f.code, now()),
           (private.ielts_mock_cbt_sections(f))[1])
   returning id into v_id;
   return jsonb_build_object('attempt_id', v_id, 'resumed', false);
@@ -250,8 +305,8 @@ begin
     v_payload := f.payload -> t.section;
   end if;
   return jsonb_build_object(
-    'attempt_id', t.id, 'code', t.mock_code, 'title', f.payload ->> 'title', 'version', t.form_version,
-    'kind', coalesce(f.payload ->> 'kind', 'full'), 'sections', to_jsonb(private.ielts_mock_cbt_sections(f)),
+    'attempt_id', t.id, 'code', t.mock_code, 'title', private.ielts_mock_cbt_title(f, t.exposed), 'version', t.form_version,
+    'kind', private.ielts_mock_cbt_kind(f, t.exposed), 'sections', to_jsonb(private.ielts_mock_cbt_sections(f)),
     'status', t.status, 'section', t.section, 'practice', t.exposed, 'attempt_no', t.attempt_no,
     'started', t.section_started_at is not null, 'section_started_at', t.section_started_at,
     'deadline', t.section_deadline, 'server_now', now(),
@@ -290,7 +345,7 @@ grant execute on function public.rpc_ielts_mock_cbt_log_event(uuid, text) to aut
 create or replace function private.ielts_mock_cbt_result_json(p_attempt uuid) returns jsonb
 language plpgsql stable security definer set search_path to '' as $$
 declare t private.ielts_mock_cbt_attempts; f private.ielts_mock_cbt_forms; v_out jsonb; s private.ielts_mock_cbt_scores; sk text;
-  w private.ielts_mock_cbt_writing_reviews; skills jsonb := '{}'::jsonb;
+  w private.ielts_mock_cbt_writing_reviews; skills jsonb := '{}'::jsonb; lc jsonb;
 begin
   select * into t from private.ielts_mock_cbt_attempts where id = p_attempt;
   select * into f from private.ielts_mock_cbt_forms where code = t.mock_code;
@@ -305,6 +360,7 @@ begin
     end if;
   end loop;
   select * into w from private.ielts_mock_cbt_writing_reviews where attempt_id = t.id order by reviewed_at desc, id desc limit 1;
+  lc := private.ielts_mock_cbt_linked_criteria(t.id);
   skills := skills || jsonb_build_object('writing', jsonb_build_object(
     't1', coalesce(t.answers -> 'writing' ->> 't1', ''), 't2', coalesce(t.answers -> 'writing' ->> 't2', ''),
     't1_words', private.ielts_mock_cbt_words(t.answers -> 'writing' ->> 't1'),
@@ -312,9 +368,11 @@ begin
     'review', case when w.id is null then null else jsonb_build_object('criteria', w.criteria, 'comment', w.comment, 'reviewed_at', w.reviewed_at,
       'indicative', case when not t.exposed then private.ielts_indicative_productive('writing', w.criteria) end) end,
     'reviewed_in_writing_review', exists(select 1 from private.ielts_mock_cbt_review_tasks rt where rt.code = t.mock_code),
-    'tasks', private.ielts_mock_cbt_writing_status(t.id)));
-  v_out := jsonb_build_object('attempt_id', t.id, 'code', t.mock_code, 'title', f.payload ->> 'title', 'version', t.form_version,
-    'kind', coalesce(f.payload ->> 'kind', 'full'), 'form_sections', to_jsonb(private.ielts_mock_cbt_sections(f)),
+    'tasks', private.ielts_mock_cbt_writing_status(t.id),
+    -- A first sitting: the range from the teacher's finalized bands of both tasks (bh-indicative-v1); never for practice.
+    'indicative', case when not t.exposed and (lc ->> 'open')::int = 0 then private.ielts_indicative_productive('writing', lc -> 'criteria') end));
+  v_out := jsonb_build_object('attempt_id', t.id, 'code', t.mock_code, 'title', private.ielts_mock_cbt_title(f, t.exposed), 'version', t.form_version,
+    'kind', private.ielts_mock_cbt_kind(f, t.exposed), 'form_sections', to_jsonb(private.ielts_mock_cbt_sections(f)),
     'status', t.status, 'practice', t.exposed, 'attempt_no', t.attempt_no, 'started_at', t.started_at, 'completed_at', t.completed_at,
     'sections', t.sections, 'skills', skills,
     'payload', jsonb_build_object('listening', f.payload -> 'listening', 'reading', f.payload -> 'reading', 'writing', f.payload -> 'writing'));
@@ -518,7 +576,8 @@ begin
 
   if p_skill = 'writing' then
     select jsonb_build_object('task_title', lk.label, 'mock_rewrite', jsonb_build_object(
-        'code', lk.mock_code, 'title', f.payload ->> 'title', 'task', lk.task_key, 'practice', a.exposed,
+        'code', lk.mock_code, 'title', private.ielts_mock_cbt_title(f, a.exposed), 'task', lk.task_key, 'practice', a.exposed,
+        'kind', private.ielts_mock_cbt_kind(f, a.exposed), 'ai_teacher_only', not a.exposed,
         'completed_at', a.completed_at,
         'integrity', case when v_for_student then null else private.ielts_mock_cbt_integrity(a.id) end))
       into v_rewrite
@@ -548,6 +607,30 @@ $function$;
 revoke all on function public.rpc_ielts_review_detail(text, text) from public, anon;
 grant execute on function public.rpc_ielts_review_detail(text, text) to authenticated, service_role;
 
+-- AI feedback on a script from a first (unseen) mock sitting is for the teacher only (Bible 10.5, 12B): the student
+-- gets nothing from it. Otherwise unchanged from the live definition.
+create or replace function public.rpc_ielts_practice_feedback(p_attempt uuid) returns jsonb
+language plpgsql stable security definer set search_path to '' as $function$
+declare f private.ielts_practice_ai_feedback; st public.users;
+begin
+ select * into f from private.ielts_practice_ai_feedback where attempt_id = p_attempt;
+ if f.id is null then
+  if exists(select 1 from public.ielts_writing_attempts a where a.id = p_attempt and a.user_id = auth.uid()) then return null; end if;
+  select u.* into st from public.ielts_writing_attempts a join public.users u on u.id = a.user_id where a.id = p_attempt;
+  if st.id is not null and public.can_manage_ielts_practice_school(st.school_id) then return null; end if;
+  raise exception 'not_available';
+ end if;
+ select * into st from public.users where id = f.student_id;
+ if not (f.student_id = auth.uid() or public.can_manage_ielts_practice_school(st.school_id)) then raise exception 'not_available'; end if;
+ if not public.can_manage_ielts_practice_school(st.school_id)
+    and exists(select 1 from private.ielts_mock_cbt_writing_links l where l.writing_attempt_id = p_attempt and l.fresh) then
+   return null;
+ end if;
+ return private.ielts_practice_feedback_json(f);
+end $function$;
+revoke all on function public.rpc_ielts_practice_feedback(uuid) from public, anon;
+grant execute on function public.rpc_ielts_practice_feedback(uuid) to authenticated;
+
 -- The student's own Writing scripts that came from a computer rewrite, with their titles (for Home and Journey lists).
 create or replace function public.rpc_ielts_writing_attempt_labels(p_attempts uuid[]) returns jsonb
 language sql stable security definer set search_path to '' as $$
@@ -563,11 +646,12 @@ grant execute on function public.rpc_ielts_writing_attempt_labels(uuid[]) to aut
 -- 10. Class report (Diagnostic Bible 15.1 mark book): same function, arguments, authorization and scope as
 -- 20261127090000_ielts_class_report_markbook.sql. Changes: a computer section the form does not have is 'not_part'; the
 -- Writing of a form marked in the Writing review comes from the teacher's finalized reviews of its linked scripts
--- (practice: no indicative range); a rewrite script is its own work column ("writing:<task>:<form>") with its own title.
+-- (a first sitting gets the indicative range, a rewrite is practice: none); a first sitting of a rewrite form is its own
+-- mock group ("Mock Test 1 · Writing"); a computer script is its own work column ("writing:<task>:<form>[:first]").
 create or replace function private.ielts_class_report_cbt_section(a private.ielts_mock_cbt_attempts, p_section text)
 returns jsonb language plpgsql stable security definer set search_path='' as $$
 declare s private.ielts_mock_cbt_scores; w private.ielts_mock_cbt_writing_reviews; f private.ielts_mock_cbt_forms; closed boolean;
- n_links int; n_open int; r1 jsonb; r2 jsonb; crit jsonb; begin
+ lc jsonb; begin
  closed := (a.sections->p_section->>'closed_at') is not null;
  select * into f from private.ielts_mock_cbt_forms x where x.code=a.mock_code;
  -- A section the form does not have (for example Listening on a Writing-only rewrite) is not part of it.
@@ -585,24 +669,16 @@ declare s private.ielts_mock_cbt_scores; w private.ielts_mock_cbt_writing_review
      return jsonb_build_object('state','result','criteria',w.criteria,'exposed',a.exposed,
        'indicative',case when not a.exposed then private.ielts_indicative_productive('writing',w.criteria) end);
    end if;
-   -- Forms marked in the Writing review: the teacher's finalized criterion bands of each linked script.
+   -- Forms marked in the Writing review: the teacher's finalized criterion bands of each linked script. A first sitting
+   -- gets the bh-indicative-v1 range (both tasks needed); a rewrite is practice and never does.
    if exists(select 1 from private.ielts_mock_cbt_review_tasks rt where rt.code=a.mock_code) then
-     select count(*),count(*) filter (where not coalesce(r.finalized,false)) into n_links,n_open
-      from private.ielts_mock_cbt_writing_links l
-      left join public.ielts_productive_skill_reviews r on r.attempt_type='writing' and r.attempt_id=l.writing_attempt_id::text
-      where l.mock_attempt_id=a.id;
-     if n_links>0 and n_open=0 then
-       select r.rubric into r1 from private.ielts_mock_cbt_writing_links l join public.ielts_productive_skill_reviews r
-        on r.attempt_type='writing' and r.attempt_id=l.writing_attempt_id::text where l.mock_attempt_id=a.id and l.task_key='t1';
-       select r.rubric into r2 from private.ielts_mock_cbt_writing_links l join public.ielts_productive_skill_reviews r
-        on r.attempt_type='writing' and r.attempt_id=l.writing_attempt_id::text where l.mock_attempt_id=a.id and l.task_key='t2';
-       crit := jsonb_strip_nulls(jsonb_build_object(
-         't1',case when r1 is not null then jsonb_build_object('ta',r1->'task_achievement','cc',r1->'coherence_cohesion','lr',r1->'lexical_resource','gra',r1->'grammar') end,
-         't2',case when r2 is not null then jsonb_build_object('tr',r2->'task_achievement','cc',r2->'coherence_cohesion','lr',r2->'lexical_resource','gra',r2->'grammar') end));
-       return jsonb_build_object('state','result','criteria',crit,'exposed',a.exposed,'practice_reason','rewrite',
-         'indicative',case when not a.exposed then private.ielts_indicative_productive('writing',crit) end);
+     lc := private.ielts_mock_cbt_linked_criteria(a.id);
+     if lc is not null and (lc->>'open')::int=0 then
+       return jsonb_build_object('state','result','criteria',lc->'criteria','exposed',a.exposed)
+         || case when a.exposed then jsonb_build_object('practice_reason','rewrite') else '{}'::jsonb end
+         || jsonb_build_object('indicative',case when not a.exposed then private.ielts_indicative_productive('writing',lc->'criteria') end);
      end if;
-     if n_links>0 then return jsonb_build_object('state','waiting'); end if;
+     if lc is not null then return jsonb_build_object('state','waiting'); end if;
      if closed then return jsonb_build_object('state','not_sat'); end if; -- both tasks left blank: nothing to review
    end if;
    if closed then return jsonb_build_object('state','waiting'); end if;
@@ -733,7 +809,7 @@ declare students jsonb; classes jsonb; batches jsonb; scope_name text; v_batch u
   where s.school_id=p_school_id and s.evidence_kind<>'practice_mock'),
  -- Finalized, banded teacher Writing reviews for this school that are not linked to assigned work.
  reviewed_writing as (
-  select pr.student_id,jsonb_build_object('key','writing:'||coalesce(wa.task_id::text,wa.id::text)||coalesce(':'||lk.mock_code,''),'kind','reviewed_writing',
+  select pr.student_id,jsonb_build_object('key','writing:'||coalesce(wa.task_id::text,wa.id::text)||coalesce(':'||lk.mock_code||case when lk.fresh then ':first' else '' end,''),'kind','reviewed_writing',
     'title',coalesce(lk.label,nullif(wt.title,''),'Writing task'),'code',wt.display_code,'skill','writing',
     'assigned_at',coalesce(wa.submitted_at,pr.reviewed_at,pr.created_at),'due_at',null,'status','done',
     'done_at',wa.submitted_at,'score',null,
@@ -769,14 +845,17 @@ declare students jsonb; classes jsonb; batches jsonb; scope_name text; v_batch u
   from sittings st
   union all
   -- Computer mocks taken in the platform: the newest attempt per mock (a repeat is practice: no indicative range).
+  -- On a rewrite form, a first sitting has its own group and title ("Mock Test 1 · Writing"), apart from the rewrites.
   select a.student_id,a.mock_code,(a.started_at at time zone 'Asia/Bishkek')::date,jsonb_build_object('key','cbt:'||a.id,
-    'group','cbt:'||a.mock_code,'form',a.mock_code,'title',coalesce(f.title,a.mock_code),'delivery','computer',
+    'group','cbt:'||a.mock_code||case when cf.payload ? 'fresh_title' and not a.exposed then ':first' else '' end,'form',a.mock_code,
+    'title',case when cf.payload ? 'fresh_title' and not a.exposed then cf.payload->>'fresh_title' else coalesce(f.title,a.mock_code) end,'delivery','computer',
     'source','cbt','sat_on',(a.started_at at time zone 'Asia/Bishkek')::date,'practice',a.exposed,'attempt_no',a.attempt_no,
     'sections',jsonb_build_object('listening',private.ielts_class_report_cbt_section(a,'listening'),
       'reading',private.ielts_class_report_cbt_section(a,'reading'),'writing',private.ielts_class_report_cbt_section(a,'writing'),
       'speaking',private.ielts_class_report_cbt_section(a,'speaking'))) mock
   from private.ielts_mock_cbt_attempts a
   left join private.ielts_mock_forms f on f.code=a.mock_code
+  left join private.ielts_mock_cbt_forms cf on cf.code=a.mock_code
   where a.id in (select distinct on (x.student_id,x.mock_code) x.id from private.ielts_mock_cbt_attempts x join scope on scope.id=x.student_id
         order by x.student_id,x.mock_code,x.attempt_no desc))
  select coalesce(jsonb_agg(jsonb_build_object('id',sc.id,'name',sc.name,'class_name',sc.class_name,
@@ -801,7 +880,7 @@ grant execute on function public.rpc_ielts_class_report(uuid,text,text) to authe
 -- Generated by scripts/ielts/build-mock-writing-rewrite.py from docs/ielts/mocks/mock-1/mock.json (sha256 c946bd230fcd574269a85758a3877846b69f8c48a640dd3820b2df2e517dcf2c).
 -- Writing only; no answer key and no recording. Figure: public/ielts/mocks/IELTS-M1W/writing-task1.png (from the .svg beside it).
 insert into private.ielts_mock_cbt_forms(code, version, content_sha256, source_sha256, payload, answer_key, audio, timing)
-values ('IELTS-M1W', '1.0.0', 'ddb4f2244e7c70c1baa35d2c5167af7351ac737922bb60875276b62a1fad1ede', 'c946bd230fcd574269a85758a3877846b69f8c48a640dd3820b2df2e517dcf2c', '{"code":"IELTS-M1W","kind":"writing_rewrite","rights":"Original Brains Heist LLC practice test, AI-assisted. All people, places, organisations and data are fictional. Not official IELTS material and not endorsed by IELTS.","schema":"bh-ielts-mock-cbt/1","source_form":"IELTS-M1","source_version":"1.1.0","test_type":"Academic","title":"Mock Test 1 · Writing rewrite","version":"1.0.0","writing":{"task1":{"figure":{"alt":"A nine-stage process: rain falls on a roof; gutters carry it to a downpipe; a leaf filter removes leaves and debris; a first-flush tank discards the dirty first water; the water is stored in an underground tank (with an overflow pipe to the garden when full); a pump sends it through a sand filter and then ultraviolet light, which kills bacteria; finally it reaches kitchen and bathroom taps.","note":"Illustrative diagram for practice; fictional system.","src":"/ielts/mocks/IELTS-M1W/writing-task1.png?v=942265fe5ea1","title":"Collecting and treating rainwater for household use"},"minimum_words":150,"prompt":"The diagram below shows how rainwater is collected and treated for use in homes. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.","suggested_minutes":20},"task2":{"minimum_words":250,"prompt":"Some people believe that every child should learn to play a musical instrument at school. To what extent do you agree or disagree? Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words.","suggested_minutes":40}}}'::jsonb, '{}'::jsonb, '{}'::jsonb, '{"grace_seconds":20,"max_attempts":1,"practice_only":true,"sections":["writing"],"writing_seconds":3600}'::jsonb)
+values ('IELTS-M1W', '1.0.0', '16b85eb812ac08354f8827d1dd2a5c8f60d11d32484224d9716fdcc0b9405c89', 'c946bd230fcd574269a85758a3877846b69f8c48a640dd3820b2df2e517dcf2c', '{"code":"IELTS-M1W","fresh_title":"Mock Test 1 · Writing","kind":"writing_rewrite","rights":"Original Brains Heist LLC practice test, AI-assisted. All people, places, organisations and data are fictional. Not official IELTS material and not endorsed by IELTS.","schema":"bh-ielts-mock-cbt/1","source_form":"IELTS-M1","source_version":"1.1.0","test_type":"Academic","title":"Mock Test 1 · Writing rewrite","version":"1.0.0","writing":{"task1":{"figure":{"alt":"A nine-stage process: rain falls on a roof; gutters carry it to a downpipe; a leaf filter removes leaves and debris; a first-flush tank discards the dirty first water; the water is stored in an underground tank (with an overflow pipe to the garden when full); a pump sends it through a sand filter and then ultraviolet light, which kills bacteria; finally it reaches kitchen and bathroom taps.","note":"Illustrative diagram for practice; fictional system.","src":"/ielts/mocks/IELTS-M1W/writing-task1.png?v=942265fe5ea1","title":"Collecting and treating rainwater for household use"},"minimum_words":150,"prompt":"The diagram below shows how rainwater is collected and treated for use in homes. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.","suggested_minutes":20},"task2":{"minimum_words":250,"prompt":"Some people believe that every child should learn to play a musical instrument at school. To what extent do you agree or disagree? Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words.","suggested_minutes":40}}}'::jsonb, '{}'::jsonb, '{}'::jsonb, '{"grace_seconds":20,"max_attempts":1,"rewrite_of":"IELTS-M1","sections":["writing"],"writing_seconds":3600}'::jsonb)
 on conflict (code) do nothing;
 
 -- Tasks 1 and 2 are reviewed as rewrites of the paper scripts' own tasks (W-016 / W-017, created by the teacher for the
@@ -812,13 +891,14 @@ begin
   select id into t1 from public.ielts_writing_tasks where slug = 'mock-1-paper-task-1';
   select id into t2 from public.ielts_writing_tasks where slug = 'mock-1-paper-task-2';
   if t1 is null or t2 is null then raise exception 'mock_1_paper_writing_tasks_missing'; end if;
-  insert into private.ielts_mock_cbt_review_tasks(code, task_key, writing_task_id, label) values
-    ('IELTS-M1W', 't1', t1, 'Mock Test 1 · Task 1 (computer rewrite)'),
-    ('IELTS-M1W', 't2', t2, 'Mock Test 1 · Task 2 (computer rewrite)')
+  insert into private.ielts_mock_cbt_review_tasks(code, task_key, writing_task_id, label, fresh_label) values
+    ('IELTS-M1W', 't1', t1, 'Mock Test 1 · Task 1 (computer rewrite)', 'Mock Test 1 · Task 1 (computer)'),
+    ('IELTS-M1W', 't2', t2, 'Mock Test 1 · Task 2 (computer rewrite)', 'Mock Test 1 · Task 2 (computer)')
   on conflict (code, task_key) do nothing;
 end $$;
 
--- Release (owner decision 2026-11-27): students of the two batches, plus superadmins for preview.
+-- Release (owner decision 2026-11-27): students of the two batches, plus superadmins for preview. Batch students who sat
+-- the paper Mock 1 take it as a practice rewrite; those who did not take it as their first Mock 1 Writing sitting.
 update private.ielts_mock_cbt_forms
 set release_scope = 'pilot',
     release_batches = array['b884a28d-f251-45ae-9ca5-8782fa9345e2'::uuid, '7d0a628c-031a-4ba2-ba93-ae15597b41c3'::uuid],

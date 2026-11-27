@@ -89,10 +89,14 @@ function ReviewedWritingResult({ result }: { result: MockResult }) {
     <section className="mk-card">
       <h2>Writing</h2>
       <p className="mk-raw">Task 1: <b>{w.t1_words}</b> words · Task 2: <b>{w.t2_words}</b> words</p>
-      <p className="mk-note">
-        {result.kind === 'writing_rewrite' ? 'Writing rewrite · practice: no band range. ' : ''}
-        Your teacher checks each task like your other writing and shares feedback for it.
-      </p>
+      {w.indicative && !result.practice ? (
+        <IndicativeBlock indicative={w.indicative} form={`${result.code.replace('IELTS-', '').replace(/W$/, '')} Writing`} raw="Task 1 + Task 2 × 2" date={fmtDate(result.completed_at)} />
+      ) : (
+        <p className="mk-note">
+          {result.kind === 'writing_rewrite' || result.practice ? 'Writing rewrite · practice: no band range. ' : 'Your Writing band range appears when your teacher has checked both tasks. '}
+          Your teacher checks each task like your other writing and shares feedback for it.
+        </p>
+      )}
       <ul className="mk-writing-tasks">
         {(['t1', 't2'] as const).map((key) => {
           const t = tasks.find((x) => x.task === key);

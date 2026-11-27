@@ -63,6 +63,9 @@ export interface IeltsMockRewriteContext {
   title: string | null;
   task: 't1' | 't2';
   practice: boolean;
+  kind?: 'writing_rewrite' | 'writing_mock' | 'full';
+  /** A first, unseen sitting: the AI check is for the teacher only; the student sees only the teacher's feedback. */
+  ai_teacher_only?: boolean;
   completed_at: string | null;
   integrity: {
     tab_switches: number; focus_lost: number; paste_blocked: number;
@@ -72,7 +75,9 @@ export interface IeltsMockRewriteContext {
 
 /** One plain sentence for the teacher about the timed section (never a score). */
 export function mockRewriteSummary(ctx: IeltsMockRewriteContext): string {
-  const parts = [`${ctx.title ?? 'Computer mock'} · timed on screen · practice (no band range)`];
+  const parts = [ctx.practice
+    ? `${ctx.title ?? 'Computer mock'} · timed on screen · practice (no band range)`
+    : `${ctx.title ?? 'Computer mock'} · timed on screen · first sitting: counts toward the Writing indicative range · the AI check is for you only`];
   const i = ctx.integrity;
   if (i) {
     if (i.minutes_used != null) parts.push(`${i.closed_by === 'time' ? 'time ran out' : 'submitted'} after ${i.minutes_used} min`);

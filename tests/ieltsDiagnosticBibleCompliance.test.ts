@@ -11,9 +11,9 @@ test('IELTS Diagnostic Bible is wired into the repository agent contract', () =>
 
   assert.match(bible, /\*\*Version:\*\* 2\.7\.5/i);
   // v2.7.5 mock Writing rewrite: practice for everyone, never an indicative range, reviewed on the task it rewrites.
-  assert.match(bible, /## 12B\. Mock Writing rewrite after feedback/);
-  assert.match(bible, /It is \*\*practice for everyone who takes it\*\*/);
-  assert.match(bible, /never eligible for an indicative band range/);
+  assert.match(bible, /## 12B\. Mock Writing on computer: rewrite after feedback, or first sitting/);
+  assert.match(bible, /\*\*Rewrite \(practice\)\.\*\*[^\n]*never an indicative band range/);
+  assert.match(bible, /\*\*First sitting \(a real mock\)\.\*\*[^\n]*the AI check[^\n]*is a \*\*teacher-only\*\* aid/);
   assert.match(bible, /never a score, never an automatic penalty and never shown to the student/);
   assert.match(bible, /never one the student already has or had/);
   // v2.7.0 recorded-examiner Speaking mock: practice only, screener content excluded, voice consent gated.

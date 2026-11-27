@@ -68,7 +68,7 @@ async function open(path, handlers) {
 }
 
 test("the mock list shows the rewrite as 60 minutes of Writing, practice, and its Writing state", async () => {
-  const entry = { code: "IELTS-M1W", title: "Mock Test 1 · Writing rewrite", version: "1.0.0", kind: "writing_rewrite", sections: ["writing"], practice_only: true, available: true, minutes: 60, attempts: [] };
+  const entry = { code: "IELTS-M1W", title: "Mock Test 1 · Writing rewrite", version: "1.0.0", kind: "writing_rewrite", sections: ["writing"], practice: true, available: true, minutes: 60, attempts: [] };
   const { w, dom, wait } = await open("/ielts/mocks", { rpc_ielts_mock_cbt_home: () => [entry] });
   await wait(() => w.document.body.textContent.includes("Mock Test 1 · Writing rewrite"));
   const text = w.document.querySelector(".mk-home-card").textContent;
@@ -143,11 +143,46 @@ test("rewrite intro, no paste, leaving the page recorded, bigger picture, and th
   dom.window.close();
 });
 
+test("a first sitting reads as Mock Test 1 · Writing and shows the Writing range once both tasks are checked", async () => {
+  const entry = { code: "IELTS-M1W", title: "Mock Test 1 · Writing", version: "1.0.0", kind: "writing_mock", sections: ["writing"], practice: false, available: true, minutes: 60, attempts: [] };
+  const list = await open("/ielts/mocks", { rpc_ielts_mock_cbt_home: () => [entry] });
+  await list.wait(() => !!list.w.document.querySelector(".mk-home-card"));
+  const card = list.w.document.querySelector(".mk-home-card").textContent;
+  assert.match(card, /Mock Test 1 · Writing/);
+  assert.doesNotMatch(card, /rewrite|practice/);
+  assert.match(card, /Writing band range appears when both are checked/);
+  list.dom.window.close();
+
+  const fresh = { ...base, title: "Mock Test 1 · Writing", kind: "writing_mock", practice: false };
+  const done = { ...result, title: "Mock Test 1 · Writing", kind: "writing_mock", practice: false,
+    skills: { writing: { ...result.skills.writing, indicative: { label: "6.0–7.0", low: 6, high: 7, central: 6.5 },
+      tasks: result.skills.writing.tasks.map((t) => ({ ...t, reviewed: true, band: t.task === "t1" ? 6 : 6.5, reviewed_at: now() })) } } };
+  let current = { ...notStarted(), ...fresh };
+  const { w, dom, errors, wait, button } = await open("/ielts/mocks/att-1", {
+    rpc_ielts_mock_cbt_state: () => current,
+    rpc_ielts_mock_cbt_result: () => done,
+  });
+  await wait(() => !!w.document.querySelector("[data-testid=mk-writing-mock-note]"));
+  assert.doesNotMatch(w.document.querySelector(".mk-intro-card").textContent, /rewrite|no band range/);
+  current = { ...current, status: "completed", section: "done" };
+  dom.window.close();
+  const res = await open("/ielts/mocks/att-1", { rpc_ielts_mock_cbt_state: () => ({ ...current }), rpc_ielts_mock_cbt_result: () => done });
+  await res.wait(() => !!res.w.document.querySelector(".mk-ind"));
+  const ind = res.w.document.querySelector(".mk-ind").textContent;
+  assert.match(ind, /6\.0–7\.0.*Indicative band range.*Not an official IELTS result.*Confidence: low.*M1 Writing · Task 1 \+ Task 2 × 2/);
+  assert.doesNotMatch(res.w.document.querySelector(".mk-result").textContent, /rewrite/);
+  assert.deepEqual(errors.concat(res.errors), []);
+  assert.ok(button);
+  res.dom.window.close();
+});
+
 test("teacher summary of the timed section and the class report note never imply a band", () => {
   const ctx = { code: "IELTS-M1W", title: "Mock Test 1 · Writing rewrite", task: "t1", practice: true, completed_at: null,
     integrity: { tab_switches: 2, focus_lost: 0, paste_blocked: 1, minutes_used: 47, closed_by: "time", started_at: null } };
   assert.equal(mockRewriteSummary(ctx), "Mock Test 1 · Writing rewrite · timed on screen · practice (no band range) · time ran out after 47 min · left the test page 2 times · tried to paste 1 time (blocked)");
   assert.equal(mockRewriteSummary({ ...ctx, integrity: null }), "Mock Test 1 · Writing rewrite · timed on screen · practice (no band range)");
+  assert.equal(mockRewriteSummary({ ...ctx, title: "Mock Test 1 · Writing", practice: false, integrity: null }),
+    "Mock Test 1 · Writing · timed on screen · first sitting: counts toward the Writing indicative range · the AI check is for you only");
   const mock = { key: "cbt:1", group: "cbt:IELTS-M1W", form: "IELTS-M1W", title: "Mock Test 1 · Writing rewrite", delivery: "computer", source: "cbt", sat_on: "2026-11-28", practice: true, attempt_no: 1, sections: {} };
   const cell = mockSectionCell({ state: "result", criteria: { t1: { ta: 6 } }, exposed: true, indicative: null, practice_reason: "rewrite" }, "writing", mock);
   assert.equal(cell.state, "practice");

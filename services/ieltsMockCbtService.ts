@@ -39,8 +39,11 @@ export interface MockPayload {
 
 export interface MockAudio { url: string; listen_end: number; sample_end: number; review_seconds: number; elapsed: number | null }
 
-/** 'full': Listening, Reading and Writing. 'writing_rewrite': a mock's Writing tasks again after feedback (always practice). */
-export type MockKind = 'full' | 'writing_rewrite';
+/**
+ * 'full': Listening, Reading and Writing. On a Writing rewrite form (Diagnostic Bible 12B): 'writing_rewrite' for a student
+ * who already sat that mock (practice, never a range) and 'writing_mock' for a first, unseen Writing sitting of it.
+ */
+export type MockKind = 'full' | 'writing_rewrite' | 'writing_mock';
 
 export interface MockState {
   attempt_id: string;
@@ -91,7 +94,9 @@ export interface MockWritingTaskStatus {
 
 export interface MockHomeEntry {
   code: string; title: string; version: string; available: boolean; minutes: number; attempts: MockAttemptSummary[];
-  kind?: MockKind; sections?: MockSection[]; practice_only?: boolean;
+  kind?: MockKind; sections?: MockSection[];
+  /** True when a new (or the latest) attempt is practice for this student. */
+  practice?: boolean;
 }
 
 export interface MockIndicative { label: string; low: number | null; high: number | null; central: number | null }
@@ -125,6 +130,8 @@ export interface MockResult {
       /** True when this form's Writing is checked in the ordinary Writing review (see tasks). */
       reviewed_in_writing_review?: boolean;
       tasks?: MockWritingTaskStatus[];
+      /** First sitting only: bh-indicative-v1 from the teacher's finalized bands of both tasks. */
+      indicative?: MockIndicative | null;
     };
   };
   payload: MockPayload;

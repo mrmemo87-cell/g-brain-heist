@@ -82,6 +82,7 @@ function SectionIntro({ state, audio, onStart, busy }: { state: MockState; audio
   const [volume, setVolume] = useState(() => audio?.volume ?? 1);
   const minutes = state.section_seconds ? Math.round(state.section_seconds / 60) : 60;
   const rewrite = state.kind === 'writing_rewrite';
+  const writingMock = state.kind === 'writing_mock';
 
   const sample = () => {
     if (!audio || !state.audio) return;
@@ -105,6 +106,11 @@ function SectionIntro({ state, audio, onStart, busy }: { state: MockState; audio
           <p className="mk-note" data-testid="mk-rewrite-note">
             <b>Writing rewrite · practice.</b> You write both tasks of this mock again on screen. Your teacher checks them like
             your other writing and shares feedback for each task. A rewrite has no band range.
+          </p>
+        ) : writingMock ? (
+          <p className="mk-note" data-testid="mk-writing-mock-note">
+            Your teacher checks both tasks and shares feedback for each. When both are checked, you see your Writing
+            indicative band range.
           </p>
         ) : state.practice && (
           <p className="mk-note">Practice attempt: you have taken this test before, so your result will show raw scores but no band range.</p>

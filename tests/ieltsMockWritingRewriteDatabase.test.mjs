@@ -3,18 +3,19 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
-// Diagnostic Bible 2.7.5 section 12B: Mock Test 1 · Writing rewrite on computer. Released to two course batches, Writing
-// only, 60 minutes on the server clock, practice for everyone (no indicative range), integrity events recorded, each
-// non-blank task routed to the ordinary Writing review on the task it rewrites, and the class report showing it beside
-// the paper Mock 1. Real migrations are loaded; only the surrounding platform objects are stand-ins.
+// Diagnostic Bible 2.7.5 section 12B: Mock Test 1 Writing on computer. Released to two course batches, Writing only, 60
+// minutes on the server clock, integrity events recorded, each non-blank task routed to the ordinary Writing review on the
+// task it rewrites. Students who sat the paper Mock 1 take it as a practice rewrite (never a range); the others take it as
+// a first, unseen sitting (indicative range once both tasks are finalized, AI check for the teacher only). Real
+// migrations are loaded; only the surrounding platform objects are stand-ins.
 const MIGRATION = "supabase/migrations/20261127150000_ielts_mock1_writing_rewrite.sql";
 const db = new PGlite();
 const owner = "1d4f3b8d-f24f-4651-ad33-85165359cf88", lead = "00000000-0000-0000-0000-00000000aaaa", outsider = "00000000-0000-0000-0000-00000000bbbb";
 const school = "8eeecf5d-0496-4e0d-b5cd-538f91c9cfa0";
 const octBatch = "b884a28d-f251-45ae-9ca5-8782fa9345e2", mayBatch = "7d0a628c-031a-4ba2-ba93-ae15597b41c3", otherBatch = "00000000-0000-0000-0000-0000000000b9";
-// Aida sat the paper Mock 1; Bek missed it (first attempt); Cara left her batch; Dan is in another batch; Eve has full course access only.
+// Aida sat the paper Mock 1; Bek and Fay missed it (first sitting); Cara left her batch; Dan is in another batch; Eve has full course access only.
 const aida = "00000000-0000-0000-0000-000000000101", bek = "00000000-0000-0000-0000-000000000102", cara = "00000000-0000-0000-0000-000000000103",
-  dan = "00000000-0000-0000-0000-000000000104", eve = "00000000-0000-0000-0000-000000000105";
+  dan = "00000000-0000-0000-0000-000000000104", eve = "00000000-0000-0000-0000-000000000105", fay = "00000000-0000-0000-0000-000000000106";
 
 await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create schema private;
 create function auth.uid() returns uuid language sql as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
@@ -48,10 +49,12 @@ create function public.ielts_review_attempt_payload(p_skill text,p_attempt_id te
  from public.ielts_writing_attempts a join public.ielts_writing_tasks t on t.id=a.task_id where a.id::text=p_attempt_id$$;
 insert into public.users(id,username,role,school_id,full_name) values('${owner}','owner','admin',null,'Owner'),('${lead}','jess','teacher','${school}','Jess'),('${outsider}','other','teacher','${school}',null),
  ('${aida}','aida','student','${school}','Aida Synthetic'),('${bek}','bek','student','${school}','Bek Synthetic'),('${cara}','cara','student','${school}','Cara Synthetic'),
- ('${dan}','dan','student','${school}','Dan Synthetic'),('${eve}','eve','student','${school}','Eve Synthetic');
+ ('${dan}','dan','student','${school}','Dan Synthetic'),('${eve}','eve','student','${school}','Eve Synthetic'),('${fay}','fay','student','${school}','Fay Synthetic');
 insert into public.superadmins values('${owner}');
 insert into private.ielts_course_batches(id,school_id,name) values('${octBatch}','${school}','IELTS · October 2026'),('${mayBatch}','${school}','IELTS for May'),('${otherBatch}','${school}','Other');
-insert into private.ielts_course_batch_members(batch_id,student_id,left_at) values('${octBatch}','${aida}',null),('${mayBatch}','${bek}',null),('${octBatch}','${cara}',now()),('${otherBatch}','${dan}',null);
+insert into private.ielts_course_batch_members(batch_id,student_id,left_at) values('${octBatch}','${aida}',null),('${mayBatch}','${bek}',null),('${octBatch}','${cara}',now()),('${otherBatch}','${dan}',null),('${mayBatch}','${fay}',null);
+create table private.ielts_practice_ai_feedback(id uuid primary key default gen_random_uuid(),attempt_id uuid unique,student_id uuid,fields jsonb);
+create function private.ielts_practice_feedback_json(f private.ielts_practice_ai_feedback) returns jsonb language sql as $$select f.fields$$;
 insert into public.ielts_writing_tasks(id,slug,task_type,title,prompt,display_code) values
  (29,'mock-1-paper-task-1','task1','Mock Test 1 · Task 1 (paper)','The diagram below shows how rainwater is collected and treated for use in a home.','W-016'),
  (30,'mock-1-paper-task-2','task2','Mock Test 1 · Task 2 (paper)','Some people believe that every child should learn to play a musical instrument at school.','W-017');`);
@@ -120,7 +123,8 @@ test("the migration is safe to re-run and installs a Writing-only form from the 
   await db.exec(migration); // idempotent: nothing duplicated, nothing overwritten
   const f = (await db.query("select * from private.ielts_mock_cbt_forms where code='IELTS-M1W'")).rows[0];
   assert.equal(f.version, "1.0.0");
-  assert.deepEqual(f.timing, { sections: ["writing"], writing_seconds: 3600, grace_seconds: 20, practice_only: true, max_attempts: 1 });
+  assert.deepEqual(f.timing, { sections: ["writing"], writing_seconds: 3600, grace_seconds: 20, rewrite_of: "IELTS-M1", max_attempts: 1 });
+  assert.equal(f.payload.fresh_title, "Mock Test 1 · Writing");
   assert.deepEqual(Object.keys(f.payload).filter((k) => ["listening", "reading", "writing"].includes(k)), ["writing"]);
   assert.equal(f.payload.title, "Mock Test 1 · Writing rewrite");
   assert.equal(f.payload.kind, "writing_rewrite");
@@ -137,13 +141,15 @@ test("the migration is safe to re-run and installs a Writing-only form from the 
   assert.deepEqual(f.release_batches, [octBatch, mayBatch]);
   assert.equal(f.release_scope, "pilot");
   assert.equal(f.authorized_by, owner);
-  const tasks = (await db.query("select task_key,writing_task_id,label from private.ielts_mock_cbt_review_tasks order by task_key")).rows;
-  assert.deepEqual(tasks.map((t) => [t.task_key, Number(t.writing_task_id), t.label]), [["t1", 29, "Mock Test 1 · Task 1 (computer rewrite)"], ["t2", 30, "Mock Test 1 · Task 2 (computer rewrite)"]]);
+  const tasks = (await db.query("select task_key,writing_task_id,label,fresh_label from private.ielts_mock_cbt_review_tasks order by task_key")).rows;
+  assert.deepEqual(tasks.map((t) => [t.task_key, Number(t.writing_task_id), t.label, t.fresh_label]), [
+    ["t1", 29, "Mock Test 1 · Task 1 (computer rewrite)", "Mock Test 1 · Task 1 (computer)"],
+    ["t2", 30, "Mock Test 1 · Task 2 (computer rewrite)", "Mock Test 1 · Task 2 (computer)"]]);
   assert.equal((await db.query("select count(*)::int n from public.ielts_writing_tasks")).rows[0].n, 2, "no copy of the paper tasks is created");
 });
 
 test("released to the two batches only (and superadmins); never captured on paper", async () => {
-  for (const [who, sees] of [[aida, true], [bek, true], [cara, false], [dan, false], [eve, false], [owner, true]]) {
+  for (const [who, sees] of [[aida, true], [bek, true], [fay, true], [cara, false], [dan, false], [eve, false], [owner, true]]) {
     await as(who);
     const m1w = (await home()).find((e) => e.code === "IELTS-M1W");
     assert.equal(Boolean(m1w?.available), sees, who);
@@ -157,9 +163,11 @@ test("released to the two batches only (and superadmins); never captured on pape
   await as(aida);
   const m1w = (await home()).find((e) => e.code === "IELTS-M1W");
   assert.equal(m1w.minutes, 60);
-  assert.equal(m1w.kind, "writing_rewrite");
-  assert.equal(m1w.practice_only, true);
+  assert.deepEqual([m1w.title, m1w.kind, m1w.practice], ["Mock Test 1 · Writing rewrite", "writing_rewrite", true], "she sat the paper: a rewrite");
   assert.deepEqual(m1w.sections, ["writing"]);
+  await as(bek);
+  const fresh = (await home()).find((e) => e.code === "IELTS-M1W");
+  assert.deepEqual([fresh.title, fresh.kind, fresh.practice], ["Mock Test 1 · Writing", "writing_mock", false], "he missed it: a first sitting");
   await as(lead);
   const forms = (await rpc("select public.rpc_ielts_mock_sittings($1) r", [octBatch])).forms.map((x) => x.code);
   assert.deepEqual(forms, ["IELTS-M1", "IELTS-M2", "IELTS-M3"]);
@@ -167,7 +175,7 @@ test("released to the two batches only (and superadmins); never captured on pape
 });
 
 let aidaAttempt, bekAttempt;
-test("starts at Writing, practice for everyone, one attempt, server-timed 60 minutes", async () => {
+test("starts at Writing, practice only for those who sat the paper, one attempt, server-timed 60 minutes", async () => {
   await as(aida);
   aidaAttempt = (await start()).attempt_id;
   assert.equal((await start()).resumed, true, "a second start resumes");
@@ -182,7 +190,8 @@ test("starts at Writing, practice for everyone, one attempt, server-timed 60 min
   assert.ok(s.payload.task1.figure.src.startsWith("/ielts/mocks/IELTS-M1W/"));
   await as(bek);
   bekAttempt = (await start()).attempt_id;
-  assert.equal((await state(bekAttempt)).practice, true, "a first attempt of a practice-only form is practice too: no range");
+  const b = await state(bekAttempt);
+  assert.deepEqual([b.practice, b.kind, b.title], [false, "writing_mock", "Mock Test 1 · Writing"], "a first, unseen sitting");
 });
 
 test("integrity events: recorded for the learner's own open section, bounded, never someone else's", async () => {
@@ -227,8 +236,8 @@ test("time-out closes the section on the server and routes what was saved; a bla
   assert.equal(s.status, "completed");
   const closed = (await db.query("select sections->'writing'->>'closed_by' c from private.ielts_mock_cbt_attempts where id=$1", [bekAttempt])).rows[0].c;
   assert.equal(closed, "time");
-  const links = (await db.query("select task_key from private.ielts_mock_cbt_writing_links where mock_attempt_id=$1", [bekAttempt])).rows.map((r) => r.task_key);
-  assert.deepEqual(links, ["t1"]);
+  const links = (await db.query("select task_key,label,fresh from private.ielts_mock_cbt_writing_links where mock_attempt_id=$1", [bekAttempt])).rows;
+  assert.deepEqual(links.map((r) => [r.task_key, r.label, r.fresh]), [["t1", "Mock Test 1 · Task 1 (computer)", true]]);
 });
 
 test("the Writing review shows the rewrite title and, to the teacher only, what happened during the timed section", async () => {
@@ -253,6 +262,46 @@ test("the Writing review shows the rewrite title and, to the teacher only, what 
   assert.deepEqual(labels, { [t1id]: "Mock Test 1 · Task 1 (computer rewrite)" });
   await as(bek);
   assert.deepEqual(await rpc("select public.rpc_ielts_writing_attempt_labels($1::uuid[]) r", [[t1id]]), {}, "another student's script has no label for you");
+});
+
+let fayAttempt;
+test("a first sitting: the AI check is for the teacher only, and both finalized tasks give the indicative range", async () => {
+  await as(fay);
+  fayAttempt = (await start()).attempt_id;
+  await rpc("select public.rpc_ielts_mock_cbt_begin_section($1,'writing') r", [fayAttempt]);
+  await rpc("select public.rpc_ielts_mock_cbt_finish_section($1,'writing',$2) r", [fayAttempt, { t1: "Fay's Task 1 answer.", t2: "Fay's Task 2 answer." }]);
+  const links = (await db.query("select task_key,writing_attempt_id,label from private.ielts_mock_cbt_writing_links where mock_attempt_id=$1 order by task_key", [fayAttempt])).rows;
+  assert.deepEqual(links.map((l) => l.label), ["Mock Test 1 · Task 1 (computer)", "Mock Test 1 · Task 2 (computer)"]);
+  const aidaT1 = (await db.query("select writing_attempt_id from private.ielts_mock_cbt_writing_links where mock_attempt_id=$1 and task_key='t1'", [aidaAttempt])).rows[0].writing_attempt_id;
+  await db.query("insert into private.ielts_practice_ai_feedback(attempt_id,student_id,fields) values($1,$2,'{\"estimate\":{\"band\":6}}'),($3,$4,'{\"estimate\":{\"band\":5.5}}')", [links[0].writing_attempt_id, fay, aidaT1, aida]);
+  assert.equal(await rpc("select public.rpc_ielts_practice_feedback($1) r", [links[0].writing_attempt_id]), null, "the student never sees AI on a first sitting");
+  await as(aida);
+  assert.deepEqual(await rpc("select public.rpc_ielts_practice_feedback($1) r", [aidaT1]), { estimate: { band: 5.5 } }, "a rewrite is practice: AI practice feedback as usual");
+  await as(lead);
+  assert.deepEqual(await rpc("select public.rpc_ielts_practice_feedback($1) r", [links[0].writing_attempt_id]), { estimate: { band: 6 } }, "the teacher sees it");
+  const detail = await rpc("select public.rpc_ielts_review_detail('writing',$1) r", [links[0].writing_attempt_id]);
+  assert.equal(detail.task_title, "Mock Test 1 · Task 1 (computer)");
+  assert.deepEqual([detail.mock_rewrite.practice, detail.mock_rewrite.ai_teacher_only, detail.mock_rewrite.kind, detail.mock_rewrite.title], [false, true, "writing_mock", "Mock Test 1 · Writing"]);
+  await rpc("select public.rpc_ielts_review_detail('writing',$1) r", [links[1].writing_attempt_id]);
+  for (const [l, b] of [[links[0], 6], [links[1], 6.5]]) {
+    await db.query(`update public.ielts_productive_skill_reviews set finalized=true,review_status='finalized',overall_band=$2,reviewed_at=now(),
+      rubric=jsonb_build_object('task_achievement',$2::numeric,'coherence_cohesion',$2::numeric,'lexical_resource',$2::numeric,'grammar',$2::numeric) where attempt_id=$1`, [l.writing_attempt_id, b]);
+  }
+  const r = (await rpc("select public.rpc_ielts_class_report($1,'batch',$2) r", [school, mayBatch])).students.find((x) => x.id === fay);
+  assert.equal(r.markbook.mocks.length, 1);
+  const m = r.markbook.mocks[0];
+  assert.deepEqual([m.title, m.group, m.practice], ["Mock Test 1 · Writing", "cbt:IELTS-M1W:first", false]);
+  assert.equal(m.sections.writing.indicative.label, "6.0–7.0", "(6 + 2 × 6.5) / 3 → 6.5, shown as a range");
+  assert.equal(m.sections.writing.practice_reason, undefined);
+  assert.equal(r.items.find((i) => i.key === "writing:29:IELTS-M1W:first").title, "Mock Test 1 · Task 1 (computer)");
+  await as(fay);
+  const res = await rpc("select public.rpc_ielts_mock_cbt_result($1) r", [fayAttempt]);
+  assert.deepEqual([res.kind, res.title, res.practice, res.skills.writing.indicative.label], ["writing_mock", "Mock Test 1 · Writing", false, "6.0–7.0"]);
+  const labels = await rpc("select public.rpc_ielts_writing_attempt_labels($1::uuid[]) r", [[links[1].writing_attempt_id]]);
+  assert.deepEqual(labels, { [links[1].writing_attempt_id]: "Mock Test 1 · Task 2 (computer)" });
+  await as(lead);
+  const bek_ = (await rpc("select public.rpc_ielts_class_report($1,'batch',$2) r", [school, mayBatch])).students.find((x) => x.id === bek);
+  assert.equal(bek_.markbook.mocks[0].sections.writing.state, "waiting");
 });
 
 test("the old superadmin marking page leaves the rewrite to the Writing review", async () => {
@@ -297,6 +346,7 @@ test("class report: the rewrite sits beside the paper Mock 1, Writing waits for 
   await as(aida);
   const result = await rpc("select public.rpc_ielts_mock_cbt_result($1) r", [aidaAttempt]);
   assert.equal(result.kind, "writing_rewrite");
+  assert.equal(result.skills.writing.indicative, null, "a rewrite never has a range");
   assert.equal(result.skills.writing.reviewed_in_writing_review, true);
   assert.equal(result.skills.listening, undefined);
   assert.deepEqual(result.skills.writing.tasks.map((t) => [t.task, t.reviewed, Number(t.band)]), [["t1", true, 6], ["t2", true, 6.5]]);
