@@ -7,8 +7,9 @@ import { planBookletPrint, type BookletPrintPlan, type BookletPrintSettings } fr
 import { createSchoolDocumentId, escapeSchoolDocumentHtml as esc, registerSchoolDocumentRecord } from "./schoolDocument";
 import { normalizeBrandLogoUrl, PRODUCT_LOGO_URL, PRODUCT_NAME } from "./schoolBranding";
 import {
-  cellState, kindLabel, latestFor, reportColumns, resultText, stateLabel, studentSummary,
-  type ClassReport, type ReportStudent,
+  CLASS_REPORT_NOTE, MOCK_SKILLS, cellState, kindLabel, latestFor, markbookCell, markbookColumns, mockGroupTitle,
+  mockSectionCell, reportColumns, resultText, stateLabel, studentSummary,
+  type ClassReport, type ReportColumn, type ReportStudent, type MarkbookColumn,
 } from "../../services/ieltsClassReportService";
 
 export type ClassReportPrintView = "class" | "students";
@@ -46,8 +47,7 @@ const chunk = <T,>(list: T[], first: number, next = first): T[][] => {
   for (let i = first; i < list.length; i += next) out.push(list.slice(i, i + next));
   return out;
 };
-export const CLASS_REPORT_NOTE =
-  "Reading and Listening show correct answers out of the total, not IELTS bands. A Speaking band is the teacher's band, shown only after the teacher confirms the review; practice mock bands are practice. None of these is an official IELTS result. Writing shows whether it has been reviewed.";
+export { CLASS_REPORT_NOTE };
 
 export function scopeTitle(report: ClassReport) {
   return report.scope.kind === "all" ? "All students" : report.scope.kind === "batch" ? `Course batch · ${report.scope.name ?? ""}` : `Class ${report.scope.name ?? ""}`;
@@ -88,9 +88,23 @@ function cell(student: ReportStudent, key: string, now: number) {
   return `<td class="is-${st}">${esc(text)}</td>`;
 }
 
+type GridColumn = { kind: "work"; col: ReportColumn } | { kind: "book"; col: MarkbookColumn };
+function gridHead(c: GridColumn) {
+  if (c.kind === "work") return `<th><small>${esc(c.col.skill ? SKILL[c.col.skill] ?? c.col.skill : kindLabel[c.col.kind])}${c.col.code ? " · " + esc(c.col.code) : ""}</small><span class="rp-t">${esc(c.col.title)}</span></th>`;
+  return `<th class="rp-book"><small>${esc(c.col.groupTitle)}</small>${esc(c.col.title)}</th>`;
+}
+function gridCell(student: ReportStudent, c: GridColumn, now: number) {
+  if (c.kind === "work") return cell(student, c.col.key, now);
+  const x = markbookCell(student, c.col);
+  const sub = x.sub && x.sub !== x.text ? `<small>${esc(x.sub)}</small>` : "";
+  return `<td class="is-${x.state === "practice" ? "result" : x.state === "none" ? "none" : x.state}">${esc(x.text)}${sub}</td>`;
+}
+
 function classPages(report: ClassReport, documentId: string, schoolName: string, brand: string, now: number): string[] {
-  const columns = reportColumns(report.students);
+  const book = markbookColumns(report.students);
+  const columns: GridColumn[] = [...book.map((col) => ({ kind: "book" as const, col })), ...reportColumns(report.students).map((col) => ({ kind: "work" as const, col }))];
   const groups = chunk(columns, CLASS_GRID_COLUMNS);
+  const noun = book.length ? "Columns" : "Work";
   const rows = chunk(report.students, CLASS_GRID_ROWS);
   const total = groups.length * rows.length;
   const made = day(report.generated_at);
@@ -104,21 +118,36 @@ function classPages(report: ClassReport, documentId: string, schoolName: string,
     const summary = n === 1
       ? `<dl class="rp-stats"><div><dt>Students</dt><dd>${report.students.length}</dd></div><div><dt>Pieces of work given</dt><dd>${totals.given}</dd></div><div><dt>Done</dt><dd>${totals.given ? Math.round((totals.done / totals.given) * 100) : 0}% · ${totals.done}</dd></div><div><dt>Overdue</dt><dd>${totals.overdue}</dd></div><div><dt>Waiting for review</dt><dd>${totals.waiting}</dd></div></dl>`
       : "";
-    const head = cols.map((c) => `<th><small>${esc(c.skill ? SKILL[c.skill] ?? c.skill : kindLabel[c.kind])}${c.code ? " · " + esc(c.code) : ""}</small>${esc(c.title)}</th>`).join("");
+    const head = cols.map(gridHead).join("");
     const body = students.map((s) => {
       const x = studentSummary(s, now);
-      return `<tr><th>${esc(s.name)}${s.class_name ? `<small>${esc(s.class_name)}</small>` : ""}</th><td class="rp-done">${x.done} / ${x.given}${x.overdue ? ` · ${x.overdue} late` : ""}</td>${cols.map((c) => cell(s, c.key, now)).join("")}</tr>`;
+      return `<tr><th>${esc(s.name)}${s.class_name ? `<small>${esc(s.class_name)}</small>` : ""}</th><td class="rp-done">${x.done} / ${x.given}${x.overdue ? ` · ${x.overdue} late` : ""}</td>${cols.map((c) => gridCell(s, c, now)).join("")}</tr>`;
     }).join("");
-    const where = columns.length ? `Work ${from}–${to} of ${columns.length} · students ${r * CLASS_GRID_ROWS + 1}–${r * CLASS_GRID_ROWS + students.length} of ${report.students.length}` : "No IELTS work given yet";
+    const where = columns.length ? `${noun} ${from}–${to} of ${columns.length} · students ${r * CLASS_GRID_ROWS + 1}–${r * CLASS_GRID_ROWS + students.length} of ${report.students.length}` : "No IELTS work given yet";
     pages.push(`<section class="print-page rp-page">${pageHead({ schoolName, brand, title: "IELTS class report", subtitle: `${scopeTitle(report)} · ${where}`, documentId, page: `Page ${n} of ${total}` })}${summary}
       <table class="rp-grid"><thead><tr><th>Student</th><th>Done</th>${head}</tr></thead><tbody>${body || `<tr><td colspan="2">No students here yet.</td></tr>`}</tbody></table>${pageFoot(made)}</section>`);
   }));
   return pages;
 }
 
+/** The student's mocks and real IELTS results, at the top of their first page. */
+function studentBook(student: ReportStudent): { html: string; rows: number } {
+  const mb = student.markbook;
+  if (!mb || (!mb.mocks.length && !mb.official.length)) return { html: "", rows: 0 };
+  const td = (text: string, sub: string, state: string) => `<td class="is-${state}">${esc(text)}${sub && sub !== text ? `<small>${esc(sub)}</small>` : ""}</td>`;
+  const mocks = mb.mocks.map((m) => `<tr><td><strong>${esc(mockGroupTitle(m))}</strong>${m.practice ? "<small>practice · no range</small>" : m.source === "sitting" ? "<small>teacher-entered paper evidence</small>" : ""}</td>${MOCK_SKILLS.map((k) => { const c = mockSectionCell(m.sections[k], k, m); return td(c.text, c.sub, c.state === "practice" ? "result" : c.state); }).join("")}<td>—</td></tr>`).join("");
+  const official = mb.official.map((o) => `<tr><td><strong>Real IELTS · ${esc(day(o.test_date))}</strong><small>Official result · ${o.verified ? "verified" : "student-reported"}</small></td>${[o.listening, o.reading, o.writing, o.speaking, o.overall].map((v) => `<td class="is-result">${esc(Number(v).toFixed(1))}</td>`).join("")}</tr>`).join("");
+  return {
+    html: `<table class="rp-list rp-book-list"><thead><tr><th>Mock test / real IELTS</th><th>Listening</th><th>Reading</th><th>Writing</th><th>Speaking</th><th>Overall</th></tr></thead><tbody>${mocks}${official}</tbody></table>`,
+    rows: mb.mocks.length + mb.official.length + 1,
+  };
+}
+
 function studentPages(student: ReportStudent, report: ClassReport, documentId: string, schoolName: string, brand: string, now: number): string[] {
   const x = studentSummary(student, now);
-  const parts = chunk(student.items, STUDENT_FIRST_PAGE_ROWS, STUDENT_NEXT_PAGE_ROWS);
+  const book = studentBook(student);
+  const first = Math.max(2, STUDENT_FIRST_PAGE_ROWS - book.rows);
+  const parts = chunk(student.items, first, STUDENT_NEXT_PAGE_ROWS);
   const made = day(report.generated_at);
   return parts.map((items, i) => {
     const rows = items.map((it) => {
@@ -128,7 +157,7 @@ function studentPages(student: ReportStudent, report: ClassReport, documentId: s
       return `<tr><td><strong>${esc(it.title)}</strong><small>${esc(kindLabel[it.kind])}${it.code ? " · " + esc(it.code) : ""}</small></td><td>${esc(it.skill ? SKILL[it.skill] ?? it.skill : "—")}</td><td>${esc(day(it.assigned_at))}</td><td>${esc(day(it.due_at))}</td><td class="is-${st}">${esc(stateLabel[st])}${it.done_at ? `<small>${esc(day(it.done_at))}</small>` : ""}</td><td>${esc(result || "—")}${note ? `<small>${esc(note)}</small>` : ""}</td></tr>`;
     }).join("");
     const summary = i === 0
-      ? `<dl class="rp-stats"><div><dt>Class</dt><dd>${esc(student.class_name ?? "—")}</dd></div><div><dt>Given</dt><dd>${x.given}</dd></div><div><dt>Done</dt><dd>${x.done}</dd></div><div><dt>Overdue</dt><dd>${x.overdue}</dd></div><div><dt>Waiting for review</dt><dd>${x.waiting}</dd></div></dl>`
+      ? `<dl class="rp-stats"><div><dt>Class</dt><dd>${esc(student.class_name ?? "—")}</dd></div><div><dt>Given</dt><dd>${x.given}</dd></div><div><dt>Done</dt><dd>${x.done}</dd></div><div><dt>Overdue</dt><dd>${x.overdue}</dd></div><div><dt>Waiting for review</dt><dd>${x.waiting}</dd></div>${student.markbook ? `<div><dt>Course units</dt><dd>${student.markbook.course.done} / ${student.markbook.course.total}</dd></div>` : ""}</dl>${book.html}`
       : "";
     return `<section class="print-page rp-page">${pageHead({ schoolName, brand, title: student.name, subtitle: `IELTS student report · ${scopeTitle(report)}${i ? " · continued" : ""}`, documentId, page: `Student page ${i + 1} of ${parts.length}` })}${summary}
       <table class="rp-list"><thead><tr><th>Work</th><th>Skill</th><th>Given</th><th>Due</th><th>Status</th><th>Result</th></tr></thead><tbody>${rows || `<tr><td colspan="6">No IELTS work given yet.</td></tr>`}</tbody></table>${pageFoot(made)}</section>`;
@@ -159,9 +188,9 @@ const css = (orientation: "portrait" | "landscape") => {
   .rp-brand strong { display:block; font-size:11pt; } .rp-brand small,.rp-id small { display:block; color:#5d6b82; font-size:7.5pt; }
   .rp-id { text-align:right; } .rp-id strong { font:700 8pt/1.3 "Courier New",monospace; }
   .rp-title h1 { margin:0; font-size:17pt; letter-spacing:-.01em; } .rp-title p { margin:1mm 0 0; color:#5d6b82; font-size:9pt; }
-  .rp-stats { display:grid; grid-template-columns:repeat(5,1fr); gap:2.5mm; margin:0; }
-  .rp-stats div { border:1px solid #dce3ed; border-radius:2mm; padding:2mm 3mm; background:#f4f7fb; }
-  .rp-stats dt { font-size:7pt; color:#5d6b82; text-transform:uppercase; letter-spacing:.05em; font-weight:800; } .rp-stats dd { margin:.5mm 0 0; font-size:12pt; font-weight:800; }
+  .rp-stats { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:2.5mm; margin:0; }
+  .rp-stats div { border:1px solid #dce3ed; border-radius:2mm; padding:1.4mm 3mm; background:#f4f7fb; }
+  .rp-stats dt { font-size:7pt; color:#5d6b82; text-transform:uppercase; letter-spacing:.05em; font-weight:800; } .rp-stats dd { margin:.3mm 0 0; font-size:11pt; font-weight:800; }
   table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:8pt; }
   th,td { border:1px solid #dce3ed; padding:1.6mm 2mm; text-align:left; vertical-align:top; overflow-wrap:anywhere; }
   thead th { background:#0b2f70; color:white; font-size:7.5pt; font-weight:700; }
@@ -171,12 +200,19 @@ const css = (orientation: "portrait" | "landscape") => {
   .rp-grid thead th:first-child { width:40mm; } .rp-grid thead th:nth-child(2) { width:24mm; }
   .rp-grid tbody th, .rp-grid td.rp-done { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .rp-grid tbody tr { height:10mm; }
+  .rp-grid thead th { line-height:1.2; }
+  .rp-grid thead th .rp-t { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .rp-grid td small { font-size:6.5pt; line-height:1.15; }
+  .rp-grid td, .rp-grid tbody th { padding:1.2mm 1.6mm; }
   .rp-grid td { text-align:center; font-weight:700; } .rp-grid td.rp-done { text-align:left; }
   .rp-list thead th:first-child { width:38%; }
+  .rp-book-list td { text-align:center; font-weight:700; } .rp-book-list td:first-child { text-align:left; font-weight:400; }
+  .rp-grid thead th.rp-book { background:#123f8c; }
+  .is-not_sat,.is-not_part { color:#64748b; font-weight:400!important; }
   .is-result,.is-done { color:#047857; } .is-waiting { color:#be123c; } .is-overdue { color:#b45309; } .is-in_progress { color:#1d4ed8; }
   .is-not_started,.is-excused,.is-skipped,.is-none { color:#64748b; font-weight:400!important; }
-  .rp-foot { position:absolute; left:13mm; right:13mm; bottom:8mm; display:flex; justify-content:space-between; gap:8mm; border-top:1px solid #dce3ed; padding-top:2mm; color:#5d6b82; font-size:6.8pt; line-height:1.4; }
-  .rp-foot p { margin:0; max-width:80%; } .rp-foot span { white-space:nowrap; }
+  .rp-foot { position:absolute; left:13mm; right:13mm; bottom:8mm; display:flex; justify-content:space-between; gap:8mm; border-top:1px solid #dce3ed; padding-top:1.5mm; color:#5d6b82; font-size:6.2pt; line-height:1.3; }
+  .rp-foot p { margin:0; max-width:88%; } .rp-foot span { white-space:nowrap; }
   .blank-page { display:flex; align-items:center; justify-content:center; color:#68788e; border:2px dashed #b9c4d4; }
   .blank-page span { font-size:16px; text-align:center; padding:30px; }
   @media print {
@@ -253,7 +289,7 @@ export function openClassReportPrint(report: ClassReport, options: ClassReportPr
   });
   void registerSchoolDocumentRecord({
     meta: {
-      documentId: doc.documentId, templateVersion: "ielts-class-report-v1", title: doc.title, schoolName: options.schoolName ?? PRODUCT_NAME, schoolLogoUrl: options.schoolLogoUrl ?? null,
+      documentId: doc.documentId, templateVersion: "ielts-class-report-v2", title: doc.title, schoolName: options.schoolName ?? PRODUCT_NAME, schoolLogoUrl: options.schoolLogoUrl ?? null,
       audience: "teacher", status: "final", confidentiality: "confidential", generatedAt: report.generated_at, schoolId: report.school_id,
       visibilityScope: "school_staff", sourceType: "ielts_class_report", documentTypeLabel: "IELTS class report",
     },

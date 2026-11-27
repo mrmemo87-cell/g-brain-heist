@@ -90,3 +90,35 @@ test("the school logo comes before the school name; without one, the school's in
   assert.match(reportBrand("Silk Road", "javascript:alert(1)"), /rp-mark">SR</, "only https logos are used");
   assert.match(reportBrand("", null, "https://app.example"), /src="https:\/\/app.example\/logo.png"/, "no school: the Brains Heist logo");
 });
+
+// Mark book (Diagnostic Bible 2.7.4 section 15.1): course, mocks and real IELTS print with the class and on each student.
+const mock = (extra = {}) => ({ key: "sitting:1", group: "paper:IELTS-M1:2026-10-24", form: "IELTS-M1", title: "Mock Test 1", delivery: "paper", source: "sitting", sat_on: "2026-10-24", practice: false, attempt_no: null,
+  sections: { listening: { state: "result", raw: 29, answered: 40, exposed: false, indicative: { label: "6.0–7.0", low: 6, high: 7, central: 6.5 } }, reading: { state: "not_sat" }, writing: { state: "result", criteria: {}, exposed: false, indicative: { label: "4.5–5.5", low: 4.5, high: 5.5, central: 5 } }, speaking: { state: "not_sat" } }, ...extra });
+const book = (mocks, official = []) => ({ mocks, course: { done: 3, total: 26 }, official });
+
+test("mark book columns print before the work, with marks, the labelled range and not-sat sections", () => {
+  const s = { ...student(1, [item(1)]), markbook: book([mock()], [{ test_date: "2026-11-01", test_type: "academic", delivery: "computer", listening: 7, reading: 6.5, writing: 6, speaking: 6.5, overall: 6.5, verified: false }]) };
+  const doc = buildClassReportPrint(report([s]), { view: "class", settings: double, documentId: "IEL-TEST", now });
+  // 1 course + 4 mock sections + 5 real IELTS + 1 work = 11 columns: two pages of 7.
+  assert.equal(pages(doc.html), 2);
+  assert.match(doc.html, /Columns 1–7 of 11/);
+  assert.match(doc.html, /<th class="rp-book"><small>Mock Test 1 · Paper · 24 Oct 2026<\/small>Listening<\/th>/);
+  assert.match(doc.html, /<td class="is-result">29 \/ 40<small>6\.0–7\.0<\/small><\/td><td class="is-not_sat">Not sat<\/td>/);
+  assert.match(doc.html, /<td class="is-result">3 \/ 26<small>units<\/small><\/td>/);
+  assert.match(doc.html, /6\.5<small>student-reported<\/small>/);
+  assert.match(doc.html, /Confidence: low/);
+  assert.match(doc.html, /except the Real IELTS columns/);
+});
+
+test("each student's first page carries their mocks and real IELTS results, and still fits", () => {
+  const many = Array.from({ length: STUDENT_FIRST_PAGE_ROWS }, (_, k) => item(k));
+  const s = { ...student(1, many), markbook: book([mock(), mock({ key: "sitting:2", sat_on: "2026-11-20", group: "paper:IELTS-M1:2026-11-20", practice: true })]) };
+  const doc = buildClassReportPrint(report([s]), { view: "students", settings: double, now });
+  assert.equal(pages(doc.html), 2, "the mock rows take room from the first page");
+  assert.match(doc.html, /<dt>Course units<\/dt><dd>3 \/ 26<\/dd>/);
+  assert.match(doc.html, /rp-book-list/);
+  assert.match(doc.html, /Mock Test 1 · Paper · 20 Nov 2026<\/strong><small>practice · no range<\/small>/);
+  assert.match(doc.html, /teacher-entered paper evidence/);
+  const plain = buildClassReportPrint(report([student(1, many)]), { view: "students", settings: double, now });
+  assert.equal(pages(plain.html), 1, "without a mark book, unchanged");
+});

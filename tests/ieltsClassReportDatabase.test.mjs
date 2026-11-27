@@ -67,6 +67,34 @@ insert into private.ielts_diagnostic_attempt_evidence values('00000000-0000-0000
 insert into private.ielts_diagnostic_scoring_runs(attempt_id,raw_score,marks_possible,run_version,created_at) values('00000000-0000-0000-0000-00000000e201',3,12,1,now()-interval '1 hour'),('00000000-0000-0000-0000-00000000e201',7,12,2,now());
 `);
 await db.exec(readFileSync("supabase/migrations/20261123090000_ielts_class_report.sql", "utf8"));
+// Mark book (Diagnostic Bible 2.7.4 section 15.1): the shapes the new migration reads, plus the real bh-indicative-v1
+// and mock exposure functions taken from their own migrations.
+const fn = (file, name) => {
+  const m = readFileSync(`supabase/migrations/${file}.sql`, "utf8").match(new RegExp(`create or replace function private\\.${name}\\([\\s\\S]*?\\$\\$;`));
+  assert.ok(m, name);
+  return m[0];
+};
+await db.exec(`
+create table public.ielts_practice_assignment_item_students(assignment_id uuid,assignment_item_id uuid,student_id uuid,practice_attempt_type text,practice_attempt_id uuid);
+create table public.ielts_listening_attempts(id uuid primary key,user_id uuid,raw_score int,total_questions int,est_band numeric,completed_at timestamptz);
+create table public.ielts_reading_attempts(id uuid primary key,user_id uuid,raw_score int,total_questions int,est_band numeric,completed_at timestamptz);
+create table public.ielts_writing_tasks(id bigint primary key,title text,task_type text,display_code text);
+create table public.ielts_writing_attempts(id uuid primary key,user_id uuid,task_id bigint,submitted_at timestamptz,band_overall numeric);
+create table public.ielts_productive_skill_reviews(id uuid primary key default gen_random_uuid(),school_id uuid,student_id uuid,attempt_type text,attempt_id text,overall_band numeric,finalized boolean,reviewed_at timestamptz,created_at timestamptz default now());
+create table private.ielts_writing_starting_points(id uuid primary key default gen_random_uuid(),attempt_id uuid,band numeric,ai_band numeric,set_at timestamptz default now());
+create table private.ielts_mock_forms(code text primary key,title text);
+create table private.ielts_mock_sittings(id uuid primary key,school_id uuid,batch_id uuid,mock_code text,sat_on date,delivery text,created_at timestamptz default now());
+create table private.ielts_mock_results(sitting_id uuid,student_id uuid,section text,marks text,criteria jsonb,revision int default 1,entered_by uuid,entered_at timestamptz default now());
+create table private.ielts_mock_cbt_attempts(id uuid primary key,student_id uuid,mock_code text,attempt_no int,exposed boolean,status text,section text,sections jsonb default '{}',started_at timestamptz default now());
+create table private.ielts_mock_cbt_scores(id bigint generated always as identity primary key,attempt_id uuid,section text,raw int,scored_at timestamptz default now());
+create table private.ielts_mock_cbt_writing_reviews(id bigint generated always as identity primary key,attempt_id uuid,criteria jsonb,reviewed_at timestamptz default now());
+create table public.ielts_course_units(id bigint primary key,is_published boolean);
+create table public.ielts_course_progress(user_id uuid,unit_id bigint,completed_at timestamptz);
+create table private.ielts_official_results(id uuid primary key default gen_random_uuid(),student_id uuid,school_id uuid,test_date date,test_type text,delivery text,listening numeric,reading numeric,writing numeric,speaking numeric,overall numeric,verified boolean default false,created_at timestamptz default now());
+${["ielts_round_half", "ielts_indicative_objective", "ielts_valid_band", "ielts_indicative_productive", "ielts_mock_result_json"].map((n) => fn("20261019080000_ielts_mock_capture", n)).join("\n")}
+${fn("20261116100000_ielts_mock_cbt", "ielts_mock_exposed")}
+`);
+await db.exec(readFileSync("supabase/migrations/20261127090000_ielts_class_report_markbook.sql", "utf8"));
 // One finished Speaking practice mock for Aida (teacher review confirmed, band 6.5) and one finished, unreviewed for Bek.
 const pkg = (await db.query("select code,content_hash,content from private.ielts_speaking_packages where code='bh-speaking-mock-b'")).rows[0];
 const script = (await db.query("select id from private.ielts_speaking_mock_scripts where package_code='bh-speaking-mock-b' limit 1")).rows[0]?.id;
@@ -79,6 +107,52 @@ for (const [i, s] of [[1, aida], [2, bek]]) {
 }
 await db.exec(`insert into private.ielts_speaking_part_bands(session_id,overall) values('00000000-0000-0000-0000-00000000f001',6.5),('00000000-0000-0000-0000-00000000f002',5.0);
 insert into private.ielts_speaking_reviews(id,session_id,source_hash,reviewer_id,fields,teacher_confirmed) values('00000000-0000-0000-0000-00000000f101','00000000-0000-0000-0000-00000000f001','x','${lead}','{}',true);`);
+
+// Mark book fixtures: school practice with linked attempts, teacher Writing reviews, mocks, course and official results.
+const m40 = (n) => "1".repeat(n) + "0".repeat(40 - n);
+const w6 = { t1: { ta: 6, cc: 6, lr: 6, gra: 6 }, t2: { tr: 6, cc: 6, lr: 6, gra: 6 } };
+await db.exec(`
+insert into private.practice_fixture values
+ ('00000000-0000-0000-0000-00000000d003:${aida}','school','00000000-0000-0000-0000-00000000d0a3','${aida}','aida',null,'10A','ielts_listening_set','L7',null,'Listening set 7','Week 2','listening','completed','assigned','not_tracked',now()-interval '2 days',now()-interval '1 day',null,null,'${school}'),
+ ('00000000-0000-0000-0000-00000000d004:${bek}','school','00000000-0000-0000-0000-00000000d0a4','${bek}','bek',null,'10A','ielts_writing_task','12',null,'Essay: cities','Week 2','writing','completed','assigned','not_tracked',now()-interval '2 days',now()-interval '1 day',null,null,'${school}'),
+ ('00000000-0000-0000-0000-00000000d005:${aida}','school','00000000-0000-0000-0000-00000000d0a5','${aida}','aida',null,'10A','ielts_writing_task','13',null,'Essay: travel','Week 3','writing','completed','assigned','not_tracked',now()-interval '2 days',now()-interval '1 day',null,null,'${school}');
+insert into public.ielts_listening_attempts values('00000000-0000-0000-0000-0000000a0001','${aida}',31,40,7.5,now());
+insert into public.ielts_writing_tasks values(12,'Essay: cities','Task 2','W-012'),(13,'Essay: travel','task2','W-013'),(29,'Mock Test 1 · Task 1 (paper)','Task 1 Academic','W-029'),(30,'Mock Test 1 · Task 2 (paper)','Task 2','W-030');
+insert into public.ielts_writing_attempts values('00000000-0000-0000-0000-0000000b0001','${bek}',12,now(),7.0),('00000000-0000-0000-0000-0000000b0002','${aida}',13,now(),6.5),
+ ('00000000-0000-0000-0000-0000000b0003','${aida}',29,now(),5.0),('00000000-0000-0000-0000-0000000b0004','${aida}',30,now(),5.0),('00000000-0000-0000-0000-0000000b0009','${far}',29,now(),5.0);
+insert into public.ielts_practice_assignment_item_students values('00000000-0000-0000-0000-00000000d0a3','00000000-0000-0000-0000-00000000d003','${aida}','listening','00000000-0000-0000-0000-0000000a0001'),
+ ('00000000-0000-0000-0000-00000000d0a4','00000000-0000-0000-0000-00000000d004','${bek}','writing','00000000-0000-0000-0000-0000000b0001'),
+ ('00000000-0000-0000-0000-00000000d0a5','00000000-0000-0000-0000-00000000d005','${aida}','writing','00000000-0000-0000-0000-0000000b0002');
+insert into public.ielts_productive_skill_reviews(school_id,student_id,attempt_type,attempt_id,overall_band,finalized) values
+ ('${school}','${bek}','writing','00000000-0000-0000-0000-0000000b0001',6.0,true),
+ ('${school}','${aida}','writing','00000000-0000-0000-0000-0000000b0002',5.5,false),
+ ('${school}','${aida}','writing','00000000-0000-0000-0000-0000000b0003',5.5,true),
+ ('${school}','${aida}','writing','00000000-0000-0000-0000-0000000b0004',null,false),
+ ('${other}','${far}','writing','00000000-0000-0000-0000-0000000b0009',6.0,true);
+insert into private.ielts_writing_starting_points(attempt_id,band,ai_band,set_at) values('00000000-0000-0000-0000-00000000e202',5.0,5.0,now()-interval '1 hour'),('00000000-0000-0000-0000-00000000e202',5.5,5.0,now());
+insert into private.ielts_mock_forms values('IELTS-M1','Mock Test 1'),('IELTS-M2','Mock Test 2'),('IELTS-M3','Mock Test 3');
+insert into private.ielts_mock_sittings values('00000000-0000-0000-0000-0000000c0001','${school}','00000000-0000-0000-0000-0000000000b1','IELTS-M1','2026-10-24','paper',now()-interval '30 days'),
+ ('00000000-0000-0000-0000-0000000c0002','${school}','00000000-0000-0000-0000-0000000000b1','IELTS-M1','2026-11-20','paper',now()-interval '5 days'),
+ ('00000000-0000-0000-0000-0000000c0009','${other}','00000000-0000-0000-0000-0000000000b2','IELTS-M1','2026-10-24','paper',now());
+insert into private.ielts_mock_results(sitting_id,student_id,section,marks,criteria,entered_by) values
+ ('00000000-0000-0000-0000-0000000c0001','${bek}','listening','${m40(29)}',null,'${lead}'),
+ ('00000000-0000-0000-0000-0000000c0001','${bek}','writing',null,'${JSON.stringify(w6)}','${lead}'),
+ ('00000000-0000-0000-0000-0000000c0001','${cara}','reading','${m40(23)}',null,'${lead}'),
+ ('00000000-0000-0000-0000-0000000c0002','${bek}','listening','${m40(33)}',null,'${lead}'),
+ ('00000000-0000-0000-0000-0000000c0009','${aida}','listening','${m40(40)}',null,'${lead}');
+insert into private.ielts_mock_cbt_attempts(id,student_id,mock_code,attempt_no,exposed,status,section,sections) values
+ ('00000000-0000-0000-0000-0000000d0001','${aida}','IELTS-M2',1,false,'completed','done','{"listening":{"closed_at":"2026-11-17T10:00:00Z"},"reading":{"closed_at":"2026-11-17T11:00:00Z"},"writing":{"closed_at":"2026-11-17T12:00:00Z"}}'),
+ ('00000000-0000-0000-0000-0000000d0002','${aida}','IELTS-M3',1,false,'in_progress','reading','{"listening":{"closed_at":"2026-11-18T10:00:00Z"}}'),
+ ('00000000-0000-0000-0000-0000000d0003','${bek}','IELTS-M2',1,false,'completed','done','{"writing":{"closed_at":"2026-11-17T12:00:00Z"}}'),
+ ('00000000-0000-0000-0000-0000000d0004','${bek}','IELTS-M2',2,true,'completed','done','{"writing":{"closed_at":"2026-11-19T12:00:00Z"}}');
+insert into private.ielts_mock_cbt_scores(attempt_id,section,raw) values('00000000-0000-0000-0000-0000000d0001','listening',30),('00000000-0000-0000-0000-0000000d0001','reading',22),
+ ('00000000-0000-0000-0000-0000000d0002','listening',20),('00000000-0000-0000-0000-0000000d0004','listening',36);
+insert into private.ielts_mock_cbt_writing_reviews(attempt_id,criteria) values('00000000-0000-0000-0000-0000000d0004','${JSON.stringify(w6)}');
+insert into public.ielts_course_units values(1,true),(2,true),(3,true),(4,true),(5,false);
+insert into public.ielts_course_progress values('${aida}',1,now()),('${aida}',2,now()),('${aida}',3,null),('${aida}',5,now());
+insert into private.ielts_official_results(student_id,school_id,test_date,test_type,delivery,listening,reading,writing,speaking,overall,verified) values
+ ('${aida}','${school}','2026-11-01','academic','computer',7,6.5,6,6.5,6.5,true),('${aida}','${other}','2026-11-02','academic','paper',9,9,9,9,9,false);
+`);
 
 const as = (who) => db.query("select set_config('request.jwt.claim.sub',$1,false)", [who]);
 const report = async (scope = "all", value = null) => (await db.query("select public.rpc_ielts_class_report($1,$2,$3) r", [school, scope, value])).rows[0].r;
@@ -151,4 +225,79 @@ test("the report changes nothing", async () => {
   const after = (await db.query("select (select count(*) from private.ielts_speaking_reviews)+(select count(*) from private.practice_fixture)+(select count(*) from private.ielts_speaking_mock_assignments) n")).rows[0].n;
   assert.equal(after, before);
   assert.match(readFileSync("supabase/migrations/20261123090000_ielts_class_report.sql", "utf8"), /stable security definer set search_path=''/);
+});
+
+test("mark book: mocks per section with marks and the labelled indicative range; not-sat sections; repeats are practice", async () => {
+  await as(owner);
+  const r = await report();
+  assert.equal(r.markbook_version, 1);
+  const a = byName(r, "Aida Synthetic"), b = byName(r, "Bek Synthetic"), c = byName(r, "Cara Synthetic");
+  const keys = (s) => s.markbook.mocks.map((m) => m.key);
+  assert.deepEqual(keys(b), ["sitting:00000000-0000-0000-0000-0000000c0001", "sitting:00000000-0000-0000-0000-0000000c0002", "cbt:00000000-0000-0000-0000-0000000d0004"]);
+  const [first, repeat, cbt] = b.markbook.mocks;
+  assert.equal(first.group, "paper:IELTS-M1:2026-10-24");
+  assert.equal(first.title, "Mock Test 1");
+  assert.equal(first.practice, false);
+  assert.equal(first.sections.listening.state, "result");
+  assert.equal(first.sections.listening.raw, 29);
+  assert.equal(first.sections.listening.indicative.label, "6.0–7.0");
+  assert.equal(first.sections.listening.marks, undefined, "item marks are not sent");
+  assert.equal(first.sections.writing.indicative.label, "5.5–6.5");
+  assert.deepEqual(first.sections.writing.criteria, w6, "the teacher's criterion ratings");
+  assert.deepEqual([first.sections.reading.state, first.sections.speaking.state], ["not_sat", "not_sat"]);
+  assert.equal(repeat.practice, true, "a second sitting of the same mock is practice");
+  assert.equal(repeat.sections.listening.raw, 33);
+  assert.equal(repeat.sections.listening.indicative, null, "no range for a repeat");
+  assert.equal(cbt.attempt_no, 2, "the newest computer attempt");
+  assert.equal(cbt.practice, true);
+  assert.equal(cbt.sections.listening.indicative, null);
+  assert.equal(cbt.sections.writing.state, "result");
+  assert.equal(cbt.sections.writing.indicative, null);
+  assert.equal(cbt.sections.speaking.state, "not_part");
+
+  const [m2, m3] = a.markbook.mocks;
+  assert.equal(a.markbook.mocks.length, 2, "another school's sitting is never shown");
+  assert.equal(m2.group, "cbt:IELTS-M2");
+  assert.equal(m2.delivery, "computer");
+  assert.equal(m2.sections.listening.indicative.label, "6.5–7.5");
+  assert.equal(m2.sections.reading.raw, 22);
+  assert.equal(m2.sections.writing.state, "waiting", "computer Writing finished, not yet marked");
+  assert.deepEqual([m3.sections.listening.raw, m3.sections.reading.state, m3.sections.writing.state], [20, "in_progress", "not_sat"]);
+
+  assert.deepEqual(keys(c), ["sitting:00000000-0000-0000-0000-0000000c0001"], "left the batch, but has a result");
+  assert.equal(c.markbook.mocks[0].sections.reading.indicative.label, "5.5–6.5");
+  const batch = await report("batch", "00000000-0000-0000-0000-0000000000b1");
+  assert.deepEqual(batch.students.map((s) => s.markbook.mocks.length), [3]);
+});
+
+test("mark book: teacher Writing bands, school practice marks, course progress and official results", async () => {
+  await as(owner);
+  const r = await report();
+  const a = byName(r, "Aida Synthetic"), b = byName(r, "Bek Synthetic");
+  const listening = item(a, "school:00000000-0000-0000-0000-00000000d003");
+  assert.deepEqual(listening.score, { raw: 31, total: 40 }, "school practice marks");
+  assert.equal(listening.band, undefined, "never the attempt's estimated band");
+  const essay = item(b, "school:00000000-0000-0000-0000-00000000d004");
+  assert.deepEqual(essay.band, { value: 6, label: "Teacher Writing band · Task 2" });
+  assert.equal(essay.review, "reviewed");
+  const pending = item(a, "school:00000000-0000-0000-0000-00000000d005");
+  assert.equal(pending.band, undefined, "no band before the teacher finalizes the review");
+  assert.equal(pending.review, "waiting");
+  const screener = item(a, "screener:00000000-0000-0000-0000-00000000e002");
+  assert.deepEqual(screener.band, { value: 5.5, label: "Writing starting point · Task 2 · teacher-set" }, "the newest teacher-set starting point");
+  const paper = item(a, "writing:29");
+  assert.equal(paper.kind, "reviewed_writing");
+  assert.equal(paper.title, "Mock Test 1 · Task 1 (paper)");
+  assert.deepEqual(paper.band, { value: 5.5, label: "Teacher Writing band · Task 1" });
+  assert.equal(item(a, "writing:30"), undefined, "an unfinalized review is not shown");
+  assert.equal(item(b, "writing:12"), undefined, "assigned work is not listed twice");
+  assert.ok(!r.students.some((s) => s.items.some((i) => i.key === "writing:29" && s.name !== "Aida Synthetic")));
+  assert.deepEqual(a.markbook.course, { done: 2, total: 4 }, "published units only");
+  assert.deepEqual(b.markbook.course, { done: 0, total: 4 });
+  assert.equal(a.markbook.official.length, 1, "only this school's official results");
+  assert.deepEqual(a.markbook.official[0], { test_date: "2026-11-01", test_type: "academic", delivery: "computer", listening: 7, reading: 6.5, writing: 6, speaking: 6.5, overall: 6.5, verified: true });
+  assert.deepEqual(b.markbook.official, []);
+  assert.match(readFileSync("supabase/migrations/20261127090000_ielts_class_report_markbook.sql", "utf8"), /stable security definer set search_path=''/);
+  const helper = (await db.query(`select grantee from information_schema.routine_privileges where routine_name='ielts_class_report_cbt_section'`)).rows.map((x) => x.grantee);
+  assert.ok(!helper.includes("authenticated") && !helper.includes("anon") && !helper.includes("PUBLIC"), "the helper is not callable by users");
 });

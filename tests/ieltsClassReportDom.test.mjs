@@ -33,7 +33,25 @@ const report = (scope) => ({
   ],
 });
 
-async function open(path) {
+const sec = (state, extra = {}) => ({ state, ...extra });
+const markbook = {
+  s1: { course: { done: 5, total: 26 }, official: [{ test_date: "2026-11-01", test_type: "academic", delivery: "computer", listening: 7, reading: 6.5, writing: 6, speaking: 6.5, overall: 6.5, verified: true }],
+    mocks: [
+      { key: "sitting:1", group: "paper:IELTS-M1:2026-10-24", form: "IELTS-M1", title: "Mock Test 1", delivery: "paper", source: "sitting", sat_on: "2026-10-24", practice: false, attempt_no: null,
+        sections: { listening: sec("result", { raw: 29, answered: 40, exposed: false, indicative: { label: "6.0–7.0", low: 6, high: 7, central: 6.5 } }), reading: sec("not_sat"),
+          writing: sec("result", { raw: null, exposed: false, criteria: {}, indicative: { label: "4.5–5.5", low: 4.5, high: 5.5, central: 5 } }), speaking: sec("not_sat") } },
+      { key: "cbt:1", group: "cbt:IELTS-M2", form: "IELTS-M2", title: "Mock Test 2", delivery: "computer", source: "cbt", sat_on: "2026-11-17", practice: true, attempt_no: 2,
+        sections: { listening: sec("result", { raw: 33, exposed: true, indicative: null }), reading: sec("in_progress"), writing: sec("waiting"), speaking: sec("not_part") } },
+    ] },
+  s2: { course: { done: 0, total: 26 }, official: [], mocks: [
+      { key: "sitting:2", group: "paper:IELTS-M1:2026-10-24", form: "IELTS-M1", title: "Mock Test 1", delivery: "paper", source: "sitting", sat_on: "2026-10-24", practice: false, attempt_no: null,
+        sections: { listening: sec("not_sat"), reading: sec("not_sat"), writing: sec("result", { criteria: { t1: { ta: 5 } }, exposed: false, indicative: null }), speaking: sec("not_sat") } }] },
+  s3: { course: { done: 26, total: 26 }, official: [], mocks: [] },
+};
+const withBook = (r) => ({ ...r, markbook_version: 1, students: r.students.map((s) => ({ ...s, markbook: markbook[s.id],
+  items: s.id === "s2" ? [...s.items, { key: "writing:29", kind: "reviewed_writing", title: "Mock Test 1 · Task 1 (paper)", code: "W-029", skill: "writing", assigned_at: day(-30), due_at: null, status: "done", done_at: day(-30), score: null, band: { value: 5.5, label: "Teacher Writing band · Task 1" }, review: "reviewed" }] : s.items })) });
+
+async function open(path, { book = false } = {}) {
   const errors = [], calls = [];
   const vc = new VirtualConsole();
   vc.on("jsdomError", (e) => errors.push(e.message));
@@ -61,7 +79,7 @@ async function open(path) {
     else if (fn === "rpc_ielts_programme_workspace") data = { schools: [{ id: "school-a", name: "Test school" }], school_id: "school-a", can_allocate: true, can_manage: true, lead: null, teachers: [], students: [], total_students: 0, pending_count: 0, queue: [], classes: [], confidence: "low", readiness_available: false };
     else if (fn === "rpc_ielts_speaking_mock_overview") data = { school_id: "school-a", published_mocks: 6, students: [] };
     else if (fn === "rpc_ielts_learning_workspace") data = { manager: true, pilot_only: false, tasks: [], allocations: [] };
-    else if (fn === "rpc_ielts_class_report") data = report({ kind: body.p_scope, value: body.p_value, name: body.p_scope === "batch" ? "May group" : body.p_value });
+    else if (fn === "rpc_ielts_class_report") { data = report({ kind: body.p_scope, value: body.p_value, name: body.p_scope === "batch" ? "May group" : body.p_value }); if (book) data = withBook(data); }
     else throw Error("Unexpected request " + fn);
     return new Response(JSON.stringify(data), { status: 200, headers: { "Content-Type": "application/json" } });
   };
@@ -154,6 +172,62 @@ test("each student's list, class and batch choices, print and the Excel download
   button("← Back to students").click();
   await wait(() => !w.document.querySelector(".itn-cr") && !!button("Class report"));
   assert.doesNotMatch(w.location.search, /report=1/);
+  assert.deepEqual(errors, []);
+  dom.window.close();
+});
+
+test("mark book: course, each mock per section with marks and the labelled indicative range, real IELTS, Writing bands, print and Excel", async () => {
+  const { w, dom, errors, wait, button, blob, saved, popup } = await open("/ielts/programme?programmeSection=students&report=1", { book: true });
+  await wait(() => !!w.document.querySelector(".itn-cr-grid .itn-cr-bookgroup"));
+  const groups = [...w.document.querySelectorAll(".itn-cr-grid thead .itn-cr-bookgroup")].map((e) => e.textContent);
+  assert.deepEqual(groups, ["Mock Test 1 · Paper · 24 Oct 2026 · indicative, not official", "Mock Test 2 · Computer · indicative, not official", "Real IELTS (latest)"]);
+  const sub = [...w.document.querySelectorAll(".itn-cr-grid thead .itn-cr-subrow th")].map((e) => e.textContent);
+  assert.deepEqual(sub, ["Listening", "Reading", "Writing", "Speaking", "Listening", "Reading", "Writing", "Speaking", "Listening", "Reading", "Writing", "Speaking", "Overall"]);
+  assert.ok(w.document.querySelector(".itn-cr-grid thead th.is-sticky"), "the name column stays in view on a phone");
+  const row = (name) => [...w.document.querySelectorAll(".itn-cr-grid tbody tr")].find((r) => r.querySelector(".itn-cr-name").textContent === name);
+  const book = (name) => [...row(name).querySelectorAll("td.itn-cr-booktd .itn-cr-cell")].map((c) => c.textContent);
+  assert.deepEqual(book("Aida"), ["5 / 26units", "29 / 406.0–7.0", "Not sat", "4.5–5.5indicative range", "Not sat",
+    "33 / 40practice · no range", "Started", "To review", "—", "7.0", "6.5", "6.0", "6.5", "6.5verified"]);
+  assert.deepEqual(book("Bek"), ["0 / 26units", "Not sat", "Not sat", "Ratedratings incomplete · no range", "Not sat", "·", "·", "·", "·", "·", "·", "·", "·", "·"]);
+  assert.match(row("Aida").querySelectorAll("td.itn-cr-booktd .itn-cr-cell")[1].title, /Indicative band range 6\.0–7\.0 · Confidence: low · Not an official IELTS result · teacher-entered paper evidence/);
+  const heads = [...w.document.querySelectorAll(".itn-cr-grid thead .itn-cr-coltitle")].map((e) => e.textContent);
+  assert.ok(heads.includes("Mock Test 1 · Task 1 (paper)"), "teacher-reviewed Writing is a column");
+  assert.ok([...row("Bek").querySelectorAll("td .itn-cr-cell")].some((c) => c.textContent === "Band 5.5"));
+  assert.match(row("Bek").querySelector(".itn-cr-done").textContent, /0 \/ 1/, "reviewed Writing that was never assigned is not counted as work given");
+  assert.match(w.document.querySelector(".itn-cr-note").textContent, /indicative band range/);
+  assert.match(w.document.querySelector(".itn-cr-note").textContent, /except the Real IELTS columns/);
+
+  [...w.document.querySelectorAll(".itn-cr-name")].find((b) => b.textContent === "Aida").click();
+  await wait(() => !!w.document.querySelector(".itn-cr-person .itn-cr-booklist"));
+  const card = w.document.querySelector(".itn-cr-person");
+  assert.match(card.querySelector("header p").textContent, /Course 5 \/ 26 units/);
+  const lines = [...card.querySelectorAll(".itn-cr-booklist tbody tr")].map((r) => r.querySelector("th").textContent);
+  assert.deepEqual(lines.slice(0, 2), ["Mock Test 1 · Paper · 24 Oct 2026Teacher-entered paper evidence", "Mock Test 2 · ComputerPractice (repeat) · no range"]);
+  assert.match(lines[2], /^Real IELTS · .+Official result · verified$/);
+
+  button("Download mark book for Excel").click();
+  const csv = await new Promise((r) => { const fr = new w.FileReader(); fr.onload = () => r(String(fr.result)); fr.readAsText(blob()); });
+  const lines2 = csv.replace(/^\uFEFF/, "").split("\r\n");
+  assert.match(lines2[0], /^Student,Class,Done,Course units done,Mock Test 1 · Paper · 24 Oct 2026 · Listening,/);
+  assert.match(lines2[0], /Real IELTS \(latest\) · Overall/);
+  assert.match(lines2[1], /^Aida,10A,3 \/ 3,5 \/ 26,29 \/ 40 · 6\.0–7\.0,Not sat,4\.5–5\.5 · indicative range,Not sat,33 \/ 40 · practice · no range,Started,To review,—,7\.0,6\.5,6\.0,6\.5,6\.5 · verified,/);
+  assert.match(csv, /Note,,"Reading and Listening show correct answers/);
+  assert.match(saved(), /^IELTS mark book - All students - \d{4}-\d{2}-\d{2}\.csv$/);
+  button("Download for Excel").click();
+  const list = await new Promise((r) => { const fr = new w.FileReader(); fr.onload = () => r(String(fr.result)); fr.readAsText(blob()); });
+  assert.match(list, /Aida,10A,Mock Test 1,IELTS-M1,Mock test \(paper\),listening,2026-10-24,,Done,,29 \/ 40,Correct answers out of 40 · Indicative band range 6\.0–7\.0 · Confidence: low · Not an official IELTS result · teacher-entered paper evidence/);
+  assert.match(list, /Aida,10A,IELTS course,,Course progress,,,,,,5 \/ 26 units,/);
+  assert.match(list, /Aida,10A,"Real IELTS \(Academic, computer\)",,Official IELTS result,overall,2026-11-01,,Verified,,6\.5,/);
+
+  button("Print or save as PDF").click();
+  await wait(() => !!w.document.querySelector(".itn-cr-print"));
+  button("Whole class").click();
+  button("Open print preview").click();
+  await wait(() => popup.document.getElementById("print")?.disabled === false);
+  const printed = popup.document.body.textContent;
+  assert.match(printed, /Mock Test 1 · Paper · 24 Oct 2026/);
+  assert.match(printed, /29 \/ 406\.0–7\.0/);
+  assert.match(printed, /indicative band range/);
   assert.deepEqual(errors, []);
   dom.window.close();
 });
