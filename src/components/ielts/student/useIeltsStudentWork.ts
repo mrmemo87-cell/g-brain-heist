@@ -100,9 +100,15 @@ export async function loadIeltsPracticeReviews(): Promise<IeltsPracticeReview[]>
     ids(s).length ? supabase.from('ielts_speaking_tasks').select('id, part').in('id', ids(s)) : Promise.resolve({ data: [] }),
   ]);
   const wt = new Map(((wTasks.data ?? []) as Array<{ id: unknown; title: string | null }>).map((t) => [String(t.id), t.title ?? '']));
+  // Writing from a computer rewrite of a mock has its own title ("… (computer rewrite)"); never fatal if unavailable.
+  let rewriteTitles: Record<string, string> = {};
+  if (w.length) {
+    const labels = await supabase.rpc('rpc_ielts_writing_attempt_labels', { p_attempts: w.map((r) => r.id) });
+    if (!labels.error && labels.data && typeof labels.data === 'object') rewriteTitles = labels.data as Record<string, string>;
+  }
   const st = new Map(((sTasks.data ?? []) as Array<{ id: unknown; part: number | null }>).map((t) => [String(t.id), t.part ? `Speaking Part ${t.part}` : '']));
   return [
-    ...w.map((r) => ({ id: r.id, skill: 'writing' as const, title: wt.get(String(r.task_id)) || 'Writing practice', reviewed_at: r.reviewed_at })),
+    ...w.map((r) => ({ id: r.id, skill: 'writing' as const, title: rewriteTitles[r.id] || wt.get(String(r.task_id)) || 'Writing practice', reviewed_at: r.reviewed_at })),
     ...s.map((r) => ({ id: r.id, skill: 'speaking' as const, title: st.get(String(r.task_id)) || 'Speaking practice', reviewed_at: r.reviewed_at })),
   ].sort((a, b) => String(b.reviewed_at ?? '').localeCompare(String(a.reviewed_at ?? '')));
 }

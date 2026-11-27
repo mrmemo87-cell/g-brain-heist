@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 710" width="560" height="710" role="img" aria-labelledby="t d" font-family="'IBM Plex Sans', Inter, 'DejaVu Sans', Arial, sans-serif">
+<title id="t">Collecting and treating rainwater for household use</title>
+<desc id="d">A nine-stage process: rain falls on a roof; gutters carry it to a downpipe; a leaf filter removes leaves and debris; a first-flush tank discards the dirty first water; the water is stored in an underground tank (with an overflow pipe to the garden when full); a pump sends it through a sand filter and then ultraviolet light, which kills bacteria; finally it reaches kitchen and bathroom taps.</desc>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#15243A"/></marker><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4C6076"/></marker></defs>
+<rect width="560" height="710" fill="#FFFFFF"/>
+<text x="20" y="34" font-size="20" font-weight="700" fill="#15243A">Collecting and treating rainwater for household use</text>
+<rect x="20" y="58" width="240" height="84" rx="10" fill="#FFFFFF" stroke="#1746B0" stroke-width="2"/>
+<circle cx="38" cy="76" r="12" fill="#EEF3FA" stroke="#1746B0" stroke-width="1.5"/>
+<text x="38" y="81" font-size="14" font-weight="700" fill="#1746B0" text-anchor="middle">1</text>
+<text x="148.0" y="110.3" font-size="18" fill="#15243A" text-anchor="middle">Rain falls on roof</text>
+<rect x="300" y="58" width="240" height="84" rx="10" fill="#FFFFFF" stroke="#1746B0" stroke-width="2"/>
+<circle cx="318" cy="76" r="12" fill="#EEF3FA" stroke="#1746B0" stroke-width="1.5"/>
+<text x="318" y="81" font-size="14" font-weight="700" fill="#1746B0" text-anchor="middle">2</text>
+<text x="428.0" y="99.5" font-size="18" fill="#15243A" text-anchor="middle">Gutters carry water</text>
+<text x="428.0" y="121.1" font-size="18" fill="#15243A" text-anchor="middle">to downpipe</text>
+<rect x="300" y="178" width="240" height="84" rx="10" fill="#FFFFFF" stroke="#1746B0" stroke-width="2"/>
+<circle cx="318" cy="196" r="12" fill="#EEF3FA" stroke="#1746B0" stroke-width="1.5"/>
+<text x="318" y="201" font-size="14" font-weight="700" fill="#1746B0" text-anchor="middle">3</text>
+<text x="428.0" y="219.5" font-size="18" fill="#15243A" text-anchor="middle">Leaf filter removes</text>
+<text x="428.0" y="241.1" font-size="18" fill="#15243A" text-anchor="middle">leaves and debris</text>
+<rect x="20" y="178" width="240" height="84" rx="10" fill="#FFFFFF" stroke="#1746B0" stroke-width="2"/>
+<circle cx="38" cy="196" r="12" fill="#EEF3FA" stroke="#1746B0" stroke-width="1.5"/>
+<text x="38" y="201" font-size="14" font-weight="700" fill="#1746B0" text-anchor="middle">4</text>
+<text x="148.0" y="208.7" font-size="18" fill="#15243A" text-anchor="middle">First-flush tank</text>
+<text x="148.0" y="230.3" font-size="18" fill="#15243A" text-anchor="middle">discards dirty</text>
+<text x="148.0" y="251.9" font-size="18" fill="#15243A" text-anchor="middle">initial water</text>
+<rect x="20" y="298" width="240" height="84" rx="10" fill="#FFFFFF" stroke="#1746B0" stroke-width="2"/>
+<circle cx="38" cy="316" r="12" fill="#EEF3FA" stroke="#1746B0" stroke-width="1.5"/>
+<text x="38" y="321" font-size="14" font-weight="700" fill="#1746B0" text-anchor="middle">5</text>
+<text x="148.0" y="339.5" font-size="18" fill="#15243A" text-anchor="middle">Storage tank</text>
+<text x="148.0" y="361.1" font-size="18" fill="#15243A" text-anchor="middle">(underground)</text>
+<rect x="300" y="298" width="240" height="84" rx="10" fill="#FFFFFF" stroke="#1746B0" stroke-width="2"/>
+<circle cx="318" cy="316" r="12" fill="#EEF3FA" stroke="#1746B0" stroke-width="1.5"/>
+<text x="318" y="321" font-size="14" font-weight="700" fill="#1746B0" text-anchor="middle">6</text>
+<text x="428.0" y="350.3" font-size="18" fill="#15243A" text-anchor="middle">Pump</text>
+<rect x="300" y="462" width="240" height="84" rx="10" fill="#FFFFFF" stroke="#1746B0" stroke-width="2"/>
+<circle cx="318" cy="480" r="12" fill="#EEF3FA" stroke="#1746B0" stroke-width="1.5"/>
+<text x="318" y="485" font-size="14" font-weight="700" fill="#1746B0" text-anchor="middle">7</text>
+<text x="428.0" y="514.3" font-size="18" fill="#15243A" text-anchor="middle">Sand filter</text>
+<rect x="20" y="462" width="240" height="84" rx="10" fill="#FFFFFF" stroke="#1746B0" stroke-width="2"/>
+<circle cx="38" cy="480" r="12" fill="#EEF3FA" stroke="#1746B0" stroke-width="1.5"/>
+<text x="38" y="485" font-size="14" font-weight="700" fill="#1746B0" text-anchor="middle">8</text>
+<text x="148.0" y="503.5" font-size="18" fill="#15243A" text-anchor="middle">UV light kills</text>
+<text x="148.0" y="525.1" font-size="18" fill="#15243A" text-anchor="middle">bacteria</text>
+<rect x="20" y="582" width="240" height="84" rx="10" fill="#FFFFFF" stroke="#1746B0" stroke-width="2"/>
+<circle cx="38" cy="600" r="12" fill="#EEF3FA" stroke="#1746B0" stroke-width="1.5"/>
+<text x="38" y="605" font-size="14" font-weight="700" fill="#1746B0" text-anchor="middle">9</text>
+<text x="148.0" y="623.5" font-size="18" fill="#15243A" text-anchor="middle">Kitchen and</text>
+<text x="148.0" y="645.1" font-size="18" fill="#15243A" text-anchor="middle">bathroom taps</text>
+<line x1="260" y1="100.0" x2="298" y2="100.0" stroke="#15243A" stroke-width="2" marker-end="url(#a)"/>
+<line x1="420.0" y1="142" x2="420.0" y2="176" stroke="#15243A" stroke-width="2" marker-end="url(#a)"/>
+<line x1="300" y1="220.0" x2="262" y2="220.0" stroke="#15243A" stroke-width="2" marker-end="url(#a)"/>
+<line x1="140.0" y1="262" x2="140.0" y2="296" stroke="#15243A" stroke-width="2" marker-end="url(#a)"/>
+<line x1="260" y1="340.0" x2="298" y2="340.0" stroke="#15243A" stroke-width="2" marker-end="url(#a)"/>
+<line x1="420.0" y1="382" x2="420.0" y2="460" stroke="#15243A" stroke-width="2" marker-end="url(#a)"/>
+<line x1="300" y1="504.0" x2="262" y2="504.0" stroke="#15243A" stroke-width="2" marker-end="url(#a)"/>
+<line x1="140.0" y1="546" x2="140.0" y2="580" stroke="#15243A" stroke-width="2" marker-end="url(#a)"/>
+<line x1="140.0" y1="382" x2="140.0" y2="406" stroke="#4C6076" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#m)"/>
+<text x="140.0" y="426" font-size="15" font-style="italic" fill="#4C6076" text-anchor="middle">Overflow pipe to garden when</text>
+<text x="140.0" y="444" font-size="15" font-style="italic" fill="#4C6076" text-anchor="middle">tank is full</text>
+<text x="20" y="694" font-size="13" fill="#4C6076">Illustrative diagram for practice; fictional system.</text>
+</svg>

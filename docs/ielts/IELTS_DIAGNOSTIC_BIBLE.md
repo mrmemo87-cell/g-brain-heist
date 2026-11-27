@@ -1,7 +1,7 @@
 # Brains Heist IELTS Diagnostic Bible
 
 **Status:** LOCKED CANONICAL CONTRACT  
-**Version:** 2.7.4\
+**Version:** 2.7.5\
 **Effective date:** 2026-11-27\
 **Scope:** Every Brains Heist IELTS diagnostic, screener, baseline assessment, band estimate, readiness estimate, result interpretation, weakness/strength conclusion, recommendation, school report, scoring service, AI evaluation prompt, question bank, audio asset, attempt table, RPC, migration, analytics event, and related UI.  
 **Audience:** Human developers, Codex/ChatGPT/Claude/other AI agents, content authors, reviewers, school pilot operators, and future maintainers.
@@ -1149,6 +1149,26 @@ Form A / Form B equivalence must be reviewed and eventually calibrated.
 - Exposure is recorded per student. A mock already used in class as guided practice, or whose key has been shown, is practice and not a fresh check for that student.
 - Mocks remain separate from screeners (section 15F) and are never repurposed as screeners.
 
+## 12B. Mock Writing on computer: rewrite after feedback, or first sitting — 2.7.5
+
+**Owner-authorized (2026-11-27).** After the paper Mock Test 1 and its teacher feedback, the owner asked that the two IELTS batches "rewrite both tasks on the computer, like the other mocks", that batch students who missed the paper sitting take it as their first attempt, and that it is marked with the same smart Writing review as practice. Asked how the students who missed the paper should count, the owner decided the same day: **"count as a real mock"** for them, with AI notes for the teacher only, while students who sat the paper stay on a practice rewrite.
+
+**What it is**
+- A computer-delivered, Writing-only form of an earlier mock, coded **IELTS-M*n*W** (for example IELTS-M1W), with the same two tasks and the same Task 1 figure content as the mock (a figure may be redrawn for screens; its stages, labels and data must not change). Delivery follows the computer mock rules: 60 minutes on the server clock, work saved as the student types, answers kept on the device when offline.
+- No pasting or dropping text into the answer box and no spelling check. Leaving the test page, switching windows and blocked pastes are recorded with the attempt and shown to the reviewing teacher as plain facts; the student is told this before starting. These records are never a score, never an automatic penalty and never shown to the student. They are recorded for every computer mock.
+- Released by an owner decision to named course batches (and superadmins to preview); one attempt per student. It is never captured on paper.
+
+**Two kinds of student, decided by the server when the attempt starts and stored with it**
+- **Rewrite (practice).** A student who already met the mock — any paper result for it, or a script on the tasks the form rewrites — takes it as a **Writing rewrite**. Rewriting prompts after feedback is guided practice (sections 8A.3, 8A.6): never an independent check, never an indicative band range (section 9.5), never evidence of improvement (section 12). AI practice feedback (sections 10.5, 10.9) is available to the student as for other practice, with every section 10.5 label.
+- **First sitting (a real mock).** A student who never met the mock takes it as **Mock Test *n* · Writing**, an unseen, timed, complete Writing paper (Task 1 and Task 2). It is fresh evidence like any first mock sitting (section 12A), and once the teacher has finalized both tasks the platform shows the section 9.5 **indicative band range** from the teacher's criterion bands ((T1 + 2 × T2) ÷ 3, ± 0.5, **Confidence: low**, **Not an official IELTS result**). Mocks never give AI feedback to the student (sections 10.5, 10.6): the AI check (highlights and the AI estimated task band, section 10.9) is a **teacher-only** aid, like the screener draft of section 10.11, and the student sees only the teacher's finalized feedback and bands. Missing one task means no range.
+- Each non-blank task is stored as a Writing script on the **existing task it rewrites** (section 15E.3: an exact copy is never a new material). For a rewriter it is a repeat of that task, so the provisional productive-effect policy (one rating per task, the earliest) never counts it as fresh; for a first sitting it is that student's first rating of the task.
+- Taking either kind exposes the student to that mock's Writing prompts; a later Writing sitting of the same mock is practice for them. The platform does not apply this to paper capture automatically (exposure there is per mock code); the owner chose a manual rule (2026-11-27): such a later paper Writing result must not be entered as fresh evidence.
+
+**Marking and what the student sees**
+- Scripts are reviewed in the ordinary Writing review (section 10.9); the teacher finalizes the criterion bands, the **Teacher Writing band · Task N** and Strengths / Improvements / Next steps. The teacher sees one line about the timed section, which also says whether it is a practice rewrite or a first sitting whose AI check is for the teacher only.
+- Titles say **(computer rewrite)** for a rewrite and **(computer)** for a first sitting, so paper and computer scripts are never confused. The mock result page shows, per task, "Waiting for your teacher" or the teacher's task band with "Checked by your teacher" and **Not an official IELTS result**; a rewrite adds "Writing rewrite · practice: no band range", a first sitting shows the Writing indicative band range once both tasks are finalized.
+- The class report mark book (section 15.1) shows a rewrite as **Mock Test *n* · Writing rewrite · Computer** (practice, no range) and a first sitting as its own group **Mock Test *n* · Writing · Computer** with its range, both beside the paper sitting; Listening, Reading and Speaking are not part of either. Each script also appears as its own reviewed Writing column.
+
 ---
 
 ## 13. Delivery reliability
@@ -2159,6 +2179,18 @@ The owner requested consistent course Bibles and preparation of Lesson 2 after t
 Affected components to review: teacher lesson packs, course inventory, intake/catch-up and planning sheets, future school-scoped lesson library and report handoff. No migration, live release, change to existing attempts/reviews, or capacity claim follows. Lesson 2 content remains a private review draft until its exact-version gates pass.
 
 ---
+
+### 22.27 Revision record — v2.7.5 (2026-11-27)
+
+**Authority.** Owner request on 2026-11-27 for a computer Writing rewrite of Mock Test 1 for the two IELTS batches, marked with the same Writing review as practice.
+
+**Why the old rules were insufficient.** Computer mocks were full Listening/Reading/Writing forms marked only by a superadmin, with criteria and a comment; section 10.5 kept AI feedback off mocks; no rule said what a rewrite of mock prompts after feedback is, or how exposure, paste and leaving the page are handled.
+
+**What changed.** New section 12B: Writing-only computer forms of an earlier mock, released to named batches; a practice rewrite for students who sat that mock and, by the owner's decision the same day ("count as a real mock"), a first unseen sitting with the section 9.5 Writing range and a teacher-only AI check for students who did not; scripts reviewed in the ordinary Writing review on the task they rewrite; integrity records for every computer mock (teacher-only facts, never a score); the mark book entries.
+
+**What did not change.** Indicative ranges (9.5) still need complete, unexposed, teacher-confirmed Writing evidence (both tasks); a rewrite never produces one. Students never see AI feedback on a mock sitting. Full mocks, their marking and their ranges are unchanged. AI never sets or shares a band; the teacher finalizes every Writing band. Screeners, the learning-record policy, school isolation and existing evidence are unchanged.
+
+**Implementation to review.** `supabase/migrations/20261127150000_ielts_mock1_writing_rewrite.sql` (sections list and practice-only/max-attempts timing, batch release, review-task links, integrity events, rewritten readers: mock home/state/result, superadmin marking, paper capture form list, Writing review queue/detail, class report), `scripts/ielts/build-mock-writing-rewrite.py`, `public/ielts/mocks/IELTS-M1W/`, `services/ieltsMockCbtService.ts`, `src/pages/ielts/IeltsMockTest.tsx`, `IeltsMockHome.tsx`, `src/components/ielts/mock/MockResultView.tsx`, `src/pages/ielts/IeltsSubmissionReview.tsx`, `services/ieltsTeacherReviewService.ts`, `services/ieltsClassReportService.ts`, `src/components/ielts/student/useIeltsStudentWork.ts`. Validation: `tests/ieltsMockWritingRewriteDatabase.test.mjs`, `tests/ieltsMockWritingRewriteDom.test.mjs`.
 
 ### 22.26 Revision record — v2.7.4 (2026-11-27)
 

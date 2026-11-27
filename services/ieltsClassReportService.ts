@@ -32,6 +32,8 @@ export interface MockSection {
   exposed?: boolean;
   criteria?: Record<string, unknown> | null;
   indicative?: IndicativeRange | null;
+  /** 'rewrite': the Writing of a mock written again after feedback (always practice). */
+  practice_reason?: "rewrite" | null;
 }
 export interface MarkbookMock {
   key: string;
@@ -196,7 +198,9 @@ export function mockSectionCell(sec: MockSection | undefined, skill: MockSkill, 
   const sub = range ? (objective ? range.label : "indicative range") : practice ? "practice · no range" : objective ? "no range" : "ratings incomplete · no range";
   const blank = objective && typeof sec.answered === "number" && sec.answered < 40 ? ` (${40 - sec.answered} blank)` : "";
   const note = (objective ? `Correct answers out of 40${blank}` : "Teacher's criterion ratings")
-    + (range ? ` · Indicative band range ${range.label} · Confidence: low · Not an official IELTS result` : practice ? " · repeated mock: practice, no indicative range" : " · no indicative range")
+    + (range ? ` · Indicative band range ${range.label} · Confidence: low · Not an official IELTS result`
+      : sec.practice_reason === "rewrite" ? " · rewrite after feedback: practice, no indicative range"
+      : practice ? " · repeated mock: practice, no indicative range" : " · no indicative range")
     + paper;
   return { text, sub, state: practice ? "practice" : "result", title: `${where} · ${name}: ${note}`, status: practice ? "Done · practice" : "Done", note };
 }

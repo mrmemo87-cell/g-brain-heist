@@ -39,11 +39,19 @@ export interface MockPayload {
 
 export interface MockAudio { url: string; listen_end: number; sample_end: number; review_seconds: number; elapsed: number | null }
 
+/**
+ * 'full': Listening, Reading and Writing. On a Writing rewrite form (Diagnostic Bible 12B): 'writing_rewrite' for a student
+ * who already sat that mock (practice, never a range) and 'writing_mock' for a first, unseen Writing sitting of it.
+ */
+export type MockKind = 'full' | 'writing_rewrite' | 'writing_mock';
+
 export interface MockState {
   attempt_id: string;
   code: string;
   title: string;
   version: string;
+  kind?: MockKind;
+  sections?: MockSection[];
   status: 'in_progress' | 'completed';
   section: MockSection | 'done';
   practice: boolean;
@@ -71,9 +79,25 @@ export interface MockAttemptSummary {
   listening: number | null;
   reading: number | null;
   writing_reviewed: boolean;
+  writing_tasks?: MockWritingTaskStatus[];
 }
 
-export interface MockHomeEntry { code: string; title: string; version: string; available: boolean; minutes: number; attempts: MockAttemptSummary[] }
+/** A Writing task of a rewrite, checked in the ordinary Writing review. The band is the teacher's, sent only once finalized. */
+export interface MockWritingTaskStatus {
+  task: 't1' | 't2';
+  label: string;
+  writing_attempt_id: string;
+  reviewed: boolean;
+  band: number | null;
+  reviewed_at: string | null;
+}
+
+export interface MockHomeEntry {
+  code: string; title: string; version: string; available: boolean; minutes: number; attempts: MockAttemptSummary[];
+  kind?: MockKind; sections?: MockSection[];
+  /** True when a new (or the latest) attempt is practice for this student. */
+  practice?: boolean;
+}
 
 export interface MockIndicative { label: string; low: number | null; high: number | null; central: number | null }
 
@@ -89,6 +113,8 @@ export interface MockResult {
   code: string;
   title: string;
   version: string;
+  kind?: MockKind;
+  form_sections?: MockSection[];
   status: 'in_progress' | 'completed';
   section?: string;
   practice: boolean;
@@ -101,6 +127,11 @@ export interface MockResult {
     writing: {
       t1: string; t2: string; t1_words: number; t2_words: number;
       review: { criteria: MockWritingCriteria; comment: string | null; reviewed_at: string; indicative: MockIndicative | null } | null;
+      /** True when this form's Writing is checked in the ordinary Writing review (see tasks). */
+      reviewed_in_writing_review?: boolean;
+      tasks?: MockWritingTaskStatus[];
+      /** First sitting only: bh-indicative-v1 from the teacher's finalized bands of both tasks. */
+      indicative?: MockIndicative | null;
     };
   };
   payload: MockPayload;
@@ -114,9 +145,13 @@ export interface MockMarkingRow {
 export const IELTS_MOCKS_ROUTE = '/ielts/mocks';
 export const ieltsMockAttemptRoute = (attemptId: string) => `/ielts/mocks/${attemptId}`;
 export const IELTS_MOCK_MARKING_ROUTE = '/ielts/mocks/marking';
+/** The student's own checked Writing (the same page as other Writing feedback). */
+export const ieltsWritingFeedbackRoute = (writingAttemptId: string) => `/ielts/review-result/writing/${encodeURIComponent(writingAttemptId)}`;
 
 const friendly = (message: string): string => {
   if (message.includes('mock_not_available')) return 'This mock test is not open for your account yet.';
+  if (message.includes('mock_attempts_used')) return 'You have already taken this test. Your result is below.';
+  if (message.includes('mock_marked_in_writing_review')) return 'This test is checked in the Writing review, not here.';
   if (message.includes('mock_attempt_not_found')) return 'This test attempt was not found on your account.';
   if (message.includes('not_authenticated')) return 'Please sign in again to continue your test.';
   if (message.includes('invalid_writing_criteria')) return 'Choose a band from 0 to 9 for all eight criteria.';
@@ -143,6 +178,19 @@ export const fetchMockResult = (attemptId: string) => call<MockResult>('rpc_ielt
 export const fetchMockMarkingQueue = () => call<MockMarkingRow[]>('rpc_ielts_mock_cbt_marking_queue');
 export const markMockWriting = (attemptId: string, criteria: MockWritingCriteria, comment: string) =>
   call<MockResult>('rpc_ielts_mock_cbt_mark_writing', { p_attempt: attemptId, p_criteria: criteria, p_comment: comment });
+
+/** What happened during a timed section, for the teacher (never a score). Sending never blocks or slows the test. */
+export type MockIntegrityEvent = 'tab_hidden' | 'tab_visible' | 'window_blur' | 'paste_blocked' | 'drop_blocked';
+export const logMockEvent = (attemptId: string, kind: MockIntegrityEvent): void => {
+  void Promise.resolve(supabase.rpc('rpc_ielts_mock_cbt_log_event', { p_attempt: attemptId, p_kind: kind })).catch(() => undefined);
+};
+
+/** The sections of a form, in order (older payloads without the list are full mocks). */
+export const mockSections = (s?: MockSection[] | null): MockSection[] => (s && s.length ? s : ['listening', 'reading', 'writing']);
+
+/** One line describing what a form contains, for the mock list and the course card. */
+export const mockContentsLine = (sections: MockSection[]): string => sections
+  .map((x) => (x === 'writing' ? 'Writing (2 tasks)' : `${sectionLabel[x]} (40 questions)`)).join(' · ');
 
 /** Same rule as the server: words are runs of non-space characters. */
 export const countWords = (text: string): number => {

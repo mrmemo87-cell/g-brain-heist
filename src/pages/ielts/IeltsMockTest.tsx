@@ -12,6 +12,7 @@ import {
   fetchMockState,
   finishMockSection,
   groupNumbers,
+  logMockEvent,
   readLocalAnswers,
   saveMockAnswers,
   sectionLabel,
@@ -80,6 +81,8 @@ function SectionIntro({ state, audio, onStart, busy }: { state: MockState; audio
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(() => audio?.volume ?? 1);
   const minutes = state.section_seconds ? Math.round(state.section_seconds / 60) : 60;
+  const rewrite = state.kind === 'writing_rewrite';
+  const writingMock = state.kind === 'writing_mock';
 
   const sample = () => {
     if (!audio || !state.audio) return;
@@ -99,7 +102,17 @@ function SectionIntro({ state, audio, onStart, busy }: { state: MockState; audio
         <p className="mk-eyebrow">{state.title} · Academic · {sectionLabel[section]}</p>
         <h1>IELTS {sectionLabel[section]}</h1>
         <p className="mk-intro-time">Time: {section === 'listening' ? `about ${minutes} minutes` : `${minutes} minutes`}</p>
-        {state.practice && (
+        {rewrite ? (
+          <p className="mk-note" data-testid="mk-rewrite-note">
+            <b>Writing rewrite · practice.</b> You write both tasks of this mock again on screen. Your teacher checks them like
+            your other writing and shares feedback for each task. A rewrite has no band range.
+          </p>
+        ) : writingMock ? (
+          <p className="mk-note" data-testid="mk-writing-mock-note">
+            Your teacher checks both tasks and shares feedback for each. When both are checked, you see your Writing
+            indicative band range.
+          </p>
+        ) : state.practice && (
           <p className="mk-note">Practice attempt: you have taken this test before, so your result will show raw scores but no band range.</p>
         )}
         <h2>Instructions to candidates</h2>
@@ -109,7 +122,9 @@ function SectionIntro({ state, audio, onStart, busy }: { state: MockState; audio
           {section === 'listening' && <li>The recording plays <b>once only</b>. It cannot be paused or replayed.</li>}
           {section === 'listening' && <li>When the recording ends you have <b>2 minutes</b> to check your answers.</li>}
           {section === 'writing' && <li>Task 1: at least <b>150 words</b> (about 20 minutes). Task 2: at least <b>250 words</b> (about 40 minutes).</li>}
+          {section === 'writing' && <li>Type your answers. Pasting is turned off, and there is no spelling check.</li>}
           <li>The timer runs on our server. It keeps running if you close the page, so stay until you finish.</li>
+          <li>Your work is saved as you go. If you leave this page or switch tabs, your teacher can see that you left.</li>
         </ul>
         <h2>Information for candidates</h2>
         <ul>
@@ -215,6 +230,20 @@ function SectionPlayer({ state, audio, onClosed }: PlayerProps) {
     document.addEventListener('visibilitychange', hide);
     return () => { window.clearInterval(retry); document.removeEventListener('visibilitychange', hide); };
   }, [save]);
+
+  /* ---------- integrity: leaving the page is recorded for the teacher (never a score, never blocks the test) */
+  useEffect(() => {
+    let blurTimer = 0;
+    const onVisibility = () => logMockEvent(attemptId, document.visibilityState === 'hidden' ? 'tab_hidden' : 'tab_visible');
+    // A window switch that also hides the tab is already a tab switch; record a focus loss only when the page stays visible.
+    const onBlur = () => {
+      window.clearTimeout(blurTimer);
+      blurTimer = window.setTimeout(() => { if (document.visibilityState === 'visible' && !document.hasFocus()) logMockEvent(attemptId, 'window_blur'); }, 400);
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('blur', onBlur);
+    return () => { window.clearTimeout(blurTimer); document.removeEventListener('visibilitychange', onVisibility); window.removeEventListener('blur', onBlur); };
+  }, [attemptId]);
 
   const setAnswer = useCallback((n: number | string, v: string) => {
     setAnswers((prev) => {
@@ -354,7 +383,7 @@ function SectionPlayer({ state, audio, onClosed }: PlayerProps) {
       )}
 
       {section === 'writing' ? (
-        <WritingPane state={state} answers={answers} onChange={setAnswer} pane={pane} />
+        <WritingPane state={state} answers={answers} onChange={setAnswer} pane={pane} onBlocked={(kind) => logMockEvent(attemptId, kind)} />
       ) : active ? (
         <main className={`mk-body${active.passage ? ' mk-body--split' : ''}`}>
           <div className="mk-part-bar">
@@ -436,8 +465,18 @@ const groupNumbersOf = (p: Pane) => p.groups.flatMap((g) => groupNumbers(g));
 
 /* ------------------------------------------------------------------ writing */
 
-function WritingPane({ state, answers, onChange, pane }: { state: MockState; answers: MockAnswers; onChange: (key: string, v: string) => void; pane: number }) {
+function WritingPane({ state, answers, onChange, pane, onBlocked }: {
+  state: MockState; answers: MockAnswers; onChange: (key: string, v: string) => void; pane: number;
+  onBlocked: (kind: 'paste_blocked' | 'drop_blocked') => void;
+}) {
   const tasks = state.payload as { task1: MockWritingTask; task2: MockWritingTask } | null;
+  const [blocked, setBlocked] = useState(false);
+  const [zoom, setZoom] = useState(false);
+  useEffect(() => {
+    if (!blocked) return undefined;
+    const t = window.setTimeout(() => setBlocked(false), 4000);
+    return () => window.clearTimeout(t);
+  }, [blocked]);
   if (!tasks) return <main className="mk-body"><p className="mk-note">Loading the tasks…</p></main>;
   const key = pane === 0 ? 't1' : 't2';
   const task = pane === 0 ? tasks.task1 : tasks.task2;
@@ -451,9 +490,12 @@ function WritingPane({ state, answers, onChange, pane }: { state: MockState; ans
       <section className="mk-passage mk-task" aria-label={`Writing Task ${pane + 1}`}>
         <p className="mk-task-prompt">{task.prompt}</p>
         {task.figure && (
-          <figure className="mk-figure">
+          <figure className={`mk-figure${zoom ? ' is-zoomed' : ''}`}>
             <img src={task.figure.src} alt={task.figure.alt || task.figure.title} />
             {task.figure.note && <figcaption>{task.figure.note}</figcaption>}
+            <button type="button" className="mk-btn mk-figure-zoom" aria-pressed={zoom} onClick={() => setZoom((z) => !z)}>
+              {zoom ? 'Smaller picture' : 'Bigger picture'}
+            </button>
           </figure>
         )}
       </section>
@@ -465,11 +507,16 @@ function WritingPane({ state, answers, onChange, pane }: { state: MockState; ans
           className="mk-textarea"
           value={answers[key] ?? ''}
           onChange={(e) => onChange(key, e.target.value)}
+          onPaste={(e) => { e.preventDefault(); setBlocked(true); onBlocked('paste_blocked'); }}
+          onDrop={(e) => { e.preventDefault(); setBlocked(true); onBlocked('drop_blocked'); }}
           spellCheck={false}
           autoCorrect="off"
+          autoComplete="off"
           autoCapitalize="sentences"
+          data-gramm="false"
           placeholder={`Write your answer to Task ${pane + 1} here.`}
         />
+        {blocked && <p className="mk-note mk-paste-note" role="status">Pasting is turned off in the test. Please type your answer.</p>}
         <p className={`mk-words${words < task.minimum_words ? ' is-under' : ''}`}>
           Words: <b>{words}</b>{words < task.minimum_words ? ` (at least ${task.minimum_words})` : ''}
         </p>
