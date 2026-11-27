@@ -1,7 +1,7 @@
 # Brains Heist IELTS Visual & UX Bible
 
 **Status:** CANONICAL DESIGN CONTRACT — repository acceptance policy
-**Version:** 1.24.0
+**Version:** 1.25.0
 **Effective date:** 2026-11-27\
 **Scope:** All Brains Heist IELTS routes, embedded IELTS views, student experiences, teacher workspaces, school and platform administration, screeners, practice tasks, exam interfaces, results, feedback, billing and responsive states.  
 **Audience:** Designers, frontend developers, maintainers, Codex/AI coding agents, QA, product reviewers.
@@ -345,6 +345,17 @@ Owner request (2026-11-22): teacher pages "are in several areas and not clearly 
 - If the mock check fails, Home and Assignments still show all other work.
 - **All groups folded (1.23.2).** On Assignments and Targeted every group (Speaking practice mock, To do, Feedback ready, Waiting for your teacher, Finished, Closed) starts folded closed with its count in the heading, so the student sees the whole page at a glance. A set opened from Home ("?assignment=") opens the group that holds it. Home is unchanged.
 
+### 13.15 Mock Writing rewrite on screen (Diagnostic Bible section 12B) — v1.25.0
+
+- **Mock list and course card.** The card reads the form's title ("Mock Test 1 · Writing rewrite"), "About 60 min · Writing (2 tasks) · practice (no band range)" and a checklist without the headphones line. The course card says "Both Writing tasks on screen, 60 minutes". After the one attempt, the row shows "practice" and "Writing waiting for your teacher" or "Writing checked · read your feedback"; no start button.
+- **Intro.** The usual quiet exam intro plus a note in the existing note style: "Writing rewrite · practice." with one sentence that the teacher checks both tasks like other writing and that a rewrite has no band range. Every computer Writing intro says that pasting is off and there is no spelling check, and every computer mock intro says that work is saved and that the teacher can see when the student left the page.
+- **Writing screen.** Unchanged layout. A blocked paste or drop shows "Pasting is turned off in the test. Please type your answer." under the box for four seconds (status text, not an alert). A Task 1 figure has a "Bigger picture" / "Smaller picture" toggle (44 px, `aria-pressed`) that lifts the 520 px height cap.
+- **Task 1 figure.** Drawn for phones first: stages two per row in a numbered snake with arrows, 18 px labels at a 560 px canvas (about 11 px at 343 px wide), Evidence Blue strokes, the branch as a dashed muted arrow with an italic label, the figure title and the "fictional" note inside the picture, and full alt text. The SVG is the source; the exam page shows its 2× PNG so fonts render the same on every device.
+- **Result.** "Your Writing", then one Writing card: words per task, "Writing rewrite · practice: no band range", and one row per task with "Waiting for your teacher", or "Teacher Writing band · Task N: 6.0", "Checked by your teacher, date · Not an official IELTS result" and a "Read feedback →" button that opens the usual Writing feedback page. "Your answers" shows both essays without section tabs.
+- **Teacher review.** The usual Writing review, titled "Mock Test 1 · Task N (computer rewrite)", with one note line above the task: the form, "timed on screen · practice (no band range)", how the section ended and after how many minutes, how often the student left the page or switched windows, and blocked pastes. Plain facts in text, no warning colour.
+- **Class report.** The rewrite is its own computer mock group ("Mock Test 1 · Writing rewrite · Computer") next to the paper group; Listening, Reading and Speaking show "—"; Writing shows "To review" until both scripts are finalized, then "Rated" with "practice · no range" and the hover note "rewrite after feedback: practice, no indicative range". Each script is also its own reviewed-Writing work column.
+- **Acceptance.** DOM tests cover the list, intro, paste blocking and event recording, the figure toggle and the result; the figure was checked at 343 px. Rendered checks at 375, 768 and 1440 px on real devices remain to be recorded before wider use.
+
 ## 14. Native app motivation layer — v1.4.0
 
 This section applies **only inside the installed iPhone and Android apps** (`isNativeApp()`). The website keeps sections 12.4 and 13.6 unchanged. Where this section allows more than 12.4 or 13.6, it overrides them for the app only.
@@ -372,6 +383,10 @@ The app uses one recorded sound set for Brains Heist and IELTS (public/sounds/ma
 
 ### 14.6 Honest meaning
 Blaze's size, colour and crown show only the practice streak. They never imply an IELTS level, band, readiness or progress beyond the streak; section 2's "no misleading gamification" still applies.
+
+### 14.35 Revision record — 1.25.0 (2026-11-27)
+
+Owner request (2026-11-27): Mock Test 1 Writing rewrite on computer for the two IELTS batches. New section 13.15 (Diagnostic Bible 2.7.5 section 12B).
 
 ### 14.34 Revision record — 1.24.0 (2026-11-27)
 

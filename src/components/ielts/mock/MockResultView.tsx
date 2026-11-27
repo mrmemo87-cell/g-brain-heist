@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import IeltsStudentShell from '../student/IeltsStudentShell';
+import { useNavigate } from 'react-router-dom';
 import {
   IELTS_MOCKS_ROUTE,
   fetchMockResult,
+  ieltsWritingFeedbackRoute,
+  mockSections,
   questionTexts,
   type MockIndicative,
   type MockItemOutcome,
@@ -76,10 +79,51 @@ const CRITERIA: Array<{ task: 't1' | 't2'; key: string; label: string }> = [
   { task: 't2', key: 'gra', label: 'Grammatical Range and Accuracy' },
 ];
 
+/** Writing checked in the ordinary Writing review: one row per task, the teacher's band once the review is finalized. */
+function ReviewedWritingResult({ result }: { result: MockResult }) {
+  const navigate = useNavigate();
+  const w = result.skills.writing;
+  const tasks = w.tasks ?? [];
+  const words = { t1: w.t1_words, t2: w.t2_words };
+  return (
+    <section className="mk-card">
+      <h2>Writing</h2>
+      <p className="mk-raw">Task 1: <b>{w.t1_words}</b> words · Task 2: <b>{w.t2_words}</b> words</p>
+      <p className="mk-note">
+        {result.kind === 'writing_rewrite' ? 'Writing rewrite · practice: no band range. ' : ''}
+        Your teacher checks each task like your other writing and shares feedback for it.
+      </p>
+      <ul className="mk-writing-tasks">
+        {(['t1', 't2'] as const).map((key) => {
+          const t = tasks.find((x) => x.task === key);
+          const n = key === 't1' ? 1 : 2;
+          return (
+            <li key={key}>
+              <span>Task {n} · {words[key]} words</span>
+              {!t ? (
+                <span>Nothing to check (no answer)</span>
+              ) : t.reviewed ? (
+                <>
+                  <span className="mk-task-band">Teacher Writing band · Task {n}: {t.band != null ? Number(t.band).toFixed(1) : '–'}</span>
+                  <span className="mk-small">Checked by your teacher{t.reviewed_at ? `, ${fmtDate(t.reviewed_at)}` : ''} · Not an official IELTS result</span>
+                  <button type="button" className="mk-btn mk-btn--primary" onClick={() => navigate(ieltsWritingFeedbackRoute(t.writing_attempt_id))}>Read feedback →</button>
+                </>
+              ) : (
+                <span>Waiting for your teacher</span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
 export function WritingResult({ result }: { result: MockResult }) {
   const w = result.skills.writing;
   const review = w.review;
   const date = fmtDate(result.completed_at);
+  if (w.reviewed_in_writing_review) return <ReviewedWritingResult result={result} />;
   return (
     <section className="mk-card">
       <h2>Writing</h2>
@@ -117,7 +161,7 @@ export { CRITERIA };
 export default function MockResultView({ attemptId }: { attemptId: string }) {
   const [result, setResult] = useState<MockResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<'listening' | 'reading' | 'writing'>('listening');
+  const [tab, setTab] = useState<'listening' | 'reading' | 'writing' | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -132,6 +176,9 @@ export default function MockResultView({ attemptId }: { attemptId: string }) {
 
   const form = result ? result.code.replace('IELTS-', '') : '';
   const date = fmtDate(result?.completed_at ?? null);
+  const sections = mockSections(result?.form_sections);
+  const shownTab = tab ?? sections[0];
+  const writingOnly = sections.length === 1 && sections[0] === 'writing';
 
   return (
     <IeltsStudentShell focus={{ label: 'Mock tests', to: IELTS_MOCKS_ROUTE }}>
@@ -146,8 +193,10 @@ export default function MockResultView({ attemptId }: { attemptId: string }) {
           <>
             <header className="mk-result-head">
               <p className="mk-eyebrow">{result.title} · Academic · {date}{result.practice ? ' · Practice attempt' : ''}</p>
-              <h1>Your mock test result</h1>
-              <p>Listening and Reading were marked as soon as you finished them. Speaking is not part of this computer test.</p>
+              <h1>{writingOnly ? 'Your Writing' : 'Your mock test result'}</h1>
+              <p>{writingOnly
+                ? 'Your two tasks are saved. Your teacher will check them and share feedback for each task.'
+                : 'Listening and Reading were marked as soon as you finished them. Speaking is not part of this computer test.'}</p>
             </header>
             <div className="mk-cards">
               {result.skills.listening && <ObjectiveCard skill="Listening" raw={result.skills.listening.raw} indicative={result.skills.listening.indicative} practice={result.practice} form={form} date={date} />}
@@ -156,17 +205,19 @@ export default function MockResultView({ attemptId }: { attemptId: string }) {
             </div>
 
             <section className="mk-card mk-review-card">
-              <h2>Check every answer</h2>
-              <div className="mk-tabs" role="tablist" aria-label="Review by section">
-                {(['listening', 'reading', 'writing'] as const).map((t) => (
-                  <button key={t} type="button" role="tab" aria-selected={tab === t} className={tab === t ? 'is-on' : ''} onClick={() => setTab(t)}>
-                    {t[0]!.toUpperCase() + t.slice(1)}
-                  </button>
-                ))}
-              </div>
-              {tab === 'listening' && result.skills.listening && <ReviewList items={result.skills.listening.items} texts={texts.listening} />}
-              {tab === 'reading' && result.skills.reading && <ReviewList items={result.skills.reading.items} texts={texts.reading} />}
-              {tab === 'writing' && (
+              <h2>{writingOnly ? 'Your answers' : 'Check every answer'}</h2>
+              {!writingOnly && (
+                <div className="mk-tabs" role="tablist" aria-label="Review by section">
+                  {sections.map((t) => (
+                    <button key={t} type="button" role="tab" aria-selected={shownTab === t} className={shownTab === t ? 'is-on' : ''} onClick={() => setTab(t)}>
+                      {t[0]!.toUpperCase() + t.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {shownTab === 'listening' && result.skills.listening && <ReviewList items={result.skills.listening.items} texts={texts.listening} />}
+              {shownTab === 'reading' && result.skills.reading && <ReviewList items={result.skills.reading.items} texts={texts.reading} />}
+              {shownTab === 'writing' && (
                 <div className="mk-essays">
                   <h3>Task 1</h3>
                   <p className="mk-small">{result.payload.writing?.task1.prompt}</p>

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
+  mockRewriteSummary,
   rpcIeltsReviewDetail,
   rpcIeltsSubmitReview,
   rubricForSkill,
@@ -326,6 +327,7 @@ const IeltsSubmissionReview: React.FC<IeltsSubmissionReviewProps> = ({ embedded 
 
         {error ? <div className="ir-notice ir-notice--error" role="alert">{friendlyIeltsAdminError(error, 'Unable to load the submission. Please try again.')}</div> : null}
         {isLoading ? <p className="ir-muted" role="status">Loading submission…</p> : null}
+        {detail?.mock_rewrite ? <div className="ir-notice" role="note" data-testid="ir-mock-rewrite">{mockRewriteSummary(detail.mock_rewrite)}</div> : null}
         {locked && detail ? <div className="ir-notice" role="status">Finalized{detail.reviewed_at ? ` on ${when(detail.reviewed_at)}` : ''} and shared with the student. This review is read-only.</div> : null}
 
         {detail ? (

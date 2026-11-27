@@ -109,6 +109,12 @@
 .mk-figure { margin: 0 0 1.2rem; text-align: center; }
 .mk-figure img { max-width: 100%; height: auto; max-height: 520px; border: 1px solid var(--mk-line); border-radius: 6px; }
 .mk-figure figcaption { font-size: .85em; color: var(--mk-muted); }
+.mk-figure.is-zoomed img { max-height: none; width: 100%; }
+.mk-figure-zoom { display: inline-flex; margin-top: .5rem; min-height: 44px; font-size: .9em; }
+.mk-paste-note { margin-top: .5rem; }
+.mk-writing-tasks { list-style: none; margin: .75rem 0 0; padding: 0; display: grid; gap: .6rem; }
+.mk-writing-tasks li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: .7rem .9rem; border: 1px solid var(--mk-line); border-radius: 10px; }
+.mk-writing-tasks .mk-task-band { font-weight: 700; }
 .mk-flag-mark { display: inline-block; margin-left: .4em; padding: 0 .4em; border-radius: 4px; background: #fde68a; font-size: .75em; font-weight: 700; vertical-align: middle; }
 
 /* ---------- writing */

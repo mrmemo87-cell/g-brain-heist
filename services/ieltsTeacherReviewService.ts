@@ -53,6 +53,35 @@ export interface IeltsReviewDetail extends IeltsReviewQueueItem {
   next_steps: string | null;
   teacher_feedback: string | null;
   private_notes: string | null;
+  /** Present when this Writing came from a computer rewrite of a mock (Diagnostic Bible 12B). */
+  mock_rewrite?: IeltsMockRewriteContext | null;
+}
+
+/** The timed computer section a rewrite script came from. Integrity is for teachers only (null for the student). */
+export interface IeltsMockRewriteContext {
+  code: string;
+  title: string | null;
+  task: 't1' | 't2';
+  practice: boolean;
+  completed_at: string | null;
+  integrity: {
+    tab_switches: number; focus_lost: number; paste_blocked: number;
+    minutes_used: number | null; closed_by: 'learner' | 'time' | null; started_at: string | null;
+  } | null;
+}
+
+/** One plain sentence for the teacher about the timed section (never a score). */
+export function mockRewriteSummary(ctx: IeltsMockRewriteContext): string {
+  const parts = [`${ctx.title ?? 'Computer mock'} · timed on screen · practice (no band range)`];
+  const i = ctx.integrity;
+  if (i) {
+    if (i.minutes_used != null) parts.push(`${i.closed_by === 'time' ? 'time ran out' : 'submitted'} after ${i.minutes_used} min`);
+    const times = (n: number) => `${n} ${n === 1 ? 'time' : 'times'}`;
+    parts.push(i.tab_switches ? `left the test page ${times(i.tab_switches)}` : 'never left the test page');
+    if (i.focus_lost) parts.push(`switched to another window ${times(i.focus_lost)}`);
+    if (i.paste_blocked) parts.push(`tried to paste ${times(i.paste_blocked)} (blocked)`);
+  }
+  return parts.join(' · ');
 }
 
 export interface IeltsReviewQueueFilters {
