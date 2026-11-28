@@ -1,0 +1,86 @@
+0.70|0.1|In this town, people jump when people lie.
+0.70|0.1|Which means... nobody here can lie. At all.
+0.65|0.1|"I'm on my way."
+0.70|0.1|He's still in bed.
+0.65|0.1|"Nice haircut!"
+0.70|0.1|Straight into the ceiling fan.
+0.65|0.1|"I've read the terms and conditions."
+0.70|0.1|He's still flying.
+0.60|0.1|Job interviews take three seconds.
+0.65|0.1|"Where do you see yourself in five years?"
+0.75|0.1|Next.
+0.60|0.1|First dates are a disaster.
+0.65|0.1|"I love hiking."
+0.70|0.1|"I'm not like other girls."
+0.65|0.1|The weatherman says, "Sunny all day!"...
+0.70|0.1|and launches into a cloud.
+0.65|0.1|Even the cats aren't safe.
+0.60|0.1|This one didn't even say anything.
+0.70|0.1|It just THOUGHT: "I didn't knock that cup off the table."
+0.60|0.1|And then my mum looked at my drawing and said,
+0.65|0.1|"It's beautiful, sweetie."
+0.75|0.1|...She's still on the roof.
+0.65|0.1|What lie would make YOU jump the highest?
+0.65|0.1|Follow for more.
+0.60|0.1|At the restaurant: "How's your food?"
+0.70|0.1|"Delicious!"
+0.70|0.1|The whole table goes up.
+0.65|0.1|The waiter just sighs... and gets the ladder.
+0.60|0.1|School is chaos.
+0.65|0.1|"My dog ate my homework."
+0.70|0.1|The dog jumps too.
+0.70|0.1|He knows what he did.
+0.60|0.1|Birthday parties are dangerous.
+0.70|0.1|"Oh wow, socks! I love them!"
+0.70|0.1|Grandad's still up there with the balloons.
+0.60|0.1|Even the dentist.
+0.65|0.1|"This won't hurt a bit."
+0.75|0.1|Straight through the window.
+0.65|0.1|And it's not just cats.
+0.70|0.1|In this town, even your THOUGHTS can get you.
+0.60|0.1|At the gym. He thinks:
+0.65|0.1|"I'll definitely come back tomorrow."
+0.70|0.1|Dumbbell and all.
+0.60|0.1|Group photo. Everyone smiles and thinks:
+0.65|0.1|"I look great in this one."
+0.70|0.1|The photo is just feet.
+0.60|0.1|The baby thinks:
+0.65|0.1|"I'm not the one who made that smell."
+0.70|0.1|Nappy and all.
+0.60|0.1|The kid at the dinner table thinks:
+0.65|0.1|"I'm not even hungry for dessert."
+0.70|0.1|Lands face-first in the cake.
+0.60|0.1|The teacher thinks:
+0.65|0.1|"I love my job on Mondays."
+0.70|0.1|Through the school roof.
+0.60|0.1|The dog thinks:
+0.65|0.1|"I'm a good boy."
+0.65|0.1|...No jump. He really is.
+0.65|0.1|And me? I thought:
+0.70|0.1|"This town is totally normal."
+0.60|0.1|The supermarket.
+0.65|0.1|"Just looking, thanks."
+0.70|0.1|Straight into the cereal aisle.
+0.60|0.1|The barber holds up the mirror.
+0.65|0.1|"Perfect, thank you!"
+0.70|0.1|Hair and all.
+0.60|0.1|Online shopping.
+0.65|0.1|"This will definitely fit."
+0.70|0.1|The parcel jumps too.
+0.60|0.1|A football match. The player falls over:
+0.70|0.1|"He touched me!"
+0.65|0.1|The referee jumps too:
+0.65|0.1|"I saw everything."
+0.60|0.1|Sleepover.
+0.65|0.1|"I'm not scared at all."
+0.70|0.1|Ceiling. Again.
+0.65|0.1|The town's annual Truth Day parade...
+0.70|0.1|is a trampoline show.
+0.60|0.1|The library sign says, "Quiet please."
+0.60|0.1|The librarian thinks: "Nobody ever borrows the fun books."
+0.65|0.1|Nothing happens.
+0.65|0.1|Then the kitty on the shelf thinks: "I'm not going to knock these books off."
+0.70|0.1|Books everywhere.
+0.60|0.1|Grandad at the barbecue:
+0.65|0.1|"It's not burnt, it's crispy."
+0.70|0.1|Sausage and all.

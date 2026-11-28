@@ -1,0 +1,14 @@
+0.60|0.1|At the restaurant: "How's your food?"
+0.70|0.1|"Delicious!"
+0.70|0.1|The whole table goes up.
+0.65|0.1|The waiter just sighs... and gets the ladder.
+0.60|0.1|School is chaos.
+0.65|0.1|"My dog ate my homework."
+0.70|0.1|The dog jumps too.
+0.70|0.1|He knows what he did.
+0.60|0.1|Birthday parties are dangerous.
+0.70|0.1|"Oh wow, socks! I love them!"
+0.70|0.1|Grandad's still up there with the balloons.
+0.60|0.1|Even the dentist.
+0.65|0.1|"This won't hurt a bit."
+0.75|0.1|Straight through the window.

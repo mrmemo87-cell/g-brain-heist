@@ -1,0 +1,21 @@
+import { createRequire } from 'node:module';
+import path from 'node:path';
+const { chromium } = createRequire(import.meta.url)('playwright');
+const dir = path.dirname(new URL(import.meta.url).pathname);
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1920, height: 1080 } });
+await p.goto('file://' + path.join(dir, 'scene.html'));
+await p.evaluate(() => window.ready);
+await p.evaluate(() => {
+  const RED = '#ff2d2d';
+  let g = DEFS + `<defs><clipPath id="tm"><rect x="1080" y="70" width="760" height="1010" rx="24"/></clipPath><radialGradient id="eg"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#9be7ff" stop-opacity="0"/></radialGradient></defs><rect width="1920" height="1080" fill="#f1e4cf"/><rect x="0" y="760" width="1920" height="320" fill="#d9c3a0"/>`;
+  g += `<rect x="1080" y="70" width="760" height="1010" rx="24" fill="#cfe6f2"/><g clip-path="url(#tm)">${shape({ x: 1460, y: 1500, s: 2.2, side: -1, arm: 125, look: -0.6 })}<circle cx="1362" cy="682" r="70" fill="url(#eg)"/><circle cx="1520" cy="682" r="70" fill="url(#eg)"/><polygon points="1300,70 1420,70 1220,1080 1100,1080" fill="#fff" opacity=".2"/></g><rect x="1080" y="70" width="760" height="1010" rx="24" fill="none" stroke="#f6c453" stroke-width="30"/><rect x="1080" y="70" width="760" height="1010" rx="24" fill="none" stroke="${OUT}" stroke-width="6"/>`;
+  g += mother({ x: 560, y: 1560, s: 2.2, face: 0.75, sw: '#8a6a4c', aL: 8, aR: 150, smile: 0.8, brow: 0.2, open: 1, look: [0.9, -0.2] });
+  g += `<path d="M 880 300 Q 1010 300 1090 430" fill="none" stroke="#fff" stroke-width="34" stroke-linecap="round"/><path d="M 880 300 Q 1010 300 1090 430" fill="none" stroke="${RED}" stroke-width="20" stroke-linecap="round"/><polygon points="1160,530 1020,490 1130,390" fill="${RED}" stroke="#fff" stroke-width="8" stroke-linejoin="round"/>`;
+  const T = (y, s, c) => `<text x="50" y="${y}" font-size="190" fill="${c}" stroke="#05040f" stroke-width="30" paint-order="stroke" stroke-linejoin="round" letter-spacing="3">${s}</text>`;
+  g += T(180, 'DON’T', '#ffffff') + T(350, 'LOOK.', '#ffe14d');
+  g += `<rect width="1920" height="1080" fill="url(#vig)"/>`;
+  document.getElementById('s').innerHTML = g;
+});
+await p.screenshot({ path: path.join(dir, 'thumb_raw.png') });
+await b.close();

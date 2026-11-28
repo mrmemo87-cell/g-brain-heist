@@ -1,0 +1,1 @@
+CDEFS+MIRG+`<g transform="translate(330,-40) scale(1.12)">`+MIR(0,{fx:{cry:1,blue:1},osd:'TOMORROW · 7:02 AM'})+`</g><rect x="0" y="0" width="760" height="1080" fill="#14102e" opacity=".9"/>`+T(290,'TOMORROW','#ffffff',122,50)+T(470,'ME IS','#ffffff',150,50)+T(700,'CRYING.','#7fd0ff',170,50)+T(900,'WHY?','#ffe14d',130,50)
