@@ -337,6 +337,24 @@
   display: block;
   margin-top: 18px;
 }
+.sp-not-recording {
+  padding: 18px 20px;
+  margin-bottom: 18px;
+  background: #b32d48;
+  color: #fff !important;
+  border-radius: 16px;
+  box-shadow: 0 0 0 4px #f6c9d3;
+}
+.sp-not-recording strong {
+  display: block;
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.sp-not-recording p {
+  margin: 6px 0 0;
+  color: #fff !important;
+}
 .sp-local {
   padding: 18px;
   background: #fff9eb;

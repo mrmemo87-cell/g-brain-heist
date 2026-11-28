@@ -37,6 +37,9 @@ export function SpeakingRecorder<T extends { id: string } = SpeakingSession>({
     [busy, setBusy] = useState(false),
     [elapsed, setElapsed] = useState(0),
     [error, setError] = useState("");
+  // Set when a recording stops by itself (page hidden, microphone lost, device storage failed): shown as a full-width
+  // "Not recording" bar until the next recording starts, so a stopped clip is never mistaken for a running one.
+  const [lost, setLost] = useState<{ part: number; seconds: number } | null>(null);
   const [pending, setPending] = useState<LocalSpeakingAudio[]>([]),
     [tested, setTested] = useState(false),
     [testUrl, setTestUrl] = useState("");
@@ -56,6 +59,14 @@ export function SpeakingRecorder<T extends { id: string } = SpeakingSession>({
   }, [recording, busy, pending, onActiveChange]);
   const stop = (interrupted = false) => {
     if (current.current && interrupted) current.current.interrupted = true;
+    if (interrupted && recorder.current?.state === "recording" && mounted.current) {
+      setLost({ part: current.current?.part ?? part, seconds: (Date.now() - started.current) / 1000 });
+      try {
+        navigator.vibrate?.([300, 150, 300, 150, 300]);
+      } catch {
+        /* vibration is optional */
+      }
+    }
     if (recorder.current?.state === "recording") recorder.current.stop();
     if (timer.current) clearInterval(timer.current);
     timer.current = null;
@@ -270,11 +281,18 @@ export function SpeakingRecorder<T extends { id: string } = SpeakingSession>({
       s.getAudioTracks().forEach(
         (t) =>
           (t.onended = () => {
-            if (r.state === "recording") stop(true);
+            if (r.state === "recording") {
+              stop(true);
+              if (mounted.current)
+                setError(
+                  "The microphone was taken away (a call, another app or a disconnected microphone). Save the interrupted clip, then record this part again.",
+                );
+            }
           }),
       );
       r.start(1000);
       started.current = Date.now();
+      setLost(null);
       setElapsed(0);
       setRecording(true);
       setBusy(false);
@@ -340,6 +358,19 @@ export function SpeakingRecorder<T extends { id: string } = SpeakingSession>({
       aria-label={workflow ? "Practice recording" : "Interview recording"}
       aria-busy={busy}
     >
+      {lost && (
+        <div className="sp-not-recording" role="alert" data-testid="speaking-not-recording">
+          <strong>Not recording</strong>
+          <p>
+            {workflow ? "Your response" : `Part ${lost.part}`} stopped after{" "}
+            {speakingTime(lost.seconds)}. Anything said after that was not captured.
+          </p>
+          <p>
+            Save the interrupted clip, then record{" "}
+            {workflow ? "your response" : `Part ${lost.part}`} again before moving on.
+          </p>
+        </div>
+      )}
       {error && (
         <p role="alert" className="sp-alert">
           {error}

@@ -197,6 +197,21 @@ export default function IeltsSpeakingPilot() {
     [estimating, setEstimating] = useState(false),
     [estimateError, setEstimateError] = useState("");
   const estimateTried = useRef(false);
+  // Before an interview is finished: a part whose saved recordings add up to under 20 seconds almost always means the
+  // microphone stopped (17 Nov 2026: a Part 1 clip of half a second). The teacher re-records it or confirms they
+  // listened and the answers are in the saved recordings.
+  const [shortConfirmed, setShortConfirmed] = useState(false);
+  const shortParts = [1, 2, 3]
+    .map((p) => ({
+      part: p,
+      seconds: (session?.clips ?? []).filter((c) => c.part === p).reduce((sum, c) => sum + (c.duration_seconds || 0), 0),
+      saved: (session?.clips ?? []).some((c) => c.part === p),
+    }))
+    .filter((p) => p.saved && p.seconds < 20);
+  const clipCount = session?.clips?.length ?? 0;
+  useEffect(() => {
+    setShortConfirmed(false);
+  }, [session?.id, clipCount]);
   useEffect(() => {
     let alive = true;
     request.current?.abort();
@@ -1034,11 +1049,31 @@ export default function IeltsSpeakingPilot() {
                     Your recordings will appear here after upload is confirmed.
                   </p>
                 )}
+                {shortParts.length > 0 && (
+                  <div className="sp-alert" role="alert" data-testid="speaking-short-parts">
+                    <p>
+                      {shortParts
+                        .map((p) => `Part ${p.part} is only ${speakingTime(p.seconds)}`)
+                        .join(" · ")}
+                      . A recording that short usually means the microphone stopped. Record{" "}
+                      {shortParts.length === 1 ? "it" : "them"} again before finishing.
+                    </p>
+                    <label className="sp-check">
+                      <input
+                        type="checkbox"
+                        checked={shortConfirmed}
+                        onChange={(e: { target: { checked: boolean } }) => setShortConfirmed(e.target.checked)}
+                      />
+                      I listened: the answers for {shortParts.map((p) => `Part ${p.part}`).join(" and ")} are in the saved recordings. Finish anyway.
+                    </label>
+                  </div>
+                )}
                 <button
                   className="sp-primary"
                   disabled={
                     busy ||
                     recordActive ||
+                    (shortParts.length > 0 && !shortConfirmed) ||
                     ![1, 2, 3].every((p) =>
                       session.clips.some((c) => c.part === p),
                     )
