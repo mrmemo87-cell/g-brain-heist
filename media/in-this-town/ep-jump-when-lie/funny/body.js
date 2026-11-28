@@ -172,7 +172,7 @@ const SC = {
     g += PERSON(560, GROUND + 70, 1.0, Object.assign({}, ME, { mouth: 'grin', look: [0.6, -0.4] }), t);
     g += JP('mum', 800, GROUND + 70, 1.15, { shirt: '#e94b5f', apron: 1, hair: 'bun', hairC: '#5a3a22', mouth: 'smile', look: [-0.8, 0] }, t);
     g += CAT(950, 620, 0.45, t, MEH({ c: 'calico', look: [-0.8, 0.4] }));
-    if (t > s_('n21') && t < jm.t0 + 0.1) g += BUB(720, 560, 'It’s beautiful,|sweetie.', t, s_('n21') + 0.05, 80, 64);
+    if (t > s_('n21') && t < jm.t0 + 0.1) g += BUB(590, 560, 'It’s beautiful,|sweetie.', t, s_('n21') + 0.05, 200, 64);
     return g;
   },
   roof(t) {
@@ -207,7 +207,7 @@ const OV = {
       + `<text x="0" y="170" font-size="96" text-anchor="middle" font-family="Noto Color Emoji">👇</text></g>`;
   },
 };
-const CAM = { hook: [1.2, 540, 1010], nolie: [1.3, 540, 1080], bed: [1.35, 540, 1000], fan: [1.3, 540, 1000], terms: [1.4, 540, 1000], flying: [1.0, 540, 960], job: [1.3, 540, 1000], date: [1.3, 540, 1000], weather: [1.2, 540, 900], cats: [1.25, 540, 1100], catclose: [1.15, 540, 1100], catback: [1.15, 540, 1100], mum: [1.25, 480, 1000], roof: [1.1, 540, 940], end: [1.15, 540, 1080] };
+const CAM = { hook: [1.2, 540, 1010], nolie: [1.3, 540, 1080], bed: [1.35, 540, 1000], fan: [1.3, 540, 1000], terms: [1.4, 540, 1000], flying: [1.0, 540, 960], job: [1.3, 540, 1000], date: [1.3, 540, 1000], weather: [1.08, 540, 900], cats: [1.25, 540, 1100], catclose: [1.15, 540, 1100], catback: [1.15, 540, 1100], mum: [1.25, 480, 1000], roof: [1.1, 540, 940], end: [1.15, 540, 1080] };
 // big comic "BOING!" pop on each real jump
 function BOINGS(t) {
   let g = '', i = 0;
