@@ -6,11 +6,17 @@ const ff = (a) => execFileSync('ffmpeg', ['-y', '-v', 'error', ...a.map(String)]
 const dur = (f) => parseFloat(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString());
 const TRIM = 'silenceremove=start_periods=1:start_threshold=-42dB,areverse,silenceremove=start_periods=1:start_threshold=-42dB,areverse';
 fs.mkdirSync('voice', { recursive: true });
-const N = 38;
+const N = 86;
 for (let i = 0; i < N; i++) ff(['-i', `narr_raw/${String(i).padStart(3, '0')}.wav`, '-af', `asetrate=24000*0.91,aresample=44100,atempo=0.99,bass=g=3:f=120,${TRIM}`, `voice/n${String(i + 1).padStart(2, '0')}.wav`]);
 // gaps leave room for each jump after its lie
-const seq = `g0.2 n01 g0.3 n02 g0.5 n03 g1.15 n04 g0.7 n05 g1.0 n06 g0.7 n07 g0.9 n08 g0.8 n25 g0.2 n26 g1.1 n27 g0.3 n28 g0.8 n29 g0.2 n30 g1.0 n31 g1.0 n32 g0.7 n09 g0.3 n10 g1.0 n11 g0.9
-  n12 g0.3 n13 g1.1 n14 g1.9 n15 g1.0 n16 g0.8 n33 g0.2 n34 g1.1 n35 g0.7 n36 g0.2 n37 g1.2 n38 g0.8 n17 g0.4 n18 g0.3 n19 g1.9 n20 g0.2 n21 g1.1 n22 g1.1 n23 g0.3 n24 g3.6`;
+const seq = `g0.2 n01 g0.25 n02 g0.4 n03 g1.0 n04 g0.5 n05 g0.95 n06 g0.5 n07 g0.85 n08 g0.5 n25 g0.15 n26 g1.0 n27 g0.2 n28 g0.5
+  n29 g0.15 n30 g0.95 n31 g0.9 n32 g0.5 n09 g0.2 n10 g0.95 n11 g0.6 n12 g0.2 n13 g1.0 n14 g1.7 n15 g0.95 n16 g0.5
+  n33 g0.15 n34 g1.0 n35 g0.5 n36 g0.15 n37 g1.1 n38 g0.6 n17 g0.3 n18 g0.2 n19 g1.7
+  n39 g0.2 n40 g0.6 n41 g0.1 n42 g0.95 n43 g0.4 n44 g0.1 n45 g1.3 n46 g0.5 n47 g0.1 n48 g0.95 n49 g0.4 n50 g0.1 n51 g1.2 n52 g0.5
+  n53 g0.1 n54 g0.9 n55 g0.4 n56 g0.1 n57 g0.5 n58 g0.5 n59 g0.1 n60 g1.6
+  n61 g0.1 n62 g0.9 n63 g0.4 n64 g0.1 n65 g1.0 n66 g0.4 n67 g0.1 n68 g0.9 n69 g1.0 n70 g0.15 n71 g1.0 n72 g0.1 n73 g1.1
+  n74 g0.1 n75 g0.9 n76 g0.4 n77 g0.1 n78 g1.2 n79 g0.2 n80 g0.4 n81 g0.3 n82 g1.1 n83 g0.5 n84 g0.1 n85 g1.0 n86 g0.6
+  n20 g0.2 n21 g1.1 n22 g1.0 n23 g0.3 n24 g2.8`;
 const V = {}; let t = 0;
 for (const tok of seq.trim().split(/\s+/)) { if (tok[0] === 'g') t += +tok.slice(1); else { const d = dur(`voice/${tok}.wav`); V[tok] = { s: +t.toFixed(3), e: +(t + d).toFixed(3) }; t += d; } }
 const total = +t.toFixed(2);
@@ -29,8 +35,10 @@ for (const [id, q] of Object.entries(V)) { args.push('-i', `voice/${id}.wav`); f
 for (const [name, at, v] of S) { if (at > total) continue; args.push('-i', FILES[name]); f.push(`[${k}:a]${st},volume=${v},adelay=${ms(at)}|${ms(at)}[x${k}]`); mix.push(`[x${k}]`); k++; }
 f.push(`${mix.join('')}amix=inputs=${mix.length}:normalize=0:duration=longest,apad,atrim=0:${total}[fg]`);
 // official theme: from 0:00, ~20 dB under the narration, fade out over the last 1.5 s
-args.push('-stream_loop', '-1', '-i', '../../music/in-this-town-theme.mp3');
-f.push(`[${k}:a]${st},atrim=0:${total},loudnorm=I=-37:TP=-9:LRA=11,${st},afade=t=out:st=${total - 1.5}:d=1.5[mu]`);
+args.push('-i', '../../music/in-this-town-theme.mp3', '-i', '../../music/in-this-town-theme.mp3');
+// theme looped once with a 3 s crossfade, ~20 dB under the voice; a little louder during the Truth Day parade
+const P0 = V.n77 ? V.n77.s : 0, P1 = V.n78 ? V.n78.e + 1.2 : 0;
+f.push(`[${k}:a]${st}[m1];[${k + 1}:a]${st}[m2];[m1][m2]acrossfade=d=3:c1=tri:c2=tri,atrim=0:${total},loudnorm=I=-37:TP=-9:LRA=11,${st},volume='if(between(t,${P0},${P1}),1.7,1)':eval=frame,afade=t=out:st=${total - 1.5}:d=1.5[mu]`);
 f.push(`[fg][mu]amix=inputs=2:normalize=0:duration=first,alimiter=limit=0.95[out]`);
 execFileSync('ffmpeg', ['-y', '-v', 'error', ...args, '-filter_complex', f.join(';'), '-map', '[out]', '-ar', '44100', '-c:a', 'pcm_s16le', 'premix.wav'], { stdio: 'inherit' });
 // final loudness: two-pass linear loudnorm to I=-17 (no pumping of the music bed)
