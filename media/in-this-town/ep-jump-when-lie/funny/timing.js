@@ -10,6 +10,11 @@ function TIMING(V) {
   add('fan', e('n05') + 0.3, 99, 900);
   add('terms', e('n07') + 0.3, 99, 0);
   add('job', e('n10') + 0.3, 99, 0);
+  add('diner', e('n26') + 0.3, 99, 0);
+  add('kid', e('n30') + 0.3, 0.9, 380);
+  add('dog', s('n31') + 0.35, 0.8, 380);
+  add('socks', e('n34') + 0.3, 99, 0);
+  add('dentist', e('n37') + 0.3, 99, 0);
   add('hike', e('n13') + 0.3, 0.8, 420);
   add('girl', e('n14') + 0.3, 0.6, 330); add('girl', e('n14') + 0.95, 0.75, 520);
   add('weather', e('n15') + 0.3, 99, 0);
@@ -29,6 +34,8 @@ function TIMING(V) {
   sfxAt('bonk', J.find((j) => j.k === 'weather').t0 + 0.55, 0.6);
   sfxAt('whoosh', J.find((j) => j.k === 'mum').t0 + 0.05, 0.6);
   sfxAt('thud', s('n22') + 0.1, 0.6);
+  sfxAt('crash', J.find((j) => j.k === 'dentist').t0 + 0.42, 0.8);
+  sfxAt('bonk', J.find((j) => j.k === 'diner').t0 + 0.35, 0.5);
   return { J, S };
 }
 if (typeof module !== 'undefined') module.exports = TIMING;

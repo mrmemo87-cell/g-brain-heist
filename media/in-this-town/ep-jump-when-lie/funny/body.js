@@ -2,6 +2,10 @@
 const CAPS = {
   n02: 'WHICH MEANS… NOBODY|HERE CAN LIE. <tspan fill="#ffd54d">AT ALL.</tspan>', n03: '“I’M ON MY WAY.”', n04: 'HE’S STILL <tspan fill="#ffd54d">IN BED.</tspan>',
   n05: '“NICE HAIRCUT!”', n06: 'STRAIGHT INTO THE|<tspan fill="#ffd54d">CEILING FAN.</tspan>', n07: '“I’VE READ THE TERMS|AND CONDITIONS.”', n08: 'HE’S <tspan fill="#ffd54d">STILL FLYING.</tspan>',
+  n25: 'AT THE RESTAURANT:|“HOW’S YOUR FOOD?”', n26: '“DELICIOUS!”', n27: 'THE WHOLE TABLE|<tspan fill="#ffd54d">GOES UP.</tspan>', n28: 'THE WAITER SIGHS…|AND GETS THE <tspan fill="#ffd54d">LADDER.</tspan>',
+  n29: 'SCHOOL IS <tspan fill="#ffd54d">CHAOS.</tspan>', n30: '“MY DOG ATE|MY HOMEWORK.”', n31: 'THE DOG <tspan fill="#ffd54d">JUMPS TOO.</tspan>', n32: 'HE KNOWS|WHAT HE DID.',
+  n33: 'BIRTHDAY PARTIES|ARE <tspan fill="#ffd54d">DANGEROUS.</tspan>', n34: '“OH WOW, SOCKS!|I LOVE THEM!”', n35: 'GRANDAD’S STILL UP THERE|WITH THE <tspan fill="#ffd54d">BALLOONS.</tspan>',
+  n36: 'EVEN THE <tspan fill="#ffd54d">DENTIST.</tspan>', n37: '“THIS WON’T|HURT A BIT.”', n38: 'STRAIGHT THROUGH|THE <tspan fill="#ffd54d">WINDOW.</tspan>',
   n09: 'JOB INTERVIEWS TAKE|<tspan fill="#ffd54d">3 SECONDS.</tspan>', n10: '“WHERE DO YOU SEE YOURSELF|IN FIVE YEARS?”', n11: '<tspan fill="#ff5f8f">NEXT.</tspan>',
   n12: 'FIRST DATES ARE|A <tspan fill="#ffd54d">DISASTER.</tspan>', n13: '“I LOVE HIKING.”', n14: '“I’M NOT LIKE|OTHER GIRLS.”', n15: 'THE WEATHERMAN:|“SUNNY ALL DAY!”…', n16: '…AND LAUNCHES|INTO A <tspan fill="#ffd54d">CLOUD.</tspan>',
   n17: 'EVEN THE CATS|<tspan fill="#ffd54d">AREN’T SAFE.</tspan>', n18: 'THIS ONE DIDN’T EVEN|SAY ANYTHING.', n19: 'IT JUST <tspan fill="#ffd54d">THOUGHT</tspan>:|“I DIDN’T KNOCK THAT|CUP OFF THE TABLE.”', n20: 'MY MUM LOOKED AT|MY DRAWING AND SAID…', n21: '“IT’S BEAUTIFUL,|SWEETIE.”',
@@ -9,8 +13,8 @@ const CAPS = {
 };
 const JJ = (k) => J.find((q) => q.k === k);
 const CUTS = [
-  ['hook', -1], ['nolie', s_('n02') - 0.05], ['bed', s_('n03') - 0.05], ['fan', s_('n05') - 0.05], ['terms', s_('n07') - 0.05], ['flying', s_('n08') - 0.1],
-  ['job', s_('n09') - 0.05], ['date', s_('n12') - 0.05], ['weather', s_('n15') - 0.05], ['cats', s_('n17') - 0.05], ['cup', s_('n18') - 0.05],
+  ['hook', -1], ['nolie', s_('n02') - 0.05], ['bed', s_('n03') - 0.05], ['fan', s_('n05') - 0.05], ['terms', s_('n07') - 0.05], ['flying', s_('n08') - 0.1], ['diner', s_('n25') - 0.05], ['school', s_('n29') - 0.05],
+  ['job', s_('n09') - 0.05], ['date', s_('n12') - 0.05], ['weather', s_('n15') - 0.05], ['party', s_('n33') - 0.05], ['dentist', s_('n36') - 0.05], ['cats', s_('n17') - 0.05], ['cup', s_('n18') - 0.05],
   ['mum', s_('n20') - 0.05], ['roof', s_('n22') - 0.15], ['end', s_('n23') - 0.05],
 ];
 const shotAt = (t) => { let c = CUTS[0]; for (const q of CUTS) if (t >= q[1]) c = q; return c; };
@@ -231,7 +235,7 @@ const OV = {
       + `<text x="0" y="170" font-size="96" text-anchor="middle" font-family="Noto Color Emoji">👇</text></g>`;
   },
 };
-const CAM = { hook: [1.2, 540, 1010], nolie: [1.3, 540, 1080], bed: [1.35, 540, 1000], fan: [1.3, 540, 1000], terms: [1.4, 540, 1000], flying: [1.0, 540, 960], job: [1.3, 540, 1000], date: [1.3, 540, 1000], weather: [1.08, 540, 900], cats: [1.25, 540, 1100], catclose: [1.15, 540, 1100], catback: [1.15, 540, 1100], cup: [1.3, 540, 1000], mum: [1.25, 480, 1000], roof: [1.1, 540, 940], end: [1.15, 540, 1080] };
+const CAM = { hook: [1.2, 540, 1010], nolie: [1.3, 540, 1080], bed: [1.35, 540, 1000], fan: [1.3, 540, 1000], terms: [1.4, 540, 1000], flying: [1.0, 540, 960], job: [1.3, 540, 1000], date: [1.3, 540, 1000], weather: [1.08, 540, 900], cats: [1.25, 540, 1100], catclose: [1.15, 540, 1100], catback: [1.15, 540, 1100], cup: [1.3, 540, 1000], diner: [1.25, 540, 960], school: [1.3, 540, 1000], party: [1.25, 540, 960], dentist: [1.25, 540, 960], mum: [1.25, 480, 1000], roof: [1.1, 540, 940], end: [1.15, 540, 1080] };
 // big comic "BOING!" pop on each real jump
 function BOINGS(t) {
   let g = '', i = 0;
