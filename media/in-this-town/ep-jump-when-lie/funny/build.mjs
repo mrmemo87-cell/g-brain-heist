@@ -16,7 +16,7 @@ const seq = `g0.2 n01 g0.25 n02 g0.3 n03 g0.9 n04 g0.4 n05 g0.85 n06 g0.4 n07 g0
   n53 g0.1 n54 g0.8 n55 g0.3 n56 g0.1 n57 g0.4 n58 g0.4 n59 g0.1 n60 g1.5
   n61 g0.1 n62 g0.8 n63 g0.3 n64 g0.1 n65 g0.9 n66 g0.3 n67 g0.1 n68 g0.8 n69 g0.9 n70 g0.15 n71 g0.9 n72 g0.1 n73 g1.0
   n74 g0.1 n75 g0.8 n76 g0.3 n77 g0.1 n78 g1.1 n79 g0.2 n80 g0.3 n81 g0.3 n82 g1.0 n83 g0.4 n84 g0.1 n85 g0.9 n86 g0.5
-  n20 g0.2 n21 g1.0 n22 g0.9 n23 g0.3 n24 g2.3`;
+  n20 g0.2 n21 g1.0 n22 g0.9 n24 g2.6`;
 const V = {}; let t = 0;
 for (const tok of seq.trim().split(/\s+/)) { if (tok[0] === 'g') t += +tok.slice(1); else { const d = dur(`voice/${tok}.wav`); V[tok] = { s: +t.toFixed(3), e: +(t + d).toFixed(3) }; t += d; } }
 const total = +t.toFixed(2);

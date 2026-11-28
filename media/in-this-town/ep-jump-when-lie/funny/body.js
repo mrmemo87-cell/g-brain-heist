@@ -9,13 +9,13 @@ const CAPS = {
   n09: 'JOB INTERVIEWS TAKE|<tspan fill="#ffd54d">3 SECONDS.</tspan>', n10: '“WHERE DO YOU SEE YOURSELF|IN FIVE YEARS?”', n11: '<tspan fill="#ff5f8f">NEXT.</tspan>',
   n12: 'FIRST DATES ARE|A <tspan fill="#ffd54d">DISASTER.</tspan>', n13: '“I LOVE HIKING.”', n14: '“I’M NOT LIKE|OTHER GIRLS.”', n15: 'THE WEATHERMAN:|“SUNNY ALL DAY!”…', n16: '…AND LAUNCHES|INTO A <tspan fill="#ffd54d">CLOUD.</tspan>',
   n17: 'EVEN THE CATS|<tspan fill="#ffd54d">AREN’T SAFE.</tspan>', n18: 'THIS ONE DIDN’T EVEN|SAY ANYTHING.', n19: 'IT JUST <tspan fill="#ffd54d">THOUGHT</tspan>:|“I DIDN’T KNOCK THAT|CUP OFF THE TABLE.”', n20: 'MY MUM LOOKED AT|MY DRAWING AND SAID…', n21: '“IT’S BEAUTIFUL,|SWEETIE.”',
-  n22: '…SHE’S STILL|ON THE <tspan fill="#ffd54d">ROOF.</tspan>', n23: 'WHAT LIE WOULD MAKE|<tspan fill="#ff5f8f">YOU</tspan> JUMP THE HIGHEST?', n24: 'FOLLOW FOR MORE|OF THIS TOWN.',
+  n22: '…SHE’S STILL|ON THE <tspan fill="#ffd54d">ROOF.</tspan>', n24: 'FOLLOW FOR MORE|OF THIS TOWN.',
 };
 const JJ = (k) => J.find((q) => q.k === k);
 const CUTS = [
   ['hook', -1], ['nolie', s_('n02') - 0.05], ['bed', s_('n03') - 0.05], ['fan', s_('n05') - 0.05], ['terms', s_('n07') - 0.05], ['flying', s_('n08') - 0.1], ['diner', s_('n25') - 0.05], ['school', s_('n29') - 0.05],
   ['job', s_('n09') - 0.05], ['date', s_('n12') - 0.05], ['weather', s_('n15') - 0.05], ['party', s_('n33') - 0.05], ['dentist', s_('n36') - 0.05], ['cats', s_('n17') - 0.05], ['cup', s_('n18') - 0.05],
-  ['mum', s_('n20') - 0.05], ['roof', s_('n22') - 0.15], ['end', s_('n23') - 0.05],
+  ['mum', s_('n20') - 0.05], ['roof', s_('n22') - 0.15], ['end', s_('n24') - 0.05],
 ];
 const shotAt = (t) => { let c = CUTS[0]; for (const q of CUTS) if (t >= q[1]) c = q; return c; };
 const ME = { skin: '#f6c9a0', shirt: '#ff8c69', pants: '#3d4a7a', hair: 'bowl', hairC: '#4a2f1c' };
@@ -227,12 +227,6 @@ const OV = {
     const k = 1 + Math.sin(t * 3) * 0.015;
     return `<g transform="translate(540,320) scale(${n(k)})"><rect x="-505" y="-215" width="1010" height="360" rx="28" fill="#fff8e7" stroke="${OUT}" stroke-width="5"/>`
       + T(0, -125, 'IN THIS TOWN,', 80, '#2b2540', { flat: 1 }) + T(0, -20, 'PEOPLE JUMP', 112, '#ff5f8f', { sw: 8 }) + T(0, 95, 'WHEN PEOPLE LIE.', 88, '#3b82c4', { sw: 7 }) + `</g>`;
-  },
-  end(t) {
-    const k = pop(t, s_('n23') - 0.05);
-    return `<g transform="translate(540,420) scale(${n(k)})"><rect x="-480" y="-250" width="960" height="460" rx="28" fill="#fff" stroke="${OUT}" stroke-width="5"/>`
-      + T(0, -150, 'What lie would', 80, OUT, { flat: 1 }) + T(0, -50, 'make YOU jump', 86, '#ff5f8f', { sw: 7 }) + T(0, 50, 'the highest?', 80, OUT, { flat: 1 })
-      + `<text x="0" y="170" font-size="96" text-anchor="middle" font-family="Noto Color Emoji">👇</text></g>`;
   },
 };
 const CAM = { hook: [1.2, 540, 1010], nolie: [1.3, 540, 1080], bed: [1.35, 540, 1000], fan: [1.3, 540, 1000], terms: [1.4, 540, 1000], flying: [1.0, 540, 960], job: [1.3, 540, 1000], date: [1.3, 540, 1000], weather: [1.08, 540, 900], cats: [1.25, 540, 1100], catclose: [1.15, 540, 1100], catback: [1.15, 540, 1100], cup: [1.3, 540, 1000], diner: [1.25, 540, 960], school: [1.3, 540, 1000], party: [1.25, 540, 960], dentist: [1.25, 540, 960], mum: [1.25, 480, 1000], roof: [1.1, 540, 940], end: [1.15, 540, 1080] };

@@ -34,7 +34,7 @@ function TIMING(V) {
   add('libcat', e('n82') + 0.3, 0.9, 350);
   add('bbq', e('n85') + 0.3, 0.9, 420);
   add('mum', e('n21') + 0.3, 99, 0);
-  for (let t = s('n23') - 0.3; t < e('n24') + 2.4; t += 1.2) add('end', t, 0.8, 220, 0);
+  for (let t = s('n24') - 0.3; t < e('n24') + 2.4; t += 1.2) add('end', t, 0.8, 220, 0);
   const S = [];
   for (const j of J) if (j.sfx) { S.push(['boing', j.t0 - 0.03, j.H > 600 || j.dur > 50 ? 0.85 : 0.65]); if (j.dur < 50) S.push(['thud', j.t0 + j.dur, 0.55]); }
   for (let t = s('n17'); t < e('n17') + 0.2; t += 0.4) S.push(['boing', t, 0.22]);
