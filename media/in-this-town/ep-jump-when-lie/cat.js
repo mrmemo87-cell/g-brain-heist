@@ -1,0 +1,25 @@
+// the cat: orange tabby, sitting. o: {back, sleep, look:[x,y], blink}
+const CATC={orange:['#e8933a','#b8651f','#f6d2a8'],grey:['#9aa0b5','#666b80','#e3e6ee'],black:['#2a2838','#14121c','#4a4658'],white:['#f3efe6','#d8cfc0','#ffffff'],calico:['#f3efe6','#e8933a','#ffffff']};
+function CAT(x,y,s,t,o={}){const P=CATC[o.c||'orange'],C=P[0],D2=P[1],BL=P[2],sw=Math.sin(t*2.2+x)*14;let g=`<g transform="translate(${n(x)},${n(y)}) scale(${s})">`;
+  if(o.sleep){g+=`<ellipse cx="0" cy="-45" rx="120" ry="55" fill="${C}" stroke="${OUT}" stroke-width="4"/>`;for(const k of [-50,-10,30])g+=`<path d="M ${k} -95 q 10 25 0 50" stroke="${D2}" stroke-width="10" fill="none" stroke-linecap="round"/>`;
+    g+=`<path d="M -110 -30 Q -150 20 -60 10" stroke="${C}" stroke-width="26" fill="none" stroke-linecap="round"/><g transform="translate(85,-60)"><circle r="52" fill="${C}" stroke="${OUT}" stroke-width="4"/><polygon points="-38,-30 -24,-78 -4,-44" fill="${C}" stroke="${OUT}" stroke-width="3.5" stroke-linejoin="round"/><polygon points="38,-30 24,-78 4,-44" fill="${C}" stroke="${OUT}" stroke-width="3.5" stroke-linejoin="round"/><path d="M -24 0 q 10 8 20 0 M 6 0 q 10 8 20 0" stroke="${OUT}" stroke-width="3.5" fill="none" stroke-linecap="round"/><ellipse cx="1" cy="16" rx="6" ry="4" fill="#ff8fab"/></g>`;
+    g+=[0,1,2].map(i=>{const u=((t*.4+i/3)%1);return T(150+u*50,-140-u*90,'z',30+i*6,'#fff',{op:n(1-u),flat:1})}).join('');return g+`</g>`}
+  // tail
+  g+=`<path d="M ${o.back?0:50} -20 Q ${o.back?20:120} -30 ${n((o.back?10:110)+sw)} -110" stroke="${C}" stroke-width="22" fill="none" stroke-linecap="round"/><path d="M ${o.back?0:50} -20 Q ${o.back?20:120} -30 ${n((o.back?10:110)+sw)} -110" stroke="${OUT}" stroke-width="4" fill="none" opacity=".35"/>`;
+  g+=`<path d="M -60 0 Q -70 -120 0 -130 Q 70 -120 60 0 Z" fill="${C}" stroke="${OUT}" stroke-width="4"/>`;
+  for(const k of [-30,0,30])g+=`<path d="M ${k} -120 q ${k/6} 20 0 40" stroke="${D2}" stroke-width="9" fill="none" stroke-linecap="round" opacity=".8"/>`;
+  if(!o.back)g+=`<ellipse cx="0" cy="-50" rx="30" ry="40" fill="${BL}"/><ellipse cx="-28" cy="-4" rx="18" ry="10" fill="${BL}" stroke="${OUT}" stroke-width="4"/><ellipse cx="28" cy="-4" rx="18" ry="10" fill="${BL}" stroke="${OUT}" stroke-width="4"/>`;
+  const hy=-170+(o.lick?Math.sin(t*6)*4:0);g+=`<g transform="translate(0,${n(hy)}) rotate(${n(o.tilt||Math.sin(t*.8)*4)})">`;
+  g+=`<polygon points="-52,-20 -40,-82 -8,-50" fill="${C}" stroke="${OUT}" stroke-width="3.5" stroke-linejoin="round"/><polygon points="52,-20 40,-82 8,-50" fill="${C}" stroke="${OUT}" stroke-width="3.5" stroke-linejoin="round"/>`;
+  if(!o.back)g+=`<polygon points="-44,-30 -38,-66 -20,-46" fill="#ff8fab"/><polygon points="44,-30 38,-66 20,-46" fill="#ff8fab"/>`;
+  g+=`<ellipse cx="0" cy="0" rx="66" ry="58" fill="${C}" stroke="${OUT}" stroke-width="4"/>`;
+  if(o.back){g+=`<path d="M -20 -50 q 0 20 0 30 M 0 -56 q 0 22 0 34 M 20 -50 q 0 20 0 30" stroke="${D2}" stroke-width="8" fill="none" stroke-linecap="round"/>`}
+  else{const lk=o.look||[0,0],op=blink(t,x*.01+.7);
+    for(const i of [-1,1]){g+=`<ellipse cx="${i*24}" cy="-6" rx="13" ry="${n(15*op)}" fill="#c8f06a" stroke="${OUT}" stroke-width="3"/>`;if(op>.3)g+=`<ellipse cx="${n(i*24+lk[0]*5)}" cy="${n(-6+lk[1]*5)}" rx="4" ry="12" fill="#17152e"/>`}
+    g+=`<path d="M -6 16 L 6 16 L 0 23 Z" fill="#ff8fab"/><path d="M 0 23 q -8 10 -16 4 M 0 23 q 8 10 16 4" stroke="${OUT}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+    for(const i of [-1,1])for(const k of [-1,0,1])g+=`<line x1="${i*30}" y1="${18+k*7}" x2="${i*80}" y2="${12+k*14}" stroke="#fff" stroke-width="3" opacity=".85"/>`;
+    if(o.hat)g+=`<ellipse cx="0" cy="-58" rx="70" ry="14" fill="#c0392b" stroke="${OUT}" stroke-width="4"/><path d="M -46 -58 Q 0 -140 46 -58 Z" fill="#c0392b" stroke="${OUT}" stroke-width="4"/>`}
+  g+=`</g>`;
+  if(o.lick&&!o.back)g+=`<ellipse cx="${n(-20+Math.sin(t*6)*4)}" cy="-115" rx="18" ry="22" fill="${BL}" stroke="${OUT}" stroke-width="4"/>`;
+  return g+`</g>`}
+function PEEK(x,s,t,c='orange',y=1080){const P=CATC[c],k=Math.sin(t*1.3+x)*6;return `<g transform="translate(${x},${n(y+k)}) scale(${s})"><polygon points="-52,-150 -40,-212 -8,-180" fill="${P[0]}" stroke="${OUT}" stroke-width="3.5"/><polygon points="52,-150 40,-212 8,-180" fill="${P[0]}" stroke="${OUT}" stroke-width="3.5"/><polygon points="-44,-160 -38,-196 -20,-176" fill="#ff8fab"/><polygon points="44,-160 38,-196 20,-176" fill="#ff8fab"/><ellipse cx="0" cy="-120" rx="70" ry="62" fill="${P[0]}" stroke="${OUT}" stroke-width="4"/><ellipse cx="-24" cy="-128" rx="12" ry="${n(14*blink(t,x*.01))}" fill="#c8f06a" stroke="${OUT}" stroke-width="3"/><ellipse cx="24" cy="-128" rx="12" ry="${n(14*blink(t,x*.01))}" fill="#c8f06a" stroke="${OUT}" stroke-width="3"/><ellipse cx="-24" cy="-128" rx="4" ry="11" fill="#17152e"/><ellipse cx="24" cy="-128" rx="4" ry="11" fill="#17152e"/><path d="M -6 -106 L 6 -106 L 0 -99 Z" fill="#ff8fab"/><ellipse cx="-40" cy="-62" rx="26" ry="18" fill="${P[2]}" stroke="${OUT}" stroke-width="3.5"/><ellipse cx="40" cy="-62" rx="26" ry="18" fill="${P[2]}" stroke="${OUT}" stroke-width="3.5"/></g>`}
