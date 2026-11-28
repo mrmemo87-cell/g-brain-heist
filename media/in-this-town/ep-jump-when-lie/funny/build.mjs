@@ -10,7 +10,7 @@ const N = 24;
 for (let i = 0; i < N; i++) ff(['-i', `narr_raw/${String(i).padStart(3, '0')}.wav`, '-af', `asetrate=24000*0.91,aresample=44100,atempo=0.99,bass=g=3:f=120,${TRIM}`, `voice/n${String(i + 1).padStart(2, '0')}.wav`]);
 // gaps leave room for each jump after its lie
 const seq = `g0.2 n01 g0.3 n02 g0.5 n03 g1.15 n04 g0.7 n05 g1.0 n06 g0.7 n07 g0.9 n08 g0.8 n09 g0.3 n10 g1.0 n11 g0.9
-  n12 g0.3 n13 g1.1 n14 g1.9 n15 g1.0 n16 g0.8 n17 g0.3 n18 g0.3 n19 g0.9 n20 g0.2 n21 g1.1 n22 g1.1 n23 g0.3 n24 g3.6`;
+  n12 g0.3 n13 g1.1 n14 g1.9 n15 g1.0 n16 g0.8 n17 g0.4 n18 g0.3 n19 g1.9 n20 g0.2 n21 g1.1 n22 g1.1 n23 g0.3 n24 g3.6`;
 const V = {}; let t = 0;
 for (const tok of seq.trim().split(/\s+/)) { if (tok[0] === 'g') t += +tok.slice(1); else { const d = dur(`voice/${tok}.wav`); V[tok] = { s: +t.toFixed(3), e: +(t + d).toFixed(3) }; t += d; } }
 const total = +t.toFixed(2);

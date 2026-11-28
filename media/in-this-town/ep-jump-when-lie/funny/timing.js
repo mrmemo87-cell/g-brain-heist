@@ -14,6 +14,7 @@ function TIMING(V) {
   add('girl', e('n14') + 0.3, 0.6, 330); add('girl', e('n14') + 0.95, 0.75, 520);
   add('weather', e('n15') + 0.3, 99, 0);
   ['c0', 'c1', 'c2', 'c3'].forEach((k, i) => { for (let t = s('n17') - 0.1 + i * 0.2; t < e('n17') + 0.3; t += 0.85 + i * 0.05) add(k, t, 0.65, 260 + i * 30, 0); });
+  add('kitty', e('n19') + 0.45, 1.0, 700);
   add('mum', e('n21') + 0.3, 99, 0);
   for (let t = s('n23') - 0.3; t < e('n24') + 2.4; t += 1.2) add('end', t, 0.8, 220, 0);
   const S = [];

@@ -14,9 +14,9 @@
 0.70|0.1|"I'm not like other girls."
 0.65|0.1|The weatherman says, "Sunny all day!"...
 0.70|0.1|and launches into a cloud.
-0.60|0.1|The cats are the only ones who never jump.
-0.65|0.1|Cats don't lie.
-0.70|0.1|They just don't care.
+0.65|0.1|Even the cats aren't safe.
+0.60|0.1|This one didn't even say anything.
+0.70|0.1|It just THOUGHT: "I didn't knock that cup off the table."
 0.60|0.1|And then my mum looked at my drawing and said,
 0.65|0.1|"It's beautiful, sweetie."
 0.75|0.1|...She's still on the roof.

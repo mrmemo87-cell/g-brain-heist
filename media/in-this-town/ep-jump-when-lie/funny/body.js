@@ -4,13 +4,13 @@ const CAPS = {
   n05: '“NICE HAIRCUT!”', n06: 'STRAIGHT INTO THE|<tspan fill="#ffd54d">CEILING FAN.</tspan>', n07: '“I’VE READ THE TERMS|AND CONDITIONS.”', n08: 'HE’S <tspan fill="#ffd54d">STILL FLYING.</tspan>',
   n09: 'JOB INTERVIEWS TAKE|<tspan fill="#ffd54d">3 SECONDS.</tspan>', n10: '“WHERE DO YOU SEE YOURSELF|IN FIVE YEARS?”', n11: '<tspan fill="#ff5f8f">NEXT.</tspan>',
   n12: 'FIRST DATES ARE|A <tspan fill="#ffd54d">DISASTER.</tspan>', n13: '“I LOVE HIKING.”', n14: '“I’M NOT LIKE|OTHER GIRLS.”', n15: 'THE WEATHERMAN:|“SUNNY ALL DAY!”…', n16: '…AND LAUNCHES|INTO A <tspan fill="#ffd54d">CLOUD.</tspan>',
-  n17: 'THE CATS NEVER JUMP.', n18: 'CATS <tspan fill="#ffd54d">DON’T LIE.</tspan>', n19: 'THEY JUST|<tspan fill="#ffd54d">DON’T CARE.</tspan>', n20: 'MY MUM LOOKED AT|MY DRAWING AND SAID…', n21: '“IT’S BEAUTIFUL,|SWEETIE.”',
+  n17: 'EVEN THE CATS|<tspan fill="#ffd54d">AREN’T SAFE.</tspan>', n18: 'THIS ONE DIDN’T EVEN|SAY ANYTHING.', n19: 'IT JUST <tspan fill="#ffd54d">THOUGHT</tspan>:|“I DIDN’T KNOCK THAT|CUP OFF THE TABLE.”', n20: 'MY MUM LOOKED AT|MY DRAWING AND SAID…', n21: '“IT’S BEAUTIFUL,|SWEETIE.”',
   n22: '…SHE’S STILL|ON THE <tspan fill="#ffd54d">ROOF.</tspan>', n23: 'WHAT LIE WOULD MAKE|<tspan fill="#ff5f8f">YOU</tspan> JUMP THE HIGHEST?', n24: 'FOLLOW FOR MORE|OF THIS TOWN.',
 };
 const JJ = (k) => J.find((q) => q.k === k);
 const CUTS = [
   ['hook', -1], ['nolie', s_('n02') - 0.05], ['bed', s_('n03') - 0.05], ['fan', s_('n05') - 0.05], ['terms', s_('n07') - 0.05], ['flying', s_('n08') - 0.1],
-  ['job', s_('n09') - 0.05], ['date', s_('n12') - 0.05], ['weather', s_('n15') - 0.05], ['cats', s_('n17') - 0.05], ['catclose', s_('n18') - 0.05], ['catback', s_('n19') - 0.05],
+  ['job', s_('n09') - 0.05], ['date', s_('n12') - 0.05], ['weather', s_('n15') - 0.05], ['cats', s_('n17') - 0.05], ['cup', s_('n18') - 0.05],
   ['mum', s_('n20') - 0.05], ['roof', s_('n22') - 0.15], ['end', s_('n23') - 0.05],
 ];
 const shotAt = (t) => { let c = CUTS[0]; for (const q of CUTS) if (t >= q[1]) c = q; return c; };
@@ -159,6 +159,30 @@ const SC = {
     g += CAT(250, GROUND + 160, 0.6, t, { c: 'black', sleep: 1 }) + CAT(860, GROUND + 160, 0.6, t, MEH({ c: 'grey', lick: 1 }));
     return g;
   },
+  cup(t) {
+    // the kitty that only THOUGHT a lie
+    const jk = JJ('kitty');
+    let g = ROOM(t, '#fff1c9', '#c7a07a');
+    g += BLK(220, 560, 520, 800, '#dff4ff', 12) + `<line x1="370" y1="560" x2="370" y2="800" stroke="${OUT}" stroke-width="3"/>`;
+    g += TABLE(560, 1000, 1060);
+    // the knocked-off cup: pieces and a little puddle on the floor
+    g += `<ellipse cx="700" cy="1318" rx="120" ry="22" fill="#c98d62" opacity=".7"/>` + BLK(640, 1270, 690, 1310, '#ffffff', 8) + `<g transform="rotate(35,740,1300)">` + BLK(720, 1280, 760, 1310, '#ffffff', 8) + `</g>` + BLK(770, 1296, 790, 1312, '#ffffff', 5) + `<rect x="650" y="1280" width="30" height="8" fill="#e94b5f"/>`;
+    const j = jumpState('kitty', t), air = j.air;
+    g += SHADOW(440, GROUND + 60, 0.9, j.dy) + `<g transform="translate(440,${n(GROUND + 60 - j.dy)}) scale(${n(j.sx)},${n(j.sy)})">` + CAT(0, 0, 0.9, t, { c: 'orange', look: air ? [0, -1] : [0.7, -0.9] }) + `</g>` + DUST(440, GROUND + 60, t, j.land, 0.9);
+    const up = t > jk.t0;
+    g += CAT(240, GROUND + 80, 0.55, t, MEH({ c: 'grey', look: [0.8, up ? -1 : 0] })) + CAT(860, GROUND + 80, 0.55, t, MEH({ c: 'black', look: [-0.8, up ? -1 : 0] }));
+    // thought bubble: cloud puffs with little bubbles leading to the kitty's head
+    const ta = s_('n19') + 0.55;
+    if (t > ta && t < jk.t0 + 0.05) {
+      const k = pop(t, ta, 0.2);
+      g += `<g transform="translate(540,640) scale(${n(k)})">`;
+      for (const [x, y, r] of [[-250, -10, 110], [-120, -90, 120], [40, -100, 130], [200, -60, 120], [260, 50, 100], [130, 110, 110], [-40, 120, 115], [-200, 90, 105]]) g += `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="${OUT}" stroke-width="${LW}"/>`;
+      for (const [x, y, r] of [[-250, -10, 106], [-120, -90, 116], [40, -100, 126], [200, -60, 116], [260, 50, 96], [130, 110, 106], [-40, 120, 111], [-200, 90, 101], [0, 0, 220]]) g += `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff"/>`;
+      g += T(0, -40, 'I didn’t knock', 62, OUT, { flat: 1 }) + T(0, 30, 'that cup off', 62, OUT, { flat: 1 }) + T(0, 100, 'the table.', 62, OUT, { flat: 1 }) + `</g>`;
+      for (const [x, y, r] of [[470, 860, 34], [455, 950, 24], [445, 1020, 15]]) g += `<circle cx="${x}" cy="${y}" r="${n(r * k)}" fill="#fff" stroke="${OUT}" stroke-width="${LW}"/>`;
+    }
+    return g;
+  },
   mum(t) {
     const jm = JJ('mum');
     let g = ROOM(t, '#ffe1d1', '#b9c2d6');
@@ -207,7 +231,7 @@ const OV = {
       + `<text x="0" y="170" font-size="96" text-anchor="middle" font-family="Noto Color Emoji">👇</text></g>`;
   },
 };
-const CAM = { hook: [1.2, 540, 1010], nolie: [1.3, 540, 1080], bed: [1.35, 540, 1000], fan: [1.3, 540, 1000], terms: [1.4, 540, 1000], flying: [1.0, 540, 960], job: [1.3, 540, 1000], date: [1.3, 540, 1000], weather: [1.08, 540, 900], cats: [1.25, 540, 1100], catclose: [1.15, 540, 1100], catback: [1.15, 540, 1100], mum: [1.25, 480, 1000], roof: [1.1, 540, 940], end: [1.15, 540, 1080] };
+const CAM = { hook: [1.2, 540, 1010], nolie: [1.3, 540, 1080], bed: [1.35, 540, 1000], fan: [1.3, 540, 1000], terms: [1.4, 540, 1000], flying: [1.0, 540, 960], job: [1.3, 540, 1000], date: [1.3, 540, 1000], weather: [1.08, 540, 900], cats: [1.25, 540, 1100], catclose: [1.15, 540, 1100], catback: [1.15, 540, 1100], cup: [1.3, 540, 1000], mum: [1.25, 480, 1000], roof: [1.1, 540, 940], end: [1.15, 540, 1080] };
 // big comic "BOING!" pop on each real jump
 function BOINGS(t) {
   let g = '', i = 0;
