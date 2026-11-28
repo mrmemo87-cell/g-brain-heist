@@ -21,7 +21,7 @@
 0.65|0.1|"It's beautiful, sweetie."
 0.75|0.1|...She's still on the roof.
 0.65|0.1|What lie would make YOU jump the highest?
-0.65|0.1|Follow for more of this town.
+0.65|0.1|Follow for more.
 0.60|0.1|At the restaurant: "How's your food?"
 0.70|0.1|"Delicious!"
 0.70|0.1|The whole table goes up.

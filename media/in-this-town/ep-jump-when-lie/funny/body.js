@@ -9,7 +9,7 @@ const CAPS = {
   n09: 'JOB INTERVIEWS TAKE|<tspan fill="#ffd54d">3 SECONDS.</tspan>', n10: '“WHERE DO YOU SEE YOURSELF|IN FIVE YEARS?”', n11: '<tspan fill="#ff5f8f">NEXT.</tspan>',
   n12: 'FIRST DATES ARE|A <tspan fill="#ffd54d">DISASTER.</tspan>', n13: '“I LOVE HIKING.”', n14: '“I’M NOT LIKE|OTHER GIRLS.”', n15: 'THE WEATHERMAN:|“SUNNY ALL DAY!”…', n16: '…AND LAUNCHES|INTO A <tspan fill="#ffd54d">CLOUD.</tspan>',
   n17: 'EVEN THE CATS|<tspan fill="#ffd54d">AREN’T SAFE.</tspan>', n18: 'THIS ONE DIDN’T EVEN|SAY ANYTHING.', n19: 'IT JUST <tspan fill="#ffd54d">THOUGHT</tspan>:|“I DIDN’T KNOCK THAT|CUP OFF THE TABLE.”', n20: 'MY MUM LOOKED AT|MY DRAWING AND SAID…', n21: '“IT’S BEAUTIFUL,|SWEETIE.”',
-  n22: '…SHE’S STILL|ON THE <tspan fill="#ffd54d">ROOF.</tspan>', n24: 'FOLLOW FOR MORE|OF THIS TOWN.',
+  n22: '…SHE’S STILL|ON THE <tspan fill="#ffd54d">ROOF.</tspan>', n24: 'FOLLOW FOR MORE.',
 };
 const JJ = (k) => J.find((q) => q.k === k);
 const CUTS = [
