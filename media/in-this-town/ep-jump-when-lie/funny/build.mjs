@@ -9,14 +9,14 @@ fs.mkdirSync('voice', { recursive: true });
 const N = 86;
 for (let i = 0; i < N; i++) ff(['-i', `narr_raw/${String(i).padStart(3, '0')}.wav`, '-af', `asetrate=24000*0.91,aresample=44100,atempo=0.99,bass=g=3:f=120,${TRIM}`, `voice/n${String(i + 1).padStart(2, '0')}.wav`]);
 // gaps leave room for each jump after its lie
-const seq = `g0.2 n01 g0.25 n02 g0.4 n03 g1.0 n04 g0.5 n05 g0.95 n06 g0.5 n07 g0.85 n08 g0.5 n25 g0.15 n26 g1.0 n27 g0.2 n28 g0.5
-  n29 g0.15 n30 g0.95 n31 g0.9 n32 g0.5 n09 g0.2 n10 g0.95 n11 g0.6 n12 g0.2 n13 g1.0 n14 g1.7 n15 g0.95 n16 g0.5
-  n33 g0.15 n34 g1.0 n35 g0.5 n36 g0.15 n37 g1.1 n38 g0.6 n17 g0.3 n18 g0.2 n19 g1.7
-  n39 g0.2 n40 g0.6 n41 g0.1 n42 g0.95 n43 g0.4 n44 g0.1 n45 g1.3 n46 g0.5 n47 g0.1 n48 g0.95 n49 g0.4 n50 g0.1 n51 g1.2 n52 g0.5
-  n53 g0.1 n54 g0.9 n55 g0.4 n56 g0.1 n57 g0.5 n58 g0.5 n59 g0.1 n60 g1.6
-  n61 g0.1 n62 g0.9 n63 g0.4 n64 g0.1 n65 g1.0 n66 g0.4 n67 g0.1 n68 g0.9 n69 g1.0 n70 g0.15 n71 g1.0 n72 g0.1 n73 g1.1
-  n74 g0.1 n75 g0.9 n76 g0.4 n77 g0.1 n78 g1.2 n79 g0.2 n80 g0.4 n81 g0.3 n82 g1.1 n83 g0.5 n84 g0.1 n85 g1.0 n86 g0.6
-  n20 g0.2 n21 g1.1 n22 g1.0 n23 g0.3 n24 g2.8`;
+const seq = `g0.2 n01 g0.25 n02 g0.3 n03 g0.9 n04 g0.4 n05 g0.85 n06 g0.4 n07 g0.75 n08 g0.4 n25 g0.15 n26 g0.9 n27 g0.2 n28 g0.4
+  n29 g0.15 n30 g0.85 n31 g0.8 n32 g0.4 n09 g0.2 n10 g0.85 n11 g0.5 n12 g0.2 n13 g0.9 n14 g1.6 n15 g0.85 n16 g0.4
+  n33 g0.15 n34 g0.9 n35 g0.4 n36 g0.15 n37 g1.0 n38 g0.5 n17 g0.3 n18 g0.2 n19 g1.6
+  n39 g0.2 n40 g0.5 n41 g0.1 n42 g0.85 n43 g0.3 n44 g0.1 n45 g1.2 n46 g0.4 n47 g0.1 n48 g0.85 n49 g0.3 n50 g0.1 n51 g1.1 n52 g0.4
+  n53 g0.1 n54 g0.8 n55 g0.3 n56 g0.1 n57 g0.4 n58 g0.4 n59 g0.1 n60 g1.5
+  n61 g0.1 n62 g0.8 n63 g0.3 n64 g0.1 n65 g0.9 n66 g0.3 n67 g0.1 n68 g0.8 n69 g0.9 n70 g0.15 n71 g0.9 n72 g0.1 n73 g1.0
+  n74 g0.1 n75 g0.8 n76 g0.3 n77 g0.1 n78 g1.1 n79 g0.2 n80 g0.3 n81 g0.3 n82 g1.0 n83 g0.4 n84 g0.1 n85 g0.9 n86 g0.5
+  n20 g0.2 n21 g1.0 n22 g0.9 n23 g0.3 n24 g2.3`;
 const V = {}; let t = 0;
 for (const tok of seq.trim().split(/\s+/)) { if (tok[0] === 'g') t += +tok.slice(1); else { const d = dur(`voice/${tok}.wav`); V[tok] = { s: +t.toFixed(3), e: +(t + d).toFixed(3) }; t += d; } }
 const total = +t.toFixed(2);

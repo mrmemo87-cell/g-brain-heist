@@ -36,3 +36,51 @@
 0.60|0.1|Even the dentist.
 0.65|0.1|"This won't hurt a bit."
 0.75|0.1|Straight through the window.
+0.65|0.1|And it's not just cats.
+0.70|0.1|In this town, even your THOUGHTS can get you.
+0.60|0.1|At the gym. He thinks:
+0.65|0.1|"I'll definitely come back tomorrow."
+0.70|0.1|Dumbbell and all.
+0.60|0.1|Group photo. Everyone smiles and thinks:
+0.65|0.1|"I look great in this one."
+0.70|0.1|The photo is just feet.
+0.60|0.1|The baby thinks:
+0.65|0.1|"I'm not the one who made that smell."
+0.70|0.1|Nappy and all.
+0.60|0.1|The kid at the dinner table thinks:
+0.65|0.1|"I'm not even hungry for dessert."
+0.70|0.1|Lands face-first in the cake.
+0.60|0.1|The teacher thinks:
+0.65|0.1|"I love my job on Mondays."
+0.70|0.1|Through the school roof.
+0.60|0.1|The dog thinks:
+0.65|0.1|"I'm a good boy."
+0.65|0.1|...No jump. He really is.
+0.65|0.1|And me? I thought:
+0.70|0.1|"This town is totally normal."
+0.60|0.1|The supermarket.
+0.65|0.1|"Just looking, thanks."
+0.70|0.1|Straight into the cereal aisle.
+0.60|0.1|The barber holds up the mirror.
+0.65|0.1|"Perfect, thank you!"
+0.70|0.1|Hair and all.
+0.60|0.1|Online shopping.
+0.65|0.1|"This will definitely fit."
+0.70|0.1|The parcel jumps too.
+0.60|0.1|A football match. The player falls over:
+0.70|0.1|"He touched me!"
+0.65|0.1|The referee jumps too:
+0.65|0.1|"I saw everything."
+0.60|0.1|Sleepover.
+0.65|0.1|"I'm not scared at all."
+0.70|0.1|Ceiling. Again.
+0.65|0.1|The town's annual Truth Day parade...
+0.70|0.1|is a trampoline show.
+0.60|0.1|The library sign says, "Quiet please."
+0.60|0.1|The librarian thinks: "Nobody ever borrows the fun books."
+0.65|0.1|Nothing happens.
+0.65|0.1|Then the kitty on the shelf thinks: "I'm not going to knock these books off."
+0.70|0.1|Books everywhere.
+0.60|0.1|Grandad at the barbecue:
+0.65|0.1|"It's not burnt, it's crispy."
+0.70|0.1|Sausage and all.
