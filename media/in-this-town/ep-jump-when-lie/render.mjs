@@ -16,10 +16,10 @@ const open = async () => {
 };
 if (mode === 'stills') {
   const p = await open();
-  fs.mkdirSync(path.join(dir, 'stills'), { recursive: true });
+  fs.mkdirSync(path.join(dir, process.env.STILLS || 'stills'), { recursive: true });
   for (const t of arg.split(',')) {
     await p.evaluate((t) => window.renderAt(t), +t);
-    await p.screenshot({ path: path.join(dir, 'stills', `t${t}.jpg`), type: 'jpeg', quality: 80 });
+    await p.screenshot({ path: path.join(dir, process.env.STILLS || 'stills', `t${t}.jpg`), type: 'jpeg', quality: 80 });
   }
 } else {
   const { fps, total } = await (await open()).evaluate(() => window.DATA);
